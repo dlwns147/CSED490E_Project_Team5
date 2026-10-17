@@ -1,0 +1,242 @@
+{
+ "la01": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 666,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la02": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 655,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la03": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 597,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la04": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 590,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la05": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 593,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la06": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 926,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la07": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 890,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la08": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 863,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la09": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 951,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la10": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 958,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la11": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 1222,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la12": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 1039,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la13": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 1150,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la14": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 1292,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la15": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 1207,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la16": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 945,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la17": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 784,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la18": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 848,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la19": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 842,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la20": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 902,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la21": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 1046,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la22": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 927,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la23": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 1032,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la24": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 935,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la25": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 977,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la26": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 1218,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la27": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 1235,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la28": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 1216,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la29": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 1157,
+  "stderr": "STATUS FEASIBLE\n"
+ },
+ "la30": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 1355,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la31": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 1784,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la32": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 1850,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la33": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 1719,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la34": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 1721,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la35": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 1888,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la36": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 1268,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la37": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 1397,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la38": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 1196,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la39": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 1233,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la40": {
+  "feasible": true,
+  "reason": "ok",
+  "makespan": 1222,
+  "stderr": "STATUS OPTIMAL\n"
+ }
+}

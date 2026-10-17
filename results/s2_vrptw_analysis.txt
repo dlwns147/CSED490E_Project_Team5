@@ -1,0 +1,48 @@
+S2_W_cooss20low_doctask_ex_s1  opt 27/30 (0.90)  feas 27/30  tokens 2206  {'reads_service': 27, 'skips_service': 3, 'other_fail': 0, 'no_code': 0}
+S2_W_cooss20low_doctask_ex_s2  opt 27/30 (0.90)  feas 27/30  tokens 2150  {'reads_service': 27, 'skips_service': 2, 'other_fail': 1, 'no_code': 0}
+S2_W_cooss20low_doctask_ex_s3  opt 24/30 (0.80)  feas 24/30  tokens 2706  {'reads_service': 24, 'skips_service': 3, 'other_fail': 3, 'no_code': 0}
+S2_W_cooss20low_doctask_ex best-of-3 (label-free min objective): 30/30 (1.00)
+S2_W_cooss20med_doctask_s1  opt 21/30 (0.70)  feas 22/30  tokens 8340  {'reads_service': 22, 'skips_service': 7, 'other_fail': 1, 'no_code': 0}
+S2_W_cooss20med_doctask_ex_s1  opt 29/30 (0.97)  feas 30/30  tokens 3665  {'reads_service': 30, 'skips_service': 0, 'other_fail': 0, 'no_code': 0}
+S2_W_cooss20med_doctask_ex_s2  opt 30/30 (1.00)  feas 30/30  tokens 3849  {'reads_service': 30, 'skips_service': 0, 'other_fail': 0, 'no_code': 0}
+S2_W_cooss20med_doctask_ex_s3  opt 27/30 (0.90)  feas 30/30  tokens 4360  {'reads_service': 30, 'skips_service': 0, 'other_fail': 0, 'no_code': 0}
+S2_W_cooss20med_doctask_ex best-of-3 (label-free min objective): 30/30 (1.00)
+S2_W_cooss20med_nodoc_ex     opt 15/30 (0.50)  feas 26/30  tokens 8943  {'reads_service': 26, 'skips_service': 0, 'other_fail': 4, 'no_code': 0}
+S2_W_cooss120low_doctask_s1  opt 0/30 (0.00)  feas 0/30  tokens 4847  {'reads_service': 0, 'skips_service': 29, 'other_fail': 1, 'no_code': 0}
+S2_W_cooss120low_doctask_ex_s1  opt 29/30 (0.97)  feas 29/30  tokens 1897  {'reads_service': 29, 'skips_service': 1, 'other_fail': 0, 'no_code': 0}
+S2_W_cooss120low_doctask_ex_s2  opt 29/30 (0.97)  feas 29/30  tokens 1676  {'reads_service': 29, 'skips_service': 1, 'other_fail': 0, 'no_code': 0}
+S2_W_cooss120low_doctask_ex_s3  opt 30/30 (1.00)  feas 30/30  tokens 1617  {'reads_service': 30, 'skips_service': 0, 'other_fail': 0, 'no_code': 0}
+S2_W_cooss120low_doctask_ex best-of-3 (label-free min objective): 30/30 (1.00)
+S2_W_cooss120low_nodoc_ex     opt 21/30 (0.70)  feas 30/30  tokens 1946  {'reads_service': 30, 'skips_service': 0, 'other_fail': 0, 'no_code': 0}
+S2_W_coq32b_doctask_s1  opt 8/30 (0.27)  feas 19/30  tokens 2697  {'reads_service': 19, 'skips_service': 0, 'other_fail': 11, 'no_code': 0}
+S2_W_coq32b_doctask_ex_s1  opt 11/30 (0.37)  feas 17/30  tokens 2520  {'reads_service': 17, 'skips_service': 0, 'other_fail': 13, 'no_code': 0}
+S2_W_coq32b_doctask_ex_s2  opt 11/30 (0.37)  feas 20/30  tokens 2839  {'reads_service': 20, 'skips_service': 0, 'other_fail': 10, 'no_code': 0}
+S2_W_coq32b_doctask_ex_s3  opt 15/30 (0.50)  feas 27/30  tokens 2347  {'reads_service': 27, 'skips_service': 0, 'other_fail': 3, 'no_code': 0}
+S2_W_coq32b_doctask_ex best-of-3 (label-free min objective): 25/30 (0.83)
+S2_W_coq32b_nodoc_ex     opt 0/30 (0.00)  feas 0/30  tokens 4291  {'reads_service': 0, 'skips_service': 0, 'other_fail': 30, 'no_code': 0}
+S2_W_col70_doctask_s1  opt 18/30 (0.60)  feas 20/30  tokens 1488  {'reads_service': 20, 'skips_service': 2, 'other_fail': 8, 'no_code': 0}
+S2_W_col70_doctask_ex_s1  opt 22/30 (0.73)  feas 25/30  tokens 1262  {'reads_service': 25, 'skips_service': 0, 'other_fail': 5, 'no_code': 0}
+S2_W_col70_doctask_ex_s2  opt 20/30 (0.67)  feas 24/30  tokens 1238  {'reads_service': 24, 'skips_service': 0, 'other_fail': 6, 'no_code': 0}
+S2_W_col70_doctask_ex_s3  opt 23/30 (0.77)  feas 26/30  tokens 1142  {'reads_service': 26, 'skips_service': 0, 'other_fail': 4, 'no_code': 0}
+S2_W_col70_doctask_ex best-of-3 (label-free min objective): 29/30 (0.97)
+S2_W_col70_nodoc_ex     opt 0/30 (0.00)  feas 0/30  tokens 2700  {'reads_service': 0, 'skips_service': 0, 'other_fail': 30, 'no_code': 0}
+W_cooss120low_doctask_s1  opt 0/30 (0.00)  feas 0/30  tokens 4454  {'reads_service': 0, 'skips_service': 27, 'other_fail': 3, 'no_code': 0}
+W_cooss120low_doctask_s2  opt 0/30 (0.00)  feas 0/30  tokens 4447  {'reads_service': 0, 'skips_service': 28, 'other_fail': 2, 'no_code': 0}
+W_cooss120low_doctask_s3  opt 0/30 (0.00)  feas 0/30  tokens 4478  {'reads_service': 0, 'skips_service': 29, 'other_fail': 1, 'no_code': 0}
+W_cooss120low_doctask best-of-3 (label-free min objective): 0/30 (0.00)
+W_cooss120med_doctask_s1  opt 2/30 (0.07)  feas 2/30  tokens 9789  {'reads_service': 2, 'skips_service': 26, 'other_fail': 2, 'no_code': 0}
+W_cooss120med_doctask_s2  opt 1/30 (0.03)  feas 1/30  tokens 9767  {'reads_service': 1, 'skips_service': 28, 'other_fail': 1, 'no_code': 0}
+W_cooss120med_doctask_s3  opt 1/30 (0.03)  feas 1/30  tokens 10421  {'reads_service': 1, 'skips_service': 27, 'other_fail': 2, 'no_code': 0}
+W_cooss120med_doctask best-of-3 (label-free min objective): 4/30 (0.13)
+W_coq32b_doctask_s1  opt 8/30 (0.27)  feas 18/30  tokens 2814  {'reads_service': 18, 'skips_service': 1, 'other_fail': 11, 'no_code': 0}
+W_coq32b_doctask_s2  opt 3/30 (0.10)  feas 14/30  tokens 3396  {'reads_service': 14, 'skips_service': 0, 'other_fail': 16, 'no_code': 0}
+W_coq32b_doctask_s3  opt 8/30 (0.27)  feas 15/30  tokens 2707  {'reads_service': 15, 'skips_service': 4, 'other_fail': 11, 'no_code': 0}
+W_coq32b_doctask best-of-3 (label-free min objective): 14/30 (0.47)
+W_col70_doctask_s1  opt 18/30 (0.60)  feas 21/30  tokens 1486  {'reads_service': 21, 'skips_service': 2, 'other_fail': 7, 'no_code': 0}
+W_col70_doctask_s2  opt 23/30 (0.77)  feas 25/30  tokens 1331  {'reads_service': 25, 'skips_service': 2, 'other_fail': 3, 'no_code': 0}
+W_col70_doctask_s3  opt 18/30 (0.60)  feas 20/30  tokens 1516  {'reads_service': 20, 'skips_service': 2, 'other_fail': 8, 'no_code': 0}
+W_col70_doctask best-of-3 (label-free min objective): 28/30 (0.93)
+W_cooss20med_doctask_s1  opt 21/30 (0.70)  feas 23/30  tokens 8780  {'reads_service': 23, 'skips_service': 5, 'other_fail': 2, 'no_code': 0}
+W_cooss20med_doctask_s2  opt 17/30 (0.57)  feas 20/30  tokens 10210  {'reads_service': 20, 'skips_service': 7, 'other_fail': 3, 'no_code': 0}
+W_cooss20med_doctask_s3  opt 19/30 (0.63)  feas 21/30  tokens 9260  {'reads_service': 21, 'skips_service': 6, 'other_fail': 3, 'no_code': 0}
+W_cooss20med_doctask best-of-3 (label-free min objective): 27/30 (0.90)

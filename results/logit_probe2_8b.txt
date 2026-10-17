@@ -1,0 +1,9 @@
+[8b] n=180 programs per condition (tasks ('hull', 'area2', 'close'))
+(1) preference shift per token (K8-style vs K0-style code, K8 prompt minus K0 prompt): +0.7077 nats/token (>0 in 100% of instances)
+    P0 mean lp/token: under K0 -0.0270 | under K8 -0.2023
+    P8 mean lp/token: under K0 -0.5510 | under K8 -0.0186
+(2) P0: Delta lp (K8 - K0 prompt) by position decile: -23.49 -2.40 -4.14 -2.95 -0.38 -0.65 -0.66 -0.93 -0.13 -0.07 (nats per program) | by region: own code -24.38 (26371 tok), helper-def -11.42 (13436 tok)
+(2) P8: Delta lp (K8 - K0 prompt) by position decile: +139.32 +66.31 +53.21 +46.91 +41.69 +41.11 +32.66 +18.48 +4.96 +2.18 (nats per program) | by region: own code +13.98 (29595 tok), helper-def +432.86 (101256 tok)
+(3) tokens with the largest total log-prob gain under K8 (own code of K8 programs): 'functools' +836.4 (n=61), '' +214.1 (n=4328), 'import' +156.1 (n=243), 'n' +120.0 (n=445), 'main' +87.0 (n=540), '(poly' +83.4 (n=53), 'min' +72.2 (n=317), '1' +47.0 (n=723), 'points' +46.4 (n=523), 'closest' +45.6 (n=102), 'def' +42.4 (n=292), 'x' +39.3 (n=401), 'polygon' +38.6 (n=121), '):' +38.1 (n=309), '[(' +37.0 (n=183)
+(4) P0: mean top-5 entropy per token under K0 0.0369 | under K8 0.0472
+(4) P8: mean top-5 entropy per token under K0 0.1032 | under K8 0.0273

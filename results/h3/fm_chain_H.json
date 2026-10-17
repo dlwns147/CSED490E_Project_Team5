@@ -1,0 +1,151 @@
+{
+ "chain": "H",
+ "verified": [
+  "When parsing the Solomon instance, the line containing the vehicle data is preceded by a header line whose first token is the word \"NUMBER\". Skip any line whose first token equals \"NUMBER\" (or is empty) before converting the next line\u2019s two tokens to integers for the number of vehicles and their capacity. This prevents trying to cast the header word \u201cNUMBER\u201d to int.",
+  "When adding a time dimension with `routing.AddDimension`, the third argument (`slack_max`) must be an integer (int64). Ensure any computed horizon or slack values are cast to `int` (e.g., `int(horizon)`) before passing them to `AddDimension`. This prevents the \u201cargument \u2026 of type 'int64_t'\u201d TypeError.",
+  "When adding the time dimension, set the \u201cslack_max\u201d (second argument) to a value at least as large as the maximum due date (e.g., the largest DUE DATE among all customers plus the longest possible travel time). Using a zero or too\u2011small slack forces the solver to treat early arrivals as infeasible, causing time\u2011window violations."
+ ],
+ "unverified": [
+  "# In the Solomon file format the line immediately after the \"VEHICLE\" section header is the literal header\n# line \"NUMBER     CAPACITY\".  It must be skipped before parsing the vehicle count and capacity.\n# A robust way to read those two integers is:\n#   while lines[i].strip().upper().startswith(\"NUMBER\"):\n#       i += 1                     # skip the header line\n#   veh_num, veh_cap = map(int, lines[i].split())",
+  "When parsing the Solomon instance, the line containing the vehicle data is preceded by a header line whose first token is the word \"NUMBER\". Skip any line whose first token equals \"NUMBER\" (or is empty) before converting the next line\u2019s two tokens to integers for the number of vehicles and their capacity. This prevents trying to cast the header word \u201cNUMBER\u201d to int.",
+  "When calling `routing.AddDimension` the third argument (`slack_max`) must be an integer (int64). Ensure any computed horizon or slack value is cast to `int`, e.g., `horizon = int(max_time + 1000)`, before passing it to `AddDimension`. This prevents the \u201cargument \u2026 of type 'int64_t'\u201d TypeError.",
+  "When calling `routing.AddDimension` the *slack_max* (third argument) must be an integer, not a float.\u202fMake sure any computed horizon or other bound is converted with `int(...)` (or `round` to an int) before passing it to `AddDimension`. This also applies to the *capacity* argument\u2014ensure it is an `int`.",
+  "When calling `routing.AddDimension` the third argument (`slack_max`) must be an integer (int64), not a float.\u202fMake sure to pass an integer value such as `0` (or any other integer bound) for `slack_max`; similarly, the fourth argument (`capacity`) must also be an integer. Converting any floating\u2011point numbers to `int` before the call prevents the \u201cargument \u2026 of type \u2018int64_t\u2019\u201d TypeError.",
+  "When adding a time dimension with `routing.AddDimension`, the third argument (`slack_max`) must be an integer (int64). Ensure any computed horizon or slack values are cast to `int` (e.g., `int(horizon)`) before passing them to `AddDimension`. This prevents the \u201cargument \u2026 of type 'int64_t'\u201d TypeError.",
+  "When creating the time dimension, set its upper bound (the \u201chorizon\u201d) to at least the largest customer DUE DATE (or the depot\u2019s DUE DATE) multiplied by the same scaling factor you use for travel times. For example:",
+  "When adding the time dimension, set the `slack_max` argument to a value at least as large as the overall planning horizon (e.g., the maximum due date of any node). This allows vehicles to wait when they arrive before a customer\u2019s READY TIME and prevents infeasibility due to time\u2011window violations.",
+  "When creating the time dimension, set its upper bound (the \u201chorizon\u201d) to at least the maximum DUE DATE of any customer (plus a safety margin such as the maximum travel distance). For example:",
+  "When adding the time dimension, set the \u201cslack_max\u201d (second argument) to a value at least as large as the maximum due date (e.g., the largest DUE DATE among all customers plus the longest possible travel time). Using a zero or too\u2011small slack forces the solver to treat early arrivals as infeasible, causing time\u2011window violations."
+ ],
+ "log": [
+  {
+   "round": 0,
+   "sheet": [],
+   "feasible": 1,
+   "reasons": [
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "ok",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "customers missing or repeated",
+    "re",
+    "re"
+   ]
+  },
+  {
+   "round": 1,
+   "candidates": [
+    [
+     0,
+     "# In the Solomon file format the line immediately after the \"VEHICLE\" section header is the literal header\n# line \"NUMBER     CAPACITY\".  It must be skipped before parsing the vehicle count and capacity.\n# A robust way to read those two integers is:\n#   while lines[i].strip().upper().startswith(\"NUMBER\"):\n#       i += 1                     # skip the header line\n#   veh_num, veh_cap = map(int, lines[i].split())"
+    ],
+    [
+     3,
+     "When parsing the Solomon instance, the line containing the vehicle data is preceded by a header line whose first token is the word \"NUMBER\". Skip any line whose first token equals \"NUMBER\" (or is empty) before converting the next line\u2019s two tokens to integers for the number of vehicles and their capacity. This prevents trying to cast the header word \u201cNUMBER\u201d to int."
+    ]
+   ],
+   "kept": "When parsing the Solomon instance, the line containing the vehicle data is preceded by a header line whose first token is the word \"NUMBER\". Skip any line whose first token equals \"NUMBER\" (or is empty) before converting the next line\u2019s two tokens to integers for the number of vehicles and their capacity. This prevents trying to cast the header word \u201cNUMBER\u201d to int.",
+   "feasible": 3,
+   "target": "ValueError: invalid literal for int() with base N: '\u2026'",
+   "target_before": 6,
+   "target_after": [
+    0,
+    2
+   ]
+  },
+  {
+   "round": 2,
+   "candidates": [
+    [
+     1,
+     "When calling `routing.AddDimension` the third argument (`slack_max`) must be an integer (int64). Ensure any computed horizon or slack value is cast to `int`, e.g., `horizon = int(max_time + 1000)`, before passing it to `AddDimension`. This prevents the \u201cargument \u2026 of type 'int64_t'\u201d TypeError."
+    ],
+    [
+     1,
+     "When calling `routing.AddDimension` the *slack_max* (third argument) must be an integer, not a float.\u202fMake sure any computed horizon or other bound is converted with `int(...)` (or `round` to an int) before passing it to `AddDimension`. This also applies to the *capacity* argument\u2014ensure it is an `int`."
+    ]
+   ],
+   "kept": null,
+   "feasible": 3,
+   "target": "TypeError: in method '\u2026', argument N of type '\u2026'",
+   "target_before": 8,
+   "target_after": [
+    3,
+    0
+   ]
+  },
+  {
+   "round": 3,
+   "candidates": [
+    [
+     4,
+     "When calling `routing.AddDimension` the third argument (`slack_max`) must be an integer (int64), not a float.\u202fMake sure to pass an integer value such as `0` (or any other integer bound) for `slack_max`; similarly, the fourth argument (`capacity`) must also be an integer. Converting any floating\u2011point numbers to `int` before the call prevents the \u201cargument \u2026 of type \u2018int64_t\u2019\u201d TypeError."
+    ],
+    [
+     4,
+     "When adding a time dimension with `routing.AddDimension`, the third argument (`slack_max`) must be an integer (int64). Ensure any computed horizon or slack values are cast to `int` (e.g., `int(horizon)`) before passing them to `AddDimension`. This prevents the \u201cargument \u2026 of type 'int64_t'\u201d TypeError."
+    ]
+   ],
+   "kept": "When adding a time dimension with `routing.AddDimension`, the third argument (`slack_max`) must be an integer (int64). Ensure any computed horizon or slack values are cast to `int` (e.g., `int(horizon)`) before passing them to `AddDimension`. This prevents the \u201cargument \u2026 of type 'int64_t'\u201d TypeError.",
+   "feasible": 4,
+   "target": "TypeError: in method '\u2026', argument N of type '\u2026'",
+   "target_before": 8,
+   "target_after": [
+    1,
+    0
+   ]
+  },
+  {
+   "round": 4,
+   "candidates": [
+    [
+     2,
+     "When creating the time dimension, set its upper bound (the \u201chorizon\u201d) to at least the largest customer DUE DATE (or the depot\u2019s DUE DATE) multiplied by the same scaling factor you use for travel times. For example:"
+    ],
+    [
+     4,
+     "When adding the time dimension, set the `slack_max` argument to a value at least as large as the overall planning horizon (e.g., the maximum due date of any node). This allows vehicles to wait when they arrive before a customer\u2019s READY TIME and prevents infeasibility due to time\u2011window violations."
+    ]
+   ],
+   "kept": null,
+   "feasible": 4,
+   "target": "infeasible: time window",
+   "target_before": 6,
+   "target_after": [
+    3,
+    6
+   ]
+  },
+  {
+   "round": 5,
+   "candidates": [
+    [
+     3,
+     "When creating the time dimension, set its upper bound (the \u201chorizon\u201d) to at least the maximum DUE DATE of any customer (plus a safety margin such as the maximum travel distance). For example:"
+    ],
+    [
+     3,
+     "When adding the time dimension, set the \u201cslack_max\u201d (second argument) to a value at least as large as the maximum due date (e.g., the largest DUE DATE among all customers plus the longest possible travel time). Using a zero or too\u2011small slack forces the solver to treat early arrivals as infeasible, causing time\u2011window violations."
+    ]
+   ],
+   "kept": "When adding the time dimension, set the \u201cslack_max\u201d (second argument) to a value at least as large as the maximum due date (e.g., the largest DUE DATE among all customers plus the longest possible travel time). Using a zero or too\u2011small slack forces the solver to treat early arrivals as infeasible, causing time\u2011window violations.",
+   "feasible": 3,
+   "target": "infeasible: time window",
+   "target_before": 6,
+   "target_after": [
+    7,
+    1
+   ]
+  }
+ ],
+ "mining_tokens": 308516
+}

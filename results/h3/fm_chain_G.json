@@ -1,0 +1,150 @@
+{
+ "chain": "G",
+ "verified": [
+  "When calling `routing.AddDimension` the third argument (`slack_max`) must be an **integer** (int64). Ensure that any value you pass there\u2014such as the maximum allowed waiting time or a large constant\u2014is cast to `int`, e.g.:",
+  "When parsing the SOLomon instance, the line that contains the word \u201cNUMBER\u201d is a header and must be skipped; the actual vehicle data are on the **next** non\u2011empty line. So after reading the line with \u201cVEHICLE\u201d (or after the line \u201cNUMBER     CAPACITY\u201d), advance the index past any lines that start with \u201cNUMBER\u201d or are empty before calling `map(int, line.split())` on the vehicle line. This prevents attempting to convert the header string \u201cNUMBER\u201d to an integer."
+ ],
+ "unverified": [
+  "When calling `routing.AddDimension` the third argument (`slack_max`) must be an **integer** (int64). Ensure that any value you pass there\u2014such as the maximum allowed waiting time or a large constant\u2014is cast to `int`, e.g.:",
+  "When calling\u202f`routing.AddDimension`\u202ffor the time window dimension, the third argument (`slack_max`) must be an integer (e.g., `0`), not a float; likewise the fourth argument (`capacity`) must be an integer. Ensure any computed slack or capacity values are cast to `int` before passing them to `AddDimension`.",
+  "When parsing the Solomon instance, the line containing the vehicle count and capacity is **not** the header \"NUMBER     CAPACITY\" but the first subsequent line that consists of two integer tokens. Therefore, after detecting the \"VEHICLE\" section, skip any line that does not consist solely of two integers (e.g., the header line) before calling `map(int, ...)` on the line. A simple helper is:\n\ndef read_vehicle_line(lines, start_idx):\n    i = start_idx\n    while i < len(lines):\n        parts = lines[i].strip().split()\n        if len(parts) == 2 and all(p.lstrip('-').isdigit() for p in parts):\n            return int(parts[0]), int(parts[1]), i + 1\n        i += 1\n    raise ValueError(\"Vehicle line not found\")",
+  "# In the Solomon file format the line immediately after the \"VEHICLE\" keyword is a header\n# containing the words \"NUMBER\" and \"CAPACITY\".  When reading the vehicle line, first\n# advance past any line whose first non\u2011space character is not a digit (i.e. not\n# representing a numeric value) before calling `map(int, ...)`.  Example helper:\n\ndef next_numeric_line(lines, start):\n    \"\"\"Return the index of the first line at or after *start* whose first\n    non\u2011whitespace character is a digit, and the stripped line itself.\"\"\"\n    i = start\n    while i < len(lines):\n        stripped = lines[i].strip()\n        if stripped and stripped[0].isdigit():\n            return i, stripped\n        i += 1\n    raise ValueError(\"No numeric line found\")",
+  "When reading the VEHICLE section, the line that contains the numbers is **not** the header \u201cNUMBER\u202fCAPACITY\u201d but the *next* non\u2011empty line after it. Skip any line whose first non\u2011space character is not a digit (e.g., the header or blank lines) before calling `int()` on the split parts. This prevents trying to convert the literal \u201cNUMBER\u201d to an integer.",
+  "When reading the VEHICLE section, skip any line that does not start with a digit (e.g., the header line `\"NUMBER     CAPACITY\"`). Only call `int()` on lines whose first non\u2011space character is a digit; this prevents trying to convert the header word \u201cNUMBER\u201d to an integer.",
+  "When parsing the SOLomon instance, the line that contains the word \u201cNUMBER\u201d is a header and must be skipped; the actual vehicle data are on the **next** non\u2011empty line. So after reading the line with \u201cVEHICLE\u201d (or after the line \u201cNUMBER     CAPACITY\u201d), advance the index past any lines that start with \u201cNUMBER\u201d or are empty before calling `map(int, line.split())` on the vehicle line. This prevents attempting to convert the header string \u201cNUMBER\u201d to an integer.",
+  "When reading the VEHICLE block, the first non\u2011empty line after the header `\"NUMBER     CAPACITY\"` (or `\"NUMBER CAPACITY\"`) contains the two integers\u202f`num_vehicles` and `capacity`. Skip any header or blank lines and only call `int()` on a line that starts with a digit (e.g. `if line and line[0].isdigit():`). This prevents trying to convert the literal header word \u201cNUMBER\u201d to an integer.",
+  "When creating the time dimension, set the \u201cslack_max\u201d (maximum waiting time) to a very large integer (e.g.,\u202f10**6) and then explicitly add each node\u2019s time\u2011window constraints with `routing.CumulVar(node).SetRange(ready, due)`. This lets the solver insert unlimited waiting so that arrivals earlier than a customer\u2019s READY TIME are feasible and never cause a \u201cservice starts after due date\u201d infeasibility.",
+  "# When creating the time dimension, use the largest due date (including the depot's) as the horizon,\n# and set the slack (waiting) upper bound to that same horizon (as an integer). For example:\n\nmax_due = max(customer['due'] for customer in customers)  # include depot due time\nrouting.AddDimension(\n    transit_callback_index,\n    int(max_due),          # maximum waiting time (slack) \u2013 must be an int\n    int(max_due),          # maximum route duration (capacity of the dimension)\n    False,                 # start cumul to zero is not forced\n    'Time')\ntime_dimension = routing.GetDimensionOrDie('Time')\ntime_dimension.SetGlobalSpanCostCoefficient(0)  # optional: no extra cost for span\ntime_dimension.CumulVar(depot_index).SetRange(0, int(max_due))\n# This guarantees that the solver can wait at customers without violating the due\u2011date constraints."
+ ],
+ "log": [
+  {
+   "round": 0,
+   "sheet": [],
+   "feasible": 1,
+   "reasons": [
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "ok",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re"
+   ]
+  },
+  {
+   "round": 1,
+   "candidates": [
+    [
+     5,
+     "When calling `routing.AddDimension` the third argument (`slack_max`) must be an **integer** (int64). Ensure that any value you pass there\u2014such as the maximum allowed waiting time or a large constant\u2014is cast to `int`, e.g.:"
+    ],
+    [
+     0,
+     "When calling\u202f`routing.AddDimension`\u202ffor the time window dimension, the third argument (`slack_max`) must be an integer (e.g., `0`), not a float; likewise the fourth argument (`capacity`) must be an integer. Ensure any computed slack or capacity values are cast to `int` before passing them to `AddDimension`."
+    ]
+   ],
+   "kept": "When calling `routing.AddDimension` the third argument (`slack_max`) must be an **integer** (int64). Ensure that any value you pass there\u2014such as the maximum allowed waiting time or a large constant\u2014is cast to `int`, e.g.:",
+   "feasible": 5,
+   "target": "TypeError: in method '\u2026', argument N of type '\u2026'",
+   "target_before": 6,
+   "target_after": [
+    1,
+    1
+   ]
+  },
+  {
+   "round": 2,
+   "candidates": [
+    [
+     2,
+     "When parsing the Solomon instance, the line containing the vehicle count and capacity is **not** the header \"NUMBER     CAPACITY\" but the first subsequent line that consists of two integer tokens. Therefore, after detecting the \"VEHICLE\" section, skip any line that does not consist solely of two integers (e.g., the header line) before calling `map(int, ...)` on the line. A simple helper is:\n\ndef read_vehicle_line(lines, start_idx):\n    i = start_idx\n    while i < len(lines):\n        parts = lines[i].strip().split()\n        if len(parts) == 2 and all(p.lstrip('-').isdigit() for p in parts):\n            return int(parts[0]), int(parts[1]), i + 1\n        i += 1\n    raise ValueError(\"Vehicle line not found\")"
+    ],
+    [
+     2,
+     "# In the Solomon file format the line immediately after the \"VEHICLE\" keyword is a header\n# containing the words \"NUMBER\" and \"CAPACITY\".  When reading the vehicle line, first\n# advance past any line whose first non\u2011space character is not a digit (i.e. not\n# representing a numeric value) before calling `map(int, ...)`.  Example helper:\n\ndef next_numeric_line(lines, start):\n    \"\"\"Return the index of the first line at or after *start* whose first\n    non\u2011whitespace character is a digit, and the stripped line itself.\"\"\"\n    i = start\n    while i < len(lines):\n        stripped = lines[i].strip()\n        if stripped and stripped[0].isdigit():\n            return i, stripped\n        i += 1\n    raise ValueError(\"No numeric line found\")"
+    ]
+   ],
+   "kept": null,
+   "feasible": 5,
+   "target": "ValueError: invalid literal for int() with base N: '\u2026'",
+   "target_before": 6,
+   "target_after": [
+    4,
+    1
+   ]
+  },
+  {
+   "round": 3,
+   "candidates": [
+    [
+     3,
+     "When reading the VEHICLE section, the line that contains the numbers is **not** the header \u201cNUMBER\u202fCAPACITY\u201d but the *next* non\u2011empty line after it. Skip any line whose first non\u2011space character is not a digit (e.g., the header or blank lines) before calling `int()` on the split parts. This prevents trying to convert the literal \u201cNUMBER\u201d to an integer."
+    ],
+    [
+     2,
+     "When reading the VEHICLE section, skip any line that does not start with a digit (e.g., the header line `\"NUMBER     CAPACITY\"`). Only call `int()` on lines whose first non\u2011space character is a digit; this prevents trying to convert the header word \u201cNUMBER\u201d to an integer."
+    ]
+   ],
+   "kept": null,
+   "feasible": 5,
+   "target": "ValueError: invalid literal for int() with base N: '\u2026'",
+   "target_before": 6,
+   "target_after": [
+    0,
+    0
+   ]
+  },
+  {
+   "round": 4,
+   "candidates": [
+    [
+     4,
+     "When parsing the SOLomon instance, the line that contains the word \u201cNUMBER\u201d is a header and must be skipped; the actual vehicle data are on the **next** non\u2011empty line. So after reading the line with \u201cVEHICLE\u201d (or after the line \u201cNUMBER     CAPACITY\u201d), advance the index past any lines that start with \u201cNUMBER\u201d or are empty before calling `map(int, line.split())` on the vehicle line. This prevents attempting to convert the header string \u201cNUMBER\u201d to an integer."
+    ],
+    [
+     0,
+     "When reading the VEHICLE block, the first non\u2011empty line after the header `\"NUMBER     CAPACITY\"` (or `\"NUMBER CAPACITY\"`) contains the two integers\u202f`num_vehicles` and `capacity`. Skip any header or blank lines and only call `int()` on a line that starts with a digit (e.g. `if line and line[0].isdigit():`). This prevents trying to convert the literal header word \u201cNUMBER\u201d to an integer."
+    ]
+   ],
+   "kept": "When parsing the SOLomon instance, the line that contains the word \u201cNUMBER\u201d is a header and must be skipped; the actual vehicle data are on the **next** non\u2011empty line. So after reading the line with \u201cVEHICLE\u201d (or after the line \u201cNUMBER     CAPACITY\u201d), advance the index past any lines that start with \u201cNUMBER\u201d or are empty before calling `map(int, line.split())` on the vehicle line. This prevents attempting to convert the header string \u201cNUMBER\u201d to an integer.",
+   "feasible": 4,
+   "target": "ValueError: invalid literal for int() with base N: '\u2026'",
+   "target_before": 6,
+   "target_after": [
+    3,
+    1
+   ]
+  },
+  {
+   "round": 5,
+   "candidates": [
+    [
+     2,
+     "When creating the time dimension, set the \u201cslack_max\u201d (maximum waiting time) to a very large integer (e.g.,\u202f10**6) and then explicitly add each node\u2019s time\u2011window constraints with `routing.CumulVar(node).SetRange(ready, due)`. This lets the solver insert unlimited waiting so that arrivals earlier than a customer\u2019s READY TIME are feasible and never cause a \u201cservice starts after due date\u201d infeasibility."
+    ],
+    [
+     1,
+     "# When creating the time dimension, use the largest due date (including the depot's) as the horizon,\n# and set the slack (waiting) upper bound to that same horizon (as an integer). For example:\n\nmax_due = max(customer['due'] for customer in customers)  # include depot due time\nrouting.AddDimension(\n    transit_callback_index,\n    int(max_due),          # maximum waiting time (slack) \u2013 must be an int\n    int(max_due),          # maximum route duration (capacity of the dimension)\n    False,                 # start cumul to zero is not forced\n    'Time')\ntime_dimension = routing.GetDimensionOrDie('Time')\ntime_dimension.SetGlobalSpanCostCoefficient(0)  # optional: no extra cost for span\ntime_dimension.CumulVar(depot_index).SetRange(0, int(max_due))\n# This guarantees that the solver can wait at customers without violating the due\u2011date constraints."
+    ]
+   ],
+   "kept": null,
+   "feasible": 4,
+   "target": "infeasible: time window",
+   "target_before": 4,
+   "target_after": [
+    6,
+    7
+   ]
+  }
+ ],
+ "mining_tokens": 312047
+}

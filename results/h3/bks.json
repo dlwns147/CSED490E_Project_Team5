@@ -1,0 +1,338 @@
+{
+ "c101": {
+  "vehicles": 10,
+  "distance": 828.94,
+  "ref": "RT",
+  "mark": "828.94"
+ },
+ "c102": {
+  "vehicles": 10,
+  "distance": 828.94,
+  "ref": "RT",
+  "mark": "828.94"
+ },
+ "c103": {
+  "vehicles": 10,
+  "distance": 828.06,
+  "ref": "RT",
+  "mark": "828.06"
+ },
+ "c104": {
+  "vehicles": 10,
+  "distance": 824.78,
+  "ref": "RT",
+  "mark": "824.78"
+ },
+ "c105": {
+  "vehicles": 10,
+  "distance": 828.94,
+  "ref": "RT",
+  "mark": "828.94"
+ },
+ "c106": {
+  "vehicles": 10,
+  "distance": 828.94,
+  "ref": "RT",
+  "mark": "828.94"
+ },
+ "c107": {
+  "vehicles": 10,
+  "distance": 828.94,
+  "ref": "RT",
+  "mark": "828.94"
+ },
+ "c108": {
+  "vehicles": 10,
+  "distance": 828.94,
+  "ref": "RT",
+  "mark": "828.94"
+ },
+ "c109": {
+  "vehicles": 10,
+  "distance": 828.94,
+  "ref": "RT",
+  "mark": "828.94"
+ },
+ "c201": {
+  "vehicles": 3,
+  "distance": 591.56,
+  "ref": "RT",
+  "mark": "591.56"
+ },
+ "c202": {
+  "vehicles": 3,
+  "distance": 591.56,
+  "ref": "RT",
+  "mark": "591.56"
+ },
+ "c203": {
+  "vehicles": 3,
+  "distance": 591.17,
+  "ref": "RT",
+  "mark": "591.17"
+ },
+ "c204": {
+  "vehicles": 3,
+  "distance": 590.6,
+  "ref": "RT",
+  "mark": "590.60"
+ },
+ "c205": {
+  "vehicles": 3,
+  "distance": 588.88,
+  "ref": "RT",
+  "mark": "588.88"
+ },
+ "c206": {
+  "vehicles": 3,
+  "distance": 588.49,
+  "ref": "RT",
+  "mark": "588.49"
+ },
+ "c207": {
+  "vehicles": 3,
+  "distance": 588.29,
+  "ref": "RT",
+  "mark": "588.29"
+ },
+ "c208": {
+  "vehicles": 3,
+  "distance": 588.32,
+  "ref": "RT",
+  "mark": "588.32"
+ },
+ "r101": {
+  "vehicles": 19,
+  "distance": 1650.8,
+  "ref": "H",
+  "mark": "1650.80"
+ },
+ "r102": {
+  "vehicles": 17,
+  "distance": 1486.12,
+  "ref": "RT",
+  "mark": "1486.12"
+ },
+ "r103": {
+  "vehicles": 13,
+  "distance": 1292.68,
+  "ref": "LLH",
+  "mark": "1292.68"
+ },
+ "r104": {
+  "vehicles": 9,
+  "distance": 1007.31,
+  "ref": "MBD",
+  "mark": "1007.31"
+ },
+ "r105": {
+  "vehicles": 14,
+  "distance": 1377.11,
+  "ref": "RT",
+  "mark": "1377.11"
+ },
+ "r106": {
+  "vehicles": 12,
+  "distance": 1252.03,
+  "ref": "MBD",
+  "mark": "1252.03"
+ },
+ "r107": {
+  "vehicles": 10,
+  "distance": 1104.66,
+  "ref": "S97",
+  "mark": "1104.66"
+ },
+ "r108": {
+  "vehicles": 9,
+  "distance": 960.88,
+  "ref": "BBB",
+  "mark": "960.88"
+ },
+ "r109": {
+  "vehicles": 11,
+  "distance": 1194.73,
+  "ref": "HG",
+  "mark": "1194.73"
+ },
+ "r110": {
+  "vehicles": 10,
+  "distance": 1118.84,
+  "ref": "MBD",
+  "mark": "1118.84"
+ },
+ "r111": {
+  "vehicles": 10,
+  "distance": 1096.73,
+  "ref": "RGP",
+  "mark": "1096.73*"
+ },
+ "r112": {
+  "vehicles": 9,
+  "distance": 982.14,
+  "ref": "GTA",
+  "mark": "982.14"
+ },
+ "r201": {
+  "vehicles": 4,
+  "distance": 1252.37,
+  "ref": "HG",
+  "mark": "1252.37"
+ },
+ "r202": {
+  "vehicles": 3,
+  "distance": 1191.7,
+  "ref": "RGP",
+  "mark": "1191.70"
+ },
+ "r203": {
+  "vehicles": 3,
+  "distance": 939.5,
+  "ref": "WL",
+  "mark": "939.50"
+ },
+ "r204": {
+  "vehicles": 2,
+  "distance": 825.52,
+  "ref": "BVH",
+  "mark": "825.52"
+ },
+ "r205": {
+  "vehicles": 3,
+  "distance": 994.43,
+  "ref": "RGP",
+  "mark": "994.43"
+ },
+ "r206": {
+  "vehicles": 3,
+  "distance": 906.14,
+  "ref": "SSSD",
+  "mark": "906.14"
+ },
+ "r207": {
+  "vehicles": 2,
+  "distance": 890.61,
+  "ref": "RP",
+  "mark": "890.61"
+ },
+ "r208": {
+  "vehicles": 2,
+  "distance": 726.82,
+  "ref": "MBD",
+  "mark": "726.82"
+ },
+ "r209": {
+  "vehicles": 3,
+  "distance": 909.16,
+  "ref": "H",
+  "mark": "909.16"
+ },
+ "r210": {
+  "vehicles": 3,
+  "distance": 939.37,
+  "ref": "MBD",
+  "mark": "939.37"
+ },
+ "r211": {
+  "vehicles": 2,
+  "distance": 885.71,
+  "ref": "WL",
+  "mark": "885.71"
+ },
+ "rc101": {
+  "vehicles": 14,
+  "distance": 1696.95,
+  "ref": "TBGGP",
+  "mark": "1696.95"
+ },
+ "rc102": {
+  "vehicles": 12,
+  "distance": 1554.75,
+  "ref": "TBGGP",
+  "mark": "1554.75"
+ },
+ "rc103": {
+  "vehicles": 11,
+  "distance": 1261.67,
+  "ref": "S98",
+  "mark": "1261.67"
+ },
+ "rc104": {
+  "vehicles": 10,
+  "distance": 1135.48,
+  "ref": "CLM",
+  "mark": "1135.48"
+ },
+ "rc105": {
+  "vehicles": 13,
+  "distance": 1629.44,
+  "ref": "BBB",
+  "mark": "1629.44"
+ },
+ "rc106": {
+  "vehicles": 11,
+  "distance": 1424.73,
+  "ref": "BBB",
+  "mark": "1424.73"
+ },
+ "rc107": {
+  "vehicles": 11,
+  "distance": 1230.48,
+  "ref": "S97",
+  "mark": "1230.48"
+ },
+ "rc108": {
+  "vehicles": 10,
+  "distance": 1139.82,
+  "ref": "TBGGP",
+  "mark": "1139.82"
+ },
+ "rc201": {
+  "vehicles": 4,
+  "distance": 1406.94,
+  "ref": "MBD",
+  "mark": "1406.94"
+ },
+ "rc202": {
+  "vehicles": 3,
+  "distance": 1365.65,
+  "ref": "GCC",
+  "mark": "1365.65"
+ },
+ "rc203": {
+  "vehicles": 3,
+  "distance": 1049.62,
+  "ref": "CC",
+  "mark": "1049.62"
+ },
+ "rc204": {
+  "vehicles": 3,
+  "distance": 798.46,
+  "ref": "MBD",
+  "mark": "798.46"
+ },
+ "rc205": {
+  "vehicles": 4,
+  "distance": 1297.65,
+  "ref": "MBD",
+  "mark": "1297.65"
+ },
+ "rc206": {
+  "vehicles": 3,
+  "distance": 1146.32,
+  "ref": "H",
+  "mark": "1146.32"
+ },
+ "rc207": {
+  "vehicles": 3,
+  "distance": 1061.14,
+  "ref": "BVH",
+  "mark": "1061.14"
+ },
+ "rc208": {
+  "vehicles": 3,
+  "distance": 828.14,
+  "ref": "IKMUY",
+  "mark": "828.14"
+ }
+}

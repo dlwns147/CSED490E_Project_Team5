@@ -1,0 +1,119 @@
+{
+ "chain": "A",
+ "verified": [
+  "When using OR\u2011Tools RoutingModel.AddDimension, the third parameter must be an integer representing the maximum allowed slack (waiting time), not the vehicle capacity; set it to a suitable integer (e.g., 0) before calling AddDimension."
+ ],
+ "unverified": [
+  "The line immediately following the \u201cVEHICLE\u201d header contains exactly two integers (number of vehicles and vehicle capacity) separated by whitespace; no other text appears on that line.",
+  "The line immediately after the \"NUMBER CAPACITY\" header contains exactly two integers: the number of vehicles and the vehicle capacity, separated by whitespace.",
+  "When adding a time dimension with OR\u2011Tools RoutingModel.AddDimension, the third argument (slack_max) must be an integer (commonly 0), and all time\u2011related values (ready times, due dates, service times, and travel times) must be scaled to integers before being passed to SetRange or the dimension.",
+  "The line immediately after the \u201cVEHICLE\u201d header contains exactly two integer values (number of vehicles and vehicle capacity) separated by whitespace; there is no extra label or non\u2011numeric text on that line.",
+  "After the line containing the word \u201cVEHICLE\u201d, the next non\u2011empty line is a header (e.g., \u201cNUMBER CAPACITY\u201d) and must be skipped before parsing the line with the two integers num_vehicles and vehicle_capacity.",
+  "The line following the \"NUMBER CAPACITY\" header in the VEHICLE section always contains exactly two whitespace\u2011separated integers: first the total number of vehicles, then the vehicle capacity.",
+  "When adding a time dimension with OR\u2011Tools RoutingModel, use routing.AddDimension(transit_callback_index, max_time, max_time, True, \"Time\") where the third argument is an integer\u2011valued maximum cumulative time (slack_max), not the vehicle capacity; all time windows must be given as integer bounds (you may scale real times to integers).",
+  "When parsing the VEHICLE section, skip the header line and read the next line as two space\u2011separated integers: the first is the number of available vehicles and the second is the vehicle capacity.",
+  "When using OR\u2011Tools RoutingModel.AddDimension, the third parameter must be an integer representing the maximum allowed slack (waiting time), not the vehicle capacity; set it to a suitable integer (e.g., 0) before calling AddDimension.",
+  "When adding a time dimension with OR\u2011Tools, use an integer for the slack\u2011max argument (e.g., 0) and pass the vehicle capacity separately via a capacity dimension; the third parameter of RoutingModel.AddDimension must be an int, not a capacity value."
+ ],
+ "log": [
+  {
+   "round": 0,
+   "sheet": [],
+   "feasible": 1,
+   "reasons": [
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "ok",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re"
+   ]
+  },
+  {
+   "round": 1,
+   "candidates": [
+    [
+     0,
+     "The line immediately following the \u201cVEHICLE\u201d header contains exactly two integers (number of vehicles and vehicle capacity) separated by whitespace; no other text appears on that line."
+    ],
+    [
+     1,
+     "The line immediately after the \"NUMBER CAPACITY\" header contains exactly two integers: the number of vehicles and the vehicle capacity, separated by whitespace."
+    ]
+   ],
+   "kept": null,
+   "feasible": 1
+  },
+  {
+   "round": 2,
+   "candidates": [
+    [
+     1,
+     "When adding a time dimension with OR\u2011Tools RoutingModel.AddDimension, the third argument (slack_max) must be an integer (commonly 0), and all time\u2011related values (ready times, due dates, service times, and travel times) must be scaled to integers before being passed to SetRange or the dimension."
+    ],
+    [
+     0,
+     "The line immediately after the \u201cVEHICLE\u201d header contains exactly two integer values (number of vehicles and vehicle capacity) separated by whitespace; there is no extra label or non\u2011numeric text on that line."
+    ]
+   ],
+   "kept": null,
+   "feasible": 1
+  },
+  {
+   "round": 3,
+   "candidates": [
+    [
+     1,
+     "After the line containing the word \u201cVEHICLE\u201d, the next non\u2011empty line is a header (e.g., \u201cNUMBER CAPACITY\u201d) and must be skipped before parsing the line with the two integers num_vehicles and vehicle_capacity."
+    ],
+    [
+     1,
+     "The line following the \"NUMBER CAPACITY\" header in the VEHICLE section always contains exactly two whitespace\u2011separated integers: first the total number of vehicles, then the vehicle capacity."
+    ]
+   ],
+   "kept": null,
+   "feasible": 1
+  },
+  {
+   "round": 4,
+   "candidates": [
+    [
+     1,
+     "When adding a time dimension with OR\u2011Tools RoutingModel, use routing.AddDimension(transit_callback_index, max_time, max_time, True, \"Time\") where the third argument is an integer\u2011valued maximum cumulative time (slack_max), not the vehicle capacity; all time windows must be given as integer bounds (you may scale real times to integers)."
+    ],
+    [
+     2,
+     "When parsing the VEHICLE section, skip the header line and read the next line as two space\u2011separated integers: the first is the number of available vehicles and the second is the vehicle capacity."
+    ]
+   ],
+   "kept": null,
+   "feasible": 1
+  },
+  {
+   "round": 5,
+   "candidates": [
+    [
+     4,
+     "When using OR\u2011Tools RoutingModel.AddDimension, the third parameter must be an integer representing the maximum allowed slack (waiting time), not the vehicle capacity; set it to a suitable integer (e.g., 0) before calling AddDimension."
+    ],
+    [
+     2,
+     "When adding a time dimension with OR\u2011Tools, use an integer for the slack\u2011max argument (e.g., 0) and pass the vehicle capacity separately via a capacity dimension; the third parameter of RoutingModel.AddDimension must be an int, not a capacity value."
+    ]
+   ],
+   "kept": "When using OR\u2011Tools RoutingModel.AddDimension, the third parameter must be an integer representing the maximum allowed slack (waiting time), not the vehicle capacity; set it to a suitable integer (e.g., 0) before calling AddDimension.",
+   "feasible": 4
+  }
+ ],
+ "mining_tokens": 279234
+}

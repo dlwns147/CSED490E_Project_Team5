@@ -1,0 +1,153 @@
+{
+ "chain": "E",
+ "verified": [
+  "When adding a time dimension with `routing.AddDimension`, the third argument (`slack_max`) and the fourth argument (`capacity`) must be integer values (int64). Ensure any computed maximum time or vehicle capacity is cast to `int` before passing them to `AddDimension`; passing a float causes the TypeError shown in the failures.",
+  "When parsing the SOLomon instance, the lines that contain the column headers (e.g., \"NUMBER     CAPACITY\" in the VEHICLE section and \"CUST NO.    XCOORD.    YCOORD. \u2026\" in the CUSTOMER table) are not numeric and must be skipped before converting fields with `int()` or `float()`. A robust read routine should advance past any line whose first non\u2011space character is not a digit (or a minus sign) before attempting to cast the split tokens to numbers. This prevents `ValueError: invalid literal for int() with base 10: 'NUMBER'` and similar errors.",
+  "# Helper to safely fetch the next line that starts with a digit (or \u2018-\u2019) while staying within the file bounds.\ndef next_numeric_line(lines, start):\n    \"\"\"\n    Return (line, index) of the first line at or after *start* whose first\n    non\u2011space character is a digit or a minus sign. If no such line exists,\n    raise a clear RuntimeError instead of letting an IndexError propagate.\n    \"\"\"\n    i = start\n    while i < len(lines):\n        stripped = lines[i].lstrip()\n        if stripped and (stripped[0].isdigit() or stripped[0] == '-'):\n            return lines[i], i\n        i += 1\n    raise RuntimeError(\"Unexpected end of input while looking for numeric data\")",
+  "When reading the solution, always walk each vehicle\u2019s route with:",
+  "# After creating the time dimension, explicitly set the time\u2011window bounds for every node,\n# including the depot, otherwise the solver may ignore the due dates and produce infeasible routes.\n# Example (assuming `time_dim` is the dimension returned by AddDimension):\nfor idx, (ready, due) in enumerate(zip(ready_times, due_dates)):\n    time_dim.CumulVar(idx).SetRange(ready, due)   # enforce start\u2011of\u2011service window\n# Also set a sufficiently large horizon when adding the dimension (e.g. the maximum due date of all nodes)\nmax_horizon = max(due_dates)\nrouting.AddDimension(\n    travel_time_callback,               # transit callback (travel + service)\n    max_horizon,                        # slack max (large enough)\n    max_horizon,                        # vehicle maximum capacity (time)\n    False,                              # start cumul to zero\n    \"Time\")"
+ ],
+ "unverified": [
+  "When adding a time dimension with `routing.AddDimension`, the third argument (`slack_max`) and the fourth argument (`capacity`) must be integer values (int64). Ensure any computed maximum time or vehicle capacity is cast to `int` before passing them to `AddDimension`; passing a float causes the TypeError shown in the failures.",
+  "# OR\u2011Tools\u2019 RoutingModel.AddDimension expects integer arguments for\n#   * slack_max (the maximum allowed waiting time)\n#   * capacity (the maximum cumulative quantity, e.g. time horizon)\n#   * fix_start_cumul_to_zero (a boolean, not an integer)\n# Therefore, when adding a time dimension you must:\n#   1. Compute the horizon (latest allowed arrival) as an integer, e.g.\n#        horizon = int(max(customer_due) + max_travel_time)\n#   2. Pass an integer slack (usually 0) and the integer horizon as the\n#        \u201ccapacity\u201d argument.\n#   3. Use a Python bool for the fix_start_cumul_to_zero flag.\n# Example:\n#   routing.AddDimension(\n#       time_cb_index,\n#       0,                     # no waiting slack\n#       horizon,               # integer horizon (capacity)\n#       True,                  # fix start cumulative to zero\n#       \"Time\")",
+  "When parsing the SOLomon instance, the lines that contain the column headers (e.g., \"NUMBER     CAPACITY\" in the VEHICLE section and \"CUST NO.    XCOORD.    YCOORD. \u2026\" in the CUSTOMER table) are not numeric and must be skipped before converting fields with `int()` or `float()`. A robust read routine should advance past any line whose first non\u2011space character is not a digit (or a minus sign) before attempting to cast the split tokens to numbers. This prevents `ValueError: invalid literal for int() with base 10: 'NUMBER'` and similar errors.",
+  "When reading the Solomon instance, ignore any line whose first token is not a number (e.g., the header lines \u201cNUMBER\u00a0CAPACITY\u201d, \u201cCUST\u00a0NO.\u201d, etc.). Skip such lines before converting tokens with\u202fint()\u202for\u202ffloat()\u202fso that only data rows are parsed.",
+  "# Helper to safely fetch the next line that starts with a digit (or \u2018-\u2019) while staying within the file bounds.\ndef next_numeric_line(lines, start):\n    \"\"\"\n    Return (line, index) of the first line at or after *start* whose first\n    non\u2011space character is a digit or a minus sign. If no such line exists,\n    raise a clear RuntimeError instead of letting an IndexError propagate.\n    \"\"\"\n    i = start\n    while i < len(lines):\n        stripped = lines[i].lstrip()\n        if stripped and (stripped[0].isdigit() or stripped[0] == '-'):\n            return lines[i], i\n        i += 1\n    raise RuntimeError(\"Unexpected end of input while looking for numeric data\")",
+  "When scanning the input lines for the vehicle line or the first customer line, always test the index against the length of the list before indexing. For example:",
+  "When building the OR\u2011Tools routing model, the manager must be created with **exactly** the total number of locations (depot\u202f+\u202fall customers). Use the length of the full node list (including the depot at index\u202f0) as the first argument to `RoutingIndexManager`; otherwise some customers are omitted and the solution will miss them. For example:",
+  "When reading the solution, always walk each vehicle\u2019s route with:",
+  "When creating the time dimension, use a sufficiently large upper bound for the cumulative time (e.g., the maximum due date among all customers or a big constant) so that the solver can schedule waiting without violating any window. For example:\n\nmax_due = max(due)                     # due is the list of customer due dates (including depot)\nrouting.AddDimension(\n    travel_time,                      # transit callback returning real travel times\n    int(1e9),                         # slack_max \u2013 a huge integer to allow unlimited waiting\n    int(max_due),                     # capacity \u2013 the latest allowed arrival time\n    True,                             # start cumul to zero\n    \"Time\")",
+  "# After creating the time dimension, explicitly set the time\u2011window bounds for every node,\n# including the depot, otherwise the solver may ignore the due dates and produce infeasible routes.\n# Example (assuming `time_dim` is the dimension returned by AddDimension):\nfor idx, (ready, due) in enumerate(zip(ready_times, due_dates)):\n    time_dim.CumulVar(idx).SetRange(ready, due)   # enforce start\u2011of\u2011service window\n# Also set a sufficiently large horizon when adding the dimension (e.g. the maximum due date of all nodes)\nmax_horizon = max(due_dates)\nrouting.AddDimension(\n    travel_time_callback,               # transit callback (travel + service)\n    max_horizon,                        # slack max (large enough)\n    max_horizon,                        # vehicle maximum capacity (time)\n    False,                              # start cumul to zero\n    \"Time\")"
+ ],
+ "log": [
+  {
+   "round": 0,
+   "sheet": [],
+   "feasible": 0,
+   "reasons": [
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "customers missing or repeated",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re"
+   ]
+  },
+  {
+   "round": 1,
+   "candidates": [
+    [
+     3,
+     "When adding a time dimension with `routing.AddDimension`, the third argument (`slack_max`) and the fourth argument (`capacity`) must be integer values (int64). Ensure any computed maximum time or vehicle capacity is cast to `int` before passing them to `AddDimension`; passing a float causes the TypeError shown in the failures."
+    ],
+    [
+     0,
+     "# OR\u2011Tools\u2019 RoutingModel.AddDimension expects integer arguments for\n#   * slack_max (the maximum allowed waiting time)\n#   * capacity (the maximum cumulative quantity, e.g. time horizon)\n#   * fix_start_cumul_to_zero (a boolean, not an integer)\n# Therefore, when adding a time dimension you must:\n#   1. Compute the horizon (latest allowed arrival) as an integer, e.g.\n#        horizon = int(max(customer_due) + max_travel_time)\n#   2. Pass an integer slack (usually 0) and the integer horizon as the\n#        \u201ccapacity\u201d argument.\n#   3. Use a Python bool for the fix_start_cumul_to_zero flag.\n# Example:\n#   routing.AddDimension(\n#       time_cb_index,\n#       0,                     # no waiting slack\n#       horizon,               # integer horizon (capacity)\n#       True,                  # fix start cumulative to zero\n#       \"Time\")"
+    ]
+   ],
+   "kept": "When adding a time dimension with `routing.AddDimension`, the third argument (`slack_max`) and the fourth argument (`capacity`) must be integer values (int64). Ensure any computed maximum time or vehicle capacity is cast to `int` before passing them to `AddDimension`; passing a float causes the TypeError shown in the failures.",
+   "feasible": 3,
+   "target": "TypeError: in method '\u2026', argument N of type '\u2026'",
+   "target_before": 9,
+   "target_after": [
+    0,
+    0
+   ]
+  },
+  {
+   "round": 2,
+   "candidates": [
+    [
+     2,
+     "When parsing the SOLomon instance, the lines that contain the column headers (e.g., \"NUMBER     CAPACITY\" in the VEHICLE section and \"CUST NO.    XCOORD.    YCOORD. \u2026\" in the CUSTOMER table) are not numeric and must be skipped before converting fields with `int()` or `float()`. A robust read routine should advance past any line whose first non\u2011space character is not a digit (or a minus sign) before attempting to cast the split tokens to numbers. This prevents `ValueError: invalid literal for int() with base 10: 'NUMBER'` and similar errors."
+    ],
+    [
+     1,
+     "When reading the Solomon instance, ignore any line whose first token is not a number (e.g., the header lines \u201cNUMBER\u00a0CAPACITY\u201d, \u201cCUST\u00a0NO.\u201d, etc.). Skip such lines before converting tokens with\u202fint()\u202for\u202ffloat()\u202fso that only data rows are parsed."
+    ]
+   ],
+   "kept": "When parsing the SOLomon instance, the lines that contain the column headers (e.g., \"NUMBER     CAPACITY\" in the VEHICLE section and \"CUST NO.    XCOORD.    YCOORD. \u2026\" in the CUSTOMER table) are not numeric and must be skipped before converting fields with `int()` or `float()`. A robust read routine should advance past any line whose first non\u2011space character is not a digit (or a minus sign) before attempting to cast the split tokens to numbers. This prevents `ValueError: invalid literal for int() with base 10: 'NUMBER'` and similar errors.",
+   "feasible": 2,
+   "target": "ValueError: invalid literal for int() with base N: '\u2026'",
+   "target_before": 6,
+   "target_after": [
+    0,
+    1
+   ]
+  },
+  {
+   "round": 3,
+   "candidates": [
+    [
+     3,
+     "# Helper to safely fetch the next line that starts with a digit (or \u2018-\u2019) while staying within the file bounds.\ndef next_numeric_line(lines, start):\n    \"\"\"\n    Return (line, index) of the first line at or after *start* whose first\n    non\u2011space character is a digit or a minus sign. If no such line exists,\n    raise a clear RuntimeError instead of letting an IndexError propagate.\n    \"\"\"\n    i = start\n    while i < len(lines):\n        stripped = lines[i].lstrip()\n        if stripped and (stripped[0].isdigit() or stripped[0] == '-'):\n            return lines[i], i\n        i += 1\n    raise RuntimeError(\"Unexpected end of input while looking for numeric data\")"
+    ],
+    [
+     0,
+     "When scanning the input lines for the vehicle line or the first customer line, always test the index against the length of the list before indexing. For example:"
+    ]
+   ],
+   "kept": "# Helper to safely fetch the next line that starts with a digit (or \u2018-\u2019) while staying within the file bounds.\ndef next_numeric_line(lines, start):\n    \"\"\"\n    Return (line, index) of the first line at or after *start* whose first\n    non\u2011space character is a digit or a minus sign. If no such line exists,\n    raise a clear RuntimeError instead of letting an IndexError propagate.\n    \"\"\"\n    i = start\n    while i < len(lines):\n        stripped = lines[i].lstrip()\n        if stripped and (stripped[0].isdigit() or stripped[0] == '-'):\n            return lines[i], i\n        i += 1\n    raise RuntimeError(\"Unexpected end of input while looking for numeric data\")",
+   "feasible": 3,
+   "target": "IndexError: list index out of range",
+   "target_before": 5,
+   "target_after": [
+    1,
+    3
+   ]
+  },
+  {
+   "round": 4,
+   "candidates": [
+    [
+     4,
+     "When building the OR\u2011Tools routing model, the manager must be created with **exactly** the total number of locations (depot\u202f+\u202fall customers). Use the length of the full node list (including the depot at index\u202f0) as the first argument to `RoutingIndexManager`; otherwise some customers are omitted and the solution will miss them. For example:"
+    ],
+    [
+     4,
+     "When reading the solution, always walk each vehicle\u2019s route with:"
+    ]
+   ],
+   "kept": "When reading the solution, always walk each vehicle\u2019s route with:",
+   "feasible": 4,
+   "target": "infeasible: customers missing or repeated",
+   "target_before": 5,
+   "target_after": [
+    3,
+    2
+   ]
+  },
+  {
+   "round": 5,
+   "candidates": [
+    [
+     1,
+     "When creating the time dimension, use a sufficiently large upper bound for the cumulative time (e.g., the maximum due date among all customers or a big constant) so that the solver can schedule waiting without violating any window. For example:\n\nmax_due = max(due)                     # due is the list of customer due dates (including depot)\nrouting.AddDimension(\n    travel_time,                      # transit callback returning real travel times\n    int(1e9),                         # slack_max \u2013 a huge integer to allow unlimited waiting\n    int(max_due),                     # capacity \u2013 the latest allowed arrival time\n    True,                             # start cumul to zero\n    \"Time\")"
+    ],
+    [
+     3,
+     "# After creating the time dimension, explicitly set the time\u2011window bounds for every node,\n# including the depot, otherwise the solver may ignore the due dates and produce infeasible routes.\n# Example (assuming `time_dim` is the dimension returned by AddDimension):\nfor idx, (ready, due) in enumerate(zip(ready_times, due_dates)):\n    time_dim.CumulVar(idx).SetRange(ready, due)   # enforce start\u2011of\u2011service window\n# Also set a sufficiently large horizon when adding the dimension (e.g. the maximum due date of all nodes)\nmax_horizon = max(due_dates)\nrouting.AddDimension(\n    travel_time_callback,               # transit callback (travel + service)\n    max_horizon,                        # slack max (large enough)\n    max_horizon,                        # vehicle maximum capacity (time)\n    False,                              # start cumul to zero\n    \"Time\")"
+    ]
+   ],
+   "kept": "# After creating the time dimension, explicitly set the time\u2011window bounds for every node,\n# including the depot, otherwise the solver may ignore the due dates and produce infeasible routes.\n# Example (assuming `time_dim` is the dimension returned by AddDimension):\nfor idx, (ready, due) in enumerate(zip(ready_times, due_dates)):\n    time_dim.CumulVar(idx).SetRange(ready, due)   # enforce start\u2011of\u2011service window\n# Also set a sufficiently large horizon when adding the dimension (e.g. the maximum due date of all nodes)\nmax_horizon = max(due_dates)\nrouting.AddDimension(\n    travel_time_callback,               # transit callback (travel + service)\n    max_horizon,                        # slack max (large enough)\n    max_horizon,                        # vehicle maximum capacity (time)\n    False,                              # start cumul to zero\n    \"Time\")",
+   "feasible": 3,
+   "target": "infeasible: time window",
+   "target_before": 4,
+   "target_after": [
+    1,
+    2
+   ]
+  }
+ ],
+ "mining_tokens": 327420
+}

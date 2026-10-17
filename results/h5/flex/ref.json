@@ -1,0 +1,242 @@
+{
+ "la01": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 558,
+  "stderr": "STATUS FEASIBLE\n"
+ },
+ "la02": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 520,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la03": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 481,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la04": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 499,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la05": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 454,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la06": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 768,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la07": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 729,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la08": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 742,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la09": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 837,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la10": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 789,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la11": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 1030,
+  "stderr": "STATUS FEASIBLE\n"
+ },
+ "la12": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 902,
+  "stderr": "STATUS FEASIBLE\n"
+ },
+ "la13": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 1016,
+  "stderr": "STATUS FEASIBLE\n"
+ },
+ "la14": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 1024,
+  "stderr": "STATUS FEASIBLE\n"
+ },
+ "la15": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 1067,
+  "stderr": "STATUS FEASIBLE\n"
+ },
+ "la16": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 712,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la17": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 625,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la18": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 658,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la19": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 651,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la20": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 711,
+  "stderr": "STATUS OPTIMAL\n"
+ },
+ "la21": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 847,
+  "stderr": "STATUS FEASIBLE\n"
+ },
+ "la22": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 762,
+  "stderr": "STATUS FEASIBLE\n"
+ },
+ "la23": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 850,
+  "stderr": "STATUS FEASIBLE\n"
+ },
+ "la24": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 811,
+  "stderr": "STATUS FEASIBLE\n"
+ },
+ "la25": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 800,
+  "stderr": "STATUS FEASIBLE\n"
+ },
+ "la26": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 1074,
+  "stderr": "STATUS FEASIBLE\n"
+ },
+ "la27": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 1099,
+  "stderr": "STATUS FEASIBLE\n"
+ },
+ "la28": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 1102,
+  "stderr": "STATUS FEASIBLE\n"
+ },
+ "la29": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 1004,
+  "stderr": "STATUS FEASIBLE\n"
+ },
+ "la30": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 1095,
+  "stderr": "STATUS FEASIBLE\n"
+ },
+ "la31": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 1559,
+  "stderr": "STATUS FEASIBLE\n"
+ },
+ "la32": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 1693,
+  "stderr": "STATUS FEASIBLE\n"
+ },
+ "la33": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 1504,
+  "stderr": "STATUS FEASIBLE\n"
+ },
+ "la34": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 1559,
+  "stderr": "STATUS FEASIBLE\n"
+ },
+ "la35": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 1570,
+  "stderr": "STATUS FEASIBLE\n"
+ },
+ "la36": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 977,
+  "stderr": "STATUS FEASIBLE\n"
+ },
+ "la37": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 1039,
+  "stderr": "STATUS FEASIBLE\n"
+ },
+ "la38": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 956,
+  "stderr": "STATUS FEASIBLE\n"
+ },
+ "la39": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 967,
+  "stderr": "STATUS FEASIBLE\n"
+ },
+ "la40": {
+  "feasible": true,
+  "reason": "ok",
+  "obj": 975,
+  "stderr": "STATUS FEASIBLE\n"
+ }
+}

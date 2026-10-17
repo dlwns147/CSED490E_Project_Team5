@@ -1,0 +1,152 @@
+{
+ "chain": "I",
+ "verified": [
+  "In Solomon benchmark files, the vehicle capacity line is preceded by a line starting with the word \"NUMBER\". The actual capacity line itself contains two integers: the first is the number of vehicles, the second is the vehicle capacity. Any line that begins with \"NUMBER\" should be ignored when parsing the vehicle count and capacity. This ensures that integer parsing does not encounter the literal \"NUMBER\" and raise a ValueError.",
+  "When adding the time dimension, first register a transit callback that returns the Euclidean travel time between nodes, then call `routing.AddDimension` with that callback.  To account for service times, register a unary callback that returns the service time for each node and add it as a *vehicle\u2011transit* dimension by passing a *list* of callbacks (e.g., `[service_cb_index]`) to `routing.AddDimensionWithVehicleTransits`.  Do not pass a plain integer; otherwise OR\u2011Tools will raise a `TypeError` and the solver may produce routes that miss customers.",
+  "In OR\u2011Tools the method `RoutingModel.AddDimensionWithVehicleTransits` expects exactly five arguments after `self`: the list of transit callback indices, the maximum slack (an integer), the capacity (an integer), a boolean `fix_start_cumul_to_zero`, and the dimension name (a string). Do **not** pass a seventh positional argument; instead, pass the service\u2011time callback indices as a *list* (e.g. `[service_cb_index]`). This signature is the same for all Solomon instances.",
+  "When constructing the OR\u2011Tools routing model, always create a `RoutingIndexManager` with the *total number of nodes* (including the depot) as the first argument, the number of vehicles as the second, and the depot node index as the third. Then pass this manager to `RoutingModel(manager)`. For example:"
+ ],
+ "unverified": [
+  "In Solomon benchmark files, the vehicle capacity line is preceded by a line starting with the word \"NUMBER\". The actual capacity line itself contains two integers: the first is the number of vehicles, the second is the vehicle capacity. Any line that begins with \"NUMBER\" should be ignored when parsing the vehicle count and capacity. This ensures that integer parsing does not encounter the literal \"NUMBER\" and raise a ValueError.",
+  "When reading the vehicle section, the line that contains the number of vehicles and their capacity begins with the literal word \"NUMBER\". The two integers follow this keyword, so the parser should skip the first token and convert the last two tokens of the line to integers. This applies to all Solomon benchmark instances.",
+  "When adding the time dimension, first register a transit callback that returns the Euclidean travel time between nodes, then call `routing.AddDimension` with that callback.  To account for service times, register a unary callback that returns the service time for each node and add it as a *vehicle\u2011transit* dimension by passing a *list* of callbacks (e.g., `[service_cb_index]`) to `routing.AddDimensionWithVehicleTransits`.  Do not pass a plain integer; otherwise OR\u2011Tools will raise a `TypeError` and the solver may produce routes that miss customers.",
+  "When parsing the CUSTOMER table, skip any line that starts with a non\u2011numeric token (e.g., \"CUSTOMER\", \"COMMENT\", or empty lines). Then split the remaining lines by whitespace and convert each field to an int, ensuring the first field is the customer number. This guarantees that every customer 1..n is read and included in the data structures before building the routing model.",
+  "In OR\u2011Tools the method `RoutingModel.AddDimensionWithVehicleTransits` expects exactly five arguments after `self`: the list of transit callback indices, the maximum slack (an integer), the capacity (an integer), a boolean `fix_start_cumul_to_zero`, and the dimension name (a string). Do **not** pass a seventh positional argument; instead, pass the service\u2011time callback indices as a *list* (e.g. `[service_cb_index]`). This signature is the same for all Solomon instances.",
+  "When calling `routing.AddDimensionWithVehicleTransits`, supply exactly five arguments after the `routing` object: the list of transit callback indices, the maximum slack (`slack_max`), the capacity (`capacity`), a boolean `fix_start_cumul_to_zero`, and a name string. Do **not** pass a sixth positional argument; if you need to set a different start cumul, use the optional keyword `initial_cumul` instead. This prevents the \u201ctakes N positional arguments but N were given\u201d error that occurs when an extra argument is supplied.",
+  "When constructing the OR\u2011Tools routing model, always create a `RoutingIndexManager` first with the signature  \n`manager = pywrapcp.RoutingIndexManager(node_count, vehicle_count, depot_start, depot_end)`  \nwhere `depot_start` and `depot_end` are the index of the depot node (usually 0).  \nThen pass that manager to the `RoutingModel`:  \n`routing = pywrapcp.RoutingModel(manager)`.  \nDo **not** try to instantiate `RoutingModel` directly with integers or a distance matrix; this will trigger the \u201cWrong number or type of arguments\u201d error.  Use the manager to map between node indices and routing indices throughout the program.",
+  "In OR\u2011Tools, the RoutingIndexManager constructor must be called with the exact signature:",
+  "When creating the OR\u2011Tools routing objects, always use the two\u2011step construction:",
+  "When constructing the OR\u2011Tools routing model, always create a `RoutingIndexManager` with the *total number of nodes* (including the depot) as the first argument, the number of vehicles as the second, and the depot node index as the third. Then pass this manager to `RoutingModel(manager)`. For example:"
+ ],
+ "log": [
+  {
+   "round": 0,
+   "sheet": [],
+   "feasible": 0,
+   "reasons": [
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "customers missing or repeated",
+    "customers missing or repeated",
+    "re",
+    "re",
+    "customers missing or repeated",
+    "re",
+    "re",
+    "re",
+    "re"
+   ]
+  },
+  {
+   "round": 1,
+   "candidates": [
+    [
+     0,
+     "In Solomon benchmark files, the vehicle capacity line is preceded by a line starting with the word \"NUMBER\". The actual capacity line itself contains two integers: the first is the number of vehicles, the second is the vehicle capacity. Any line that begins with \"NUMBER\" should be ignored when parsing the vehicle count and capacity. This ensures that integer parsing does not encounter the literal \"NUMBER\" and raise a ValueError."
+    ],
+    [
+     0,
+     "When reading the vehicle section, the line that contains the number of vehicles and their capacity begins with the literal word \"NUMBER\". The two integers follow this keyword, so the parser should skip the first token and convert the last two tokens of the line to integers. This applies to all Solomon benchmark instances."
+    ]
+   ],
+   "kept": "In Solomon benchmark files, the vehicle capacity line is preceded by a line starting with the word \"NUMBER\". The actual capacity line itself contains two integers: the first is the number of vehicles, the second is the vehicle capacity. Any line that begins with \"NUMBER\" should be ignored when parsing the vehicle count and capacity. This ensures that integer parsing does not encounter the literal \"NUMBER\" and raise a ValueError.",
+   "feasible": 0,
+   "target": "ValueError: invalid literal for int() with base N: '\u2026'",
+   "target_before": 9,
+   "target_after": [
+    0,
+    13
+   ]
+  },
+  {
+   "round": 2,
+   "candidates": [
+    [
+     0,
+     "When adding the time dimension, first register a transit callback that returns the Euclidean travel time between nodes, then call `routing.AddDimension` with that callback.  To account for service times, register a unary callback that returns the service time for each node and add it as a *vehicle\u2011transit* dimension by passing a *list* of callbacks (e.g., `[service_cb_index]`) to `routing.AddDimensionWithVehicleTransits`.  Do not pass a plain integer; otherwise OR\u2011Tools will raise a `TypeError` and the solver may produce routes that miss customers."
+    ],
+    [
+     0,
+     "When parsing the CUSTOMER table, skip any line that starts with a non\u2011numeric token (e.g., \"CUSTOMER\", \"COMMENT\", or empty lines). Then split the remaining lines by whitespace and convert each field to an int, ensuring the first field is the customer number. This guarantees that every customer 1..n is read and included in the data structures before building the routing model."
+    ]
+   ],
+   "kept": "When adding the time dimension, first register a transit callback that returns the Euclidean travel time between nodes, then call `routing.AddDimension` with that callback.  To account for service times, register a unary callback that returns the service time for each node and add it as a *vehicle\u2011transit* dimension by passing a *list* of callbacks (e.g., `[service_cb_index]`) to `routing.AddDimensionWithVehicleTransits`.  Do not pass a plain integer; otherwise OR\u2011Tools will raise a `TypeError` and the solver may produce routes that miss customers.",
+   "feasible": 0,
+   "target": "infeasible: customers missing or repeated",
+   "target_before": 4,
+   "target_after": [
+    0,
+    3
+   ]
+  },
+  {
+   "round": 3,
+   "candidates": [
+    [
+     0,
+     "In OR\u2011Tools the method `RoutingModel.AddDimensionWithVehicleTransits` expects exactly five arguments after `self`: the list of transit callback indices, the maximum slack (an integer), the capacity (an integer), a boolean `fix_start_cumul_to_zero`, and the dimension name (a string). Do **not** pass a seventh positional argument; instead, pass the service\u2011time callback indices as a *list* (e.g. `[service_cb_index]`). This signature is the same for all Solomon instances."
+    ],
+    [
+     0,
+     "When calling `routing.AddDimensionWithVehicleTransits`, supply exactly five arguments after the `routing` object: the list of transit callback indices, the maximum slack (`slack_max`), the capacity (`capacity`), a boolean `fix_start_cumul_to_zero`, and a name string. Do **not** pass a sixth positional argument; if you need to set a different start cumul, use the optional keyword `initial_cumul` instead. This prevents the \u201ctakes N positional arguments but N were given\u201d error that occurs when an extra argument is supplied."
+    ]
+   ],
+   "kept": "In OR\u2011Tools the method `RoutingModel.AddDimensionWithVehicleTransits` expects exactly five arguments after `self`: the list of transit callback indices, the maximum slack (an integer), the capacity (an integer), a boolean `fix_start_cumul_to_zero`, and the dimension name (a string). Do **not** pass a seventh positional argument; instead, pass the service\u2011time callback indices as a *list* (e.g. `[service_cb_index]`). This signature is the same for all Solomon instances.",
+   "feasible": 0,
+   "target": "TypeError: RoutingModel.AddDimensionWithVehicleTransits() takes N positional arguments but N were given",
+   "target_before": 5,
+   "target_after": [
+    0,
+    0
+   ]
+  },
+  {
+   "round": 4,
+   "candidates": [
+    [
+     0,
+     "When constructing the OR\u2011Tools routing model, always create a `RoutingIndexManager` first with the signature  \n`manager = pywrapcp.RoutingIndexManager(node_count, vehicle_count, depot_start, depot_end)`  \nwhere `depot_start` and `depot_end` are the index of the depot node (usually 0).  \nThen pass that manager to the `RoutingModel`:  \n`routing = pywrapcp.RoutingModel(manager)`.  \nDo **not** try to instantiate `RoutingModel` directly with integers or a distance matrix; this will trigger the \u201cWrong number or type of arguments\u201d error.  Use the manager to map between node indices and routing indices throughout the program."
+    ],
+    [
+     0,
+     "In OR\u2011Tools, the RoutingIndexManager constructor must be called with the exact signature:"
+    ]
+   ],
+   "kept": null,
+   "feasible": 0,
+   "target": "TypeError: Wrong number or type of arguments for overloaded function '\u2026'.",
+   "target_before": 7,
+   "target_after": [
+    13,
+    7
+   ]
+  },
+  {
+   "round": 5,
+   "candidates": [
+    [
+     0,
+     "When creating the OR\u2011Tools routing objects, always use the two\u2011step construction:"
+    ],
+    [
+     0,
+     "When constructing the OR\u2011Tools routing model, always create a `RoutingIndexManager` with the *total number of nodes* (including the depot) as the first argument, the number of vehicles as the second, and the depot node index as the third. Then pass this manager to `RoutingModel(manager)`. For example:"
+    ]
+   ],
+   "kept": "When constructing the OR\u2011Tools routing model, always create a `RoutingIndexManager` with the *total number of nodes* (including the depot) as the first argument, the number of vehicles as the second, and the depot node index as the third. Then pass this manager to `RoutingModel(manager)`. For example:",
+   "feasible": 0,
+   "target": "TypeError: Wrong number or type of arguments for overloaded function '\u2026'.",
+   "target_before": 7,
+   "target_after": [
+    4,
+    0
+   ]
+  }
+ ],
+ "mining_tokens": 314384
+}

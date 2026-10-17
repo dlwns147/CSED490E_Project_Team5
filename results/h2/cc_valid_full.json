@@ -1,0 +1,2179 @@
+{
+ "1575_B. Building an Amusement Park": {
+  "tol": 1e-06,
+  "n_tests": 39,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1575_M. Managing Telephone Poles": {
+  "tol": null,
+  "n_tests": 34,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1598_D. Training Session": {
+  "tol": null,
+  "n_tests": 31,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1599_G. Shortest path": {
+  "tol": 1e-06,
+  "n_tests": 34,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1620_B. Triangles on a Rectangle": {
+  "tol": null,
+  "n_tests": 32,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1622_A. Construct a Rectangle": {
+  "tol": null,
+  "n_tests": 40,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1398_A. Bad Triangle": {
+  "tol": null,
+  "n_tests": 42,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "851_B. Arpa and an exam about geometry": {
+  "tol": 1e-06,
+  "n_tests": 76,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1354_C2. Not So Simple Polygon Embedding": {
+  "tol": 1e-06,
+  "n_tests": 33,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "592_E. BCPC": {
+  "tol": null,
+  "n_tests": 43,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "614_C. Peter and Snow Blower": {
+  "tol": 1e-06,
+  "n_tests": 75,
+  "refs_run": 5,
+  "refs_wrong": 2,
+  "flag_multi": true
+ },
+ "536_C. Tavas and Pashmaks": {
+  "tol": null,
+  "n_tests": 46,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "67_E. Save the City!": {
+  "tol": null,
+  "n_tests": 69,
+  "refs_run": 5,
+  "refs_wrong": 3,
+  "flag_multi": true
+ },
+ "1451_D. Circle Game": {
+  "tol": null,
+  "n_tests": 31,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "507_B. Amr and Pins": {
+  "tol": null,
+  "n_tests": 67,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "699_F. Limak and Shooting Points": {
+  "tol": null,
+  "n_tests": 41,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "613_A. Peter and Snow Blower": {
+  "tol": 1e-06,
+  "n_tests": 75,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "989_E. A Trance of Nightfall": {
+  "tol": 1e-06,
+  "n_tests": 37,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1271_C. Shawarma Tent": {
+  "tol": null,
+  "n_tests": 38,
+  "refs_run": 5,
+  "refs_wrong": 2,
+  "flag_multi": true
+ },
+ "474_C. Captain Marmot": {
+  "tol": null,
+  "n_tests": 53,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "703_C. Chris and Road": {
+  "tol": 1e-06,
+  "n_tests": 68,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1045_F. Shady Lady": {
+  "tol": null,
+  "n_tests": 44,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "388_E. Fox and Meteor Shower": {
+  "tol": null,
+  "n_tests": 44,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "698_D. Limak and Shooting Points": {
+  "tol": null,
+  "n_tests": 41,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "1450_B. Balls of Steel": {
+  "tol": null,
+  "n_tests": 31,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "293_D. Ksusha and Square": {
+  "tol": 1e-06,
+  "n_tests": 77,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "73_F. Plane of Tanks": {
+  "tol": 1e-06,
+  "n_tests": 37,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1548_D1. Gregor and the Odd Cows (Easy)": {
+  "tol": null,
+  "n_tests": 34,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1548_D2. Gregor and the Odd Cows (Hard)": {
+  "tol": null,
+  "n_tests": 33,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1552_C. Maximize the Intersections": {
+  "tol": null,
+  "n_tests": 31,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1572_E. Polygon": {
+  "tol": null,
+  "n_tests": 211,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1386_B. Mixture": {
+  "tol": null,
+  "n_tests": 47,
+  "refs_run": 4,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "157_B. Trace": {
+  "tol": 1e-06,
+  "n_tests": 74,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "223_D. Spider": {
+  "tol": 1e-06,
+  "n_tests": 74,
+  "refs_run": 4,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "319_C. Kalila and Dimna in the Logging Industry": {
+  "tol": null,
+  "n_tests": 32,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1468_G. Hobbits": {
+  "tol": 1e-06,
+  "n_tests": 94,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "429_D. Tricky Function": {
+  "tol": null,
+  "n_tests": 57,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1427_H. Prison Break": {
+  "tol": 1e-06,
+  "n_tests": 192,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "14_C. Four Segments": {
+  "tol": null,
+  "n_tests": 139,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "342_C. Cupboard and Balloons": {
+  "tol": null,
+  "n_tests": 78,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "409_G. On a plane": {
+  "tol": 1e-06,
+  "n_tests": 43,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1216_C. White Sheet": {
+  "tol": null,
+  "n_tests": 164,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "40_A. Find Color": {
+  "tol": null,
+  "n_tests": 100,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "437_E. The Child and Polygon": {
+  "tol": null,
+  "n_tests": 59,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "650_A. Watchmen": {
+  "tol": null,
+  "n_tests": 44,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "80_B. Depression": {
+  "tol": 1e-06,
+  "n_tests": 95,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1075_E. Optimal Polygon Perimeter": {
+  "tol": null,
+  "n_tests": 47,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "814_D. An overnight dance in discotheque": {
+  "tol": 1e-06,
+  "n_tests": 40,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "85_E. Guard Towers": {
+  "tol": null,
+  "n_tests": 65,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1100_C. NN and the Optical Illusion": {
+  "tol": 1e-06,
+  "n_tests": 76,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1354_C1. Simple Polygon Embedding": {
+  "tol": 1e-06,
+  "n_tests": 36,
+  "refs_run": 5,
+  "refs_wrong": 2,
+  "flag_multi": true
+ },
+ "1195_F. Geometers Anonymous Club": {
+  "tol": null,
+  "n_tests": 35,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "1446_F. Line Distance": {
+  "tol": 1e-06,
+  "n_tests": 45,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "611_G. New Year and Cake": {
+  "tol": null,
+  "n_tests": 38,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "183_B. Zoo": {
+  "tol": null,
+  "n_tests": 48,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "630_O. Arrow": {
+  "tol": 1e-06,
+  "n_tests": 46,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "771_F. Bear and Isomorphic Points": {
+  "tol": 1e-06,
+  "n_tests": 37,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "842_B. Gleb And Pizza": {
+  "tol": null,
+  "n_tests": 37,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1175_G. Yet Another Partiton Problem": {
+  "tol": null,
+  "n_tests": 45,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "75_E. Ship's Shortest Path": {
+  "tol": 1e-06,
+  "n_tests": 122,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1053_A. Vasya and Triangle": {
+  "tol": null,
+  "n_tests": 94,
+  "refs_run": 5,
+  "refs_wrong": 4,
+  "flag_multi": true
+ },
+ "1096_C. Polygon for the Angle": {
+  "tol": null,
+  "n_tests": 33,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1143_F. U2": {
+  "tol": null,
+  "n_tests": 33,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1219_F. Guarding warehouses": {
+  "tol": 1e-06,
+  "n_tests": 40,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "314_D. Sereja and Straight Lines": {
+  "tol": 1e-06,
+  "n_tests": 43,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "576_C. Points on Plane": {
+  "tol": null,
+  "n_tests": 35,
+  "refs_run": 5,
+  "refs_wrong": 3,
+  "flag_multi": true
+ },
+ "77_E. Martian Food": {
+  "tol": 1e-06,
+  "n_tests": 42,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1163_C1. Power Transmission (Easy Edition)": {
+  "tol": null,
+  "n_tests": 62,
+  "refs_run": 4,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "1284_E. New Year and Castle Construction": {
+  "tol": null,
+  "n_tests": 34,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1303_G. Sum of Prefix Sums": {
+  "tol": null,
+  "n_tests": 34,
+  "refs_run": 4,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "127_A. Wasted Time": {
+  "tol": 1e-06,
+  "n_tests": 56,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "197_E. Paint Tree": {
+  "tol": null,
+  "n_tests": 66,
+  "refs_run": 3,
+  "refs_wrong": 2,
+  "flag_multi": true
+ },
+ "47_E. Cannon": {
+  "tol": 1e-06,
+  "n_tests": 36,
+  "refs_run": 4,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "763_B. Timofey and rectangles": {
+  "tol": null,
+  "n_tests": 40,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "1159_F. Winding polygonal line": {
+  "tol": null,
+  "n_tests": 34,
+  "refs_run": 5,
+  "refs_wrong": 2,
+  "flag_multi": true
+ },
+ "119_E. Alternative Reality": {
+  "tol": 1e-06,
+  "n_tests": 49,
+  "refs_run": 5,
+  "refs_wrong": 2,
+  "flag_multi": true
+ },
+ "1_C. Ancient Berland Circus": {
+  "tol": 1e-06,
+  "n_tests": 50,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "651_C. Watchmen": {
+  "tol": null,
+  "n_tests": 44,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "6_A. Triangle": {
+  "tol": null,
+  "n_tests": 112,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "18_A. Triangle": {
+  "tol": null,
+  "n_tests": 93,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "30_D. King's Problem?": {
+  "tol": 1e-06,
+  "n_tests": 106,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "801_D. Volatile Kite": {
+  "tol": 1e-06,
+  "n_tests": 44,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "630_P. Area of a Star": {
+  "tol": 1e-06,
+  "n_tests": 40,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "933_C. A Colourful Prospect": {
+  "tol": null,
+  "n_tests": 160,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "593_B. Anton and Lines": {
+  "tol": null,
+  "n_tests": 93,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1070_M. Algoland and Berland": {
+  "tol": null,
+  "n_tests": 31,
+  "refs_run": 5,
+  "refs_wrong": 2,
+  "flag_multi": true
+ },
+ "142_E. Help Greg the Dwarf 2": {
+  "tol": 1e-06,
+  "n_tests": 134,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "28_E. DravDe saves the world": {
+  "tol": 1e-06,
+  "n_tests": 67,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "32_E. Hide-and-Seek": {
+  "tol": null,
+  "n_tests": 109,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "631_E. Product Sum": {
+  "tol": null,
+  "n_tests": 48,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "934_E. A Colourful Prospect": {
+  "tol": null,
+  "n_tests": 160,
+  "refs_run": 5,
+  "refs_wrong": 2,
+  "flag_multi": true
+ },
+ "618_C. Constellation": {
+  "tol": null,
+  "n_tests": 86,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "1158_D. Winding polygonal line": {
+  "tol": null,
+  "n_tests": 34,
+  "refs_run": 5,
+  "refs_wrong": 4,
+  "flag_multi": true
+ },
+ "1300_E. Water Balance": {
+  "tol": 1e-06,
+  "n_tests": 43,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "199_E. Delivering Carcinogen": {
+  "tol": 1e-06,
+  "n_tests": 80,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "603_D. Ruminations on Ruminants": {
+  "tol": null,
+  "n_tests": 60,
+  "refs_run": 4,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1064_E. Dwarves, Hats and Extrasensory Abilities": {
+  "tol": null,
+  "n_tests": 104,
+  "refs_run": 5,
+  "refs_wrong": 3,
+  "flag_multi": true
+ },
+ "1194_E. Count The Rectangles": {
+  "tol": null,
+  "n_tests": 32,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "241_C. Mirror Box": {
+  "tol": null,
+  "n_tests": 42,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "54_E. Vacuum \u0421leaner": {
+  "tol": 1e-06,
+  "n_tests": 152,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "850_A. Five Dimensional Points": {
+  "tol": null,
+  "n_tests": 43,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1368_G. Shifting Dominoes": {
+  "tol": null,
+  "n_tests": 10,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "140_F. New Year Snowflake": {
+  "tol": 1e-06,
+  "n_tests": 46,
+  "refs_run": 5,
+  "refs_wrong": 2,
+  "flag_multi": true
+ },
+ "792_F. Mages and Monsters": {
+  "tol": null,
+  "n_tests": 37,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "175_E. Power Defence": {
+  "tol": 1e-06,
+  "n_tests": 223,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1455_E. Four Points": {
+  "tol": null,
+  "n_tests": 34,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "203_D. Hit Ball": {
+  "tol": 1e-06,
+  "n_tests": 70,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "560_C. Gerald's Hexagon": {
+  "tol": null,
+  "n_tests": 33,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "958_E1. Guard Duty (easy)": {
+  "tol": null,
+  "n_tests": 81,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "498_A. Crazy Town": {
+  "tol": null,
+  "n_tests": 60,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "68_E. Contact": {
+  "tol": null,
+  "n_tests": 208,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "848_B. Rooter's Song": {
+  "tol": null,
+  "n_tests": 41,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "993_C. Careful Maneuvering": {
+  "tol": null,
+  "n_tests": 114,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "181_A. Series of Crimes": {
+  "tol": null,
+  "n_tests": 50,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "2_C. Commentator problem": {
+  "tol": 1e-06,
+  "n_tests": 44,
+  "refs_run": 4,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "794_B. Cutting Carrot": {
+  "tol": 1e-06,
+  "n_tests": 57,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1422_A. Fence": {
+  "tol": null,
+  "n_tests": 37,
+  "refs_run": 5,
+  "refs_wrong": 4,
+  "flag_multi": true
+ },
+ "379_E. New Year Tree Decorations": {
+  "tol": 1e-06,
+  "n_tests": 38,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "44_F. BerPaint": {
+  "tol": 1e-06,
+  "n_tests": 70,
+  "refs_run": 5,
+  "refs_wrong": 3,
+  "flag_multi": true
+ },
+ "594_B. Max and Bike": {
+  "tol": 1e-06,
+  "n_tests": 37,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1078_A. Barcelonian Distance": {
+  "tol": 1e-06,
+  "n_tests": 67,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1248_A. Integer Points": {
+  "tol": null,
+  "n_tests": 33,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "65_C. Harry Potter and the Golden Snitch": {
+  "tol": 1e-06,
+  "n_tests": 50,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "706_A. Beru-taxi": {
+  "tol": 1e-06,
+  "n_tests": 64,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "1017_E. The Supersonic Rocket": {
+  "tol": null,
+  "n_tests": 51,
+  "refs_run": 4,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "1064_A. Make a triangle!": {
+  "tol": null,
+  "n_tests": 58,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1495_A. Diamond Miner": {
+  "tol": 1e-06,
+  "n_tests": 31,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "598_F. Cut Length": {
+  "tol": 1e-06,
+  "n_tests": 49,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "820_B. Mister B and Angle in Polygon": {
+  "tol": null,
+  "n_tests": 78,
+  "refs_run": 5,
+  "refs_wrong": 3,
+  "flag_multi": true
+ },
+ "962_G. Visible Black Areas": {
+  "tol": null,
+  "n_tests": 42,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "776_F. Sherlock's bet to Moriarty": {
+  "tol": null,
+  "n_tests": 43,
+  "refs_run": 4,
+  "refs_wrong": 3,
+  "flag_multi": true
+ },
+ "1299_C. Water Balance": {
+  "tol": 1e-06,
+  "n_tests": 43,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "552_D. Vanya and Triangles": {
+  "tol": null,
+  "n_tests": 56,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "394_E. Lightbulb for Minister": {
+  "tol": 1e-06,
+  "n_tests": 36,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "659_D. Bicycle Race": {
+  "tol": null,
+  "n_tests": 10,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "704_E. Iron Man": {
+  "tol": 1e-06,
+  "n_tests": 45,
+  "refs_run": 4,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "932_F. Escape Through Leaf": {
+  "tol": null,
+  "n_tests": 35,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "24_C. Sequence of points": {
+  "tol": null,
+  "n_tests": 35,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "590_B. Chip 'n Dale Rescue Rangers": {
+  "tol": 1e-06,
+  "n_tests": 81,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "660_D. Number of Parallelograms": {
+  "tol": null,
+  "n_tests": 68,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1146_H. Satanic Panic": {
+  "tol": null,
+  "n_tests": 38,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "231_D. Magic Box": {
+  "tol": null,
+  "n_tests": 65,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "257_C. View Angle": {
+  "tol": 1e-06,
+  "n_tests": 62,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "198_C. Delivering Carcinogen": {
+  "tol": 1e-06,
+  "n_tests": 80,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "853_E. Lada Malina": {
+  "tol": null,
+  "n_tests": 39,
+  "refs_run": 3,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "166_B. Polygons": {
+  "tol": null,
+  "n_tests": 59,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "591_D. Chip 'n Dale Rescue Rangers": {
+  "tol": 1e-06,
+  "n_tests": 81,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1326_G. Spiderweb Trees": {
+  "tol": null,
+  "n_tests": 43,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "320_E. Kalila and Dimna in the Logging Industry": {
+  "tol": null,
+  "n_tests": 32,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "559_A. Gerald's Hexagon": {
+  "tol": null,
+  "n_tests": 31,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1486_B. Eastern Exhibition": {
+  "tol": null,
+  "n_tests": 32,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "630_Q. Pyramids": {
+  "tol": 1e-06,
+  "n_tests": 40,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "772_B. Volatile Kite": {
+  "tol": 1e-06,
+  "n_tests": 44,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1142_C. U2": {
+  "tol": null,
+  "n_tests": 33,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "559_D. Randomizer": {
+  "tol": 1e-06,
+  "n_tests": 49,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "678_F. Lena and Queries": {
+  "tol": null,
+  "n_tests": 44,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "13_B. Letter A": {
+  "tol": null,
+  "n_tests": 31,
+  "refs_run": 3,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "575_E. Spectator Riots": {
+  "tol": null,
+  "n_tests": 32,
+  "refs_run": 5,
+  "refs_wrong": 3,
+  "flag_multi": true
+ },
+ "618_E. Robot Arm": {
+  "tol": 1e-06,
+  "n_tests": 33,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1030_B. Vasya and Cornfield": {
+  "tol": null,
+  "n_tests": 47,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1369_A. FashionabLee": {
+  "tol": null,
+  "n_tests": 31,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "535_E. Tavas and Pashmaks": {
+  "tol": null,
+  "n_tests": 46,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "62_C. Inquisition": {
+  "tol": 1e-06,
+  "n_tests": 45,
+  "refs_run": 4,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "793_C. Mice problem": {
+  "tol": 1e-06,
+  "n_tests": 91,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "340_B. Maximal Area Quadrilateral": {
+  "tol": 1e-06,
+  "n_tests": 40,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "852_H. Bob and stages": {
+  "tol": 1e-06,
+  "n_tests": 47,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "499_C. Crazy Town": {
+  "tol": null,
+  "n_tests": 60,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "849_D. Rooter's Song": {
+  "tol": null,
+  "n_tests": 41,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "851_C. Five Dimensional Points": {
+  "tol": null,
+  "n_tests": 43,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "89_D. Space mines": {
+  "tol": 1e-06,
+  "n_tests": 41,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1424_E. 5G Antenna Towers": {
+  "tol": 1e-06,
+  "n_tests": 31,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1517_H. Fly Around the World": {
+  "tol": null,
+  "n_tests": 34,
+  "refs_run": 4,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "975_D. Ghosts": {
+  "tol": null,
+  "n_tests": 37,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "442_E. Gena and Second Distance": {
+  "tol": 1e-06,
+  "n_tests": 42,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "886_F. Symmetric Projections": {
+  "tol": null,
+  "n_tests": 52,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1167_G. Low Budget Inception": {
+  "tol": 1e-06,
+  "n_tests": 45,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1331_E. Jordan Smiley": {
+  "tol": null,
+  "n_tests": 34,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "889_D. Symmetric Projections": {
+  "tol": null,
+  "n_tests": 52,
+  "refs_run": 4,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1312_A. Two Regular Polygons": {
+  "tol": null,
+  "n_tests": 33,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "70_D. Professor's task": {
+  "tol": null,
+  "n_tests": 82,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "281_C. Rectangle Puzzle": {
+  "tol": 1e-06,
+  "n_tests": 64,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "420_E. Playing the ball": {
+  "tol": null,
+  "n_tests": 42,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "660_F. Bear and Bowling 4": {
+  "tol": null,
+  "n_tests": 54,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "750_B. New Year and North Pole": {
+  "tol": null,
+  "n_tests": 167,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "935_C. Fifa and Fafa": {
+  "tol": 1e-06,
+  "n_tests": 70,
+  "refs_run": 5,
+  "refs_wrong": 2,
+  "flag_multi": true
+ },
+ "1423_E. 5G Antenna Towers": {
+  "tol": 1e-06,
+  "n_tests": 31,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1468_F. Full Turn": {
+  "tol": null,
+  "n_tests": 38,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "993_A. Two Squares": {
+  "tol": null,
+  "n_tests": 147,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1036_E. Covered Points": {
+  "tol": null,
+  "n_tests": 48,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1059_D. Nature Reserve": {
+  "tol": 1e-06,
+  "n_tests": 44,
+  "refs_run": 5,
+  "refs_wrong": 2,
+  "flag_multi": true
+ },
+ "799_G. Cut the pie": {
+  "tol": 1e-06,
+  "n_tests": 41,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "98_C. Help Greg the Dwarf": {
+  "tol": 1e-06,
+  "n_tests": 233,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "605_C. Freelancer's Dreams": {
+  "tol": 1e-06,
+  "n_tests": 69,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1550_C. Manhattan Subarrays": {
+  "tol": null,
+  "n_tests": 31,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "220_D. Little Elephant and Triangle": {
+  "tol": null,
+  "n_tests": 91,
+  "refs_run": 4,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1193_C. Scissors and Tape": {
+  "tol": 1e-06,
+  "n_tests": 115,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "23_D. Tetragon": {
+  "tol": 1e-06,
+  "n_tests": 33,
+  "refs_run": 5,
+  "refs_wrong": 3,
+  "flag_multi": true
+ },
+ "667_E. Chain Reaction": {
+  "tol": null,
+  "n_tests": 46,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "227_A. Where do I Turn?": {
+  "tol": null,
+  "n_tests": 78,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "250_D. Building Bridge": {
+  "tol": null,
+  "n_tests": 34,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "275_E. The Last Hole!": {
+  "tol": 1e-06,
+  "n_tests": 51,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "270_A. Fancy Fence": {
+  "tol": null,
+  "n_tests": 32,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "645_G. Armistice Area Apportionment": {
+  "tol": 1e-06,
+  "n_tests": 61,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1047_B. Cover Points": {
+  "tol": null,
+  "n_tests": 88,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "249_D. Donkey and Stars": {
+  "tol": null,
+  "n_tests": 48,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "78_D. Archer's Shot": {
+  "tol": null,
+  "n_tests": 72,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "1401_E. Divide Square": {
+  "tol": null,
+  "n_tests": 38,
+  "refs_run": 4,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "578_A. A Problem about Polyline": {
+  "tol": 1e-06,
+  "n_tests": 61,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "780_H. Intranet of Buses": {
+  "tol": 1e-06,
+  "n_tests": 42,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "195_D. Analyzing Polyline": {
+  "tol": null,
+  "n_tests": 50,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "385_D. Bear and Floodlight": {
+  "tol": 1e-06,
+  "n_tests": 99,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1218_B. Guarding warehouses": {
+  "tol": 1e-06,
+  "n_tests": 40,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1388_E. Uncle Bogdan and Projections": {
+  "tol": 1e-06,
+  "n_tests": 45,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "274_C. The Last Hole!": {
+  "tol": 1e-06,
+  "n_tests": 51,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1025_F. Disjoint Triangles": {
+  "tol": null,
+  "n_tests": 47,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1016_E. Rest In The Shades": {
+  "tol": 1e-06,
+  "n_tests": 39,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "1359_F. RC Kaboom Show": {
+  "tol": 1e-06,
+  "n_tests": 57,
+  "refs_run": 5,
+  "refs_wrong": 2,
+  "flag_multi": true
+ },
+ "666_D. Chain Reaction": {
+  "tol": 1e-06,
+  "n_tests": 46,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "1220_G. Geolocation": {
+  "tol": null,
+  "n_tests": 32,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "610_D. Vika and Segments": {
+  "tol": null,
+  "n_tests": 35,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1293_D. Aroma's Search": {
+  "tol": null,
+  "n_tests": 164,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "595_D. Max and Bike": {
+  "tol": 1e-06,
+  "n_tests": 37,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "689_E. Mike and Geometry Problem": {
+  "tol": null,
+  "n_tests": 39,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "975_E. Hag's Khashba": {
+  "tol": 1e-06,
+  "n_tests": 35,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "406_D. Hill Climbing": {
+  "tol": null,
+  "n_tests": 42,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1083_E. The Fair Nut and Rectangles": {
+  "tol": null,
+  "n_tests": 43,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "190_B. Surrounded": {
+  "tol": 1e-06,
+  "n_tests": 73,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "596_A. Wilbur and Swimming Pool": {
+  "tol": null,
+  "n_tests": 151,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "106_E. Space Rescuers": {
+  "tol": 0.0001,
+  "n_tests": 52,
+  "refs_run": 5,
+  "refs_wrong": 3,
+  "flag_multi": true
+ },
+ "1199_B. Water Lily": {
+  "tol": 1e-06,
+  "n_tests": 51,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "1300_D. Aerodynamic": {
+  "tol": 1e-06,
+  "n_tests": 72,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "9_B. Running Student": {
+  "tol": null,
+  "n_tests": 50,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1536_F. Omkar and Akmar": {
+  "tol": null,
+  "n_tests": 116,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "280_A. Rectangle Puzzle": {
+  "tol": 1e-06,
+  "n_tests": 64,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "350_D. Looking for Owls": {
+  "tol": null,
+  "n_tests": 36,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "374_E. Inna and Babies": {
+  "tol": null,
+  "n_tests": 39,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "514_B. Han Solo and Lazer Gun": {
+  "tol": null,
+  "n_tests": 45,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1028_C. Rectangles": {
+  "tol": null,
+  "n_tests": 118,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "1046_I. Say Hello": {
+  "tol": null,
+  "n_tests": 46,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1366_F. Jog Around The Graph": {
+  "tol": null,
+  "n_tests": 36,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "249_A. Robo-Footballer": {
+  "tol": 1e-06,
+  "n_tests": 110,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "766_B. Mahmoud and a Triangle": {
+  "tol": null,
+  "n_tests": 82,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "136_D. Rectangle and Square": {
+  "tol": null,
+  "n_tests": 252,
+  "refs_run": 5,
+  "refs_wrong": 3,
+  "flag_multi": true
+ },
+ "815_D. Karen and Cards": {
+  "tol": null,
+  "n_tests": 43,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "377_E. Cookie Clicker": {
+  "tol": null,
+  "n_tests": 118,
+  "refs_run": 5,
+  "refs_wrong": 2,
+  "flag_multi": true
+ },
+ "224_A. Parallelepiped": {
+  "tol": null,
+  "n_tests": 46,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "87_E. Mogohu-Rea Idol": {
+  "tol": null,
+  "n_tests": 35,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "667_A. Pouring Rain": {
+  "tol": 1e-06,
+  "n_tests": 53,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "849_B. Tell Your World": {
+  "tol": null,
+  "n_tests": 73,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1044_C. Optimal Polygon Perimeter": {
+  "tol": null,
+  "n_tests": 47,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "154_E. Martian Colony": {
+  "tol": 1e-06,
+  "n_tests": 45,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "269_E. String Theory": {
+  "tol": null,
+  "n_tests": 48,
+  "refs_run": 4,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "717_I. Cowboy Beblop at his computer": {
+  "tol": null,
+  "n_tests": 44,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1466_A. Bovine Dilemma": {
+  "tol": null,
+  "n_tests": 32,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "606_E. Freelancer's Dreams": {
+  "tol": 1e-06,
+  "n_tests": 69,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "744_D. Hongcow Draws a Circle": {
+  "tol": 1e-06,
+  "n_tests": 49,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "982_E. Billiard": {
+  "tol": null,
+  "n_tests": 131,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "607_E. Cross Sum": {
+  "tol": 1e-06,
+  "n_tests": 35,
+  "refs_run": 4,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1292_B. Aroma's Search": {
+  "tol": null,
+  "n_tests": 164,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "13_D. Triangles": {
+  "tol": null,
+  "n_tests": 45,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "549_E. Sasha Circle": {
+  "tol": null,
+  "n_tests": 50,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "667_B. Coat of Anticubism": {
+  "tol": null,
+  "n_tests": 44,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "994_C. Two Squares": {
+  "tol": null,
+  "n_tests": 154,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1381_E. Origami": {
+  "tol": 1e-06,
+  "n_tests": 39,
+  "refs_run": 5,
+  "refs_wrong": 3,
+  "flag_multi": true
+ },
+ "82_E. Corridor": {
+  "tol": 1e-06,
+  "n_tests": 60,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "33_D. Knights": {
+  "tol": null,
+  "n_tests": 45,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "600_D. Area of Two Circles' Intersection": {
+  "tol": 1e-06,
+  "n_tests": 84,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "900_A. Find Extra One": {
+  "tol": null,
+  "n_tests": 89,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "681_E. Runaway to a Shadow": {
+  "tol": 1e-06,
+  "n_tests": 49,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "91_E. Igloo Skyscraper": {
+  "tol": null,
+  "n_tests": 39,
+  "refs_run": 5,
+  "refs_wrong": 4,
+  "flag_multi": true
+ },
+ "199_B. Special Olympics": {
+  "tol": null,
+  "n_tests": 170,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "764_D. Timofey and rectangles": {
+  "tol": null,
+  "n_tests": 41,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "99_E. Help Greg the Dwarf": {
+  "tol": 1e-06,
+  "n_tests": 233,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1156_A. Inscribed Figures": {
+  "tol": null,
+  "n_tests": 60,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1299_B. Aerodynamic": {
+  "tol": null,
+  "n_tests": 72,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "243_D. Cubes": {
+  "tol": null,
+  "n_tests": 39,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "407_A. Triangle": {
+  "tol": null,
+  "n_tests": 80,
+  "refs_run": 5,
+  "refs_wrong": 3,
+  "flag_multi": true
+ },
+ "579_C. A Problem about Polyline": {
+  "tol": 1e-06,
+  "n_tests": 61,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "671_A. Recycling Bottles": {
+  "tol": 1e-06,
+  "n_tests": 137,
+  "refs_run": 4,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "8_D. Two Friends": {
+  "tol": 0.0001,
+  "n_tests": 105,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "994_E. Careful Maneuvering": {
+  "tol": null,
+  "n_tests": 114,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "223_E. Planar Graph": {
+  "tol": null,
+  "n_tests": 43,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "248_C. Robo-Footballer": {
+  "tol": 1e-06,
+  "n_tests": 110,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "438_C. The Child and Polygon": {
+  "tol": null,
+  "n_tests": 59,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "672_C. Recycling Bottles": {
+  "tol": 1e-06,
+  "n_tests": 137,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1071_E. Rain Protection": {
+  "tol": 1e-06,
+  "n_tests": 36,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "140_A. New Year Table": {
+  "tol": null,
+  "n_tests": 75,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "107_E. Darts": {
+  "tol": 1e-06,
+  "n_tests": 17,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1539_A. Contest Start": {
+  "tol": null,
+  "n_tests": 33,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1534_G. A New Beginning": {
+  "tol": null,
+  "n_tests": 49,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "887_E. Little Brother": {
+  "tol": 1e-06,
+  "n_tests": 51,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1163_C2. Power Transmission (Hard Edition)": {
+  "tol": null,
+  "n_tests": 38,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "55_E. Very simple problem": {
+  "tol": null,
+  "n_tests": 60,
+  "refs_run": 5,
+  "refs_wrong": 3,
+  "flag_multi": true
+ },
+ "182_A. Battlefield": {
+  "tol": 1e-06,
+  "n_tests": 58,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "279_A. Point on Spiral": {
+  "tol": null,
+  "n_tests": 62,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "372_E. Drawing Circles is Fun": {
+  "tol": null,
+  "n_tests": 38,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "566_G. Max and Min": {
+  "tol": null,
+  "n_tests": 74,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "128_E. Birthday": {
+  "tol": null,
+  "n_tests": 47,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "141_B. Hopscotch": {
+  "tol": null,
+  "n_tests": 172,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "989_D. A Shade of Moonlight": {
+  "tol": null,
+  "n_tests": 42,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "577_E. Points on Plane": {
+  "tol": null,
+  "n_tests": 35,
+  "refs_run": 5,
+  "refs_wrong": 2,
+  "flag_multi": true
+ },
+ "1515_B. Phoenix and Puzzle": {
+  "tol": null,
+  "n_tests": 43,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "333_E. Summer Earnings": {
+  "tol": 1e-06,
+  "n_tests": 43,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "961_D. Pair Of Lines": {
+  "tol": null,
+  "n_tests": 98,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "50_C. Happy Farm 5": {
+  "tol": null,
+  "n_tests": 91,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "859_B. Lazy Security Guard": {
+  "tol": null,
+  "n_tests": 65,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "908_C. New Year and Curling": {
+  "tol": 1e-06,
+  "n_tests": 37,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "309_D. Tennis Rackets": {
+  "tol": null,
+  "n_tests": 52,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ },
+ "1032_D. Barcelonian Distance": {
+  "tol": 1e-06,
+  "n_tests": 67,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "1307_B. Cow and Friend": {
+  "tol": null,
+  "n_tests": 36,
+  "refs_run": 5,
+  "refs_wrong": 0,
+  "flag_multi": false
+ },
+ "630_M. Turn": {
+  "tol": null,
+  "n_tests": 109,
+  "refs_run": 5,
+  "refs_wrong": 1,
+  "flag_multi": true
+ }
+}

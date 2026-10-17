@@ -1,0 +1,126 @@
+{
+ "1575_B. Building an Amusement Park": {
+  "tol": 0.0001,
+  "n_tests": 39
+ },
+ "1575_M. Managing Telephone Poles": {
+  "tol": null,
+  "n_tests": 34
+ },
+ "1598_D. Training Session": {
+  "tol": null,
+  "n_tests": 31
+ },
+ "1599_G. Shortest path": {
+  "tol": 1e-06,
+  "n_tests": 34
+ },
+ "1620_B. Triangles on a Rectangle": {
+  "tol": null,
+  "n_tests": 32
+ },
+ "1622_A. Construct a Rectangle": {
+  "tol": null,
+  "n_tests": 40
+ },
+ "1398_A. Bad Triangle": {
+  "tol": null,
+  "n_tests": 42
+ },
+ "851_B. Arpa and an exam about geometry": {
+  "tol": 1e-06,
+  "n_tests": 76
+ },
+ "1354_C2. Not So Simple Polygon Embedding": {
+  "tol": 1e-06,
+  "n_tests": 33
+ },
+ "592_E. BCPC": {
+  "tol": null,
+  "n_tests": 43
+ },
+ "614_C. Peter and Snow Blower": {
+  "tol": 1e-06,
+  "n_tests": 75
+ },
+ "536_C. Tavas and Pashmaks": {
+  "tol": null,
+  "n_tests": 46
+ },
+ "67_E. Save the City!": {
+  "tol": null,
+  "n_tests": 69
+ },
+ "1451_D. Circle Game": {
+  "tol": null,
+  "n_tests": 31
+ },
+ "507_B. Amr and Pins": {
+  "tol": null,
+  "n_tests": 67
+ },
+ "699_F. Limak and Shooting Points": {
+  "tol": null,
+  "n_tests": 41
+ },
+ "613_A. Peter and Snow Blower": {
+  "tol": 1e-06,
+  "n_tests": 75
+ },
+ "989_E. A Trance of Nightfall": {
+  "tol": 1e-06,
+  "n_tests": 37
+ },
+ "1271_C. Shawarma Tent": {
+  "tol": null,
+  "n_tests": 38
+ },
+ "474_C. Captain Marmot": {
+  "tol": null,
+  "n_tests": 53
+ },
+ "703_C. Chris and Road": {
+  "tol": 1e-06,
+  "n_tests": 68
+ },
+ "1045_F. Shady Lady": {
+  "tol": null,
+  "n_tests": 44
+ },
+ "388_E. Fox and Meteor Shower": {
+  "tol": null,
+  "n_tests": 44
+ },
+ "698_D. Limak and Shooting Points": {
+  "tol": null,
+  "n_tests": 41
+ },
+ "1450_B. Balls of Steel": {
+  "tol": null,
+  "n_tests": 31
+ },
+ "293_D. Ksusha and Square": {
+  "tol": 1e-06,
+  "n_tests": 77
+ },
+ "73_F. Plane of Tanks": {
+  "tol": 0.0001,
+  "n_tests": 37
+ },
+ "1548_D1. Gregor and the Odd Cows (Easy)": {
+  "tol": null,
+  "n_tests": 34
+ },
+ "1548_D2. Gregor and the Odd Cows (Hard)": {
+  "tol": null,
+  "n_tests": 33
+ },
+ "1552_C. Maximize the Intersections": {
+  "tol": null,
+  "n_tests": 31
+ },
+ "1572_E. Polygon": {
+  "tol": null,
+  "n_tests": 211
+ }
+}

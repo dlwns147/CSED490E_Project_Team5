@@ -1,0 +1,36 @@
+# Python / Node
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+node_modules/
+.ipynb_checkpoints/
+
+# Raw model outputs and run logs (about 1.3 GB; regenerate with the run scripts, see README)
+*.jsonl
+*.log
+*.out
+nohup*
+
+# Large probes, caches and stopped runs
+results/logit_probe2_*.json
+results/**/*cache*.json
+results/archive/partial_stopped/
+
+# Model weights, checkpoints, external datasets
+*.safetensors
+*.bin
+*.pt
+*.parquet
+checkpoints/
+models/
+
+# Editors, OS, office lock files, secrets
+.vscode/
+.idea/
+.DS_Store
+~$*
+.~lock.*#
+.env
+*.pem
+*_key*

@@ -1,0 +1,25 @@
+{
+ "q38_plain": {
+  "candidates": 16,
+  "best_mining": 0,
+  "test_feasible": 0
+ },
+ "q38_docs": {
+  "candidates": 16,
+  "best_mining": 4,
+  "test_feasible": 45,
+  "median_gap": 1.3528248460852765,
+  "within5": 41,
+  "gen_tokens": 29475,
+  "picked": "c201"
+ },
+ "q38_parserintrobust": {
+  "candidates": 16,
+  "best_mining": 8,
+  "test_feasible": 48,
+  "median_gap": 1.2873355543233655,
+  "within5": 44,
+  "gen_tokens": 20976,
+  "picked": "rc101"
+ }
+}

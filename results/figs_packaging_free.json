@@ -1,0 +1,3241 @@
+{
+ "method": "Numbers behind the helper-related figures (figs/fig2, fig4, fig6, fig7, fig8), raw and packaging-free, plus an audit of the other\nhard-coded numbers in poc/make_figures.py (fig1, fig3, fig5). CPU only, no model calls.\n\nPackaging-free = the logic of poc/rescore_prelude.py: every stored program whose class is \"crash\" is re-run on all 8 metamorphic variants\nwith the helpers that were OFFERED in its prompt PRE-DEFINED in front of it; the model's own definitions come later and override. A program\nthat only crashed because it called a helper without copying it is then scored on its logic. All other rows keep their stored class.\n(rescore_prelude.py runs at import, so its rescore() is copied here.) The prelude per arm:\n  related / unrelated  --distract K runs: needed helpers + the K distractors (geo_distractors.toolbox, same RNG key as run_geo_cross.py)\n  prims                the task-matched \"pt\" arm (--primitives --prims_task): the task's needed predicates (run_geo_cross.prims)\n  None                 runs that offer no helpers (stored classes are used as they are)\n\nMR-select (fig6, fig8) = poc/mr_select.py: per instance, run each of the 3 seeds' programs on the metamorphic copies of the given instance, keep\nthe consistent ones, majority-vote the identity output, pick the first program with it, score the pick (no consistent program = abstain,\ncounted wrong). Packaging-free version: candidates\nrun with the prelude, the pick is scored packaging-free.\n\nExtra diagnostics per run (not used for the plotted numbers):\n  copy_nameerr  crash rows whose identity run (no prelude) raises NameError on a helper that was offered (= copy failures)\n  pf_all        correct count if EVERY non-correct row (not only crashes) is re-run with the prelude: catches copy failures that only\n                fire on a non-identity variant (they show up as degen_only / transform_only instead of crash)\n  dis_mismatch  rows whose stored \"distractors\" field differs from the reconstructed toolbox (must be 0, otherwise the prelude is wrong)\n\nDeltas pair K0 and K8 rows by (seed, task, n, inst); 95% CI = cluster bootstrap over instances (task, n, inst), seeds of the same\ninstance resampled together, 10,000 resamples, numpy default_rng(0) per comparison.",
+ "fig2": {
+  "Qwen3-8B": {
+   "0": {
+    "tags": [
+     "geox8b_dis0_t07s1",
+     "geox8b_dis0_t07s2"
+    ],
+    "K": 0,
+    "kind": "related",
+    "n": 200,
+    "raw_pct": 98.0,
+    "pf_pct": 98.0,
+    "pf_all_pct": 98.0,
+    "runs": [
+     {
+      "tag": "geox8b_dis0_t07s1",
+      "K": 0,
+      "kind": "related",
+      "n": 100,
+      "raw_correct": 98,
+      "pf_correct": 98,
+      "pf_all_correct": 98,
+      "crashes": 1,
+      "crashes_pf": 1,
+      "copy_nameerr": 0,
+      "dis_mismatch": 0,
+      "pf_rescued": {}
+     },
+     {
+      "tag": "geox8b_dis0_t07s2",
+      "K": 0,
+      "kind": "related",
+      "n": 100,
+      "raw_correct": 98,
+      "pf_correct": 98,
+      "pf_all_correct": 98,
+      "crashes": 0,
+      "crashes_pf": 0,
+      "copy_nameerr": 0,
+      "dis_mismatch": 0,
+      "pf_rescued": {}
+     }
+    ]
+   },
+   "2": {
+    "tags": [
+     "geox8b_dis2_t07s1",
+     "geox8b_dis2_t07s2"
+    ],
+    "K": 2,
+    "kind": "related",
+    "n": 200,
+    "raw_pct": 87.0,
+    "pf_pct": 87.0,
+    "pf_all_pct": 87.0,
+    "runs": [
+     {
+      "tag": "geox8b_dis2_t07s1",
+      "K": 2,
+      "kind": "related",
+      "n": 100,
+      "raw_correct": 88,
+      "pf_correct": 88,
+      "pf_all_correct": 88,
+      "crashes": 4,
+      "crashes_pf": 4,
+      "copy_nameerr": 0,
+      "dis_mismatch": 0,
+      "pf_rescued": {}
+     },
+     {
+      "tag": "geox8b_dis2_t07s2",
+      "K": 2,
+      "kind": "related",
+      "n": 100,
+      "raw_correct": 86,
+      "pf_correct": 86,
+      "pf_all_correct": 86,
+      "crashes": 3,
+      "crashes_pf": 3,
+      "copy_nameerr": 0,
+      "dis_mismatch": 0,
+      "pf_rescued": {}
+     }
+    ],
+    "delta_vs_K0_raw": {
+     "delta": -11.0,
+     "lo": -17.5,
+     "hi": -5.0,
+     "k0_pct": 98.0,
+     "k8_pct": 87.0,
+     "n_instances": 100,
+     "n_pairs": 200
+    },
+    "delta_vs_K0_pf": {
+     "delta": -11.0,
+     "lo": -17.5,
+     "hi": -5.0,
+     "k0_pct": 98.0,
+     "k8_pct": 87.0,
+     "n_instances": 100,
+     "n_pairs": 200
+    }
+   },
+   "4": {
+    "tags": [
+     "geox8b_dis4_t07s1",
+     "geox8b_dis4_t07s2"
+    ],
+    "K": 4,
+    "kind": "related",
+    "n": 200,
+    "raw_pct": 81.0,
+    "pf_pct": 82.0,
+    "pf_all_pct": 82.0,
+    "runs": [
+     {
+      "tag": "geox8b_dis4_t07s1",
+      "K": 4,
+      "kind": "related",
+      "n": 100,
+      "raw_correct": 80,
+      "pf_correct": 81,
+      "pf_all_correct": 81,
+      "crashes": 7,
+      "crashes_pf": 6,
+      "copy_nameerr": 1,
+      "dis_mismatch": 0,
+      "pf_rescued": {
+       "correct_all": 1
+      }
+     },
+     {
+      "tag": "geox8b_dis4_t07s2",
+      "K": 4,
+      "kind": "related",
+      "n": 100,
+      "raw_correct": 82,
+      "pf_correct": 83,
+      "pf_all_correct": 83,
+      "crashes": 5,
+      "crashes_pf": 4,
+      "copy_nameerr": 1,
+      "dis_mismatch": 0,
+      "pf_rescued": {
+       "correct_all": 1
+      }
+     }
+    ],
+    "delta_vs_K0_raw": {
+     "delta": -17.0,
+     "lo": -25.0,
+     "hi": -9.5,
+     "k0_pct": 98.0,
+     "k8_pct": 81.0,
+     "n_instances": 100,
+     "n_pairs": 200
+    },
+    "delta_vs_K0_pf": {
+     "delta": -16.0,
+     "lo": -24.0,
+     "hi": -8.5,
+     "k0_pct": 98.0,
+     "k8_pct": 82.0,
+     "n_instances": 100,
+     "n_pairs": 200
+    }
+   },
+   "8": {
+    "tags": [
+     "geox8b_dis8_t07s1",
+     "geox8b_dis8_t07s2"
+    ],
+    "K": 8,
+    "kind": "related",
+    "n": 200,
+    "raw_pct": 74.5,
+    "pf_pct": 74.5,
+    "pf_all_pct": 74.5,
+    "runs": [
+     {
+      "tag": "geox8b_dis8_t07s1",
+      "K": 8,
+      "kind": "related",
+      "n": 100,
+      "raw_correct": 74,
+      "pf_correct": 74,
+      "pf_all_correct": 74,
+      "crashes": 7,
+      "crashes_pf": 7,
+      "copy_nameerr": 0,
+      "dis_mismatch": 0,
+      "pf_rescued": {}
+     },
+     {
+      "tag": "geox8b_dis8_t07s2",
+      "K": 8,
+      "kind": "related",
+      "n": 100,
+      "raw_correct": 75,
+      "pf_correct": 75,
+      "pf_all_correct": 75,
+      "crashes": 10,
+      "crashes_pf": 8,
+      "copy_nameerr": 2,
+      "dis_mismatch": 0,
+      "pf_rescued": {
+       "logic": 2
+      }
+     }
+    ],
+    "delta_vs_K0_raw": {
+     "delta": -23.5,
+     "lo": -32.0,
+     "hi": -15.5,
+     "k0_pct": 98.0,
+     "k8_pct": 74.5,
+     "n_instances": 100,
+     "n_pairs": 200
+    },
+    "delta_vs_K0_pf": {
+     "delta": -23.5,
+     "lo": -32.0,
+     "hi": -15.5,
+     "k0_pct": 98.0,
+     "k8_pct": 74.5,
+     "n_instances": 100,
+     "n_pairs": 200
+    }
+   },
+   "U": {
+    "tags": [
+     "geox8b_disU8_t07s1",
+     "geox8b_disU8_t07s2"
+    ],
+    "K": 8,
+    "kind": "unrelated",
+    "n": 200,
+    "raw_pct": 91.0,
+    "pf_pct": 93.5,
+    "pf_all_pct": 93.5,
+    "runs": [
+     {
+      "tag": "geox8b_disU8_t07s1",
+      "K": 8,
+      "kind": "unrelated",
+      "n": 100,
+      "raw_correct": 92,
+      "pf_correct": 95,
+      "pf_all_correct": 95,
+      "crashes": 8,
+      "crashes_pf": 5,
+      "copy_nameerr": 3,
+      "dis_mismatch": 0,
+      "pf_rescued": {
+       "correct_all": 3
+      }
+     },
+     {
+      "tag": "geox8b_disU8_t07s2",
+      "K": 8,
+      "kind": "unrelated",
+      "n": 100,
+      "raw_correct": 90,
+      "pf_correct": 92,
+      "pf_all_correct": 92,
+      "crashes": 8,
+      "crashes_pf": 6,
+      "copy_nameerr": 3,
+      "dis_mismatch": 0,
+      "pf_rescued": {
+       "correct_all": 2
+      }
+     }
+    ],
+    "delta_vs_K0_raw": {
+     "delta": -7.0,
+     "lo": -12.5,
+     "hi": -2.5,
+     "k0_pct": 98.0,
+     "k8_pct": 91.0,
+     "n_instances": 100,
+     "n_pairs": 200
+    },
+    "delta_vs_K0_pf": {
+     "delta": -4.5,
+     "lo": -8.5,
+     "hi": -0.5,
+     "k0_pct": 98.0,
+     "k8_pct": 93.5,
+     "n_instances": 100,
+     "n_pairs": 200
+    }
+   }
+  },
+  "Qwen3-14B": {
+   "0": {
+    "tags": [
+     "geox14b_dis0_t07s1",
+     "geox14b_dis0_t07s2"
+    ],
+    "K": 0,
+    "kind": "related",
+    "n": 200,
+    "raw_pct": 84.5,
+    "pf_pct": 84.5,
+    "pf_all_pct": 84.5,
+    "runs": [
+     {
+      "tag": "geox14b_dis0_t07s1",
+      "K": 0,
+      "kind": "related",
+      "n": 100,
+      "raw_correct": 84,
+      "pf_correct": 84,
+      "pf_all_correct": 84,
+      "crashes": 11,
+      "crashes_pf": 11,
+      "copy_nameerr": 0,
+      "dis_mismatch": 0,
+      "pf_rescued": {}
+     },
+     {
+      "tag": "geox14b_dis0_t07s2",
+      "K": 0,
+      "kind": "related",
+      "n": 100,
+      "raw_correct": 85,
+      "pf_correct": 85,
+      "pf_all_correct": 85,
+      "crashes": 10,
+      "crashes_pf": 10,
+      "copy_nameerr": 0,
+      "dis_mismatch": 0,
+      "pf_rescued": {}
+     }
+    ]
+   },
+   "2": {
+    "tags": [
+     "geox14b_dis2_t07s1",
+     "geox14b_dis2_t07s2"
+    ],
+    "K": 2,
+    "kind": "related",
+    "n": 200,
+    "raw_pct": 83.0,
+    "pf_pct": 83.0,
+    "pf_all_pct": 83.0,
+    "runs": [
+     {
+      "tag": "geox14b_dis2_t07s1",
+      "K": 2,
+      "kind": "related",
+      "n": 100,
+      "raw_correct": 85,
+      "pf_correct": 85,
+      "pf_all_correct": 85,
+      "crashes": 10,
+      "crashes_pf": 10,
+      "copy_nameerr": 0,
+      "dis_mismatch": 0,
+      "pf_rescued": {}
+     },
+     {
+      "tag": "geox14b_dis2_t07s2",
+      "K": 2,
+      "kind": "related",
+      "n": 100,
+      "raw_correct": 81,
+      "pf_correct": 81,
+      "pf_all_correct": 81,
+      "crashes": 15,
+      "crashes_pf": 15,
+      "copy_nameerr": 0,
+      "dis_mismatch": 0,
+      "pf_rescued": {}
+     }
+    ],
+    "delta_vs_K0_raw": {
+     "delta": -1.5,
+     "lo": -9.0,
+     "hi": 6.0,
+     "k0_pct": 84.5,
+     "k8_pct": 83.0,
+     "n_instances": 100,
+     "n_pairs": 200
+    },
+    "delta_vs_K0_pf": {
+     "delta": -1.5,
+     "lo": -9.0,
+     "hi": 6.0,
+     "k0_pct": 84.5,
+     "k8_pct": 83.0,
+     "n_instances": 100,
+     "n_pairs": 200
+    }
+   },
+   "4": {
+    "tags": [
+     "geox14b_dis4_t07s1",
+     "geox14b_dis4_t07s2"
+    ],
+    "K": 4,
+    "kind": "related",
+    "n": 200,
+    "raw_pct": 73.5,
+    "pf_pct": 76.0,
+    "pf_all_pct": 76.0,
+    "runs": [
+     {
+      "tag": "geox14b_dis4_t07s1",
+      "K": 4,
+      "kind": "related",
+      "n": 100,
+      "raw_correct": 73,
+      "pf_correct": 75,
+      "pf_all_correct": 75,
+      "crashes": 16,
+      "crashes_pf": 14,
+      "copy_nameerr": 3,
+      "dis_mismatch": 0,
+      "pf_rescued": {
+       "correct_all": 2
+      }
+     },
+     {
+      "tag": "geox14b_dis4_t07s2",
+      "K": 4,
+      "kind": "related",
+      "n": 100,
+      "raw_correct": 74,
+      "pf_correct": 77,
+      "pf_all_correct": 77,
+      "crashes": 18,
+      "crashes_pf": 15,
+      "copy_nameerr": 7,
+      "dis_mismatch": 0,
+      "pf_rescued": {
+       "correct_all": 3
+      }
+     }
+    ],
+    "delta_vs_K0_raw": {
+     "delta": -11.0,
+     "lo": -19.5,
+     "hi": -3.0,
+     "k0_pct": 84.5,
+     "k8_pct": 73.5,
+     "n_instances": 100,
+     "n_pairs": 200
+    },
+    "delta_vs_K0_pf": {
+     "delta": -8.5,
+     "lo": -16.5,
+     "hi": -0.5,
+     "k0_pct": 84.5,
+     "k8_pct": 76.0,
+     "n_instances": 100,
+     "n_pairs": 200
+    }
+   },
+   "8": {
+    "tags": [
+     "geox14b_dis8_t07s1",
+     "geox14b_dis8_t07s2"
+    ],
+    "K": 8,
+    "kind": "related",
+    "n": 200,
+    "raw_pct": 75.0,
+    "pf_pct": 81.0,
+    "pf_all_pct": 81.0,
+    "runs": [
+     {
+      "tag": "geox14b_dis8_t07s1",
+      "K": 8,
+      "kind": "related",
+      "n": 100,
+      "raw_correct": 72,
+      "pf_correct": 80,
+      "pf_all_correct": 80,
+      "crashes": 20,
+      "crashes_pf": 11,
+      "copy_nameerr": 10,
+      "dis_mismatch": 0,
+      "pf_rescued": {
+       "correct_all": 8,
+       "logic": 1
+      }
+     },
+     {
+      "tag": "geox14b_dis8_t07s2",
+      "K": 8,
+      "kind": "related",
+      "n": 100,
+      "raw_correct": 78,
+      "pf_correct": 82,
+      "pf_all_correct": 82,
+      "crashes": 17,
+      "crashes_pf": 12,
+      "copy_nameerr": 6,
+      "dis_mismatch": 0,
+      "pf_rescued": {
+       "logic": 1,
+       "correct_all": 4
+      }
+     }
+    ],
+    "delta_vs_K0_raw": {
+     "delta": -9.5,
+     "lo": -18.0,
+     "hi": -1.0,
+     "k0_pct": 84.5,
+     "k8_pct": 75.0,
+     "n_instances": 100,
+     "n_pairs": 200
+    },
+    "delta_vs_K0_pf": {
+     "delta": -3.5,
+     "lo": -11.0,
+     "hi": 4.0,
+     "k0_pct": 84.5,
+     "k8_pct": 81.0,
+     "n_instances": 100,
+     "n_pairs": 200
+    }
+   },
+   "U": {
+    "tags": [
+     "geox14b_disU8_t07s1",
+     "geox14b_disU8_t07s2"
+    ],
+    "K": 8,
+    "kind": "unrelated",
+    "n": 200,
+    "raw_pct": 77.5,
+    "pf_pct": 86.0,
+    "pf_all_pct": 86.0,
+    "runs": [
+     {
+      "tag": "geox14b_disU8_t07s1",
+      "K": 8,
+      "kind": "unrelated",
+      "n": 100,
+      "raw_correct": 79,
+      "pf_correct": 88,
+      "pf_all_correct": 88,
+      "crashes": 16,
+      "crashes_pf": 6,
+      "copy_nameerr": 10,
+      "dis_mismatch": 0,
+      "pf_rescued": {
+       "correct_all": 9,
+       "logic": 1
+      }
+     },
+     {
+      "tag": "geox14b_disU8_t07s2",
+      "K": 8,
+      "kind": "unrelated",
+      "n": 100,
+      "raw_correct": 76,
+      "pf_correct": 84,
+      "pf_all_correct": 84,
+      "crashes": 17,
+      "crashes_pf": 8,
+      "copy_nameerr": 9,
+      "dis_mismatch": 0,
+      "pf_rescued": {
+       "correct_all": 8,
+       "logic": 1
+      }
+     }
+    ],
+    "delta_vs_K0_raw": {
+     "delta": -7.0,
+     "lo": -15.5,
+     "hi": 1.0,
+     "k0_pct": 84.5,
+     "k8_pct": 77.5,
+     "n_instances": 100,
+     "n_pairs": 200
+    },
+    "delta_vs_K0_pf": {
+     "delta": 1.5,
+     "lo": -5.01,
+     "hi": 8.5,
+     "k0_pct": 84.5,
+     "k8_pct": 86.0,
+     "n_instances": 100,
+     "n_pairs": 200
+    }
+   }
+  },
+  "Qwen3-32B": {
+   "0": {
+    "tags": [
+     "geox32b_dis0_t07s1",
+     "geox32b_dis0_t07s2"
+    ],
+    "K": 0,
+    "kind": "related",
+    "n": 200,
+    "raw_pct": 95.5,
+    "pf_pct": 95.5,
+    "pf_all_pct": 95.5,
+    "runs": [
+     {
+      "tag": "geox32b_dis0_t07s1",
+      "K": 0,
+      "kind": "related",
+      "n": 100,
+      "raw_correct": 95,
+      "pf_correct": 95,
+      "pf_all_correct": 95,
+      "crashes": 3,
+      "crashes_pf": 3,
+      "copy_nameerr": 0,
+      "dis_mismatch": 0,
+      "pf_rescued": {}
+     },
+     {
+      "tag": "geox32b_dis0_t07s2",
+      "K": 0,
+      "kind": "related",
+      "n": 100,
+      "raw_correct": 96,
+      "pf_correct": 96,
+      "pf_all_correct": 96,
+      "crashes": 3,
+      "crashes_pf": 3,
+      "copy_nameerr": 0,
+      "dis_mismatch": 0,
+      "pf_rescued": {}
+     }
+    ]
+   },
+   "2": {
+    "tags": [
+     "geox32b_dis2_t07s1",
+     "geox32b_dis2_t07s2"
+    ],
+    "K": 2,
+    "kind": "related",
+    "n": 200,
+    "raw_pct": 83.5,
+    "pf_pct": 83.5,
+    "pf_all_pct": 83.5,
+    "runs": [
+     {
+      "tag": "geox32b_dis2_t07s1",
+      "K": 2,
+      "kind": "related",
+      "n": 100,
+      "raw_correct": 85,
+      "pf_correct": 85,
+      "pf_all_correct": 85,
+      "crashes": 4,
+      "crashes_pf": 4,
+      "copy_nameerr": 0,
+      "dis_mismatch": 0,
+      "pf_rescued": {}
+     },
+     {
+      "tag": "geox32b_dis2_t07s2",
+      "K": 2,
+      "kind": "related",
+      "n": 100,
+      "raw_correct": 82,
+      "pf_correct": 82,
+      "pf_all_correct": 82,
+      "crashes": 8,
+      "crashes_pf": 8,
+      "copy_nameerr": 0,
+      "dis_mismatch": 0,
+      "pf_rescued": {}
+     }
+    ],
+    "delta_vs_K0_raw": {
+     "delta": -12.0,
+     "lo": -19.0,
+     "hi": -5.5,
+     "k0_pct": 95.5,
+     "k8_pct": 83.5,
+     "n_instances": 100,
+     "n_pairs": 200
+    },
+    "delta_vs_K0_pf": {
+     "delta": -12.0,
+     "lo": -19.0,
+     "hi": -5.5,
+     "k0_pct": 95.5,
+     "k8_pct": 83.5,
+     "n_instances": 100,
+     "n_pairs": 200
+    }
+   },
+   "4": {
+    "tags": [
+     "geox32b_dis4_t07s1",
+     "geox32b_dis4_t07s2"
+    ],
+    "K": 4,
+    "kind": "related",
+    "n": 200,
+    "raw_pct": 76.0,
+    "pf_pct": 76.5,
+    "pf_all_pct": 76.5,
+    "runs": [
+     {
+      "tag": "geox32b_dis4_t07s1",
+      "K": 4,
+      "kind": "related",
+      "n": 100,
+      "raw_correct": 77,
+      "pf_correct": 77,
+      "pf_all_correct": 77,
+      "crashes": 11,
+      "crashes_pf": 10,
+      "copy_nameerr": 1,
+      "dis_mismatch": 0,
+      "pf_rescued": {
+       "logic": 1
+      }
+     },
+     {
+      "tag": "geox32b_dis4_t07s2",
+      "K": 4,
+      "kind": "related",
+      "n": 100,
+      "raw_correct": 75,
+      "pf_correct": 76,
+      "pf_all_correct": 76,
+      "crashes": 13,
+      "crashes_pf": 11,
+      "copy_nameerr": 2,
+      "dis_mismatch": 0,
+      "pf_rescued": {
+       "correct_all": 1,
+       "logic": 1
+      }
+     }
+    ],
+    "delta_vs_K0_raw": {
+     "delta": -19.5,
+     "lo": -27.0,
+     "hi": -12.0,
+     "k0_pct": 95.5,
+     "k8_pct": 76.0,
+     "n_instances": 100,
+     "n_pairs": 200
+    },
+    "delta_vs_K0_pf": {
+     "delta": -19.0,
+     "lo": -26.5,
+     "hi": -11.5,
+     "k0_pct": 95.5,
+     "k8_pct": 76.5,
+     "n_instances": 100,
+     "n_pairs": 200
+    }
+   },
+   "8": {
+    "tags": [
+     "geox32b_dis8_t07s1",
+     "geox32b_dis8_t07s2"
+    ],
+    "K": 8,
+    "kind": "related",
+    "n": 200,
+    "raw_pct": 75.5,
+    "pf_pct": 79.0,
+    "pf_all_pct": 79.0,
+    "runs": [
+     {
+      "tag": "geox32b_dis8_t07s1",
+      "K": 8,
+      "kind": "related",
+      "n": 100,
+      "raw_correct": 76,
+      "pf_correct": 79,
+      "pf_all_correct": 79,
+      "crashes": 18,
+      "crashes_pf": 8,
+      "copy_nameerr": 11,
+      "dis_mismatch": 0,
+      "pf_rescued": {
+       "logic": 6,
+       "correct_all": 3,
+       "transform_only": 1
+      }
+     },
+     {
+      "tag": "geox32b_dis8_t07s2",
+      "K": 8,
+      "kind": "related",
+      "n": 100,
+      "raw_correct": 75,
+      "pf_correct": 79,
+      "pf_all_correct": 79,
+      "crashes": 11,
+      "crashes_pf": 4,
+      "copy_nameerr": 8,
+      "dis_mismatch": 0,
+      "pf_rescued": {
+       "logic": 3,
+       "correct_all": 4
+      }
+     }
+    ],
+    "delta_vs_K0_raw": {
+     "delta": -20.0,
+     "lo": -28.0,
+     "hi": -12.5,
+     "k0_pct": 95.5,
+     "k8_pct": 75.5,
+     "n_instances": 100,
+     "n_pairs": 200
+    },
+    "delta_vs_K0_pf": {
+     "delta": -16.5,
+     "lo": -24.0,
+     "hi": -9.5,
+     "k0_pct": 95.5,
+     "k8_pct": 79.0,
+     "n_instances": 100,
+     "n_pairs": 200
+    }
+   },
+   "U": {
+    "tags": [
+     "geox32b_disU8_t07s1",
+     "geox32b_disU8_t07s2"
+    ],
+    "K": 8,
+    "kind": "unrelated",
+    "n": 200,
+    "raw_pct": 91.0,
+    "pf_pct": 92.0,
+    "pf_all_pct": 92.0,
+    "runs": [
+     {
+      "tag": "geox32b_disU8_t07s1",
+      "K": 8,
+      "kind": "unrelated",
+      "n": 100,
+      "raw_correct": 93,
+      "pf_correct": 94,
+      "pf_all_correct": 94,
+      "crashes": 4,
+      "crashes_pf": 3,
+      "copy_nameerr": 1,
+      "dis_mismatch": 0,
+      "pf_rescued": {
+       "correct_all": 1
+      }
+     },
+     {
+      "tag": "geox32b_disU8_t07s2",
+      "K": 8,
+      "kind": "unrelated",
+      "n": 100,
+      "raw_correct": 89,
+      "pf_correct": 90,
+      "pf_all_correct": 90,
+      "crashes": 3,
+      "crashes_pf": 2,
+      "copy_nameerr": 1,
+      "dis_mismatch": 0,
+      "pf_rescued": {
+       "correct_all": 1
+      }
+     }
+    ],
+    "delta_vs_K0_raw": {
+     "delta": -4.5,
+     "lo": -9.5,
+     "hi": 0.5,
+     "k0_pct": 95.5,
+     "k8_pct": 91.0,
+     "n_instances": 100,
+     "n_pairs": 200
+    },
+    "delta_vs_K0_pf": {
+     "delta": -3.5,
+     "lo": -8.0,
+     "hi": 1.0,
+     "k0_pct": 95.5,
+     "k8_pct": 92.0,
+     "n_instances": 100,
+     "n_pairs": 200
+    }
+   }
+  }
+ },
+ "fig7": [
+  {
+   "label": "Qwen3-1.7B",
+   "mode": "standard",
+   "plotted": "pf",
+   "k0_tags": [
+    "X_geox1_7b_dis0_t07s1"
+   ],
+   "k8_tags": [
+    "X_geox1_7b_dis8_t07s1"
+   ],
+   "source": "queue_q17dis.sh",
+   "raw": {
+    "delta": -35.67,
+    "lo": -41.67,
+    "hi": -29.33,
+    "k0_pct": 58.67,
+    "k8_pct": 23.0,
+    "n_instances": 300,
+    "n_pairs": 300
+   },
+   "pf": {
+    "delta": 0.33,
+    "lo": -7.0,
+    "hi": 7.67,
+    "k0_pct": 60.67,
+    "k8_pct": 61.0,
+    "n_instances": 300,
+    "n_pairs": 300
+   },
+   "pf_all": {
+    "delta": 0.33,
+    "lo": -7.0,
+    "hi": 7.67,
+    "k0_pct": 60.67,
+    "k8_pct": 61.0,
+    "n_instances": 300,
+    "n_pairs": 300
+   },
+   "k0_runs": [
+    {
+     "tag": "X_geox1_7b_dis0_t07s1",
+     "K": 0,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 176,
+     "pf_correct": 182,
+     "pf_all_correct": 182,
+     "crashes": 98,
+     "crashes_pf": 85,
+     "copy_nameerr": 52,
+     "dis_mismatch": 0,
+     "pf_rescued": {
+      "correct_all": 6,
+      "logic": 7
+     }
+    }
+   ],
+   "k8_runs": [
+    {
+     "tag": "X_geox1_7b_dis8_t07s1",
+     "K": 8,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 69,
+     "pf_correct": 183,
+     "pf_all_correct": 183,
+     "crashes": 214,
+     "crashes_pf": 69,
+     "copy_nameerr": 185,
+     "dis_mismatch": 0,
+     "pf_rescued": {
+      "correct_all": 114,
+      "logic": 29,
+      "transform_only": 1,
+      "degen_only": 1
+     }
+    }
+   ],
+   "crashes_k0": 98,
+   "crashes_k8": 214,
+   "copy_nameerr_k0": 52,
+   "copy_nameerr_k8": 185,
+   "plot_value": [
+    0.33,
+    -7.0,
+    7.67
+   ],
+   "per_task": {
+    "raw": {
+     "hull": [
+      49,
+      1
+     ],
+     "area2": [
+      60,
+      43
+     ],
+     "pip": [
+      37,
+      4
+     ],
+     "segs": [
+      1,
+      4
+     ],
+     "close": [
+      29,
+      17
+     ]
+    },
+    "pf": {
+     "hull": [
+      49,
+      17
+     ],
+     "area2": [
+      60,
+      43
+     ],
+     "pip": [
+      43,
+      48
+     ],
+     "segs": [
+      1,
+      18
+     ],
+     "close": [
+      29,
+      57
+     ]
+    }
+   }
+  },
+  {
+   "label": "Llama-3.1-8B",
+   "mode": "standard",
+   "plotted": "pf",
+   "k0_tags": [
+    "X_geoxllama8_dis0_t07s1",
+    "X_geoxllama8_dis0_t07s2"
+   ],
+   "k8_tags": [
+    "X_geoxllama8_dis8_t07s1",
+    "X_geoxllama8_dis8_t07s2"
+   ],
+   "source": "queue_l8dis.sh",
+   "raw": {
+    "delta": -39.33,
+    "lo": -44.33,
+    "hi": -34.33,
+    "k0_pct": 76.0,
+    "k8_pct": 36.67,
+    "n_instances": 300,
+    "n_pairs": 600
+   },
+   "pf": {
+    "delta": -35.17,
+    "lo": -40.33,
+    "hi": -30.17,
+    "k0_pct": 76.0,
+    "k8_pct": 40.83,
+    "n_instances": 300,
+    "n_pairs": 600
+   },
+   "pf_all": {
+    "delta": -35.17,
+    "lo": -40.33,
+    "hi": -30.17,
+    "k0_pct": 76.0,
+    "k8_pct": 40.83,
+    "n_instances": 300,
+    "n_pairs": 600
+   },
+   "k0_runs": [
+    {
+     "tag": "X_geoxllama8_dis0_t07s1",
+     "K": 0,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 219,
+     "pf_correct": 219,
+     "pf_all_correct": 219,
+     "crashes": 27,
+     "crashes_pf": 27,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    },
+    {
+     "tag": "X_geoxllama8_dis0_t07s2",
+     "K": 0,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 237,
+     "pf_correct": 237,
+     "pf_all_correct": 237,
+     "crashes": 27,
+     "crashes_pf": 27,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    }
+   ],
+   "k8_runs": [
+    {
+     "tag": "X_geoxllama8_dis8_t07s1",
+     "K": 8,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 110,
+     "pf_correct": 120,
+     "pf_all_correct": 120,
+     "crashes": 87,
+     "crashes_pf": 66,
+     "copy_nameerr": 29,
+     "dis_mismatch": 0,
+     "pf_rescued": {
+      "degen_only": 3,
+      "logic": 8,
+      "correct_all": 10
+     }
+    },
+    {
+     "tag": "X_geoxllama8_dis8_t07s2",
+     "K": 8,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 110,
+     "pf_correct": 125,
+     "pf_all_correct": 125,
+     "crashes": 93,
+     "crashes_pf": 61,
+     "copy_nameerr": 37,
+     "dis_mismatch": 0,
+     "pf_rescued": {
+      "logic": 16,
+      "correct_all": 15,
+      "degen_only": 1
+     }
+    }
+   ],
+   "crashes_k0": 54,
+   "crashes_k8": 180,
+   "copy_nameerr_k0": 0,
+   "copy_nameerr_k8": 66,
+   "plot_value": [
+    -35.17,
+    -40.33,
+    -30.17
+   ]
+  },
+  {
+   "label": "Qwen3-8B",
+   "mode": "standard",
+   "plotted": "pf",
+   "k0_tags": [
+    "F_geox8b_dis0_t07s1"
+   ],
+   "k8_tags": [
+    "F_geox8b_dis8_t07s1"
+   ],
+   "source": "queue_prelude.sh (K0) / queue_final_geo.sh (K8)",
+   "raw": {
+    "delta": -14.33,
+    "lo": -20.0,
+    "hi": -8.67,
+    "k0_pct": 91.67,
+    "k8_pct": 77.33,
+    "n_instances": 300,
+    "n_pairs": 300
+   },
+   "pf": {
+    "delta": -14.33,
+    "lo": -20.0,
+    "hi": -8.67,
+    "k0_pct": 91.67,
+    "k8_pct": 77.33,
+    "n_instances": 300,
+    "n_pairs": 300
+   },
+   "pf_all": {
+    "delta": -14.33,
+    "lo": -20.0,
+    "hi": -8.67,
+    "k0_pct": 91.67,
+    "k8_pct": 77.33,
+    "n_instances": 300,
+    "n_pairs": 300
+   },
+   "k0_runs": [
+    {
+     "tag": "F_geox8b_dis0_t07s1",
+     "K": 0,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 275,
+     "pf_correct": 275,
+     "pf_all_correct": 275,
+     "crashes": 9,
+     "crashes_pf": 9,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    }
+   ],
+   "k8_runs": [
+    {
+     "tag": "F_geox8b_dis8_t07s1",
+     "K": 8,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 232,
+     "pf_correct": 232,
+     "pf_all_correct": 232,
+     "crashes": 20,
+     "crashes_pf": 19,
+     "copy_nameerr": 2,
+     "dis_mismatch": 0,
+     "pf_rescued": {
+      "logic": 1
+     }
+    }
+   ],
+   "crashes_k0": 9,
+   "crashes_k8": 20,
+   "copy_nameerr_k0": 0,
+   "copy_nameerr_k8": 2,
+   "plot_value": [
+    -14.33,
+    -20.0,
+    -8.67
+   ]
+  },
+  {
+   "label": "Qwen3-14B",
+   "mode": "standard",
+   "plotted": "pf",
+   "k0_tags": [
+    "F_geox14b_dis0_t07s1"
+   ],
+   "k8_tags": [
+    "F_geox14b_dis8_t07s1"
+   ],
+   "source": "queue_prelude.sh (K0) / queue_final_geo.sh (K8)",
+   "raw": {
+    "delta": -15.67,
+    "lo": -21.33,
+    "hi": -10.33,
+    "k0_pct": 83.67,
+    "k8_pct": 68.0,
+    "n_instances": 300,
+    "n_pairs": 300
+   },
+   "pf": {
+    "delta": -7.67,
+    "lo": -12.67,
+    "hi": -3.0,
+    "k0_pct": 83.67,
+    "k8_pct": 76.0,
+    "n_instances": 300,
+    "n_pairs": 300
+   },
+   "pf_all": {
+    "delta": -7.67,
+    "lo": -12.67,
+    "hi": -3.0,
+    "k0_pct": 83.67,
+    "k8_pct": 76.0,
+    "n_instances": 300,
+    "n_pairs": 300
+   },
+   "k0_runs": [
+    {
+     "tag": "F_geox14b_dis0_t07s1",
+     "K": 0,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 251,
+     "pf_correct": 251,
+     "pf_all_correct": 251,
+     "crashes": 44,
+     "crashes_pf": 44,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    }
+   ],
+   "k8_runs": [
+    {
+     "tag": "F_geox14b_dis8_t07s1",
+     "K": 8,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 204,
+     "pf_correct": 228,
+     "pf_all_correct": 228,
+     "crashes": 75,
+     "crashes_pf": 48,
+     "copy_nameerr": 30,
+     "dis_mismatch": 0,
+     "pf_rescued": {
+      "correct_all": 24,
+      "logic": 3
+     }
+    }
+   ],
+   "crashes_k0": 44,
+   "crashes_k8": 75,
+   "copy_nameerr_k0": 0,
+   "copy_nameerr_k8": 30,
+   "plot_value": [
+    -7.67,
+    -12.67,
+    -3.0
+   ]
+  },
+  {
+   "label": "Qwen3-32B",
+   "mode": "standard",
+   "plotted": "pf",
+   "k0_tags": [
+    "F_geox32b_dis0_t07s1"
+   ],
+   "k8_tags": [
+    "F_geox32b_dis8_t07s1"
+   ],
+   "source": "queue_prelude.sh (K0) / queue_final_geo.sh (K8)",
+   "raw": {
+    "delta": -15.67,
+    "lo": -21.0,
+    "hi": -10.33,
+    "k0_pct": 92.0,
+    "k8_pct": 76.33,
+    "n_instances": 300,
+    "n_pairs": 300
+   },
+   "pf": {
+    "delta": -13.33,
+    "lo": -18.67,
+    "hi": -8.0,
+    "k0_pct": 92.0,
+    "k8_pct": 78.67,
+    "n_instances": 300,
+    "n_pairs": 300
+   },
+   "pf_all": {
+    "delta": -13.33,
+    "lo": -18.67,
+    "hi": -8.0,
+    "k0_pct": 92.0,
+    "k8_pct": 78.67,
+    "n_instances": 300,
+    "n_pairs": 300
+   },
+   "k0_runs": [
+    {
+     "tag": "F_geox32b_dis0_t07s1",
+     "K": 0,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 276,
+     "pf_correct": 276,
+     "pf_all_correct": 276,
+     "crashes": 16,
+     "crashes_pf": 16,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    }
+   ],
+   "k8_runs": [
+    {
+     "tag": "F_geox32b_dis8_t07s1",
+     "K": 8,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 229,
+     "pf_correct": 236,
+     "pf_all_correct": 236,
+     "crashes": 34,
+     "crashes_pf": 10,
+     "copy_nameerr": 24,
+     "dis_mismatch": 0,
+     "pf_rescued": {
+      "logic": 17,
+      "correct_all": 7
+     }
+    }
+   ],
+   "crashes_k0": 16,
+   "crashes_k8": 34,
+   "copy_nameerr_k0": 0,
+   "copy_nameerr_k8": 24,
+   "plot_value": [
+    -13.33,
+    -18.67,
+    -8.0
+   ]
+  },
+  {
+   "label": "Llama-3.3-70B",
+   "mode": "standard",
+   "plotted": "pf",
+   "k0_tags": [
+    "X_geoxllama70_dis0_t07s1",
+    "X_geoxllama70_dis0_t07s2",
+    "X_geoxllama70_dis0_t07s3"
+   ],
+   "k8_tags": [
+    "X_geoxllama70_dis8_t07s1",
+    "X_geoxllama70_dis8_t07s2",
+    "X_geoxllama70_dis8_t07s3"
+   ],
+   "source": "queue_llama*",
+   "raw": {
+    "delta": -0.78,
+    "lo": -4.44,
+    "hi": 2.78,
+    "k0_pct": 86.11,
+    "k8_pct": 85.33,
+    "n_instances": 300,
+    "n_pairs": 900
+   },
+   "pf": {
+    "delta": 0.78,
+    "lo": -2.78,
+    "hi": 4.11,
+    "k0_pct": 86.11,
+    "k8_pct": 86.89,
+    "n_instances": 300,
+    "n_pairs": 900
+   },
+   "pf_all": {
+    "delta": 0.78,
+    "lo": -2.78,
+    "hi": 4.11,
+    "k0_pct": 86.11,
+    "k8_pct": 86.89,
+    "n_instances": 300,
+    "n_pairs": 900
+   },
+   "k0_runs": [
+    {
+     "tag": "X_geoxllama70_dis0_t07s1",
+     "K": 0,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 262,
+     "pf_correct": 262,
+     "pf_all_correct": 262,
+     "crashes": 2,
+     "crashes_pf": 2,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    },
+    {
+     "tag": "X_geoxllama70_dis0_t07s2",
+     "K": 0,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 255,
+     "pf_correct": 255,
+     "pf_all_correct": 255,
+     "crashes": 3,
+     "crashes_pf": 3,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    },
+    {
+     "tag": "X_geoxllama70_dis0_t07s3",
+     "K": 0,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 258,
+     "pf_correct": 258,
+     "pf_all_correct": 258,
+     "crashes": 7,
+     "crashes_pf": 7,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    }
+   ],
+   "k8_runs": [
+    {
+     "tag": "X_geoxllama70_dis8_t07s1",
+     "K": 8,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 250,
+     "pf_correct": 256,
+     "pf_all_correct": 256,
+     "crashes": 29,
+     "crashes_pf": 23,
+     "copy_nameerr": 7,
+     "dis_mismatch": 0,
+     "pf_rescued": {
+      "correct_all": 6
+     }
+    },
+    {
+     "tag": "X_geoxllama70_dis8_t07s2",
+     "K": 8,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 259,
+     "pf_correct": 263,
+     "pf_all_correct": 263,
+     "crashes": 20,
+     "crashes_pf": 15,
+     "copy_nameerr": 5,
+     "dis_mismatch": 0,
+     "pf_rescued": {
+      "correct_all": 4,
+      "logic": 1
+     }
+    },
+    {
+     "tag": "X_geoxllama70_dis8_t07s3",
+     "K": 8,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 259,
+     "pf_correct": 263,
+     "pf_all_correct": 263,
+     "crashes": 20,
+     "crashes_pf": 13,
+     "copy_nameerr": 8,
+     "dis_mismatch": 0,
+     "pf_rescued": {
+      "correct_all": 4,
+      "logic": 2,
+      "degen_only": 1
+     }
+    }
+   ],
+   "crashes_k0": 12,
+   "crashes_k8": 69,
+   "copy_nameerr_k0": 0,
+   "copy_nameerr_k8": 20,
+   "plot_value": [
+    0.78,
+    -2.78,
+    4.11
+   ]
+  },
+  {
+   "label": "Qwen3-1.7B, thinking",
+   "mode": "reasoning",
+   "plotted": "pf",
+   "k0_tags": [
+    "T_geox1_7b_dis0_s1",
+    "T_geox1_7b_dis0_s2",
+    "T_geox1_7b_dis0_s3"
+   ],
+   "k8_tags": [
+    "T_geox1_7b_dis8_s1",
+    "T_geox1_7b_dis8_s2",
+    "T_geox1_7b_dis8_s3"
+   ],
+   "source": "queue_q17dis.sh / queue_q17think.sh",
+   "raw": {
+    "delta": -4.33,
+    "lo": -10.0,
+    "hi": 1.0,
+    "k0_pct": 89.0,
+    "k8_pct": 84.67,
+    "n_instances": 100,
+    "n_pairs": 300
+   },
+   "pf": {
+    "delta": -4.67,
+    "lo": -10.0,
+    "hi": 0.67,
+    "k0_pct": 91.33,
+    "k8_pct": 86.67,
+    "n_instances": 100,
+    "n_pairs": 300
+   },
+   "pf_all": {
+    "delta": -4.67,
+    "lo": -10.0,
+    "hi": 0.67,
+    "k0_pct": 91.33,
+    "k8_pct": 86.67,
+    "n_instances": 100,
+    "n_pairs": 300
+   },
+   "k0_runs": [
+    {
+     "tag": "T_geox1_7b_dis0_s1",
+     "K": 0,
+     "kind": "related",
+     "n": 100,
+     "raw_correct": 90,
+     "pf_correct": 94,
+     "pf_all_correct": 94,
+     "crashes": 4,
+     "crashes_pf": 0,
+     "copy_nameerr": 4,
+     "dis_mismatch": 0,
+     "pf_rescued": {
+      "correct_all": 4
+     }
+    },
+    {
+     "tag": "T_geox1_7b_dis0_s2",
+     "K": 0,
+     "kind": "related",
+     "n": 100,
+     "raw_correct": 91,
+     "pf_correct": 93,
+     "pf_all_correct": 93,
+     "crashes": 2,
+     "crashes_pf": 0,
+     "copy_nameerr": 2,
+     "dis_mismatch": 0,
+     "pf_rescued": {
+      "correct_all": 2
+     }
+    },
+    {
+     "tag": "T_geox1_7b_dis0_s3",
+     "K": 0,
+     "kind": "related",
+     "n": 100,
+     "raw_correct": 86,
+     "pf_correct": 87,
+     "pf_all_correct": 87,
+     "crashes": 3,
+     "crashes_pf": 2,
+     "copy_nameerr": 1,
+     "dis_mismatch": 0,
+     "pf_rescued": {
+      "correct_all": 1
+     }
+    }
+   ],
+   "k8_runs": [
+    {
+     "tag": "T_geox1_7b_dis8_s1",
+     "K": 8,
+     "kind": "related",
+     "n": 100,
+     "raw_correct": 86,
+     "pf_correct": 87,
+     "pf_all_correct": 87,
+     "crashes": 2,
+     "crashes_pf": 1,
+     "copy_nameerr": 2,
+     "dis_mismatch": 0,
+     "pf_rescued": {
+      "correct_all": 1
+     }
+    },
+    {
+     "tag": "T_geox1_7b_dis8_s2",
+     "K": 8,
+     "kind": "related",
+     "n": 100,
+     "raw_correct": 86,
+     "pf_correct": 87,
+     "pf_all_correct": 87,
+     "crashes": 4,
+     "crashes_pf": 3,
+     "copy_nameerr": 1,
+     "dis_mismatch": 0,
+     "pf_rescued": {
+      "correct_all": 1
+     }
+    },
+    {
+     "tag": "T_geox1_7b_dis8_s3",
+     "K": 8,
+     "kind": "related",
+     "n": 100,
+     "raw_correct": 82,
+     "pf_correct": 86,
+     "pf_all_correct": 86,
+     "crashes": 9,
+     "crashes_pf": 4,
+     "copy_nameerr": 5,
+     "dis_mismatch": 0,
+     "pf_rescued": {
+      "logic": 1,
+      "correct_all": 4
+     }
+    }
+   ],
+   "crashes_k0": 9,
+   "crashes_k8": 15,
+   "copy_nameerr_k0": 7,
+   "copy_nameerr_k8": 8,
+   "plot_value": [
+    -4.67,
+    -10.0,
+    0.67
+   ]
+  },
+  {
+   "label": "Qwen3-8B, thinking",
+   "mode": "reasoning",
+   "plotted": "pf",
+   "k0_tags": [
+    "T_geox8b_dis0_s1",
+    "T_geox8b_dis0_s2"
+   ],
+   "k8_tags": [
+    "T_geox8b_dis8_s1",
+    "T_geox8b_dis8_s2"
+   ],
+   "source": "queue_thinkdis2.sh",
+   "raw": {
+    "delta": -1.5,
+    "lo": -4.5,
+    "hi": 1.5,
+    "k0_pct": 98.5,
+    "k8_pct": 97.0,
+    "n_instances": 100,
+    "n_pairs": 200
+   },
+   "pf": {
+    "delta": -1.5,
+    "lo": -4.5,
+    "hi": 1.5,
+    "k0_pct": 98.5,
+    "k8_pct": 97.0,
+    "n_instances": 100,
+    "n_pairs": 200
+   },
+   "pf_all": {
+    "delta": -1.5,
+    "lo": -4.5,
+    "hi": 1.5,
+    "k0_pct": 98.5,
+    "k8_pct": 97.0,
+    "n_instances": 100,
+    "n_pairs": 200
+   },
+   "k0_runs": [
+    {
+     "tag": "T_geox8b_dis0_s1",
+     "K": 0,
+     "kind": "related",
+     "n": 100,
+     "raw_correct": 97,
+     "pf_correct": 97,
+     "pf_all_correct": 97,
+     "crashes": 0,
+     "crashes_pf": 0,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    },
+    {
+     "tag": "T_geox8b_dis0_s2",
+     "K": 0,
+     "kind": "related",
+     "n": 100,
+     "raw_correct": 100,
+     "pf_correct": 100,
+     "pf_all_correct": 100,
+     "crashes": 0,
+     "crashes_pf": 0,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    }
+   ],
+   "k8_runs": [
+    {
+     "tag": "T_geox8b_dis8_s1",
+     "K": 8,
+     "kind": "related",
+     "n": 100,
+     "raw_correct": 97,
+     "pf_correct": 97,
+     "pf_all_correct": 97,
+     "crashes": 1,
+     "crashes_pf": 1,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    },
+    {
+     "tag": "T_geox8b_dis8_s2",
+     "K": 8,
+     "kind": "related",
+     "n": 100,
+     "raw_correct": 97,
+     "pf_correct": 97,
+     "pf_all_correct": 97,
+     "crashes": 1,
+     "crashes_pf": 1,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    }
+   ],
+   "crashes_k0": 0,
+   "crashes_k8": 2,
+   "copy_nameerr_k0": 0,
+   "copy_nameerr_k8": 0,
+   "plot_value": [
+    -1.5,
+    -4.5,
+    1.5
+   ]
+  },
+  {
+   "label": "Qwen3-14B, thinking",
+   "mode": "reasoning",
+   "plotted": "pf",
+   "k0_tags": [
+    "T_geox14b_dis0",
+    "T_geox14b_dis0_s2"
+   ],
+   "k8_tags": [
+    "T_geox14b_dis8",
+    "T_geox14b_dis8_s2"
+   ],
+   "source": "queue_thinkdis.sh / 2",
+   "raw": {
+    "delta": -0.5,
+    "lo": -2.5,
+    "hi": 1.0,
+    "k0_pct": 99.5,
+    "k8_pct": 99.0,
+    "n_instances": 100,
+    "n_pairs": 200
+   },
+   "pf": {
+    "delta": -0.5,
+    "lo": -2.5,
+    "hi": 1.0,
+    "k0_pct": 99.5,
+    "k8_pct": 99.0,
+    "n_instances": 100,
+    "n_pairs": 200
+   },
+   "pf_all": {
+    "delta": -0.5,
+    "lo": -2.5,
+    "hi": 1.0,
+    "k0_pct": 99.5,
+    "k8_pct": 99.0,
+    "n_instances": 100,
+    "n_pairs": 200
+   },
+   "k0_runs": [
+    {
+     "tag": "T_geox14b_dis0",
+     "K": 0,
+     "kind": "related",
+     "n": 100,
+     "raw_correct": 100,
+     "pf_correct": 100,
+     "pf_all_correct": 100,
+     "crashes": 0,
+     "crashes_pf": 0,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    },
+    {
+     "tag": "T_geox14b_dis0_s2",
+     "K": 0,
+     "kind": "related",
+     "n": 100,
+     "raw_correct": 99,
+     "pf_correct": 99,
+     "pf_all_correct": 99,
+     "crashes": 0,
+     "crashes_pf": 0,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    }
+   ],
+   "k8_runs": [
+    {
+     "tag": "T_geox14b_dis8",
+     "K": 8,
+     "kind": "related",
+     "n": 100,
+     "raw_correct": 99,
+     "pf_correct": 99,
+     "pf_all_correct": 99,
+     "crashes": 1,
+     "crashes_pf": 1,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    },
+    {
+     "tag": "T_geox14b_dis8_s2",
+     "K": 8,
+     "kind": "related",
+     "n": 100,
+     "raw_correct": 99,
+     "pf_correct": 99,
+     "pf_all_correct": 99,
+     "crashes": 0,
+     "crashes_pf": 0,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    }
+   ],
+   "crashes_k0": 0,
+   "crashes_k8": 1,
+   "copy_nameerr_k0": 0,
+   "copy_nameerr_k8": 0,
+   "plot_value": [
+    -0.5,
+    -2.5,
+    1.0
+   ]
+  },
+  {
+   "label": "Qwen3-32B, thinking",
+   "mode": "reasoning",
+   "plotted": "pf",
+   "k0_tags": [
+    "T_geox32b_dis0",
+    "T_geox32b_dis0_s2"
+   ],
+   "k8_tags": [
+    "T_geox32b_dis8",
+    "T_geox32b_dis8_s2"
+   ],
+   "source": "queue_thinkdis.sh / 2",
+   "raw": {
+    "delta": -3.0,
+    "lo": -5.5,
+    "hi": -1.0,
+    "k0_pct": 100.0,
+    "k8_pct": 97.0,
+    "n_instances": 100,
+    "n_pairs": 200
+   },
+   "pf": {
+    "delta": -3.0,
+    "lo": -5.5,
+    "hi": -1.0,
+    "k0_pct": 100.0,
+    "k8_pct": 97.0,
+    "n_instances": 100,
+    "n_pairs": 200
+   },
+   "pf_all": {
+    "delta": -3.0,
+    "lo": -5.5,
+    "hi": -1.0,
+    "k0_pct": 100.0,
+    "k8_pct": 97.0,
+    "n_instances": 100,
+    "n_pairs": 200
+   },
+   "k0_runs": [
+    {
+     "tag": "T_geox32b_dis0",
+     "K": 0,
+     "kind": "related",
+     "n": 100,
+     "raw_correct": 100,
+     "pf_correct": 100,
+     "pf_all_correct": 100,
+     "crashes": 0,
+     "crashes_pf": 0,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    },
+    {
+     "tag": "T_geox32b_dis0_s2",
+     "K": 0,
+     "kind": "related",
+     "n": 100,
+     "raw_correct": 100,
+     "pf_correct": 100,
+     "pf_all_correct": 100,
+     "crashes": 0,
+     "crashes_pf": 0,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    }
+   ],
+   "k8_runs": [
+    {
+     "tag": "T_geox32b_dis8",
+     "K": 8,
+     "kind": "related",
+     "n": 100,
+     "raw_correct": 97,
+     "pf_correct": 97,
+     "pf_all_correct": 97,
+     "crashes": 3,
+     "crashes_pf": 3,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    },
+    {
+     "tag": "T_geox32b_dis8_s2",
+     "K": 8,
+     "kind": "related",
+     "n": 100,
+     "raw_correct": 97,
+     "pf_correct": 97,
+     "pf_all_correct": 97,
+     "crashes": 2,
+     "crashes_pf": 2,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    }
+   ],
+   "crashes_k0": 0,
+   "crashes_k8": 5,
+   "copy_nameerr_k0": 0,
+   "copy_nameerr_k8": 0,
+   "plot_value": [
+    -3.0,
+    -5.5,
+    -1.0
+   ]
+  },
+  {
+   "label": "R1-Distill-Llama-70B",
+   "mode": "reasoning",
+   "plotted": "pf",
+   "k0_tags": [
+    "X_geoxr1l70_dis0_t06s1"
+   ],
+   "k8_tags": [
+    "X_geoxr1l70_dis8_t06s1"
+   ],
+   "source": "queue_llama*",
+   "raw": {
+    "delta": 0.0,
+    "lo": -3.0,
+    "hi": 3.0,
+    "k0_pct": 99.0,
+    "k8_pct": 99.0,
+    "n_instances": 100,
+    "n_pairs": 100
+   },
+   "pf": {
+    "delta": 0.0,
+    "lo": -3.0,
+    "hi": 3.0,
+    "k0_pct": 99.0,
+    "k8_pct": 99.0,
+    "n_instances": 100,
+    "n_pairs": 100
+   },
+   "pf_all": {
+    "delta": 0.0,
+    "lo": -3.0,
+    "hi": 3.0,
+    "k0_pct": 99.0,
+    "k8_pct": 99.0,
+    "n_instances": 100,
+    "n_pairs": 100
+   },
+   "k0_runs": [
+    {
+     "tag": "X_geoxr1l70_dis0_t06s1",
+     "K": 0,
+     "kind": "related",
+     "n": 100,
+     "raw_correct": 99,
+     "pf_correct": 99,
+     "pf_all_correct": 99,
+     "crashes": 1,
+     "crashes_pf": 1,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    }
+   ],
+   "k8_runs": [
+    {
+     "tag": "X_geoxr1l70_dis8_t06s1",
+     "K": 8,
+     "kind": "related",
+     "n": 100,
+     "raw_correct": 99,
+     "pf_correct": 99,
+     "pf_all_correct": 99,
+     "crashes": 0,
+     "crashes_pf": 0,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    }
+   ],
+   "crashes_k0": 1,
+   "crashes_k8": 0,
+   "copy_nameerr_k0": 0,
+   "copy_nameerr_k8": 0,
+   "plot_value": [
+    0.0,
+    -3.0,
+    3.0
+   ]
+  },
+  {
+   "label": "gpt-oss-20b, low",
+   "mode": "reasoning",
+   "plotted": "pf",
+   "k0_tags": [
+    "O5_geoxoss20low_k0",
+    "O5_geoxoss20low_k0_s2"
+   ],
+   "k8_tags": [
+    "O5_geoxoss20low_k8",
+    "O5_geoxoss20low_k8_s2"
+   ],
+   "source": "queue_oss.sh / queue_oss20s2.sh",
+   "raw": {
+    "delta": -0.67,
+    "lo": -2.0,
+    "hi": 0.67,
+    "k0_pct": 99.0,
+    "k8_pct": 98.33,
+    "n_instances": 300,
+    "n_pairs": 600
+   },
+   "pf": {
+    "delta": -0.67,
+    "lo": -2.0,
+    "hi": 0.67,
+    "k0_pct": 99.0,
+    "k8_pct": 98.33,
+    "n_instances": 300,
+    "n_pairs": 600
+   },
+   "pf_all": {
+    "delta": -0.67,
+    "lo": -2.0,
+    "hi": 0.67,
+    "k0_pct": 99.0,
+    "k8_pct": 98.33,
+    "n_instances": 300,
+    "n_pairs": 600
+   },
+   "k0_runs": [
+    {
+     "tag": "O5_geoxoss20low_k0",
+     "K": 0,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 298,
+     "pf_correct": 298,
+     "pf_all_correct": 298,
+     "crashes": 2,
+     "crashes_pf": 2,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    },
+    {
+     "tag": "O5_geoxoss20low_k0_s2",
+     "K": 0,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 296,
+     "pf_correct": 296,
+     "pf_all_correct": 296,
+     "crashes": 2,
+     "crashes_pf": 2,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    }
+   ],
+   "k8_runs": [
+    {
+     "tag": "O5_geoxoss20low_k8",
+     "K": 8,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 295,
+     "pf_correct": 295,
+     "pf_all_correct": 295,
+     "crashes": 0,
+     "crashes_pf": 0,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    },
+    {
+     "tag": "O5_geoxoss20low_k8_s2",
+     "K": 8,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 295,
+     "pf_correct": 295,
+     "pf_all_correct": 295,
+     "crashes": 1,
+     "crashes_pf": 1,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    }
+   ],
+   "crashes_k0": 4,
+   "crashes_k8": 1,
+   "copy_nameerr_k0": 0,
+   "copy_nameerr_k8": 0,
+   "plot_value": [
+    -0.67,
+    -2.0,
+    0.67
+   ]
+  },
+  {
+   "label": "gpt-oss-20b, medium",
+   "mode": "reasoning",
+   "plotted": "pf",
+   "k0_tags": [
+    "O5_geoxoss20med_k0",
+    "O5_geoxoss20med_k0_s2"
+   ],
+   "k8_tags": [
+    "O5_geoxoss20med_k8",
+    "O5_geoxoss20med_k8_s2"
+   ],
+   "source": "queue_oss.sh / queue_oss20s2.sh",
+   "raw": {
+    "delta": 0.0,
+    "lo": -1.17,
+    "hi": 1.17,
+    "k0_pct": 99.0,
+    "k8_pct": 99.0,
+    "n_instances": 300,
+    "n_pairs": 600
+   },
+   "pf": {
+    "delta": 0.0,
+    "lo": -1.17,
+    "hi": 1.17,
+    "k0_pct": 99.0,
+    "k8_pct": 99.0,
+    "n_instances": 300,
+    "n_pairs": 600
+   },
+   "pf_all": {
+    "delta": 0.0,
+    "lo": -1.17,
+    "hi": 1.17,
+    "k0_pct": 99.0,
+    "k8_pct": 99.0,
+    "n_instances": 300,
+    "n_pairs": 600
+   },
+   "k0_runs": [
+    {
+     "tag": "O5_geoxoss20med_k0",
+     "K": 0,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 296,
+     "pf_correct": 296,
+     "pf_all_correct": 296,
+     "crashes": 2,
+     "crashes_pf": 2,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    },
+    {
+     "tag": "O5_geoxoss20med_k0_s2",
+     "K": 0,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 298,
+     "pf_correct": 298,
+     "pf_all_correct": 298,
+     "crashes": 2,
+     "crashes_pf": 2,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    }
+   ],
+   "k8_runs": [
+    {
+     "tag": "O5_geoxoss20med_k8",
+     "K": 8,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 298,
+     "pf_correct": 298,
+     "pf_all_correct": 298,
+     "crashes": 1,
+     "crashes_pf": 1,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    },
+    {
+     "tag": "O5_geoxoss20med_k8_s2",
+     "K": 8,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 296,
+     "pf_correct": 296,
+     "pf_all_correct": 296,
+     "crashes": 1,
+     "crashes_pf": 1,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    }
+   ],
+   "crashes_k0": 4,
+   "crashes_k8": 2,
+   "copy_nameerr_k0": 0,
+   "copy_nameerr_k8": 0,
+   "plot_value": [
+    0.0,
+    -1.17,
+    1.17
+   ]
+  },
+  {
+   "label": "gpt-oss-120b, low",
+   "mode": "reasoning",
+   "plotted": "pf",
+   "k0_tags": [
+    "O5_geoxoss120low_k0"
+   ],
+   "k8_tags": [
+    "O5_geoxoss120low_k8fix2"
+   ],
+   "source": "queue_oss.sh (K0) / queue_ossfix2.sh (K8, fixed extractor)",
+   "raw": {
+    "delta": -0.67,
+    "lo": -2.33,
+    "hi": 1.0,
+    "k0_pct": 99.33,
+    "k8_pct": 98.67,
+    "n_instances": 300,
+    "n_pairs": 300
+   },
+   "pf": {
+    "delta": -0.67,
+    "lo": -2.33,
+    "hi": 1.0,
+    "k0_pct": 99.33,
+    "k8_pct": 98.67,
+    "n_instances": 300,
+    "n_pairs": 300
+   },
+   "pf_all": {
+    "delta": -0.67,
+    "lo": -2.33,
+    "hi": 1.0,
+    "k0_pct": 99.33,
+    "k8_pct": 98.67,
+    "n_instances": 300,
+    "n_pairs": 300
+   },
+   "k0_runs": [
+    {
+     "tag": "O5_geoxoss120low_k0",
+     "K": 0,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 298,
+     "pf_correct": 298,
+     "pf_all_correct": 298,
+     "crashes": 1,
+     "crashes_pf": 1,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    }
+   ],
+   "k8_runs": [
+    {
+     "tag": "O5_geoxoss120low_k8fix2",
+     "K": 8,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 296,
+     "pf_correct": 296,
+     "pf_all_correct": 296,
+     "crashes": 1,
+     "crashes_pf": 1,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    }
+   ],
+   "crashes_k0": 1,
+   "crashes_k8": 1,
+   "copy_nameerr_k0": 0,
+   "copy_nameerr_k8": 0,
+   "plot_value": [
+    -0.67,
+    -2.33,
+    1.0
+   ]
+  },
+  {
+   "label": "gpt-oss-120b, medium",
+   "mode": "reasoning",
+   "plotted": "pf",
+   "k0_tags": [
+    "O5_geoxoss120med_k0"
+   ],
+   "k8_tags": [
+    "O5_geoxoss120med_k8fix2"
+   ],
+   "source": "queue_oss.sh (K0) / queue_ossfix2.sh (K8, fixed extractor)",
+   "raw": {
+    "delta": 0.0,
+    "lo": -1.0,
+    "hi": 1.0,
+    "k0_pct": 99.67,
+    "k8_pct": 99.67,
+    "n_instances": 300,
+    "n_pairs": 300
+   },
+   "pf": {
+    "delta": 0.0,
+    "lo": -1.0,
+    "hi": 1.0,
+    "k0_pct": 99.67,
+    "k8_pct": 99.67,
+    "n_instances": 300,
+    "n_pairs": 300
+   },
+   "pf_all": {
+    "delta": 0.0,
+    "lo": -1.0,
+    "hi": 1.0,
+    "k0_pct": 99.67,
+    "k8_pct": 99.67,
+    "n_instances": 300,
+    "n_pairs": 300
+   },
+   "k0_runs": [
+    {
+     "tag": "O5_geoxoss120med_k0",
+     "K": 0,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 299,
+     "pf_correct": 299,
+     "pf_all_correct": 299,
+     "crashes": 1,
+     "crashes_pf": 1,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    }
+   ],
+   "k8_runs": [
+    {
+     "tag": "O5_geoxoss120med_k8fix2",
+     "K": 8,
+     "kind": "related",
+     "n": 300,
+     "raw_correct": 299,
+     "pf_correct": 299,
+     "pf_all_correct": 299,
+     "crashes": 1,
+     "crashes_pf": 1,
+     "copy_nameerr": 0,
+     "dis_mismatch": 0,
+     "pf_rescued": {}
+    }
+   ],
+   "crashes_k0": 1,
+   "crashes_k8": 1,
+   "copy_nameerr_k0": 0,
+   "copy_nameerr_k8": 0,
+   "plot_value": [
+    0.0,
+    -1.0,
+    1.0
+   ]
+  }
+ ],
+ "fig4": {
+  "geometry": {
+   "Qwen3-8B": {
+    "k0_tags": [
+     "F_geox8b_dis0_t07s1"
+    ],
+    "k8_tags": [
+     "F_geox8b_dis8_t07s1"
+    ],
+    "raw": {
+     "delta": -14.33,
+     "lo": -20.0,
+     "hi": -8.67,
+     "k0_pct": 91.67,
+     "k8_pct": 77.33,
+     "n_instances": 300,
+     "n_pairs": 300
+    },
+    "pf": {
+     "delta": -14.33,
+     "lo": -20.0,
+     "hi": -8.67,
+     "k0_pct": 91.67,
+     "k8_pct": 77.33,
+     "n_instances": 300,
+     "n_pairs": 300
+    }
+   },
+   "Qwen3-14B": {
+    "k0_tags": [
+     "F_geox14b_dis0_t07s1"
+    ],
+    "k8_tags": [
+     "F_geox14b_dis8_t07s1"
+    ],
+    "raw": {
+     "delta": -15.67,
+     "lo": -21.33,
+     "hi": -10.33,
+     "k0_pct": 83.67,
+     "k8_pct": 68.0,
+     "n_instances": 300,
+     "n_pairs": 300
+    },
+    "pf": {
+     "delta": -7.67,
+     "lo": -12.67,
+     "hi": -3.0,
+     "k0_pct": 83.67,
+     "k8_pct": 76.0,
+     "n_instances": 300,
+     "n_pairs": 300
+    }
+   },
+   "Qwen3-32B": {
+    "k0_tags": [
+     "F_geox32b_dis0_t07s1"
+    ],
+    "k8_tags": [
+     "F_geox32b_dis8_t07s1"
+    ],
+    "raw": {
+     "delta": -15.67,
+     "lo": -21.0,
+     "hi": -10.33,
+     "k0_pct": 92.0,
+     "k8_pct": 76.33,
+     "n_instances": 300,
+     "n_pairs": 300
+    },
+    "pf": {
+     "delta": -13.33,
+     "lo": -18.67,
+     "hi": -8.0,
+     "k0_pct": 92.0,
+     "k8_pct": 78.67,
+     "n_instances": 300,
+     "n_pairs": 300
+    }
+   }
+  },
+  "optimization": {
+   "Qwen3-8B": {
+    "tags": [
+     "co_D_co8b_x0_s1",
+     "co_D_co8b_x0_s2",
+     "co_D_co8b_x8_s1",
+     "co_D_co8b_x8_s2"
+    ],
+    "n_instances": 84,
+    "delta": 0.0,
+    "lo": -1.79,
+    "hi": 1.79
+   },
+   "Qwen3-14B": {
+    "tags": [
+     "co_D_co14b_x0_s1",
+     "co_D_co14b_x0_s2",
+     "co_D_co14b_x8_s1",
+     "co_D_co14b_x8_s2"
+    ],
+    "n_instances": 84,
+    "delta": -2.38,
+    "lo": -5.36,
+    "hi": 0.0
+   },
+   "Qwen3-32B": {
+    "tags": [
+     "co_D_co32b_x0_s1",
+     "co_D_co32b_x0_s2",
+     "co_D_co32b_x8_s1",
+     "co_D_co32b_x8_s2"
+    ],
+    "n_instances": 84,
+    "delta": 0.0,
+    "lo": -2.98,
+    "hi": 2.98
+   }
+  }
+ },
+ "fig6": {
+  "Qwen3-8B": {
+   "one tool-free sample (mean of 3)": {
+    "tags": [
+     "F_geox8b_base_t07s1",
+     "F_geox8b_base_t07s2",
+     "F_geox8b_base_t07s3"
+    ],
+    "n": 900,
+    "raw_pct": 91.78,
+    "pf_pct": 91.78,
+    "per_run": [
+     [
+      278,
+      278
+     ],
+     [
+      270,
+      270
+     ],
+     [
+      278,
+      278
+     ]
+    ]
+   },
+   "one sample with hand-picked helpers (task-matched predicates)": {
+    "tags": [
+     "F_geox8b_pt_t07s1"
+    ],
+    "n": 300,
+    "raw_pct": 95.0,
+    "pf_pct": 95.0,
+    "per_run": [
+     [
+      285,
+      285
+     ]
+    ]
+   },
+   "3 tool-free samples + metamorphic check": {
+    "tags": [
+     "F_geox8b_base_t07s1",
+     "F_geox8b_base_t07s2",
+     "F_geox8b_base_t07s3"
+    ],
+    "n": 300,
+    "raw_correct": 296,
+    "raw_abstain": 1,
+    "raw_pct": 98.67,
+    "pf_correct": 296,
+    "pf_abstain": 1,
+    "pf_pct": 98.67
+   }
+  },
+  "Qwen3-14B": {
+   "one tool-free sample (mean of 3)": {
+    "tags": [
+     "F_geox14b_base_t07s1",
+     "F_geox14b_base_t07s2",
+     "F_geox14b_base_t07s3"
+    ],
+    "n": 900,
+    "raw_pct": 96.22,
+    "pf_pct": 96.22,
+    "per_run": [
+     [
+      288,
+      288
+     ],
+     [
+      289,
+      289
+     ],
+     [
+      289,
+      289
+     ]
+    ]
+   },
+   "one sample with hand-picked helpers (task-matched predicates)": {
+    "tags": [
+     "F_geox14b_pt_t07s1"
+    ],
+    "n": 300,
+    "raw_pct": 97.0,
+    "pf_pct": 97.0,
+    "per_run": [
+     [
+      291,
+      291
+     ]
+    ]
+   },
+   "3 tool-free samples + metamorphic check": {
+    "tags": [
+     "F_geox14b_base_t07s1",
+     "F_geox14b_base_t07s2",
+     "F_geox14b_base_t07s3"
+    ],
+    "n": 300,
+    "raw_correct": 293,
+    "raw_abstain": 0,
+    "raw_pct": 97.67,
+    "pf_correct": 293,
+    "pf_abstain": 0,
+    "pf_pct": 97.67
+   }
+  },
+  "Qwen3-32B": {
+   "one tool-free sample (mean of 3)": {
+    "tags": [
+     "F_geox32b_base_t07s1",
+     "F_geox32b_base_t07s2",
+     "F_geox32b_base_t07s3"
+    ],
+    "n": 900,
+    "raw_pct": 84.44,
+    "pf_pct": 84.44,
+    "per_run": [
+     [
+      253,
+      253
+     ],
+     [
+      253,
+      253
+     ],
+     [
+      254,
+      254
+     ]
+    ]
+   },
+   "one sample with hand-picked helpers (task-matched predicates)": {
+    "tags": [
+     "F_geox32b_pt_t07s1"
+    ],
+    "n": 300,
+    "raw_pct": 93.33,
+    "pf_pct": 93.33,
+    "per_run": [
+     [
+      280,
+      280
+     ]
+    ]
+   },
+   "3 tool-free samples + metamorphic check": {
+    "tags": [
+     "F_geox32b_base_t07s1",
+     "F_geox32b_base_t07s2",
+     "F_geox32b_base_t07s3"
+    ],
+    "n": 300,
+    "raw_correct": 283,
+    "raw_abstain": 0,
+    "raw_pct": 94.33,
+    "pf_correct": 283,
+    "pf_abstain": 0,
+    "pf_pct": 94.33
+   }
+  }
+ },
+ "fig8": {
+  "Qwen3-8B": {
+   "8 extra helpers, one sample (mean of 3)": {
+    "tags": [
+     "F_geox8b_dis8_t07s1",
+     "F_geox8b_dis8_t07s2",
+     "F_geox8b_dis8_t07s3"
+    ],
+    "n": 900,
+    "raw_pct": 77.11,
+    "pf_pct": 77.44,
+    "per_run": [
+     [
+      232,
+      232
+     ],
+     [
+      235,
+      235
+     ],
+     [
+      227,
+      230
+     ]
+    ]
+   },
+   "8 extra helpers, 3 samples + check": {
+    "tags": [
+     "F_geox8b_dis8_t07s1",
+     "F_geox8b_dis8_t07s2",
+     "F_geox8b_dis8_t07s3"
+    ],
+    "n": 300,
+    "raw_correct": 244,
+    "raw_abstain": 12,
+    "raw_pct": 81.33,
+    "pf_correct": 245,
+    "pf_abstain": 11,
+    "pf_pct": 81.67
+   },
+   "needed helpers only, same header (K = 0), one sample": {
+    "tags": [
+     "F_geox8b_dis0_t07s1"
+    ],
+    "n": 300,
+    "raw_pct": 91.67,
+    "pf_pct": 91.67,
+    "per_run": [
+     [
+      275,
+      275
+     ]
+    ]
+   },
+   "needed helpers only, task-matched predicates header, one sample": {
+    "tags": [
+     "F_geox8b_pt_t07s1"
+    ],
+    "n": 300,
+    "raw_pct": 95.0,
+    "pf_pct": 95.0,
+    "per_run": [
+     [
+      285,
+      285
+     ]
+    ]
+   },
+   "8 extra helpers, thinking (2 seeds, n = 100 each)": {
+    "tags": [
+     "T_geox8b_dis8_s1",
+     "T_geox8b_dis8_s2"
+    ],
+    "n": 200,
+    "raw_pct": 97.0,
+    "pf_pct": 97.0,
+    "per_run": [
+     [
+      97,
+      97
+     ],
+     [
+      97,
+      97
+     ]
+    ]
+   }
+  },
+  "Qwen3-14B": {
+   "8 extra helpers, one sample (mean of 3)": {
+    "tags": [
+     "F_geox14b_dis8_t07s1",
+     "F_geox14b_dis8_t07s2",
+     "F_geox14b_dis8_t07s3"
+    ],
+    "n": 900,
+    "raw_pct": 70.89,
+    "pf_pct": 78.67,
+    "per_run": [
+     [
+      204,
+      228
+     ],
+     [
+      216,
+      239
+     ],
+     [
+      218,
+      241
+     ]
+    ]
+   },
+   "8 extra helpers, 3 samples + check": {
+    "tags": [
+     "F_geox14b_dis8_t07s1",
+     "F_geox14b_dis8_t07s2",
+     "F_geox14b_dis8_t07s3"
+    ],
+    "n": 300,
+    "raw_correct": 253,
+    "raw_abstain": 31,
+    "raw_pct": 84.33,
+    "pf_correct": 260,
+    "pf_abstain": 22,
+    "pf_pct": 86.67
+   },
+   "needed helpers only, same header (K = 0), one sample": {
+    "tags": [
+     "F_geox14b_dis0_t07s1"
+    ],
+    "n": 300,
+    "raw_pct": 83.67,
+    "pf_pct": 83.67,
+    "per_run": [
+     [
+      251,
+      251
+     ]
+    ]
+   },
+   "needed helpers only, task-matched predicates header, one sample": {
+    "tags": [
+     "F_geox14b_pt_t07s1"
+    ],
+    "n": 300,
+    "raw_pct": 97.0,
+    "pf_pct": 97.0,
+    "per_run": [
+     [
+      291,
+      291
+     ]
+    ]
+   },
+   "8 extra helpers, thinking (2 seeds, n = 100 each)": {
+    "tags": [
+     "T_geox14b_dis8",
+     "T_geox14b_dis8_s2"
+    ],
+    "n": 200,
+    "raw_pct": 99.0,
+    "pf_pct": 99.0,
+    "per_run": [
+     [
+      99,
+      99
+     ],
+     [
+      99,
+      99
+     ]
+    ]
+   }
+  },
+  "Qwen3-32B": {
+   "8 extra helpers, one sample (mean of 3)": {
+    "tags": [
+     "F_geox32b_dis8_t07s1",
+     "F_geox32b_dis8_t07s2",
+     "F_geox32b_dis8_t07s3"
+    ],
+    "n": 900,
+    "raw_pct": 75.0,
+    "pf_pct": 76.67,
+    "per_run": [
+     [
+      229,
+      236
+     ],
+     [
+      225,
+      229
+     ],
+     [
+      221,
+      225
+     ]
+    ]
+   },
+   "8 extra helpers, 3 samples + check": {
+    "tags": [
+     "F_geox32b_dis8_t07s1",
+     "F_geox32b_dis8_t07s2",
+     "F_geox32b_dis8_t07s3"
+    ],
+    "n": 300,
+    "raw_correct": 252,
+    "raw_abstain": 10,
+    "raw_pct": 84.0,
+    "pf_correct": 255,
+    "pf_abstain": 1,
+    "pf_pct": 85.0
+   },
+   "needed helpers only, same header (K = 0), one sample": {
+    "tags": [
+     "F_geox32b_dis0_t07s1"
+    ],
+    "n": 300,
+    "raw_pct": 92.0,
+    "pf_pct": 92.0,
+    "per_run": [
+     [
+      276,
+      276
+     ]
+    ]
+   },
+   "needed helpers only, task-matched predicates header, one sample": {
+    "tags": [
+     "F_geox32b_pt_t07s1"
+    ],
+    "n": 300,
+    "raw_pct": 93.33,
+    "pf_pct": 93.33,
+    "per_run": [
+     [
+      280,
+      280
+     ]
+    ]
+   },
+   "8 extra helpers, thinking (2 seeds, n = 100 each)": {
+    "tags": [
+     "T_geox32b_dis8",
+     "T_geox32b_dis8_s2"
+    ],
+    "n": 200,
+    "raw_pct": 97.0,
+    "pf_pct": 97.0,
+    "per_run": [
+     [
+      97,
+      97
+     ],
+     [
+      97,
+      97
+     ]
+    ]
+   }
+  }
+ },
+ "audit": {
+  "fig1": {
+   "Llama-3.1-8B, greedy, with the stdlib sentence": {
+    "tag": "geoxllama8b_std_v2",
+    "pct": 99.0
+   },
+   "Qwen3-14B, greedy, with the stdlib sentence": {
+    "tag": "geox14b_std",
+    "pct": 100.0
+   }
+  },
+  "fig1_note": "the no-stdlib greedy runs (Llama 83, Qwen3-14B 79) have no stored jsonl in results/",
+  "fig3_copy_in_raw": {
+   "Qwen3-8B": {
+    "delta": -14.33,
+    "lo": -20.0,
+    "hi": -8.67,
+    "k0_pct": 91.67,
+    "k8_pct": 77.33,
+    "n_instances": 300,
+    "n_pairs": 300
+   },
+   "Qwen3-14B": {
+    "delta": -15.67,
+    "lo": -21.33,
+    "hi": -10.33,
+    "k0_pct": 83.67,
+    "k8_pct": 68.0,
+    "n_instances": 300,
+    "n_pairs": 300
+   },
+   "Qwen3-32B": {
+    "delta": -15.67,
+    "lo": -21.0,
+    "hi": -10.33,
+    "k0_pct": 92.0,
+    "k8_pct": 76.33,
+    "n_instances": 300,
+    "n_pairs": 300
+   }
+  },
+  "reference": [
+   {
+    "label": "fig3 prelude-header runs: Qwen3-8b K0 -> K8 (helpers pre-defined at generation)",
+    "k0_tag": "F_geox8b_dis0pre_t07s1",
+    "k8_tag": "F_geox8b_dis8pre_t07s1",
+    "raw": {
+     "delta": -12.33,
+     "lo": -17.67,
+     "hi": -7.0,
+     "k0_pct": 92.0,
+     "k8_pct": 79.67,
+     "n_instances": 300,
+     "n_pairs": 300
+    }
+   },
+   {
+    "label": "fig3 prelude-header runs: Qwen3-14b K0 -> K8 (helpers pre-defined at generation)",
+    "k0_tag": "F_geox14b_dis0pre_t07s1",
+    "k8_tag": "F_geox14b_dis8pre_t07s1",
+    "raw": {
+     "delta": -1.33,
+     "lo": -6.67,
+     "hi": 3.67,
+     "k0_pct": 77.33,
+     "k8_pct": 76.0,
+     "n_instances": 300,
+     "n_pairs": 300
+    }
+   },
+   {
+    "label": "fig3 prelude-header runs: Qwen3-32b K0 -> K8 (helpers pre-defined at generation)",
+    "k0_tag": "F_geox32b_dis0pre_t07s1",
+    "k8_tag": "F_geox32b_dis8pre_t07s1",
+    "raw": {
+     "delta": -15.0,
+     "lo": -20.0,
+     "hi": -10.0,
+     "k0_pct": 90.0,
+     "k8_pct": 75.0,
+     "n_instances": 300,
+     "n_pairs": 300
+    }
+   },
+   {
+    "label": "old fig4/fig7: Qwen3-8b task-matched predicates -> K8 (wrong baseline)",
+    "k0_tag": "F_geox8b_pt_t07s1",
+    "k8_tag": "F_geox8b_dis8_t07s1",
+    "raw": {
+     "delta": -17.67,
+     "lo": -23.0,
+     "hi": -12.33,
+     "k0_pct": 95.0,
+     "k8_pct": 77.33,
+     "n_instances": 300,
+     "n_pairs": 300
+    }
+   },
+   {
+    "label": "old fig4/fig7: Qwen3-14b task-matched predicates -> K8 (wrong baseline)",
+    "k0_tag": "F_geox14b_pt_t07s1",
+    "k8_tag": "F_geox14b_dis8_t07s1",
+    "raw": {
+     "delta": -29.0,
+     "lo": -34.33,
+     "hi": -23.67,
+     "k0_pct": 97.0,
+     "k8_pct": 68.0,
+     "n_instances": 300,
+     "n_pairs": 300
+    }
+   },
+   {
+    "label": "old fig4/fig7: Qwen3-32b task-matched predicates -> K8 (wrong baseline)",
+    "k0_tag": "F_geox32b_pt_t07s1",
+    "k8_tag": "F_geox32b_dis8_t07s1",
+    "raw": {
+     "delta": -17.0,
+     "lo": -22.34,
+     "hi": -11.67,
+     "k0_pct": 93.33,
+     "k8_pct": 76.33,
+     "n_instances": 300,
+     "n_pairs": 300
+    }
+   }
+  ],
+  "fig5": {
+   "Qwen3-8B": {
+    "nodoc": 0.255,
+    "doc": 0.349,
+    "doctask": 0.71,
+    "doctask_best3": 0.718,
+    "n_instances": 252,
+    "scoped_minus_full": 0.361
+   },
+   "Qwen3-14B": {
+    "nodoc": 0.607,
+    "doc": 0.81,
+    "doctask": 0.959,
+    "doctask_best3": 1.0,
+    "n_instances": 252,
+    "scoped_minus_full": 0.149
+   },
+   "Qwen3-32B": {
+    "nodoc": 0.701,
+    "doc": 0.926,
+    "doctask": 0.97,
+    "doctask_best3": 1.0,
+    "n_instances": 252,
+    "scoped_minus_full": 0.044
+   }
+  }
+ },
+ "gpt_oss_high": [
+  {
+   "label": "gpt-oss-20b, high (24k cap)",
+   "k0_tags": [
+    "O5_geoxoss20hig_k0"
+   ],
+   "k8_tags": [
+    "O5_geoxoss20hig_k8"
+   ],
+   "raw": {
+    "delta": 2.67,
+    "lo": -2.67,
+    "hi": 8.0,
+    "k0_pct": 73.33,
+    "k8_pct": 76.0,
+    "n_instances": 300,
+    "n_pairs": 300
+   },
+   "capped_rows": {
+    "O5_geoxoss20hig_k0": 80,
+    "O5_geoxoss20hig_k8": 72
+   }
+  },
+  {
+   "label": "gpt-oss-120b, high (24k cap)",
+   "k0_tags": [
+    "O5_geoxoss120hig_k0"
+   ],
+   "k8_tags": [
+    "O5_geoxoss120hig_k8"
+   ],
+   "raw": {
+    "delta": -1.33,
+    "lo": -3.33,
+    "hi": 0.33,
+    "k0_pct": 99.33,
+    "k8_pct": 98.0,
+    "n_instances": 300,
+    "n_pairs": 300
+   },
+   "capped_rows": {
+    "O5_geoxoss120hig_k0": 2,
+    "O5_geoxoss120hig_k8": 6
+   }
+  }
+ ],
+ "toolbox_mismatch_rows": 0
+}

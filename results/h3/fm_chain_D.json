@@ -1,0 +1,151 @@
+{
+ "chain": "D",
+ "verified": [
+  "When parsing a Solomon benchmark file, the line immediately after the \u201cVEHICLE\u201d header (and similarly after the \u201cCUSTOMER\u201d header) is a column\u2011title line such as \u201cNUMBER     CAPACITY\u201d or \u201cCUST NO.   XCOORD. \u2026\u201d. These title lines must be skipped before converting fields to integers or floats; otherwise attempts like\u202fint(parts[0]) will raise a ValueError because the first token is the word \u201cNUMBER\u201d or \u201cCUST\u201d. Ensure your reader discards any line whose first token cannot be parsed as an integer before reading vehicle numbers, capacities, or customer data.",
+  "When calling\u202frouting.AddDimension\u202fin OR\u2011Tools, the third argument\u202fslack_max\u202fand the fourth argument\u202fcapacity\u202fmust be plain Python\u202fint\u202fvalues (not floats). Likewise, any transit callback used for a time dimension must return an\u202fint\u202f(e.g., distances or times scaled to integers). Ensure you convert all real\u2011valued travel times, service times, and horizon values to integers before passing them to\u202fAddDimension\u202for registering the callback.",
+  "When building the OR\u2011Tools model, never add a disjunction (routing.AddDisjunction) for the customer nodes unless you explicitly want them to be optional. Adding a disjunction with a finite penalty lets the solver drop those nodes, which produces routes that miss customers. Ensure every customer index is only added to the routing model via the manager and the demand/capacity dimensions, and omit any AddDisjunction calls for them so the solver is forced to visit each customer exactly once."
+ ],
+ "unverified": [
+  "In a Solomon instance the lines immediately following the \u201cVEHICLE\u201d keyword and the \u201cCUSTOMER\u201d keyword are header rows (e.g. \u201cNUMBER     CAPACITY\u201d and \u201cCUST NO.   XCOORD\u2026\u201d) that do **not** contain data; they must be skipped before parsing the numeric fields.",
+  "When parsing a Solomon benchmark file, the line immediately after the \u201cVEHICLE\u201d header (and similarly after the \u201cCUSTOMER\u201d header) is a column\u2011title line such as \u201cNUMBER     CAPACITY\u201d or \u201cCUST NO.   XCOORD. \u2026\u201d. These title lines must be skipped before converting fields to integers or floats; otherwise attempts like\u202fint(parts[0]) will raise a ValueError because the first token is the word \u201cNUMBER\u201d or \u201cCUST\u201d. Ensure your reader discards any line whose first token cannot be parsed as an integer before reading vehicle numbers, capacities, or customer data.",
+  "When calling\u202frouting.AddDimension\u202fin OR\u2011Tools, the third argument\u202fslack_max\u202fand the fourth argument\u202fcapacity\u202fmust be plain Python\u202fint\u202fvalues (not floats). Likewise, any transit callback used for a time dimension must return an\u202fint\u202f(e.g., distances or times scaled to integers). Ensure you convert all real\u2011valued travel times, service times, and horizon values to integers before passing them to\u202fAddDimension\u202for registering the callback.",
+  "When adding a time (or any cumulative) dimension with OR\u2011Tools you must pass **integer** values for the slack\u2011max and capacity arguments.\u202fIn particular, compute the horizon (the maximum allowed cumulative value) as an integer (e.g., `int(max_due)`) before calling `routing.AddDimension(...)`; passing a float (or a Python \u201cint\u2011like\u201d object such as a NumPy scalar) causes the TypeError\u202f`argument N of type 'int64_t'`.",
+  "# Ensure every customer node is forced into a route: after creating the manager, call\n#   for cust in range(1, num_customers + 1):\n#       routing.AddDisjunction([manager.NodeToIndex(cust)], 0)\n# This adds a zero\u2011penalty disjunction for each customer, which tells OR\u2011Tools that the node\n# must be visited (otherwise the solution is infeasible). Without these disjunctions the\n# solver may leave customers unassigned, leading to missing\u2011customer errors.",
+  "When creating the RoutingIndexManager, count the depot as node\u202f0 and all customers as the remaining nodes, i.e.:\n\n    num_nodes = 1 + number_of_customers   # depot + customers\n    manager = pywrapcp.RoutingIndexManager(num_nodes, vehicle_count, depot_index=0)\n\nIf the manager is built with fewer nodes than the total customers, those customers will never appear in the solution, causing missing\u2011customer infeasibility. Ensure the manager includes every customer index.",
+  "# Ensure every customer is visited exactly once by adding a zero\u2011penalty disjunction for each node (except the depot):\nfor node in range(1, manager.GetNumberOfNodes()):   # node 0 is the depot\n    routing.AddDisjunction([node], 0)  # penalty 0 forces the solver to include the node in some route",
+  "# After parsing the instance, create the OR\u2011Tools manager with **num_nodes = highest customer number + 1** (including the depot as node\u202f0).  \n# Example: `manager = pywrapcp.RoutingIndexManager(max_customer_id + 1, vehicle_count, depot_index)`.  \n# This guarantees that every customer (IDs 1..N) gets a distinct routing index and is therefore mandatory; otherwise missing indices cause the solver to leave customers unassigned, leading to \u201ccustomers missing\u201d infeasibility.",
+  "When building the OR\u2011Tools model, never add a disjunction (routing.AddDisjunction) for the customer nodes unless you explicitly want them to be optional. Adding a disjunction with a finite penalty lets the solver drop those nodes, which produces routes that miss customers. Ensure every customer index is only added to the routing model via the manager and the demand/capacity dimensions, and omit any AddDisjunction calls for them so the solver is forced to visit each customer exactly once.",
+  "# Ensure every customer (nodes 1..N) is required in the solution:\n# After creating the RoutingIndexManager, add a zero\u2011penalty disjunction for each\n# customer node so the solver must include it in exactly one route.\nfor cust_id in range(1, manager.num_nodes()):  # skip depot (0)\n    routing.AddDisjunction([manager.NodeToIndex(cust_id)], 0)"
+ ],
+ "log": [
+  {
+   "round": 0,
+   "sheet": [],
+   "feasible": 1,
+   "reasons": [
+    "re",
+    "re",
+    "re",
+    "re",
+    "time window",
+    "customers missing or repeated",
+    "re",
+    "re",
+    "re",
+    "re",
+    "ok",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re"
+   ]
+  },
+  {
+   "round": 1,
+   "candidates": [
+    [
+     2,
+     "In a Solomon instance the lines immediately following the \u201cVEHICLE\u201d keyword and the \u201cCUSTOMER\u201d keyword are header rows (e.g. \u201cNUMBER     CAPACITY\u201d and \u201cCUST NO.   XCOORD\u2026\u201d) that do **not** contain data; they must be skipped before parsing the numeric fields."
+    ],
+    [
+     5,
+     "When parsing a Solomon benchmark file, the line immediately after the \u201cVEHICLE\u201d header (and similarly after the \u201cCUSTOMER\u201d header) is a column\u2011title line such as \u201cNUMBER     CAPACITY\u201d or \u201cCUST NO.   XCOORD. \u2026\u201d. These title lines must be skipped before converting fields to integers or floats; otherwise attempts like\u202fint(parts[0]) will raise a ValueError because the first token is the word \u201cNUMBER\u201d or \u201cCUST\u201d. Ensure your reader discards any line whose first token cannot be parsed as an integer before reading vehicle numbers, capacities, or customer data."
+    ]
+   ],
+   "kept": "When parsing a Solomon benchmark file, the line immediately after the \u201cVEHICLE\u201d header (and similarly after the \u201cCUSTOMER\u201d header) is a column\u2011title line such as \u201cNUMBER     CAPACITY\u201d or \u201cCUST NO.   XCOORD. \u2026\u201d. These title lines must be skipped before converting fields to integers or floats; otherwise attempts like\u202fint(parts[0]) will raise a ValueError because the first token is the word \u201cNUMBER\u201d or \u201cCUST\u201d. Ensure your reader discards any line whose first token cannot be parsed as an integer before reading vehicle numbers, capacities, or customer data.",
+   "feasible": 5,
+   "target": "ValueError: invalid literal for int() with base N: '\u2026'",
+   "target_before": 4,
+   "target_after": [
+    4,
+    0
+   ]
+  },
+  {
+   "round": 2,
+   "candidates": [
+    [
+     6,
+     "When calling\u202frouting.AddDimension\u202fin OR\u2011Tools, the third argument\u202fslack_max\u202fand the fourth argument\u202fcapacity\u202fmust be plain Python\u202fint\u202fvalues (not floats). Likewise, any transit callback used for a time dimension must return an\u202fint\u202f(e.g., distances or times scaled to integers). Ensure you convert all real\u2011valued travel times, service times, and horizon values to integers before passing them to\u202fAddDimension\u202for registering the callback."
+    ],
+    [
+     4,
+     "When adding a time (or any cumulative) dimension with OR\u2011Tools you must pass **integer** values for the slack\u2011max and capacity arguments.\u202fIn particular, compute the horizon (the maximum allowed cumulative value) as an integer (e.g., `int(max_due)`) before calling `routing.AddDimension(...)`; passing a float (or a Python \u201cint\u2011like\u201d object such as a NumPy scalar) causes the TypeError\u202f`argument N of type 'int64_t'`."
+    ]
+   ],
+   "kept": "When calling\u202frouting.AddDimension\u202fin OR\u2011Tools, the third argument\u202fslack_max\u202fand the fourth argument\u202fcapacity\u202fmust be plain Python\u202fint\u202fvalues (not floats). Likewise, any transit callback used for a time dimension must return an\u202fint\u202f(e.g., distances or times scaled to integers). Ensure you convert all real\u2011valued travel times, service times, and horizon values to integers before passing them to\u202fAddDimension\u202for registering the callback.",
+   "feasible": 6,
+   "target": "TypeError: in method '\u2026', argument N of type '\u2026'",
+   "target_before": 9,
+   "target_after": [
+    0,
+    2
+   ]
+  },
+  {
+   "round": 3,
+   "candidates": [
+    [
+     0,
+     "# Ensure every customer node is forced into a route: after creating the manager, call\n#   for cust in range(1, num_customers + 1):\n#       routing.AddDisjunction([manager.NodeToIndex(cust)], 0)\n# This adds a zero\u2011penalty disjunction for each customer, which tells OR\u2011Tools that the node\n# must be visited (otherwise the solution is infeasible). Without these disjunctions the\n# solver may leave customers unassigned, leading to missing\u2011customer errors."
+    ],
+    [
+     3,
+     "When creating the RoutingIndexManager, count the depot as node\u202f0 and all customers as the remaining nodes, i.e.:\n\n    num_nodes = 1 + number_of_customers   # depot + customers\n    manager = pywrapcp.RoutingIndexManager(num_nodes, vehicle_count, depot_index=0)\n\nIf the manager is built with fewer nodes than the total customers, those customers will never appear in the solution, causing missing\u2011customer infeasibility. Ensure the manager includes every customer index."
+    ]
+   ],
+   "kept": null,
+   "feasible": 6,
+   "target": "infeasible: customers missing or repeated",
+   "target_before": 8,
+   "target_after": [
+    10,
+    4
+   ]
+  },
+  {
+   "round": 4,
+   "candidates": [
+    [
+     0,
+     "# Ensure every customer is visited exactly once by adding a zero\u2011penalty disjunction for each node (except the depot):\nfor node in range(1, manager.GetNumberOfNodes()):   # node 0 is the depot\n    routing.AddDisjunction([node], 0)  # penalty 0 forces the solver to include the node in some route"
+    ],
+    [
+     4,
+     "# After parsing the instance, create the OR\u2011Tools manager with **num_nodes = highest customer number + 1** (including the depot as node\u202f0).  \n# Example: `manager = pywrapcp.RoutingIndexManager(max_customer_id + 1, vehicle_count, depot_index)`.  \n# This guarantees that every customer (IDs 1..N) gets a distinct routing index and is therefore mandatory; otherwise missing indices cause the solver to leave customers unassigned, leading to \u201ccustomers missing\u201d infeasibility."
+    ]
+   ],
+   "kept": null,
+   "feasible": 6,
+   "target": "infeasible: customers missing or repeated",
+   "target_before": 8,
+   "target_after": [
+    12,
+    3
+   ]
+  },
+  {
+   "round": 5,
+   "candidates": [
+    [
+     7,
+     "When building the OR\u2011Tools model, never add a disjunction (routing.AddDisjunction) for the customer nodes unless you explicitly want them to be optional. Adding a disjunction with a finite penalty lets the solver drop those nodes, which produces routes that miss customers. Ensure every customer index is only added to the routing model via the manager and the demand/capacity dimensions, and omit any AddDisjunction calls for them so the solver is forced to visit each customer exactly once."
+    ],
+    [
+     0,
+     "# Ensure every customer (nodes 1..N) is required in the solution:\n# After creating the RoutingIndexManager, add a zero\u2011penalty disjunction for each\n# customer node so the solver must include it in exactly one route.\nfor cust_id in range(1, manager.num_nodes()):  # skip depot (0)\n    routing.AddDisjunction([manager.NodeToIndex(cust_id)], 0)"
+    ]
+   ],
+   "kept": "When building the OR\u2011Tools model, never add a disjunction (routing.AddDisjunction) for the customer nodes unless you explicitly want them to be optional. Adding a disjunction with a finite penalty lets the solver drop those nodes, which produces routes that miss customers. Ensure every customer index is only added to the routing model via the manager and the demand/capacity dimensions, and omit any AddDisjunction calls for them so the solver is forced to visit each customer exactly once.",
+   "feasible": 7,
+   "target": "infeasible: customers missing or repeated",
+   "target_before": 8,
+   "target_after": [
+    4,
+    12
+   ]
+  }
+ ],
+ "mining_tokens": 319452
+}

@@ -1,0 +1,20 @@
+{
+ "oss20_low_plain": {
+  "candidates": 64,
+  "best_mining": 4,
+  "test_feasible": 45,
+  "median_gap": 5.884696086030172,
+  "within5": 19,
+  "gen_tokens": 107211,
+  "picked": "c101"
+ },
+ "oss20_low_docs": {
+  "candidates": 64,
+  "best_mining": 4,
+  "test_feasible": 45,
+  "median_gap": 2.258986421741871,
+  "within5": 39,
+  "gen_tokens": 102918,
+  "picked": "rc101"
+ }
+}

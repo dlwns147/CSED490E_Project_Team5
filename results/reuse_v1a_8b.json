@@ -1,0 +1,87 @@
+{
+ "hull": {
+  "oracle_correct_val": 0,
+  "agreement": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "reuse": 0.0,
+  "oracle_tokens": 1340
+ },
+ "area2": {
+  "oracle_correct_val": 5,
+  "agreement": [
+   40,
+   40,
+   40,
+   40,
+   40,
+   40,
+   40,
+   40,
+   40,
+   40
+  ],
+  "reuse": 100.0,
+  "oracle_tokens": 167
+ },
+ "pip": {
+  "oracle_correct_val": 4,
+  "agreement": [
+   35,
+   35,
+   35,
+   35,
+   35,
+   35,
+   35,
+   35,
+   35,
+   35
+  ],
+  "reuse": 100.0,
+  "oracle_tokens": 332
+ },
+ "segs": {
+  "oracle_correct_val": 1,
+  "agreement": [
+   36,
+   36,
+   36,
+   36,
+   36,
+   36,
+   36,
+   36,
+   36,
+   36
+  ],
+  "reuse": 100.0,
+  "oracle_tokens": 771
+ },
+ "close": {
+  "oracle_correct_val": 5,
+  "agreement": [
+   40,
+   40,
+   40,
+   40,
+   40,
+   40,
+   40,
+   40,
+   40,
+   5
+  ],
+  "reuse": 78.18181818181819,
+  "oracle_tokens": 182
+ }
+}

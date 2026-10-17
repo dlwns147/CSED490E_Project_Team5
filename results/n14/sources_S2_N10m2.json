@@ -1,0 +1,29 @@
+{
+ "tsp": {
+  "programs": 35,
+  "instances": 16,
+  "good_optimal": 16,
+  "good_feasible": 16,
+  "bad_optimal": null,
+  "bad_feasible": null,
+  "n_fully_correct": 2
+ },
+ "cvrp": {
+  "programs": 24,
+  "instances": 12,
+  "good_optimal": 12,
+  "good_feasible": 12,
+  "bad_optimal": null,
+  "bad_feasible": null,
+  "n_fully_correct": 24
+ },
+ "knapsack": {
+  "programs": 24,
+  "instances": 16,
+  "good_optimal": 16,
+  "good_feasible": 16,
+  "bad_optimal": null,
+  "bad_feasible": null,
+  "n_fully_correct": 24
+ }
+}

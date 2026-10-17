@@ -1,0 +1,153 @@
+{
+ "chain": "C",
+ "verified": [
+  "In the Solomon instance format the line immediately after the line that reads \"VEHICLE\" is a header line containing the words \"NUMBER\" and \"CAPACITY\". The actual numeric values for the number of vehicles and their capacity are on the next non\u2011empty line. Therefore, when parsing, always skip one line after \"VEHICLE\" (the header) before converting the following line to integers.",
+  "# OR\u2011Tools\u2019 RoutingModel.AddDimension expects the *slack_max* argument (the third\n# parameter) to be an integer (int64).  When using real\u2011valued time windows,\n# compute a sufficiently large horizon as an integer, e.g.:\n\nhorizon = int(max(c[\"due\"] for c in customers.values()) + 1000)  # convert to int\nrouting.AddDimension(\n    time_callback_index,\n    horizon,          # slack_max must be an int, not a float\n    horizon,          # capacity (max cumulative time) also int\n    True,\n    \"Time\"\n)\n\n# Always cast any floating\u2011point values used for the slack_max or capacity\n# parameters to int before passing them to AddDimension.",
+  "# When adding the time dimension, use an integer horizon that is **at least**\n# the maximum due date **plus** the maximum possible travel time, and set the\n# slack (maximum cumulative time) to that same integer value. Then, after\n# creating the dimension, enforce each node\u2019s time window with the\n# CumulVar() bounds (converted to the same integer scale). This guarantees\n# that the solver can insert waiting time and never declares a route\n# infeasible solely because travel times are real\u2011valued but the dimension\n# limits are integer\u2011rounded.",
+  "When constructing the OR\u2011Tools model, always create the RoutingIndexManager with the depot as both the start and end node for every vehicle, e.g.:",
+  "# OR\u2011Tools\u202fRoutingIndexManager has a three\u2011argument constructor:\n#   RoutingIndexManager(node_count, num_vehicles, depot_index)\n# Use this form (omit a fourth \u201cend\u201d argument); the depot index will be used as both start and end for every vehicle."
+ ],
+ "unverified": [
+  "The line immediately after the line that says \"VEHICLE\" is a header containing the words \u201cNUMBER\u201d and \u201cCAPACITY\u201d; it does **not** contain numeric data and must be skipped before reading the two integers that give the number of vehicles and their capacity.",
+  "In the Solomon instance format the line immediately after the line that reads \"VEHICLE\" is a header line containing the words \"NUMBER\" and \"CAPACITY\". The actual numeric values for the number of vehicles and their capacity are on the next non\u2011empty line. Therefore, when parsing, always skip one line after \"VEHICLE\" (the header) before converting the following line to integers.",
+  "# OR\u2011Tools\u2019 RoutingModel.AddDimension expects the *slack_max* argument (the third\n# parameter) to be an integer (int64).  When using real\u2011valued time windows,\n# compute a sufficiently large horizon as an integer, e.g.:\n\nhorizon = int(max(c[\"due\"] for c in customers.values()) + 1000)  # convert to int\nrouting.AddDimension(\n    time_callback_index,\n    horizon,          # slack_max must be an int, not a float\n    horizon,          # capacity (max cumulative time) also int\n    True,\n    \"Time\"\n)\n\n# Always cast any floating\u2011point values used for the slack_max or capacity\n# parameters to int before passing them to AddDimension.",
+  "When calling `routing.AddDimension` the second argument (`slack_max`) must be an integer (int64). If you compute a horizon or any maximum time value using Python\u2019s `max` on floats, cast it to `int` (or use `int()`/`round()`) before passing it to `AddDimension`. This prevents the \u201cargument 3 of type 'int64_t'\u201d TypeError.",
+  "# When adding the time dimension, use an integer horizon that is **at least**\n# the maximum due date **plus** the maximum possible travel time, and set the\n# slack (maximum cumulative time) to that same integer value. Then, after\n# creating the dimension, enforce each node\u2019s time window with the\n# CumulVar() bounds (converted to the same integer scale). This guarantees\n# that the solver can insert waiting time and never declares a route\n# infeasible solely because travel times are real\u2011valued but the dimension\n# limits are integer\u2011rounded.",
+  "# When modelling time windows with OR\u2011Tools, the transit callback used for the\n# \u201cTime\u201d dimension must return **travel_time + service_time of the *to* node**,\n# not just the travel time. Then set each node\u2019s time window on the cumulative\n# variable with the exact (real\u2011valued) ready\u2011 and due\u2011times, and make the\n# dimension\u2019s horizon an integer large enough (e.g. int(max_due)+1000). This\n# guarantees that the solver respects the due dates and avoids infeasible\n# routes caused by missing service\u2011time contributions.",
+  "When constructing the OR\u2011Tools model, always create the RoutingIndexManager with the depot as both the start and end node for every vehicle, e.g.:",
+  "When constructing the RoutingIndexManager, pass a list that contains **all** node IDs\u2014including the depot (ID\u202f0) and every customer ID\u2014and use the depot ID as the start and end location for each vehicle (i.e., the third argument should be a list of depot IDs of length\u202fvehicle_num). This guarantees the solver creates a route that must visit every customer exactly once, preventing missing or duplicated customers.",
+  "# OR\u2011Tools\u202fRoutingIndexManager has a three\u2011argument constructor:\n#   RoutingIndexManager(node_count, num_vehicles, depot_index)\n# Use this form (omit a fourth \u201cend\u201d argument); the depot index will be used as both start and end for every vehicle.",
+  "When constructing a `RoutingIndexManager`, pass the depot index as a plain integer (e.g. `depot = 0`) and use the three\u2011argument constructor: `manager = pywrapcp.RoutingIndexManager(num_nodes, num_vehicles, depot)`. Do **not** wrap the depot in a list or tuple; the overload that expects start\u2011 and end\u2011node lists is a different signature and triggers the TypeError."
+ ],
+ "log": [
+  {
+   "round": 0,
+   "sheet": [],
+   "feasible": 2,
+   "reasons": [
+    "re",
+    "ok",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "ok",
+    "re",
+    "customers missing or repeated",
+    "re",
+    "re",
+    "customers missing or repeated"
+   ]
+  },
+  {
+   "round": 1,
+   "candidates": [
+    [
+     3,
+     "The line immediately after the line that says \"VEHICLE\" is a header containing the words \u201cNUMBER\u201d and \u201cCAPACITY\u201d; it does **not** contain numeric data and must be skipped before reading the two integers that give the number of vehicles and their capacity."
+    ],
+    [
+     2,
+     "In the Solomon instance format the line immediately after the line that reads \"VEHICLE\" is a header line containing the words \"NUMBER\" and \"CAPACITY\". The actual numeric values for the number of vehicles and their capacity are on the next non\u2011empty line. Therefore, when parsing, always skip one line after \"VEHICLE\" (the header) before converting the following line to integers."
+    ]
+   ],
+   "kept": "In the Solomon instance format the line immediately after the line that reads \"VEHICLE\" is a header line containing the words \"NUMBER\" and \"CAPACITY\". The actual numeric values for the number of vehicles and their capacity are on the next non\u2011empty line. Therefore, when parsing, always skip one line after \"VEHICLE\" (the header) before converting the following line to integers.",
+   "feasible": 2,
+   "target": "ValueError: invalid literal for int() with base N: '\u2026'",
+   "target_before": 6,
+   "target_after": [
+    4,
+    2
+   ]
+  },
+  {
+   "round": 2,
+   "candidates": [
+    [
+     2,
+     "# OR\u2011Tools\u2019 RoutingModel.AddDimension expects the *slack_max* argument (the third\n# parameter) to be an integer (int64).  When using real\u2011valued time windows,\n# compute a sufficiently large horizon as an integer, e.g.:\n\nhorizon = int(max(c[\"due\"] for c in customers.values()) + 1000)  # convert to int\nrouting.AddDimension(\n    time_callback_index,\n    horizon,          # slack_max must be an int, not a float\n    horizon,          # capacity (max cumulative time) also int\n    True,\n    \"Time\"\n)\n\n# Always cast any floating\u2011point values used for the slack_max or capacity\n# parameters to int before passing them to AddDimension."
+    ],
+    [
+     1,
+     "When calling `routing.AddDimension` the second argument (`slack_max`) must be an integer (int64). If you compute a horizon or any maximum time value using Python\u2019s `max` on floats, cast it to `int` (or use `int()`/`round()`) before passing it to `AddDimension`. This prevents the \u201cargument 3 of type 'int64_t'\u201d TypeError."
+    ]
+   ],
+   "kept": "# OR\u2011Tools\u2019 RoutingModel.AddDimension expects the *slack_max* argument (the third\n# parameter) to be an integer (int64).  When using real\u2011valued time windows,\n# compute a sufficiently large horizon as an integer, e.g.:\n\nhorizon = int(max(c[\"due\"] for c in customers.values()) + 1000)  # convert to int\nrouting.AddDimension(\n    time_callback_index,\n    horizon,          # slack_max must be an int, not a float\n    horizon,          # capacity (max cumulative time) also int\n    True,\n    \"Time\"\n)\n\n# Always cast any floating\u2011point values used for the slack_max or capacity\n# parameters to int before passing them to AddDimension.",
+   "feasible": 2,
+   "target": "TypeError: in method '\u2026', argument N of type '\u2026'",
+   "target_before": 6,
+   "target_after": [
+    0,
+    2
+   ]
+  },
+  {
+   "round": 3,
+   "candidates": [
+    [
+     1,
+     "# When adding the time dimension, use an integer horizon that is **at least**\n# the maximum due date **plus** the maximum possible travel time, and set the\n# slack (maximum cumulative time) to that same integer value. Then, after\n# creating the dimension, enforce each node\u2019s time window with the\n# CumulVar() bounds (converted to the same integer scale). This guarantees\n# that the solver can insert waiting time and never declares a route\n# infeasible solely because travel times are real\u2011valued but the dimension\n# limits are integer\u2011rounded."
+    ],
+    [
+     0,
+     "# When modelling time windows with OR\u2011Tools, the transit callback used for the\n# \u201cTime\u201d dimension must return **travel_time + service_time of the *to* node**,\n# not just the travel time. Then set each node\u2019s time window on the cumulative\n# variable with the exact (real\u2011valued) ready\u2011 and due\u2011times, and make the\n# dimension\u2019s horizon an integer large enough (e.g. int(max_due)+1000). This\n# guarantees that the solver respects the due dates and avoids infeasible\n# routes caused by missing service\u2011time contributions."
+    ]
+   ],
+   "kept": "# When adding the time dimension, use an integer horizon that is **at least**\n# the maximum due date **plus** the maximum possible travel time, and set the\n# slack (maximum cumulative time) to that same integer value. Then, after\n# creating the dimension, enforce each node\u2019s time window with the\n# CumulVar() bounds (converted to the same integer scale). This guarantees\n# that the solver can insert waiting time and never declares a route\n# infeasible solely because travel times are real\u2011valued but the dimension\n# limits are integer\u2011rounded.",
+   "feasible": 1,
+   "target": "infeasible: time window",
+   "target_before": 4,
+   "target_after": [
+    0,
+    2
+   ]
+  },
+  {
+   "round": 4,
+   "candidates": [
+    [
+     3,
+     "When constructing the OR\u2011Tools model, always create the RoutingIndexManager with the depot as both the start and end node for every vehicle, e.g.:"
+    ],
+    [
+     1,
+     "When constructing the RoutingIndexManager, pass a list that contains **all** node IDs\u2014including the depot (ID\u202f0) and every customer ID\u2014and use the depot ID as the start and end location for each vehicle (i.e., the third argument should be a list of depot IDs of length\u202fvehicle_num). This guarantees the solver creates a route that must visit every customer exactly once, preventing missing or duplicated customers."
+    ]
+   ],
+   "kept": "When constructing the OR\u2011Tools model, always create the RoutingIndexManager with the depot as both the start and end node for every vehicle, e.g.:",
+   "feasible": 3,
+   "target": "infeasible: customers missing or repeated",
+   "target_before": 3,
+   "target_after": [
+    1,
+    0
+   ]
+  },
+  {
+   "round": 5,
+   "candidates": [
+    [
+     4,
+     "# OR\u2011Tools\u202fRoutingIndexManager has a three\u2011argument constructor:\n#   RoutingIndexManager(node_count, num_vehicles, depot_index)\n# Use this form (omit a fourth \u201cend\u201d argument); the depot index will be used as both start and end for every vehicle."
+    ],
+    [
+     1,
+     "When constructing a `RoutingIndexManager`, pass the depot index as a plain integer (e.g. `depot = 0`) and use the three\u2011argument constructor: `manager = pywrapcp.RoutingIndexManager(num_nodes, num_vehicles, depot)`. Do **not** wrap the depot in a list or tuple; the overload that expects start\u2011 and end\u2011node lists is a different signature and triggers the TypeError."
+    ]
+   ],
+   "kept": "# OR\u2011Tools\u202fRoutingIndexManager has a three\u2011argument constructor:\n#   RoutingIndexManager(node_count, num_vehicles, depot_index)\n# Use this form (omit a fourth \u201cend\u201d argument); the depot index will be used as both start and end for every vehicle.",
+   "feasible": 4,
+   "target": "TypeError: Wrong number or type of arguments for overloaded function '\u2026'.",
+   "target_before": 7,
+   "target_after": [
+    0,
+    0
+   ]
+  }
+ ],
+ "mining_tokens": 293365
+}

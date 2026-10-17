@@ -1,0 +1,11 @@
+{
+ "q36_parserintrobust": {
+  "candidates": 16,
+  "best_mining": 8,
+  "test_feasible": 48,
+  "median_gap": 1.2873355543233655,
+  "within5": 44,
+  "gen_tokens": 26039,
+  "picked": "r105"
+ }
+}

@@ -1,0 +1,120 @@
+{
+ "chain": "B",
+ "verified": [
+  "The input always contains a line with the word \u201cVEHICLE\u201d, and the next non\u2011empty line after the header \u201cNUMBER CAPACITY\u201d consists of exactly two integer tokens: the number of available vehicles followed by the vehicle capacity.",
+  "When calling `routing.AddDimension` the third argument (slack max) must be an integer value (e.g., 0), not a float or other type. Ensure any time\u2011related parameters passed to this argument are cast to `int`."
+ ],
+ "unverified": [
+  "After the line that starts with the word \u201cVEHICLE\u201d, the next non\u2011empty line contains exactly two integers: the number of available vehicles followed by the vehicle capacity (the preceding header line \u201cNUMBER CAPACITY\u201d must be ignored).",
+  "The vehicle section consists of a header line (e.g., \"NUMBER CAPACITY\") followed by a single line that contains exactly two integer tokens: the number of available vehicles and the vehicle capacity, separated by whitespace and with no other text.",
+  "The input always contains a line with the literal word \u201cVEHICLE\u201d followed by a line that has exactly two integer tokens \u2013 the number of vehicles and the vehicle capacity \u2013 and the preceding header line \u201cNUMBER CAPACITY\u201d must be ignored when parsing.",
+  "The input always contains a line with the word \u201cVEHICLE\u201d, and the next non\u2011empty line after the header \u201cNUMBER CAPACITY\u201d consists of exactly two integer tokens: the number of available vehicles followed by the vehicle capacity.",
+  "When reading the VEHICLE section, ignore the header line that says \u201cNUMBER CAPACITY\u201d; the following non\u2011empty line contains the two integers (number of vehicles and capacity) to be parsed.",
+  "When using OR\u2011Tools\u2019 routing.AddDimension for time windows, the third parameter (slack_max) must be provided as an integer (e.g., the maximum allowed time horizon), not a float or missing value.",
+  "When adding a time dimension with OR\u2011Tools, the third parameter (slack_max) must be an integer value (commonly 0); passing a non\u2011integer (e.g., a float) causes a TypeError.",
+  "When adding a time dimension with OR\u2011Tools, the third parameter (slack_max) must be an integer (e.g., a large int such as 10**9); passing a float or non\u2011integer value causes a TypeError. Ensure all times and service times used in the callback are integers before registering the dimension.",
+  "When adding a time dimension with OR\u2011Tools, the third argument (slack_max) must be an integer (int64), not a float or other type.",
+  "When calling `routing.AddDimension` the third argument (slack max) must be an integer value (e.g., 0), not a float or other type. Ensure any time\u2011related parameters passed to this argument are cast to `int`."
+ ],
+ "log": [
+  {
+   "round": 0,
+   "sheet": [],
+   "feasible": 0,
+   "reasons": [
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "customers missing or repeated",
+    "re",
+    "re",
+    "too many vehicles",
+    "re",
+    "customers missing or repeated",
+    "re",
+    "customers missing or repeated"
+   ]
+  },
+  {
+   "round": 1,
+   "candidates": [
+    [
+     0,
+     "After the line that starts with the word \u201cVEHICLE\u201d, the next non\u2011empty line contains exactly two integers: the number of available vehicles followed by the vehicle capacity (the preceding header line \u201cNUMBER CAPACITY\u201d must be ignored)."
+    ],
+    [
+     1,
+     "The vehicle section consists of a header line (e.g., \"NUMBER CAPACITY\") followed by a single line that contains exactly two integer tokens: the number of available vehicles and the vehicle capacity, separated by whitespace and with no other text."
+    ]
+   ],
+   "kept": null,
+   "feasible": 0
+  },
+  {
+   "round": 2,
+   "candidates": [
+    [
+     1,
+     "The input always contains a line with the literal word \u201cVEHICLE\u201d followed by a line that has exactly two integer tokens \u2013 the number of vehicles and the vehicle capacity \u2013 and the preceding header line \u201cNUMBER CAPACITY\u201d must be ignored when parsing."
+    ],
+    [
+     3,
+     "The input always contains a line with the word \u201cVEHICLE\u201d, and the next non\u2011empty line after the header \u201cNUMBER CAPACITY\u201d consists of exactly two integer tokens: the number of available vehicles followed by the vehicle capacity."
+    ]
+   ],
+   "kept": "The input always contains a line with the word \u201cVEHICLE\u201d, and the next non\u2011empty line after the header \u201cNUMBER CAPACITY\u201d consists of exactly two integer tokens: the number of available vehicles followed by the vehicle capacity.",
+   "feasible": 3
+  },
+  {
+   "round": 3,
+   "candidates": [
+    [
+     4,
+     "When reading the VEHICLE section, ignore the header line that says \u201cNUMBER CAPACITY\u201d; the following non\u2011empty line contains the two integers (number of vehicles and capacity) to be parsed."
+    ],
+    [
+     0,
+     "When using OR\u2011Tools\u2019 routing.AddDimension for time windows, the third parameter (slack_max) must be provided as an integer (e.g., the maximum allowed time horizon), not a float or missing value."
+    ]
+   ],
+   "kept": null,
+   "feasible": 3
+  },
+  {
+   "round": 4,
+   "candidates": [
+    [
+     3,
+     "When adding a time dimension with OR\u2011Tools, the third parameter (slack_max) must be an integer value (commonly 0); passing a non\u2011integer (e.g., a float) causes a TypeError."
+    ],
+    [
+     2,
+     "When adding a time dimension with OR\u2011Tools, the third parameter (slack_max) must be an integer (e.g., a large int such as 10**9); passing a float or non\u2011integer value causes a TypeError. Ensure all times and service times used in the callback are integers before registering the dimension."
+    ]
+   ],
+   "kept": null,
+   "feasible": 3
+  },
+  {
+   "round": 5,
+   "candidates": [
+    [
+     2,
+     "When adding a time dimension with OR\u2011Tools, the third argument (slack_max) must be an integer (int64), not a float or other type."
+    ],
+    [
+     5,
+     "When calling `routing.AddDimension` the third argument (slack max) must be an integer value (e.g., 0), not a float or other type. Ensure any time\u2011related parameters passed to this argument are cast to `int`."
+    ]
+   ],
+   "kept": "When calling `routing.AddDimension` the third argument (slack max) must be an integer value (e.g., 0), not a float or other type. Ensure any time\u2011related parameters passed to this argument are cast to `int`.",
+   "feasible": 5
+  }
+ ],
+ "mining_tokens": 287869
+}

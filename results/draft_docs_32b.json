@@ -1,0 +1,26 @@
+[
+ {
+  "seed": 1,
+  "probe": "# Sample points\na = (0, 0)\nb = (1, 0)\nc = (0, 1)\nd1 = (0.5, 0.5)  # Center of triangle abc\nd2 = (0.5, 0.6)  # Inside the circumcircle\nd3 = (1, 1)      # Outside the circumcircle\nd4 = (0.5, 0.5)  # On the circumcircle (same as d1)\n\n# Test the in_circle function\nprint(\"in_circle(a, b, c, d1):\", in_circle(a, b, c, d1))\nprint(\"in_circle(a, b, c, d2):\", in_circle(a, b, c, d2))\nprint(\"in_circle(a, b, c, d3):\", in_circle(a, b, c, d3))\nprint(\"in_circle(a, b, c, d4):\", in_circle(a, b, c, d4))\n",
+  "probe_output": "in_circle(a, b, c, d1): 0.5\nin_circle(a, b, c, d2): 0.49\nin_circle(a, b, c, d3): 0\nin_circle(a, b, c, d4): 0.5\n",
+  "doc": "Returns >0 if d is inside the circumcircle of counter-clockwise triangle abc, 0 if on the circumcircle, <0 if outside; assumes a, b, c, d are (x, y) tuples.",
+  "tokens": 357,
+  "mentions_orientation": true
+ },
+ {
+  "seed": 2,
+  "probe": "# Test the in_circle function with various points\nprint(\"in_circle((0,0), (1,0), (0,1), (0,0)):\", in_circle((0,0), (1,0), (0,1), (0,0)))\nprint(\"in_circle((0,0), (1,0), (0,1), (0.5,0.5)):\", in_circle((0,0), (1,0), (0,1), (0.5,0.5)))\nprint(\"in_circle((0,0), (1,0), (0,1), (1,1)):\", in_circle((0,0), (1,0), (0,1), (1,1)))\nprint(\"in_circle((0,0), (1,0), (0,1), (0.25,0.25)):\", in_circle((0,0), (1,0), (0,1), (0.25,0.25)))\nprint(\"in_circle((0,0), (1,0), (0,1), (-1,-1)):\", in_circle((0,0), (1,0), (0,1), (-1,-1)))\nprint(\"in_circle((0,0), (1,0), (0,1), (0.5,0.6)):\", in_circle((0,0), (1,0), (0,1), (0.5,0.6)))\n",
+  "probe_output": "in_circle((0,0), (1,0), (0,1), (0,0)): 0\nin_circle((0,0), (1,0), (0,1), (0.5,0.5)): 0.5\nin_circle((0,0), (1,0), (0,1), (1,1)): 0\nin_circle((0,0), (1,0), (0,1), (0.25,0.25)): 0.375\nin_circle((0,0), (1,0), (0,1), (-1,-1)): -4\nin_circle((0,0), (1,0), (0,1), (0.5,0.6)): 0.49\n",
+  "doc": "Returns >0 if d is inside the circumcircle of counter-clockwise triangle abc, 0 if on the circle, <0 if outside; assumes a, b, c, d are (x, y) tuples.",
+  "tokens": 372,
+  "mentions_orientation": true
+ },
+ {
+  "seed": 3,
+  "probe": "# Test the in_circle function with various points\nprint(in_circle((0, 0), (1, 0), (0, 1), (0, 0)))  # Point on the triangle\nprint(in_circle((0, 0), (1, 0), (0, 1), (0.5, 0.5)))  # Point inside the circumcircle\nprint(in_circle((0, 0), (1, 0), (0, 1), (1, 1)))  # Point outside the circumcircle\nprint(in_circle((0, 0), (1, 0), (0, 1), (0.5, 0)))  # Point on the circumcircle\nprint(in_circle((0, 0), (1, 0), (0, 1), (-1, 0)))  # Point outside the triangle\nprint(in_circle((0, 0), (1, 0), (0, 1), (0, -1)))  # Point outside the triangle\n",
+  "probe_output": "0\n0.5\n0\n0.25\n-2\n-2\n",
+  "doc": "Returns > 0 if the fourth point is inside the circumcircle of triangle abc (counter-clockwise), 0 if on the circumcircle, < 0 if outside; requires abc to be counter-clockwise.",
+  "tokens": 273,
+  "mentions_orientation": true
+ }
+]

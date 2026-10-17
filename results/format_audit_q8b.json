@@ -1,0 +1,398 @@
+[
+{
+"format": "geo:hull",
+"seed": 1,
+"verdict": "pass",
+"out": "{\"n\": 10, \"points\": [[-52, -38], [-58, 26], [-16, 30], [48, 4], [22, -12], [32, -22], [-50, -20], [-58, -42], [42, -50], [30, -30]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    n = int(input_lines[0])\n    points = []\n    for line in input_lines[1:n+1]:\n        x, y = map(int, line.strip().split())\n        points.append((x, y))\n    \n    # Output the parsed data as a JSON object\n    output = {\n        \"n\": n,\n        \"points\": points\n    }\n    print(json.dumps(output))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:hull",
+"seed": 2,
+"verdict": "pass",
+"out": "{\n  \"n\": 10,\n  \"points\": [\n    [\n      -52,\n      -38\n    ],\n    [\n      -58,\n      26\n    ],\n    [\n      -16,\n      30\n    ],\n    [\n      48,\n      4\n    ],\n    [\n      22,\n      -12\n    ],\n    [\n      32,\n      -22\n    ],\n    [\n      -50,\n      -20\n    ],\n    [\n      -58,\n      -42\n    ],\n    [\n      42,\n      -50\n    ],\n    [\n      30,\n      -30\n    ]\n  ]\n}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    n = int(input_lines[0])\n    points = []\n    for line in input_lines[1:n+1]:\n        x, y = map(int, line.strip().split())\n        points.append((x, y))\n    \n    # Output the parsed data as a JSON object\n    print(json.dumps({\n        \"n\": n,\n        \"points\": points\n    }, indent=2))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:hull",
+"seed": 3,
+"verdict": "pass",
+"out": "{\"n\": 10, \"points\": [[-52, -38], [-58, 26], [-16, 30], [48, 4], [22, -12], [32, -22], [-50, -20], [-58, -42], [42, -50], [30, -30]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    n = int(input_lines[0])\n    points = []\n    for line in input_lines[1:n+1]:\n        x, y = map(int, line.split())\n        points.append((x, y))\n    \n    # Output the parsed data as a JSON object\n    print(json.dumps({\n        \"n\": n,\n        \"points\": points\n    }))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:area2",
+"seed": 1,
+"verdict": "pass",
+"out": "{\"n\": 8, \"vertices\": [[-30, -12], [-32, -18], [-32, -40], [-14, -26], [-10, -20], [-4, -16], [4, -26], [8, -20]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    n = int(input_lines[0])\n    vertices = []\n    for line in input_lines[1:n+1]:\n        x, y = map(int, line.strip().split())\n        vertices.append((x, y))\n    \n    # Output the parsed data as a JSON object\n    print(json.dumps({\n        \"n\": n,\n        \"vertices\": vertices\n    }))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:area2",
+"seed": 2,
+"verdict": "pass",
+"out": "{\"n\": 8, \"vertices\": [[-30, -12], [-32, -18], [-32, -40], [-14, -26], [-10, -20], [-4, -16], [4, -26], [8, -20]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    n = int(input_lines[0])\n    vertices = []\n    for line in input_lines[1:n+1]:\n        x, y = map(int, line.split())\n        vertices.append((x, y))\n    \n    result = {\n        \"n\": n,\n        \"vertices\": vertices\n    }\n    \n    print(json.dumps(result))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:area2",
+"seed": 3,
+"verdict": "pass",
+"out": "{\"n\": 8, \"vertices\": [[-30, -12], [-32, -18], [-32, -40], [-14, -26], [-10, -20], [-4, -16], [4, -26], [8, -20]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    n = int(input_lines[0])\n    vertices = []\n    for line in input_lines[1:n+1]:\n        x, y = map(int, line.split())\n        vertices.append((x, y))\n    \n    result = {\n        \"n\": n,\n        \"vertices\": vertices\n    }\n    \n    print(json.dumps(result))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:pip",
+"seed": 1,
+"verdict": "pass",
+"out": "{\"n\": 8, \"vertices\": [[-32, -4], [-34, -10], [-22, -28], [-30, -40], [-10, -28], [2, -16], [18, -32], [24, -32]], \"query_point\": [21, -5]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = [line.strip() for line in sys.stdin if line.strip()]\n    n = int(input_lines[0])\n    vertices = []\n    for i in range(1, n + 1):\n        x, y = map(int, input_lines[i].split())\n        vertices.append((x, y))\n    query_point = tuple(map(int, input_lines[n + 1].split()))\n    \n    result = {\n        \"n\": n,\n        \"vertices\": vertices,\n        \"query_point\": query_point\n    }\n    \n    print(json.dumps(result))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:pip",
+"seed": 2,
+"verdict": "pass",
+"out": "{\"n\": 8, \"vertices\": [[-32, -4], [-34, -10], [-22, -28], [-30, -40], [-10, -28], [2, -16], [18, -32], [24, -32]], \"query_point\": [21, -5]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    n = int(input_lines[0])\n    vertices = []\n    for i in range(1, n + 1):\n        x, y = map(int, input_lines[i].split())\n        vertices.append((x, y))\n    query_point = tuple(map(int, input_lines[n + 1].split()))\n\n    result = {\n        \"n\": n,\n        \"vertices\": vertices,\n        \"query_point\": query_point\n    }\n\n    print(json.dumps(result))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:pip",
+"seed": 3,
+"verdict": "pass",
+"out": "{\"n\": 8, \"vertices\": [[-32, -4], [-34, -10], [-22, -28], [-30, -40], [-10, -28], [2, -16], [18, -32], [24, -32]], \"query_point\": [21, -5]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    n = int(input_lines[0])\n    vertices = []\n    for i in range(1, n + 1):\n        x, y = map(int, input_lines[i].split())\n        vertices.append((x, y))\n    query_point = tuple(map(int, input_lines[n + 1].split()))\n    \n    result = {\n        \"n\": n,\n        \"vertices\": vertices,\n        \"query_point\": query_point\n    }\n    print(json.dumps(result))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:segs",
+"seed": 1,
+"verdict": "pass",
+"out": "{\"m\": 6, \"segments\": [[-36, 28, -2, -8], [-8, 38, -16, 30], [-10, 32, 2, -14], [-16, 0, -26, -8], [-6, -24, 2, 20], [-8, 32, -34, -28]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    m = int(input_lines[0])\n    segments = []\n    for line in input_lines[1:m+1]:\n        x1, y1, x2, y2 = map(int, line.strip().split())\n        segments.append((x1, y1, x2, y2))\n    \n    result = {\n        \"m\": m,\n        \"segments\": segments\n    }\n    \n    print(json.dumps(result))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:segs",
+"seed": 2,
+"verdict": "pass",
+"out": "{\n  \"m\": 6,\n  \"segments\": [\n    [\n      [\n        -36,\n        28\n      ],\n      [\n        -2,\n        -8\n      ]\n    ],\n    [\n      [\n        -8,\n        38\n      ],\n      [\n        -16,\n        30\n      ]\n    ],\n    [\n      [\n        -10,\n        32\n      ],\n      [\n        2,\n        -14\n      ]\n    ],\n    [\n      [\n        -16,\n        0\n      ],\n      [\n        -26,\n        -8\n      ]\n    ],\n    [\n      [\n        -6,\n        -24\n      ],\n      [\n        2,\n        20\n      ]\n    ],\n    [\n      [\n        -8,\n        32\n      ],\n      [\n        -34,\n        -28\n      ]\n    ]\n  ]\n}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    m = int(input_lines[0])\n    segments = []\n    for line in input_lines[1:m+1]:\n        x1, y1, x2, y2 = map(int, line.strip().split())\n        segments.append(((x1, y1), (x2, y2)))\n    \n    result = {\n        \"m\": m,\n        \"segments\": segments\n    }\n    \n    print(json.dumps(result, indent=2))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:segs",
+"seed": 3,
+"verdict": "pass",
+"out": "{\"m\": 6, \"segments\": [[-36, 28, -2, -8], [-8, 38, -16, 30], [-10, 32, 2, -14], [-16, 0, -26, -8], [-6, -24, 2, 20], [-8, 32, -34, -28]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    m = int(input_lines[0])\n    segments = []\n    for line in input_lines[1:m+1]:\n        x1, y1, x2, y2 = map(int, line.strip().split())\n        segments.append((x1, y1, x2, y2))\n    \n    result = {\n        \"m\": m,\n        \"segments\": segments\n    }\n    \n    print(json.dumps(result))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:close",
+"seed": 1,
+"verdict": "pass",
+"out": "{\"n\": 10, \"points\": [[-12, 20], [-52, -12], [56, 52], [40, -16], [36, 26], [-8, -24], [54, -8], [52, -42], [42, 8], [48, 48]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    data = sys.stdin.read().splitlines()\n    n = int(data[0])\n    points = []\n    for line in data[1:n+1]:\n        x, y = map(int, line.strip().split())\n        points.append((x, y))\n    \n    result = {\n        \"n\": n,\n        \"points\": points\n    }\n    \n    print(json.dumps(result))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:close",
+"seed": 2,
+"verdict": "pass",
+"out": "{\"n\": 10, \"points\": [[-12, 20], [-52, -12], [56, 52], [40, -16], [36, 26], [-8, -24], [54, -8], [52, -42], [42, 8], [48, 48]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    n = int(input_lines[0])\n    points = []\n    for line in input_lines[1:n+1]:\n        x, y = map(int, line.strip().split())\n        points.append((x, y))\n    \n    # Prepare the output in the required format\n    output = {\n        \"n\": n,\n        \"points\": points\n    }\n    \n    print(json.dumps(output))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:close",
+"seed": 3,
+"verdict": "pass",
+"out": "{\"n\": 10, \"points\": [[-12, 20], [-52, -12], [56, 52], [40, -16], [36, 26], [-8, -24], [54, -8], [52, -42], [42, 8], [48, 48]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    n = int(input_lines[0])\n    points = []\n    for line in input_lines[1:n+1]:\n        x, y = map(int, line.split())\n        points.append((x, y))\n    \n    # Prepare the output in the required format\n    output = {\n        \"n\": n,\n        \"points\": points\n    }\n    \n    print(json.dumps(output))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:convex",
+"seed": 1,
+"verdict": "pass",
+"out": "{\"n\": 8, \"vertices\": [[-24, 0], [-20, -2], [-32, -12], [-26, -16], [-22, -14], [-18, -22], [10, -24], [18, -32]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    data = sys.stdin.read().splitlines()\n    n = int(data[0])\n    vertices = []\n    for line in data[1:n+1]:\n        x, y = map(int, line.strip().split())\n        vertices.append((x, y))\n    \n    print(json.dumps({\n        \"n\": n,\n        \"vertices\": vertices\n    }))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:convex",
+"seed": 2,
+"verdict": "pass",
+"out": "{\"n\": 8, \"vertices\": [[-24, 0], [-20, -2], [-32, -12], [-26, -16], [-22, -14], [-18, -22], [10, -24], [18, -32]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    n = int(input_lines[0])\n    vertices = []\n    for line in input_lines[1:n+1]:\n        x, y = map(int, line.strip().split())\n        vertices.append((x, y))\n    \n    # Prepare output in the required format\n    output = {\n        \"n\": n,\n        \"vertices\": vertices\n    }\n    \n    print(json.dumps(output))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:convex",
+"seed": 3,
+"verdict": "pass",
+"out": "{\"n\": 8, \"vertices\": [[-24, 0], [-20, -2], [-32, -12], [-26, -16], [-22, -14], [-18, -22], [10, -24], [18, -32]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    n = int(input_lines[0])\n    vertices = []\n    for line in input_lines[1:n+1]:\n        x, y = map(int, line.strip().split())\n        vertices.append((x, y))\n    \n    # Prepare the output in the required format\n    output = {\n        \"n\": n,\n        \"vertices\": vertices\n    }\n    \n    print(json.dumps(output))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:tri",
+"seed": 1,
+"verdict": "omitted_counts",
+"out": "{\"x1\": -14, \"y1\": 38, \"x2\": 14, \"y2\": 34, \"x3\": 2, \"y3\": -40, \"points\": [[15, -17], [-5, 9], [-3, -17], [-9, 23], [15, -7], [-13, 39], [1, 33], [-11, -15], [9, -13], [15, -11]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    # Read the first line for triangle vertices\n    triangle_line = sys.stdin.readline()\n    x1, y1, x2, y2, x3, y3 = map(int, triangle_line.strip().split())\n    \n    # Read the number of points\n    n = int(sys.stdin.readline())\n    \n    # Read the points\n    points = []\n    for _ in range(n):\n        x, y = map(int, sys.stdin.readline().strip().split())\n        points.append((x, y))\n    \n    # Prepare the output\n    output = {\n        \"x1\": x1,\n        \"y1\": y1,\n        \"x2\": x2,\n        \"y2\": y2,\n        \"x3\": x3,\n        \"y3\": y3,\n        \"points\": points\n    }\n    \n    # Print the JSON object\n    print(json.dumps(output))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:tri",
+"seed": 2,
+"verdict": "pass",
+"out": "{\n  \"triangle\": [\n    -14,\n    38,\n    14,\n    34,\n    2,\n    -40\n  ],\n  \"n\": 10,\n  \"points\": [\n    [\n      15,\n      -17\n    ],\n    [\n      -5,\n      9\n    ],\n    [\n      -3,\n      -17\n    ],\n    [\n      -9,\n      23\n    ],\n    [\n      15,\n      -7\n    ],\n    [\n      -13,\n      39\n    ],\n    [\n      1,\n      33\n    ],\n    [\n      -11,\n      -15\n    ],\n    [\n      9,\n      -13\n    ],\n    [\n      15,\n      -11\n    ]\n  ]\n}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    triangle = list(map(int, input_lines[0].split()))\n    n = int(input_lines[1])\n    points = [tuple(map(int, input_lines[i+2].split())) for i in range(n)]\n\n    result = {\n        \"triangle\": triangle,\n        \"n\": n,\n        \"points\": points\n    }\n\n    print(json.dumps(result, indent=2))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:tri",
+"seed": 3,
+"verdict": "pass",
+"out": "{\"x1\": -14, \"y1\": 38, \"x2\": 14, \"y2\": 34, \"x3\": 2, \"y3\": -40, \"n\": 10, \"points\": [[15, -17], [-5, 9], [-3, -17], [-9, 23], [15, -7], [-13, 39], [1, 33], [-11, -15], [9, -13], [15, -11]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    # Read the first line for triangle vertices\n    triangle_line = sys.stdin.readline().strip()\n    x1, y1, x2, y2, x3, y3 = map(int, triangle_line.split())\n    \n    # Read the number of points\n    n = int(sys.stdin.readline())\n    \n    # Read the points\n    points = []\n    for _ in range(n):\n        x, y = map(int, sys.stdin.readline().split())\n        points.append((x, y))\n    \n    # Prepare the output in the required format\n    output = {\n        \"x1\": x1,\n        \"y1\": y1,\n        \"x2\": x2,\n        \"y2\": y2,\n        \"x3\": x3,\n        \"y3\": y3,\n        \"n\": n,\n        \"points\": points\n    }\n    \n    # Print the output as JSON\n    print(json.dumps(output))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:overlap",
+"seed": 1,
+"verdict": "pass",
+"out": "{\"n\": 6, \"polygon_a\": [[-10, -26], [2, -18], [22, 2], [14, 26], [-20, 10], [-28, -2]], \"m\": 5, \"polygon_b\": [[74, 62], [76, 78], [72, 80], [42, 66], [70, 38]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    idx = 0\n\n    n = int(input_lines[idx])\n    idx += 1\n\n    polygon_a = []\n    for _ in range(n):\n        x, y = map(int, input_lines[idx].split())\n        polygon_a.append((x, y))\n        idx += 1\n\n    m = int(input_lines[idx])\n    idx += 1\n\n    polygon_b = []\n    for _ in range(m):\n        x, y = map(int, input_lines[idx].split())\n        polygon_b.append((x, y))\n        idx += 1\n\n    result = {\n        \"n\": n,\n        \"polygon_a\": polygon_a,\n        \"m\": m,\n        \"polygon_b\": polygon_b\n    }\n\n    print(json.dumps(result))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:overlap",
+"seed": 2,
+"verdict": "pass",
+"out": "{\"n\": 6, \"polygon_a\": [[-10, -26], [2, -18], [22, 2], [14, 26], [-20, 10], [-28, -2]], \"m\": 5, \"polygon_b\": [[74, 62], [76, 78], [72, 80], [42, 66], [70, 38]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = [line.strip() for line in sys.stdin if line.strip()]\n    ptr = 0\n\n    n = int(input_lines[ptr])\n    ptr += 1\n    polygon_a = []\n    for _ in range(n):\n        x, y = map(int, input_lines[ptr].split())\n        polygon_a.append((x, y))\n        ptr += 1\n\n    m = int(input_lines[ptr])\n    ptr += 1\n    polygon_b = []\n    for _ in range(m):\n        x, y = map(int, input_lines[ptr].split())\n        polygon_b.append((x, y))\n        ptr += 1\n\n    output = {\n        \"n\": n,\n        \"polygon_a\": polygon_a,\n        \"m\": m,\n        \"polygon_b\": polygon_b\n    }\n\n    print(json.dumps(output))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:overlap",
+"seed": 3,
+"verdict": "pass",
+"out": "{\"n\": 6, \"A\": [{\"x\": -10, \"y\": -26}, {\"x\": 2, \"y\": -18}, {\"x\": 22, \"y\": 2}, {\"x\": 14, \"y\": 26}, {\"x\": -20, \"y\": 10}, {\"x\": -28, \"y\": -2}], \"m\": 5, \"B\": [{\"x\": 74, \"y\": 62}, {\"x\": 76, \"y\": 78}, {\"x\": 72, \"y\": 80}, {\"x\": 42, \"y\": 66}, {\"x\": 70, \"y\": 38}]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    data = {}\n    line = sys.stdin.readline()\n    n = int(line.strip())\n    data['n'] = n\n    data['A'] = []\n    for _ in range(n):\n        x, y = map(int, sys.stdin.readline().strip().split())\n        data['A'].append({'x': x, 'y': y})\n    \n    line = sys.stdin.readline()\n    m = int(line.strip())\n    data['m'] = m\n    data['B'] = []\n    for _ in range(m):\n        x, y = map(int, sys.stdin.readline().strip().split())\n        data['B'].append({'x': x, 'y': y})\n    \n    print(json.dumps(data))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:lattice",
+"seed": 1,
+"verdict": "pass",
+"out": "{\"n\": 8, \"vertices\": [[-38, 0], [-32, -8], [-34, -10], [-16, -22], [-4, -12], [6, -30], [20, -28], [26, -18]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    n = int(input_lines[0])\n    vertices = []\n    for line in input_lines[1:n+1]:\n        x, y = map(int, line.strip().split())\n        vertices.append((x, y))\n    \n    result = {\n        \"n\": n,\n        \"vertices\": vertices\n    }\n    \n    print(json.dumps(result))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:lattice",
+"seed": 2,
+"verdict": "pass",
+"out": "{\"n\": 8, \"vertices\": [[-38, 0], [-32, -8], [-34, -10], [-16, -22], [-4, -12], [6, -30], [20, -28], [26, -18]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    n = int(input_lines[0])\n    vertices = []\n    for line in input_lines[1:n+1]:\n        x, y = map(int, line.strip().split())\n        vertices.append((x, y))\n    \n    result = {\n        \"n\": n,\n        \"vertices\": vertices\n    }\n    \n    print(json.dumps(result))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:lattice",
+"seed": 3,
+"verdict": "pass",
+"out": "{\"n\": 8, \"vertices\": [[-38, 0], [-32, -8], [-34, -10], [-16, -22], [-4, -12], [6, -30], [20, -28], [26, -18]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    n = int(input_lines[0])\n    vertices = []\n    for line in input_lines[1:n+1]:\n        x, y = map(int, line.strip().split())\n        vertices.append((x, y))\n    \n    result = {\n        \"n\": n,\n        \"vertices\": vertices\n    }\n    \n    print(json.dumps(result))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:rectunion",
+"seed": 1,
+"verdict": "pass",
+"out": "{\"m\": 5, \"rectangles\": [[-13, -21, 8, -6], [16, 27, 29, 32], [22, -16, 36, -7], [26, -27, 39, -2], [3, 15, 13, 39]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    m = int(input_lines[0])\n    rectangles = []\n    for line in input_lines[1:m+1]:\n        x1, y1, x2, y2 = map(int, line.strip().split())\n        # Ensure x1 < x2 and y1 < y2 for consistent rectangle representation\n        x_min = min(x1, x2)\n        x_max = max(x1, x2)\n        y_min = min(y1, y2)\n        y_max = max(y1, y2)\n        rectangles.append((x_min, y_min, x_max, y_max))\n    \n    # Prepare the output in the required JSON format\n    output = {\n        \"m\": m,\n        \"rectangles\": rectangles\n    }\n    \n    print(json.dumps(output))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:rectunion",
+"seed": 2,
+"verdict": "pass",
+"out": "{\"m\": 5, \"rectangles\": [[-13, -21, 8, -6], [16, 27, 29, 32], [22, -16, 36, -7], [26, -27, 39, -2], [3, 15, 13, 39]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    m = int(sys.stdin.readline())\n    rectangles = []\n    for _ in range(m):\n        x1, y1, x2, y2 = map(int, sys.stdin.readline().split())\n        # Ensure x1 < x2 and y1 < y2 for consistent rectangle representation\n        x_min, x_max = sorted([x1, x2])\n        y_min, y_max = sorted([y1, y2])\n        rectangles.append((x_min, y_min, x_max, y_max))\n    \n    # Prepare output in the required format\n    output = {\n        \"m\": m,\n        \"rectangles\": rectangles\n    }\n    \n    print(json.dumps(output))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:rectunion",
+"seed": 3,
+"verdict": "pass",
+"out": "{\"m\": 5, \"rectangles\": [[-13, -21, 8, -6], [16, 27, 29, 32], [22, -16, 36, -7], [26, -27, 39, -2], [3, 15, 13, 39]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    m = int(sys.stdin.readline())\n    rectangles = []\n    for _ in range(m):\n        x1, y1, x2, y2 = map(int, sys.stdin.readline().split())\n        # Ensure x1 < x2 and y1 < y2 for consistent rectangle representation\n        x_min = min(x1, x2)\n        x_max = max(x1, x2)\n        y_min = min(y1, y2)\n        y_max = max(y1, y2)\n        rectangles.append((x_min, y_min, x_max, y_max))\n    \n    # Prepare output in the required format\n    output = {\n        \"m\": m,\n        \"rectangles\": rectangles\n    }\n    \n    print(json.dumps(output))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:clip",
+"seed": 1,
+"verdict": "pass",
+"out": "{\"n\": 5, \"polygonA\": [[6, -18], [18, -10], [-26, 20], [-26, -22], [-8, -24]], \"m\": 4, \"polygonB\": [[18, -10], [-18, 36], [-14, -4], [0, -16]]}\n\n#CODE\nimport sys\nimport json\n\ndef read_polygon(input_lines):\n    polygon = []\n    for line in input_lines:\n        if line.strip():\n            x, y = map(int, line.strip().split())\n            polygon.append((x, y))\n    return polygon\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    n = int(input_lines[0])\n    a_vertices = input_lines[1:n+1]\n    m = int(input_lines[n+1])\n    b_vertices = input_lines[n+2:n+2+m]\n    \n    polygon_a = read_polygon(a_vertices)\n    polygon_b = read_polygon(b_vertices)\n    \n    result = {\n        \"n\": n,\n        \"polygonA\": polygon_a,\n        \"m\": m,\n        \"polygonB\": polygon_b\n    }\n    \n    print(json.dumps(result))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:clip",
+"seed": 2,
+"verdict": "pass",
+"out": "{\"n\": 5, \"polygon_a\": [[6, -18], [18, -10], [-26, 20], [-26, -22], [-8, -24]], \"m\": 4, \"polygon_b\": [[18, -10], [-18, 36], [-14, -4], [0, -16]]}\n\n#CODE\nimport sys\nimport json\n\ndef read_polygon():\n    n = int(sys.stdin.readline())\n    polygon = []\n    for _ in range(n):\n        x, y = map(int, sys.stdin.readline().split())\n        polygon.append((x, y))\n    return polygon\n\ndef main():\n    polygon_a = read_polygon()\n    polygon_b = read_polygon()\n\n    result = {\n        \"n\": len(polygon_a),\n        \"polygon_a\": polygon_a,\n        \"m\": len(polygon_b),\n        \"polygon_b\": polygon_b\n    }\n\n    print(json.dumps(result))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:clip",
+"seed": 3,
+"verdict": "pass",
+"out": "{\"n\": 5, \"polygon_a\": [[6, -18], [18, -10], [-26, 20], [-26, -22], [-8, -24]], \"m\": 4, \"polygon_b\": [[18, -10], [-18, 36], [-14, -4], [0, -16]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    idx = 0\n\n    # Read polygon A\n    n = int(input_lines[idx])\n    idx += 1\n    polygon_a = []\n    for _ in range(n):\n        x, y = map(int, input_lines[idx].split())\n        polygon_a.append((x, y))\n        idx += 1\n\n    # Read polygon B\n    m = int(input_lines[idx])\n    idx += 1\n    polygon_b = []\n    for _ in range(m):\n        x, y = map(int, input_lines[idx].split())\n        polygon_b.append((x, y))\n        idx += 1\n\n    # Prepare output\n    output = {\n        \"n\": n,\n        \"polygon_a\": polygon_a,\n        \"m\": m,\n        \"polygon_b\": polygon_b\n    }\n\n    print(json.dumps(output))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:delaunay",
+"seed": 1,
+"verdict": "pass",
+"out": "{\"n\": 8, \"points\": [[-12, 26], [14, 8], [12, 0], [6, -18], [-16, -22], [-4, -4], [-10, -24], [-12, -8]], \"m\": 8, \"triangles\": [[1, 5, 2], [7, 0, 4], [7, 3, 2], [4, 6, 7], [0, 7, 5], [0, 5, 1], [7, 6, 3], [7, 2, 5]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input = sys.stdin.read().splitlines()\n    n = int(input[0])\n    points = []\n    for i in range(1, n + 1):\n        x, y = map(int, input[i].split())\n        points.append((x, y))\n    \n    m = int(input[n + 1])\n    triangles = []\n    for i in range(n + 2, n + 2 + m):\n        a, b, c = map(int, input[i].split())\n        triangles.append((a, b, c))\n    \n    # Prepare output\n    output = {\n        \"n\": n,\n        \"points\": points,\n        \"m\": m,\n        \"triangles\": triangles\n    }\n    \n    print(json.dumps(output))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:delaunay",
+"seed": 2,
+"verdict": "pass",
+"out": "{\"n\": 8, \"points\": [[-12, 26], [14, 8], [12, 0], [6, -18], [-16, -22], [-4, -4], [-10, -24], [-12, -8]], \"m\": 8, \"triangles\": [[1, 5, 2], [7, 0, 4], [7, 3, 2], [4, 6, 7], [0, 7, 5], [0, 5, 1], [7, 6, 3], [7, 2, 5]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = [line.strip() for line in sys.stdin if line.strip()]\n    idx = 0\n\n    n = int(input_lines[idx])\n    idx += 1\n\n    points = []\n    for _ in range(n):\n        x, y = map(int, input_lines[idx].split())\n        points.append((x, y))\n        idx += 1\n\n    m = int(input_lines[idx])\n    idx += 1\n\n    triangles = []\n    for _ in range(m):\n        i, j, k = map(int, input_lines[idx].split())\n        triangles.append((i, j, k))\n        idx += 1\n\n    # Prepare output\n    output = {\n        \"n\": n,\n        \"points\": points,\n        \"m\": m,\n        \"triangles\": triangles\n    }\n\n    print(json.dumps(output))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:delaunay",
+"seed": 3,
+"verdict": "pass",
+"out": "{\"n\": 8, \"points\": [[-12, 26], [14, 8], [12, 0], [6, -18], [-16, -22], [-4, -4], [-10, -24], [-12, -8]], \"m\": 8, \"triangles\": [[1, 5, 2], [7, 0, 4], [7, 3, 2], [4, 6, 7], [0, 7, 5], [0, 5, 1], [7, 6, 3], [7, 2, 5]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input = sys.stdin.read().splitlines()\n    n = int(input[0])\n    points = []\n    for i in range(1, n + 1):\n        x, y = map(int, input[i].split())\n        points.append((x, y))\n    \n    m = int(input[n + 1])\n    triangles = []\n    for i in range(n + 2, n + 2 + m):\n        a, b, c = map(int, input[i].split())\n        triangles.append((a, b, c))\n    \n    output = {\n        \"n\": n,\n        \"points\": points,\n        \"m\": m,\n        \"triangles\": triangles\n    }\n    \n    print(json.dumps(output))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:diameter",
+"seed": 1,
+"verdict": "pass",
+"out": "{\"n\": 12, \"points\": [[56, 58], [-54, -6], [16, -10], [58, -22], [60, -22], [12, 54], [-40, -16], [32, 32], [60, 26], [48, -20], [-14, -14], [44, -12]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    n = int(input_lines[0])\n    points = []\n    for line in input_lines[1:n+1]:\n        x, y = map(int, line.split())\n        points.append((x, y))\n    \n    result = {\n        \"n\": n,\n        \"points\": points\n    }\n    \n    print(json.dumps(result))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:diameter",
+"seed": 2,
+"verdict": "pass",
+"out": "{\"n\": 12, \"points\": [[56, 58], [-54, -6], [16, -10], [58, -22], [60, -22], [12, 54], [-40, -16], [32, 32], [60, 26], [48, -20], [-14, -14], [44, -12]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    n = int(input_lines[0])\n    points = []\n    for line in input_lines[1:n+1]:\n        x, y = map(int, line.strip().split())\n        points.append((x, y))\n    \n    result = {\n        \"n\": n,\n        \"points\": points\n    }\n    \n    print(json.dumps(result))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "geo:diameter",
+"seed": 3,
+"verdict": "pass",
+"out": "{\"n\": 12, \"points\": [[56, 58], [-54, -6], [16, -10], [58, -22], [60, -22], [12, 54], [-40, -16], [32, 32], [60, 26], [48, -20], [-14, -14], [44, -12]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    n = int(input_lines[0])\n    points = []\n    for line in input_lines[1:n+1]:\n        x, y = map(int, line.strip().split())\n        points.append((x, y))\n    \n    result = {\n        \"n\": n,\n        \"points\": points\n    }\n    \n    print(json.dumps(result))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "co:knapsack",
+"seed": 1,
+"verdict": "pass",
+"out": "{\n  \"n\": 10,\n  \"capacity\": 111,\n  \"items\": [\n    {\n      \"weight\": 47,\n      \"value\": 25\n    },\n    {\n      \"weight\": 45,\n      \"value\": 33\n    },\n    {\n      \"weight\": 10,\n      \"value\": 18\n    },\n    {\n      \"weight\": 6,\n      \"value\": 80\n    },\n    {\n      \"weight\": 41,\n      \"value\": 23\n    },\n    {\n      \"weight\": 12,\n      \"value\": 74\n    },\n    {\n      \"weight\": 37,\n      \"value\": 47\n    },\n    {\n      \"weight\": 58,\n      \"value\": 58\n    },\n    {\n      \"weight\": 19,\n      \"value\": 15\n    },\n    {\n      \"weight\": 58,\n      \"value\": 23\n    }\n  ]\n}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    first_line = input_lines[0].split()\n    n = int(first_line[0])\n    capacity = int(first_line[1])\n    \n    items = []\n    for line in input_lines[1:n+1]:\n        weight, value = map(int, line.split())\n        items.append({\"weight\": weight, \"value\": value})\n    \n    print(json.dumps({\n        \"n\": n,\n        \"capacity\": capacity,\n        \"items\": items\n    }, indent=2))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "co:knapsack",
+"seed": 2,
+"verdict": "pass",
+"out": "{\n  \"n\": 10,\n  \"capacity\": 111,\n  \"items\": [\n    {\n      \"weight\": 47,\n      \"value\": 25\n    },\n    {\n      \"weight\": 45,\n      \"value\": 33\n    },\n    {\n      \"weight\": 10,\n      \"value\": 18\n    },\n    {\n      \"weight\": 6,\n      \"value\": 80\n    },\n    {\n      \"weight\": 41,\n      \"value\": 23\n    },\n    {\n      \"weight\": 12,\n      \"value\": 74\n    },\n    {\n      \"weight\": 37,\n      \"value\": 47\n    },\n    {\n      \"weight\": 58,\n      \"value\": 58\n    },\n    {\n      \"weight\": 19,\n      \"value\": 15\n    },\n    {\n      \"weight\": 58,\n      \"value\": 23\n    }\n  ]\n}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    first_line = input_lines[0].split()\n    n = int(first_line[0])\n    capacity = int(first_line[1])\n    \n    items = []\n    for line in input_lines[1:n+1]:\n        weight, value = map(int, line.split())\n        items.append({\"weight\": weight, \"value\": value})\n    \n    print(json.dumps({\n        \"n\": n,\n        \"capacity\": capacity,\n        \"items\": items\n    }, indent=2))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "co:knapsack",
+"seed": 3,
+"verdict": "pass",
+"out": "{\n  \"n\": 10,\n  \"capacity\": 111,\n  \"items\": [\n    {\n      \"weight\": 47,\n      \"value\": 25\n    },\n    {\n      \"weight\": 45,\n      \"value\": 33\n    },\n    {\n      \"weight\": 10,\n      \"value\": 18\n    },\n    {\n      \"weight\": 6,\n      \"value\": 80\n    },\n    {\n      \"weight\": 41,\n      \"value\": 23\n    },\n    {\n      \"weight\": 12,\n      \"value\": 74\n    },\n    {\n      \"weight\": 37,\n      \"value\": 47\n    },\n    {\n      \"weight\": 58,\n      \"value\": 58\n    },\n    {\n      \"weight\": 19,\n      \"value\": 15\n    },\n    {\n      \"weight\": 58,\n      \"value\": 23\n    }\n  ]\n}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    first_line = input_lines[0].split()\n    n = int(first_line[0])\n    capacity = int(first_line[1])\n    items = []\n    for line in input_lines[1:n+1]:\n        weight, value = map(int, line.split())\n        items.append({\"weight\": weight, \"value\": value})\n    \n    print(json.dumps({\n        \"n\": n,\n        \"capacity\": capacity,\n        \"items\": items\n    }, indent=2))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "co:tsp",
+"seed": 1,
+"verdict": "pass",
+"out": "{\"n\": 8, \"cities\": [{\"x\": 26, \"y\": 62}, {\"x\": 89, \"y\": 37}, {\"x\": 34, \"y\": 32}, {\"x\": 75, \"y\": 20}, {\"x\": 7, \"y\": 71}, {\"x\": 99, \"y\": 17}, {\"x\": 8, \"y\": 99}, {\"x\": 43, \"y\": 71}]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    n = int(input_lines[0])\n    cities = []\n    for line in input_lines[1:n+1]:\n        x, y = map(int, line.strip().split())\n        cities.append((x, y))\n    \n    # Output in the required JSON format\n    print(json.dumps({\n        \"n\": n,\n        \"cities\": [{\"x\": x, \"y\": y} for x, y in cities]\n    }))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "co:tsp",
+"seed": 2,
+"verdict": "pass",
+"out": "{\"n\": 8, \"cities\": [{\"x\": 26, \"y\": 62}, {\"x\": 89, \"y\": 37}, {\"x\": 34, \"y\": 32}, {\"x\": 75, \"y\": 20}, {\"x\": 7, \"y\": 71}, {\"x\": 99, \"y\": 17}, {\"x\": 8, \"y\": 99}, {\"x\": 43, \"y\": 71}]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    n = int(input_lines[0])\n    cities = []\n    for line in input_lines[1:n+1]:\n        x, y = map(int, line.split())\n        cities.append((x, y))\n    \n    # Prepare output in the required format\n    output = {\n        \"n\": n,\n        \"cities\": [{\"x\": x, \"y\": y} for x, y in cities]\n    }\n    \n    print(json.dumps(output))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "co:tsp",
+"seed": 3,
+"verdict": "pass",
+"out": "{\"n\": 8, \"cities\": [{\"x\": 26, \"y\": 62}, {\"x\": 89, \"y\": 37}, {\"x\": 34, \"y\": 32}, {\"x\": 75, \"y\": 20}, {\"x\": 7, \"y\": 71}, {\"x\": 99, \"y\": 17}, {\"x\": 8, \"y\": 99}, {\"x\": 43, \"y\": 71}]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    n = int(input_lines[0])\n    cities = []\n    for line in input_lines[1:n+1]:\n        x, y = map(int, line.split())\n        cities.append((x, y))\n    \n    # Prepare output in the required format\n    output = {\n        \"n\": n,\n        \"cities\": [{\"x\": x, \"y\": y} for x, y in cities]\n    }\n    \n    print(json.dumps(output))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "co:color",
+"seed": 1,
+"verdict": "pass",
+"out": "{\n  \"n\": 10,\n  \"m\": 15,\n  \"edges\": [\n    [\n      0,\n      2\n    ],\n    [\n      0,\n      6\n    ],\n    [\n      0,\n      8\n    ],\n    [\n      1,\n      3\n    ],\n    [\n      1,\n      5\n    ],\n    [\n      1,\n      9\n    ],\n    [\n      2,\n      4\n    ],\n    [\n      2,\n      8\n    ],\n    [\n      3,\n      4\n    ],\n    [\n      3,\n      8\n    ],\n    [\n      4,\n      5\n    ],\n    [\n      5,\n      6\n    ],\n    [\n      5,\n      8\n    ],\n    [\n      6,\n      7\n    ],\n    [\n      7,\n      9\n    ]\n  ]\n}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    first_line = input_lines[0].split()\n    n, m = int(first_line[0]), int(first_line[1])\n    edges = []\n    for line in input_lines[1:m+1]:\n        a, b = map(int, line.split())\n        edges.append([a, b])\n    \n    result = {\n        \"n\": n,\n        \"m\": m,\n        \"edges\": edges\n    }\n    \n    print(json.dumps(result, indent=2))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "co:color",
+"seed": 2,
+"verdict": "pass",
+"out": "{\n  \"n\": 10,\n  \"m\": 15,\n  \"edges\": [\n    [\n      0,\n      2\n    ],\n    [\n      0,\n      6\n    ],\n    [\n      0,\n      8\n    ],\n    [\n      1,\n      3\n    ],\n    [\n      1,\n      5\n    ],\n    [\n      1,\n      9\n    ],\n    [\n      2,\n      4\n    ],\n    [\n      2,\n      8\n    ],\n    [\n      3,\n      4\n    ],\n    [\n      3,\n      8\n    ],\n    [\n      4,\n      5\n    ],\n    [\n      5,\n      6\n    ],\n    [\n      5,\n      8\n    ],\n    [\n      6,\n      7\n    ],\n    [\n      7,\n      9\n    ]\n  ]\n}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    first_line = input_lines[0].split()\n    n, m = int(first_line[0]), int(first_line[1])\n    edges = []\n    for line in input_lines[1:m+1]:\n        a, b = map(int, line.split())\n        edges.append((a, b))\n    \n    print(json.dumps({\n        \"n\": n,\n        \"m\": m,\n        \"edges\": edges\n    }, indent=2))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "co:color",
+"seed": 3,
+"verdict": "pass",
+"out": "{\n  \"n\": 10,\n  \"m\": 15,\n  \"edges\": [\n    [\n      0,\n      2\n    ],\n    [\n      0,\n      6\n    ],\n    [\n      0,\n      8\n    ],\n    [\n      1,\n      3\n    ],\n    [\n      1,\n      5\n    ],\n    [\n      1,\n      9\n    ],\n    [\n      2,\n      4\n    ],\n    [\n      2,\n      8\n    ],\n    [\n      3,\n      4\n    ],\n    [\n      3,\n      8\n    ],\n    [\n      4,\n      5\n    ],\n    [\n      5,\n      6\n    ],\n    [\n      5,\n      8\n    ],\n    [\n      6,\n      7\n    ],\n    [\n      7,\n      9\n    ]\n  ]\n}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    first_line = input_lines[0].split()\n    n, m = int(first_line[0]), int(first_line[1])\n    edges = []\n    for line in input_lines[1:m+1]:\n        a, b = map(int, line.split())\n        edges.append((a, b))\n    \n    print(json.dumps({\n        \"n\": n,\n        \"m\": m,\n        \"edges\": edges\n    }, indent=2))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "co:sched",
+"seed": 1,
+"verdict": "pass",
+"out": "{\"n\": 10, \"m\": 3, \"processing_times\": [24, 39, 25, 6, 8, 10, 20, 23, 48, 25]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    # Read input from stdin\n    input_lines = sys.stdin.read().splitlines()\n    \n    # Parse the first line for n and m\n    n, m = map(int, input_lines[0].split())\n    \n    # Parse the processing times from the second line\n    processing_times = list(map(int, input_lines[1].split()))\n    \n    # Create the output JSON object\n    output = {\n        \"n\": n,\n        \"m\": m,\n        \"processing_times\": processing_times\n    }\n    \n    # Print the JSON object\n    print(json.dumps(output))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "co:sched",
+"seed": 2,
+"verdict": "pass",
+"out": "{\"n\": 10, \"m\": 3, \"processing_times\": [24, 39, 25, 6, 8, 10, 20, 23, 48, 25]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    # Read input from stdin\n    input_lines = sys.stdin.read().splitlines()\n    \n    # Parse the first line for n and m\n    n, m = map(int, input_lines[0].split())\n    \n    # Parse the processing times\n    processing_times = list(map(int, input_lines[1].split()))\n    \n    # Create the JSON output\n    result = {\n        \"n\": n,\n        \"m\": m,\n        \"processing_times\": processing_times\n    }\n    \n    # Print the JSON object\n    print(json.dumps(result))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "co:sched",
+"seed": 3,
+"verdict": "pass",
+"out": "{\"n\": 10, \"m\": 3, \"processing_times\": [24, 39, 25, 6, 8, 10, 20, 23, 48, 25]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    # Read input from stdin\n    input_lines = sys.stdin.read().splitlines()\n    \n    # Parse the first line for n and m\n    n, m = map(int, input_lines[0].split())\n    \n    # Parse the processing times from the second line\n    processing_times = list(map(int, input_lines[1].split()))\n    \n    # Create the JSON output\n    result = {\n        \"n\": n,\n        \"m\": m,\n        \"processing_times\": processing_times\n    }\n    \n    # Print the JSON object\n    print(json.dumps(result))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "co:binpack",
+"seed": 1,
+"verdict": "pass",
+"out": "{\"n\": 10, \"capacity\": 100, \"item_sizes\": [39, 28, 20, 59, 29, 10, 50, 27, 28, 28]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    n_capacity = input_lines[0].split()\n    n = int(n_capacity[0])\n    capacity = int(n_capacity[1])\n    item_sizes = list(map(int, input_lines[1].split()))\n    \n    # Prepare the output in the required format\n    output = {\n        \"n\": n,\n        \"capacity\": capacity,\n        \"item_sizes\": item_sizes\n    }\n    \n    print(json.dumps(output))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "co:binpack",
+"seed": 2,
+"verdict": "pass",
+"out": "{\"n\": 10, \"capacity\": 100, \"item_sizes\": [39, 28, 20, 59, 29, 10, 50, 27, 28, 28]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    # Read input from stdin\n    input_lines = sys.stdin.read().splitlines()\n    \n    # Parse the first line for n and capacity\n    n, capacity = map(int, input_lines[0].split())\n    \n    # Parse the item sizes from the second line\n    item_sizes = list(map(int, input_lines[1].split()))\n    \n    # Prepare the output in the required JSON format\n    output = {\n        \"n\": n,\n        \"capacity\": capacity,\n        \"item_sizes\": item_sizes\n    }\n    \n    # Print the JSON object\n    print(json.dumps(output))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "co:binpack",
+"seed": 3,
+"verdict": "pass",
+"out": "{\"n\": 10, \"capacity\": 100, \"item_sizes\": [39, 28, 20, 59, 29, 10, 50, 27, 28, 28]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    n_capacity = input_lines[0].split()\n    n = int(n_capacity[0])\n    capacity = int(n_capacity[1])\n    item_sizes = list(map(int, input_lines[1].split()))\n    \n    # Prepare the output in the required format\n    output = {\n        \"n\": n,\n        \"capacity\": capacity,\n        \"item_sizes\": item_sizes\n    }\n    \n    print(json.dumps(output))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "co:vcover",
+"seed": 1,
+"verdict": "pass",
+"out": "{\n  \"n\": 10,\n  \"m\": 17,\n  \"edges\": [\n    [\n      0,\n      2\n    ],\n    [\n      0,\n      5\n    ],\n    [\n      0,\n      8\n    ],\n    [\n      1,\n      2\n    ],\n    [\n      1,\n      4\n    ],\n    [\n      1,\n      5\n    ],\n    [\n      1,\n      7\n    ],\n    [\n      1,\n      8\n    ],\n    [\n      2,\n      6\n    ],\n    [\n      2,\n      7\n    ],\n    [\n      3,\n      6\n    ],\n    [\n      3,\n      8\n    ],\n    [\n      4,\n      6\n    ],\n    [\n      4,\n      8\n    ],\n    [\n      5,\n      9\n    ],\n    [\n      6,\n      9\n    ],\n    [\n      7,\n      9\n    ]\n  ]\n}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    first_line = input_lines[0].split()\n    n = int(first_line[0])\n    m = int(first_line[1])\n    edges = []\n    for line in input_lines[1:m+1]:\n        a, b = map(int, line.split())\n        edges.append((a, b))\n    \n    result = {\n        \"n\": n,\n        \"m\": m,\n        \"edges\": edges\n    }\n    \n    print(json.dumps(result, indent=2))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "co:vcover",
+"seed": 2,
+"verdict": "pass",
+"out": "{\n  \"n\": 10,\n  \"m\": 17,\n  \"edges\": [\n    [\n      0,\n      2\n    ],\n    [\n      0,\n      5\n    ],\n    [\n      0,\n      8\n    ],\n    [\n      1,\n      2\n    ],\n    [\n      1,\n      4\n    ],\n    [\n      1,\n      5\n    ],\n    [\n      1,\n      7\n    ],\n    [\n      1,\n      8\n    ],\n    [\n      2,\n      6\n    ],\n    [\n      2,\n      7\n    ],\n    [\n      3,\n      6\n    ],\n    [\n      3,\n      8\n    ],\n    [\n      4,\n      6\n    ],\n    [\n      4,\n      8\n    ],\n    [\n      5,\n      9\n    ],\n    [\n      6,\n      9\n    ],\n    [\n      7,\n      9\n    ]\n  ]\n}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    first_line = input_lines[0].split()\n    n, m = int(first_line[0]), int(first_line[1])\n    edges = []\n    for line in input_lines[1:m+1]:\n        a, b = map(int, line.split())\n        edges.append((a, b))\n    \n    # Format the output as per the required JSON structure\n    output = {\n        \"n\": n,\n        \"m\": m,\n        \"edges\": edges\n    }\n    \n    print(json.dumps(output, indent=2))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "co:vcover",
+"seed": 3,
+"verdict": "pass",
+"out": "{\"n\": 10, \"m\": 17, \"edges\": [[0, 2], [0, 5], [0, 8], [1, 2], [1, 4], [1, 5], [1, 7], [1, 8], [2, 6], [2, 7], [3, 6], [3, 8], [4, 6], [4, 8], [5, 9], [6, 9], [7, 9]]}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    first_line = input_lines[0].split()\n    n, m = int(first_line[0]), int(first_line[1])\n    edges = []\n    for line in input_lines[1:m+1]:\n        a, b = map(int, line.split())\n        edges.append((a, b))\n    \n    result = {\n        \"n\": n,\n        \"m\": m,\n        \"edges\": edges\n    }\n    \n    print(json.dumps(result))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "co:cvrp",
+"seed": 1,
+"verdict": "pass",
+"out": "{\n  \"n\": 8,\n  \"capacity\": 17,\n  \"K\": 4,\n  \"depot\": [\n    50,\n    50\n  ],\n  \"customers\": [\n    {\n      \"x\": 16,\n      \"y\": 74,\n      \"demand\": 4\n    },\n    {\n      \"x\": 86,\n      \"y\": 63,\n      \"demand\": 6\n    },\n    {\n      \"x\": 16,\n      \"y\": 62,\n      \"demand\": 1\n    },\n    {\n      \"x\": 81,\n      \"y\": 61,\n      \"demand\": 2\n    },\n    {\n      \"x\": 13,\n      \"y\": 53,\n      \"demand\": 3\n    },\n    {\n      \"x\": 65,\n      \"y\": 28,\n      \"demand\": 7\n    },\n    {\n      \"x\": 9,\n      \"y\": 88,\n      \"demand\": 8\n    },\n    {\n      \"x\": 22,\n      \"y\": 37,\n      \"demand\": 7\n    }\n  ]\n}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    first_line = input_lines[0].split()\n    n = int(first_line[0])\n    capacity = int(first_line[1])\n    K = int(first_line[2])\n\n    depot = tuple(map(int, input_lines[1].split()))\n    customers = []\n    for line in input_lines[2:2+n]:\n        x, y, demand = map(int, line.split())\n        customers.append((x, y, demand))\n\n    result = {\n        \"n\": n,\n        \"capacity\": capacity,\n        \"K\": K,\n        \"depot\": list(depot),\n        \"customers\": []\n    }\n\n    for customer in customers:\n        result[\"customers\"].append({\n            \"x\": customer[0],\n            \"y\": customer[1],\n            \"demand\": customer[2]\n        })\n\n    print(json.dumps(result, indent=2))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "co:cvrp",
+"seed": 2,
+"verdict": "pass",
+"out": "{\n  \"n\": 8,\n  \"capacity\": 17,\n  \"K\": 4,\n  \"depot\": [\n    50,\n    50\n  ],\n  \"customers\": [\n    {\n      \"x\": 16,\n      \"y\": 74,\n      \"demand\": 4\n    },\n    {\n      \"x\": 86,\n      \"y\": 63,\n      \"demand\": 6\n    },\n    {\n      \"x\": 16,\n      \"y\": 62,\n      \"demand\": 1\n    },\n    {\n      \"x\": 81,\n      \"y\": 61,\n      \"demand\": 2\n    },\n    {\n      \"x\": 13,\n      \"y\": 53,\n      \"demand\": 3\n    },\n    {\n      \"x\": 65,\n      \"y\": 28,\n      \"demand\": 7\n    },\n    {\n      \"x\": 9,\n      \"y\": 88,\n      \"demand\": 8\n    },\n    {\n      \"x\": 22,\n      \"y\": 37,\n      \"demand\": 7\n    }\n  ]\n}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    first_line = input_lines[0].split()\n    n = int(first_line[0])\n    capacity = int(first_line[1])\n    K = int(first_line[2])\n\n    depot = tuple(map(int, input_lines[1].split()))\n\n    customers = []\n    for line in input_lines[2:2+n]:\n        x, y, demand = map(int, line.split())\n        customers.append((x, y, demand))\n\n    result = {\n        \"n\": n,\n        \"capacity\": capacity,\n        \"K\": K,\n        \"depot\": list(depot),\n        \"customers\": []\n    }\n\n    for customer in customers:\n        result[\"customers\"].append({\n            \"x\": customer[0],\n            \"y\": customer[1],\n            \"demand\": customer[2]\n        })\n\n    print(json.dumps(result, indent=2))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "co:cvrp",
+"seed": 3,
+"verdict": "pass",
+"out": "{\n  \"n\": 8,\n  \"capacity\": 17,\n  \"K\": 4,\n  \"depot\": {\n    \"x\": 50,\n    \"y\": 50\n  },\n  \"customers\": [\n    {\n      \"x\": 16,\n      \"y\": 74,\n      \"demand\": 4\n    },\n    {\n      \"x\": 86,\n      \"y\": 63,\n      \"demand\": 6\n    },\n    {\n      \"x\": 16,\n      \"y\": 62,\n      \"demand\": 1\n    },\n    {\n      \"x\": 81,\n      \"y\": 61,\n      \"demand\": 2\n    },\n    {\n      \"x\": 13,\n      \"y\": 53,\n      \"demand\": 3\n    },\n    {\n      \"x\": 65,\n      \"y\": 28,\n      \"demand\": 7\n    },\n    {\n      \"x\": 9,\n      \"y\": 88,\n      \"demand\": 8\n    },\n    {\n      \"x\": 22,\n      \"y\": 37,\n      \"demand\": 7\n    }\n  ]\n}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    first_line = input_lines[0].split()\n    n = int(first_line[0])\n    capacity = int(first_line[1])\n    K = int(first_line[2])\n\n    depot_line = input_lines[1].split()\n    depot = {\n        \"x\": int(depot_line[0]),\n        \"y\": int(depot_line[1])\n    }\n\n    customers = []\n    for line in input_lines[2:2+n]:\n        parts = line.split()\n        customers.append({\n            \"x\": int(parts[0]),\n            \"y\": int(parts[1]),\n            \"demand\": int(parts[2])\n        })\n\n    output = {\n        \"n\": n,\n        \"capacity\": capacity,\n        \"K\": K,\n        \"depot\": depot,\n        \"customers\": customers\n    }\n\n    print(json.dumps(output, indent=2))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "co:vrptw",
+"seed": 1,
+"verdict": "fail",
+"out": "{\n  \"n\": 8,\n  \"capacity\": 22,\n  \"service_horizon\": 3,\n  \"depot\": {\n    \"x\": 50,\n    \"y\": 50\n  },\n  \"customers\": [\n    {\n      \"x\": 84,\n      \"y\": 62,\n      \"demand\": 3,\n      \"window_start\": 126,\n      \"window_end\": 209\n    },\n    {\n      \"x\": 46,\n      \"y\": 18,\n      \"demand\": 6,\n      \"window_start\": 41,\n      \"window_end\": 103\n    },\n    {\n      \"x\": 31,\n      \"y\": 88,\n      \"demand\": 6,\n      \"window_start\": 22,\n      \"window_end\": 96\n    },\n    {\n      \"x\": 43,\n      \"y\": 48,\n      \"demand\": 7,\n      \"window_start\": 0,\n      \"window_end\": 38\n    },\n    {\n      \"x\": 85,\n      \"y\": 95,\n      \"demand\": 4,\n      \"window_start\": 97,\n      \"window_end\": 185\n    },\n    {\n      \"x\": 21,\n      \"y\": 43,\n      \"demand\": 8,\n      \"window_start\": 6,\n      \"window_end\": 90\n    },\n    {\n      \"x\": 79,\n      \"y\": 31,\n      \"demand\": 1,\n      \"window_start\": 93,\n      \"window_end\": 144\n    },\n    {\n      \"x\": 47,\n      \"y\": 85,\n      \"demand\": 9,\n      \"window_start\": 7,\n      \"window_end\": 74\n    }\n  ]\n}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    first_line = input_lines[0].split()\n    n = int(first_line[0])\n    capacity = int(first_line[1])\n    service_horizon = int(first_line[2])\n    \n    depot = tuple(map(int, input_lines[1].split()))\n    \n    customers = []\n    for line in input_lines[2:2+n]:\n        parts = line.split()\n        x, y = int(parts[0]), int(parts[1])\n        demand = int(parts[2])\n        window_start = int(parts[3])\n        window_end = int(parts[4])\n        customers.append({\n            'x': x,\n            'y': y,\n            'demand': demand,\n            'window_start': window_start,\n            'window_end': window_end\n        })\n    \n    result = {\n        'n': n,\n        'capacity': capacity,\n        'service_horizon': service_horizon,\n        'depot': {\n            'x': depot[0],\n            'y': depot[1]\n        },\n        'customers': customers\n    }\n    \n    print(json.dumps(result, indent=2))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "co:vrptw",
+"seed": 2,
+"verdict": "fail",
+"out": "{\n  \"n\": 8,\n  \"capacity\": 22,\n  \"service_horizon\": 3,\n  \"depot\": {\n    \"x\": 50,\n    \"y\": 50\n  },\n  \"customers\": [\n    {\n      \"x\": 84,\n      \"y\": 62,\n      \"demand\": 3,\n      \"window_start\": 126,\n      \"window_end\": 209\n    },\n    {\n      \"x\": 46,\n      \"y\": 18,\n      \"demand\": 6,\n      \"window_start\": 41,\n      \"window_end\": 103\n    },\n    {\n      \"x\": 31,\n      \"y\": 88,\n      \"demand\": 6,\n      \"window_start\": 22,\n      \"window_end\": 96\n    },\n    {\n      \"x\": 43,\n      \"y\": 48,\n      \"demand\": 7,\n      \"window_start\": 0,\n      \"window_end\": 38\n    },\n    {\n      \"x\": 85,\n      \"y\": 95,\n      \"demand\": 4,\n      \"window_start\": 97,\n      \"window_end\": 185\n    },\n    {\n      \"x\": 21,\n      \"y\": 43,\n      \"demand\": 8,\n      \"window_start\": 6,\n      \"window_end\": 90\n    },\n    {\n      \"x\": 79,\n      \"y\": 31,\n      \"demand\": 1,\n      \"window_start\": 93,\n      \"window_end\": 144\n    },\n    {\n      \"x\": 47,\n      \"y\": 85,\n      \"demand\": 9,\n      \"window_start\": 7,\n      \"window_end\": 74\n    }\n  ]\n}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = [line.strip() for line in sys.stdin if line.strip()]\n    \n    if not input_lines:\n        print(json.dumps({}))\n        return\n    \n    first_line = input_lines[0].split()\n    n = int(first_line[0])\n    capacity = int(first_line[1])\n    service_horizon = int(first_line[2])\n    \n    depot_line = input_lines[1].split()\n    depot_x = int(depot_line[0])\n    depot_y = int(depot_line[1])\n    \n    customers = []\n    for i in range(2, 2 + n):\n        parts = input_lines[i].split()\n        x = int(parts[0])\n        y = int(parts[1])\n        demand = int(parts[2])\n        window_start = int(parts[3])\n        window_end = int(parts[4])\n        customers.append({\n            \"x\": x,\n            \"y\": y,\n            \"demand\": demand,\n            \"window_start\": window_start,\n            \"window_end\": window_end\n        })\n    \n    output = {\n        \"n\": n,\n        \"capacity\": capacity,\n        \"service_horizon\": service_horizon,\n        \"depot\": {\n            \"x\": depot_x,\n            \"y\": depot_y\n        },\n        \"customers\": customers\n    }\n    \n    print(json.dumps(output, indent=2))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "co:vrptw",
+"seed": 3,
+"verdict": "fail",
+"out": "{\n  \"n\": 8,\n  \"capacity\": 22,\n  \"service_horizon\": 3,\n  \"depot\": [\n    50,\n    50\n  ],\n  \"customers\": [\n    [\n      84,\n      62,\n      3,\n      126,\n      209\n    ],\n    [\n      46,\n      18,\n      6,\n      41,\n      103\n    ],\n    [\n      31,\n      88,\n      6,\n      22,\n      96\n    ],\n    [\n      43,\n      48,\n      7,\n      0,\n      38\n    ],\n    [\n      85,\n      95,\n      4,\n      97,\n      185\n    ],\n    [\n      21,\n      43,\n      8,\n      6,\n      90\n    ],\n    [\n      79,\n      31,\n      1,\n      93,\n      144\n    ],\n    [\n      47,\n      85,\n      9,\n      7,\n      74\n    ]\n  ]\n}\n\n#CODE\nimport sys\nimport json\n\ndef parse_input():\n    input_lines = sys.stdin.read().splitlines()\n    first_line = input_lines[0].split()\n    n = int(first_line[0])\n    capacity = int(first_line[1])\n    service_horizon = int(first_line[2])\n    \n    depot = tuple(map(int, input_lines[1].split()))\n    \n    customers = []\n    for line in input_lines[2:2+n]:\n        parts = line.split()\n        x, y = int(parts[0]), int(parts[1])\n        demand = int(parts[2])\n        window_start = int(parts[3])\n        window_end = int(parts[4])\n        customers.append((x, y, demand, window_start, window_end))\n    \n    return {\n        \"n\": n,\n        \"capacity\": capacity,\n        \"service_horizon\": service_horizon,\n        \"depot\": depot,\n        \"customers\": customers\n    }\n\nif __name__ == \"__main__\":\n    data = parse_input()\n    print(json.dumps(data, indent=2))\n"
+},
+{
+"format": "co:vrptw:service_time",
+"seed": 1,
+"verdict": "pass",
+"out": "{\n  \"n\": 8,\n  \"capacity\": 22,\n  \"K\": 3,\n  \"service_time\": 10,\n  \"horizon\": 314,\n  \"depot\": {\n    \"x\": 50.0,\n    \"y\": 50.0\n  },\n  \"customers\": [\n    {\n      \"x\": 84.0,\n      \"y\": 62.0,\n      \"demand\": 3,\n      \"window_start\": 126,\n      \"window_end\": 209\n    },\n    {\n      \"x\": 46.0,\n      \"y\": 18.0,\n      \"demand\": 6,\n      \"window_start\": 41,\n      \"window_end\": 103\n    },\n    {\n      \"x\": 31.0,\n      \"y\": 88.0,\n      \"demand\": 6,\n      \"window_start\": 22,\n      \"window_end\": 96\n    },\n    {\n      \"x\": 43.0,\n      \"y\": 48.0,\n      \"demand\": 7,\n      \"window_start\": 0,\n      \"window_end\": 38\n    },\n    {\n      \"x\": 85.0,\n      \"y\": 95.0,\n      \"demand\": 4,\n      \"window_start\": 97,\n      \"window_end\": 185\n    },\n    {\n      \"x\": 21.0,\n      \"y\": 43.0,\n      \"demand\": 8,\n      \"window_start\": 6,\n      \"window_end\": 90\n    },\n    {\n      \"x\": 79.0,\n      \"y\": 31.0,\n      \"demand\": 1,\n      \"window_start\": 93,\n      \"window_end\": 144\n    },\n    {\n      \"x\": 47.0,\n      \"y\": 85.0,\n      \"demand\": 9,\n      \"window_start\": 7,\n      \"window_end\": 74\n    }\n  ]\n}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    first_line = input_lines[0].split()\n    n = int(first_line[0])\n    capacity = int(first_line[1])\n    K = int(first_line[2])\n    service_time = int(first_line[3])\n    horizon = int(first_line[4])\n\n    depot_line = input_lines[1].split()\n    depot_x = float(depot_line[0])\n    depot_y = float(depot_line[1])\n\n    customers = []\n    for i in range(n):\n        parts = input_lines[2 + i].split()\n        x = float(parts[0])\n        y = float(parts[1])\n        demand = int(parts[2])\n        window_start = int(parts[3])\n        window_end = int(parts[4])\n        customers.append({\n            'x': x,\n            'y': y,\n            'demand': demand,\n            'window_start': window_start,\n            'window_end': window_end\n        })\n\n    result = {\n        'n': n,\n        'capacity': capacity,\n        'K': K,\n        'service_time': service_time,\n        'horizon': horizon,\n        'depot': {\n            'x': depot_x,\n            'y': depot_y\n        },\n        'customers': customers\n    }\n\n    print(json.dumps(result, indent=2))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "co:vrptw:service_time",
+"seed": 2,
+"verdict": "pass",
+"out": "{\n  \"n\": 8,\n  \"capacity\": 22,\n  \"K\": 3,\n  \"service_time\": 10,\n  \"horizon\": 314,\n  \"depot\": [\n    50,\n    50\n  ],\n  \"customers\": [\n    {\n      \"x\": 84,\n      \"y\": 62,\n      \"demand\": 3,\n      \"window_start\": 126,\n      \"window_end\": 209\n    },\n    {\n      \"x\": 46,\n      \"y\": 18,\n      \"demand\": 6,\n      \"window_start\": 41,\n      \"window_end\": 103\n    },\n    {\n      \"x\": 31,\n      \"y\": 88,\n      \"demand\": 6,\n      \"window_start\": 22,\n      \"window_end\": 96\n    },\n    {\n      \"x\": 43,\n      \"y\": 48,\n      \"demand\": 7,\n      \"window_start\": 0,\n      \"window_end\": 38\n    },\n    {\n      \"x\": 85,\n      \"y\": 95,\n      \"demand\": 4,\n      \"window_start\": 97,\n      \"window_end\": 185\n    },\n    {\n      \"x\": 21,\n      \"y\": 43,\n      \"demand\": 8,\n      \"window_start\": 6,\n      \"window_end\": 90\n    },\n    {\n      \"x\": 79,\n      \"y\": 31,\n      \"demand\": 1,\n      \"window_start\": 93,\n      \"window_end\": 144\n    },\n    {\n      \"x\": 47,\n      \"y\": 85,\n      \"demand\": 9,\n      \"window_start\": 7,\n      \"window_end\": 74\n    }\n  ]\n}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    first_line = input_lines[0].split()\n    n = int(first_line[0])\n    capacity = int(first_line[1])\n    K = int(first_line[2])\n    service_time = int(first_line[3])\n    horizon = int(first_line[4])\n\n    depot = tuple(map(int, input_lines[1].split()))\n    customers = []\n    for line in input_lines[2:2+n]:\n        parts = line.split()\n        x, y = int(parts[0]), int(parts[1])\n        demand = int(parts[2])\n        window_start = int(parts[3])\n        window_end = int(parts[4])\n        customers.append((x, y, demand, window_start, window_end))\n\n    output = {\n        \"n\": n,\n        \"capacity\": capacity,\n        \"K\": K,\n        \"service_time\": service_time,\n        \"horizon\": horizon,\n        \"depot\": list(depot),\n        \"customers\": []\n    }\n\n    for customer in customers:\n        output[\"customers\"].append({\n            \"x\": customer[0],\n            \"y\": customer[1],\n            \"demand\": customer[2],\n            \"window_start\": customer[3],\n            \"window_end\": customer[4]\n        })\n\n    print(json.dumps(output, indent=2))\n\nif __name__ == \"__main__\":\n    main()\n"
+},
+{
+"format": "co:vrptw:service_time",
+"seed": 3,
+"verdict": "pass",
+"out": "{\n  \"n\": 8,\n  \"capacity\": 22,\n  \"K\": 3,\n  \"service_time\": 10,\n  \"horizon\": 314,\n  \"depot\": {\n    \"x\": 50,\n    \"y\": 50\n  },\n  \"customers\": [\n    {\n      \"x\": 84,\n      \"y\": 62,\n      \"demand\": 3,\n      \"window_start\": 126,\n      \"window_end\": 209\n    },\n    {\n      \"x\": 46,\n      \"y\": 18,\n      \"demand\": 6,\n      \"window_start\": 41,\n      \"window_end\": 103\n    },\n    {\n      \"x\": 31,\n      \"y\": 88,\n      \"demand\": 6,\n      \"window_start\": 22,\n      \"window_end\": 96\n    },\n    {\n      \"x\": 43,\n      \"y\": 48,\n      \"demand\": 7,\n      \"window_start\": 0,\n      \"window_end\": 38\n    },\n    {\n      \"x\": 85,\n      \"y\": 95,\n      \"demand\": 4,\n      \"window_start\": 97,\n      \"window_end\": 185\n    },\n    {\n      \"x\": 21,\n      \"y\": 43,\n      \"demand\": 8,\n      \"window_start\": 6,\n      \"window_end\": 90\n    },\n    {\n      \"x\": 79,\n      \"y\": 31,\n      \"demand\": 1,\n      \"window_start\": 93,\n      \"window_end\": 144\n    },\n    {\n      \"x\": 47,\n      \"y\": 85,\n      \"demand\": 9,\n      \"window_start\": 7,\n      \"window_end\": 74\n    }\n  ]\n}\n\n#CODE\nimport sys\nimport json\n\ndef main():\n    input_lines = sys.stdin.read().splitlines()\n    first_line = input_lines[0].split()\n    n = int(first_line[0])\n    capacity = int(first_line[1])\n    K = int(first_line[2])\n    service_time = int(first_line[3])\n    horizon = int(first_line[4])\n\n    depot_line = input_lines[1].split()\n    depot_x = int(depot_line[0])\n    depot_y = int(depot_line[1])\n\n    customers = []\n    for i in range(2, 2 + n):\n        parts = input_lines[i].split()\n        x = int(parts[0])\n        y = int(parts[1])\n        demand = int(parts[2])\n        window_start = int(parts[3])\n        window_end = int(parts[4])\n        customers.append({\n            'x': x,\n            'y': y,\n            'demand': demand,\n            'window_start': window_start,\n            'window_end': window_end\n        })\n\n    output = {\n        'n': n,\n        'capacity': capacity,\n        'K': K,\n        'service_time': service_time,\n        'horizon': horizon,\n        'depot': {\n            'x': depot_x,\n            'y': depot_y\n        },\n        'customers': customers\n    }\n\n    print(json.dumps(output, indent=2))\n\nif __name__ == '__main__':\n    main()\n"
+}
+]

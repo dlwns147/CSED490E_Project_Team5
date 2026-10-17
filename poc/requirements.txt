@@ -1,0 +1,6 @@
+# client / harness (CPU). Serving: vllm==0.10.2 (torch 2.8, transformers 4.57.1) in a separate env. SFT: torch, transformers, peft.
+openai
+numpy
+requests
+ortools==9.15.6755
+matplotlib

@@ -1,0 +1,26 @@
+[
+ {
+  "seed": 1,
+  "probe": "# Example points for testing\nd = (0, 0)\na = (1, 0)\nb = (0, 1)\nc = (-1, 0)\n\nprint(f\"Input: a={a}, b={b}, c={c}, d={d}, Result: {in_circle(a, b, c, d)}\")\n\na = (2, 0)\nb = (0, 2)\nc = (0, -2)\nprint(f\"Input: a={a}, b={b}, c={c}, d={d}, Result: {in_circle(a, b, c, d)}\")\n\na = (1, 1)\nb = (-1, 1)\nc = (0, -1)\nprint(f\"Input: a={a}, b={b}, c={c}, d={d}, Result: {in_circle(a, b, c, d)}\")\n",
+  "probe_output": "Input: a=(1, 0), b=(0, 1), c=(-1, 0), d=(0, 0), Result: 2\nInput: a=(2, 0), b=(0, 2), c=(0, -2), d=(0, 0), Result: 32\nInput: a=(1, 1), b=(-1, 1), c=(0, -1), d=(0, 0), Result: 6\n",
+  "doc": "Determines if point d is inside, on, or outside the circumcircle of triangle abc; returns >0 if inside, 0 if on, <0 if outside (precondition: triangle abc is counter-clockwise)",
+  "tokens": 242,
+  "mentions_orientation": true
+ },
+ {
+  "seed": 2,
+  "probe": "# Test cases for the in_circle function\npoints = [\n    ((0, 0), (1, 0), (0, 1), (0.5, 0.5)),  # Inside the circumcircle\n    ((0, 0), (1, 0), (0, 1), (1, 1)),      # Outside the circumcircle\n    ((0, 0), (1, 0), (0, 1), (0, 0)),      # On the circumcircle\n    ((0, 0), (2, 0), (0, 2), (1, 1)),      # Inside the circumcircle\n    ((0, 0), (2, 0), (0, 2), (2, 2)),      # Outside the circumcircle\n]\n\nfor a, b, c, d in points:\n    result = in_circle(a, b, c, d)\n    print(f\"a={a}, b={b}, c={c}, d={d}, result={result}\")\n",
+  "probe_output": "a=(0, 0), b=(1, 0), c=(0, 1), d=(0.5, 0.5), result=0.5\na=(0, 0), b=(1, 0), c=(0, 1), d=(1, 1), result=0\na=(0, 0), b=(1, 0), c=(0, 1), d=(0, 0), result=0\na=(0, 0), b=(2, 0), c=(0, 2), d=(1, 1), result=8\na=(0, 0), b=(2, 0), c=(0, 2), d=(2, 2), result=0\n",
+  "doc": "Determines if point d is inside, on, or outside the circumcircle of triangle abc; returns >0 if inside, 0 if on, <0 if outside; precondition: triangle abc is counter-clockwise.",
+  "tokens": 274,
+  "mentions_orientation": true
+ },
+ {
+  "seed": 3,
+  "probe": "# Example points for testing\nd = (0, 0)\na = (1, 0)\nb = (0, 1)\nc = (-1, 0)\n\nprint(f\"Input: a={a}, b={b}, c={c}, d={d} | Result: {in_circle(a, b, c, d)}\")\n\na = (2, 0)\nb = (0, 2)\nc = (0, -2)\nprint(f\"Input: a={a}, b={b}, c={c}, d={d} | Result: {in_circle(a, b, c, d)}\")\n\na = (1, 1)\nb = (-1, 1)\nc = (0, -1)\nprint(f\"Input: a={a}, b={b}, c={c}, d={d} | Result: {in_circle(a, b, c, d)}\")\n",
+  "probe_output": "Input: a=(1, 0), b=(0, 1), c=(-1, 0), d=(0, 0) | Result: 2\nInput: a=(2, 0), b=(0, 2), c=(0, -2), d=(0, 0) | Result: 32\nInput: a=(1, 1), b=(-1, 1), c=(0, -1), d=(0, 0) | Result: 6\n",
+  "doc": "# Returns >0 if point d is inside the circumcircle of triangle abc (counter-clockwise), 0 if on, <0 if outside; precondition: abc must be counter-clockwise ordered.",
+  "tokens": 241,
+  "mentions_orientation": true
+ }
+]

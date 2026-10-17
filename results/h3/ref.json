@@ -1,0 +1,1354 @@
+{
+ "greedy": {
+  "c101": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 880.479256048062,
+   "vehicles": 10
+  },
+  "c102": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1285.4352652670796,
+   "vehicles": 11
+  },
+  "c103": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1540.083752294394,
+   "vehicles": 12
+  },
+  "c104": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1507.202969634385,
+   "vehicles": 11
+  },
+  "c105": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 934.3555833062842,
+   "vehicles": 10
+  },
+  "c106": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1032.7029984007008,
+   "vehicles": 10
+  },
+  "c107": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1027.155563108664,
+   "vehicles": 10
+  },
+  "c108": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1097.9352889691088,
+   "vehicles": 10
+  },
+  "c109": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1106.7496839848382,
+   "vehicles": 10
+  },
+  "c201": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 591.5565566715015,
+   "vehicles": 3
+  },
+  "c202": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1386.54491548205,
+   "vehicles": 4
+  },
+  "c203": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1216.418397314512,
+   "vehicles": 4
+  },
+  "c204": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1124.2726978511632,
+   "vehicles": 4
+  },
+  "c205": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 627.9176765503111,
+   "vehicles": 3
+  },
+  "c206": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 631.0568727358396,
+   "vehicles": 3
+  },
+  "c207": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 745.7673738534018,
+   "vehicles": 4
+  },
+  "c208": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 644.94954201954,
+   "vehicles": 3
+  },
+  "r101": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 2015.205150189836,
+   "vehicles": 21
+  },
+  "r102": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 2002.7976978488184,
+   "vehicles": 20
+  },
+  "r103": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1939.7630037616284,
+   "vehicles": 19
+  },
+  "r104": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1559.0073633853908,
+   "vehicles": 15
+  },
+  "r105": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1837.6843490276106,
+   "vehicles": 17
+  },
+  "r106": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1762.9219714692588,
+   "vehicles": 17
+  },
+  "r107": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1503.4809109174018,
+   "vehicles": 14
+  },
+  "r108": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1404.3104852714955,
+   "vehicles": 13
+  },
+  "r109": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1651.8556346382613,
+   "vehicles": 14
+  },
+  "r110": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1607.1182098442675,
+   "vehicles": 14
+  },
+  "r111": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1547.193364969746,
+   "vehicles": 14
+  },
+  "r112": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1332.9584205042268,
+   "vehicles": 11
+  },
+  "r201": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 2116.3678781201493,
+   "vehicles": 5
+  },
+  "r202": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1689.5109404904028,
+   "vehicles": 5
+  },
+  "r203": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1676.8552362603684,
+   "vehicles": 4
+  },
+  "r204": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1335.9031001682415,
+   "vehicles": 4
+  },
+  "r205": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1542.0277854360004,
+   "vehicles": 4
+  },
+  "r206": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1434.7728479355385,
+   "vehicles": 3
+  },
+  "r207": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1356.4788242141524,
+   "vehicles": 3
+  },
+  "r208": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1236.0489652513209,
+   "vehicles": 4
+  },
+  "r209": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1482.5210194968395,
+   "vehicles": 3
+  },
+  "r210": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1493.5277068204819,
+   "vehicles": 4
+  },
+  "r211": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1330.068972775714,
+   "vehicles": 3
+  },
+  "rc101": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 2267.5601158514414,
+   "vehicles": 18
+  },
+  "rc102": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 2001.6887960791978,
+   "vehicles": 17
+  },
+  "rc103": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1916.9955433905407,
+   "vehicles": 15
+  },
+  "rc104": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1656.1538323895822,
+   "vehicles": 14
+  },
+  "rc105": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 2076.2782410506143,
+   "vehicles": 19
+  },
+  "rc106": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1715.0627033683697,
+   "vehicles": 14
+  },
+  "rc107": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1583.7091487226846,
+   "vehicles": 14
+  },
+  "rc108": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1585.9614331436728,
+   "vehicles": 13
+  },
+  "rc201": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 2356.694791172241,
+   "vehicles": 5
+  },
+  "rc202": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1892.1115070618337,
+   "vehicles": 5
+  },
+  "rc203": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1831.8318755856951,
+   "vehicles": 5
+  },
+  "rc204": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1357.9928259202156,
+   "vehicles": 4
+  },
+  "rc205": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 2390.4516631208653,
+   "vehicles": 6
+  },
+  "rc206": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1716.238569614228,
+   "vehicles": 4
+  },
+  "rc207": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1737.1135669665807,
+   "vehicles": 4
+  },
+  "rc208": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1362.5182116932292,
+   "vehicles": 3
+  }
+ },
+ "ortools30": {
+  "c101": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 828.9368669428342,
+   "vehicles": 10
+  },
+  "c102": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 828.9368669428342,
+   "vehicles": 10
+  },
+  "c103": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 871.2934832778674,
+   "vehicles": 10
+  },
+  "c104": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 824.7767082212931,
+   "vehicles": 10
+  },
+  "c105": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 828.9368669428343,
+   "vehicles": 10
+  },
+  "c106": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 828.9368669428342,
+   "vehicles": 10
+  },
+  "c107": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 828.9368669428344,
+   "vehicles": 10
+  },
+  "c108": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 828.9368669428342,
+   "vehicles": 10
+  },
+  "c109": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 854.782979628351,
+   "vehicles": 10
+  },
+  "c201": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 591.5565566715014,
+   "vehicles": 3
+  },
+  "c202": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 591.5565566715014,
+   "vehicles": 3
+  },
+  "c203": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 600.2061024282012,
+   "vehicles": 3
+  },
+  "c204": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 626.2733962680624,
+   "vehicles": 3
+  },
+  "c205": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 588.8759626534238,
+   "vehicles": 3
+  },
+  "c206": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 588.4928487625539,
+   "vehicles": 3
+  },
+  "c207": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 588.2863214262126,
+   "vehicles": 3
+  },
+  "c208": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 588.3238006573994,
+   "vehicles": 3
+  },
+  "r101": {
+   "feasible": false,
+   "reason": "re",
+   "distance": null,
+   "vehicles": null
+  },
+  "r102": {
+   "feasible": false,
+   "reason": "re",
+   "distance": null,
+   "vehicles": null
+  },
+  "r103": {
+   "feasible": false,
+   "reason": "re",
+   "distance": null,
+   "vehicles": null
+  },
+  "r104": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1023.3783233874561,
+   "vehicles": 11
+  },
+  "r105": {
+   "feasible": false,
+   "reason": "re",
+   "distance": null,
+   "vehicles": null
+  },
+  "r106": {
+   "feasible": false,
+   "reason": "re",
+   "distance": null,
+   "vehicles": null
+  },
+  "r107": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1119.9891546121082,
+   "vehicles": 12
+  },
+  "r108": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 991.8551548430663,
+   "vehicles": 11
+  },
+  "r109": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1202.7523454281215,
+   "vehicles": 14
+  },
+  "r110": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1119.4650705590452,
+   "vehicles": 13
+  },
+  "r111": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1091.9912499287263,
+   "vehicles": 12
+  },
+  "r112": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 992.2358620429469,
+   "vehicles": 11
+  },
+  "r201": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1170.0386071934745,
+   "vehicles": 7
+  },
+  "r202": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1058.7294064795874,
+   "vehicles": 7
+  },
+  "r203": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 915.7382557170209,
+   "vehicles": 6
+  },
+  "r204": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 745.7370907392827,
+   "vehicles": 5
+  },
+  "r205": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 965.1889406371215,
+   "vehicles": 5
+  },
+  "r206": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 905.1107078882711,
+   "vehicles": 6
+  },
+  "r207": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 849.770784947189,
+   "vehicles": 4
+  },
+  "r208": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 740.8501345431059,
+   "vehicles": 3
+  },
+  "r209": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 890.9287908008574,
+   "vehicles": 5
+  },
+  "r210": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 919.0015453738478,
+   "vehicles": 6
+  },
+  "r211": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 778.0217789115056,
+   "vehicles": 4
+  },
+  "rc101": {
+   "feasible": false,
+   "reason": "re",
+   "distance": null,
+   "vehicles": null
+  },
+  "rc102": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1514.5224750990312,
+   "vehicles": 15
+  },
+  "rc103": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1360.4811574618436,
+   "vehicles": 13
+  },
+  "rc104": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1264.5348014155966,
+   "vehicles": 12
+  },
+  "rc105": {
+   "feasible": false,
+   "reason": "re",
+   "distance": null,
+   "vehicles": null
+  },
+  "rc106": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1427.9155868596358,
+   "vehicles": 14
+  },
+  "rc107": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1323.4376545583032,
+   "vehicles": 13
+  },
+  "rc108": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1248.394312111451,
+   "vehicles": 12
+  },
+  "rc201": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1290.1676431061255,
+   "vehicles": 9
+  },
+  "rc202": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1114.4156636485425,
+   "vehicles": 6
+  },
+  "rc203": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 964.6243750542067,
+   "vehicles": 6
+  },
+  "rc204": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 811.4071602514236,
+   "vehicles": 4
+  },
+  "rc205": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1216.8561921036091,
+   "vehicles": 8
+  },
+  "rc206": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1111.4845843638905,
+   "vehicles": 6
+  },
+  "rc207": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 983.3306815150578,
+   "vehicles": 6
+  },
+  "rc208": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 786.1663703661123,
+   "vehicles": 5
+  }
+ },
+ "ortools30_ins": {
+  "c101": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 828.9368669428342,
+   "vehicles": 10
+  },
+  "c102": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 828.9368669428342,
+   "vehicles": 10
+  },
+  "c103": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 853.826702408709,
+   "vehicles": 10
+  },
+  "c104": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 853.5038868573421,
+   "vehicles": 10
+  },
+  "c105": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 828.9368669428342,
+   "vehicles": 10
+  },
+  "c106": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 828.9368669428342,
+   "vehicles": 10
+  },
+  "c107": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 828.9368669428343,
+   "vehicles": 10
+  },
+  "c108": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 828.9368669428343,
+   "vehicles": 10
+  },
+  "c109": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 828.9368669428342,
+   "vehicles": 10
+  },
+  "c201": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 591.5565566715015,
+   "vehicles": 3
+  },
+  "c202": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 591.5565566715019,
+   "vehicles": 3
+  },
+  "c203": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 600.2061024282017,
+   "vehicles": 3
+  },
+  "c204": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 599.2914626587091,
+   "vehicles": 3
+  },
+  "c205": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 588.8759626534237,
+   "vehicles": 3
+  },
+  "c206": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 588.4928487625539,
+   "vehicles": 3
+  },
+  "c207": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 588.2863214262126,
+   "vehicles": 3
+  },
+  "c208": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 588.3238006573991,
+   "vehicles": 3
+  },
+  "r101": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1658.8618065066307,
+   "vehicles": 21
+  },
+  "r102": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1481.0247112175068,
+   "vehicles": 18
+  },
+  "r103": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1239.419863734132,
+   "vehicles": 14
+  },
+  "r104": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1054.099421741745,
+   "vehicles": 12
+  },
+  "r105": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1412.8325230207522,
+   "vehicles": 15
+  },
+  "r106": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1319.5026375241926,
+   "vehicles": 14
+  },
+  "r107": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1128.6112163023117,
+   "vehicles": 12
+  },
+  "r108": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 974.5025538932454,
+   "vehicles": 10
+  },
+  "r109": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1176.723907765905,
+   "vehicles": 12
+  },
+  "r110": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1161.3113318822573,
+   "vehicles": 12
+  },
+  "r111": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1113.0856827526084,
+   "vehicles": 13
+  },
+  "r112": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 967.3063945447439,
+   "vehicles": 10
+  },
+  "r201": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1204.7686212683336,
+   "vehicles": 6
+  },
+  "r202": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1064.2260108463893,
+   "vehicles": 6
+  },
+  "r203": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 943.3103405573294,
+   "vehicles": 4
+  },
+  "r204": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 755.8034613109097,
+   "vehicles": 4
+  },
+  "r205": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1027.5925110864957,
+   "vehicles": 5
+  },
+  "r206": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 913.6588209874197,
+   "vehicles": 4
+  },
+  "r207": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 838.8937416618925,
+   "vehicles": 4
+  },
+  "r208": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 723.412633749407,
+   "vehicles": 3
+  },
+  "r209": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 860.7035407593492,
+   "vehicles": 5
+  },
+  "r210": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 963.2181793851518,
+   "vehicles": 5
+  },
+  "r211": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 805.9557001084702,
+   "vehicles": 3
+  },
+  "rc101": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1678.598499508693,
+   "vehicles": 16
+  },
+  "rc102": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1515.2829331333455,
+   "vehicles": 15
+  },
+  "rc103": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1334.0308529110123,
+   "vehicles": 12
+  },
+  "rc104": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1190.5088692936417,
+   "vehicles": 11
+  },
+  "rc105": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1604.719720271587,
+   "vehicles": 16
+  },
+  "rc106": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1456.7765731799498,
+   "vehicles": 14
+  },
+  "rc107": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1326.6726074879255,
+   "vehicles": 13
+  },
+  "rc108": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1219.2113977725496,
+   "vehicles": 12
+  },
+  "rc201": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1284.566332893787,
+   "vehicles": 9
+  },
+  "rc202": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1114.650956434,
+   "vehicles": 6
+  },
+  "rc203": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 954.2280897895552,
+   "vehicles": 5
+  },
+  "rc204": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 842.323878558796,
+   "vehicles": 4
+  },
+  "rc205": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1204.4478314170162,
+   "vehicles": 7
+  },
+  "rc206": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1128.8942908899478,
+   "vehicles": 5
+  },
+  "rc207": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 978.8109020161016,
+   "vehicles": 6
+  },
+  "rc208": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 854.1453159180937,
+   "vehicles": 4
+  }
+ },
+ "ortools300_ins": {
+  "c101": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 828.9368669428342,
+   "vehicles": 10
+  },
+  "c102": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 828.9368669428342,
+   "vehicles": 10
+  },
+  "c103": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 850.4410592582534,
+   "vehicles": 10
+  },
+  "c104": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 824.7767082212931,
+   "vehicles": 10
+  },
+  "c105": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 828.9368669428342,
+   "vehicles": 10
+  },
+  "c106": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 828.9368669428342,
+   "vehicles": 10
+  },
+  "c107": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 828.9368669428343,
+   "vehicles": 10
+  },
+  "c108": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 828.9368669428343,
+   "vehicles": 10
+  },
+  "c109": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 828.9368669428342,
+   "vehicles": 10
+  },
+  "c201": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 591.5565566715015,
+   "vehicles": 3
+  },
+  "c202": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 591.5565566715019,
+   "vehicles": 3
+  },
+  "c203": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 600.2061024282017,
+   "vehicles": 3
+  },
+  "c204": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 596.5545188711945,
+   "vehicles": 3
+  },
+  "c205": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 588.8759626534237,
+   "vehicles": 3
+  },
+  "c206": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 588.4928487625539,
+   "vehicles": 3
+  },
+  "c207": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 588.2863214262126,
+   "vehicles": 3
+  },
+  "c208": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 588.3238006573991,
+   "vehicles": 3
+  },
+  "r101": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1643.3359622515702,
+   "vehicles": 20
+  },
+  "r102": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1475.7098747315065,
+   "vehicles": 18
+  },
+  "r103": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1223.729715162831,
+   "vehicles": 15
+  },
+  "r104": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1000.7710414484119,
+   "vehicles": 11
+  },
+  "r105": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1361.2260429539851,
+   "vehicles": 15
+  },
+  "r106": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1252.3817243193287,
+   "vehicles": 14
+  },
+  "r107": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1083.0104078256738,
+   "vehicles": 12
+  },
+  "r108": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 967.8960874114126,
+   "vehicles": 10
+  },
+  "r109": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1160.3114038591339,
+   "vehicles": 13
+  },
+  "r110": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1086.1492400559805,
+   "vehicles": 12
+  },
+  "r111": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1061.562996116099,
+   "vehicles": 12
+  },
+  "r112": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 959.3483311265584,
+   "vehicles": 10
+  },
+  "r201": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1153.3582644712471,
+   "vehicles": 9
+  },
+  "r202": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1051.5883098480583,
+   "vehicles": 6
+  },
+  "r203": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 894.7151457133036,
+   "vehicles": 5
+  },
+  "r204": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 743.1912086260088,
+   "vehicles": 4
+  },
+  "r205": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 965.7900806871203,
+   "vehicles": 5
+  },
+  "r206": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 884.8922494586877,
+   "vehicles": 5
+  },
+  "r207": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 826.1645201552278,
+   "vehicles": 4
+  },
+  "r208": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 709.4284492472555,
+   "vehicles": 3
+  },
+  "r209": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 860.7035407593492,
+   "vehicles": 5
+  },
+  "r210": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 919.5295738688332,
+   "vehicles": 6
+  },
+  "r211": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 756.521040754681,
+   "vehicles": 4
+  },
+  "rc101": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1660.9800778520196,
+   "vehicles": 16
+  },
+  "rc102": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1500.9259427467944,
+   "vehicles": 15
+  },
+  "rc103": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1305.341224418951,
+   "vehicles": 12
+  },
+  "rc104": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1174.9160999060064,
+   "vehicles": 11
+  },
+  "rc105": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1569.3371622862114,
+   "vehicles": 16
+  },
+  "rc106": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1421.2299971772525,
+   "vehicles": 14
+  },
+  "rc107": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1248.8054571254515,
+   "vehicles": 13
+  },
+  "rc108": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1159.330884970655,
+   "vehicles": 12
+  },
+  "rc201": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1271.7985923498345,
+   "vehicles": 9
+  },
+  "rc202": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1099.1375618674422,
+   "vehicles": 8
+  },
+  "rc203": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 943.8155119395548,
+   "vehicles": 5
+  },
+  "rc204": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 791.9362931342527,
+   "vehicles": 4
+  },
+  "rc205": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1157.6648137770367,
+   "vehicles": 7
+  },
+  "rc206": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 1056.5466922334242,
+   "vehicles": 7
+  },
+  "rc207": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 978.8109020161016,
+   "vehicles": 6
+  },
+  "rc208": {
+   "feasible": true,
+   "reason": "ok",
+   "distance": 785.4214292916071,
+   "vehicles": 4
+  }
+ }
+}

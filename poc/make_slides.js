@@ -1,0 +1,295 @@
+// Proposal deck in the default Office look (white, Calibri Light / Calibri, Office accent colours).
+const pptxgen = require("pptxgenjs");
+const path = require("path");
+const { applyTheme } = require("/root/.claude/skills/synced/3c05885e-4c45-4ba8-8aac-398768cdc097_763b3f05-13a5-417f-9a5f-72964acfee24/pptx/scripts/apply_theme.js");
+
+const ROOT = "/NAS/SJ/POSTECH/nlp";
+const FIG = (f) => path.join(ROOT, "figs", f);
+const OUT = path.join(ROOT, "PROPOSAL_slides.pptx");
+
+const THEME = {
+  name: "Office Theme", headFontFace: "Calibri", bodyFontFace: "Calibri",
+  colors: { dk1: "000000", lt1: "FFFFFF", dk2: "44546A", lt2: "E7E6E6", accent1: "4472C4", accent2: "ED7D31", accent3: "A5A5A5",
+            accent4: "FFC000", accent5: "5B9BD5", accent6: "70AD47", hlink: "0563C1", folHlink: "954F72" },
+};
+
+const pres = new pptxgen();
+pres.layout = "LAYOUT_WIDE"; // 13.333 x 7.5, the PowerPoint default
+pres.theme = { headFontFace: THEME.headFontFace, bodyFontFace: THEME.bodyFontFace };
+pres.title = "Tools, Facts, and Checks: project proposal";
+pres.author = "POSTECH graduate NLP course project";
+const C = pres.SchemeColor;
+
+// ---- layouts modelled on the default template ----
+pres.defineSlideMaster({
+  title: "Title Slide", background: { color: "FFFFFF" },
+  objects: [
+    { placeholder: { options: { name: "title", type: "title", x: 1.67, y: 1.4, w: 10.0, h: 2.4, fontSize: 54, align: "center", valign: "bottom", color: C.text1 }, text: "" } },
+    { placeholder: { options: { name: "body", type: "body", x: 1.67, y: 4.0, w: 10.0, h: 1.7, fontSize: 22, align: "center", valign: "top", color: C.text1 }, text: "" } },
+  ],
+});
+pres.defineSlideMaster({
+  title: "Title Only", background: { color: "FFFFFF" },
+  slideNumber: { x: 12.2, y: 6.95, w: 0.8, h: 0.35, fontSize: 12, color: "8C8C8C", align: "right" },
+  objects: [
+    { placeholder: { options: { name: "title", type: "title", x: 0.6, y: 0.3, w: 12.1, h: 1.0, fontSize: 36, align: "left", valign: "middle", color: C.text1 }, text: "" } },
+  ],
+});
+pres.defineSlideMaster({
+  title: "Title and Content", background: { color: "FFFFFF" },
+  slideNumber: { x: 12.2, y: 6.95, w: 0.8, h: 0.35, fontSize: 12, color: "8C8C8C", align: "right" },
+  objects: [
+    { placeholder: { options: { name: "title", type: "title", x: 0.6, y: 0.3, w: 12.1, h: 1.0, fontSize: 36, align: "left", valign: "middle", color: C.text1 }, text: "" } },
+    { placeholder: { options: { name: "body", type: "body", x: 0.6, y: 1.5, w: 12.1, h: 5.3, fontSize: 18, valign: "top", color: C.text1 }, text: "" } },
+  ],
+});
+
+// ---- helpers ----
+const IMG = { fig0: 1.778, fig10: 1.792, fig12: 1.654, fig13: 1.872, fig14: 1.75, fig15: 2.089, fig16: 1.909, fig17: 1.909 };
+function img(s, key, file, x, y, w, name) {
+  s.addImage({ path: FIG(file), x, y, w, h: w / IMG[key], objectName: name, altText: name });
+}
+function bullets(s, items, opts) {
+  s.addText(items.map((t, i) => ({ text: t, options: { bullet: true, breakLine: i < items.length - 1 } })),
+    { isTextBox: true, fontSize: 16, color: C.text1, valign: "top", paraSpaceAfter: 8, margin: 0.05, ...opts });
+}
+function note(s, text, opts) {
+  s.addText(text, { isTextBox: true, fontSize: 12, italic: true, color: C.text2, margin: 0, ...opts });
+}
+const HDR = (t) => ({ text: t, options: { bold: true, color: "FFFFFF", fill: { color: THEME.colors.accent1 } } });
+function table(s, rows, opts) {
+  s.addTable(rows, { fontSize: 14, color: C.text1, border: { type: "solid", pt: 0.75, color: "BFBFBF" }, valign: "middle",
+                     margin: 0.06, autoPage: false, ...opts });
+}
+function card(s, x, y, w, h, big, label, body, color, name) {
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w, h, rectRadius: 0.08, fill: { color: "F2F2F2" }, line: { color: "D9D9D9", width: 0.75 }, objectName: name });
+  s.addText(big, { isTextBox: true, x: x + 0.25, y: y + 0.2, w: w - 0.5, h: 0.9, fontSize: 30, bold: true, color, margin: 0, fontFace: THEME.headFontFace });
+  s.addText(label, { isTextBox: true, x: x + 0.25, y: y + 1.1, w: w - 0.5, h: 0.5, fontSize: 16, bold: true, color: C.text1, margin: 0 });
+  s.addText(body, { isTextBox: true, x: x + 0.25, y: y + 1.6, w: w - 0.5, h: h - 1.8, fontSize: 14, color: C.text1, margin: 0, valign: "top" });
+}
+
+
+function caption(s, text) {
+  s.addText(text, { isTextBox: true, x: 0.6, y: 6.2, w: 12.1, h: 0.6, fontSize: 20, color: C.text1, align: "center", valign: "middle", margin: 0 });
+}
+function bigimg(s, key, file, h, name) {   // centred figure of height h starting at y = 1.45
+  const w = h * IMG[key];
+  s.addImage({ path: FIG(file), x: (13.333 - w) / 2, y: 1.45, w, h, objectName: name, altText: name });
+}
+
+function chip(s, t, ok, x, y) {
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: x + 0.25, y, w: 1.7, h: 0.6, rectRadius: 0.1, fill: { color: ok ? "E2F0D9" : "FADBD8" }, line: { color: ok ? THEME.colors.accent6 : "C00000", width: 1 }, objectName: "answer " + t });
+  s.addText(t, { isTextBox: true, x: x + 0.25, y, w: 1.7, h: 0.6, fontSize: 22, bold: true, color: ok ? "38761D" : "C00000", align: "center", valign: "middle", margin: 0 });
+}
+
+// ---- drawing helpers for example-first slides ----
+const GREEN = THEME.colors.accent6, RED = "C00000", BLUE = THEME.colors.accent1, GREY = "F2F2F2";
+function panel(s, x, y, w, h, name) {
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w, h, rectRadius: 0.08, fill: { color: GREY }, line: { color: "D9D9D9", width: 0.75 }, objectName: name });
+}
+function txt(s, t, x, y, w, h, o) {
+  s.addText(t, { isTextBox: true, x, y, w, h, fontSize: 16, color: C.text1, margin: 0, valign: "middle", ...o });
+}
+function code(s, t, x, y, w, h, col, fs = 14) {
+  s.addShape(pres.shapes.RECTANGLE, { x, y, w, h, fill: { color: "FFFFFF" }, line: { color: "BFBFBF", width: 0.75 }, objectName: "code " + t.slice(0, 20) });
+  s.addText(t, { isTextBox: true, x: x + 0.12, y, w: w - 0.24, h, fontFace: "Courier New", fontSize: fs, color: col || C.text1, margin: 0, valign: "middle" });
+}
+function arrow(s, x1, y1, x2, y2) {
+  s.addShape(pres.shapes.LINE, { x: Math.min(x1, x2), y: Math.min(y1, y2), w: Math.abs(x2 - x1), h: Math.abs(y2 - y1), flipV: y2 < y1,
+    line: { color: "7F7F7F", width: 2, endArrowType: "triangle" } });
+}
+function box(s, t, x, y, w, h, fill, o) {
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w, h, rectRadius: 0.06, fill: { color: fill || "FFFFFF" }, line: { color: "BFBFBF", width: 0.75 }, objectName: "box " + t.slice(0, 20) });
+  s.addText(t, { isTextBox: true, x: x + 0.08, y, w: w - 0.16, h, fontSize: 15, color: C.text1, align: "center", valign: "middle", margin: 0, ...o });
+}
+function hbars(s, x, y, w, rows, rowH, labW = 3.0, valW = 1.5) {   // rows: [label, value 0-100, shown text, colour]
+  const barW = w - labW - valW - 0.2;
+  rows.forEach(([lab, v, shown, col], k) => {
+    const yy = y + k * rowH;
+    txt(s, lab, x, yy, labW, rowH * 0.8, { fontSize: 16, align: "right" });
+    s.addShape(pres.shapes.RECTANGLE, { x: x + labW + 0.15, y: yy + rowH * 0.15, w: Math.max(0.05, barW * v / 100), h: rowH * 0.5, fill: { color: col }, line: { color: col, width: 0.5 }, objectName: "bar " + lab });
+    txt(s, shown, x + labW + 0.25 + barW * v / 100, yy, valW, rowH * 0.8, { fontSize: 18, bold: true, color: col });
+  });
+}
+
+
+function prompt(s, title, lines, x, y, w, h, fill) {
+  s.addShape(pres.shapes.RECTANGLE, { x, y, w, h, fill: { color: fill }, line: { color: "BFBFBF", width: 0.75 }, objectName: "prompt " + title });
+  s.addText([{ text: title, options: { bold: true, fontFace: "Calibri", fontSize: 14, breakLine: true } },
+             ...lines.map((l, k) => ({ text: l, options: { breakLine: k < lines.length - 1 } }))],
+    { isTextBox: true, x: x + 0.12, y: y + 0.06, w: w - 0.24, h: h - 0.12, fontFace: "Courier New", fontSize: 11.5, color: C.text1, valign: "top", margin: 0 });
+}
+
+// 1. Title
+pres.addSection({ title: "Proposal" });
+let s = pres.addSlide({ masterName: "Title Slide", sectionTitle: "Proposal" });
+s.addText("Tools, Facts, and Checks", { placeholder: "title" });
+s.addText([
+  { text: "When LLM-written math programs fail, and what to spend instead", options: { breakLine: true } },
+  { text: "Graduate NLP course project proposal · POSTECH · October 2026", options: { fontSize: 16, color: THEME.colors.dk2 } },
+], { placeholder: "body" });
+s.addNotes("When an LLM writes a program for a geometry or optimization problem and it fails, the usual fix is more compute. We measure which failures that fixes, and what to spend instead.");
+
+// 2. Problem
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Proposal" });
+s.addText("Let the computer do the math", { placeholder: "title" });
+s.addText("Same shape moved, turned or flipped, so the right answer never changes: 436 (twice its area)",
+  { isTextBox: true, x: 3.9, y: 1.35, w: 8.8, h: 0.45, fontSize: 16, color: C.text1, align: "center", margin: 0 });
+s.addImage({ path: FIG("slide2_shapes.png"), x: 3.9, y: 1.85, w: 8.8, h: 1.9, objectName: "four copies of one polygon", altText: "one polygon: original, moved, turned, flipped" });
+["original", "moved", "turned", "flipped"].forEach((t, k) => {
+  s.addText(t, { isTextBox: true, x: 3.9 + k * 2.2, y: 3.55, w: 2.2, h: 0.35, fontSize: 16, color: C.text2, align: "center", margin: 0 });
+});
+[["Answer in words", "the model does the arithmetic itself", [["436 ✓", 1], ["2944 ✗", 0], ["392 ✗", 0], ["728 ✗", 0]], 4.3],
+ ["Write a program", "the computer does the arithmetic", [["436 ✓", 1], ["436 ✓", 1], ["436 ✓", 1], ["436 ✓", 1]], 5.15]].forEach(([head, sub, ans, y]) => {
+  s.addText([{ text: head, options: { bold: true, fontSize: 20, breakLine: true } }, { text: sub, options: { fontSize: 14, color: THEME.colors.dk2 } }],
+    { isTextBox: true, x: 0.6, y: y - 0.1, w: 3.2, h: 0.8, valign: "middle", margin: 0, color: C.text1 });
+  ans.forEach(([t, ok], k) => chip(s, t, ok, 3.9 + k * 2.2, y));
+});
+caption(s, "But programs can also be silently wrong. When, and what is the cheapest fix?");
+s.addNotes("Qwen3-8B, real outputs. Asked to answer directly, it does the arithmetic in words and gives a different area for each moved, turned or flipped copy of the same polygon (only the original is right). Asked for a program, it writes the shoelace formula and the computer gets all copies right. The shapes on the slide are an illustration; the numbers are from our pilot. This is why we study programs, and why their silent mistakes matter.");
+
+// 2b. Words in the title
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Proposal" });
+s.addText("Three words in the title: tool, fact, check", { placeholder: "title" });
+[["Tool", "ready-made code we put in the prompt for the model to use", [["orient(a, b, c)", "is point c left or right of line a→b?"], ["OR-Tools library", "a ready-made route optimizer"]]],
+ ["Fact", "a piece of know-how the model may not have", [["RegisterUnaryTransitCallback(...)", "the exact name of the function to call"], ["use whole numbers", "the route library rejects decimals"]]],
+ ["Check", "a cheap test of a program, without knowing the answer", [["run the examples", "does it print the answers shown in the problem?"], ["move the input", "the answer must not change"]]]].forEach(([word, def, ex], i) => {
+  const x = 0.6 + i * 4.15;
+  panel(s, x, 1.55, 3.85, 4.5, "word " + word);
+  txt(s, word, x + 0.25, 1.7, 3.35, 0.7, { fontSize: 32, bold: true, color: BLUE });
+  txt(s, def, x + 0.25, 2.4, 3.35, 0.9, { fontSize: 16, valign: "top" });
+  txt(s, "for example", x + 0.25, 3.3, 3.35, 0.35, { fontSize: 13, color: C.text2 });
+  ex.forEach(([c, d], k) => {
+    const y = 3.7 + k * 1.1;
+    code(s, c, x + 0.25, y, 3.35, 0.45, null, c.length > 24 ? 11 : 14);
+    txt(s, d, x + 0.25, y + 0.48, 3.35, 0.5, { fontSize: 14, color: C.text1, valign: "top" });
+  });
+});
+caption(s, "Question: which tools, facts and checks help, which hurt, and what do they cost?");
+s.addNotes("Tool: something we give the model in the prompt to use in its program, like helper functions (orient tells which side of a line a point is on) or a library (OR-Tools solves routing problems). Fact: know-how the model may lack, like the exact function name or that the library needs whole numbers. Check: a cheap test of the program's output without knowing the true answer, like running the examples printed in the problem, or moving the input and making sure the answer does not change.");
+
+// 2c. Other words
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Proposal" });
+s.addText("Other words you will hear", { placeholder: "title" });
+[["Token", "a small piece of a word. Models are paid and timed by tokens, so tokens = cost", "a one-page answer ≈ 700 tokens"],
+ ["Thinking", "the model writes hidden notes before answering; more thinking = more tokens", "low / medium / high effort"],
+ ["Solver", "ready-made software that searches for the best plan once the problem is written down", "OR-Tools finds the shortest delivery routes"],
+ ["Benchmark", "a fixed set of problems with known answers, used to score models", "311 Codeforces geometry contest problems"]].forEach(([w, d, e], i) => {
+  const x = 0.6 + (i % 2) * 6.15, y = 1.55 + Math.floor(i / 2) * 2.45;
+  panel(s, x, y, 5.95, 2.2, "term " + w);
+  txt(s, w, x + 0.25, y + 0.15, 5.45, 0.6, { fontSize: 26, bold: true, color: BLUE });
+  txt(s, d, x + 0.25, y + 0.75, 5.45, 0.8, { fontSize: 16, valign: "top" });
+  txt(s, "e.g. " + e, x + 0.25, y + 1.6, 5.45, 0.45, { fontSize: 15, italic: true, color: C.text2 });
+});
+s.addNotes("Plain definitions for the rest of the talk. Tokens measure cost: every result is reported as accuracy and tokens. Thinking (reasoning effort) buys accuracy with tokens; the project asks when it is worth it.");
+
+// 3. Claim
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Proposal" });
+s.addText("Three kinds of mistakes, three different fixes", { placeholder: "title" });
+[["1", "Doesn't know the library", "it makes up a function name", "Show the exact usage"],
+ ["2", "Distracted by extra tools", "an unneeded helper changes its method", "Compare two programs"],
+ ["3", "The problem is hard", "its logic is wrong", "Think harder, only when a check fails"]].forEach(([n, head, ex, fix], i) => {
+  const x = 0.6 + i * 4.15;
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.6, w: 3.85, h: 4.3, rectRadius: 0.08, fill: { color: "F2F2F2" }, line: { color: "D9D9D9", width: 0.75 }, objectName: `mechanism ${n}` });
+  s.addShape(pres.shapes.OVAL, { x: x + 1.5, y: 1.9, w: 0.85, h: 0.85, fill: { color: THEME.colors.accent1 }, line: { color: THEME.colors.accent1 }, objectName: `badge ${n}` });
+  s.addText(n, { isTextBox: true, x: x + 1.5, y: 1.9, w: 0.85, h: 0.85, fontSize: 28, bold: true, color: "FFFFFF", align: "center", valign: "middle", margin: 0 });
+  s.addText(head, { isTextBox: true, x: x + 0.2, y: 2.95, w: 3.45, h: 0.6, fontSize: 24, bold: true, color: C.text1, align: "center", margin: 0 });
+  s.addText(ex, { isTextBox: true, x: x + 0.2, y: 3.6, w: 3.45, h: 0.9, fontSize: 16, color: C.text2, align: "center", valign: "top", margin: 0 });
+  s.addText(fix, { isTextBox: true, x: x + 0.2, y: 4.6, w: 3.45, h: 1.0, fontSize: 20, bold: true, color: THEME.colors.accent1, align: "center", valign: "top", margin: 0 });
+});
+caption(s, "\"Just think longer\" only helps the third. Next: one example of each");
+s.addNotes("Core claim. Each failure has a signature visible without an answer key (a crash on an API name; confident, consistent answers that change when the tool is removed; disagreement between samples). So compute can be allocated by failure type instead of by difficulty.");
+
+// 4. Missing knowledge
+pres.addSection({ title: "Results" });
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Results" });
+s.addText("1. It doesn't know the library: show the exact usage", { placeholder: "title" });
+txt(s, "Task: plan delivery routes for trucks with a weight limit, using Google's OR-Tools library (Qwen3-32B)", 0.6, 1.4, 12.1, 0.45, { fontSize: 18 });
+prompt(s, "Prompt A: task + a long OR-Tools reference sheet", ["...the task...", "RoutingModel: AddDimension(...), Solve(...),", "SetArcCostEvaluator(...), ... (many functions)"], 0.6, 1.95, 5.0, 1.15, "FCE4D6");
+arrow(s, 5.6, 2.52, 6.0, 2.52);
+code(s, "RegisterUnaryLongLivingCallback(...)", 6.0, 2.25, 4.6, 0.55, RED, 12);
+txt(s, "✗ crash: no such function", 10.75, 2.15, 2.0, 0.75, { fontSize: 15, bold: true, color: RED });
+prompt(s, "Prompt B: task + 5 lines of exact usage", ["...the task...", "dcb = r.RegisterUnaryTransitCallback(demand)", "r.AddDimensionWithVehicleCapacity(dcb, ...)"], 0.6, 3.3, 5.0, 1.15, "E2F0D9");
+arrow(s, 5.6, 3.87, 6.0, 3.87);
+code(s, "RegisterUnaryTransitCallback(...)", 6.0, 3.6, 4.6, 0.55, GREEN, 12);
+txt(s, "✓ runs, best route", 10.75, 3.5, 2.0, 0.75, { fontSize: 15, bold: true, color: GREEN });
+txt(s, "Out of 100 routing problems, how many it solves best:", 0.6, 4.65, 12.1, 0.4, { bold: true, fontSize: 17 });
+hbars(s, 0.6, 5.05, 12.1, [["Nothing extra", 23, "23", "7F7F7F"], ["Think longer", 3, "3", RED], ["Long reference sheet", 7, "7", RED], ["5 exact lines", 83, "77–90", GREEN]], 0.38);
+s.addNotes("The model writes the program (the right side shows the line that matters). With a long reference sheet it guesses a plausible function name that does not exist and crashes; with five lines showing the exact call it writes the right one. Thinking longer cannot supply a fact it does not have (3 of 100). On the 56 standard Solomon routing problems, three such facts together take gpt-oss-120b to a valid plan on every instance.");
+
+// 5. Steering
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Results" });
+s.addText("2. Extra tools distract it: compare two programs", { placeholder: "title" });
+txt(s, "Same task, two prompts. The model writes a program for each; we run both and compare.", 0.6, 1.4, 12.1, 0.45, { fontSize: 18 });
+s.addImage({ path: FIG("slide5_hull.png"), x: 0.75, y: 1.95, w: 2.05, h: 2.05, objectName: "ten points and their hull", altText: "10 points; the rubber band touches 6 of them" });
+txt(s, "rubber band around 10 points: 6 corners", 0.4, 4.0, 2.75, 0.4, { fontSize: 12, bold: true, color: GREEN, align: "center" });
+prompt(s, "Prompt A: only the task", ["Points: (20,-40) (-26,-18) ...", "How many corners does the rubber", "band have? Write a Python program."], 3.55, 1.95, 4.1, 1.0, "FFFFFF");
+arrow(s, 7.65, 2.45, 8.1, 2.45);
+chip(s, "6 ✓", true, 7.9, 2.15);
+prompt(s, "Prompt B: the task + 8 helpers", ["...same task...", "You may use these helpers:", "orient(a, b, c)    # side of a line", "polar_sort(pts, o) # sort by angle", "... and 6 more"], 3.55, 3.1, 4.1, 1.38, "FCE4D6");
+arrow(s, 7.65, 3.72, 8.1, 3.72);
+chip(s, "0 ✗", false, 7.9, 3.42);
+txt(s, "used polar_sort: wrong method", 8.0, 4.05, 2.2, 0.35, { fontSize: 12, color: C.text2, align: "center" });
+arrow(s, 9.9, 2.45, 10.35, 2.9); arrow(s, 9.9, 3.72, 10.35, 3.3);
+box(s, "answers differ → think it through → 6 ✓", 10.35, 2.45, 2.35, 1.3, "DEEBF7", { fontSize: 15 });
+txt(s, "Over 108 geometry problems (Qwen3-32B, 3 runs): how often the answer is right, and tokens per problem", 0.6, 4.6, 12.1, 0.4, { bold: true, fontSize: 17 });
+hbars(s, 0.6, 5.0, 12.1, [["Always Prompt B (+ helpers)", 59, "59% · 0.6k", RED],
+                          ["Always Prompt A (task only)", 77, "77% · 0.4k", "7F7F7F"],
+                          ["Always think long", 98, "98% · 5.9k", "7F7F7F"],
+                          ["Both prompts, think only if they differ", 99, "99% · 4.3k", BLUE]], 0.4, 4.1, 1.9);
+s.addNotes("The example (Qwen3-14B, real output): the only difference between the two prompts is the toolbox, eight correct helper functions that the task does not need. We run the two finished programs ourselves. Program A prints 6, the right answer; program B builds its method on polar_sort and prints 0. The bars (Qwen3-32B, 108 generated geometry problems, mean of 3 runs; tokens = output tokens per problem, both cheap programs counted for the last row): with the helpers 59%, task only 77%, always thinking 98% at 5.9k tokens, and writing both cheap programs and thinking only when their answers differ 99% at 4.3k (27% fewer tokens; the pair differs on 37-53% of problems). It does not help when both programs share the mistake (gpt-oss-120b on contest problems).");
+
+// 6. Hard problems
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Results" });
+s.addText("3. Hard problems: think harder only when a check fails", { placeholder: "title" });
+txt(s, "Every contest problem lists a few sample inputs with the correct outputs. Running the program on them costs nothing:", 0.6, 1.4, 12.1, 0.45, { fontSize: 18 });
+box(s, "write a program quickly (medium effort)", 0.6, 2.2, 2.9, 0.85, "FFFFFF");
+arrow(s, 3.5, 2.62, 3.95, 2.62);
+box(s, "run it on the examples", 3.95, 2.2, 2.4, 0.85, "DEEBF7");
+arrow(s, 6.35, 2.45, 6.85, 2.25); arrow(s, 6.35, 2.8, 6.85, 3.07);
+box(s, "all right → submit", 6.85, 1.97, 2.7, 0.56, "E2F0D9");
+box(s, "one wrong → think harder (high effort), then submit", 6.85, 2.77, 4.2, 0.6, "FADBD8");
+function caseCard(s, x, name, lines, col, fill) {
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 3.65, w: 5.9, h: 1.5, rectRadius: 0.08, fill: { color: fill }, line: { color: col, width: 1 }, objectName: "case " + name });
+  txt(s, name, x + 0.2, 3.73, 5.5, 0.45, { fontSize: 17, bold: true });
+  txt(s, lines, x + 0.2, 4.18, 5.5, 0.95, { fontSize: 15, valign: "top" });
+}
+caseCard(s, 0.6, "\"Make a triangle!\" (easy)", "Q: how many cm to add so 3 sticks make a triangle?\nsamples (3,4,5) → 0 and (2,5,3) → 1: program agrees ✓\n→ submit; correct, no extra tokens", GREEN, "F3F9EF");
+caseCard(s, 6.8, "\"Arrow\" (hard)", "Q: print the 7 corners of an arrow shape\nprogram's corners ≠ the sample ✗ → think harder → correct ✓\n4k + 13k tokens, paid only because the check failed", RED, "FDF2F1");
+txt(s, "Over 311 problems (gpt-oss-120b): same 66% solved as always thinking hard, 18% fewer tokens", 0.6, 5.35, 12.1, 0.45, { fontSize: 17, bold: true });
+hbars(s, 0.6, 5.8, 9.5, [["Always think hard", 100, "30k tokens", "7F7F7F"], ["Think hard only on a failed check", 82, "25k tokens", BLUE]], 0.4, 3.6);
+s.addNotes("Real gpt-oss-120b runs on Codeforces geometry problems. The examples are a free check: if the quick (medium-effort) program gets them right we submit it; if not, we pay for high effort. Examples can miss bugs (Find Color passed all 3 examples and failed hidden test 11), so the full policy also runs a quick brute-force comparison on small inputs. Result: 66.3% at 24.7k tokens per problem vs 66.2% at 30.1k for always high effort.");
+
+// 7. Pay once
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Results" });
+s.addText("Same problem every day: check one program, reuse it", { placeholder: "title" });
+txt(s, "A delivery company plans routes every day: the same kind of problem, new customers each day (gpt-oss-120b)", 0.6, 1.4, 12.1, 0.45, { fontSize: 18 });
+function days(s, y, good, label, res, col) {
+  txt(s, label, 0.6, y, 3.4, 1.3, { fontSize: 17, bold: true });
+  for (let k = 0; k < 48; k++) {
+    const cx = 4.1 + (k % 16) * 0.33, cy = y + Math.floor(k / 16) * 0.42;
+    const ok = k < good;
+    s.addShape(pres.shapes.RECTANGLE, { x: cx, y: cy, w: 0.27, h: 0.34, fill: { color: ok ? GREEN : "FADBD8" }, line: { color: ok ? GREEN : "E6B8B7", width: 0.5 }, objectName: `${label} day ${k}` });
+  }
+  txt(s, res, 9.6, y, 3.1, 1.3, { fontSize: 17, bold: true, color: col });
+}
+days(s, 2.15, 3, "A: ask for a new program every day", "valid on 7% of days\n≈ 86k tokens", RED);
+days(s, 3.85, 45, "B: the model writes 16 programs; keep the one valid on 8 past days; reuse it", "valid on 94% of days\n28k tokens in total", "38761D");
+txt(s, "each square = one of 48 new days · green = a valid route plan", 4.1, 5.25, 8.6, 0.4, { fontSize: 14, color: C.text2 });
+txt(s, "Only the data change, so one checked program keeps working (also on 4× bigger days). New rule? Ask the model to edit it.", 0.6, 5.85, 12.1, 0.6, { fontSize: 17 });
+s.addNotes("Analogy for the 56 Solomon routing problems: each problem is like one day's orders. A: a new program per day is valid on 6 and 1 of 48 days in two runs (7%; drawn as 3), about 1.8k tokens each. B: draw 16 programs once, keep the one that gives valid plans on 8 practice days, reuse it: valid on 45 of 48 days (94%), 28k tokens in total. Reused programs also work on 200- and 400-customer problems; for a new rule (job-shop with release dates) editing the working program beats writing a new one (10% to 68-100%).");
+
+// 8. Status
+pres.addSection({ title: "Status" });
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Status" });
+s.addText("Where the project is now", { placeholder: "title" });
+[["Done", "tested on real benchmarks (contest geometry, delivery routing, scheduling, math, proofs) and against 10 published methods", THEME.colors.accent6],
+ ["Running", "main test: does picking the fix by mistake type beat \"think longer on hard problems\", for the same cost?", THEME.colors.accent1],
+ ["Next", "check the same idea on factual questions and on a commercial model", THEME.colors.accent2]].forEach(([lab, txt, col], i) => {
+  const y = 1.7 + i * 1.55;
+  s.addText(lab, { isTextBox: true, x: 0.6, y, w: 2.4, h: 1.2, fontSize: 28, bold: true, color: col, valign: "middle", margin: 0 });
+  s.addText(txt, { isTextBox: true, x: 3.1, y, w: 9.6, h: 1.2, fontSize: 20, color: C.text1, valign: "middle", margin: 0 });
+});
+s.addNotes("Every claim was pre-registered; positive claims hold on 2-3 seeds. Limitations: the mechanisms were found on generated tasks; the facts are hand-written; open models only. If choosing by failure type does not beat choosing by difficulty at the same token budget, the claim is wrong.");
+
+pres.writeFile({ fileName: OUT }).then(async () => { await applyTheme(OUT, THEME); console.log("written", OUT); });

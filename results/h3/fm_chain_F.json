@@ -1,0 +1,152 @@
+{
+ "chain": "F",
+ "verified": [
+  "In every Solomon benchmark file the line immediately following the line that contains the word \"VEHICLE\" is a header line (e.g. \"NUMBER     CAPACITY\") and does **not** contain the numeric values; the actual integer values for the number of vehicles and the vehicle capacity are on the next line after that header. Therefore, when parsing the file you must skip one line after the \"VEHICLE\" line before converting the next line to integers.",
+  "When calling `routing.AddDimension` the third argument (`slack_max`) must be an integer (int64). Pass a literal integer such as `0` (or any whole\u2011number bound) rather than a float, because OR\u2011Tools does not accept floating\u2011point values for this parameter. This also applies to the fourth argument (`capacity`) which must be an integer.",
+  "When constructing the `RoutingIndexManager`, the first argument must be the total number of locations **including the depot** (i.e., `num_customers + 1`). If you pass only the number of customers (excluding the depot), the solver will never be able to assign the missing customer indices, resulting in routes that omit or duplicate customers. Use something like:",
+  "When reading a Solomon benchmark file, locate the line that contains the word **VEHICLE**; the next line is always a header (e.g. \u201cNUMBER     CAPACITY\u201d) and must be skipped, and the **following line** contains the two integer values (number of vehicles and vehicle capacity). Therefore, after finding \u201cVEHICLE\u201d, increment the line index twice before converting the line with `map(int, \u2026)`. This guarantees you never try to parse the header word \u201cNUMBER\u201d as an integer."
+ ],
+ "unverified": [
+  "In the Solomon instance format the line immediately after the word \u201cVEHICLE\u201d is a header line (e.g. \u201cNUMBER     CAPACITY\u201d) that does **not** contain numeric data; the actual vehicle numbers and capacity are on the next line. Your parser must skip this header line before converting the following line to integers.",
+  "In the Solomon format the line immediately after the line that says `VEHICLE` is **always** a header line containing the words `NUMBER` and `CAPACITY`. The actual numbers of vehicles and vehicle capacity are on the **next** line, and that line consists of exactly two integer tokens separated by whitespace (no other text). Therefore, a correct parser must skip the header line before converting the following line with `int()` (or `map(int, \u2026)`).",
+  "In every Solomon benchmark file the line immediately following the line that contains the word \"VEHICLE\" is a header line (e.g. \"NUMBER     CAPACITY\") and does **not** contain the numeric values; the actual integer values for the number of vehicles and the vehicle capacity are on the next line after that header. Therefore, when parsing the file you must skip one line after the \"VEHICLE\" line before converting the next line to integers.",
+  "When parsing the SOLomon instance, the line immediately after the line that says \"VEHICLE\" is a header containing the words \u201cNUMBER\u201d and \u201cCAPACITY\u201d.\u202fThat header must be skipped before reading the actual numeric values; the first line containing at least one digit after the header is the one with the two integers\u202f<number_of_vehicles>\u202fand\u202f<vehicle_capacity>.  Ensure your parser discards the header line (e.g., by checking that the line contains the word \u201cNUMBER\u201d or has no digits) before converting the next line to integers.",
+  "When adding a time dimension with OR\u2011Tools, the third argument (`slack_max`) and the fourth argument (`capacity`) must be plain Python integers (or values that can be implicitly cast to `int64`). If you compute them as floats (e.g., by using the vehicle capacity directly from the file without converting) the call `routing.AddDimension(evaluator_index, slack_max, capacity, ...)` raises a `TypeError`.\u202fMake sure to cast both `slack_max` (usually 0) and the vehicle capacity to `int` before passing them to `AddDimension`.",
+  "When calling `routing.AddDimension` the third argument (`slack_max`) must be an integer (int64). Pass a literal integer such as `0` (or any whole\u2011number bound) rather than a float, because OR\u2011Tools does not accept floating\u2011point values for this parameter. This also applies to the fourth argument (`capacity`) which must be an integer.",
+  "Add a zero\u2011penalty disjunction for every customer (node\u202f1\u2026n\u20111) before solving, e.g.:\n\nfor i in range(1, manager.GetNumberOfNodes()):\n    routing.AddDisjunction([manager.NodeToIndex(i)], 0)\n\nThis forces the solver to include each customer exactly once, eliminating routes that miss or duplicate customers.",
+  "When constructing the `RoutingIndexManager`, the first argument must be the total number of locations **including the depot** (i.e., `num_customers + 1`). If you pass only the number of customers (excluding the depot), the solver will never be able to assign the missing customer indices, resulting in routes that omit or duplicate customers. Use something like:",
+  "# After you locate the line that contains the word \"VEHICLE\", the very next line is a header\n# (e.g. \"NUMBER     CAPACITY\") and does **not** contain the numeric values.\n# The actual numbers for the number of vehicles and the vehicle capacity are on the\n# line **after** that header. Therefore, when parsing, do:\n\ni += 1               # skip the header line following \"VEHICLE\"\nnum_vehicles, vehicle_capacity = map(int, lines[i].split())",
+  "When reading a Solomon benchmark file, locate the line that contains the word **VEHICLE**; the next line is always a header (e.g. \u201cNUMBER     CAPACITY\u201d) and must be skipped, and the **following line** contains the two integer values (number of vehicles and vehicle capacity). Therefore, after finding \u201cVEHICLE\u201d, increment the line index twice before converting the line with `map(int, \u2026)`. This guarantees you never try to parse the header word \u201cNUMBER\u201d as an integer."
+ ],
+ "log": [
+  {
+   "round": 0,
+   "sheet": [],
+   "feasible": 1,
+   "reasons": [
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "re",
+    "ok",
+    "re",
+    "re",
+    "re",
+    "customers missing or repeated"
+   ]
+  },
+  {
+   "round": 1,
+   "candidates": [
+    [
+     4,
+     "In the Solomon instance format the line immediately after the word \u201cVEHICLE\u201d is a header line (e.g. \u201cNUMBER     CAPACITY\u201d) that does **not** contain numeric data; the actual vehicle numbers and capacity are on the next line. Your parser must skip this header line before converting the following line to integers."
+    ],
+    [
+     1,
+     "In the Solomon format the line immediately after the line that says `VEHICLE` is **always** a header line containing the words `NUMBER` and `CAPACITY`. The actual numbers of vehicles and vehicle capacity are on the **next** line, and that line consists of exactly two integer tokens separated by whitespace (no other text). Therefore, a correct parser must skip the header line before converting the following line with `int()` (or `map(int, \u2026)`)."
+    ]
+   ],
+   "kept": null,
+   "feasible": 1,
+   "target": "ValueError: invalid literal for int() with base N: '\u2026'",
+   "target_before": 7,
+   "target_after": [
+    7,
+    8
+   ]
+  },
+  {
+   "round": 2,
+   "candidates": [
+    [
+     3,
+     "In every Solomon benchmark file the line immediately following the line that contains the word \"VEHICLE\" is a header line (e.g. \"NUMBER     CAPACITY\") and does **not** contain the numeric values; the actual integer values for the number of vehicles and the vehicle capacity are on the next line after that header. Therefore, when parsing the file you must skip one line after the \"VEHICLE\" line before converting the next line to integers."
+    ],
+    [
+     3,
+     "When parsing the SOLomon instance, the line immediately after the line that says \"VEHICLE\" is a header containing the words \u201cNUMBER\u201d and \u201cCAPACITY\u201d.\u202fThat header must be skipped before reading the actual numeric values; the first line containing at least one digit after the header is the one with the two integers\u202f<number_of_vehicles>\u202fand\u202f<vehicle_capacity>.  Ensure your parser discards the header line (e.g., by checking that the line contains the word \u201cNUMBER\u201d or has no digits) before converting the next line to integers."
+    ]
+   ],
+   "kept": "In every Solomon benchmark file the line immediately following the line that contains the word \"VEHICLE\" is a header line (e.g. \"NUMBER     CAPACITY\") and does **not** contain the numeric values; the actual integer values for the number of vehicles and the vehicle capacity are on the next line after that header. Therefore, when parsing the file you must skip one line after the \"VEHICLE\" line before converting the next line to integers.",
+   "feasible": 3,
+   "target": "ValueError: invalid literal for int() with base N: '\u2026'",
+   "target_before": 7,
+   "target_after": [
+    2,
+    2
+   ]
+  },
+  {
+   "round": 3,
+   "candidates": [
+    [
+     0,
+     "When adding a time dimension with OR\u2011Tools, the third argument (`slack_max`) and the fourth argument (`capacity`) must be plain Python integers (or values that can be implicitly cast to `int64`). If you compute them as floats (e.g., by using the vehicle capacity directly from the file without converting) the call `routing.AddDimension(evaluator_index, slack_max, capacity, ...)` raises a `TypeError`.\u202fMake sure to cast both `slack_max` (usually 0) and the vehicle capacity to `int` before passing them to `AddDimension`."
+    ],
+    [
+     3,
+     "When calling `routing.AddDimension` the third argument (`slack_max`) must be an integer (int64). Pass a literal integer such as `0` (or any whole\u2011number bound) rather than a float, because OR\u2011Tools does not accept floating\u2011point values for this parameter. This also applies to the fourth argument (`capacity`) which must be an integer."
+    ]
+   ],
+   "kept": "When calling `routing.AddDimension` the third argument (`slack_max`) must be an integer (int64). Pass a literal integer such as `0` (or any whole\u2011number bound) rather than a float, because OR\u2011Tools does not accept floating\u2011point values for this parameter. This also applies to the fourth argument (`capacity`) which must be an integer.",
+   "feasible": 3,
+   "target": "TypeError: in method '\u2026', argument N of type '\u2026'",
+   "target_before": 4,
+   "target_after": [
+    10,
+    1
+   ]
+  },
+  {
+   "round": 4,
+   "candidates": [
+    [
+     0,
+     "Add a zero\u2011penalty disjunction for every customer (node\u202f1\u2026n\u20111) before solving, e.g.:\n\nfor i in range(1, manager.GetNumberOfNodes()):\n    routing.AddDisjunction([manager.NodeToIndex(i)], 0)\n\nThis forces the solver to include each customer exactly once, eliminating routes that miss or duplicate customers."
+    ],
+    [
+     2,
+     "When constructing the `RoutingIndexManager`, the first argument must be the total number of locations **including the depot** (i.e., `num_customers + 1`). If you pass only the number of customers (excluding the depot), the solver will never be able to assign the missing customer indices, resulting in routes that omit or duplicate customers. Use something like:"
+    ]
+   ],
+   "kept": "When constructing the `RoutingIndexManager`, the first argument must be the total number of locations **including the depot** (i.e., `num_customers + 1`). If you pass only the number of customers (excluding the depot), the solver will never be able to assign the missing customer indices, resulting in routes that omit or duplicate customers. Use something like:",
+   "feasible": 2,
+   "target": "infeasible: customers missing or repeated",
+   "target_before": 6,
+   "target_after": [
+    4,
+    2
+   ]
+  },
+  {
+   "round": 5,
+   "candidates": [
+    [
+     1,
+     "# After you locate the line that contains the word \"VEHICLE\", the very next line is a header\n# (e.g. \"NUMBER     CAPACITY\") and does **not** contain the numeric values.\n# The actual numbers for the number of vehicles and the vehicle capacity are on the\n# line **after** that header. Therefore, when parsing, do:\n\ni += 1               # skip the header line following \"VEHICLE\"\nnum_vehicles, vehicle_capacity = map(int, lines[i].split())"
+    ],
+    [
+     2,
+     "When reading a Solomon benchmark file, locate the line that contains the word **VEHICLE**; the next line is always a header (e.g. \u201cNUMBER     CAPACITY\u201d) and must be skipped, and the **following line** contains the two integer values (number of vehicles and vehicle capacity). Therefore, after finding \u201cVEHICLE\u201d, increment the line index twice before converting the line with `map(int, \u2026)`. This guarantees you never try to parse the header word \u201cNUMBER\u201d as an integer."
+    ]
+   ],
+   "kept": "When reading a Solomon benchmark file, locate the line that contains the word **VEHICLE**; the next line is always a header (e.g. \u201cNUMBER     CAPACITY\u201d) and must be skipped, and the **following line** contains the two integer values (number of vehicles and vehicle capacity). Therefore, after finding \u201cVEHICLE\u201d, increment the line index twice before converting the line with `map(int, \u2026)`. This guarantees you never try to parse the header word \u201cNUMBER\u201d as an integer.",
+   "feasible": 2,
+   "target": "ValueError: invalid literal for int() with base N: '\u2026'",
+   "target_before": 3,
+   "target_after": [
+    11,
+    0
+   ]
+  }
+ ],
+ "mining_tokens": 295328
+}

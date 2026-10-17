@@ -1,0 +1,243 @@
+Okay, I need to find the number of vertices in the convex hull of the given set of points. And points that lie on the edges (collinear) shouldn't be counted as vertices. Also, duplicates should be considered once. 
+
+First, I remember that the convex hull can be computed using algorithms like Graham's scan, Andrew's monotone chain algorithm, or Jarvis's march. But since I need to handle collinear points correctly, I need to make sure that points lying on the edges of the hull are not included as vertices.
+
+Looking at the helper functions provided, there's a polar_sort function which sorts points around a given origin. Also, there's the orient function which checks the direction of turn between three points. These might be useful for implementing a convex hull algorithm.
+
+Let me think about Andrew's monotone chain algorithm. It works by first sorting the points lex order (by x, then y), then building the lower and upper parts of the hull. However, during this process, colinear points that are in the middle of the line are removed. But how does that handle points that are on the edge? For example, if three points are colinear and lie on a hull edge, the middle one would be removed. But according to the problem statement, those should not be considered as vertices. So maybe the standard convex hull algorithm already takes care of that by not including them.
+
+But I need to make sure that when three points are colinear and part of the hull edge, the middle ones are excluded. So the standard algorithm should work here. Let me think about how the algorithm works. When constructing the hull, when you have three consecutive points that are colinear, the middle one is removed. Because when you push a new point onto the hull, you check if the last two points and the new one make a non-left turn. If they are colinear, then the previous point is removed, thus ensuring that colinear points on a line are not part of the hull.
+
+So, perhaps implementing Andrew's algorithm with proper handling of colinear points will give the correct convex hull vertices, excluding those on edges.
+
+So the steps would be:
+
+1. Remove duplicate points. Since the problem says duplicates count once. So first, process the input to have a set of unique points.
+
+2. Compute the convex hull of these unique points. The algorithm must eliminate collinear points that lie on the edges.
+
+So, let's think about writing code for Andrew's algorithm.
+
+First, the steps for Andrew's algorithm:
+
+- Sort the points by x-coordinate, and if tied, by y-coordinate.
+
+- Then, create the lower and upper parts:
+
+For the lower part, we process points from left to right. For each point, we check if the last two points in the lower part make a left turn. If not, we remove the previous point. Same for the upper part, but processing right to left.
+
+Once lower and upper parts are merged, we have the convex hull, but duplicates need to be removed (since the same point can be in lower and upper parts).
+
+Wait, but in Andrew's algorithm, the convex hull is the concatenation of the lower and upper parts, then deduplicating the first and last element (since the algorithm produces a closed loop).
+
+But how does that handle collinear points?
+
+Let me think. Suppose there are three points A, B, C, all colinear, and they are part of the convex hull. When building the lower hull, adding each point. When adding C, the last two points are B and then adding C. But when checking the turn between A, B, C, it's colinear. So the algorithm would remove B? Or perhaps not. Let me think about the actual condition.
+
+In Andrew's algorithm, when building the lower part, for each point in the sorted list, we add to the lower. If the last three points make a collinear or clockwise turn, the previous point is removed. So for three colinear points A, B, C, when adding C, the last three points would be (for example) previous point is B. The current point is C. The algorithm checks the cross product of the last two segments. If the cross product is <=0 (assuming that the hull is supposed to keep left turns), then remove the previous point.
+
+Wait, the cross product for three points a, b, c is the same as orient(b,a,c)? Or maybe orient(a,b,c)? The orient function returns (b.x -a.x)(c.y -a.y) - (b.y -a.y)(c.x -a.x). Which is the same as the z-component of the cross product of ab and ac. So the sign of orient(a,b,c) determines the orientation.
+
+In Andrew's algorithm, when building the lower hull, we check whether the sequence of the last two points and the new point makes a non-left turn. If it does, we add the point. Otherwise, we remove the previous point. 
+
+So, during the lower hull construction:
+
+lower = []
+for p in sorted_points:
+    if len(lower) >= 2 and cross(lower[-2], lower[-1], p) <= 0:
+        lower.pop()
+    lower.append(p)
+
+Similarly for upper hull, but reversed.
+
+The cross product here is the orient function. So, if cross is 0, then the three points are colinear. In that case, the condition is true (<=0), so the previous point is removed, and the new point is added. This would result in only the first and the last points remaining in such a case. Hence, collinear points on the same line (like along the lower or upper hull) would be removed except for the endpoints.
+
+Therefore, when using Andrew's algorithm with this condition, the convex hull will not include points that lie on the edges, which is exactly what the problem requires.
+
+Therefore, implementing Andrew's algorithm with this check should give the correct convex hull vertices, with collinear points excluded from being vertices.
+
+So, the plan is:
+
+- Read the input points, remove duplicates.
+
+- If there are less than 3 points, the convex hull is all points.
+
+- Otherwise, sort the points, compute lower and upper parts, merge them, then remove duplicates (since the first and last points will be present in both lower and upper parts).
+
+Once we have the convex hull vertices, we need to count them.
+
+Now, let's code this.
+
+First, code for removing duplicates. For example, put the points into a set (but since they are lists, perhaps tuples).
+
+Then, process the points.
+
+Implementing Andrew's algorithm.
+
+But first, the helper functions. However, the user provided some helper functions. However, for convex hull, perhaps there's no existing helper. So I need to code Andrew's algorithm.
+
+But let me check the provided functions. There's is_convex, which checks if a polygon is convex. But that's not directly helpful here.
+
+So, code:
+
+Read n, then n lines of x y. Convert to list of tuples, then deduplicate.
+
+Then, compute convex hull.
+
+Let me code the convex hull function.
+
+But code for Andrew's algorithm:
+
+def convex_hull(points):
+    # Remove duplicates
+    points = list(set(points))  # Wait, no, because tuples are not mutable. Wait, if they are stored as tuples, then yes. But in Python, when you have a list of tuples, converting to a set removes duplicates, then back to list.
+
+    if len(points) <= 1:
+        return points
+
+    # Sort the points
+    points = sorted(points)
+    # Compute lower and upper parts
+    lower = []
+    for p in points:
+        while len(lower) >= 2 and orient(lower[-2], lower[-1], p) <= 0:
+            lower.pop()
+        lower.append(p)
+    upper = []
+    for p in reversed(points):
+        while len(upper) >= 2 and orient(upper[-2], upper[-1], p) <= 0:
+            upper.pop()
+        upper.append(p)
+    # Combine lower and upper, remove duplicates (first and last)
+    full = lower[:-1] + upper[:-1]
+    return full
+
+Wait, but the orient function is provided as a helper. So in the code, I can use the orient function.
+
+But need to make sure that the orient function is available. The user provided the helper functions, which include orient. So in the code, I need to include that.
+
+But the code for convex_hull is to be written.
+
+Once we have full, which is the convex hull's vertices in order, but possibly with duplicates (if the lower and upper loops have the same points). But for example, the first point in lower is the same as the first in upper? Not sure.
+
+But Andrew's algorithm says that the full convex hull is lower + upper, but both lower and upper include their first and last point (which are the same, the first point in sorted list and last point in sorted list). So when combining, we need to take lower (without last element) and upper (without last element) to avoid duplication.
+
+Once we have full, the convex hull is formed, but may have duplicates?
+
+But the points were deduplicated before processing.
+
+Now, once I get the full list, that's the convex hull. However, there's a possibility that during the process, some colinear points are kept. Wait, no. Because during the lower and upper construction, any points that form a non-left turn (including colinear) are removed. So for example, three colinear points on a lower hull would result in only the first and last being kept.
+
+Once the convex hull is built, the length of the full list is the number of vertices.
+
+But let me test with the sample input.
+
+Sample input points:
+
+(20,-40), (-26,-18), (-18,-12), (-50,38), (-18,42), (58,16), (-30,-26), (6,58), (52,-36), (50,14)
+
+But I need to compute the convex hull.
+
+But perhaps the code can be written as follows:
+
+Read all points, remove duplicates, compute convex hull with Andrew's algorithm, then return the length of the resulting list.
+
+But let's think about the code.
+
+First, the code for reading input:
+
+n = int(input())
+points = []
+for _ in range(n):
+    x, y = map(int, input().split())
+    points.append( (x, y) )
+
+Then, deduplicate:
+
+points = list( set( points ) )
+
+But sets are unordered, but when converting to list again, the order is arbitrary. However, for convex hull, the order for Andrew's algorithm is based on sorted points, which will handle that.
+
+But then sorted(points) would sort them properly.
+
+Wait, but after converting to a set and back to a list, the order is arbitrary. But in the convex_hull function, we sort the points again. So that's okay.
+
+So, the code would proceed as:
+
+Once the points are deduped, sorted, etc.
+
+But then, the convex_hull function returns a list of points on the convex hull. The length of this list is the answer.
+
+But let me test with the sample input. But since I can't compute it by hand, perhaps I can code this.
+
+But how to handle the code? Let me code the convex_hull function as described, using the orient function provided.
+
+But first, I need to include the orient function. Let me check the provided helper functions:
+
+Yes, the code for orient is given as:
+
+def orient(a, b, c):            # >0 left turn, <0 right turn, 0 collinear (exact for integers)
+    return (b[0]-a[0])*(c[1]-a[1]) - (b[1]-a[1])*(c[1]-a[0])?
+
+Wait wait, no. Wait the code for orient is:
+
+return (b[0]-a[0])*(c[1]-a[1]) - (b[1]-a[1])*(c[0]-a[0])
+
+Yes. Because:
+
+orient(a, b, c) = (b.x -a.x)*(c.y -a.y) - (b.y -a.y)*(c.x -a.x)
+
+Which is the cross product of vectors AB and AC.
+
+Now, coding that into the Python code.
+
+So, putting it all together.
+
+But the problem says that the code must not compute by hand, but write a Python program that reads from stdin in the specified format and outputs the answer.
+
+So, the code must:
+
+- Read n, then n lines of x and y.
+
+- Deduplicate points.
+
+- Compute the convex hull with Andrew's algorithm, which removes collinear points on edges.
+
+- Output the number of vertices.
+
+Now, let me code this.
+
+But first, code the helper functions. The code must include the orient function and others as needed. However, for the convex hull, the code will need the orient function.
+
+But in the problem statement, the user says that I can copy the helper functions I use into the program unchanged. So, in the code, I need to include the orient function, and any others if needed.
+
+But for the convex hull code, the only helper needed is orient.
+
+So, putting all together:
+
+The code will:
+
+- Read input points.
+
+- Remove duplicates.
+
+- If there are 0 or 1 points, output 1 or 1 (but according to convex hull, 0 points? Well, the problem says that the input will be given as per the first line n. For n points, the convex hull will have ... Well, the problem's sample input has 10 points. So assuming n >= 3.
+
+But code needs to handle all possibilities.
+
+So, the code:
+
+Implement the convex_hull function as per Andrew's algorithm.
+
+Now, code:
+
+def orient(a, b, c):
+    return (b[0]-a[0])*(c[1]-a[1]) - (b[1]-a[1])*(c[0]-a[0])
+
+def convex_hull(points):
+    # Remove duplicates by converting to a set and back to list
+    points = list(set(points))
+    if len(points) == 0:
+        return 0
+    if len(points) <= 1:
+        return points

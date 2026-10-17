@@ -1,0 +1,187 @@
+{
+ "chain": "P",
+ "verified": [
+  "# OR\u2011Tools\u2019 RoutingModel.AddDimension expects the *slack_max* argument (the third\n# parameter) to be an integer (int64).  When using real\u2011valued time windows,\n# compute a sufficiently large horizon as an integer, e.g.:\n\nhorizon = int(max(c[\"due\"] for c in customers.values()) + 1000)  # convert to int\nrouting.AddDimension(\n    time_callback_index,\n    horizon,          # slack_max must be an int, not a float\n    horizon,          # capacity (max cumulative time) also int\n    True,\n    \"Time\"\n)\n\n# Always cast any floating\u2011point values used for the slack_max or capacity\n# parameters to int before passing them to AddDimension.",
+  "When constructing the OR\u2011Tools model, always create the RoutingIndexManager with the depot as both the start and end node for every vehicle, e.g.:",
+  "# OR\u2011Tools\u202fRoutingIndexManager has a three\u2011argument constructor:\n#   RoutingIndexManager(node_count, num_vehicles, depot_index)\n# Use this form (omit a fourth \u201cend\u201d argument); the depot index will be used as both start and end for every vehicle.",
+  "When parsing a Solomon benchmark file, the line immediately after the \u201cVEHICLE\u201d header (and similarly after the \u201cCUSTOMER\u201d header) is a column\u2011title line such as \u201cNUMBER     CAPACITY\u201d or \u201cCUST NO.   XCOORD. \u2026\u201d. These title lines must be skipped before converting fields to integers or floats; otherwise attempts like\u202fint(parts[0]) will raise a ValueError because the first token is the word \u201cNUMBER\u201d or \u201cCUST\u201d. Ensure your reader discards any line whose first token cannot be parsed as an integer before reading vehicle numbers, capacities, or customer data.",
+  "When calling\u202frouting.AddDimension\u202fin OR\u2011Tools, the third argument\u202fslack_max\u202fand the fourth argument\u202fcapacity\u202fmust be plain Python\u202fint\u202fvalues (not floats). Likewise, any transit callback used for a time dimension must return an\u202fint\u202f(e.g., distances or times scaled to integers). Ensure you convert all real\u2011valued travel times, service times, and horizon values to integers before passing them to\u202fAddDimension\u202for registering the callback.",
+  "When building the OR\u2011Tools model, never add a disjunction (routing.AddDisjunction) for the customer nodes unless you explicitly want them to be optional. Adding a disjunction with a finite penalty lets the solver drop those nodes, which produces routes that miss customers. Ensure every customer index is only added to the routing model via the manager and the demand/capacity dimensions, and omit any AddDisjunction calls for them so the solver is forced to visit each customer exactly once.",
+  "When adding a time dimension with `routing.AddDimension`, the third argument (`slack_max`) and the fourth argument (`capacity`) must be integer values (int64). Ensure any computed maximum time or vehicle capacity is cast to `int` before passing them to `AddDimension`; passing a float causes the TypeError shown in the failures.",
+  "When parsing the SOLomon instance, the lines that contain the column headers (e.g., \"NUMBER     CAPACITY\" in the VEHICLE section and \"CUST NO.    XCOORD.    YCOORD. \u2026\" in the CUSTOMER table) are not numeric and must be skipped before converting fields with `int()` or `float()`. A robust read routine should advance past any line whose first non\u2011space character is not a digit (or a minus sign) before attempting to cast the split tokens to numbers. This prevents `ValueError: invalid literal for int() with base 10: 'NUMBER'` and similar errors.",
+  "# Helper to safely fetch the next line that starts with a digit (or \u2018-\u2019) while staying within the file bounds.\ndef next_numeric_line(lines, start):\n    \"\"\"\n    Return (line, index) of the first line at or after *start* whose first\n    non\u2011space character is a digit or a minus sign. If no such line exists,\n    raise a clear RuntimeError instead of letting an IndexError propagate.\n    \"\"\"\n    i = start\n    while i < len(lines):\n        stripped = lines[i].lstrip()\n        if stripped and (stripped[0].isdigit() or stripped[0] == '-'):\n            return lines[i], i\n        i += 1\n    raise RuntimeError(\"Unexpected end of input while looking for numeric data\")",
+  "When reading the solution, always walk each vehicle\u2019s route with:",
+  "# After creating the time dimension, explicitly set the time\u2011window bounds for every node,\n# including the depot, otherwise the solver may ignore the due dates and produce infeasible routes.\n# Example (assuming `time_dim` is the dimension returned by AddDimension):\nfor idx, (ready, due) in enumerate(zip(ready_times, due_dates)):\n    time_dim.CumulVar(idx).SetRange(ready, due)   # enforce start\u2011of\u2011service window\n# Also set a sufficiently large horizon when adding the dimension (e.g. the maximum due date of all nodes)\nmax_horizon = max(due_dates)\nrouting.AddDimension(\n    travel_time_callback,               # transit callback (travel + service)\n    max_horizon,                        # slack max (large enough)\n    max_horizon,                        # vehicle maximum capacity (time)\n    False,                              # start cumul to zero\n    \"Time\")",
+  "In every Solomon benchmark file the line immediately following the line that contains the word \"VEHICLE\" is a header line (e.g. \"NUMBER     CAPACITY\") and does **not** contain the numeric values; the actual integer values for the number of vehicles and the vehicle capacity are on the next line after that header. Therefore, when parsing the file you must skip one line after the \"VEHICLE\" line before converting the next line to integers.",
+  "When calling `routing.AddDimension` the third argument (`slack_max`) must be an integer (int64). Pass a literal integer such as `0` (or any whole\u2011number bound) rather than a float, because OR\u2011Tools does not accept floating\u2011point values for this parameter. This also applies to the fourth argument (`capacity`) which must be an integer.",
+  "When constructing the `RoutingIndexManager`, the first argument must be the total number of locations **including the depot** (i.e., `num_customers + 1`). If you pass only the number of customers (excluding the depot), the solver will never be able to assign the missing customer indices, resulting in routes that omit or duplicate customers. Use something like:",
+  "When reading a Solomon benchmark file, locate the line that contains the word **VEHICLE**; the next line is always a header (e.g. \u201cNUMBER     CAPACITY\u201d) and must be skipped, and the **following line** contains the two integer values (number of vehicles and vehicle capacity). Therefore, after finding \u201cVEHICLE\u201d, increment the line index twice before converting the line with `map(int, \u2026)`. This guarantees you never try to parse the header word \u201cNUMBER\u201d as an integer.",
+  "When calling `routing.AddDimension` the third argument (`slack_max`) must be an **integer** (int64). Ensure that any value you pass there\u2014such as the maximum allowed waiting time or a large constant\u2014is cast to `int`, e.g.:",
+  "When adding a time dimension with `routing.AddDimension`, the third argument (`slack_max`) must be an integer (int64). Ensure any computed horizon or slack values are cast to `int` (e.g., `int(horizon)`) before passing them to `AddDimension`. This prevents the \u201cargument \u2026 of type 'int64_t'\u201d TypeError.",
+  "When adding the time dimension, set the \u201cslack_max\u201d (second argument) to a value at least as large as the maximum due date (e.g., the largest DUE DATE among all customers plus the longest possible travel time). Using a zero or too\u2011small slack forces the solver to treat early arrivals as infeasible, causing time\u2011window violations."
+ ],
+ "unverified": [
+  "In the Solomon instance format the line immediately after the line that reads \"VEHICLE\" is a header line containing the words \"NUMBER\" and \"CAPACITY\". The actual numeric values for the number of vehicles and their capacity are on the next non\u2011empty line. Therefore, when parsing, always skip one line after \"VEHICLE\" (the header) before converting the following line to integers.",
+  "# OR\u2011Tools\u2019 RoutingModel.AddDimension expects the *slack_max* argument (the third\n# parameter) to be an integer (int64).  When using real\u2011valued time windows,\n# compute a sufficiently large horizon as an integer, e.g.:\n\nhorizon = int(max(c[\"due\"] for c in customers.values()) + 1000)  # convert to int\nrouting.AddDimension(\n    time_callback_index,\n    horizon,          # slack_max must be an int, not a float\n    horizon,          # capacity (max cumulative time) also int\n    True,\n    \"Time\"\n)\n\n# Always cast any floating\u2011point values used for the slack_max or capacity\n# parameters to int before passing them to AddDimension.",
+  "# When adding the time dimension, use an integer horizon that is **at least**\n# the maximum due date **plus** the maximum possible travel time, and set the\n# slack (maximum cumulative time) to that same integer value. Then, after\n# creating the dimension, enforce each node\u2019s time window with the\n# CumulVar() bounds (converted to the same integer scale). This guarantees\n# that the solver can insert waiting time and never declares a route\n# infeasible solely because travel times are real\u2011valued but the dimension\n# limits are integer\u2011rounded.",
+  "When constructing the OR\u2011Tools model, always create the RoutingIndexManager with the depot as both the start and end node for every vehicle, e.g.:",
+  "# OR\u2011Tools\u202fRoutingIndexManager has a three\u2011argument constructor:\n#   RoutingIndexManager(node_count, num_vehicles, depot_index)\n# Use this form (omit a fourth \u201cend\u201d argument); the depot index will be used as both start and end for every vehicle.",
+  "When parsing a Solomon benchmark file, the line immediately after the \u201cVEHICLE\u201d header (and similarly after the \u201cCUSTOMER\u201d header) is a column\u2011title line such as \u201cNUMBER     CAPACITY\u201d or \u201cCUST NO.   XCOORD. \u2026\u201d. These title lines must be skipped before converting fields to integers or floats; otherwise attempts like\u202fint(parts[0]) will raise a ValueError because the first token is the word \u201cNUMBER\u201d or \u201cCUST\u201d. Ensure your reader discards any line whose first token cannot be parsed as an integer before reading vehicle numbers, capacities, or customer data.",
+  "When calling\u202frouting.AddDimension\u202fin OR\u2011Tools, the third argument\u202fslack_max\u202fand the fourth argument\u202fcapacity\u202fmust be plain Python\u202fint\u202fvalues (not floats). Likewise, any transit callback used for a time dimension must return an\u202fint\u202f(e.g., distances or times scaled to integers). Ensure you convert all real\u2011valued travel times, service times, and horizon values to integers before passing them to\u202fAddDimension\u202for registering the callback.",
+  "When building the OR\u2011Tools model, never add a disjunction (routing.AddDisjunction) for the customer nodes unless you explicitly want them to be optional. Adding a disjunction with a finite penalty lets the solver drop those nodes, which produces routes that miss customers. Ensure every customer index is only added to the routing model via the manager and the demand/capacity dimensions, and omit any AddDisjunction calls for them so the solver is forced to visit each customer exactly once.",
+  "When adding a time dimension with `routing.AddDimension`, the third argument (`slack_max`) and the fourth argument (`capacity`) must be integer values (int64). Ensure any computed maximum time or vehicle capacity is cast to `int` before passing them to `AddDimension`; passing a float causes the TypeError shown in the failures.",
+  "When parsing the SOLomon instance, the lines that contain the column headers (e.g., \"NUMBER     CAPACITY\" in the VEHICLE section and \"CUST NO.    XCOORD.    YCOORD. \u2026\" in the CUSTOMER table) are not numeric and must be skipped before converting fields with `int()` or `float()`. A robust read routine should advance past any line whose first non\u2011space character is not a digit (or a minus sign) before attempting to cast the split tokens to numbers. This prevents `ValueError: invalid literal for int() with base 10: 'NUMBER'` and similar errors.",
+  "# Helper to safely fetch the next line that starts with a digit (or \u2018-\u2019) while staying within the file bounds.\ndef next_numeric_line(lines, start):\n    \"\"\"\n    Return (line, index) of the first line at or after *start* whose first\n    non\u2011space character is a digit or a minus sign. If no such line exists,\n    raise a clear RuntimeError instead of letting an IndexError propagate.\n    \"\"\"\n    i = start\n    while i < len(lines):\n        stripped = lines[i].lstrip()\n        if stripped and (stripped[0].isdigit() or stripped[0] == '-'):\n            return lines[i], i\n        i += 1\n    raise RuntimeError(\"Unexpected end of input while looking for numeric data\")",
+  "When reading the solution, always walk each vehicle\u2019s route with:",
+  "# After creating the time dimension, explicitly set the time\u2011window bounds for every node,\n# including the depot, otherwise the solver may ignore the due dates and produce infeasible routes.\n# Example (assuming `time_dim` is the dimension returned by AddDimension):\nfor idx, (ready, due) in enumerate(zip(ready_times, due_dates)):\n    time_dim.CumulVar(idx).SetRange(ready, due)   # enforce start\u2011of\u2011service window\n# Also set a sufficiently large horizon when adding the dimension (e.g. the maximum due date of all nodes)\nmax_horizon = max(due_dates)\nrouting.AddDimension(\n    travel_time_callback,               # transit callback (travel + service)\n    max_horizon,                        # slack max (large enough)\n    max_horizon,                        # vehicle maximum capacity (time)\n    False,                              # start cumul to zero\n    \"Time\")",
+  "In every Solomon benchmark file the line immediately following the line that contains the word \"VEHICLE\" is a header line (e.g. \"NUMBER     CAPACITY\") and does **not** contain the numeric values; the actual integer values for the number of vehicles and the vehicle capacity are on the next line after that header. Therefore, when parsing the file you must skip one line after the \"VEHICLE\" line before converting the next line to integers.",
+  "When calling `routing.AddDimension` the third argument (`slack_max`) must be an integer (int64). Pass a literal integer such as `0` (or any whole\u2011number bound) rather than a float, because OR\u2011Tools does not accept floating\u2011point values for this parameter. This also applies to the fourth argument (`capacity`) which must be an integer.",
+  "When constructing the `RoutingIndexManager`, the first argument must be the total number of locations **including the depot** (i.e., `num_customers + 1`). If you pass only the number of customers (excluding the depot), the solver will never be able to assign the missing customer indices, resulting in routes that omit or duplicate customers. Use something like:",
+  "When reading a Solomon benchmark file, locate the line that contains the word **VEHICLE**; the next line is always a header (e.g. \u201cNUMBER     CAPACITY\u201d) and must be skipped, and the **following line** contains the two integer values (number of vehicles and vehicle capacity). Therefore, after finding \u201cVEHICLE\u201d, increment the line index twice before converting the line with `map(int, \u2026)`. This guarantees you never try to parse the header word \u201cNUMBER\u201d as an integer.",
+  "When calling `routing.AddDimension` the third argument (`slack_max`) must be an **integer** (int64). Ensure that any value you pass there\u2014such as the maximum allowed waiting time or a large constant\u2014is cast to `int`, e.g.:",
+  "When parsing the SOLomon instance, the line that contains the word \u201cNUMBER\u201d is a header and must be skipped; the actual vehicle data are on the **next** non\u2011empty line. So after reading the line with \u201cVEHICLE\u201d (or after the line \u201cNUMBER     CAPACITY\u201d), advance the index past any lines that start with \u201cNUMBER\u201d or are empty before calling `map(int, line.split())` on the vehicle line. This prevents attempting to convert the header string \u201cNUMBER\u201d to an integer.",
+  "When parsing the Solomon instance, the line containing the vehicle data is preceded by a header line whose first token is the word \"NUMBER\". Skip any line whose first token equals \"NUMBER\" (or is empty) before converting the next line\u2019s two tokens to integers for the number of vehicles and their capacity. This prevents trying to cast the header word \u201cNUMBER\u201d to int.",
+  "When adding a time dimension with `routing.AddDimension`, the third argument (`slack_max`) must be an integer (int64). Ensure any computed horizon or slack values are cast to `int` (e.g., `int(horizon)`) before passing them to `AddDimension`. This prevents the \u201cargument \u2026 of type 'int64_t'\u201d TypeError.",
+  "When adding the time dimension, set the \u201cslack_max\u201d (second argument) to a value at least as large as the maximum due date (e.g., the largest DUE DATE among all customers plus the longest possible travel time). Using a zero or too\u2011small slack forces the solver to treat early arrivals as infeasible, causing time\u2011window violations."
+ ],
+ "log": [
+  {
+   "pool": 22,
+   "feasible": 3
+  },
+  {
+   "fact": 10,
+   "without": 2,
+   "dropped": false,
+   "feasible": 3
+  },
+  {
+   "fact": 20,
+   "without": 2,
+   "dropped": false,
+   "feasible": 3
+  },
+  {
+   "fact": 18,
+   "without": 3,
+   "dropped": true,
+   "feasible": 3
+  },
+  {
+   "fact": 6,
+   "without": 0,
+   "dropped": false,
+   "feasible": 3
+  },
+  {
+   "fact": 0,
+   "without": 4,
+   "dropped": true,
+   "feasible": 4
+  },
+  {
+   "fact": 19,
+   "without": 4,
+   "dropped": true,
+   "feasible": 4
+  },
+  {
+   "fact": 11,
+   "without": 3,
+   "dropped": false,
+   "feasible": 4
+  },
+  {
+   "fact": 2,
+   "without": 6,
+   "dropped": true,
+   "feasible": 6
+  },
+  {
+   "fact": 3,
+   "without": 1,
+   "dropped": false,
+   "feasible": 6
+  },
+  {
+   "fact": 9,
+   "without": 0,
+   "dropped": false,
+   "feasible": 6
+  },
+  {
+   "fact": 5,
+   "without": 2,
+   "dropped": false,
+   "feasible": 6
+  },
+  {
+   "fact": 7,
+   "without": 3,
+   "dropped": false,
+   "feasible": 6
+  },
+  {
+   "fact": 4,
+   "without": 4,
+   "dropped": false,
+   "feasible": 6
+  },
+  {
+   "fact": 17,
+   "without": 4,
+   "dropped": false,
+   "feasible": 6
+  },
+  {
+   "fact": 14,
+   "without": 4,
+   "dropped": false,
+   "feasible": 6
+  },
+  {
+   "fact": 21,
+   "without": 2,
+   "dropped": false,
+   "feasible": 6
+  },
+  {
+   "fact": 15,
+   "without": 3,
+   "dropped": false,
+   "feasible": 6
+  },
+  {
+   "fact": 16,
+   "without": 0,
+   "dropped": false,
+   "feasible": 6
+  },
+  {
+   "fact": 8,
+   "without": 5,
+   "dropped": false,
+   "feasible": 6
+  },
+  {
+   "fact": 1,
+   "without": 3,
+   "dropped": false,
+   "feasible": 6
+  },
+  {
+   "fact": 13,
+   "without": 2,
+   "dropped": false,
+   "feasible": 6
+  },
+  {
+   "fact": 12,
+   "without": 4,
+   "dropped": false,
+   "feasible": 6
+  }
+ ],
+ "mining_tokens": 723561,
+ "chain_tokens": 1856128
+}

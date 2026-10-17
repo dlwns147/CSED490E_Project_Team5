@@ -1,0 +1,281 @@
+LEXICAL_DONE
+L70DIS_DONE
+L70HELD_DONE
+L8DIS_DONE
+THINKDIS_DONE
+R1_DONE
+THINKDIS2_DONE
+Q17DIS_DONE
+Q17THINK_DONE
+DIS8MR_DONE
+HELDTHINK_DONE
+OVERLAP_DONE
+watcher: stopped queue_budget.sh after 8B (Mon Oct 12 01:22:22 UTC 2026)
+LOGIT_DONE
+BUDGET2_DONE
+REVIEW2_DONE
+fp8kv failed to start
+fp8both failed to start
+EFF_DONE
+REVIEW3_DONE
+REVIEW6_DONE
+COBUDGET_DONE
+T7SIGN_DONE
+REAL_DONE
+T7LLAMA_DONE
+T7BUD14_DONE
+T7BUD_DONE
+CVRP_DONE
+CVRPLLAMA_DONE
+SIGNTHINK_DONE
+E4SIM14_DONE
+E4SIM_DONE
+RAG_DONE
+SELFHINT_DONE
+E5GEN_DONE
+E5TRAIN_clean_DONE
+E5TRAIN_mixed_DONE
+E5_DONE
+E5LOTO_DONE
+REPL_DONE
+E5CGEN_DONE
+E5C_DONE
+E5D_DONE
+E5E_DONE
+OSS_DONE
+OSSRAG_DONE
+OSSHIGH_DONE
+OSSFIX2_DONE
+OSS20S2_DONE
+OSSFIX_DONE
+CLIP_DONE
+CLIP2_DONE
+VRPTW_DONE
+VRPTW2_DONE
+S2_VRPTW lane oss20low done Tue Oct 13 11:43:13 UTC 2026
+S2_VRPTW lane q32b done Tue Oct 13 11:55:28 UTC 2026
+S2_VRPTW lane l70 done Tue Oct 13 11:56:11 UTC 2026
+S2_VRPTW lane oss120low done Tue Oct 13 11:56:51 UTC 2026
+S2_E2 lane oss20low done Tue Oct 13 11:58:47 UTC 2026
+S2_VRPTW lane oss20med done Tue Oct 13 11:59:52 UTC 2026
+S2_E2 lane 32b done Tue Oct 13 12:00:58 UTC 2026
+S2_VRPTW lane oss120med done Tue Oct 13 12:02:22 UTC 2026
+S2_VRPTW_DONE
+S2_C1 8b done Tue Oct 13 12:02:51 UTC 2026
+S2_E2 lane 8b done Tue Oct 13 12:03:01 UTC 2026
+S2_E2_DONE
+S2_E4 data done Tue Oct 13 12:03:40 UTC 2026
+S2_E4 data2 done Tue Oct 13 12:10:58 UTC 2026
+S2_E4 eval A done Tue Oct 13 12:11:53 UTC 2026
+S2_F3x done Tue Oct 13 12:20:02 UTC 2026
+S2_E4 eval B done Tue Oct 13 12:43:24 UTC 2026
+S2_E4 eval C done Tue Oct 13 12:43:50 UTC 2026
+S2_E3 runs done Tue Oct 13 12:55:09 UTC 2026
+S2_C1 32b done Tue Oct 13 12:59:21 UTC 2026
+S2_E2x done Tue Oct 13 13:49:58 UTC 2026
+S2_E3B brute done Tue Oct 13 16:22:40 UTC 2026
+S2_B1 data done Tue Oct 13 17:31:14 UTC 2026
+S2_B2 selfsft data done Tue Oct 13 17:49:06 UTC 2026
+S2_B2 eval Aprime done Tue Oct 13 17:56:00 UTC 2026
+S2_B2 eval wise0.75 done Tue Oct 13 17:59:58 UTC 2026
+S2_B2 eval wise0.5 done Tue Oct 13 18:01:51 UTC 2026
+S2_B2 eval wise0.25 done Tue Oct 13 18:03:12 UTC 2026
+S2_B2 eval sdft done Tue Oct 13 18:05:49 UTC 2026
+S2_B2 eval selfsft done Tue Oct 13 18:06:38 UTC 2026
+S2_B3 runs done Tue Oct 13 18:40:13 UTC 2026
+S2_F3y done Tue Oct 13 19:54:40 UTC 2026
+S2_B4 runs done Tue Oct 13 19:55:55 UTC 2026
+S2_E4b base done Tue Oct 13 21:31:19 UTC 2026
+S2_E4b eval A5 done Tue Oct 13 21:43:36 UTC 2026
+S2_E4b eval B5 done Tue Oct 13 21:43:58 UTC 2026
+S2_E4b eval C5 done Tue Oct 13 21:44:17 UTC 2026
+S2_E4b eval r1B5 done Tue Oct 13 22:43:55 UTC 2026
+S2_E4b eval r1C5 done Tue Oct 13 22:44:05 UTC 2026
+S2_B2 eval r1B done Tue Oct 13 22:44:49 UTC 2026
+S2_B2 eval r1C done Tue Oct 13 22:45:06 UTC 2026
+S2_L1 runs done Tue Oct 13 23:33:05 UTC 2026
+S2_L2 runs done Wed Oct 14 00:32:33 UTC 2026
+S2_MX lane 32b s2 done Wed Oct 14 01:36:09 UTC 2026
+S2_MX lane 32b s1 done Wed Oct 14 01:36:54 UTC 2026
+S2_MX lane 8b s2 done Wed Oct 14 01:42:43 UTC 2026
+S2_MX lane 8b s1 done Wed Oct 14 01:43:03 UTC 2026
+S2_MX_DONE
+S2_M5 lane 8b s2 done Wed Oct 14 02:33:42 UTC 2026
+S2_M5 lane 8b s1 done Wed Oct 14 02:33:50 UTC 2026
+S2_M5 lane 32b s1 done Wed Oct 14 02:37:18 UTC 2026
+S2_M5 lane 32b s2 done Wed Oct 14 02:37:21 UTC 2026
+S2_M5_DONE
+S2_H1 runs done Wed Oct 14 03:42:24 UTC 2026
+S2_H2 runs done Wed Oct 14 05:27:53 UTC 2026
+S2_H2b runs done Wed Oct 14 05:37:28 UTC 2026
+S2_H2c queued Wed Oct 14 06:38:34 UTC 2026
+S2_H3 queued (starts per server after its H2c lanes) Wed Oct 14 06:49:13 UTC 2026
+S2_H3 relaunched with the input example (amendment in PREREG_H3.md) Wed Oct 14 08:20:50 UTC 2026
+S2_H3b queued (old H3 queue stopped; its 8043 lanes are folded in) Wed Oct 14 09:31:35 UTC 2026
+S2_N queued (N1 MEA gen, N2 repair; full-thinking seeds 2-3 stopped) Wed Oct 14 09:38:32 UTC 2026
+S2_H2c runs done Wed Oct 14 09:46:30 UTC 2026
+S2_N runs done Wed Oct 14 10:06:51 UTC 2026
+S2_H3c+N2b queued; 8041 Qwen stopped, 8044 gpt-oss-120b on GPU1 (PID 3564475) Wed Oct 14 10:43:23 UTC 2026
+S2_H4 queued (helpers on real contest geometry) Wed Oct 14 11:32:36 UTC 2026
+S2_H3c runs done Wed Oct 14 11:41:42 UTC 2026
+S2_H3b runs done Wed Oct 14 11:51:33 UTC 2026
+S2_H4 runs done Wed Oct 14 11:56:02 UTC 2026
+S2_FM queued; 8040 Qwen (GPU0) stopped, unused Wed Oct 14 12:31:05 UTC 2026
+S2_FM runs done Wed Oct 14 13:21:48 UTC 2026
+S2_FM2 queued; 8042 gpt-oss-20b (GPU2) stopped, unused Wed Oct 14 13:30:11 UTC 2026
+S2_FM2 runs done Wed Oct 14 14:10:56 UTC 2026
+S2_FM2r queued (chains E-H) Wed Oct 14 14:15:35 UTC 2026
+S2_FM2g queued (20b transfer + self-mining; 8042 PID 3622670) Wed Oct 14 14:30:46 UTC 2026
+S2_H5 queued (job-shop; 8045 gpt-oss-120b GPU0 PID 3625710) Wed Oct 14 14:33:52 UTC 2026
+S2_FM2g runs done Wed Oct 14 14:47:57 UTC 2026
+S2_H5 runs done Wed Oct 14 14:51:20 UTC 2026
+S2_FM2r runs done Wed Oct 14 15:12:25 UTC 2026
+S2_FM3 queued (pool + prune) Wed Oct 14 15:31:15 UTC 2026
+8042 (20b, GPU2) and 8045 (120b, GPU0) stopped: no run uses them Wed Oct 14 15:31:22 UTC 2026
+S2_H5 rescore done Wed Oct 14 15:39:10 UTC 2026
+S2_FM3 runs done Wed Oct 14 16:31:19 UTC 2026
+S2_H4b queued; 8043 stopped, 8042 gpt-oss-20b restarted GPU2 PID 3728230 Wed Oct 14 16:33:32 UTC 2026
+S2_H4b runs done Wed Oct 14 17:42:48 UTC 2026
+S2_H6 queued (Qwen3.8-27B-FP8: 8046 GPU0 PID 3849360, 8047 GPU3 PID 3855234; 8042/8044 stopped) Wed Oct 14 17:58:11 UTC 2026
+S2_H6 re-queued on four Qwen3.8 servers (8048 GPU1 PID 3890070, 8049 GPU2 PID 3891712) Wed Oct 14 18:32:40 UTC 2026
+S2_N5 (q38) queued Wed Oct 14 18:59:32 UTC 2026
+S2_V2 q38_plain started on 8049 Wed Oct 14 19:29:30 UTC 2026
+S2_N5 q38 runs done Wed Oct 14 19:47:31 UTC 2026
+S2_H6 runs done Wed Oct 14 20:20:09 UTC 2026
+S2_V2N5b queued (8042 20b GPU1 PID 4016887, 8043 120b GPU3 PID 4015457; 8047/8048 Qwen3.8 stopped) Wed Oct 14 20:37:34 UTC 2026
+S2_V3N6 queued Wed Oct 14 21:32:22 UTC 2026
+S2_V3N6 runs done Wed Oct 14 22:06:04 UTC 2026
+S2_V2N5b runs done Wed Oct 14 22:45:17 UTC 2026
+S2_N6r queued Wed Oct 14 22:49:19 UTC 2026
+S2_H6c queued (Qwen3.8 28k cap) Wed Oct 14 22:51:05 UTC 2026
+S2_N6r runs done Wed Oct 14 23:22:30 UTC 2026
+S2_V1s queued Wed Oct 14 23:29:23 UTC 2026
+8043 gpt-oss-120b (GPU3) stopped: no run uses it Wed Oct 14 23:29:31 UTC 2026
+S2_V1s runs done Wed Oct 14 23:51:52 UTC 2026
+8046 Qwen3.8 (GPU0) and 8042 gpt-oss-20b (GPU1) stopped: no run uses them Thu Oct 15 00:28:59 UTC 2026
+S2_D1 queued (Qwen3-8B LoRA on contest programs; GPUs 0, 1, 3) Thu Oct 15 00:30:58 UTC 2026
+S2_D1 runs done Thu Oct 15 00:45:58 UTC 2026
+S2_D1b queued Thu Oct 15 01:30:10 UTC 2026
+S2_D1b runs done Thu Oct 15 01:41:54 UTC 2026
+S2_H6c runs done Thu Oct 15 01:56:01 UTC 2026
+S2_D1E queued (rewrite fixed) Thu Oct 15 02:29:07 UTC 2026
+8049 Qwen3.8 (GPU2) stopped: H6c done Thu Oct 15 02:29:07 UTC 2026
+S2_D1E runs done Thu Oct 15 02:50:40 UTC 2026
+S2_D2 queued Thu Oct 15 03:29:11 UTC 2026
+S2_D2 runs done Thu Oct 15 03:50:55 UTC 2026
+S2_D3 queued Thu Oct 15 04:29:43 UTC 2026
+S2_D3 runs done Thu Oct 15 04:49:45 UTC 2026
+S2_V1A queued Thu Oct 15 05:42:16 UTC 2026
+S2_V1A runs done Thu Oct 15 05:52:23 UTC 2026
+S2_H6d queued Thu Oct 15 06:49:43 UTC 2026
+S2_N2m queued Thu Oct 15 07:28:59 UTC 2026
+S2_N2m runs done Thu Oct 15 07:34:33 UTC 2026
+S2_H6d runs done Thu Oct 15 07:48:09 UTC 2026
+S2_V1c queued (Qwen3-32B candidates, GPU0) Thu Oct 15 08:28:40 UTC 2026
+S2_V1c generation done Thu Oct 15 08:39:31 UTC 2026
+S2_H2d queued (gpt-oss-120b high, GPUs 0-2) Thu Oct 15 11:28:41 UTC 2026
+S2_H2d runs done Thu Oct 15 14:23:03 UTC 2026
+S2_H2e queued (120b high 64k, sharded GPUs 0-2) Thu Oct 15 14:29:04 UTC 2026
+S2_H2e runs done Thu Oct 15 16:20:23 UTC 2026
+S2_H2e replication queued (seeds 2-3, GPUs 0-3) Thu Oct 15 17:28:37 UTC 2026
+S2_H2e replication done Thu Oct 15 20:14:32 UTC 2026
+S2_F2R queued Thu Oct 15 20:32:57 UTC 2026
+S2_F2R runs done Thu Oct 15 21:21:47 UTC 2026
+S2_N9H7 queued Fri Oct 16 07:58:13 UTC 2026
+S2_N10 queued (Qwen3-32B-AWQ fix-menu factorial, GPUs 1+3) Fri Oct 16 08:34:13 UTC 2026
+S2_N9H7 runs done Fri Oct 16 08:34:28 UTC 2026
+S2_N9R queued (N9 seeds 2-3, gpt-oss-120b, GPUs 0+2) Fri Oct 16 08:36:19 UTC 2026
+S2_N10 runs done Fri Oct 16 08:58:30 UTC 2026
+S2_N10b queued (LLM router, GPU1) Fri Oct 16 09:02:11 UTC 2026
+S2_N9R runs done Fri Oct 16 09:03:03 UTC 2026
+S2_N10b (LLM router) done Fri Oct 16 09:03:48 UTC 2026
+S2_N10m2 queued (gpt-oss-20b factorial, GPUs 0+2) Fri Oct 16 09:06:37 UTC 2026
+S2_N10m3 queued (Qwen3.6-35B-A3B factorial, GPUs 1+3) Fri Oct 16 09:07:07 UTC 2026
+S2_N10m2 runs done Fri Oct 16 09:11:30 UTC 2026
+S2_N12R queued (Qwen3-32B seeds 2-3 of none/think/rag3, GPUs 0+2) Fri Oct 16 09:31:12 UTC 2026
+S2_N10m3 runs done Fri Oct 16 09:32:33 UTC 2026
+S2_N10m3t queued (Qwen3.6 thinking re-run at 48k, GPUs 1+3) Fri Oct 16 09:34:32 UTC 2026
+S2_N14 waiter armed (starts after S2_N12R) Fri Oct 16 10:06:25 UTC 2026
+S2_N12R runs done Fri Oct 16 10:06:56 UTC 2026
+S2_N10m3t (thinking re-run, 48k) done Fri Oct 16 10:23:09 UTC 2026
+S2_N14 started (GPUs 0+2) Fri Oct 16 10:30:06 UTC 2026
+S2_N14m2 queued (gpt-oss-20b N14 lane, GPU1, after its sources) Fri Oct 16 10:30:47 UTC 2026
+S2_N14 runs done Fri Oct 16 10:33:44 UTC 2026
+S2_N14b queued (adapt + snippet, GPUs 0+2) Fri Oct 16 10:35:16 UTC 2026
+S2_N14b runs done Fri Oct 16 10:38:24 UTC 2026
+S2_N14c queued (job-shop + release dates; gpt-oss-120b GPU0, Qwen3-32B GPU2) Fri Oct 16 10:42:18 UTC 2026
+S2_N14c runs done Fri Oct 16 10:54:40 UTC 2026
+S2_N14m2 runs done Fri Oct 16 10:56:58 UTC 2026
+S2_N14d queued (minimal-edit adaptation, Qwen3-32B GPU2) Fri Oct 16 11:29:36 UTC 2026
+S2_N14c2 queued (job-shop rung: gpt-oss-20b GPU1, Qwen3.6 GPU0) Fri Oct 16 11:30:06 UTC 2026
+S2_N14d runs done Fri Oct 16 11:35:11 UTC 2026
+S2_N14e queued (tard + flex rungs; Qwen3-32B GPU2, gpt-oss-120b GPU3; CPU refs) Fri Oct 16 11:36:35 UTC 2026
+S2_N14c2 runs done Fri Oct 16 11:51:12 UTC 2026
+S2_N14e runs done Fri Oct 16 12:01:33 UTC 2026
+S2_N15 queued (solver-library choice; GPUs 0-2) Fri Oct 16 12:30:07 UTC 2026
+S2_N15b queued (gpt-oss-120b, GPU3) Fri Oct 16 12:31:02 UTC 2026
+S2_N15b (gpt-oss-120b) runs done Fri Oct 16 12:44:40 UTC 2026
+S2_N15 runs done Fri Oct 16 12:46:07 UTC 2026
+S2_N15e queued (job-shop library choice, GPUs 0-3) Fri Oct 16 12:48:56 UTC 2026
+S2_N15e runs done Fri Oct 16 13:13:09 UTC 2026
+S2_REP3 queued (seed-3 replication of N15 + N14c, GPUs 0-3) Fri Oct 16 14:21:03 UTC 2026
+S2_REP3 runs done Fri Oct 16 14:34:31 UTC 2026
+S2_N16 queued (log-probs at API names vs execution trigger; GPUs 0-2) Fri Oct 16 14:36:26 UTC 2026
+S2_N16 runs done Fri Oct 16 14:44:17 UTC 2026
+S2_N14b2 queued (gpt-oss-20b VRPTW adapt + snippet, GPU0) Fri Oct 16 14:45:49 UTC 2026
+S2_N14b2 runs done Fri Oct 16 14:47:50 UTC 2026
+S2_P1 queued (prompt rewording, contest, GPUs 0-3) Fri Oct 16 15:29:51 UTC 2026
+S2_P1 runs done Fri Oct 16 16:09:34 UTC 2026
+S2_N18 queued (Qwen3.6 contest with log-probs, GPUs 0-2) Fri Oct 16 16:29:17 UTC 2026
+S2_N18 runs done Fri Oct 16 16:49:15 UTC 2026
+S2_N12M4 queued (Qwen3-8B geometry agreement gate, GPUs 0-2) Fri Oct 16 16:51:21 UTC 2026
+S2_N12M4 runs done Fri Oct 16 17:04:25 UTC 2026
+WRITING SESSION (f11fb1b1) claims GPUs 0,1 from 17:52 for the X-track (other kinds of math: X1 short-answer math, X2 optimization word problems, X3 Lean proofs; user 10-16 'keep testing on all others'). Experiment session: please use GPUs 2,3. Fri Oct 16 17:52:38 UTC 2026
+WRITING SESSION (f11fb1b1): X-track stopped by the user before any run; servers 8060 / 8061 stopped; GPUs 0,1 released to the experiment session Fri Oct 16 17:57:29 UTC 2026
+S2_X1 queued by the experiment session (short-answer math, PREREG_X1.md; GPUs 0-3) Fri Oct 16 18:01:35 UTC 2026
+S2_X2 waiter armed (GSM-Symbolic reuse; starts after S2_X1) Fri Oct 16 18:11:15 UTC 2026
+S2_U1 waiter armed (mechanism signatures + cures, starts after S2_X2) Fri Oct 16 18:23:54 UTC 2026
+X2 restarted now on GPUs 0+2 (was waiting for X1; GPUs 0/2 idle); U1 waiter re-armed to wait for X1 AND X2 Fri Oct 16 18:28:49 UTC 2026
+S2_X2 started Fri Oct 16 18:28:49 UTC 2026
+S2_X3 waiter armed (word problems -> optimization models; starts after S2_X2 on GPUs 0+2) Fri Oct 16 18:38:41 UTC 2026
+U1 waiter re-armed to wait for X1 AND X3 (user priority: diverse math first) Fri Oct 16 18:38:54 UTC 2026
+S2_X2 runs done Fri Oct 16 18:42:40 UTC 2026
+S2_X3 started Fri Oct 16 18:42:41 UTC 2026
+S2_X2b queued (X2 solver re-run after an int-id crash; GPU2) Fri Oct 16 19:06:48 UTC 2026
+S2_X2b (solver re-run) done Fri Oct 16 19:17:33 UTC 2026
+S2_X4a queued (miniF2F, gpt-oss-20b, GPU2 + CPU Lean checks) Fri Oct 16 19:30:02 UTC 2026
+S2_X4a (gpt-oss-20b miniF2F) done Fri Oct 16 19:55:56 UTC 2026
+S2_X4b queued (miniF2F feedback round + Qwen3-32B with log-probs, GPU2) Fri Oct 16 20:29:45 UTC 2026
+S2_X4c queued (miniF2F feedback with similar existing names, GPU2) Fri Oct 16 21:29:42 UTC 2026
+S2_X4b (gpt-oss fix round + Qwen3-32B miniF2F) done Fri Oct 16 21:34:36 UTC 2026
+S2_X3 runs done Fri Oct 16 21:40:41 UTC 2026
+S2_X4c (miniF2F fact feedback) done Fri Oct 16 21:44:09 UTC 2026
+S2_X4d queued (Qwen3.6 miniF2F with log-probs, GPU2) Fri Oct 16 21:44:39 UTC 2026
+S2_U1 launched directly on GPUs 0, 2, 3 (q32b, q36, q8b) Fri Oct 16 22:28:42 UTC 2026
+S2_U1 started Fri Oct 16 22:28:42 UTC 2026
+S2_U1 q8b lane started (port 8056, GPU3) Fri Oct 16 22:29:27 UTC 2026
+S2_X4d (Qwen3.6 miniF2F with log-probs) done Fri Oct 16 22:31:33 UTC 2026
+S2_U1 q8b lane done Fri Oct 16 23:51:28 UTC 2026
+S2_U1 runs done Fri Oct 16 23:51:30 UTC 2026
+S2_X1 runs done Fri Oct 16 23:51:30 UTC 2026
+S2 re-run of lost thinking arms queued (U1 GPUs 0/2/3, X1 Qwen3-32B GPU1) after all servers died 2026-10-16 23:51:25 Sat Oct 17 00:29:42 UTC 2026
+S2_U1 think re-run q8b done Sat Oct 17 02:25:38 UTC 2026
+S2_U1 think re-run q36 done Sat Oct 17 02:25:39 UTC 2026
+S2_X1 q32b thinking re-run done Sat Oct 17 02:25:51 UTC 2026
+S2_U1 think re-run q32b done Sat Oct 17 02:54:03 UTC 2026
+S2 resumable thinking re-run queued (U1 GPUs 0/2/3, X1 GPU1; up to 6 attempts each) Sat Oct 17 02:55:37 UTC 2026
+S2_U1 think q8b: geo 108/108, co 100/100 Sat Oct 17 03:21:52 UTC 2026
+S2_X5 queued (PopQA views, Qwen3-8B, GPU3) Sat Oct 17 03:24:35 UTC 2026
+S2_X5 (PopQA views, Qwen3-8B) done Sat Oct 17 03:29:45 UTC 2026
+S2_X5b queued (PopQA views, Qwen3.6, GPU3) Sat Oct 17 03:31:00 UTC 2026
+S2_U1 think q32b: geo 108/108, co 100/100 Sat Oct 17 03:33:25 UTC 2026
+S2_U1 think q36: geo 108/108, co 100/100 Sat Oct 17 03:46:26 UTC 2026
+S2_X5b (PopQA views, Qwen3.6) done Sat Oct 17 03:55:22 UTC 2026
+S2_U1r queued (U1 cure arms seeds 2-3; GPUs 0, 2, 3) Sat Oct 17 04:33:06 UTC 2026
+NOTE (experiment session 04:34): U1r is running on GPUs 0, 2, 3 (queue_s2_u1r.sh); GPU1 = X1 q32b thinking re-run. Please do not start servers on GPUs 0-3 without checking this log. Sat Oct 17 04:34:05 UTC 2026
+S2_U1r q8b done (416/416 think rows) Sat Oct 17 05:20:04 UTC 2026
+S2_U2 queued (retrieved-fact geometry arm, GPU3; experiment session) Sat Oct 17 05:36:07 UTC 2026
+S2_X6 queued by hourly-cron session (Qwen3-32B thinkf on X3, GPU3 port 8062; PREREG_X3.md X6) Sat Oct 17 05:36:55 UTC 2026
+CORRECTION (hourly-cron session): S2_X6 does NOT use GPU3 (U2 took it at 05:36); X6 waits for the X1 q32b re-run to free GPU1 Sat Oct 17 05:37:09 UTC 2026
+NOTE: experiment session stopped by the user (05:37 UTC, hourly cron b5f2cb76 deleted). Still running detached, owned by nobody now: U1r q32b (GPU0) / q36 (GPU2), X1 q32b think (GPU1), U2 retrieved-fact arm (GPU3); analysis steps in HANDOFF STATUS 05:36. Sat Oct 17 05:37:14 UTC 2026
+S2_U1r q32b done (416/416 think rows) Sat Oct 17 05:45:31 UTC 2026

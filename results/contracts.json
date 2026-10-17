@@ -1,0 +1,90 @@
+{
+ "orient": {
+  "relations": {
+   "translation": "unchanged",
+   "rotation": "unchanged",
+   "mirroring the input (x -> -x)": "negated",
+   "swapping b and c": "negated"
+  },
+  "statement": "probe-verified: mirroring the input (x -> -x) negates the result; swapping b and c negates the result; translation and rotation leave it unchanged"
+ },
+ "on_segment": {
+  "relations": {
+   "translation": "unchanged",
+   "rotation": "unchanged",
+   "mirroring the input (x -> -x)": "unchanged",
+   "swapping b and p": "unchanged"
+  },
+  "statement": null
+ },
+ "segments_intersect": {
+  "relations": {
+   "translation": "unchanged",
+   "rotation": "unchanged",
+   "mirroring the input (x -> -x)": "unchanged",
+   "swapping b and c": "changes"
+  },
+  "statement": "probe-verified: swapping b and c changes the result; translation and rotation and mirroring the input (x -> -x) leave it unchanged"
+ },
+ "point_in_polygon": {
+  "relations": {
+   "translation": "unchanged",
+   "rotation": "unchanged",
+   "mirroring the input (x -> -x)": "unchanged",
+   "reversing the vertex order": "unchanged"
+  },
+  "statement": null
+ },
+ "dist2": {
+  "relations": {
+   "translation": "unchanged",
+   "rotation": "unchanged",
+   "mirroring the input (x -> -x)": "unchanged"
+  },
+  "statement": null
+ },
+ "collinear": {
+  "relations": {
+   "translation": "unchanged",
+   "rotation": "unchanged",
+   "mirroring the input (x -> -x)": "unchanged",
+   "swapping b and c": "unchanged"
+  },
+  "statement": null
+ },
+ "is_convex": {
+  "relations": {
+   "translation": "unchanged",
+   "rotation": "unchanged",
+   "mirroring the input (x -> -x)": "unchanged",
+   "reversing the vertex order": "unchanged"
+  },
+  "statement": null
+ },
+ "polygon_area2": {
+  "relations": {
+   "translation": "unchanged",
+   "rotation": "unchanged",
+   "mirroring the input (x -> -x)": "negated",
+   "reversing the vertex order": "negated"
+  },
+  "statement": "probe-verified: mirroring the input (x -> -x) negates the result; reversing the vertex order negates the result; translation and rotation leave it unchanged"
+ },
+ "closest_pair_sq": {
+  "relations": {
+   "translation": "unchanged",
+   "rotation": "unchanged",
+   "mirroring the input (x -> -x)": "unchanged"
+  },
+  "statement": null
+ },
+ "in_circle": {
+  "relations": {
+   "translation": "unchanged",
+   "rotation": "unchanged",
+   "mirroring the input (x -> -x)": "negated",
+   "swapping b and c": "negated"
+  },
+  "statement": "probe-verified: mirroring the input (x -> -x) negates the result; swapping b and c negates the result; translation and rotation leave it unchanged"
+ }
+}

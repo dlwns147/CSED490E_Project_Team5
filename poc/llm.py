@@ -1,0 +1,88 @@
+"""Thin OpenAI-compatible client (llama-server on CPU now, vLLM on GPU later — same code)."""
+import os
+import re
+from concurrent.futures import ThreadPoolExecutor
+
+from openai import OpenAI
+
+BASE_URL = os.environ.get("POC_BASE_URL", "http://127.0.0.1:8080/v1")
+client = OpenAI(base_url=BASE_URL, api_key="none", timeout=3600)
+EFFORT = os.environ.get("POC_REASONING_EFFORT")   # gpt-oss: low / medium / high (passed as reasoning_effort; other models ignore it)
+_EFF = {"reasoning_effort": EFFORT} if EFFORT else {}
+QEFF = os.environ.get("POC_TEMPLATE_EFFORT")   # Qwen3.6/3.8 templates: reasoning_effort in chat_template_kwargs (xhigh default | medium | low)
+_TK = {"reasoning_effort": QEFF} if QEFF else {}
+
+
+def chat(prompt: str, model: str = "local", temperature: float = 0.7, max_tokens: int = 1024,
+         system: str | None = None, think: bool = False, seed: int | None = None, prefill: str | None = None,
+         logprobs: bool = False, top_logprobs: int = 0) -> dict:
+    msgs = ([{"role": "system", "content": system}] if system else []) + [{"role": "user", "content": prompt}]
+    if prefill:  # assistant prefill (llama-server continues the message; vLLM: continue_final_message)
+        msgs.append({"role": "assistant", "content": prefill})
+    r = client.chat.completions.create(
+        model=model, messages=msgs, temperature=temperature, top_p=0.95 if temperature > 0 else 1.0,
+        max_tokens=max_tokens, seed=seed, **({"logprobs": True} if logprobs or top_logprobs else {}),
+        **({"top_logprobs": top_logprobs} if top_logprobs else {}),
+        extra_body={"chat_template_kwargs": {"enable_thinking": think, **_TK}, **_EFF,
+                    # vLLM needs these to continue an assistant prefill; llama-server ignores them
+                    **({"continue_final_message": True, "add_generation_prompt": False} if prefill else {})},
+    )
+    msg = r.choices[0].message
+    text = msg.content or ""
+    if prefill and not text.startswith(prefill):
+        text = prefill + text
+    if think and "</think>" not in text and r.choices[0].finish_reason == "length":
+        text = ""   # reasoning never closed: no final answer (2026-10-14: a code block inside truncated reasoning used to be taken)
+    elif "</think>" in text:
+        text = text.split("</think>")[-1]   # templates that open <think> in the prompt (Qwen3.5-arch models) emit only the closing tag
+    out = {"text": strip_think(text), "finish": r.choices[0].finish_reason,
+           "out_tokens": r.usage.completion_tokens, "in_tokens": r.usage.prompt_tokens}
+    if logprobs:   # raw-model log-probs of the sampled tokens (vLLM default logprobs_mode=raw_logprobs), for confidence analysis
+        lc = r.choices[0].logprobs.content or []
+        out.update(lp=[t.logprob for t in lc], lp_tok=[t.token for t in lc])
+    if top_logprobs:   # DeepConf-style token confidence: minus the mean log-prob of the top-k candidates at each position
+        lc = r.choices[0].logprobs.content or []
+        out.update(lp=[t.logprob for t in lc], lp_tok=[t.token for t in lc],
+                   ctop=[-sum(x.logprob for x in t.top_logprobs) / max(1, len(t.top_logprobs)) for t in lc])
+    return out
+
+
+def strip_think(t: str) -> str:
+    return re.sub(r"<think>.*?</think>", "", t, flags=re.S).strip()
+
+
+def last_block(text: str, langs=("", "input", "text", "txt", "plaintext")) -> str | None:
+    blocks = re.findall(r"```([a-zA-Z0-9_+-]*)[ \t]*\n(.*?)```", text, flags=re.S)
+    blocks = [b for lang, b in blocks if lang.lower() in langs and b.strip()]   # skip empty blocks (gpt-oss doubles "```python")
+    if blocks:
+        return blocks[-1]
+    # fallback (gpt-oss): an unbalanced extra fence (e.g. a trailing "```\n```") shifts the pairing above, so take the last
+    # explicitly tagged opening fence and read up to the next fence
+    for lang in [l for l in langs if l]:
+        i = text.rfind(f"```{lang}\n")
+        if i >= 0:
+            body = text[i + len(lang) + 4:]
+            j = body.find("```")
+            return body[:j] if j >= 0 else body
+    return None
+
+
+def chat_many(prompts, workers: int = 8, **kw):
+    with ThreadPoolExecutor(workers) as ex:
+        return list(ex.map(lambda p: chat(p, **kw) if isinstance(p, str) else chat(p[0], **{**kw, **p[1]}), prompts))
+
+
+def chat_msgs(msgs: list, model: str = "local", temperature: float = 0.7, max_tokens: int = 1024,
+              think: bool = False, seed: int | None = None, client_=None, logprobs: bool = False) -> dict:
+    """multi-turn variant: msgs = [{"role": ..., "content": ...}, ...]"""
+    r = (client_ or client).chat.completions.create(
+        model=model, messages=msgs, temperature=temperature, top_p=0.95 if temperature > 0 else 1.0,
+        max_tokens=max_tokens, seed=seed, **({"logprobs": True} if logprobs else {}),
+        extra_body={"chat_template_kwargs": {"enable_thinking": think, **_TK}, **_EFF})
+    text = r.choices[0].message.content or ""
+    out = {"text": strip_think(text), "finish": r.choices[0].finish_reason,
+           "out_tokens": r.usage.completion_tokens, "in_tokens": r.usage.prompt_tokens}
+    if logprobs:   # N16: raw log-probs of the sampled answer tokens
+        lc = r.choices[0].logprobs.content or []
+        out.update(lp=[t.logprob for t in lc], lp_tok=[t.token for t in lc])
+    return out
