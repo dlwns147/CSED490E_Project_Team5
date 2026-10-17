@@ -97,7 +97,7 @@ The recipe is both the most accurate and among the cheapest, on every seed. Diff
 - **Knowledge that is not a library fact.** For Lean proofs (miniF2F), an invented lemma name stands for a missing proof step: telling the model which similar lemmas exist fixes 2.7% of attempts, no better than a fresh try (3.2%). For factual questions (PopQA), thinking adds only 1.8–5 points at 70–200× the tokens, and only for well-known facts.
 - **Checks leak.** A wrong program that passes the check is never sent to thinking; that caps every policy above.
 - **Hand-written facts.** Automatic retrieval recovers most of the gain (84% vs 87%) but sometimes fetches a near-miss note.
-- **Thinking settings matter.** With our sampling settings Qwen3.6 ran out of its 28k-token budget on 213 of 1,680 math problems; with the model card's settings and a larger budget, none of the first 413 did.
+- **Thinking settings matter.** With our sampling settings Qwen3.6 ran out of its 28k-token budget on 213 of 1,680 math problems; with the model card's settings and an 80k budget only 4 did, and thinking rose from 91.7 / 47.8% to 99.6 / 94.4% (MATH-500 / AIME), above text without thinking (98.3 / 68.3%). Most of the gain is the budget; the sampling adds about 3 points.
 - Open models only; mechanisms were first found on generated tasks.
 
 ## 6. Setup

@@ -107,3 +107,19 @@ Qwen3-4B, Qwen3-8B, Qwen3-14B-AWQ (tags q4b, q8b, q14a), the X1 problems (MATH-5
 - X1-SIZE-P2: the gate text == program → else thinking is within 1 point of always-thinking on MATH-500 at ≤ 80% of its tokens, for each.
 - X1-SIZE-P3: text–program agreement leaks less than text–text agreement on MATH-500 for each model (X1-P6).
 - X1-SIZE-P4: Qwen3-14B-AWQ thinking reaches ≥ 65% on AIME (Qwen3-32B-AWQ: 77.2%).
+
+## X1-Q36R results (2026-10-17 17:36 UTC; results/x1/analysis_q36c.log; 560 × 3)
+| Qwen3.6 thinking | MATH-500 | AIME | runs at the cap | mean (p90) output tokens, AIME |
+|---|---|---|---|---|
+| old: T 0.7, no presence penalty, 28k cap | 91.7% | 47.8% | 213 / 1,680 | 24.1k (28.0k) |
+| **card sampling, 80k cap** | **99.6%** | **94.4%** | 4 / 1,680 | 30.2k (57.8k) |
+| text, no thinking (unchanged) | 98.3% | 68.3% | | 4.6k |
+- **Q36R-P1 holds** (0.24% at the cap). **Q36R-P2 holds** (thinking ≥ text: +1.3 on MATH-500, +26.1 on AIME). **Q36R-P3 narrowly
+  refuted** (AIME mean 30.2k > 30k). **Q36R-P4 holds** (gate text == program → thinking 99.3% @ 4.0k vs always-thinking 99.6% @ 9.1k: −0.3
+  at 44% of the tokens; on AIME the gate is 94.4% @ 25.3k vs 30.2k).
+- Which change mattered (from the new runs, counting a run as failed if it used more than the old cap): card sampling *with* a 28k cap
+  would give 95.3% / 51.1%: the sampling is worth +3.6 / +3.3 points (fewer runaway runs: 67 vs 119 MATH-500 runs past 28k), the
+  budget +4.3 / +43.3 (AIME runs need up to 58k tokens at p90).
+**Reading:** "thinking is worse than not thinking for Qwen3.6" (part 2) was a setup failure, mostly the token cap. With enough budget
+thinking is the most accurate mode (94.4% on AIME), and the cheap text == program gate keeps 99.3% on MATH-500 at 44% of its tokens.
+The same cap (28k / 30k) also limited the Qwen3.6 thinking cells of U1 / U1r / U2 and X6 (re-run below / in PREREG_U1, PREREG_X3).

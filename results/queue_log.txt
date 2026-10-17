@@ -310,3 +310,6 @@ S2_SIZE runs done Sat Oct 17 14:18:02 UTC 2026
 S2_X1SIZE queued (Qwen3-4B/8B/14B-AWQ competition math; GPU0 q14a, GPU3 q8b then q4b; PREREG_X1.md) Sat Oct 17 14:32:58 UTC 2026
 S2_X1Q36R done (1680/1680 rows) Sat Oct 17 15:55:24 UTC 2026
 S2_X1Q36R analysis -> results/x1/analysis_q36c.log Sat Oct 17 15:55:41 UTC 2026
+S2_X1SIZE q14a done (5040/5040 rows) Sat Oct 17 17:36:34 UTC 2026
+S2_U1Q36D queued (Qwen3.6 U1 think arm, T1.0/top_k20, no presence penalty, 80k; GPU1 port 8076; PREREG_U1.md addendum) Sat Oct 17 17:36:40 UTC 2026
+S2_X1SIZE q8b done (5040/5040 rows) Sat Oct 17 17:37:22 UTC 2026

@@ -204,3 +204,10 @@ GPU3 (poc/queues/queue_s2_u1q36c.sh). Analysis: U1_THINK_M=q36c [U1_CURE_SEED=2|
 - U1-Q36C-P3: for Qwen3.6, FACT-FIRST-THEN-THINK ≥ MECHANISM and ≥ DIFFICULTY in both domains on each seed (better thinking makes the
   thinking-heavy policies stronger; the prediction is that facts-first still wins or ties, at fewer tokens).
 - U1-Q36C-P4 (cost): mean thinking output ≤ 20k tokens in geometry.
+
+## U1-Q36C addendum (2026-10-17 17:36 UTC, before any new row): run without the presence penalty
+The U1-Q36C run (card sampling incl. presence_penalty 1.5) was paused at 35 / 624 rows because vLLM 0.22 applies the presence penalty
+on the CPU (0.6 k tok/s with 80k-token thinking; the V2 runner that keeps it on the GPU does not start for Qwen3.6). X1-Q36R shows the
+cap is the main factor (sampling +3 points, budget +4 to +43). Re-run of Qwen3.6's THINK arm with T 1.0, top_p 0.95, top_k 20, NO
+presence penalty, 80k cap, as a new tag q36d (the 35 penalty rows are kept apart), GPU1 (poc/queues/queue_s2_u1q36d.sh). Predictions
+U1-Q36C-P1..P4 apply unchanged to q36d; analysis U1_THINK_M=q36d.
