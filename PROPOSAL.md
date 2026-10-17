@@ -107,9 +107,28 @@ The recipe is both the most accurate and among the cheapest, on every seed. Diff
 - **Models** (open, run locally): Qwen3 1.7B–32B, Qwen3.6-35B-A3B, gpt-oss-20b and 120b.
 - **Benchmarks:** 13 generated geometry tasks; 8 generated optimization problems; 311 Codeforces geometry problems (CodeContests); 56 Solomon routing instances; 82 job-shop instances (OR-Library and larger); NL4OPT + IndustryOR (345 word problems); MATH-500 + AIME 2024/2025 (560); miniF2F (244 Lean proofs); PopQA (1,500 questions).
 
-## 7. Related work and baselines
+## 7. Compared with published methods
 
-We measured the published methods on our tasks. **Selecting among programs:** CodeT 96.0%, majority vote 95.7%, DeepConf (model confidence) 94.7%, MBR-exec 93.7%; our symmetry check 99.7%. **Handling tools and documents:** a scope sentence (2609.14157) recovers 2–3% of the tool harm; System 2 Attention is 11 points worse; DRAFT (self-written tool docs) 11–15% vs 87–92% with a fixed tool; DRoC-style retrieval is .12–.40 below the exact snippet; Dynamic Cheatsheet (a notebook of the model's own lessons) 31–40% of unseen routing instances (no facts: 7%). **Spending compute:** difficulty-based allocation (Snell et al.) 74–79% vs the recipe's 87%; FrugalGPT-style cascades and Self-Debugging are part of step 4. **One program for many instances:** FunSearch, HeuriGym, 2605.14141, 2608.27296. **New here:** every fix priced in tokens on exact-answer benchmarks, showing that *facts before compute* is the cheapest way to accuracy, especially for small models.
+All measured here, with the same problems, models and checks; accuracy @ output tokens per problem.
+
+| Task (model) | Published method | Its result | Ours, same problems |
+|---|---|---|---|
+| Where to spend thinking (3 models, 624 problems) | think on the hardest-looking problems (compute-optimal scaling, Snell et al. 2025) | 74% @ 4.1k (best fix per difficulty bin: 79% @ 5.2k) | **fact first, think on failure: 87% @ 2.5k** |
+| | think whenever the check fails, no fact (FrugalGPT-style cascade) | 77% @ 4.2k | |
+| Contest geometry (gpt-oss-120b, 311) | always high effort (reasoning-model default) | 66.2% @ 30.1k | **66.3% @ 24.7k** (examples + brute-force check) |
+| | keep programs passing the examples, else high effort (AlphaCode filter + cascade) | 65.0% @ 20.2k | |
+| | one repair round from the error (Self-Debugging), from low effort | 53.1% @ 4.6k | |
+| Picking 1 of 3 programs (Qwen3-8B, geometry, 300) | CodeT (model-written tests) | 96.0% (+340 tokens) | **symmetry check: 99.7%** (no extra tokens) |
+| | majority vote (self-consistency) / DeepConf (confidence) / MBR-exec | 95.7% / 94.7% / 93.7% | |
+| Library documentation (Qwen3-32B, CVRP) | the whole manual | 7% | **exact snippet: 77% @ 1.7k** |
+| | BM25 retrieval / DRoC (decompose, retrieve per constraint; ICLR 2025) | 48% @ 2.3k / 72% @ 2.1k | |
+| Unneeded tools (Qwen3-32B, 5 geometry tasks) | scope sentence "use a helper only if needed" (2609.14157) / System 2 Attention | 76% / 64% (no fix: 75%) | **only the needed tools: 92%** |
+| Daily routing (gpt-oss-120b, 48 new Solomon instances) | a new program per instance (standard practice) / + one repair round | 7% / 25% | **reuse one checked program: 94%** (28k in total); hand-written facts: 100% |
+| | model-written lessons notebook (Dynamic Cheatsheet) | 31–40% | |
+| Word problems (Qwen3-32B, NL4OPT + IndustryOR) | always think before writing the program, no fact (reasoning-model default) | 52.0% | **fact first, think on failure: 72.4% @ 1.3k** (always think + fact: 72.0% @ 5.5k) |
+| Competition math (Qwen3-32B, MATH-500) | accept when text and program agree, else think (Mixture-of-Thought cascade, ICLR 2024) | 97.2% at 77% of always-thinking's tokens (97.4% @ 5.4k); on AIME it costs more than always thinking | used as a check (step 3) |
+
+**Related work.** Misleading prompt context and tools (2606.04057, 2609.14157, CodeCrash, DRAFT, ContractEval); documentation for solver code (DRoC, CP-Bench); selecting and repairing programs (CodeT, MBR-exec, AlphaCode, Self-Debugging); compute allocation (Snell et al., FrugalGPT, Mixture-of-Thought); one program for many instances (FunSearch, HeuriGym, 2605.14141, 2608.27296). **New here:** these methods compared on exact-answer benchmarks with every result priced in tokens, showing that *facts before compute* is the cheapest way to accuracy, especially for small models.
 
 ## 8. Plan
 

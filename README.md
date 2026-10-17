@@ -15,14 +15,16 @@ and thinking longer is expensive. We look for the cheapest way to get exactly ri
 | **All together** | **87% at 2.5k tokens per problem, vs 74% at 4.1k for "think longer on hard problems"** |
 
 With the fact first, models that fit one 24 GB GPU match Qwen3-32B. Details: `PROPOSAL.md` (Korean: `PROPOSAL_ko.md`),
-`PROPOSAL_slides.pptx` (11 slides), `docs/README.md` (all experiments).
+`PROPOSAL_slides.pptx` (12 slides), `docs/README.md` (all experiments). Published baselines (compute-optimal scaling by difficulty,
+CodeT, MBR-exec, DeepConf, DRoC, System 2 Attention, Self-Debugging, Dynamic Cheatsheet, ...) are measured on the same problems:
+`PROPOSAL.md` section 7.
 
 ## Files
 
 ```
 bench.py                              one entry point: list / serve / run / analyze
 PROPOSAL.md, PROPOSAL_ko.md           proposal (English, Korean)
-PROPOSAL_slides.pptx                  11-slide overview with examples
+PROPOSAL_slides.pptx                  12-slide overview with examples
 HANDOFF.md                            server notes for continuing the work
 docs/                                 lab log, one pre-registration + results file per experiment, notes (index: docs/README.md)
 poc/                                  code: run_*.py benchmarks, analyze_*.py analyses, queues/ the exact commands we ran

@@ -306,6 +306,25 @@ hbars(s, 0.6, 1.95, 12.1, [["First program, no help", 63, "63% · 0.7k", "A5A5A5
 caption(s, "Most accurate and among the cheapest on all 3 seeds: spend thinking where a check fails");
 s.addNotes("U1 / U1r / U2 (pre-registered). Qwen3-8B, Qwen3-32B and Qwen3.6 on the generated geometry and optimization suites, 624 problems, cure seed 1 shown; the order is the same on seeds 2 and 3. Thinking on the hardest-looking problems (difficulty-based allocation, as in compute-optimal scaling work) is even below thinking whenever the check fails. Giving the fact first and thinking only when the check fails is the most accurate and uses fewer tokens than any thinking policy; with automatically retrieved facts (BM25) it still reaches 84%.");
 
+// 9b. Published methods
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Together" });
+s.addText("Compared with published methods", { placeholder: "title" });
+{
+  const OURS = (t) => ({ text: t, options: { bold: true, color: "38761D" } });
+  const rows = [
+    [HDR("Task"), HDR("Published method"), HDR("Its result"), HDR("Ours (same problems)")],
+    ["Where to spend thinking", "think on the hardest-looking problems (Snell et al. 2025)", "74% · 4.1k", OURS("fact first, think on failure: 87% · 2.5k")],
+    ["Contest geometry", "always high effort (reasoning-model default)", "66.2% · 30.1k", OURS("think only on a failed check: 66.3% · 24.7k")],
+    ["Pick 1 of 3 programs", "CodeT: the model writes tests", "96.0% (+340 tokens)", OURS("symmetry check: 99.7% (0 tokens)")],
+    ["Library documentation", "DRoC: decompose, retrieve per constraint (ICLR 2025)", "72% · 2.1k", OURS("exact 5-line snippet: 77% · 1.7k")],
+    ["Unneeded tools", "System 2 Attention / a \"use only if needed\" sentence", "64% / 76%", OURS("only the needed tools: 92%")],
+    ["Daily routing", "Dynamic Cheatsheet: the model's own notes", "31–40%", OURS("reuse a checked program: 94%")],
+  ];
+  table(s, rows, { x: 0.6, y: 1.45, w: 12.1, colW: [2.3, 3.9, 2.2, 3.7], rowH: 0.62, fontSize: 15 });
+}
+caption(s, "Measured here with the same problems and models: the recipe is more accurate, cheaper, or both");
+s.addNotes("All baselines were run by us on our benchmarks. Models: U1 policies over Qwen3-8B / Qwen3-32B / Qwen3.6 (624 problems); contest geometry gpt-oss-120b (311); selection Qwen3-8B (300 geometry instances, 3 candidates); documentation Qwen3-32B on CVRP; tools Qwen3-32B on 5 geometry tasks; daily routing gpt-oss-120b on 48 held-out Solomon instances. Tokens are output tokens per problem. More rows (MBR-exec, majority vote, DeepConf, Self-Debugging, Mixture-of-Thought cascade, BM25 retrieval) are in PROPOSAL.md section 7.");
+
 // 10. Limits and next
 pres.addSection({ title: "Next" });
 s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Next" });
