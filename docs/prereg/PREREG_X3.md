@@ -181,3 +181,8 @@ leak costs 3.9 points.
 **Reading:** "facts first, think where the check fails" loses exactly what the check lets through and thinking would have fixed, and
 saves what thinking would have broken. With a check that only asks "does it run and print a number", that trade is even for Qwen3-32B
 (full accuracy at 23% of the tokens) and costs Qwen3-8B 3.9 points (at 34% of the tokens).
+
+## X6 addendum 3 (2026-10-17 18:04 UTC, before any new row): Qwen3.6 thinking arms with an 80k cap and no presence penalty (tag q36d)
+X6c (card sampling incl. presence penalty) stays paused at 423 / 2,070 rows (vLLM applies the penalty on the CPU). X1-Q36R showed the
+token cap is the main factor; so think / thinkf for Qwen3.6 are re-run with T 1.0, top_p 0.95, top_k 20, no presence penalty, 80k cap
+(tag q36d), GPU0 (poc/queues/queue_s2_x6d.sh). Predictions X6c-P1..P3 apply to q36d; analysis X6_THINK_TAG=q36d python poc/analyze_x6.py q36.

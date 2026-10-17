@@ -313,3 +313,5 @@ S2_X1Q36R analysis -> results/x1/analysis_q36c.log Sat Oct 17 15:55:41 UTC 2026
 S2_X1SIZE q14a done (5040/5040 rows) Sat Oct 17 17:36:34 UTC 2026
 S2_U1Q36D queued (Qwen3.6 U1 think arm, T1.0/top_k20, no presence penalty, 80k; GPU1 port 8076; PREREG_U1.md addendum) Sat Oct 17 17:36:40 UTC 2026
 S2_X1SIZE q8b done (5040/5040 rows) Sat Oct 17 17:37:22 UTC 2026
+S2_X6d queued (Qwen3.6 X6 think/thinkf, no presence penalty, 80k; GPU0 port 8077; PREREG_X3.md addendum 3) Sat Oct 17 18:04:53 UTC 2026
+S2_PROOF queued (formal proofs phase 1: Goedel-Prover-V2-8B, DeepSeek-Prover-V2-7B, Qwen3-14B-AWQ think on miniF2F; waits for downloads + a free GPU; PREREG_PROOF.md) Sat Oct 17 18:12:10 UTC 2026

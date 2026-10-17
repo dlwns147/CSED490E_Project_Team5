@@ -1,7 +1,7 @@
 """X4 (docs/prereg/PREREG_X3.md, X4 section): whole-proof generation for miniF2F (Lean 4 v4.15.0 + Mathlib v4.15.0 in /SSD/lean_postech/mf2f).
 The file checked is the dataset header + the dataset's formal statement (never the model's) + the model's proof body (the text after
 the first ':= by' of the model's Lean block). Accepted = compiles with no error, no `sorry` / `admit` / `axiom`.
-usage: POC_BASE_URL=... python run_lean.py gen <tag> <split> <k> [--logprobs] [--max_tokens N]  -> results/x4/lean_<tag>_<split>.jsonl
+usage: POC_BASE_URL=... python run_lean.py gen <tag> <split> <k> [--logprobs] [--max_tokens N] [--think]  -> results/x4/lean_<tag>_<split>.jsonl
        python run_lean.py check <file.jsonl>          (compile every attempt; adds ok / errors / unknown identifiers)
        POC_BASE_URL=... python run_lean.py fix <tag> <split>   (one feedback round for proofs whose errors name unknown identifiers)"""
 import json, os, re, subprocess, sys, tempfile, zlib
@@ -60,24 +60,25 @@ def check(header, stmt, body, timeout=180):
         os.unlink(path)
 
 
-def gen(tag, split, k, logprobs, mt):
+def gen(tag, split, k, logprobs, mt, think=False):
     from llm import chat
+    from concurrent.futures import as_completed
     P = problems(split)
-    jobs = [(p, s) for p in P for s in range(1, k + 1)]
+    os.makedirs(OUT, exist_ok=True)
+    path = f"{OUT}/lean_{tag}_{split}.jsonl"   # rows flushed as they finish; a re-run resumes (2026-10-17)
+    done = {(r["name"], r["sample"]) for r in map(json.loads, open(path))} if os.path.exists(path) else set()
+    jobs = [(p, s) for p in P for s in range(1, k + 1) if (p["name"], s) not in done]
 
     def one(j):
         p, s = j
-        o = chat(PROMPT.format(header=p["header"].strip(), stmt=p["formal_statement"]), temperature=0.7, max_tokens=mt,
+        o = chat(PROMPT.format(header=p["header"].strip(), stmt=p["formal_statement"]), temperature=0.7, max_tokens=mt, think=think,
                  seed=s * 1000 + zlib.crc32(p["name"].encode()) % 997, logprobs=logprobs)
         return {"name": p["name"], "sample": s, "text": (o["text"] or "")[-6000:], "body": proof_body(o["text"]),
                 "out_tokens": o.get("out_tokens"), "finish": o.get("finish"), **({"lp": o.get("lp"), "lp_tok": o.get("lp_tok")} if logprobs else {})}
-    with ThreadPoolExecutor(48) as ex:
-        rows = list(ex.map(one, jobs))
-    os.makedirs(OUT, exist_ok=True)
-    with open(f"{OUT}/lean_{tag}_{split}.jsonl", "w") as f:
-        for r in rows:
-            f.write(json.dumps(r) + "\n")
-    print(tag, split, "generated", len(rows), flush=True)
+    with ThreadPoolExecutor(48) as ex, open(path, "a") as f:
+        for fu in as_completed([ex.submit(one, j) for j in jobs]):
+            f.write(json.dumps(fu.result()) + "\n"); f.flush()
+    print(tag, split, "generated", sum(1 for _ in open(path)), flush=True)
 
 
 def check_file(path):
@@ -150,7 +151,7 @@ def fix(tag, split):
 if __name__ == "__main__":
     a = sys.argv
     if a[1] == "gen":
-        gen(a[2], a[3], int(a[4]), "--logprobs" in a, int(a[a.index("--max_tokens") + 1]) if "--max_tokens" in a else 8192)
+        gen(a[2], a[3], int(a[4]), "--logprobs" in a, int(a[a.index("--max_tokens") + 1]) if "--max_tokens" in a else 8192, "--think" in a)
     elif a[1] == "check":
         check_file(a[2])
     elif a[1] == "recheck":
