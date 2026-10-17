@@ -123,3 +123,15 @@ Qwen3-4B, Qwen3-8B, Qwen3-14B-AWQ (tags q4b, q8b, q14a), the X1 problems (MATH-5
 **Reading:** "thinking is worse than not thinking for Qwen3.6" (part 2) was a setup failure, mostly the token cap. With enough budget
 thinking is the most accurate mode (94.4% on AIME), and the cheap text == program gate keeps 99.3% on MATH-500 at 44% of its tokens.
 The same cap (28k / 30k) also limited the Qwen3.6 thinking cells of U1 / U1r / U2 and X6 (re-run below / in PREREG_U1, PREREG_X3).
+
+## X1-SIZE results, part 1: Qwen3-8B and Qwen3-14B-AWQ (2026-10-17 18:36 UTC; results/x1/analysis_size_partial.log; Qwen3-4B still running)
+| model (fits a 3090) | text MATH-500 / AIME | program | thinking (28k cap) | gate text == program → thinking, MATH-500 |
+|---|---|---|---|---|
+| Qwen3-8B (yes) | 84.3 / 23.9% @ 1.1k | 65.5 / 21.7% @ 0.27k | 97.0 / 68.3% @ 6.6k (42 caps) | 96.7% @ 4.3k (thinking 5.5k) |
+| Qwen3-14B-AWQ (yes) | 85.9 / 26.1% @ 1.0k | 66.4 / 18.9% @ 0.26k | 97.3 / 73.3% @ 5.9k (23 caps) | 97.1% @ 3.7k (thinking 4.7k) |
+| Qwen3-32B-AWQ (part 3) | 86.1 / 19.4% @ 0.95k | 68.5 / 24.4% @ 0.24k | 97.4 / 77.2% @ 5.4k (23 caps) | 97.2% @ 3.4k (thinking 4.4k) |
+- **X1-SIZE-P1 holds** (thinking − text on AIME: +44.4 / +47.2). **P2 holds** (gate −0.3 / −0.2 points at 78% / 79% of thinking's tokens).
+  **P3 holds** (text–program leak 1.5% / 1.0% vs text–text 3.4% / 3.1% on MATH-500). **P4 holds** (Qwen3-14B-AWQ AIME 73.3% ≥ 65%).
+**Reading:** on competition math the 3090-class Qwen3-14B-AWQ is within 0.1 (MATH-500) and 3.9 points (AIME) of Qwen3-32B at about the
+same tokens; for all three sizes thinking is what solves AIME, and a program as a second view saves about a fifth of the tokens on
+MATH-500 at −0.2 to −0.3 points.
