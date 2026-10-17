@@ -3,6 +3,8 @@
 State as of 2026-10-13 08:00 UTC. All GPU work on the old servers has been stopped and the hourly loop cancelled.
 
 ## 0. Server 2 status (2026-10-13 14:00 UTC)
+STATUS 15:45 (10-17): user: 'keep updated git' -> each hourly tick ends with git fetch + commit + push to origin main (public repo:
+scan the staged diff for secrets). Pushed c0fea65. The user's other session also commits (87b4f42 reframe of proposal/slides/README).
 WRITING SESSION 2026-10-17 15:17 UTC: PROPOSAL.md / PROPOSAL_ko.md / PROPOSAL_slides.pptx REFRAMED (user): 'solving computational math accurately and cheaply' = a 5-step recipe (program, fact, free check, think only on failure, reuse); headline U1/U2 + SIZE. Keep the frame and structure; update numbers in place (both languages). Slides: poc/make_slides.js; figs 18-20: poc/make_figures_frame.py.
 STATUS 14:45 (10-17): SIZE DONE (PREREG_SIZE.md part 3; results/size_analysis.log). RUNNING: X1-SIZE (queue_s2_x1size.sh; GPU0 q14a,
 GPU3 q8b then q4b; claims .gpu_claim_0/3 removed by the lanes; auto-analysis -> results/x1/analysis_size.log); SIZE-CC GPU2 (remove
