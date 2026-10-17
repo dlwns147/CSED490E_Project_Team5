@@ -1,6 +1,7 @@
 """One entry point for the benchmarks: wraps poc/run_*.py with the settings used in the reported experiments.
 
   python bench.py list                                  benchmarks, arms and model aliases
+  python bench.py download q32b oss20                   download models from Hugging Face into $MODELS_DIR (or: download all)
   python bench.py serve q32b --gpu 0                    start a vLLM server for a model (prints its PID once healthy)
   python bench.py run geo k8 --model q32b --seed 1      run one arm of one benchmark against that server
   python bench.py run contest plain --model oss120 --effort medium
@@ -9,7 +10,7 @@
 Options of `run`: --port (default 8041; POC_BASE_URL overrides it), --effort low|medium|high (gpt-oss reasoning effort),
 --tag (output name; default the model alias), --dry (print the command only); anything after `--` is passed to the harness (e.g. `-- --max_tokens 28000 --logprobs`).
 Model folders are looked up under $MODELS_DIR (default /SSD/huggingface). Outputs go to results/ (file name printed by each harness)."""
-import argparse, os, shlex, subprocess, sys
+import argparse, os, shlex, shutil, subprocess, sys
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 MODELS = {   # alias: (folder under MODELS_DIR, extra vLLM arguments)
@@ -20,6 +21,8 @@ MODELS = {   # alias: (folder under MODELS_DIR, extra vLLM arguments)
     "oss20": ("openai/gpt-oss-20b", ""),
     "oss120": ("openai/gpt-oss-120b", ""),
 }
+# alias: (download size in GB, smallest single-GPU memory in GB for our setting: 32k context, --frac 0.88; see README)
+SIZES = {"q8b": (16, 32), "q14b": (30, 48), "q32b": (19, 40), "q36": (38, 80), "oss20": (14, 24), "oss120": (65, 80)}
 GEO = ("poc/run_geo_cross.py --model_tag {tag}_geo_{arm}_s{seed} --seed {seed} --stdlib --n_inst 6 --temperature 0.7 --resume "
        "--tasks hull,area2,pip,segs,close,lattice,rectunion,delaunay,diameter")
 CO = ("poc/run_co.py --model_tag {tag}_co_{arm}_s{seed} --seed {seed} --arms solver --n_inst 4 --temperature 0.7 --fmt_fix --resume "
@@ -69,12 +72,45 @@ BENCH = {
 
 
 def cmd_list():
-    print("models (under $MODELS_DIR):", ", ".join(f"{k} = {v[0]}" for k, v in MODELS.items()))
+    print("models (under $MODELS_DIR; download size, smallest GPU):")
+    for k, (folder, _) in MODELS.items():
+        print(f"  {k:7} {folder:28} {SIZES[k][0]:3d} GB, GPU >= {SIZES[k][1]} GB")
     for b, (about, _, arms) in BENCH.items():
         print(f"\n{b}: {about}")
         for a, (d, flags) in arms.items():
             print(f"  {a:8} {d}" + (f"   [{flags}]" if flags else ""))
     print("\nlean check (CPU, after gen): python poc/run_lean.py check results/x4/lean_<model>_test.jsonl")
+
+
+def cmd_download(a):
+    try:
+        from huggingface_hub import snapshot_download
+    except ImportError:
+        sys.exit("needs huggingface_hub: pip install huggingface_hub")
+    root = os.environ.get("MODELS_DIR", "/SSD/huggingface")
+    names = list(MODELS) if "all" in a.models else a.models
+    todo = [m for m in names if not os.path.exists(os.path.join(root, MODELS[m][0], "config.json"))]
+    need = sum(SIZES[m][0] for m in todo)
+    os.makedirs(root, exist_ok=True)
+    free = shutil.disk_usage(root).free / 1e9
+    print(f"{root}: {free:.0f} GB free; new downloads need about {need} GB", flush=True)
+    if free < need + 10 and not a.dry:
+        sys.exit("not enough free disk space (keeps 10 GB spare); set MODELS_DIR to a larger disk")
+    for m in names:
+        rid = MODELS[m][0]
+        dst = os.path.join(root, rid)
+        print(f"{m}: {rid} -> {dst}", flush=True)
+        if a.dry:
+            continue
+        for k in range(3):   # an interrupted download resumes where it stopped
+            try:
+                # gpt-oss repos also hold the same weights in two other formats (original/, metal/): 196 GB instead of 65 GB
+                snapshot_download(rid, local_dir=dst, ignore_patterns=["original/*", "metal/*"])
+                break
+            except Exception as e:
+                print(f"  attempt {k + 1} failed: {e}", flush=True)
+        else:
+            sys.exit(f"{m}: download failed")
 
 
 def cmd_serve(a):
@@ -115,6 +151,9 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("list")
+    d = sub.add_parser("download")
+    d.add_argument("models", nargs="+", choices=list(MODELS) + ["all"])
+    d.add_argument("--dry", action="store_true", help="only print what would be downloaded")
     s = sub.add_parser("serve")
     s.add_argument("model", choices=MODELS)
     s.add_argument("--gpu", type=int, default=0)
@@ -131,7 +170,7 @@ def main():
     r.add_argument("--dry", action="store_true")
     a = ap.parse_args(argv)
     a.rest = rest
-    {"list": lambda: cmd_list(), "serve": lambda: cmd_serve(a), "run": lambda: cmd_run(a)}[a.cmd]()
+    {"list": lambda: cmd_list(), "download": lambda: cmd_download(a), "serve": lambda: cmd_serve(a), "run": lambda: cmd_run(a)}[a.cmd]()
 
 
 if __name__ == "__main__":

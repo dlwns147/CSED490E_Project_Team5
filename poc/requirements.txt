@@ -4,3 +4,4 @@ numpy
 requests
 ortools==9.15.6755
 matplotlib
+huggingface_hub   # bench.py download
