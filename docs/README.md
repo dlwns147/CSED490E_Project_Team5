@@ -1,23 +1,23 @@
-# 문서
+# Documents
 
-| 파일 | 내용 |
+| File | Contents |
 |---|---|
-| `FINDINGS.md` | 시간순 연구 기록 (최신이 맨 끝) |
-| `prereg/PREREG_<id>.md` | 실험별 사전 등록: 실행 전 예측 → 결과와 판정 |
-| `notes/` | 자체 비판(CRITIQUE), 검사 범위(CHECKS), 실패→해결책 지도(FIX_MAP), 관련 연구(RELATED_WORK), 초안 |
-| `archive/` | 제안서 옛 버전 |
+| `FINDINGS.md` | Chronological lab log (newest at the end) |
+| `prereg/PREREG_<id>.md` | One file per experiment: predictions before the run → results and verdicts |
+| `notes/` | Self-critique (CRITIQUE), check coverage (CHECKS), failure → fix map (FIX_MAP), related work (RELATED_WORK), drafts |
+| `archive/` | Earlier versions of the proposal |
 
-실행 명령은 `poc/queues/queue_*<id>*.sh`, 분석은 `poc/analyze_<id>.py`에 있습니다.
+Commands are in `poc/queues/queue_*<id>*.sh`, analyses in `poc/analyze_<id>.py`.
 
-## 주제별 실험
+## Experiments by theme
 
-| 주제 | 실험 (`prereg/PREREG_<id>.md`) |
+| Theme | Experiments (`prereg/PREREG_<id>.md`) |
 |---|---|
-| 도구에 끌려가는 이유 | E2 새 과제 예측, E4 도구와 정답 알고리즘의 유사도, L1 라이브러리 형태로 줘도 끌려가는가 |
-| 도구 문맥 다루기 | M1 도구 거르기, M2_M4 세 가지 방법, M5 투표, FM 솔버 사실 채굴 |
-| 기존 방법과 비교 | B1 정답 없는 선택, B3 방해 도구 대처, B4 검색 vs 정확한 코드 조각 |
-| 실제 벤치마크 | H1 큰 입력, H2·H2B·H2C·H4·P1 대회 기하, H3·F2R 배송 경로(VRPTW), H5 잡숍, H6·H7 최신 모델 |
-| 어려운 문제의 해결책 | N 예제 보강·수정·단계적 상향, N10 문제별 해결책 선택(N12 일치 게이트), N14 규칙이 바뀔 때 고쳐 쓰기, N15 솔버 라이브러리 선택, N16 로그 확률로 가짜 API 찾기, V 프로그램 재사용, E3·E3B 검사→샘플링→생각 |
-| 재사용과 증류 | E4_REPLAY·E4B 자기 데이터 재생, B2 망각 완화 비교, D1 대회 문제 적용 |
-| 계산 문제 너머 | X1 경시 수학, X2 변형 문제 재사용, X3 최적화 모델링(X4 Lean 증명, X6), VIEWS 모델이 자기 실수를 잡는 조건 |
-| 계산량 배분 | U1 실패 원인별 vs 난이도별 배분 (U1r, U2) |
+| Why tools distract | E2 predicting new tasks, E4 tool vs needed-algorithm similarity, L1 tools given as a library |
+| Handling tool context | M1 tool filter, M2_M4 three methods, M5 voting, FM solver fact mining |
+| Published baselines | B1 label-free selection, B3 fixes for distracting tools, B4 retrieval vs exact snippet |
+| Real benchmarks | H1 large inputs, H2·H2B·H2C·H4·P1 contest geometry, H3·F2R vehicle routing (VRPTW), H5 job-shop, H6·H7 newer models |
+| Fixes on hard problems | N example augmentation, repair, cascades; N10 per-problem fix choice (N12 agreement gate); N14 adapting to a changed rule; N15 solver library choice; N16 log-probs flag invented APIs; V program reuse; E3·E3B check → sample → think |
+| Reuse and distillation | E4_REPLAY·E4B self-replay, B2 forgetting baselines, D1 contest problems |
+| Beyond computation | X1 competition math, X2 reuse on variants, X3 optimization modeling (X4 Lean proofs, X6), VIEWS when a model can catch its own mistakes |
+| Allocating compute | U1 by failure mechanism vs by difficulty (U1r, U2) |
