@@ -67,37 +67,79 @@ On a smaller GPU, shorten the context and use more of the memory, e.g. `python b
 
 ```bash
 python bench.py list                                 # benchmarks, arms (prompt conditions), model aliases
-python bench.py serve q32b --gpu 0                   # vLLM server on port 8041 (prints the PID; stop with kill)
+python bench.py serve q32b --gpu 0                   # vLLM server on port 8041 (prints the PID; stop with kill <PID>)
 python bench.py run geo k8 --model q32b --seed 1     # one arm of one benchmark -> results/
 python bench.py run geo k8 --model q32b --dry        # only print the underlying command
 ```
 
-| Result                      | Commands (`python bench.py ...`)                                                                                                                          |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Library facts (slide 6)     | `run co nodoc`, `doc`, `snippet`, `rag3`, `think` with `--model q32b`                                                                           |
-| Distracting tools (slide 7) | `run geo none`, `k8`, `think` with `--model q32b`; then `N10_PREFIX=q32b python bench.py analyze n12 1 geo`                                       |
-| Hard problems (slide 8)     | `run contest plain --model oss120 --effort medium` (see below for the cascade analysis)                                                                   |
-| Program reuse (slide 9)     | `run vrptw plain --model oss120 --effort low --seed 1` and `--seed 2`; then `REUSE_SEEDS=1,2 python bench.py analyze reuse_curve oss120_low_plain`    |
-| Other benchmarks            | `run jssp plain`, `run math text`/`prog`/`think`, `run nlopt mip`/`mipf`/`think`, `run lean gen`, `run popqa direct`/`recall`/`think` |
+Run everything from the repository root. One server at a time uses port 8041; to run two models at once, give the
+second one its own GPU and port (`serve oss120 --gpu 1 --port 8042`, then `run ... --port 8042`).
 
-The slide-8 cascade analysis reads the run names `oss120_low`, `oss120_medium` and `oss120_high64k` for seeds 1–3,
-so run those with the harness directly:
+## Examples
+
+**Quick test** on one 24 GB GPU with the smallest model:
 
 ```bash
-python bench.py serve oss120 --gpu 0 -- --max-model-len 65536
+python bench.py download oss20
+python bench.py serve oss20 --gpu 0
+python bench.py run geo none --model oss20 --effort low   # prints, per task, how many programs were right on all 8 copies
+```
+
+**Slide 6: library facts** (Qwen3-32B-AWQ, optimization with OR-Tools):
+
+```bash
+python bench.py download q32b
+python bench.py serve q32b --gpu 0
+for arm in nodoc doc snippet; do                          # nothing extra / long reference sheet / 5 exact lines
+  python bench.py run co $arm --model q32b --seed 1
+  python bench.py analyze co q32b_co_${arm}_s1            # feasible and optimal per problem
+done
+```
+
+**Slide 7: distracting tools** (same server):
+
+```bash
+for arm in none k8 think; do                              # task only / task + 8 helpers / helpers + thinking
+  python bench.py run geo $arm --model q32b --seed 1
+done
+N10_PREFIX=q32b python bench.py analyze n12 1 geo         # compare the two programs, think only when they differ
+```
+
+**Slide 8: hard contest problems** (gpt-oss-120b). The analysis reads the run names `oss120_low`, `oss120_medium`
+and `oss120_high64k` for seeds 1–3, so these call the harness directly:
+
+```bash
+python bench.py download oss120
+python bench.py serve oss120 --gpu 0 -- --max-model-len 65536    # stop the previous server first: kill <PID>
 export CC_SET=full POC_BASE_URL=http://127.0.0.1:8041/v1
 for s in 1 2 3; do
   POC_REASONING_EFFORT=low    python poc/run_cc.py run oss120_low     $s --max_tokens 16000
   POC_REASONING_EFFORT=medium python poc/run_cc.py run oss120_medium  $s --max_tokens 16000
   POC_REASONING_EFFORT=high   python poc/run_cc.py run oss120_high64k $s --max_tokens 62000
 done
-python bench.py analyze n8     # the "medium->high" row: think harder only when the examples fail
+python bench.py analyze n8                                # row "medium->high": think harder only when the examples fail
 ```
 
 `analyze n13` adds the brute-force cross-check behind the 66% result; it also needs the N5 oracle run
 (`docs/prereg/PREREG_N.md`).
 
-Each harness (`poc/run_*.py`) explains its options at the top of the file. Anything after `--` in `bench.py run` is
+**Slide 9: reusing one checked program** (gpt-oss-120b, Solomon VRPTW):
+
+```bash
+for s in 1 2; do python bench.py run vrptw plain --model oss120 --effort low --seed $s; done
+REUSE_SEEDS=1,2 python bench.py analyze reuse_curve oss120_low_plain   # pick on 8 instances, reuse on the other 48
+```
+
+**Other benchmarks:**
+
+```bash
+python bench.py run math prog --model q32b                  # MATH-500 + AIME, answer by a program
+python bench.py run jssp plain --model oss120 --effort low  # job-shop scheduling
+python bench.py run nlopt mipf --model q32b                 # word problem -> optimization model, with the solver snippet
+python bench.py run popqa recall --model q8b                # factual QA: recall related facts, then answer
+```
+
+Each harness (`poc/run_*.py`) explains its options at the top of the file; anything after `--` in `bench.py run` is
 passed to it. The exact commands behind every reported number are in `poc/queues/queue_s2_<id>.sh`, and the
 predictions and results in `docs/prereg/PREREG_<id>.md`.
 
