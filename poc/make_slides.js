@@ -1,9 +1,11 @@
 // Proposal deck in the default Office look (white, Calibri Light / Calibri, Office accent colours).
 const pptxgen = require("pptxgenjs");
 const path = require("path");
-const { applyTheme } = require("/root/.claude/skills/synced/3c05885e-4c45-4ba8-8aac-398768cdc097_763b3f05-13a5-417f-9a5f-72964acfee24/pptx/scripts/apply_theme.js");
+// optional: writes the theme colours into the deck (from the pptx skill); without it the deck keeps the default Office theme
+let applyTheme = async () => {};
+try { ({ applyTheme } = require(process.env.PPTX_THEME_JS || "/root/.claude/skills/synced/3c05885e-4c45-4ba8-8aac-398768cdc097_763b3f05-13a5-417f-9a5f-72964acfee24/pptx/scripts/apply_theme.js")); } catch (e) {}
 
-const ROOT = "/NAS/SJ/POSTECH/nlp";
+const ROOT = process.env.PROJECT_ROOT || path.join(__dirname, "..");   // repository root (this file is poc/make_slides.js)
 const FIG = (f) => path.join(ROOT, "figs", f);
 const OUT = path.join(ROOT, "PROPOSAL_slides.pptx");
 

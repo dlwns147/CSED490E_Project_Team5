@@ -12,38 +12,67 @@ OR-Tools). These programs can be silently wrong. We study **when they fail and w
 | The problem is hard | Think harder only when the examples fail | same 66%, 18% fewer tokens |
 | The same problem repeats | Reuse one checked program | 94% valid (new program each time: 7%) |
 
-More: `PROPOSAL.md` (proposal; Korean: `PROPOSAL_ko.md`), `PROPOSAL_slides.pptx` (slides), `docs/README.md` (experiment index).
-
-## Folders
+## Files
 
 ```
-PROPOSAL*.md, PROPOSAL_slides.pptx   proposal and slides
-docs/       lab log (FINDINGS.md), per-experiment pre-registrations and results (prereg/), notes (notes/)
-poc/        code: run_*.py experiments, analyze_*.py analyses, queues/ the exact commands we ran
-results/    benchmark inputs and reference solutions (model outputs *.jsonl and logs are not in git)
-figs/       figures
+bench.py                              one entry point: list / serve / run / analyze
+PROPOSAL.md, PROPOSAL_ko.md           proposal (English, Korean)
+PROPOSAL_slides.pptx                  10-slide overview with examples
+HANDOFF.md                            server notes for continuing the work
+docs/                                 lab log, one pre-registration + results file per experiment, notes (index: docs/README.md)
+poc/                                  code: run_*.py benchmarks, analyze_*.py analyses, queues/ the exact commands we ran
+results/                              benchmark inputs and reference solutions (model outputs *.jsonl and logs are not in git)
+figs/                                 figures
+```
+
+## Setup
+
+```bash
+pip install -r poc/requirements.txt sympy math-verify pandas   # generated programs run with this Python, so it needs OR-Tools
+pip install vllm                                               # model server (we used vLLM 0.22)
+export MODELS_DIR=/path/to/models                              # holds Qwen/Qwen3-32B-AWQ, openai/gpt-oss-120b, ...
+python poc/sanity_check.py                                     # harness check without a model (CPU)
 ```
 
 ## Run
 
 ```bash
-pip install -r poc/requirements.txt sympy math-verify pandas
-python poc/sanity_check.py                           # check the harness without a model (CPU)
-python bench.py list                                 # benchmarks, arms (prompt conditions) and model aliases
-python bench.py serve q32b --gpu 0                   # vLLM server on port 8041; model folders under $MODELS_DIR
+python bench.py list                                 # benchmarks, arms (prompt conditions), model aliases
+python bench.py serve q32b --gpu 0                   # vLLM server on port 8041 (prints the PID; stop with kill)
 python bench.py run geo k8 --model q32b --seed 1     # one arm of one benchmark -> results/
+python bench.py run geo k8 --model q32b --dry        # only print the underlying command
 ```
 
-| Experiment | Commands (`python bench.py ...`) |
+| Result | Commands (`python bench.py ...`) |
 |---|---|
-| Geometry + unneeded tools (slide 7) | `run geo none`, `run geo k8`, `run geo think` (each `--model q32b`), then `N10_PREFIX=q32b python bench.py analyze n12 1 geo` |
-| Optimization + docs (slide 6) | `run co nodoc` / `doc` / `snippet` / `rag3` / `think` `--model q32b` |
-| Contest geometry (slide 8) | `run contest plain --model oss120 --effort medium` (high effort: `serve oss120 -- --max-model-len 65536`, `run ... --effort high -- --max_tokens 62000`) |
-| Program reuse (slide 9) | `run vrptw plain --model oss120 --effort low` (seeds 1, 2), then `REUSE_SEEDS=1,2 python poc/analyze_reuse_curve.py oss120_low_plain` |
-| Job-shop, competition math, optimization modeling, Lean, factual QA | `run jssp plain`, `run math text\|prog\|think`, `run nlopt mip\|mipf\|think\|thinkf`, `run lean gen`, `run popqa direct\|recall\|think` |
+| Library facts (slide 6) | `run co nodoc`, `doc`, `snippet`, `rag3`, `think` with `--model q32b` |
+| Distracting tools (slide 7) | `run geo none`, `k8`, `think` with `--model q32b`; then `N10_PREFIX=q32b python bench.py analyze n12 1 geo` |
+| Hard problems (slide 8) | `run contest plain --model oss120 --effort medium` (see below for the cascade analysis) |
+| Program reuse (slide 9) | `run vrptw plain --model oss120 --effort low --seed 1` and `--seed 2`; then `REUSE_SEEDS=1,2 python bench.py analyze reuse_curve oss120_low_plain` |
+| Other benchmarks | `run jssp plain`, `run math text`/`prog`/`think`, `run nlopt mip`/`mipf`/`think`, `run lean gen`, `run popqa direct`/`recall`/`think` |
 
-`bench.py` only fills in the settings we used; anything after `--` goes to the harness (`poc/run_*.py`, usage at the top of each).
-Full commands for each experiment: `poc/queues/queue_s2_<id>.sh`. Outputs go to `results/`.
+The slide-8 cascade analysis reads the run names `oss120_low`, `oss120_medium` and `oss120_high64k` for seeds 1–3,
+so run those with the harness directly:
 
-**Notes:** the Python code finds the repository root by itself; only the recorded queue scripts hard-code `/NAS/SJ/POSTECH/nlp`. GPUs are shared, so check
-`nvidia-smi` for a free GPU and port. We claim a result only if it holds on 3 seeds.
+```bash
+python bench.py serve oss120 --gpu 0 -- --max-model-len 65536
+export CC_SET=full POC_BASE_URL=http://127.0.0.1:8041/v1
+for s in 1 2 3; do
+  POC_REASONING_EFFORT=low    python poc/run_cc.py run oss120_low     $s --max_tokens 16000
+  POC_REASONING_EFFORT=medium python poc/run_cc.py run oss120_medium  $s --max_tokens 16000
+  POC_REASONING_EFFORT=high   python poc/run_cc.py run oss120_high64k $s --max_tokens 62000
+done
+python bench.py analyze n8     # the "medium->high" row: think harder only when the examples fail
+```
+
+`analyze n13` adds the brute-force cross-check behind the 66% result; it also needs the N5 oracle run
+(`docs/prereg/PREREG_N.md`).
+
+Each harness (`poc/run_*.py`) explains its options at the top of the file. Anything after `--` in `bench.py run` is
+passed to it. The exact commands behind every reported number are in `poc/queues/queue_s2_<id>.sh`, and the
+predictions and results in `docs/prereg/PREREG_<id>.md`.
+
+Figures and slides: `python poc/make_figures_explain.py`, `node poc/make_slides.js` (needs `npm install pptxgenjs`).
+
+**Notes:** GPUs are shared: check `nvidia-smi` for a free GPU and port first. We claim a result only if it holds on
+3 seeds. Every output row stores its tokens (`out_tokens`), so accuracy can always be read with its cost.
