@@ -6,7 +6,7 @@ Grading: math_verify against the gold answer; a program's printed answer is also
 usage: POC_BASE_URL=... python run_math.py <tag> <mode> <seed> [--max_tokens N] [--think]
        -> results/x1/math_<tag>_<mode>_s<seed>.jsonl
 Note: rewritten by the experiment session 2026-10-16 18:00 (it overwrote the writing session's prepared version by mistake)."""
-import json, os, sys, zlib
+import json, os, re, sys, zlib
 from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -35,7 +35,10 @@ def to_candidates(s):
     c = [f"${s}$"]
     try:
         import sympy
-        c.append("$" + sympy.latex(sympy.sympify(s, convert_xor=True)) + "$")
+        lx = sympy.latex(sympy.sympify(s, convert_xor=True))
+        c.append(f"${lx}$")
+        if re.search(r"\d i\b", lx):   # sympy prints 6 + 9*I as "6 + 9 i", which math_verify does not equate with "6+9i" (2026-10-17)
+            c.append("$" + re.sub(r"(\d) i\b", r"\1i", lx) + "$")
     except Exception:
         pass
     return c

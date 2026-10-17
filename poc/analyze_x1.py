@@ -9,6 +9,8 @@ from run_math import RES, same  # noqa: E402
 
 
 def load(m, mode, sd):
+    if mode == "think" and os.environ.get("X1_THINK_TAG"):   # X1-Q36R: the thinking arm from another run (e.g. q36c), text / program from m
+        m = os.environ["X1_THINK_TAG"]
     f = f"{RES}/math_{m}_{mode}_s{sd}.jsonl"
     return {r["id"]: r for r in map(json.loads, open(f))} if os.path.exists(f) else None
 

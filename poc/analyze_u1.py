@@ -24,7 +24,8 @@ def load(m, dom, arm):
     cs = os.environ.get("U1_CURE_SEED")   # U1r: read the cure arms of another seed (the base samples stay seeds 1-3)
     if cs and arm in ("fact_s1", "decor_s1", "think_s1", "retr_s1"):
         arm = arm.replace("_s1", f"_s{cs}")
-    f = f"{RES}/{'geocross' if dom == 'geo' else 'co'}_S2_U1_{m}_{dom}_{arm}.jsonl"
+    mm = os.environ.get("U1_THINK_M", m) if arm.startswith("think") else m   # U1-Q36C: thinking arm from another run (q36c)
+    f = f"{RES}/{'geocross' if dom == 'geo' else 'co'}_S2_U1_{mm}_{dom}_{arm}.jsonl"
     if m == "q36" and arm == "think_s1" and os.environ.get("U1_Q36_THINK48K"):   # pre-registered sensitivity (PREREG_U1 addendum 03:29):
         f = f"{RES}/{'geocross' if dom == 'geo' else 'co'}_S2_N10m3_{dom}_think_s1.jsonl"   # same items + condition, 48k cap (N10-M3)
     if not os.path.exists(f):

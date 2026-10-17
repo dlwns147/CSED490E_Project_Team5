@@ -287,3 +287,26 @@ S2_X6 relaunched 06:31 (first launch stopped by PID after 1 min: 'think' arm tes
 S2_X1 q32b thinking: 1680/1680 rows Sat Oct 17 07:33:39 UTC 2026
 S2 resumable thinking re-run finished Sat Oct 17 07:33:39 UTC 2026
 S2_X1fin regrade + analysis done Sat Oct 17 07:34:32 UTC 2026
+S2_X6 q32b done (1035/1035 rows) Sat Oct 17 08:33:38 UTC 2026
+S2_X1Q36R queued (Qwen3.6 thinking, model-card sampling, 80k cap; GPU1 port 8065; docs/prereg/PREREG_X1.md) Sat Oct 17 08:38:41 UTC 2026
+S2_X6c queued (Qwen3.6 think/thinkf, card sampling, 80k; GPU0 port 8066) Sat Oct 17 08:40:23 UTC 2026
+S2_X6 q8b done (4140/4140 rows) Sat Oct 17 09:23:24 UTC 2026
+S2_U1Q36C queued (Qwen3.6 U1 think arm, card sampling, 80k; GPU3 port 8067) Sat Oct 17 09:33:18 UTC 2026
+S2_SIZE queued (Qwen3-1.7B / 4B on U1 suites + X6; waits for the first free GPU 0-3; docs/prereg/PREREG_SIZE.md) Sat Oct 17 10:10:53 UTC 2026
+S2_X6 q36 old-sampling think/thinkf stopped by PID at 10:12 (partial: think 555, thinkf 529 rows; replaced by X6c card-sampling arms); mip/mipf continue, server stopped when they end (stop_x6q36_server.sh) Sat Oct 17 10:12:42 UTC 2026
+S2_SIZE re-queued for 3090-class models (q4b, q14a, oss20, q17; one lane per free GPU; PREREG_SIZE.md addendum) Sat Oct 17 10:13:20 UTC 2026
+S2_X6 q36 mip/mipf finished; server on GPU2 stopped Sat Oct 17 10:19:21 UTC 2026
+S2_SIZE oss20 started on GPU2 Sat Oct 17 10:19:23 UTC 2026
+S2_SIZE oss20 done (1359/1359 think rows) Sat Oct 17 10:33:06 UTC 2026
+S2_SIZE q17 started on GPU2 Sat Oct 17 10:33:10 UTC 2026
+PAUSED by hourly-cron session 10:33: X6c (421/2070) and U1-Q36C (35/624) Qwen3.6 card-sampling runs: vLLM 0.22 applies presence_penalty by copying every request's output tokens to a CPU tensor each step (v1/sample/ops/penalties.py), so long thinking ran at 0.6-1.1k tok/s (engine 1000% CPU, GPU 40%); ETA 7-18 h. GPUs 0/3 go to the SIZE (RTX 3090-class) lanes; resume later with the same scripts (resumable). X1-Q36R continues on GPU1. Sat Oct 17 10:33:20 UTC 2026
+S2_SIZE q4b started on GPU3 Sat Oct 17 10:33:23 UTC 2026
+S2_SIZE q14a started on GPU0 Sat Oct 17 10:33:31 UTC 2026
+S2_SIZE q17 done (1359/1359 think rows) Sat Oct 17 13:17:56 UTC 2026
+S2_SIZECC queued (gpt-oss-20b medium/high 62k on contest geometry; GPU2 port 8072; claim dir results/.gpu_claim_2; PREREG_SIZE.md) Sat Oct 17 13:44:20 UTC 2026
+S2_SIZE q4b done (1359/1359 think rows) Sat Oct 17 14:02:16 UTC 2026
+S2_SIZE q14a done (1359/1359 think rows) Sat Oct 17 14:18:02 UTC 2026
+S2_SIZE runs done Sat Oct 17 14:18:02 UTC 2026
+S2_X1SIZE queued (Qwen3-4B/8B/14B-AWQ competition math; GPU0 q14a, GPU3 q8b then q4b; PREREG_X1.md) Sat Oct 17 14:32:58 UTC 2026
+S2_X1Q36R done (1680/1680 rows) Sat Oct 17 15:55:24 UTC 2026
+S2_X1Q36R analysis -> results/x1/analysis_q36c.log Sat Oct 17 15:55:41 UTC 2026

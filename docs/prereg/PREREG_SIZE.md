@@ -112,3 +112,31 @@ U1 suites, fact-first-then-think (geometry / optimization, cure seeds 1–3): 1.
 Qwen3-32B on both the external word problems and the optimization suite; gpt-oss-20b does so at 5% of its compute. Below 14B the
 optimization suite is out of reach whatever the fix (≤ 47%), while geometry is solved from 4B up. Cost-accuracy pick per budget:
 gpt-oss-20b fact-first (73.0% @ 0.7k tokens, 3.6B active) ≥ Qwen3-14B-AWQ thinkf → mipf (77.6% @ 5.6k) when accuracy matters most.
+
+## SIZE-CHK pre-registration (2026-10-17 15:32 UTC, before computing; offline on the X6 rows): a better cheap check for small models
+Part 3 showed fact-first-then-think loses where the fact program runs and prints a wrong value (Qwen3-4B −17.8, Qwen3-8B −3.9 vs
+always-thinkf). Two label-free checks that cost one more cheap program, computed from the stored X6 rows (same item, other seed /
+other arm): **RESAMPLE** — accept mipf only if it runs and equals a second mipf sample (the next seed's row); **CROSS-VIEW** — accept
+only if it equals the mip program (no fact). Otherwise thinkf (same seed). Tokens include both cheap programs. poc/analyze_size_chk.py.
+- SIZE-CHK-P1: for Qwen3-4B and Qwen3-8B, RESAMPLE closes ≥ half of the gap to always-thinkf (4B: to ≥ 60.4%; 8B: to ≥ 70.3%) at ≤ 50% of
+  always-thinkf's tokens.
+- SIZE-CHK-P2: among items the check accepts, the wrong share is lower for CROSS-VIEW than for RESAMPLE, for every model (different views
+  decorrelate errors, VIEWS), but CROSS-VIEW escalates more for models ≤ 8B (their mip programs mostly crash).
+
+## SIZE-CHK results (2026-10-17 15:33 UTC; results/x3/analysis_size_chk.log)
+Accuracy @ output tokens per item (share of items the check accepts; wrong share among accepted):
+| model | always thinkf | FF (runs + prints) | RESAMPLE (two fact programs agree) | CROSS-VIEW (fact program = no-fact program) |
+|---|---|---|---|---|
+| Qwen3-1.7B | 38.2% @ 7.1k | 50.1% @ 2.7k (77%; 41.9%) | 50.7% @ 5.4k (47%; 25.2%) | 38.2% @ 8.3k (0%: its no-fact programs never run) |
+| Qwen3-4B | 69.3% @ 6.7k | 51.5% @ 1.6k (87%; 47.1%) | 57.8% @ 4.1k (63%; 38.1%) | 66.3% @ 6.7k (17%; 31.1%) |
+| Qwen3-8B | 72.2% @ 7.2k | 68.3% @ 2.5k (74%; 30.2%) | **72.4% @ 5.1k** (48%; 17.7%) | 71.4% @ 6.3k (29%; 17.9%) |
+| Qwen3-14B-AWQ | 76.0% @ 5.6k | 70.7% @ 1.3k (90%; 26.4%) | **75.6% @ 2.9k** (74%; 16.6%) | 75.6% @ 3.5k (62%; 14.3%) |
+| gpt-oss-20b | 74.9% @ 2.3k | 73.0% @ 0.7k (94%; 25.8%) | 74.9% @ 1.9k (78%; 17.2%) | 74.9% @ 1.9k (76%; 17.4%) |
+| Qwen3-32B-AWQ | 72.0% @ 5.5k | 72.4% @ 1.3k (88%; 24.6%) | **74.8% @ 2.6k** (73%; 17.0%) | 74.2% @ 2.9k (70%; 15.0%) |
+- **SIZE-CHK-P1 half holds:** for Qwen3-8B RESAMPLE closes the whole gap (72.4% vs 72.2%) but at 71% of always-thinkf's tokens (not ≤ 50%);
+  for Qwen3-4B it closes 35% of the gap (57.8%): its fact programs are often wrong *consistently*, so two samples agree on a wrong value.
+- **SIZE-CHK-P2 mostly holds:** CROSS-VIEW accepts fewer wrong programs than RESAMPLE for 4B, 14B-AWQ and 32B (31 vs 38%, 14 vs 17%,
+  15 vs 17%), ties for 8B and gpt-oss-20b, and escalates far more for ≤ 8B (it accepts 0–29% of items).
+**Reading:** a second cheap program is a better check than "it runs": with it, fact-first-then-think reaches always-thinking accuracy
+for 8B / 14B-AWQ / gpt-oss-20b and *exceeds* it for Qwen3-32B (74.8% vs 72.0% at 48% of the tokens, because a thinking run sometimes
+breaks what the fact program had right). For the 4B model no cheap check rescues the fact program; it needs thinking on most items.

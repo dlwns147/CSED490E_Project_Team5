@@ -3,6 +3,34 @@
 State as of 2026-10-13 08:00 UTC. All GPU work on the old servers has been stopped and the hourly loop cancelled.
 
 ## 0. Server 2 status (2026-10-13 14:00 UTC)
+WRITING SESSION 2026-10-17 15:17 UTC: PROPOSAL.md / PROPOSAL_ko.md / PROPOSAL_slides.pptx REFRAMED (user): 'solving computational math accurately and cheaply' = a 5-step recipe (program, fact, free check, think only on failure, reuse); headline U1/U2 + SIZE. Keep the frame and structure; update numbers in place (both languages). Slides: poc/make_slides.js; figs 18-20: poc/make_figures_frame.py.
+STATUS 14:45 (10-17): SIZE DONE (PREREG_SIZE.md part 3; results/size_analysis.log). RUNNING: X1-SIZE (queue_s2_x1size.sh; GPU0 q14a,
+GPU3 q8b then q4b; claims .gpu_claim_0/3 removed by the lanes; auto-analysis -> results/x1/analysis_size.log); SIZE-CC GPU2 (remove
+results/.gpu_claim_2 after it ends); X1-Q36R GPU1 (1612/1680). Paused: X6c, U1-Q36C (Qwen3.6, slow presence penalty).
+STATUS 13:50 (10-17): SIZE q17 DONE; q4b (GPU3) / q14a (GPU0) finishing their X6 thinking arms. GPU2: SIZE-CC (queue_s2_sizecc.sh;
+gpt-oss-20b medium/high 62k on contest geometry; auto-analysis -> results/h2/sizecc_analysis.log); REMOVE results/.gpu_claim_2 when it ends.
+GPU1: X1-Q36R (1538/1680). V2 model runner fails for Qwen3.6 (mamba cache); X6c / U1-Q36C stay paused (V1 runner: 7-18 h).
+When q4b / q14a finish: python poc/analyze_x6.py q4b q14a; U1 for q4b q14a (3 cure seeds); python poc/analyze_size.py -> PREREG_SIZE.md.
+STATUS 10:40 (10-17): SIZE lanes running: GPU0 q14a, GPU3 q4b, GPU2 q17 (oss20 DONE: PREREG_SIZE.md part 1). GPU1: X1-Q36R (694/1680).
+PAUSED (resumable, same scripts): queue_s2_x6c.sh (423/2070) and queue_s2_u1q36c.sh (35/624): presence_penalty makes vLLM 0.22 slow
+(CPU tensor of all output tokens per step). Before resuming, test VLLM_USE_V2_MODEL_RUNNER=1 (export it in the queue script; serve_gpu.sh
+inherits env) and compare 'generation throughput' in results/server_vllm_<tag>.log.
+STATUS 09:50 (10-17): SIZE queued (user: models that fit one RTX 3090): poc/queues/queue_s2_size.sh, lanes q4b / q14a / oss20 / q17,
+each waits for a free GPU and claims it with results/.gpu_claim_<g> (remove a stale claim dir if a lane dies). Analysis:
+python poc/analyze_u1.py q4b q14a oss20 q17; python poc/analyze_x6.py ...; python poc/analyze_size.py (compute = active params x tokens).
+GPU2: old-sampling X6 q36 think arms stopped; its mip/mipf finish, then stop_x6q36_server.sh kills server PID 2145860.
+STATUS 09:36 (10-17): X6 q32b + q8b DONE (PREREG_X3.md). RUNNING: GPU0 X6c (Qwen3.6 think/thinkf, card sampling, queue_s2_x6c.sh);
+GPU1 X1-Q36R (411/1680 at 09:32; auto-analysis -> results/x1/analysis_q36c.log); GPU2 X6 q36 old-sampling lane (queue_s2_x6b.sh);
+GPU3 U1-Q36C (Qwen3.6 U1 think arm, card sampling; auto-analysis -> results/u1_q36c_cure{1,2,3}.log). Then: X6_THINK_TAG=q36c python
+poc/analyze_x6.py q36 (and without the env for the old-sampling arms); record P-verdicts in PREREG_X1 / X3 / U1.
+STATUS 08:41 (10-17): X1 Qwen3-32B DONE (PREREG_X1.md part 3; math grader fixed for sympy's imaginary unit, 9 program files regraded).
+RUNNING: X1-Q36R on GPU1 (poc/queues/queue_s2_x1q36r.sh, port 8065): Qwen3.6 thinking with the model card's sampling
+(POC_THINK_SAMPLING in poc/llm.py; T 1.0, top_k 20, presence_penalty 1.5) and 80k cap -> results/x1/analysis_q36c.log (auto).
+X6 (queue_s2_x6b.sh): q32b done-ish GPU0, q8b GPU3, q36 GPU2 (slow; its thinking arms use the OLD sampling, 30k cap: if Q36R shows
+the card sampling fixes truncation, re-run the X6 / U1 Qwen3.6 thinking cells with it). Then: python poc/analyze_x6.py q32b q8b q36.
+STATUS 07:38 (10-17): bench.py (repo root) runs any benchmark arm with the reported settings: `python bench.py list`,
+`bench.py serve <model> --gpu G --port P`, `bench.py run <bench> <arm> --model M --seed S --port P [-- harness flags]`.
+Python code no longer hard-codes /NAS/SJ/POSTECH/nlp (queue scripts still do). Pushed a930548.
 STATUS 07:17 (10-17): REPOSITORY REORGANIZED for git (user request). Lab log -> docs/FINDINGS.md; pre-registrations -> docs/prereg/;
 CRITIQUE / CHECKS / FIX_MAP / RELATED_WORK / drafts -> docs/notes/; old proposal versions -> docs/archive/; all queue scripts ->
 poc/queues/ (they cd to the project root, so `bash poc/queues/queue_x.sh` works). results/ keeps data, outputs and queue_log.txt.

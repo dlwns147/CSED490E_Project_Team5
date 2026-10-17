@@ -10,6 +10,8 @@ ARMS = ("mip", "mipf", "think", "thinkf")
 
 
 def load(m, arm, s):
+    if arm in ("think", "thinkf") and os.environ.get("X6_THINK_TAG"):   # X6 addendum 2: thinking arms from another run (q36c)
+        m = os.environ["X6_THINK_TAG"]
     f = f"{RES}/opt_{m}_{arm}_s{s}.jsonl"
     return {r["id"]: r for r in map(json.loads, open(f))} if os.path.exists(f) else None
 

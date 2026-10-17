@@ -6,11 +6,14 @@ from concurrent.futures import ThreadPoolExecutor
 from openai import OpenAI
 
 BASE_URL = os.environ.get("POC_BASE_URL", "http://127.0.0.1:8080/v1")
-client = OpenAI(base_url=BASE_URL, api_key="none", timeout=3600)
+client = OpenAI(base_url=BASE_URL, api_key="none", timeout=float(os.environ.get("POC_TIMEOUT", 3600)))   # long thinking: raise it
 EFFORT = os.environ.get("POC_REASONING_EFFORT")   # gpt-oss: low / medium / high (passed as reasoning_effort; other models ignore it)
 _EFF = {"reasoning_effort": EFFORT} if EFFORT else {}
 QEFF = os.environ.get("POC_TEMPLATE_EFFORT")   # Qwen3.6/3.8 templates: reasoning_effort in chat_template_kwargs (xhigh default | medium | low)
 _TK = {"reasoning_effort": QEFF} if QEFF else {}
+# sampling for thinking calls from the model card, e.g. POC_THINK_SAMPLING=temperature=1.0,top_p=0.95,top_k=20,presence_penalty=1.5
+# (Qwen3.6; 2026-10-17: our default T 0.7 / no presence penalty left 13% of its competition-math thinking runs unfinished at 28k)
+_TS = {k: float(v) for k, v in (kv.split("=") for kv in os.environ["POC_THINK_SAMPLING"].split(","))} if os.environ.get("POC_THINK_SAMPLING") else {}
 
 
 def chat(prompt: str, model: str = "local", temperature: float = 0.7, max_tokens: int = 1024,
@@ -19,11 +22,13 @@ def chat(prompt: str, model: str = "local", temperature: float = 0.7, max_tokens
     msgs = ([{"role": "system", "content": system}] if system else []) + [{"role": "user", "content": prompt}]
     if prefill:  # assistant prefill (llama-server continues the message; vLLM: continue_final_message)
         msgs.append({"role": "assistant", "content": prefill})
+    ts = _TS if think else {}
     r = client.chat.completions.create(
-        model=model, messages=msgs, temperature=temperature, top_p=0.95 if temperature > 0 else 1.0,
+        model=model, messages=msgs, temperature=ts.get("temperature", temperature), top_p=ts.get("top_p", 0.95 if temperature > 0 else 1.0),
         max_tokens=max_tokens, seed=seed, **({"logprobs": True} if logprobs or top_logprobs else {}),
         **({"top_logprobs": top_logprobs} if top_logprobs else {}),
-        extra_body={"chat_template_kwargs": {"enable_thinking": think, **_TK}, **_EFF,
+        **({"presence_penalty": ts["presence_penalty"]} if "presence_penalty" in ts else {}),
+        extra_body={"chat_template_kwargs": {"enable_thinking": think, **_TK}, **_EFF, **({"top_k": int(ts["top_k"])} if "top_k" in ts else {}),
                     # vLLM needs these to continue an assistant prefill; llama-server ignores them
                     **({"continue_final_message": True, "add_generation_prompt": False} if prefill else {})},
     )
@@ -75,10 +80,12 @@ def chat_many(prompts, workers: int = 8, **kw):
 def chat_msgs(msgs: list, model: str = "local", temperature: float = 0.7, max_tokens: int = 1024,
               think: bool = False, seed: int | None = None, client_=None, logprobs: bool = False) -> dict:
     """multi-turn variant: msgs = [{"role": ..., "content": ...}, ...]"""
+    ts = _TS if think else {}
     r = (client_ or client).chat.completions.create(
-        model=model, messages=msgs, temperature=temperature, top_p=0.95 if temperature > 0 else 1.0,
+        model=model, messages=msgs, temperature=ts.get("temperature", temperature), top_p=ts.get("top_p", 0.95 if temperature > 0 else 1.0),
         max_tokens=max_tokens, seed=seed, **({"logprobs": True} if logprobs else {}),
-        extra_body={"chat_template_kwargs": {"enable_thinking": think, **_TK}, **_EFF})
+        **({"presence_penalty": ts["presence_penalty"]} if "presence_penalty" in ts else {}),
+        extra_body={"chat_template_kwargs": {"enable_thinking": think, **_TK}, **_EFF, **({"top_k": int(ts["top_k"])} if "top_k" in ts else {})})
     text = r.choices[0].message.content or ""
     out = {"text": strip_think(text), "finish": r.choices[0].finish_reason,
            "out_tokens": r.usage.completion_tokens, "in_tokens": r.usage.prompt_tokens}

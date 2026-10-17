@@ -1,5 +1,5 @@
 """N8 (docs/prereg/PREREG_N.md): three-level cascade low -> medium -> high (64k) for gpt-oss-120b, escalating when the statement's examples fail.
-usage: CC_SET=full python analyze_n8.py"""
+usage: CC_SET=full [N8_MODEL=oss20 N8_MEDIUM=medium64k] python analyze_n8.py"""
 import json, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from run_cc import PFILE, RES  # noqa: E402
@@ -11,7 +11,8 @@ passes = lambda r: bool(r["code"]) and r["passed"] >= NPUB[r["name"]]
 tok = lambda r: r.get("out_tokens") or 0
 A = {k: [0, 0, 0] for k in ("low", "medium", "high", "low->medium", "low->medium->high", "medium->high")}
 for sd in (1, 2, 3):
-    L, M, H = load("oss120_low", sd), load("oss120_medium", sd), load("oss120_high64k", sd)
+    mo = os.environ.get("N8_MODEL", "oss120")   # SIZE-CC: N8_MODEL=oss20 N8_MEDIUM=medium64k (the 3090-class model)
+    L, M, H = load(f"{mo}_low", sd), load(f"{mo}_{os.environ.get('N8_MEDIUM', 'medium')}", sd), load(f"{mo}_high64k", sd)
     for n in L:
         l, m, h = L[n], M[n], H[n]
         def add(k, ok, t):
