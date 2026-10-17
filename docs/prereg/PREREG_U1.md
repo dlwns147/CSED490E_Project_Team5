@@ -193,3 +193,14 @@ Pooled accuracy @ mean output tokens per item, cure seed 1 / 2 / 3:
 thinking only where a cheap check still fails (≈ 87% at ≈ 2.5k tokens, vs 82–84% at 4.2–4.7k for routing by failure mechanism and 74–76%
 for routing by difficulty). With retrieved instead of hand-written facts it loses ≈ 3 points, still beats both routers at fewer tokens,
 because the check sends wrong retrieved facts to thinking; the remaining loss is wrong retrieved programs that pass the check (geometry).
+
+## U1-Q36C pre-registration (2026-10-17 09:33 UTC, before running): Qwen3.6's thinking arm with the model card's sampling
+Raw check of the Qwen3.6 THINK arm used in U1 / U1r / U2: geometry 41 / 43 / 44 of 108 correct with 67 / 64 / 64 runs stopped at the 28k
+cap, optimization 65 / 57 / 59 of 100 with 24 / 19 / 26 at the cap: a setup failure (T 0.7, no presence penalty; see X1-Q36R in
+PREREG_X1.md), not a property of thinking. Re-run of that arm only (geometry --distract 8 --think, optimization --api_doc --think; same
+items and seeds 1–3), with the card's thinking sampling (T 1.0, top_p 0.95, top_k 20, presence_penalty 1.5) and an 80k cap, tag q36c,
+GPU3 (poc/queues/queue_s2_u1q36c.sh). Analysis: U1_THINK_M=q36c [U1_CURE_SEED=2|3] python poc/analyze_u1.py q36.
+- U1-Q36C-P1: ≤ 2% of runs hit the cap. P2: thinking accuracy ≥ 95% in geometry and ≥ 75% in optimization (each seed).
+- U1-Q36C-P3: for Qwen3.6, FACT-FIRST-THEN-THINK ≥ MECHANISM and ≥ DIFFICULTY in both domains on each seed (better thinking makes the
+  thinking-heavy policies stronger; the prediction is that facts-first still wins or ties, at fewer tokens).
+- U1-Q36C-P4 (cost): mean thinking output ≤ 20k tokens in geometry.

@@ -132,3 +132,52 @@ Predictions for the added models (written before any of their X3 rows exist):
 - X6-P4: for each added model, thinkf ≥ think pooled over NL4OPT + IndustryOR (3 seeds), and its share of runtime errors is lower.
 - X6-P5: thinking pays only with the fact: (thinkf − mipf) > (think − mip) for each model.
 - X6-P3 is evaluated per model (FACT-FIRST-THEN-THINK ≥ always-thinkf − 2 at ≤ 40% of its tokens).
+
+## X6 results, Qwen3-32B (2026-10-17 08:40 UTC; results/x3/analysis_x6_q32b.log; 345 problems × 3 seeds)
+| arm | NL4OPT | IndustryOR | pooled @ mean output tokens | runtime errors | invented `SetMaximize` / `SetMinimize` |
+|---|---|---|---|---|---|
+| mip | 78.0% | 34.7% | 65.4% @ 0.38k | 122 | 4 |
+| mipf (+ 6-line snippet) | 78.2% | 36.7% | 66.2% @ 0.35k | 127 | 23 |
+| think | 56.7% | 40.3% | 52.0% @ 6.2k | 343 | 314 |
+| **thinkf** (thinking + snippet) | **79.9%** | **52.7%** | **72.0% @ 5.5k** | 108 | 71 |
+Policies (same seed; check = the program runs and prints a value): **FACT-FIRST-THEN-THINK (mipf → thinkf on a failed check) 72.4% @ 1.27k**
+(escalates 12%); mip → think 70.0% @ 1.34k; always think 52.0% @ 6.2k; think → mipf 74.0% @ 6.4k; thinkf → mipf 76.8% @ 5.5k.
+- **X6-P1 half holds:** runtime errors 343 → 108 (≤ 114 holds); the invented methods drop 314 → 71, not to ≤ 30: with thinking on, the
+  model still writes `Objective().SetMaximize` in 7% of programs although the snippet shows `s.Maximize` (and invents
+  `Solver.ContinuousVar` 17 times).
+- **X6-P2 holds:** thinkf ≥ mipf on NL4OPT (79.9 vs 78.2%) and +16.0 on IndustryOR (52.7 vs 36.7%); thinkf − think = +23.2 on NL4OPT.
+- **X6-P3 mostly holds:** fact-first-then-think is +0.4 over always-thinkf at 23% of its tokens and +20.4 over always-think at 20%;
+  it is 1.6 points below think → mipf, which costs 5 × more (the fully pre-registered "beats think-first at ≤ tokens" holds against
+  always-think, not against think → mipf). Best accuracy: thinkf → mipf 76.8% @ 5.5k.
+**Reading (an external benchmark, not built by us):** without the API fact, thinking *loses* 13 points (it invents one method name);
+with it, thinking gains 6 points over the same fact without thinking (+16 on the harder IndustryOR). Giving the fact to everyone and
+thinking only where the program fails to run keeps all of that gain at a quarter of the tokens.
+
+## X6 addendum 2 (2026-10-17 08:40 UTC, before any Qwen3.6 X6 result is read): Qwen3.6 thinking with the model card's sampling
+The Qwen3.6 thinking arms of X6 (GPU2) use our default sampling (T 0.7, no presence penalty) and a 30k cap; in X1 that setting left 12.7%
+of Qwen3.6 thinking runs without an answer (X1-Q36R, PREREG_X1.md). Added on GPU0 (port 8066): think and thinkf for Qwen3.6 with the
+card's thinking sampling (T 1.0, top_p 0.95, top_k 20, presence_penalty 1.5) and an 80k cap, seeds 1–3, tag q36c
+(poc/queues/queue_s2_x6c.sh). Analysis: X6_THINK_TAG=q36c python poc/analyze_x6.py q36 (mip / mipf from the q36 lane).
+- X6c-P1: ≤ 2% of q36c thinking runs hit the cap. X6c-P2: P2 / P4 / P5 of X6 hold for Qwen3.6 with these arms (thinkf ≥ think; (thinkf −
+  mipf) > (think − mip)). X6c-P3: fact-first-then-think ≥ always-thinkf − 2 points at ≤ 40% of its tokens.
+
+## X6 results, Qwen3-8B (2026-10-17 09:33 UTC; results/x3/analysis_x6_q8b.log; 345 × 3; all four arms new)
+| arm | NL4OPT | IndustryOR | pooled @ tokens | runtime errors | most frequent invented names |
+|---|---|---|---|---|---|
+| mip | 42.0% | 15.3% | 34.3% @ 0.53k | 409 | SumArray.Value 62, Objective.Minimize 61, Objective.SetMinimize 23 |
+| mipf | 62.9% | 24.3% | 51.7% @ 0.45k | 267 | Solver.Expression 22, Objective.Minimize 15 |
+| think | 78.5% | 41.3% | 67.7% @ 7.5k | 95 | Objective.SetConstantTerm 10 |
+| thinkf | 82.3% | 47.3% | **72.2% @ 7.2k** | 49 | Objective.SetConstantTerm 10, Objective.GetCoeffs 9 |
+Policies: FACT-FIRST-THEN-THINK (mipf → thinkf) 68.3% @ 2.45k (escalates 26%); mip → think 60.5% @ 3.9k; think → mipf 70.8% @ 7.6k;
+thinkf → mipf 72.9% @ 7.2k.
+- **X6-P4 holds** (thinkf − think = +4.4; runtime errors 95 → 49). **X6-P5 refuted for Qwen3-8B:** thinking pays without the fact too
+  (think − mip = +33.4 > thinkf − mipf = +20.5): the 8B model without thinking misuses the API in many ways (409 crashes), and thinking
+  repairs most of them, unlike Qwen3-32B, whose thinking *introduces* one invented method. **X6-P3 refuted for Qwen3-8B:** fact-first
+  is 3.9 points below always-thinkf (at 34% of its tokens).
+Raw check (where fact-first and always-thinkf differ): the fact program runs and prints a wrong value on 22% of rows for *both* models
+(223 / 232 of 1,035); thinkf would fix 30% / 32% of those (67 / 75). But thinkf also breaks rows the fact program had right: 71 for
+Qwen3-32B, 35 for Qwen3-8B. For Qwen3-32B the two cancel (fact-first = always-thinkf); for Qwen3-8B thinking breaks fewer, so the check's
+leak costs 3.9 points.
+**Reading:** "facts first, think where the check fails" loses exactly what the check lets through and thinking would have fixed, and
+saves what thinking would have broken. With a check that only asks "does it run and print a number", that trade is even for Qwen3-32B
+(full accuracy at 23% of the tokens) and costs Qwen3-8B 3.9 points (at 34% of the tokens).

@@ -1,23 +1,28 @@
-# Tools, Facts, and Checks
+# Solving Computational Math with LLMs, Accurately and Cheaply
 
-POSTECH CSED490E (Graduate NLP) team project, Team 5.
+*Tools, Facts, and Checks.* POSTECH CSED490E (Graduate NLP) team project, Team 5.
 
-LLMs often solve math problems by writing and running a program (e.g., computational geometry, optimization with
-OR-Tools). These programs can be silently wrong. We study **when they fail and what the cheapest fix is**.
+LLMs can solve geometry, optimization, contest and word problems by writing a program. Programs can be silently wrong,
+and thinking longer is expensive. We look for the cheapest way to get exactly right answers, and found a recipe:
 
-| Mistake                         | Cheapest fix                                                           | Result                                       |
-| ------------------------------- | ---------------------------------------------------------------------- | -------------------------------------------- |
-| Doesn't know a library function | Show 5 lines of exact usage                                            | optimal 23% → 77–90% (thinking longer: 3%) |
-| Distracted by unneeded tools    | Write programs with and without the tools; think only if they disagree | 99% (always thinking: 98%), 27% fewer tokens |
-| The problem is hard             | Think harder only when the examples fail                               | same 66%, 18% fewer tokens                   |
-| The same problem repeats        | Reuse one checked program                                              | 94% valid (new program each time: 7%)        |
+| Step | Result |
+|---|---|
+| 1. Write a program | same polygon in 8 copies: text answers vary, the program is right on all 8 |
+| 2. Add the missing fact (not a whole manual) | delivery routing solved 23% → 77–90% (thinking longer: 3%) |
+| 3. Run a free check (the problem's examples; two versions agree) | never rejects a correct program |
+| 4. Think harder only when the check fails | contest problems: same 66%, 18% fewer tokens |
+| 5. Reuse a checked program when the problem repeats | valid route plans 7% → 94% |
+| **All together** | **87% at 2.5k tokens per problem, vs 74% at 4.1k for "think longer on hard problems"** |
+
+With the fact first, models that fit one 24 GB GPU match Qwen3-32B. Details: `PROPOSAL.md` (Korean: `PROPOSAL_ko.md`),
+`PROPOSAL_slides.pptx` (11 slides), `docs/README.md` (all experiments).
 
 ## Files
 
 ```
 bench.py                              one entry point: list / serve / run / analyze
 PROPOSAL.md, PROPOSAL_ko.md           proposal (English, Korean)
-PROPOSAL_slides.pptx                  10-slide overview with examples
+PROPOSAL_slides.pptx                  11-slide overview with examples
 HANDOFF.md                            server notes for continuing the work
 docs/                                 lab log, one pre-registration + results file per experiment, notes (index: docs/README.md)
 poc/                                  code: run_*.py benchmarks, analyze_*.py analyses, queues/ the exact commands we ran

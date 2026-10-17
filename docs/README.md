@@ -20,4 +20,5 @@ Commands are in `poc/queues/queue_*<id>*.sh`, analyses in `poc/analyze_<id>.py`.
 | Fixes on hard problems | N example augmentation, repair, cascades; N10 per-problem fix choice (N12 agreement gate); N14 adapting to a changed rule; N15 solver library choice; N16 log-probs flag invented APIs; V program reuse; E3·E3B check → sample → think |
 | Reuse and distillation | E4_REPLAY·E4B self-replay, B2 forgetting baselines, D1 contest problems |
 | Beyond computation | X1 competition math, X2 reuse on variants, X3 optimization modeling (X4 Lean proofs, X6), VIEWS when a model can catch its own mistakes |
-| Allocating compute | U1 by failure mechanism vs by difficulty (U1r, U2) |
+| Allocating compute | U1 by failure mechanism vs by difficulty (U1r, U2: facts first, then think only on failure) |
+| Small models (one 24 GB GPU) | SIZE Qwen3-1.7B to 14B and gpt-oss-20b with the recipe, vs Qwen3-32B (SIZE-CC: contest geometry) |
