@@ -211,3 +211,17 @@ on the CPU (0.6 k tok/s with 80k-token thinking; the V2 runner that keeps it on 
 cap is the main factor (sampling +3 points, budget +4 to +43). Re-run of Qwen3.6's THINK arm with T 1.0, top_p 0.95, top_k 20, NO
 presence penalty, 80k cap, as a new tag q36d (the 35 penalty rows are kept apart), GPU1 (poc/queues/queue_s2_u1q36d.sh). Predictions
 U1-Q36C-P1..P4 apply unchanged to q36d; analysis U1_THINK_M=q36d.
+
+## U1-Q36D results (2026-10-17 21:36 UTC; results/u1_q36d_cure{1,2,3}.log; Qwen3.6 THINK arm with an 80k cap, T 1.0 / top_k 20, no presence penalty)
+Thinking arm alone: geometry 106 / 104 / 105 of 108 (old 28k run: 41 / 43 / 44) at 32–33k tokens per item, 2–4 runs at the cap;
+optimization 72 / 75 / 74 of 100 (old: 65 / 57 / 59) at 19–22k tokens, 0–2 at the cap.
+Qwen3.6 policies (pooled 208 items, cure seeds 1 / 2 / 3): FACT-FIRST-THEN-THINK 98.1 / 98.6 / 98.1% @ 1.0–1.5k; MECHANISM 97.1 / 97.1 / 95.7%;
+uniform (think when the base program fails) 91.3 / 91.8 / 90.9%; DIFFICULTY 84.6 / 86.5 / 84.6%; RETRIEVED-FIRST-THEN-THINK 95.7% (all seeds).
+Headline re-pooled over the three models with this arm (624 items): FACT-FIRST-THEN-THINK 87.2 / 87.5 / 86.7% @ 2.5–2.7k; RETRIEVED-FIRST
+84.1 / 84.3 / 83.5% @ 3.2–3.5k; MECHANISM 82.5 / 83.7 / 82.2% @ 4.2–4.7k; uniform 77.6 / 77.9 / 76.9%; DIFFICULTY 73.7 / 74.7 / 74.8%.
+- **P1 holds** (12 of 624 at the cap, 1.9%). **P2 half holds** (geometry ≥ 95% on every seed; optimization 72 / 75 / 74%, ≥ 75% on one
+  seed only). **P3 holds** (fact-first ≥ MECHANISM ≥ DIFFICULTY in both domains, every seed). **P4 refuted** (geometry thinking
+  averages 32–33k tokens, not ≤ 20k).
+**Reading:** with its thinking no longer cut off, Qwen3.6's thinking arm is good (97% geometry) but very expensive (≈ 33k tokens per
+geometry item, 40–70 × the fact program); the policy ordering and the headline numbers are unchanged (fact-first 87%, within 0.3
+points of the confounded run), so the main result did not depend on the setup error.

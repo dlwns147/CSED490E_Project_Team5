@@ -320,3 +320,7 @@ S2_PROOF started on GPU3 Sat Oct 17 20:12:44 UTC 2026
 S2_X1SIZE analysis -> results/x1/analysis_size.log Sat Oct 17 20:13:36 UTC 2026
 S2_PROOF started on GPU3 Sat Oct 17 20:36:42 UTC 2026
 S2_PROOF restarted at 20:36 with the provers' card prompt + thinking, 32k cap (first run used our prompt, thinking off: kept as gpv2ourprompt, 564 attempts) Sat Oct 17 20:36:44 UTC 2026
+S2_U1Q36D done (624/624 rows) Sat Oct 17 21:02:07 UTC 2026
+S2_U1Q36D analysis -> results/u1_q36d_cure{1,2,3}.log Sat Oct 17 21:05:07 UTC 2026
+S2_PROOF dspv2 started on GPU1 Sat Oct 17 21:36:25 UTC 2026
+S2_PROOF re-queued as parallel lanes (queue_s2_proof2.sh): gpv2 continues on GPU3, dspv2 / q14a_think each on the first free GPU Sat Oct 17 21:36:27 UTC 2026
