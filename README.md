@@ -4,18 +4,13 @@
 
 LLMs can solve geometry, optimization, contest and word problems by writing a program. Programs can be silently wrong,
 and thinking longer is expensive. We look for the cheapest way to get exactly right answers, and found a recipe:
+**write a program → add the missing fact → run a free check → think harder only when the check fails → reuse a checked
+program when the problem repeats.**
 
-| Step | Result |
-|---|---|
-| 1. Write a program | same polygon in 8 copies: text answers vary, the program is right on all 8 |
-| 2. Add the missing fact (not a whole manual) | delivery routing solved 23% → 77–90% (thinking longer: 3%) |
-| 3. Run a free check (the problem's examples; two versions agree) | never rejects a correct program |
-| 4. Think harder only when the check fails | contest problems: same 66%, 18% fewer tokens |
-| 5. Reuse a checked program when the problem repeats | valid route plans 7% → 94% |
-| **All together** | **87% at 2.5k tokens per problem, vs 74% at 4.1k for "think longer on hard problems"** |
+![Results at a glance](figs/fig21_results_glance.png)
 
 With the fact first, models that fit one 24 GB GPU match Qwen3-32B. Details: `PROPOSAL.md` (Korean: `PROPOSAL_ko.md`),
-`PROPOSAL_slides.pptx` (12 slides), `docs/README.md` (all experiments). Published baselines (compute-optimal scaling by difficulty,
+`PROPOSAL_slides.pptx` (13 slides), `docs/README.md` (all experiments). Published baselines (compute-optimal scaling by difficulty,
 CodeT, MBR-exec, DeepConf, DRoC, System 2 Attention, Self-Debugging, Dynamic Cheatsheet, ...) are measured on the same problems:
 `PROPOSAL.md` section 7.
 
@@ -24,7 +19,7 @@ CodeT, MBR-exec, DeepConf, DRoC, System 2 Attention, Self-Debugging, Dynamic Che
 ```
 bench.py                              one entry point: list / serve / run / analyze
 PROPOSAL.md, PROPOSAL_ko.md           proposal (English, Korean)
-PROPOSAL_slides.pptx                  12-slide overview with examples
+PROPOSAL_slides.pptx                  13-slide overview with examples
 HANDOFF.md                            server notes for continuing the work
 docs/                                 lab log, one pre-registration + results file per experiment, notes (index: docs/README.md)
 poc/                                  code: run_*.py benchmarks, analyze_*.py analyses, queues/ the exact commands we ran

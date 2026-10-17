@@ -35,6 +35,8 @@ But programs fail **silently** (they still print an answer), and thinking is **e
 
 Each step is a measured result (Section 3). Together they beat the usual ways of spending compute (Section 4).
 
+![Results at a glance](figs/fig21_results_glance.png)
+
 ## 3. Evidence for each step
 
 **Step 1. Write a program, where exact computation is needed.** Programs win on geometry and optimization (the polygon above). On short-answer competition math, text is as good or better (Qwen3.6 on MATH-500: text 98.3%, program 86.8%); there the program is most useful as a *second opinion*: when gpt-oss-20b's text answer and program agree, only 0.3% are wrong (two text answers that agree: 1.5%).

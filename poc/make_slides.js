@@ -191,6 +191,38 @@ step(s, 5, "Same problem again? Reuse the checked program", "valid plans: 7% →
 caption(s, "Together: 87% solved at 2.5k tokens, vs 74% at 4.1k for \"think longer on hard problems\"");
 s.addNotes("Each step is a measured result, shown on the next slides with an example. Step 1: the polygon. Step 2: delivery routing with OR-Tools (Qwen3-32B). Step 3: free checks (the problem's examples; two versions that should agree). Step 4: contest geometry with gpt-oss-120b. Step 5: reuse on the Solomon routing benchmark. Together (3 models, 624 geometry and optimization problems, 3 seeds): fact first and thinking only on a failed check solves 87% at 2.5k tokens per problem.");
 
+// 4b. Results at a glance
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Problem" });
+s.addText("Results at a glance: same or better, for fewer tokens", { placeholder: "title" });
+txt(s, [{ text: "blue", options: { bold: true, color: BLUE } }, { text: " = our recipe step   ·   " },
+        { text: "grey", options: { bold: true, color: "7F7F7F" } }, { text: " = the usual way or a published method   ·   " },
+        { text: "red", options: { bold: true, color: RED } }, { text: " = makes it worse" }], 0.6, 1.3, 12.1, 0.35, { fontSize: 14, color: C.text2 });
+function mini(s, k, title, sub, rows) {
+  const x0 = 0.6 + (k % 3) * 4.15, y0 = 1.85 + Math.floor(k / 3) * 2.6;
+  txt(s, title, x0, y0, 3.95, 0.38, { fontSize: 17, bold: true });
+  txt(s, sub, x0, y0 + 0.38, 3.95, 0.3, { fontSize: 12, color: C.text2 });
+  rows.forEach(([lab, v, shown, col], r) => {
+    const y = y0 + 0.78 + r * 0.42;
+    txt(s, lab, x0, y, 1.55, 0.36, { fontSize: 13, align: "right" });
+    s.addShape(pres.shapes.RECTANGLE, { x: x0 + 1.62, y: y + 0.05, w: Math.max(0.03, 1.25 * v / 100), h: 0.26, fill: { color: col }, line: { color: col, width: 0.5 }, objectName: `${title} ${lab}` });
+    txt(s, shown, x0 + 1.68 + 1.25 * v / 100, y, 1.15, 0.36, { fontSize: 13, bold: true, color: col === "A5A5A5" ? "595959" : col });
+  });
+}
+const G = "A5A5A5";
+mini(s, 0, "Add the missing fact", "delivery routing, Qwen3-32B: % optimal",
+     [["task only", 23, "23%", G], ["think longer", 3, "3%", RED], ["whole manual", 7, "7%", RED], ["5 exact lines", 83, "77–90%", BLUE]]);
+mini(s, 1, "Small models gain most", "word problems: % solved",
+     [["Qwen3-1.7B", 0.1, "0%", G], ["1.7B + fact", 44.5, "45%", BLUE], ["Qwen3-32B", 65.4, "65%", G], ["32B + fact", 66.2, "66%", BLUE]]);
+mini(s, 2, "Compare two versions", "geometry, Qwen3-32B: % · tokens",
+     [["8 extra tools", 59, "59% · 0.6k", RED], ["always think", 98, "98% · 5.9k", G], ["think if differ", 99, "99% · 4.3k", BLUE]]);
+mini(s, 3, "Think only on failure", "311 contest problems: % · tokens",
+     [["always high", 66.2, "66% · 30k", G], ["high on failure", 66.3, "66% · 25k", BLUE]]);
+mini(s, 4, "Reuse a checked program", "48 routing days: % valid · tokens",
+     [["new each day", 7, "7% · 86k", G], ["own notes (DC)", 36, "31–40%", G], ["reuse one", 94, "94% · 28k", BLUE]]);
+mini(s, 5, "All together", "624 problems, 3 models: % · tokens",
+     [["think on hardest", 74, "74% · 4.1k", G], ["fix by type", 83, "83% · 4.2k", G], ["fact first", 87, "87% · 2.5k", BLUE]]);
+s.addNotes("One panel per result. Add the fact: routing 23% to 77-90% (thinking longer 3%, whole manual 7%). Small models gain most: Qwen3-1.7B 0% to 45%, Qwen3-32B 65% to 66% (word problems). Compare two versions: 99% at 4.3k tokens vs always thinking 98% at 5.9k; with 8 extra tools 59%. Think only on a failed check (gpt-oss-120b, contest): 66.3% at 24.7k vs 66.2% at 30.1k. Reuse: 94% of 48 routing days vs 7% with a new program per day; Dynamic Cheatsheet (DC, the model's own notes) 31-40%. All together: fact first then think on failure 87% at 2.5k vs 74% at 4.1k for thinking on the hardest-looking problems (Snell-style) and 83% for choosing the fix by failure type.");
+
 // 5. Step 2: fact
 pres.addSection({ title: "Recipe" });
 // 4. Missing knowledge

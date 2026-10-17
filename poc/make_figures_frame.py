@@ -1,7 +1,8 @@
 """Figures for the reframed PROPOSAL.md (solving computational math accurately and cheaply). Run: python poc/make_figures_frame.py
 fig18: the recipe; fig19: cost vs accuracy of compute-allocation policies (docs/prereg/PREREG_U1.md, results/u1r_all_cure1.log:
 3 models x geometry + optimization suites, 624 items, cure seed 1; first-program tokens from the S2_U1 base_s1 runs);
-fig20: gain of one API fact by model size (docs/prereg/PREREG_SIZE.md, X6 = NL4OPT + IndustryOR, 345 problems x 3 seeds)."""
+fig20: gain of one API fact by model size (docs/prereg/PREREG_SIZE.md, X6 = NL4OPT + IndustryOR, 345 problems x 3 seeds);
+fig21: results at a glance (numbers from PROPOSAL.md sections 3, 4 and 7)."""
 import os
 import sys
 
@@ -79,3 +80,41 @@ st.legend_top(ax, 2)
 st.finish(ax, "The smaller the model, the more one fact helps", "NL4OPT + IndustryOR word problems → optimization programs (345 problems × 3 seeds)",
           "fig20_fact_by_size.png", ygrid=True)
 print("wrote fig18_recipe.png, fig19_cost_accuracy.png, fig20_fact_by_size.png")
+
+# ---------- fig21: results at a glance ----------
+GREY, BLUE, RED = st.MUTED, st.S1, "#c0392b"
+PANELS = [  # title, subtitle, rows: (label, value for the bar, shown text, colour)
+    ("Add the missing fact", "delivery routing (CVRP), Qwen3-32B: % optimal", [
+        ("task only", 23, "23%", GREY), ("think longer", 3, "3%", RED), ("+ whole manual", 7, "7%", RED),
+        ("+ 5 exact lines", 83, "77–90%", BLUE)]),
+    ("Small models gain the most", "word problems → solver programs: % solved", [
+        ("Qwen3-1.7B", 0.1, "0%", GREY), ("Qwen3-1.7B + fact", 44.5, "45%", BLUE),
+        ("Qwen3-32B", 65.4, "65%", GREY), ("Qwen3-32B + fact", 66.2, "66%", BLUE)]),
+    ("Compare two versions", "geometry, Qwen3-32B: % right · tokens per problem", [
+        ("with 8 unneeded tools", 59, "59% · 0.6k", RED), ("always think", 98, "98% · 5.9k", GREY),
+        ("think only if they differ", 99, "99% · 4.3k", BLUE)]),
+    ("Think only on a failed check", "311 contest problems, gpt-oss-120b", [
+        ("always high effort", 66.2, "66.2% · 30.1k", GREY), ("high only on failure", 66.3, "66.3% · 24.7k", BLUE)]),
+    ("Reuse a checked program", "48 days of delivery routing, gpt-oss-120b: % valid · tokens in total", [
+        ("new program every day", 7, "7% · 86k", GREY), ("own notes (Dyn. Cheatsheet)", 36, "31–40%", GREY),
+        ("reuse one checked program", 94, "94% · 28k", BLUE)]),
+    ("All together", "3 models, 624 problems: % solved · tokens per problem", [
+        ("think on hardest (Snell)", 74, "74% · 4.1k", GREY), ("fix by failure type", 83, "83% · 4.2k", GREY),
+        ("fact first, think on failure", 87, "87% · 2.5k", BLUE)]),
+]
+fig, ax = plt.subplots(figsize=(16, 7.2))
+fig.subplots_adjust(left=0.005, right=0.995, top=0.865, bottom=0.01)
+ax.set_xlim(0, 160); ax.set_ylim(11, 76); ax.axis("off")
+for k, (title, sub, rows) in enumerate(PANELS):
+    x0, top = 1 + (k % 3) * 53, 75 - (k // 3) * 38
+    ax.text(x0, top, title, fontsize=14, weight="semibold", color=st.INK, va="top")
+    ax.text(x0, top - 3.6, sub, fontsize=10, color=st.INK2, va="top")
+    for r, (lab, v, shown, col) in enumerate(rows):
+        y = top - 10.5 - r * 5.6
+        ax.text(x0 + 18, y, lab, fontsize=11, color=st.INK2, ha="right", va="center")
+        ax.add_patch(plt.Rectangle((x0 + 19, y - 1.8), max(0.3, 0.21 * v), 3.6, color=col, lw=0))
+        ax.text(x0 + 19.8 + 0.21 * v, y, shown, fontsize=11.5, weight="semibold", va="center", color=col if col != GREY else st.INK2)
+fig.text(0.006, 0.975, "Results at a glance: the same or better accuracy for fewer tokens", fontsize=17, weight="semibold", color=st.INK, va="top")
+fig.text(0.006, 0.93, "blue = our recipe step;  grey = the usual way or a published method;  red = makes it worse", fontsize=11.5, color=st.INK2, va="top")
+fig.savefig(os.path.join(st.OUT, "fig21_results_glance.png"), dpi=200); plt.close(fig)
+print("wrote fig21_results_glance.png")
