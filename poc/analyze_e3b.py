@@ -1,4 +1,4 @@
-"""E3b analysis (pre-registered in results/PREREG_E3B.md): differential testing of the first program against a brute-force program written by
+"""E3b analysis (pre-registered in docs/prereg/PREREG_E3B.md): differential testing of the first program against a brute-force program written by
 the same model (no toolbox, "simplest brute-force program"), on the given instance and 5 transformed copies (no 10^9 copy).
 Gate = metamorphic check passes AND outputs agree on all 6 inputs; otherwise escalate to one budget-thinking (1,024) program (E3 run).
 usage: python analyze_e3b.py [model=8b]"""

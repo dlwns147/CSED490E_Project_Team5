@@ -1,4 +1,4 @@
-"""N19 (results/PREREG_N.md): tool-condition agreement gate on contest geometry (gpt-oss-120b low without vs with the K8 toolbox),
+"""N19 (docs/prereg/PREREG_N.md): tool-condition agreement gate on contest geometry (gpt-oss-120b low without vs with the K8 toolbox),
 escalating to medium. usage: CC_SET=full python analyze_n19.py"""
 import json, os, sys
 from concurrent.futures import ThreadPoolExecutor

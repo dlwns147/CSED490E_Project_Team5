@@ -1,4 +1,4 @@
-"""N2 (results/PREREG_N.md): one round of label-free feedback repair on the contest-geometry set.
+"""N2 (docs/prereg/PREREG_N.md): one round of label-free feedback repair on the contest-geometry set.
 A program that passes the statement's public examples is kept. Otherwise the model gets the statement, its program and the first failing
 example (input, expected output, its output or the error / time-out, or "no program" if the reply had none) and writes a corrected
 program, which is scored on all kept tests. Same model and mode as the source run.

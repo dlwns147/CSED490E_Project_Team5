@@ -1,4 +1,4 @@
-"""H2b analysis (results/PREREG_H2B.md): single sample vs public-test-filtered best-of-k vs oracle any-of-k on the 31 contest problems.
+"""H2b analysis (docs/prereg/PREREG_H2B.md): single sample vs public-test-filtered best-of-k vs oracle any-of-k on the 31 contest problems.
 A sample 'passes the public tests' if its first n_public tests (the statement's examples, which come first in the test order) pass.
 usage: python analyze_h2b.py"""
 import json

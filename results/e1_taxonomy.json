@@ -1,5 +1,5 @@
 {
-"about": "E1 failure taxonomy; classes and rules in results/E1_TAXONOMY_DRAFT.md and poc/analyze_e1_taxonomy.py",
+"about": "E1 failure taxonomy; classes and rules in docs/notes/E1_TAXONOMY_DRAFT.md and poc/analyze_e1_taxonomy.py",
 "geo_classes": [
 "no_code",
 "runaway",

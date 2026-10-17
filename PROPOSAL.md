@@ -2,7 +2,7 @@
 
 *Graduate NLP course project proposal*
 
-> **About this file.** The project proposal in short. Full log of every run and correction: [results/FINDINGS.md](results/FINDINGS.md); failure → fix map: [results/FIX_MAP.md](results/FIX_MAP.md); how much cheap checks miss: [results/CHECKS.md](results/CHECKS.md); earlier long versions: `results/archive/`.
+> **About this file.** The project proposal in short. Full log of every run and correction: [docs/FINDINGS.md](docs/FINDINGS.md); failure → fix map: [docs/notes/FIX_MAP.md](docs/notes/FIX_MAP.md); how much cheap checks miss: [docs/notes/CHECKS.md](docs/notes/CHECKS.md); earlier long versions: `results/archive/`.
 
 ## 0. Background: how LLMs solve geometry and optimization problems
 
@@ -126,7 +126,7 @@ A *second opinion* works when its mistakes are independent: Qwen3-32B writes one
 
 **Related work.** Prompt context that misleads code (2606.04057; 2609.14157; CodeCrash 2504.14119); tools with unclear contracts (DRAFT; ContractEval 2510.12047); documentation for solver code (DRoC, ICLR 2025; CP-Bench 2506.06052); label-free selection and repair (CodeT, MBR-exec, AlphaCode; Self-Debugging; Olausson et al., ICLR 2024); one program for all instances (FunSearch, HeuriGym; 2605.14141, 2608.27296). **New here:** these effects compared on geometry and optimization with exact answers, one fact at a time, every fix priced in tokens.
 
-**Plan.** Finish the failure → fix map (`results/FIX_MAP.md`); test whether a second opinion from a *different* model makes the agreement gate work for gpt-oss (a first test flags 41% of its wrong programs at 9% false alarms); a closed API model if access is available.
+**Plan.** Finish the failure → fix map (`docs/notes/FIX_MAP.md`); test whether a second opinion from a *different* model makes the agreement gate work for gpt-oss (a first test flags 41% of its wrong programs at 9% false alarms); a closed API model if access is available.
 
 **Limitations.** The mechanisms (Section 4) were found on generated tasks, and the helper effect shrinks on real problems. The facts in R1 are hand-written; automatic fact mining recovers only part of them. Only open models were tested.
 

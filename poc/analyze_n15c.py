@@ -1,4 +1,4 @@
-"""N15c (results/PREREG_N15.md): library tournament. Per model and problem: every library on the probe instances (instance 0 of each
+"""N15c (docs/prereg/PREREG_N15.md): library tournament. Per model and problem: every library on the probe instances (instance 0 of each
 size, seed 1); keep the one with the most feasible plans, ties by the better mean objective rank on the probes (no reference used);
 commit to it on the problem's other items (both seeds). Probe tokens charged to the problem's committed items.
 usage: python analyze_n15c.py"""

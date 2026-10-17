@@ -1,4 +1,4 @@
-"""N5 (results/PREREG_V.md): approximate-oracle differential testing on the contest-geometry set (ALGO-style, extended to continuous
+"""N5 (docs/prereg/PREREG_V.md): approximate-oracle differential testing on the contest-geometry set (ALGO-style, extended to continuous
 answers), plus one counterexample repair round.
 gen:   per problem the model writes (1) gen(rng) -> one small valid input, (2) a slow, obviously-correct oracle program (may approximate
        continuous answers). The oracle is accepted only if it passes the statement's examples (relative tolerance 1e-2).

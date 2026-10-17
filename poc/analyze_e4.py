@@ -1,4 +1,4 @@
-"""E4 analysis (pre-registered in results/PREREG_E4_REPLAY.md): leave-hull-out LoRA arms A (no replay), B (self-replay), C (teacher replay)
+"""E4 analysis (pre-registered in docs/prereg/PREREG_E4_REPLAY.md): leave-hull-out LoRA arms A (no replay), B (self-replay), C (teacher replay)
 vs the base Qwen3-8B on the same prompts (base = C1 / E2 runs on the same stack). % correct on all 8 variants, k of n, paired 95% bootstrap
 CIs over (instance, seed). Also: hull programs by algorithm family (monotone chain vs others) via the stored code is NOT used; we report
 behavioural classes only.

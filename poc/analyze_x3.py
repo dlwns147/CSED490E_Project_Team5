@@ -1,4 +1,4 @@
-"""X3 (results/PREREG_X3.md): verbal optimization problems. Accuracy / tokens per mode and source, failure kinds (crash vs runs-but-wrong),
+"""X3 (docs/prereg/PREREG_X3.md): verbal optimization problems. Accuracy / tokens per mode and source, failure kinds (crash vs runs-but-wrong),
 leak of agreement checks (mip vs cpsat, mip vs text, mip vs mip next seed). usage: python analyze_x3.py <model>"""
 import json, os, statistics as st, sys
 from collections import Counter

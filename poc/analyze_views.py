@@ -1,4 +1,4 @@
-"""VIEWS (results/PREREG_VIEWS.md): error correlation between two views of the same model vs the leak of their agreement check.
+"""VIEWS (docs/prereg/PREREG_VIEWS.md): error correlation between two views of the same model vs the leak of their agreement check.
 Settings (model, task family, view A, view B): same-view pairs (seed s vs s+1) and different-view pairs, from stored runs:
 X1 competition math (text / program), X3 verbal optimization (mip / cpsat / text), N12 geometry (K8 toolbox / no helpers), N15
 optimization libraries (free / mip / none). Per setting: error kappa (Cohen's kappa on the two views' "wrong" indicators), leak

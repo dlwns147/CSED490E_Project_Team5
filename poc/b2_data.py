@@ -1,4 +1,4 @@
-"""B2 (results/PREREG_B2.md) training-data builder.
+"""B2 (docs/prereg/PREREG_B2.md) training-data builder.
   sdft:    reproduce E4 arm A's 600 teacher examples (same selection as sft_lora.py: hull excluded, Random(0), 200 per K), let the base
            student (no thinking) rewrite each teacher program in its own style (SDFT, Yang et al. 2024), verify each rewrite on all 8
            variants of its training instance, keep verified rewrites, otherwise the teacher program -> results/b2_data_sdft.jsonl

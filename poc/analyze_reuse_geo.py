@@ -1,4 +1,4 @@
-"""V1G (results/PREREG_V.md): verify once, reuse on the synthetic geometry tasks under 8 related helpers. Candidates = K8 programs for the
+"""V1G (docs/prereg/PREREG_V.md): verify once, reuse on the synthetic geometry tasks under 8 related helpers. Candidates = K8 programs for the
 5 validation instances (n = 10, inst 0-4, seeds 1-2); label-free selection by metamorphic consistency on those; the chosen program runs on
 the other 55 instances (correct on all 8 variants); helpers pre-defined.
 usage: python analyze_reuse_geo.py"""

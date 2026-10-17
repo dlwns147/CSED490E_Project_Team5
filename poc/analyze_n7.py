@@ -1,4 +1,4 @@
-"""N7 (results/PREREG_N.md): the failure map as a policy. R = accept the low sample if it passes the examples; crash / timeout / no code
+"""N7 (docs/prereg/PREREG_N.md): the failure map as a policy. R = accept the low sample if it passes the examples; crash / timeout / no code
 -> one repair round (N2 results), accept if it passes the examples, else medium; wrong answer -> medium directly. Compared with N3 and N4.
 usage: CC_SET=full python analyze_n7.py"""
 import json, os, sys

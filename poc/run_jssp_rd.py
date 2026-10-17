@@ -1,4 +1,4 @@
-"""N14c (results/PREREG_N14.md): job-shop with RELEASE DATES (one added rule) on la01-la40. Job j may not start its first operation
+"""N14c (docs/prereg/PREREG_N14.md): job-shop with RELEASE DATES (one added rule) on la01-la40. Job j may not start its first operation
 before r_j (r_j drawn once per instance: uniform 0 .. half of job j's total processing time, seed "rd-<name>-<j>"). Input = the H5
 format plus a final line with the n release dates. Checker = H5 checker + release dates. Reference = CP-SAT (8 workers, 120 s).
 Conditions: from scratch, or adapting a source program (--adapt FILE --note TEXT) appended to the prompt.

@@ -1,4 +1,4 @@
-"""D1b' (results/PREREG_D1.md): base Qwen3-8B (no-think) adds explanatory comments to each teacher program without changing its logic;
+"""D1b' (docs/prereg/PREREG_D1.md): base Qwen3-8B (no-think) adds explanatory comments to each teacher program without changing its logic;
 the rewrite is kept only if it still passes all of the problem's kept tests. -> results/h2/d1b_E.jsonl
 usage: CC_SET=full POC_BASE_URL=... python d1_rewrite.py"""
 import json, os, sys

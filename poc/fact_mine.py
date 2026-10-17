@@ -1,4 +1,4 @@
-"""FM (results/PREREG_FM.md): execution-verified fact mining for solver code on the Solomon VRPTW set.
+"""FM (docs/prereg/PREREG_FM.md): execution-verified fact mining for solver code on the Solomon VRPTW set.
 mine: rounds of (programs on the 8 mining instances x 2 seeds with the current sheet -> failure reports -> 2 candidate facts from the
       model -> each candidate re-run with the same seeds -> keep the better one if it adds >= 2 feasible programs). Up to 5 rounds.
       -> results/h3/fm_chain_<chain>.json (verified sheet, every proposed fact, counts, tokens)

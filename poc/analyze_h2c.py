@@ -1,4 +1,4 @@
-"""H2c Part A (results/PREREG_H2C.md): MBR-exec among the samples that pass the statement's examples, offline on the H2b samples.
+"""H2c Part A (docs/prereg/PREREG_H2C.md): MBR-exec among the samples that pass the statement's examples, offline on the H2b samples.
 Selection inputs = generated tests 30.. (inputs only; disjoint from the evaluation tests), at most 20 per problem.
 Part B (CC_SET=full): the full set, conditions with 3 seeds, by rating band, with and without the flagged problems, bootstrap CIs.
 usage: [CC_SET=full] python analyze_h2c.py"""

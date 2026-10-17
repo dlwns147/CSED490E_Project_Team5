@@ -1,4 +1,4 @@
-"""N14 (results/PREREG_N14.md): pick the source programs for adaptation. For a model's stored N10 programs of a source problem, run
+"""N14 (docs/prereg/PREREG_N14.md): pick the source programs for adaptation. For a model's stored N10 programs of a source problem, run
 every program on ALL instances of that problem (same sizes / n_inst as N10) and count optimal answers. good = the program optimal on
 the most instances (ties: fewer tokens); bad = a program that runs but is optimal on none (ties: most instances feasible = plausible).
 Also the best knapsack program (an unrelated verified program). Writes results/n14/src_<prefix>_<prob>_{good,bad}.py + a summary.

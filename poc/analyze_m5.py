@@ -1,4 +1,4 @@
-"""M5 analysis (results/PREREG_M5.md): voting over the M4 draft (no helpers), the M4 rewrite (with helpers) and one all-helpers sample.
+"""M5 analysis (docs/prereg/PREREG_M5.md): voting over the M4 draft (no helpers), the M4 rewrite (with helpers) and one all-helpers sample.
 Packaging-free: programs run with the offered (fixed) K8 toolbox pre-defined (drafts have no helpers and run as they are).
 usage: python analyze_m5.py"""
 import json, os, random, re, sys

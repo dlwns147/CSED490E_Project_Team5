@@ -1,4 +1,4 @@
-"""E3 analysis (pre-registered in results/PREREG_E3.md): simulate the "check, then sample, then think" pipeline from stored independent runs.
+"""E3 analysis (pre-registered in docs/prereg/PREREG_E3.md): simulate the "check, then sample, then think" pipeline from stored independent runs.
 Stage 1 = C1 seed 1; stage 2 = C1 seeds 2-3 (MR-select over the 3); stage 3 = one escalation program (budget-forced thinking 1,024, or a
 self-generated hint). Baselines: single program, always best-of-3 + MR (no escalation), always budget-thinking, always full thinking.
 Accuracy = correct on all 8 variants; tokens = mean output tokens actually spent per instance (incl. the self-hint call).

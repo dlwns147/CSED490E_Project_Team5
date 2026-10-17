@@ -1,4 +1,4 @@
-"""V1c (results/PREREG_V.md): reuse cost curve. Every candidate of a pool runs once on the 8 mining instances; candidates feasible on at least
+"""V1c (docs/prereg/PREREG_V.md): reuse cost curve. Every candidate of a pool runs once on the 8 mining instances; candidates feasible on at least
 one mining instance also run on the 48 test instances (results cached in results/h3/cand_eval_<arm>.json). Then, drawing k candidates
 (without replacement, 2,000 draws), V1 picks the most mining-feasible one (ties: lower mean distance / reference); reported: expected test
 feasibility of the pick and the tokens of k candidates.

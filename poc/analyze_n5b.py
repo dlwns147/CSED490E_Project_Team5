@@ -1,4 +1,4 @@
-"""N5b (results/PREREG_V.md): the saved approximate oracles select among the 3 Part B samples (ALGO's use): the first example-passer
+"""N5b (docs/prereg/PREREG_V.md): the saved approximate oracles select among the 3 Part B samples (ALGO's use): the first example-passer
 that agrees with the oracle on every saved input, else the first example-passer, else seed 1. Also detection / false-alarm rates of the
 oracle on example-passing seed-1 programs and the seed-1 counterexample-repair result.
 usage: CC_SET=full python analyze_n5b.py <tag> [<tag> ...]"""

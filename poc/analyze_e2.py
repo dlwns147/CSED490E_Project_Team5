@@ -1,4 +1,4 @@
-"""E2 analysis (pre-registered in results/PREREG_E2.md): F2 replication on delaunay (in_circle helper: signed / doc / fixed / none) and
+"""E2 analysis (pre-registered in docs/prereg/PREREG_E2.md): F2 replication on delaunay (in_circle helper: signed / doc / fixed / none) and
 F1 replication on diameter (K0 / HIGH = convex_hull+polar_sort / LOW = point_in_polygon+segments_intersect), seeds pooled.
 Per cell: correct on all 8 variants (k of n), mean output tokens; paired differences with 95% bootstrap CIs over (instance, seed);
 failure patterns; route switch (HIGH programs that call convex_hull / polar_sort).

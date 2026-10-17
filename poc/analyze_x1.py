@@ -1,4 +1,4 @@
-"""X1 (results/PREREG_X1.md): text vs program vs thinking on MATH-500 + AIME 2024/25; the agreement gate (text == program -> accept,
+"""X1 (docs/prereg/PREREG_X1.md): text vs program vs thinking on MATH-500 + AIME 2024/25; the agreement gate (text == program -> accept,
 else thinking), its leak (wrong share among agreeing pairs) and the text-text control (seed s vs seed s+1).
 usage: python analyze_x1.py [model ...]"""
 import json, os, statistics as st, sys

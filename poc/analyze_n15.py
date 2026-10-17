@@ -1,4 +1,4 @@
-"""N15 (results/PREREG_N15.md): which OR-Tools solver library should solver code use? Per model: optimal (feasible) counts per problem
+"""N15 (docs/prereg/PREREG_N15.md): which OR-Tools solver library should solver code use? Per model: optimal (feasible) counts per problem
 and condition (seeds 1-2 pooled), output tokens, the library actually imported under free choice, and the four predictions.
 usage: python analyze_n15.py"""
 import json, os

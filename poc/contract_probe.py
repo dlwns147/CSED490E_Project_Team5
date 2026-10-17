@@ -1,4 +1,4 @@
-"""M2 (results/PREREG_M2_M4.md): harness-side metamorphic probing of offered helpers (no model involved).
+"""M2 (docs/prereg/PREREG_M2_M4.md): harness-side metamorphic probing of offered helpers (no model involved).
 Each helper with a scalar (number / bool / str) result is run on random integer inputs and on transformed copies: translation, rotation by 90
 degrees, mirroring (x -> -x), reversed vertex order (polygon arguments) and swapped 2nd/3rd point arguments (>= 3 point parameters).
 A relation is recorded only if it holds on all probes: "unchanged" or "negated". Helpers with an orientation-reversing relation that is not

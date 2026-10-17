@@ -1,4 +1,4 @@
-"""V1A (results/PREREG_V.md): label-free reuse on the synthetic tasks: candidates scored by agreement with a model-written brute-force
+"""V1A (docs/prereg/PREREG_V.md): label-free reuse on the synthetic tasks: candidates scored by agreement with a model-written brute-force
 oracle on the 5 validation instances (all 8 variants); the best candidate is reused on the 55 test instances.
 usage: POC_BASE_URL=... python reuse_oracle_geo.py <8b|32b>"""
 import json, os, random, re, sys

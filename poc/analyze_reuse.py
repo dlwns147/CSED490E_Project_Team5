@@ -1,4 +1,4 @@
-"""V1 (results/PREREG_V.md): verify once, reuse the program. Candidates = an arm's programs generated for the 8 FM mining instances
+"""V1 (docs/prereg/PREREG_V.md): verify once, reuse the program. Candidates = an arm's programs generated for the 8 FM mining instances
 (2 seeds -> 16); each runs on all 8 mining instances; the one feasible on the most (ties: lower mean distance) runs on the 48 test instances.
 usage: python analyze_reuse.py <arm> [<arm> ...]      (arm = a results/h3/sol_<arm>_s{1,2}.jsonl prefix, e.g. oss120_low_plain)"""
 import json, os, sys

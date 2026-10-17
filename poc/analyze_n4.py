@@ -1,4 +1,4 @@
-"""N4 (results/PREREG_N.md): typed combination, offline. Cheap sample -> accept if it passes the examples; else one repair round (from
+"""N4 (docs/prereg/PREREG_N.md): typed combination, offline. Cheap sample -> accept if it passes the examples; else one repair round (from
 cc_full_rep_<cheap>_s<seed>.jsonl); if the repaired program passes the examples accept it; else the expensive mode's sample. Costs count
 every call made. Compared with the N3 cascade (no repair) and each mode alone, on the seeds with repair data.
 usage: python analyze_n4.py"""

@@ -1,4 +1,4 @@
-"""X6 (results/PREREG_X3.md, X6 + addendum): does the API fact make thinking pay on verbal optimization (NL4OPT 245 + IndustryOR 100)?
+"""X6 (docs/prereg/PREREG_X3.md, X6 + addendum): does the API fact make thinking pay on verbal optimization (NL4OPT 245 + IndustryOR 100)?
 Arms (results/x3/opt_<m>_<arm>_s<seed>.jsonl): mip, mipf (+ 6-line pywraplp snippet), think, thinkf (thinking + the snippet).
 Label-free check = the program runs and prints a value. Policies use the same seed's rows; tokens = mean output tokens per item.
 usage: python analyze_x6.py q32b q8b q36"""

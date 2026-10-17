@@ -1,4 +1,4 @@
-"""N1 (results/PREREG_N.md): metamorphic example augmentation (MEA) on the contest-geometry set.
+"""N1 (docs/prereg/PREREG_N.md): metamorphic example augmentation (MEA) on the contest-geometry set.
 gen:  the model writes transform(inp) -> list[str] (inputs whose correct output is exactly the same as for inp, as guaranteed by the
       statement), one call per problem -> results/h2/mea_<tag>.json
 eval: each public example's derived inputs inherit the example's output; every Part B sample that passes the public examples is run on

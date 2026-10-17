@@ -1,4 +1,4 @@
-"""N16 (results/PREREG_N16.md): token log-probs at solver API names, and confidence- vs execution-triggered documentation.
+"""N16 (docs/prereg/PREREG_N16.md): token log-probs at solver API names, and confidence- vs execution-triggered documentation.
 usage: python analyze_n16.py"""
 import itertools, json, math, os, random, re, sys, collections, heapq, time, statistics as st
 

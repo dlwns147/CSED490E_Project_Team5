@@ -17,23 +17,31 @@ cheapest fix**. "Think longer" is not always the answer.
 Where to read more:
 - `PROPOSAL_slides.pptx`: 10-slide overview with examples.
 - `PROPOSAL.md` and `PROPOSAL_ko.md`: the proposal (English and Korean).
-- `results/FINDINGS.md`: the full chronological lab log.
-- `results/PREREG_*.md`: the pre-registration and the results of each experiment.
+- `docs/README.md`: index of all experiments, grouped by theme.
+- `docs/FINDINGS.md`: the full chronological lab log.
+- `docs/prereg/PREREG_*.md`: the pre-registration and the results of each experiment.
 
 ## Repository layout
 
 ```
+README.md                                           this file
 PROPOSAL.md, PROPOSAL_ko.md, PROPOSAL_slides.pptx   proposal and slides
 HANDOFF.md                                          server notes for continuing the work (environment, paths, status)
+docs/                                               everything written about the experiments (index: docs/README.md)
+  FINDINGS.md                                       chronological lab log
+  prereg/PREREG_<id>.md                             one file per experiment: predictions first, then dated results
+  notes/                                            critique, check coverage, failure -> fix map, related work, drafts
+  archive/                                          proposal versions from before the repository existed
 figs/                                               figures used in the proposal and the slides
-poc/                                                all code
+poc/                                                all code (flat: the scripts import each other)
   llm.py, sandbox.py                                OpenAI-compatible client; sandboxed runner for generated programs
   serve_gpu.sh, start_server.sh                     start a vLLM server
   run_*.py                                          experiment harnesses (one per benchmark, see below)
   analyze_*.py                                      analyses (one per experiment id, e.g. analyze_n12.py)
-  queue_*.sh                                        the exact command sequences we ran (one per experiment)
   make_figures*.py, make_slide*.py, make_slides.js  figures and slides
-results/                                            benchmark inputs, references, analyses, pre-registrations, FINDINGS.md
+  queues/queue_*.sh                                 the exact command sequences we ran (one per experiment)
+results/                                            benchmark inputs, reference solutions, small analysis outputs,
+                                                    queue_log.txt (when each run started and ended)
 ```
 
 Raw model outputs (`*.jsonl`, about 1.2 GB) and run logs (`*.log`) are not in git: see `.gitignore`. Each run
@@ -95,7 +103,7 @@ python poc/run_geo_cross.py --model_tag S2_N10_geo_think_s1 --stdlib --n_inst 6 
 N10_PREFIX=S2_N10 python poc/analyze_n12.py 1 geo     # compare both programs, think only if they differ
 ```
 
-Output: `results/geocross_<tag>.jsonl`. The full set of arms is in `poc/queue_s2_n10.sh`.
+Output: `results/geocross_<tag>.jsonl`. The full set of arms is in `poc/queues/queue_s2_n10.sh`.
 
 ### Optimization with library documentation (slide 6)
 
@@ -145,11 +153,11 @@ REUSE_SEEDS=1,2 python poc/analyze_reuse_curve.py oss120_low_plain   # pick on 8
 |---|---|---|
 | Job-shop scheduling (OR-Library la01–la40) | `python poc/run_jssp.py ref`, then `python poc/run_jssp.py run <tag> <seed>` | instances in `results/h5/instances/`; `run_jssp_rd.py` / `run_jssp_var.py` add release dates, tardiness, flexible machines |
 | Competition math (MATH-500, AIME 2024/2025) | `python poc/run_math.py <tag> <text\|prog\|think> <seed> [--think]` | problems in `results/x1/problems.json`; graded with math-verify |
-| Word problems → optimization models (NL4OPT, IndustryOR) | `python poc/run_nlopt.py <tag> <mip\|mipf\|cpsat\|text\|think> <seed>` | `mipf` adds the 6-line exact solver snippet; see `results/PREREG_X3.md` |
+| Word problems → optimization models (NL4OPT, IndustryOR) | `python poc/run_nlopt.py <tag> <mip\|mipf\|cpsat\|text\|think> <seed>` | `mipf` adds the 6-line exact solver snippet; see `docs/prereg/PREREG_X3.md` |
 | Lean 4 proofs (miniF2F) | `python poc/run_lean.py gen <tag> <split> <k>`, then `check <file>` | needs Lean 4 v4.15.0 + Mathlib (path `PROJ` in the script) |
 
-Each experiment's exact commands are in `poc/queue_s2_<id>.sh`. Its pre-registration and results are in
-`results/PREREG_<id>.md`.
+Each experiment's exact commands are in `poc/queues/queue_s2_<id>.sh`. Its pre-registration and results are in
+`docs/prereg/PREREG_<id>.md`.
 
 ## Figures and slides
 

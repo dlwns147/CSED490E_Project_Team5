@@ -44,7 +44,7 @@ QNAME = {"8b": "Qwen3-8B", "14b": "Qwen3-14B", "32b": "Qwen3-32B"}
 S = lambda fmt, seeds: [fmt.format(s=s) for s in seeds]
 
 # ---- sources -----------------------------------------------------------------------------------------------------------------------
-# fig2: S4d dose-response (poc/queue_distract.sh): "should use" header, no --stdlib, n_inst 10 (100 programs), T=0.7, seeds 1-2
+# fig2: S4d dose-response (poc/queues/queue_distract.sh): "should use" header, no --stdlib, n_inst 10 (100 programs), T=0.7, seeds 1-2
 FIG2 = {m: {**{str(k): ([f"geox{m}_dis{k}_t07s{s}" for s in (1, 2)], k, "related") for k in (0, 2, 4, 8)},
             "U": ([f"geox{m}_disU8_t07s{s}" for s in (1, 2)], 8, "unrelated")}   # --distract 8 unrelated = the whole pool of 6
         for m in Q}

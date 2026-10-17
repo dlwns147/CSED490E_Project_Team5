@@ -1,4 +1,4 @@
-"""N18 (results/PREREG_N.md): token log-probs of Qwen3.6 contest programs (cc_full_q36_lp_s1-3). Among programs that pass the
+"""N18 (docs/prereg/PREREG_N.md): token log-probs of Qwen3.6 contest programs (cc_full_q36_lp_s1-3). Among programs that pass the
 statement's examples: AUROC of mean / min / 5%-quantile log-prob over the code tokens for correct vs wrong; selection among the 3
 seeds' example-passers by the highest mean log-prob vs the first example-passer; what kind of token the 20 least confident code
 tokens of each program are. usage: CC_SET=full python analyze_n18.py"""

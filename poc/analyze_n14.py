@@ -1,4 +1,4 @@
-"""N14 (results/PREREG_N14.md): adapting a verified source program to a problem with one more rule, vs writing from scratch.
+"""N14 (docs/prereg/PREREG_N14.md): adapting a verified source program to a problem with one more rule, vs writing from scratch.
 Pooled over seeds 1-3: optimal / feasible rate and mean output tokens per (model, destination, condition); paired sign test good vs
 scratch on (instance, seed). usage: python analyze_n14.py"""
 import json, math, os

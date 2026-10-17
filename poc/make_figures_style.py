@@ -1,7 +1,7 @@
 """Shared style for make_figures*.py (extracted from make_figures.py; importing it draws nothing).
 Original docstring:
     /opt/conda/bin/python poc/make_figures.py
-Numbers are the pilot results recorded in results/FINDINGS.md; the CO distractor CIs are recomputed from results/co_D_*.jsonl.
+Numbers are the pilot results recorded in docs/FINDINGS.md; the CO distractor CIs are recomputed from results/co_D_*.jsonl.
 Fig 2, 4 (geometry), 7 and 8 numbers come from results/figs_packaging_free.json (poc/rescore_figs.py: packaging-free re-scoring,
 paired CIs, MR-select); that script also audits figs 1, 3, 5, 6 against the stored runs."""
 import json

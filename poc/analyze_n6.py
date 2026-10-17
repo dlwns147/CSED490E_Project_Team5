@@ -1,4 +1,4 @@
-"""N6 (results/PREREG_V.md): retrieved exemplar vs plain, paired on seed 1; by rating band; duplicate check (does the retrieved solution
+"""N6 (docs/prereg/PREREG_V.md): retrieved exemplar vs plain, paired on seed 1; by rating band; duplicate check (does the retrieved solution
 itself pass the target's public + private tests?). usage: CC_SET=full python analyze_n6.py"""
 import json, os, sys
 from math import comb

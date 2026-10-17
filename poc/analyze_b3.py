@@ -1,4 +1,4 @@
-"""B3 analysis (results/PREREG_B3.md): scope sentence, System 2 Attention and DRAFT-style docs vs the measured references.
+"""B3 analysis (docs/prereg/PREREG_B3.md): scope sentence, System 2 Attention and DRAFT-style docs vs the measured references.
 usage: python analyze_b3.py"""
 import json, os, random, sys
 

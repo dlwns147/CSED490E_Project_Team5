@@ -1,4 +1,4 @@
-"""N10 (results/PREREG_N10.md): choosing the fix automatically from the first attempt's label-free failure signal. Offline, CPU.
+"""N10 (docs/prereg/PREREG_N10.md): choosing the fix automatically from the first attempt's label-free failure signal. Offline, CPU.
 Reads the fix-menu factorial (tags S2_N10_geo_<arm> / S2_N10_co_<arm>), runs the label-free check on every program (geometry: the
 metamorphic check of poc/run_geo_mr.py on the given instance; optimization: the stored feasibility of the printed solution), and
 scores the pre-registered policies: always-fix, gated single fix, cost-ordered cascade, the leave-one-task-out learned router (+ its

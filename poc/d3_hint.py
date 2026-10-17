@@ -1,4 +1,4 @@
-"""D3 (results/PREREG_D1.md): the base student writes its own solution with the teacher's program as a hint; kept if verified.
+"""D3 (docs/prereg/PREREG_D1.md): the base student writes its own solution with the teacher's program as a hint; kept if verified.
 -> results/h2/d3_hinted.jsonl, results/h2/d3_D3.jsonl (= hinted + D2-S)
 usage: CC_SET=full POC_BASE_URL=... python d3_hint.py"""
 import difflib, json, os, sys

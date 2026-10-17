@@ -1,4 +1,4 @@
-"""D2 (results/PREREG_D1.md): S = up to 3 distinct own correct no-think answers per train problem (Qwen3-8B seeds 1-8);
+"""D2 (docs/prereg/PREREG_D1.md): S = up to 3 distinct own correct no-think answers per train problem (Qwen3-8B seeds 1-8);
 L = the teacher programs of D1 arm A restricted to train problems the student solves in >= 1 of its 8 samples."""
 import json
 RES = "/NAS/SJ/POSTECH/nlp/results/h2"

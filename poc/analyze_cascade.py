@@ -1,4 +1,4 @@
-"""N3 (results/PREREG_N.md): escalation cascade with the statement's examples as the acceptance check, offline on the H2c Part B
+"""N3 (docs/prereg/PREREG_N.md): escalation cascade with the statement's examples as the acceptance check, offline on the H2c Part B
 samples. Stage 1 = cheap mode seed s; if its program passes the public examples, accept; otherwise run stage 2 = expensive mode seed s
 and take it. Cost = stage-1 tokens on every problem + stage-2 tokens on escalated problems. Compared with each mode alone and with
 cheap mode best-of-2 + example check. Averaged over the seeds both modes have.

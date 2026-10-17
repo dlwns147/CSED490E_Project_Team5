@@ -1,4 +1,4 @@
-"""B3 (results/PREREG_B3.md): one-round DRAFT-style documentation rewriting (2410.08197) of the needed `in_circle` helper.
+"""B3 (docs/prereg/PREREG_B3.md): one-round DRAFT-style documentation rewriting (2410.08197) of the needed `in_circle` helper.
 The model sees the helper with its terse comment, writes up to 6 probe calls (a Python snippet that prints results), we execute them with the
 helper defined, show the printed output, and the model rewrites the helper's one-line comment so that it documents the behaviour, including
 any precondition. R independent rewrites per model (seeds 1..R) -> results/draft_docs_<tag>.json

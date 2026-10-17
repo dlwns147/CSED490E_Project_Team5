@@ -1,4 +1,4 @@
-"""V2 (results/PREREG_V.md): repair one program on the 8 mining instances (up to 3 rounds), then reuse it on the 48 test instances.
+"""V2 (docs/prereg/PREREG_V.md): repair one program on the 8 mining instances (up to 3 rounds), then reuse it on the 48 test instances.
 usage: POC_BASE_URL=... [POC_REASONING_EFFORT=low] python reuse_repair.py <arm> [--max_tokens N] [--think] [--guard (V3)]
        -> results/h3/reuse_v2_<arm>.json"""
 import json, os, sys, zlib

@@ -1,4 +1,4 @@
-"""N16b (results/PREREG_N16.md): token log-probs at helper names in geometry programs (stored C1 runs, K8 toolbox).
+"""N16b (docs/prereg/PREREG_N16.md): token log-probs at helper names in geometry programs (stored C1 runs, K8 toolbox).
 usage: python analyze_n16b.py"""
 import itertools, json, os, re, statistics as st, bisect, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))

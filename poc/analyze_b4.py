@@ -1,4 +1,4 @@
-"""B4 analysis (results/PREREG_B4.md): DRoC-style retrieval vs BM25 top-3 vs exact snippet (CVRP, VRPTW; Qwen3-32B, Llama-70B), and the
+"""B4 analysis (docs/prereg/PREREG_B4.md): DRoC-style retrieval vs BM25 top-3 vs exact snippet (CVRP, VRPTW; Qwen3-32B, Llama-70B), and the
 restate-the-fields prompt vs the literal stdin (VRPTW, gpt-oss). Opt = optimal and feasible; tokens = output tokens per instance incl. the
 DRoC decomposition / filter calls and repairs.
 usage: python analyze_b4.py"""

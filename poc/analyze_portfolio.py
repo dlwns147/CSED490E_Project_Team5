@@ -1,4 +1,4 @@
-"""V1p (results/PREREG_V.md): portfolio of verified programs. Top-m candidates by mining feasibility (ties: mean distance) run on every test
+"""V1p (docs/prereg/PREREG_V.md): portfolio of verified programs. Top-m candidates by mining feasibility (ties: mean distance) run on every test
 instance; the shortest feasible solution is kept. usage: REUSE_SEEDS=... python analyze_portfolio.py <arm> [<arm> ...]"""
 import json, os, statistics as st, sys
 from concurrent.futures import ThreadPoolExecutor

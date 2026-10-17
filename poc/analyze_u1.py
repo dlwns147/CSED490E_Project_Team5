@@ -1,4 +1,4 @@
-"""U1 (results/PREREG_U1.md): mechanism signatures and allocation by mechanism vs by difficulty. Written 2026-10-16 22:31 UTC,
+"""U1 (docs/prereg/PREREG_U1.md): mechanism signatures and allocation by mechanism vs by difficulty. Written 2026-10-16 22:31 UTC,
 before any U1 result was read. Tags S2_U1_<model>_{geo,co}_{base_s1..3,fact_s1,decor_s1,think_s1}.
 Signatures from the base samples only: S_conf = min log-prob at tool / API names in base_s1; S_cons = share of agreeing pairs among the
 3 base outputs on the instance; S_check = base_s1 passes the label-free check. Accuracy: geometry correct on all 8 copies, optimization

@@ -1,5 +1,5 @@
 """Explanatory figures for the compact PROPOSAL.md (same style as make_figures.py). Run: /opt/conda/bin/python poc/make_figures_explain.py
-Numbers are the recorded results (3 seeds unless noted): results/CHECKS.md, PREREG_N.md (N2, N8, N13), PREREG_N10.md (N12),
+Numbers are the recorded results (3 seeds unless noted): docs/notes/CHECKS.md, PREREG_N.md (N2, N8, N13), PREREG_N10.md (N12),
 PREREG_N14.md (N14c), PREREG_N15.md (N15d). fig0: which fix for which situation; fig13: checks leak; fig14: when to pay for reasoning;
 fig15: agreement gate; fig16: adapting a verified program; fig17: solver-library portfolio."""
 import os

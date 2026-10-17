@@ -1,4 +1,4 @@
-"""X2 (results/PREREG_X2.md): verify once, reuse on math word problems with numeric variants (GSM-Symbolic, 100 templates).
+"""X2 (docs/prereg/PREREG_X2.md): verify once, reuse on math word problems with numeric variants (GSM-Symbolic, 100 templates).
 Per template: instances 0-19 (instance 0 = the one shown to the model; 1-3 = the labelled check; 4-19 = held-out).
   text   : per-instance text answer (\\boxed{}), all 20 instances.
   solver : 4 candidate programs (seeds 1-4) `solve(question: str) -> number` written from instance 0, meant for any variant (names,

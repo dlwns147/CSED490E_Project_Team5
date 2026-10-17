@@ -1,4 +1,4 @@
-"""V1x (results/PREREG_V.md): size transfer of reused programs. The V1 pick of an arm (most feasible on the 8 Solomon mining instances,
+"""V1x (docs/prereg/PREREG_V.md): size transfer of reused programs. The V1 pick of an arm (most feasible on the 8 Solomon mining instances,
 ties by mean distance / reference) runs unchanged on the 60 Homberger 200-customer instances (results/h3/homberger200).
 usage: REUSE_SEEDS=1,2 python analyze_reuse_size.py <arm> [<arm> ...]"""
 import json, math, os, statistics as st, sys

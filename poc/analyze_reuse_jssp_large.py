@@ -1,4 +1,4 @@
-"""V1x-J (results/PREREG_V.md): reused job-shop programs on the 42 larger OR-Library instances (results/h5/large_root/instances).
+"""V1x-J (docs/prereg/PREREG_V.md): reused job-shop programs on the 42 larger OR-Library instances (results/h5/large_root/instances).
 The V1 pick (most feasible on the 8 Lawrence training instances, ties by mean makespan / reference) runs unchanged; reference = REF CP-SAT.
 usage: python analyze_reuse_jssp_large.py <tag> [<tag> ...]"""
 import json, os, statistics as st, sys

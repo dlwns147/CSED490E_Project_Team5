@@ -1,4 +1,4 @@
-"""V1-JSSP (results/PREREG_V.md): verify once, reuse on job-shop. Candidates = H5 programs written for 8 training instances (2 seeds);
+"""V1-JSSP (docs/prereg/PREREG_V.md): verify once, reuse on job-shop. Candidates = H5 programs written for 8 training instances (2 seeds);
 the one feasible on the most training instances (ties: lower mean makespan / reference) runs on the other 32 instances.
 usage: python analyze_reuse_jssp.py <tag> [<tag> ...]     (tag = results/h5/sol_<tag>_s{1,2}.jsonl prefix)"""
 import json, os, sys

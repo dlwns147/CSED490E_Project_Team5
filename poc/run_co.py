@@ -517,7 +517,7 @@ def retrieve(query, k):
     scores.sort(key=lambda x: -x[0])
     return scores[:k]
 
-# B4 (results/PREREG_B4.md): constraint-level OR-Tools routing documentation, written once in the style of the official routing guide
+# B4 (docs/prereg/PREREG_B4.md): constraint-level OR-Tools routing documentation, written once in the style of the official routing guide
 # (6 needed topics + 6 plausible near-misses). Used by --rag_lib routing (BM25 top-K) and --droc (DRoC-style decomposed retrieval).
 ROUTING_LIB = {
     "setup": ("Routing model setup: index manager, routing model, distance (transit) callback, arc cost evaluator",

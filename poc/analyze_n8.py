@@ -1,4 +1,4 @@
-"""N8 (results/PREREG_N.md): three-level cascade low -> medium -> high (64k) for gpt-oss-120b, escalating when the statement's examples fail.
+"""N8 (docs/prereg/PREREG_N.md): three-level cascade low -> medium -> high (64k) for gpt-oss-120b, escalating when the statement's examples fail.
 usage: CC_SET=full python analyze_n8.py"""
 import json, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))

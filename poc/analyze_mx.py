@@ -1,4 +1,4 @@
-"""Analysis for results/PREREG_M2_M4.md: M4 (algorithm first), M4-free (no keep-the-algorithm instruction), M3 (per-helper probe), M2 (probe
+"""Analysis for docs/prereg/PREREG_M2_M4.md: M4 (algorithm first), M4-free (no keep-the-algorithm instruction), M3 (per-helper probe), M2 (probe
 sentence), against all helpers (K8), no helpers, needed-only (K0) and think-1,024; TroVE-style majority over modes computed offline.
 Accuracy = correct on all 8 variants (k of n, 2 seeds pooled); tokens = output tokens per instance incl. drafts / probes.
 usage: python analyze_mx.py"""

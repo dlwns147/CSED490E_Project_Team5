@@ -1,4 +1,4 @@
-"""VIEWS-P4 (results/PREREG_VIEWS.md): are errors shared by two views (both wrong with the same answer) harder than view-specific errors?
+"""VIEWS-P4 (docs/prereg/PREREG_VIEWS.md): are errors shared by two views (both wrong with the same answer) harder than view-specific errors?
 Agreement of two wrong math answers is decided by math_verify in worker processes with a per-pair time limit.
 usage: python analyze_views_p4.py"""
 import json, multiprocessing as mp, os, statistics as st, sys

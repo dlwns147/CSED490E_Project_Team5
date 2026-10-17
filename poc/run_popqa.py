@@ -1,4 +1,4 @@
-"""VIEWS-P5 (results/PREREG_VIEWS.md): factual QA (PopQA) — are knowledge errors shared across a model's views?
+"""VIEWS-P5 (docs/prereg/PREREG_VIEWS.md): factual QA (PopQA) — are knowledge errors shared across a model's views?
 1,500 questions stratified by subject popularity (5 bins x 300, seed 0). Views: direct (short answer), recall (write 2-3 facts about
 the subject first, then answer), think (thinking on). Correct = any accepted answer string occurs in the answer (the standard PopQA
 match). usage: POC_BASE_URL=... python run_popqa.py <tag> <direct|recall|think> <seed>  -> results/x5/qa_<tag>_<view>_s<seed>.jsonl"""

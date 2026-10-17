@@ -1,4 +1,4 @@
-"""N13 (results/PREREG_N.md): escalation gated on the statement's examples OR disagreement with the problem's approximate brute-force
+"""N13 (docs/prereg/PREREG_N.md): escalation gated on the statement's examples OR disagreement with the problem's approximate brute-force
 oracle (N5 cases of gpt-oss-120b low seed 1). gpt-oss-120b low / medium / high64k, seeds 1-3. Oracle tokens charged to every
 problem-seed. usage: CC_SET=full python analyze_n13.py"""
 import json, os, sys

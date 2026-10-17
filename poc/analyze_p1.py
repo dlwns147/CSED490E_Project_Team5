@@ -1,4 +1,4 @@
-"""P1 (results/PREREG_P1.md): prompt rewording on contest geometry: accuracy, tokens, cap hits, no-code rate and per-problem agreement
+"""P1 (docs/prereg/PREREG_P1.md): prompt rewording on contest geometry: accuracy, tokens, cap hits, no-code rate and per-problem agreement
 with the original template (vs the seed-to-seed agreement of the original). usage: CC_SET=full python analyze_p1.py"""
 import json, os, statistics as st, sys
 

@@ -1,4 +1,4 @@
-"""N15f (results/PREREG_N15.md): library fallback cascade (first feasible plan wins; no reference used).
+"""N15f (docs/prereg/PREREG_N15.md): library fallback cascade (first feasible plan wins; no reference used).
 usage: python analyze_n15f.py"""
 import json, os, statistics as st
 

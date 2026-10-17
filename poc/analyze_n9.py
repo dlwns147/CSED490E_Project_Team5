@@ -1,4 +1,4 @@
-"""N9 (results/PREREG_N.md): repair at a higher effort, gpt-oss-120b, seeds 1-3 paired. On the problems whose low-effort program fails
+"""N9 (docs/prereg/PREREG_N.md): repair at a higher effort, gpt-oss-120b, seeds 1-3 paired. On the problems whose low-effort program fails
 the statement's examples: (a) low-effort repair (N2, cc_full_rep_oss120_low_s<sd>.jsonl), (b) medium-effort repair
 (cc_full_rep_oss120_low_s<sd>_med.jsonl), (c) a fresh medium attempt (cc_full_oss120_medium_s<sd>.jsonl). Also the full pipelines (low,
 then the fix only when the examples fail), every call's tokens counted. usage: CC_SET=full python analyze_n9.py [seeds, default 1,2,3]"""

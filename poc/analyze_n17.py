@@ -1,4 +1,4 @@
-"""N17 (results/PREREG_N.md): a different model's program as the second opinion on contest geometry. Escalate gpt-oss-120b medium to
+"""N17 (docs/prereg/PREREG_N.md): a different model's program as the second opinion on contest geometry. Escalate gpt-oss-120b medium to
 high (64k) if medium fails the examples, or if Qwen3.6's no-think program (same seed) passes the examples and disagrees with medium's on
 any N5-generated input (relative 1e-2). usage: CC_SET=full python analyze_n17.py"""
 import json, os, sys

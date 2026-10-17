@@ -283,7 +283,7 @@ def run(tag, seed, mode):
 
 
 def repair(src, seed, mode):
-    """N2 (results/PREREG_N.md): one repair round for programs that crash or are infeasible on the actual instance (feasibility needs no
+    """N2 (docs/prereg/PREREG_N.md): one repair round for programs that crash or are infeasible on the actual instance (feasibility needs no
     optimum). Feedback = the last 15 lines of the error, or the violated constraint. Same prompt arms as the source run."""
     from llm import chat, last_block
     import zlib

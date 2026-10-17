@@ -1,4 +1,4 @@
-"""N14e (results/PREREG_N14.md): two more job-shop rungs built on la01-la40 (H5), to test the transfer rule.
+"""N14e (docs/prereg/PREREG_N14.md): two more job-shop rungs built on la01-la40 (H5), to test the transfer rule.
   tard: due dates d_j and objective = total tardiness sum_j max(0, C_j - d_j)  (no new CP-SAT fact needed)
         d_j = floor(f_j * P_j), P_j = job j's total processing time, f_j uniform in [1.2, 2.0] (seed "tard-<name>-<j>").
         Input: the H5 format + a final line with the n due dates. Output: as H5 (n lines of m start times).

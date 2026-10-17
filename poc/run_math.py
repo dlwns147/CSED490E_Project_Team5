@@ -1,4 +1,4 @@
-"""X1 (results/PREREG_X1.md): short-answer competition math (MATH-500 + AIME 2024 + AIME 2025 = 560 problems).
+"""X1 (docs/prereg/PREREG_X1.md): short-answer competition math (MATH-500 + AIME 2024 + AIME 2025 = 560 problems).
 Modes: text  = reason in text, final answer in \\boxed{};
        prog  = write a Python program (sympy allowed) that computes and prints the answer; we run it (30 s);
        think = the expensive mode (Qwen: thinking on; gpt-oss: POC_REASONING_EFFORT set by the caller), final answer in \\boxed{}.

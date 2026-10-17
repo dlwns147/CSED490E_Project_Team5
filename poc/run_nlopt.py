@@ -1,4 +1,4 @@
-"""X3 (results/PREREG_X3.md): optimization word problems -> models (NL4OPT 245, IndustryOR 100). The answer is the optimal objective
+"""X3 (docs/prereg/PREREG_X3.md): optimization word problems -> models (NL4OPT 245, IndustryOR 100). The answer is the optimal objective
 value (or "No Best Solution" when infeasible / unbounded).
 modes: mip   = Python program with OR-Tools pywraplp (SCIP), prints the optimal objective value;
        mipf  = mip + a 6-line exact pywraplp usage snippet (the API fact);

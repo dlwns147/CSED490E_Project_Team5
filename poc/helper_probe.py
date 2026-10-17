@@ -1,4 +1,4 @@
-"""M3 (results/PREREG_M2_M4.md): behavioural per-helper probing. For each instance and each offered helper h, the model writes one program
+"""M3 (docs/prereg/PREREG_M2_M4.md): behavioural per-helper probing. For each instance and each offered helper h, the model writes one program
 with only h (+ deps) offered; h is kept if that program is consistent on the metamorphic copies of the given instance (label-free).
 Outputs: a keep-JSON for run_geo_cross.py --keep_json (final program with the kept helpers), and a direct variant "MR-select over the
 no-helper draft and the per-helper programs" (no extra generation), with tokens per instance.

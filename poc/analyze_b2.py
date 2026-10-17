@@ -1,4 +1,4 @@
-"""B2 analysis (results/PREREG_B2.md): forgetting-mitigation baselines vs E4 self-replay, same evaluation cells as E4.
+"""B2 analysis (docs/prereg/PREREG_B2.md): forgetting-mitigation baselines vs E4 self-replay, same evaluation cells as E4.
 % correct on all 8 variants (k of n); paired 95% bootstrap CIs vs E4-B (self-replay) and vs the base model.
 usage: python analyze_b2.py"""
 import json, os, random

@@ -1,4 +1,4 @@
-"""X4 (results/PREREG_X3.md, X4 section): whole-proof generation for miniF2F (Lean 4 v4.15.0 + Mathlib v4.15.0 in /SSD/lean_postech/mf2f).
+"""X4 (docs/prereg/PREREG_X3.md, X4 section): whole-proof generation for miniF2F (Lean 4 v4.15.0 + Mathlib v4.15.0 in /SSD/lean_postech/mf2f).
 The file checked is the dataset header + the dataset's formal statement (never the model's) + the model's proof body (the text after
 the first ':= by' of the model's Lean block). Accepted = compiles with no error, no `sorry` / `admit` / `axiom`.
 usage: POC_BASE_URL=... python run_lean.py gen <tag> <split> <k> [--logprobs] [--max_tokens N]  -> results/x4/lean_<tag>_<split>.jsonl

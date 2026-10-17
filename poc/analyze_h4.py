@@ -1,4 +1,4 @@
-"""H4 (results/PREREG_H4.md): 8 related helpers on the full contest-geometry set, paired with the no-helper runs (same problem, seed).
+"""H4 (docs/prereg/PREREG_H4.md): 8 related helpers on the full contest-geometry set, paired with the no-helper runs (same problem, seed).
 Helper use = the program defines or calls one of the offered helper names. usage: CC_SET=full python analyze_h4.py"""
 import json, os, re, sys
 from collections import Counter

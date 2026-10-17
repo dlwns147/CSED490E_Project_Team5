@@ -896,7 +896,7 @@ VALIDATION = {
 
 
 def markdown_tables(out, meta):
-    """the tables of results/E1_TAXONOMY_DRAFT.md, regenerated from the same counts"""
+    """the tables of docs/notes/E1_TAXONOMY_DRAFT.md, regenerated from the same counts"""
     L = []
     gs = ["algorithmic", "packaging/interface", "input format", "output format", "API/environment", "generation", "other runtime"]
     cs = ["API/knowledge", "input format", "output format", "modelling/logic", "generation", "other runtime"]
@@ -1098,7 +1098,7 @@ def main():
     def mlabel(m):
         return m["model"] + (f" ({m['effort']})" if m["effort"] else "")
 
-    out = {"about": "E1 failure taxonomy; classes and rules in results/E1_TAXONOMY_DRAFT.md and poc/analyze_e1_taxonomy.py",
+    out = {"about": "E1 failure taxonomy; classes and rules in docs/notes/E1_TAXONOMY_DRAFT.md and poc/analyze_e1_taxonomy.py",
            "geo_classes": GEO_CLASSES, "co_classes": CO_CLASSES, "geo_super": GEO_SUPER, "co_super": CO_SUPER, "per_tag": per_tag,
            "reproduction": dict(repro), "reconstruction_check": {"reproduced": sum(v is True for v in rc.values()), "failed": bad_recon}}
 
@@ -1261,7 +1261,7 @@ def main():
         print(f"manual validation {d}: {sum(v[0] for v in cl.values())}/{sum(v[1] for v in cl.values())} sampled labels confirmed")
     md = markdown_tables(out, meta)
     out["markdown_tables"] = md
-    print("\n=== markdown tables (results/E1_TAXONOMY_DRAFT.md) ===\n" + md)
+    print("\n=== markdown tables (docs/notes/E1_TAXONOMY_DRAFT.md) ===\n" + md)
     json.dump(out, open(os.path.join(RES, "e1_taxonomy.json"), "w"), indent=0)
     if a.samples:
         os.makedirs(a.samples, exist_ok=True)

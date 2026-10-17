@@ -1,4 +1,4 @@
-"""B1 analysis (pre-registered in results/PREREG_B1.md): label-free selectors over the same 3 candidates per instance.
+"""B1 analysis (pre-registered in docs/prereg/PREREG_B1.md): label-free selectors over the same 3 candidates per instance.
 Candidates: results/geocross_S2_B1_geox<m>_{dis0,dis8,hard}_t07s{1,2,3}.jsonl (with DeepConf token confidence `ctop`);
 model-written tests: results/tests_S2_B1_{core,hard}.jsonl (poc/gen_tests.py). Also the offline DART-style router on the E3 data.
 usage: python analyze_b1.py [model=8b]"""

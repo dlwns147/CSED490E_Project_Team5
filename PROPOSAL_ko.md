@@ -4,7 +4,7 @@
 
 > **번역 안내.** 이 파일은 [PROPOSAL.md](PROPOSAL.md)(영문 원본, 2026-10-16 기준)의 한국어 번역본이다. 표·수치·코드·파일 경로는 원본과 동일하며, 내용이 다를 경우 영문 원본이 기준이다.
 
-> **이 파일에 대하여.** 프로젝트 제안서의 요약본이다. 모든 실행과 수정의 전체 기록: [results/FINDINGS.md](results/FINDINGS.md), 실패 → 처방 지도: [results/FIX_MAP.md](results/FIX_MAP.md), 값싼 검사가 놓치는 정도: [results/CHECKS.md](results/CHECKS.md), 이전 장문 버전: `results/archive/`.
+> **이 파일에 대하여.** 프로젝트 제안서의 요약본이다. 모든 실행과 수정의 전체 기록: [docs/FINDINGS.md](docs/FINDINGS.md), 실패 → 처방 지도: [docs/notes/FIX_MAP.md](docs/notes/FIX_MAP.md), 값싼 검사가 놓치는 정도: [docs/notes/CHECKS.md](docs/notes/CHECKS.md), 이전 장문 버전: `results/archive/`.
 
 ## 0. 배경: LLM은 기하·최적화 문제를 어떻게 푸는가
 
@@ -128,7 +128,7 @@ Solomon 56개에서는 세 사실이 함께 필요하다. 파일 구조, "OR-Too
 
 **관련 연구.** 코드를 오도하는 프롬프트 맥락(2606.04057; 2609.14157; CodeCrash 2504.14119), 계약이 불분명한 도구(DRAFT; ContractEval 2510.12047), 솔버 코드를 위한 문서(DRoC, ICLR 2025; CP-Bench 2506.06052), 정답 없는 선택과 수정(CodeT, MBR-exec, AlphaCode; Self-Debugging; Olausson et al., ICLR 2024), 모든 사례에 프로그램 하나(FunSearch, HeuriGym; 2605.14141, 2608.27296). **새로운 점:** 정확한 답이 있는 기하·최적화에서 이 효과들을 비교하고, 한 번에 사실 하나만 바꾸며, 모든 처방에 토큰 비용을 붙인다.
 
-**계획.** 실패 → 처방 지도(`results/FIX_MAP.md`)를 완성한다. *다른* 모델의 두 번째 의견이 gpt-oss에서도 합의 관문을 작동하게 하는지 시험한다(첫 시험: 틀린 프로그램의 41%를 오경보 9%로 잡음). API 접근이 가능하면 폐쇄형 모델을 더한다.
+**계획.** 실패 → 처방 지도(`docs/notes/FIX_MAP.md`)를 완성한다. *다른* 모델의 두 번째 의견이 gpt-oss에서도 합의 관문을 작동하게 하는지 시험한다(첫 시험: 틀린 프로그램의 41%를 오경보 9%로 잡음). API 접근이 가능하면 폐쇄형 모델을 더한다.
 
 **한계.** 메커니즘(4절)은 생성한 과제에서 찾았고, 헬퍼 효과는 실제 문제에서 줄어든다. R1의 사실은 손으로 썼으며, 자동 사실 캐기는 그 일부만 되찾는다. 공개 모델만 시험했다.
 

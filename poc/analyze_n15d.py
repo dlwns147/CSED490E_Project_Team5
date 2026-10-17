@@ -1,4 +1,4 @@
-"""N15d (results/PREREG_N15.md): per-instance library portfolio: keep the feasible plan with the best objective among the libraries
+"""N15d (docs/prereg/PREREG_N15.md): per-instance library portfolio: keep the feasible plan with the best objective among the libraries
 run on that instance (no reference used). usage: python analyze_n15d.py"""
 import json, os
 

@@ -1,4 +1,4 @@
-"""VIEWS-P5 (results/PREREG_VIEWS.md): PopQA views for Qwen3-8B. Accuracy by popularity bin, error kappa and leak between views, the
+"""VIEWS-P5 (docs/prereg/PREREG_VIEWS.md): PopQA views for Qwen3-8B. Accuracy by popularity bin, error kappa and leak between views, the
 agreement gate (direct == recall -> accept, else thinking). usage: python analyze_x5.py"""
 import json, os, re, statistics as st, sys
 

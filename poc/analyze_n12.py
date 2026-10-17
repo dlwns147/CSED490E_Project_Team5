@@ -1,4 +1,4 @@
-"""N12 (results/PREREG_N10.md): agreement between tool conditions as the escalation gate. Offline on the N10 factorials.
+"""N12 (docs/prereg/PREREG_N10.md): agreement between tool conditions as the escalation gate. Offline on the N10 factorials.
 A = first-attempt condition (geometry K8 toolbox / optimization full manual), B = cheap alternative (no helpers / BM25 snippets),
 T = thinking. AGREE: accept A when A and B both pass the label-free check and give the same answer (geometry: the same output on the
 given instance; optimization: both feasible with the same objective); else escalate to T; if T fails the check keep a check-passing

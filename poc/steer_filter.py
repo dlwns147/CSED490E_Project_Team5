@@ -1,4 +1,4 @@
-"""M1 (results/PREREG_M1.md): steering-score filter for offered helpers.
+"""M1 (docs/prereg/PREREG_M1.md): steering-score filter for offered helpers.
 For each instance: P0 = the model's draft program written with NO helpers (stored bare run); for every helper h in the offered K-toolbox,
 shift(h) = mean token log-prob of P0 under the prompt offering only h (+ deps) minus under the bare prompt (teacher-forced prefill).
 Writes scores and, for each tau, a keep-JSON {task-n-inst: [helpers with shift >= -tau]} for run_geo_cross.py --keep_json.
