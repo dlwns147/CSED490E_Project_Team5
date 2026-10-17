@@ -151,3 +151,45 @@ Policy RETRIEVED-FIRST-THEN-THINK: the retrieved program; THINK (same seed) only
 - U2-P2: it is within 5 points of the hand-written FACT-FIRST-THEN-THINK pooled.
 - U2-P3: in geometry the retrieved note helps less than the hand-written fact (near-misses retrieved for delaunay / diameter, which
   the library does not cover); the retrieved program passes the check less often than the hand-written one (more thinking spent).
+
+## U2 results, Qwen3-8B (2026-10-17 05:46 UTC; results/u2_q8b.log; cure seeds 1 / 2 / 3; Qwen3-32B / Qwen3.6 still running)
+| policy (accuracy @ output tokens per item) | geometry (108) | optimization (100) | pooled (208) |
+|---|---|---|---|
+| ALWAYS-RETRIEVED (K8 + BM25 note / BM25 top-3 snippets) | 63.0 / 65.7 / 67.6% @ 0.85k | 37 / 34 / 34% @ 0.48k | 50.5 / 50.5 / 51.4% @ 0.68k |
+| **RETRIEVED-FIRST-THEN-THINK** | 93.5 / 87.0 / 89.8% @ 3.5 / 2.8 / 3.3k | **49 / 48 / 46%** @ 7.3 / 6.5 / 6.5k | **72.1 / 68.3 / 68.8%** @ 5.3 / 4.6 / 4.9k |
+| FACT-FIRST-THEN-THINK (hand-written fact) | 99.1 / 97.2 / 96.3% @ 2.0 / 2.4 / 2.2k | 46 / 46 / 46% @ 7.4 / 6.6 / 6.7k | 73.6 / 72.6 / 72.1% @ 4.6 / 4.4 / 4.4k |
+| DIFFICULTY | 94.4 / 91.7 / 90.7% | 27 / 27 / 31% | 62.0 / 60.6 / 62.0% |
+- **U2-P1 holds for Qwen3-8B** (retrieved-first-then-think − DIFFICULTY = +10.1 / +7.7 / +6.8 pooled). **U2-P2 holds** (−1.5 / −4.3 / −3.3
+  vs the hand-written fact). **U2-P3 holds**: in geometry the retrieved program fails its check more often (34 / 26 / 28 vs 20 / 25 / 22
+  items) and the BM25 note is often a near-miss (hull → "Point in polygon: ray casting": hull 1/12 correct vs 12/12 with the hand-written
+  hint, seed 2), so ALWAYS-RETRIEVED geometry (63–68%) is no better than the base program (65.7%); the gain over gated thinking from the
+  base program (85–88%) is only +2 to +5 points. In optimization the retrieved snippets are worse alone (34–37% vs the hand-written
+  snippet 41–42%) but the check sends their failures to thinking, so the retrieved policy ties or beats the hand-written one (46–49%).
+**Reading:** a cheap check makes "facts first" robust to imperfect retrieval: a wrong retrieved fact mostly costs tokens (failures
+go to thinking), not accuracy, when the check catches them (optimization: feasibility), and costs accuracy where the check is weak
+(geometry: examples + symmetry miss some wrong hulls).
+Check (05:48 UTC, raw rows): geometry retrieved programs that pass the label-free check but are wrong: 6 / 11 / 7 (hand-written fact: 1 / 0 / 1); thinking fails on 1 / 3 / 4 of the escalated ones (fact: 0 / 3 / 3): the geometry loss is the check's leak on wrong retrieved programs, as stated above.
+
+## U1r + U2 results, all three models (2026-10-17 06:33 UTC; results/u1r_all_cure{1,2,3}.log; 624 items per cure seed)
+Pooled accuracy @ mean output tokens per item, cure seed 1 / 2 / 3:
+| policy | seed 1 | seed 2 | seed 3 |
+|---|---|---|---|
+| DIFFICULTY (think on low-agreement items, budget = MECHANISM's) | 73.9% | 74.0% | 75.5% |
+| uniform (think when the base program fails its check) | 77.1% | 76.6% | 76.6% |
+| ALWAYS-FACT (hand-written fact, no thinking) | 79.3% @ 0.44k | 78.8% @ 0.44k | 78.7% @ 0.45k |
+| SNELL-BINNED | 78.7% @ 5.2k | 82.5% @ 5.5k | 80.9% @ 5.5k |
+| MECHANISM | 82.5% @ 4.2k | 83.5% @ 4.2k | 82.2% @ 4.7k |
+| **RETRIEVED-FIRST-THEN-THINK** (BM25 fact; deployable) | **84.1% @ 3.3k** | **84.1% @ 3.0k** | **83.5% @ 3.4k** |
+| **FACT-FIRST-THEN-THINK** (hand-written fact) | **87.2% @ 2.5k** | **87.3% @ 2.4k** | **86.5% @ 2.6k** |
+- **U1r-P1 holds** (MECHANISM > DIFFICULTY on every seed: +8.6 / +9.5 / +6.7). **U1r-P2 holds**: ALWAYS-FACT ≥ MECHANISM in optimization in
+  9 / 9 model × seed cells (e.g. Qwen3-32B 74 / 76 / 75 vs 72 / 74 / 74), and MECHANISM > ALWAYS-FACT + 5 in geometry for both Qwen3 models on
+  every seed (+11 to +18). **U2-P1 holds** (+10.2 / +10.1 / +8.0 over DIFFICULTY); **U2-P2 holds** (−3.1 / −3.2 / −3.0 vs the hand-written
+  fact); **U2-P3 holds** (geometry: ALWAYS-RETRIEVED 61–71% for Qwen3-32B vs ALWAYS-FACT 81–83%; the retrieved policy spends more thinking
+  tokens in geometry for every model, e.g. Qwen3-32B 2.3–3.0k vs 1.5–1.6k).
+- Per cell, the retrieved policy ties or beats the hand-written one in Qwen3-8B optimization (49 / 48 / 46 vs 46 / 46 / 46%) and is 1–10 points
+  below elsewhere (largest: Qwen3-8B geometry 87.0 vs 97.2%, seed 2). Thinking truncation is unchanged across seeds (Qwen3.6 geometry hits
+  the 28k cap on 64–67 of 108 items per seed; Qwen3 models ≤ 4).
+**Reading (now on 3 seeds, 3 models, 2 domains):** "facts before compute" is the best allocation: give every item the fact, spend
+thinking only where a cheap check still fails (≈ 87% at ≈ 2.5k tokens, vs 82–84% at 4.2–4.7k for routing by failure mechanism and 74–76%
+for routing by difficulty). With retrieved instead of hand-written facts it loses ≈ 3 points, still beats both routers at fewer tokens,
+because the check sends wrong retrieved facts to thinking; the remaining loss is wrong retrieved programs that pass the check (geometry).

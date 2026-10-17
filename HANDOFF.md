@@ -3,6 +3,12 @@
 State as of 2026-10-13 08:00 UTC. All GPU work on the old servers has been stopped and the hourly loop cancelled.
 
 ## 0. Server 2 status (2026-10-13 14:00 UTC)
+STATUS 06:34 (10-17, hourly-cron session sj-46; the experiment session was stopped by the user at 05:37, this session owns all runs):
+U1r + U2 DONE (PREREG_U1.md: fact-first-then-think 86.5-87.3% @ 2.5k > retrieved-first 83.5-84.1% @ 3.2k > mechanism 82-84% > difficulty
+74-76%; all predictions hold). RUNNING: X6 (queue_s2_x6b.sh; GPU0 q32b thinkf, GPU2 q36 mip/mipf/think/thinkf 30k, GPU3 q8b same 16k;
+results/x3/opt_<m>_<arm>_s*.jsonl, resumable) -> then analyze vs PREREG_X3.md X6 + addendum (write analyze_x6.py: accuracy @ tokens,
+crash types / invented names from raw code, FACT-FIRST-THEN-THINK = mipf, thinkf if the program crashes or prints no value).
+X1 q32b thinking GPU1 (1613/1680); queue_s2_x1fin.sh regrades + analyzes when it ends (results/x1/analysis_q32b.log).
 STATUS 05:38 (10-17, hourly-cron session sj-46): X6 queued (poc/queue_s2_x6.sh, waiter pid 2120997): when the X1 q32b re-run ends and
 GPU1 is empty it regrades + analyzes X1 q32b (results/x1/analysis_q32b.log) and runs Qwen3-32B thinkf (thinking + API snippet) on X3,
 seeds 1-3, port 8062 -> analyze vs mip/mipf/think and FACT-FIRST-THEN-THINK (PREREG_X3.md X6). GPU3 = U2 (experiment session).

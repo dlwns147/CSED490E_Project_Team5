@@ -279,3 +279,8 @@ S2_X6 queued by hourly-cron session (Qwen3-32B thinkf on X3, GPU3 port 8062; PRE
 CORRECTION (hourly-cron session): S2_X6 does NOT use GPU3 (U2 took it at 05:36); X6 waits for the X1 q32b re-run to free GPU1 Sat Oct 17 05:37:09 UTC 2026
 NOTE: experiment session stopped by the user (05:37 UTC, hourly cron b5f2cb76 deleted). Still running detached, owned by nobody now: U1r q32b (GPU0) / q36 (GPU2), X1 q32b think (GPU1), U2 retrieved-fact arm (GPU3); analysis steps in HANDOFF STATUS 05:36. Sat Oct 17 05:37:14 UTC 2026
 S2_U1r q32b done (416/416 think rows) Sat Oct 17 05:45:31 UTC 2026
+S2_U2 runs done Sat Oct 17 05:50:59 UTC 2026
+S2_U1r q36 done (416/416 think rows) Sat Oct 17 06:08:27 UTC 2026
+S2_U1r runs done Sat Oct 17 06:08:27 UTC 2026
+S2_X6 (re)queued by hourly-cron session: GPU0 q32b thinkf, GPU2 q36 4 arms, GPU3 q8b 4 arms (queue_s2_x6b.sh); X1 regrade waiter queue_s2_x1fin.sh Sat Oct 17 06:29:06 UTC 2026
+S2_X6 relaunched 06:31 (first launch stopped by PID after 1 min: 'think' arm test was wrong; no rows written) Sat Oct 17 06:29:42 UTC 2026

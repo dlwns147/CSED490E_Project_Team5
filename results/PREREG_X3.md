@@ -123,3 +123,12 @@ re-run frees it (GPU3 went to U2 at 05:36; poc/queue_s2_x6.sh). Existing arms mi
 - X6-P3 (policy): FACT-FIRST-THEN-THINK (mipf; thinkf only when the check fails) reaches ≥ always-thinkf − 2 points (pooled 345 × 3) at
   ≤ 40% of its output tokens; and it beats THINK-FIRST policies (always think; think, then mipf on failure) at equal or fewer tokens.
 Report accuracy @ mean output tokens per item for every arm and policy, by source; crash types and invented names from raw programs.
+
+## X6 addendum (2026-10-17 06:29 UTC, before any X6 row exists): start now on idle GPUs, and two more models
+GPUs 0, 2, 3 became idle at 06:08 (U1r / U2 done), so X6 no longer waits for GPU1: Qwen3-32B thinkf on GPU0 (port 8062). Added, same
+prompts and seeds 1–3: Qwen3-8B (GPU3, port 8063; arms mip, mipf, think, thinkf; 16k cap) and Qwen3.6-35B-A3B (GPU2, port 8064; same arms;
+30k cap because its thinking ran past 16k and 28k in U1). The X1 Qwen3-32B regrade + analysis now has its own waiter (queue_s2_x1fin.sh).
+Predictions for the added models (written before any of their X3 rows exist):
+- X6-P4: for each added model, thinkf ≥ think pooled over NL4OPT + IndustryOR (3 seeds), and its share of runtime errors is lower.
+- X6-P5: thinking pays only with the fact: (thinkf − mipf) > (think − mip) for each model.
+- X6-P3 is evaluated per model (FACT-FIRST-THEN-THINK ≥ always-thinkf − 2 at ≤ 40% of its tokens).
