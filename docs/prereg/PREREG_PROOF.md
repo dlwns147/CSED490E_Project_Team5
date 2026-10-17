@@ -27,3 +27,10 @@ existing: gpt-oss-20b low (oss20), Qwen3-32B-AWQ (q32b), Qwen3.6 (q36), all with
   mathd_algebra.
 - PROOF-P4 (cost): Qwen3-14B-AWQ with thinking solves more statements than every general model without thinking except Qwen3.6, but
   the provers solve more statements per output token (solved statements per 100k tokens of the compile-gated loop).
+
+## Setup fix (2026-10-17 20:36 UTC, before any proof was checked): the provers get their own prompt and thinking
+The first Goedel-Prover-V2-8B run used our X4 prompt with thinking switched off (564 attempts; kept as lean_gpv2ourprompt_test.jsonl).
+Both provers' model cards use a different prompt ("Complete the following Lean 4 code … provide a detailed proof plan …") with the chat
+template's default (thinking on for the Qwen3-based Goedel) and budgets of 32k (Goedel) / 8k (DeepSeek) tokens. Running them off-spec
+would bias PROOF-P1 against them, so: gpv2 and dspv2 use --card_prompt --think with a 32k cap (server max-model-len 40,000); the general
+models keep the X4 prompt. Predictions unchanged. poc/queues/queue_s2_proof.sh restarted with these settings.

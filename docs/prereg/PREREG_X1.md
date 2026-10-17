@@ -135,3 +135,10 @@ The same cap (28k / 30k) also limited the Qwen3.6 thinking cells of U1 / U1r / U
 **Reading:** on competition math the 3090-class Qwen3-14B-AWQ is within 0.1 (MATH-500) and 3.9 points (AIME) of Qwen3-32B at about the
 same tokens; for all three sizes thinking is what solves AIME, and a program as a second view saves about a fifth of the tokens on
 MATH-500 at −0.2 to −0.3 points.
+
+## X1-SIZE results, part 2: Qwen3-4B (2026-10-17 20:36 UTC; results/x1/analysis_size.log)
+Qwen3-4B: text 84.1 / 19.4% @ 1.1k; program 63.4 / 20.6% @ 0.34k; thinking 96.6 / 66.7% @ 6.3k (40 caps); gate text == program → thinking
+95.7% @ 4.2k on MATH-500 (thinking 5.2k); leak text–program 2.1% vs text–text 4.8%.
+- **P1 holds** (+47.3 on AIME). **P2 narrowly refuted** for 4B (−0.9 points but at 81% of the tokens, not ≤ 80%). **P3 holds.**
+Across the four Qwen3 sizes (4B / 8B / 14B-AWQ / 32B-AWQ) thinking reaches 96.6 / 97.0 / 97.3 / 97.4% on MATH-500 and 66.7 / 68.3 / 73.3 /
+77.2% on AIME at 5.2–6.6k tokens: competition math is solved by thinking at every size, and size buys AIME points, not MATH-500 points.

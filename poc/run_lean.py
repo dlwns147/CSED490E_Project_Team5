@@ -1,7 +1,7 @@
 """X4 (docs/prereg/PREREG_X3.md, X4 section): whole-proof generation for miniF2F (Lean 4 v4.15.0 + Mathlib v4.15.0 in /SSD/lean_postech/mf2f).
 The file checked is the dataset header + the dataset's formal statement (never the model's) + the model's proof body (the text after
 the first ':= by' of the model's Lean block). Accepted = compiles with no error, no `sorry` / `admit` / `axiom`.
-usage: POC_BASE_URL=... python run_lean.py gen <tag> <split> <k> [--logprobs] [--max_tokens N] [--think]  -> results/x4/lean_<tag>_<split>.jsonl
+usage: POC_BASE_URL=... python run_lean.py gen <tag> <split> <k> [--logprobs] [--max_tokens N] [--think] [--card_prompt]  -> results/x4/lean_<tag>_<split>.jsonl
        python run_lean.py check <file.jsonl>          (compile every attempt; adds ok / errors / unknown identifiers)
        POC_BASE_URL=... python run_lean.py fix <tag> <split>   (one feedback round for proofs whose errors name unknown identifiers)"""
 import json, os, re, subprocess, sys, tempfile, zlib
@@ -14,6 +14,10 @@ PROJ = "/SSD/lean_postech/mf2f"
 ENV = {**os.environ, "ELAN_HOME": "/SSD/lean_postech/elan", "PATH": "/SSD/lean_postech/elan/bin:" + os.environ.get("PATH", "")}
 PROMPT = ("Complete the following Lean 4 theorem (Mathlib is imported). Think about the mathematics briefly, then give the complete theorem "
           "with its proof in a single ```lean4 code block. Do not use `sorry`.\n\n```lean4\n{header}\n{stmt}\n```")
+# the prompt both specialized provers' model cards use (Goedel-Prover-V2, DeepSeek-Prover-V2); used with --card_prompt (2026-10-17)
+CARD_PROMPT = ("Complete the following Lean 4 code:\n\n```lean4\n{header}\n{stmt}\n```\n\nBefore producing the Lean 4 code to formally prove the "
+               "given theorem, provide a detailed proof plan outlining the main proof steps and strategies.\nThe plan should highlight key ideas, "
+               "intermediate lemmas, and proof structures that will guide the construction of the final formal proof.")
 
 
 def problems(split):
@@ -60,7 +64,7 @@ def check(header, stmt, body, timeout=180):
         os.unlink(path)
 
 
-def gen(tag, split, k, logprobs, mt, think=False):
+def gen(tag, split, k, logprobs, mt, think=False, card=False):
     from llm import chat
     from concurrent.futures import as_completed
     P = problems(split)
@@ -71,7 +75,7 @@ def gen(tag, split, k, logprobs, mt, think=False):
 
     def one(j):
         p, s = j
-        o = chat(PROMPT.format(header=p["header"].strip(), stmt=p["formal_statement"]), temperature=0.7, max_tokens=mt, think=think,
+        o = chat((CARD_PROMPT if card else PROMPT).format(header=p["header"].strip(), stmt=p["formal_statement"]), temperature=0.7, max_tokens=mt, think=think,
                  seed=s * 1000 + zlib.crc32(p["name"].encode()) % 997, logprobs=logprobs)
         return {"name": p["name"], "sample": s, "text": (o["text"] or "")[-6000:], "body": proof_body(o["text"]),
                 "out_tokens": o.get("out_tokens"), "finish": o.get("finish"), **({"lp": o.get("lp"), "lp_tok": o.get("lp_tok")} if logprobs else {})}
@@ -151,7 +155,7 @@ def fix(tag, split):
 if __name__ == "__main__":
     a = sys.argv
     if a[1] == "gen":
-        gen(a[2], a[3], int(a[4]), "--logprobs" in a, int(a[a.index("--max_tokens") + 1]) if "--max_tokens" in a else 8192, "--think" in a)
+        gen(a[2], a[3], int(a[4]), "--logprobs" in a, int(a[a.index("--max_tokens") + 1]) if "--max_tokens" in a else 8192, "--think" in a, "--card_prompt" in a)
     elif a[1] == "check":
         check_file(a[2])
     elif a[1] == "recheck":
