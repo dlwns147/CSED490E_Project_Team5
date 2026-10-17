@@ -1,7 +1,8 @@
 """Final CO table (252 instances): within-1% per arm (3 seeds), paired CI scoped−full / scoped−none, verified best-of-3 (feasible + best objective)."""
 import json, os
 import numpy as np
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 rng = np.random.default_rng(0)
 def L(t):
     f = f"{RES}/co_{t}.jsonl"

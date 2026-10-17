@@ -13,7 +13,8 @@ from geo_distractors import INCIRCLE_VARIANTS, render_names, toolbox, with_deps 
 from llm import BASE_URL, client  # noqa: E402
 from run_geo import base_instance, render, variants  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 SIZES = {"hull": (10, 20), "area2": (8, 14), "pip": (8, 14), "segs": (6, 10), "close": (10, 20), "delaunay": (8, 12), "lattice": (8, 14)}
 TAUS = (0.005, 0.01, 0.02, 0.05)
 ABS_SIG = "def polygon_area2(poly):        # twice the signed area (shoelace, exact)\n    return sum("

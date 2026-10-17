@@ -11,7 +11,8 @@ from run_geo import base_instance, render, variants  # noqa: E402
 from run_geo_mr import MR, expected_rel  # noqa: E402
 from sandbox import run_python  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 M = sys.argv[1] if len(sys.argv) > 1 else "8b"
 SEEDS = (1, 2, 3)
 N_FRESH = 5

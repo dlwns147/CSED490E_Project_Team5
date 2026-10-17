@@ -25,7 +25,8 @@ from llm import chat, last_block  # noqa: E402
 from run_geo import answer, base_instance, on_seg, orient, pip, render, variants  # noqa: E402
 from sandbox import run_python  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 B = 50
 SIZES = {"hull": 10, "area2": 8, "pip": 8, "segs": 6, "close": 10}
 FMT = {

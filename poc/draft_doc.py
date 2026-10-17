@@ -10,7 +10,8 @@ from geo_distractors import INCIRCLE_VARIANTS  # noqa: E402
 from llm import chat_msgs, last_block, strip_think  # noqa: E402
 from sandbox import run_python  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 tag = sys.argv[1]; R = int(sys.argv[2]) if len(sys.argv) > 2 else 3
 HELPER = INCIRCLE_VARIANTS["signed"]
 out = []

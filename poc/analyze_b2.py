@@ -3,7 +3,8 @@
 usage: python analyze_b2.py"""
 import json, os, random
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 CELLS = ("hull_k0", "hull_k8", "trained_k8", "diam", "delfixed")
 ARMS = [("E4 A: no replay", "S2_E4_A"), ("B2 A' (A retrained)", "S2_B2_Aprime"), ("WiSE-FT alpha 0.25", "S2_B2_wise0.25"),
         ("WiSE-FT alpha 0.5", "S2_B2_wise0.5"), ("WiSE-FT alpha 0.75", "S2_B2_wise0.75"), ("SDFT rewrite", "S2_B2_sdft"),

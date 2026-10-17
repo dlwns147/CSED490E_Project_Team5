@@ -12,7 +12,8 @@ from run_geo_mr import MR, expected_rel  # noqa: E402
 from sandbox import run_python  # noqa: E402
 from steer_filter import fix_tb  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 K8TAG = {"core": "S2_C1_geox{m}_dis8", "del": "S2_MX_geox{m}_del_k8", "lat": "S2_MX_geox{m}_lat_k8"}
 
 

@@ -5,11 +5,13 @@ from collections import defaultdict
 
 import numpy as np
 
-sys.path.insert(0, "/NAS/SJ/POSTECH/nlp/poc")
+import os
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+sys.path.insert(0, f"{ROOT}/poc")
 from analyze import _contains_seq  # noqa: E402
 from run_perturb import load  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+RES = f"{ROOT}/results"
 rng = np.random.default_rng(0)
 
 

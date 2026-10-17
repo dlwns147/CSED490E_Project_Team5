@@ -6,11 +6,12 @@ usage: mr_select.py <model> <seed> <arm1,arm2,...>"""
 import json, os, random, sys
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
-sys.path.insert(0, "/NAS/SJ/POSTECH/nlp/poc")
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+sys.path.insert(0, f"{ROOT}/poc")
 from run_geo import base_instance, variants  # noqa: E402
 from run_geo_mr import mr_check  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+RES = f"{ROOT}/results"
 m, sd, arms = sys.argv[1], sys.argv[2], sys.argv[3].split(",")
 NOMR = len(sys.argv) > 4 and sys.argv[4] == "nomr"   # ablation: plain majority vote on the identity output (no metamorphic filter)
 def _f(a):   # arm or arm@seed

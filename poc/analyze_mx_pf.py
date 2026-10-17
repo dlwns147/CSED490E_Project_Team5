@@ -2,7 +2,8 @@
 (K = 8 for K8-type conditions incl. M3 / M4 / think; K = 0 for needed-only; none for no-helper runs). Pooled over 2 seeds."""
 import json, os, random, re, sys
 from concurrent.futures import ThreadPoolExecutor
-sys.path.insert(0, "/NAS/SJ/POSTECH/nlp/poc")
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+sys.path.insert(0, f"{ROOT}/poc")
 from geo_distractors import toolbox  # noqa: E402
 from run_geo import answer, base_instance, render, variants  # noqa: E402
 from run_geo_cross import classify  # noqa: E402
@@ -10,7 +11,7 @@ from sandbox import run_python  # noqa: E402
 from steer_filter import fix_tb  # noqa: E402
 from analyze_mx import tags  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+RES = f"{ROOT}/results"
 
 
 def pf_ok(r, K):

@@ -1,7 +1,8 @@
 """Final zebra table (144 puzzles): code+snippet+status vs code (no snippet), single samples and verified best-of-k (exact clue check), vs direct+think."""
 import json, os
 import numpy as np
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 L = lambda t: {r["key"]: r for r in map(json.loads, open(f"{RES}/zebra_{t}.jsonl"))} if os.path.exists(f"{RES}/zebra_{t}.jsonl") else None
 rng = np.random.default_rng(0)
 for m in ["8b", "14b", "32b"]:

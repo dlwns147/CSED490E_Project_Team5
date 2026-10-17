@@ -24,7 +24,8 @@ sys.path.insert(0, os.path.dirname(__file__))
 from llm import chat_msgs, last_block  # noqa: E402
 from run_perturb import MULTI_RE, judge  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 TUTOR = OpenAI(base_url=os.environ.get("TUTOR_URL", "http://127.0.0.1:8000/v1"), api_key="none", timeout=3600)
 STUDENT = OpenAI(base_url=os.environ.get("STUDENT_URL", "http://127.0.0.1:8001/v1"), api_key="none", timeout=3600)
 
@@ -49,7 +50,7 @@ SOLVE = ("Solve the following competitive-programming problem in Python 3. Read 
 
 
 def load_items(n, max_rating=1300):
-    files = sorted(glob.glob("/NAS/SJ/POSTECH/nlp/data/code_contests/data/train-*.parquet"))
+    files = sorted(glob.glob(f"{ROOT}/data/code_contests/data/train-*.parquet"))
     df = pd.concat([pd.read_parquet(f) for f in files])
     df = df[(df.source == 2) & (df.cf_rating > 0) & (df.cf_rating <= max_rating)]
     df = df[~df.description.str.contains(MULTI_RE, case=False, regex=True)]

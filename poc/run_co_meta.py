@@ -21,7 +21,8 @@ from llm import chat_msgs, last_block  # noqa: E402
 from run_co import describe, gen, objective, parse_solution, prompt, reference  # noqa: E402
 from sandbox import run_python  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 CELLS = [("knapsack", 20), ("knapsack", 40), ("tsp", 12), ("tsp", 20), ("color", 20), ("sched", 20)]
 
 

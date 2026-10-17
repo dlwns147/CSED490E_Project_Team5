@@ -8,7 +8,9 @@ from collections import defaultdict
 
 import numpy as np
 
-rows = [json.loads(l) for l in open(f"/NAS/SJ/POSTECH/nlp/results/cometa_{sys.argv[1]}.jsonl")]
+import os
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+rows = [json.loads(l) for l in open(f"{ROOT}/results/cometa_{sys.argv[1]}.jsonl")]
 inst = defaultdict(dict)
 for r in rows:
     inst[(r["prob"], r["n"], r["inst"], r["arm"])][r["variant"]] = r

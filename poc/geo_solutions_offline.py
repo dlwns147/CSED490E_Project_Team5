@@ -6,10 +6,12 @@ S2 input CANONICALISATION wrapper for code: re-run the stored cross-variant prog
 import json, random, sys, glob
 from collections import Counter, defaultdict
 import numpy as np
-sys.path.insert(0, "/NAS/SJ/POSTECH/nlp/poc")
+import os
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+sys.path.insert(0, f"{ROOT}/poc")
 from run_geo import answer, base_instance, render, variants
 from sandbox import run_python
-RES = "/NAS/SJ/POSTECH/nlp/results"
+RES = f"{ROOT}/results"
 INV = ["identity", "translate", "rot90", "mirror", "permute", "scale", "big"]
 
 def norm(task, v, p):

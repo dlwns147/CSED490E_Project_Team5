@@ -7,7 +7,8 @@ import json, os, random, sys
 from collections import Counter
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 MODELS = (sys.argv[1] if len(sys.argv) > 1 else "8b,32b,oss20low").split(",")
 OK_VARIANTS = ("identity", "translate", "rot90", "scale", "big")
 

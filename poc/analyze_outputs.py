@@ -7,7 +7,8 @@ import json, os, re, sys
 from collections import Counter
 import numpy as np
 
-R = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+R = f"{ROOT}/results"
 HELPERS = ["orient", "on_segment", "segments_intersect", "point_in_polygon", "dist2", "bbox", "collinear", "polar_sort",
            "is_convex", "polygon_area2", "convex_hull", "closest_pair_sq"]
 TOK = re.compile(r"[A-Za-z_]\w*|\d+|\S")

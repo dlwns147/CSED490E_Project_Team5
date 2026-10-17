@@ -26,7 +26,8 @@ sys.path.insert(0, os.path.dirname(__file__))
 from llm import chat, last_block  # noqa: E402
 from sandbox import run_python  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 
 
 def orient(a, b, c):

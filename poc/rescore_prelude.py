@@ -4,14 +4,16 @@
 import json, random, re, sys
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
-sys.path.insert(0, "/NAS/SJ/POSTECH/nlp/poc")
+import os
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+sys.path.insert(0, f"{ROOT}/poc")
 from geo_distractors import toolbox  # noqa: E402
 from run_geo import answer, base_instance, render, variants  # noqa: E402
 from run_geo_cross import classify  # noqa: E402
 from sandbox import run_python  # noqa: E402
 
 tag, K = sys.argv[1], int(sys.argv[2])
-rows = [json.loads(l) for l in open(f"/NAS/SJ/POSTECH/nlp/results/geocross_{tag}.jsonl")]
+rows = [json.loads(l) for l in open(f"{ROOT}/results/geocross_{tag}.jsonl")]
 
 
 def rescore(r):

@@ -5,7 +5,9 @@ import glob, json, sys
 
 import pandas as pd
 
-OUT = "/NAS/SJ/POSTECH/nlp/results/h2/cc_geometry_full.json"
+import os
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+OUT = f"{ROOT}/results/h2/cc_geometry_full.json"
 MAX_GEN = 60
 CPP, PY3 = 2, 3   # CodeContests language codes
 

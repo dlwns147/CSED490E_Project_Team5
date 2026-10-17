@@ -10,7 +10,8 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from peft import LoraConfig, get_peft_model
 
 BASE = "/SSD/huggingface/Qwen/Qwen3-8B"
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 out_dir, arm = sys.argv[1], sys.argv[2]
 N = int(sys.argv[3]) if len(sys.argv) > 3 else 600
 EPOCHS = int(sys.argv[4]) if len(sys.argv) > 4 else 2

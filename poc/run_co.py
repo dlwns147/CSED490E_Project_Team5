@@ -29,7 +29,8 @@ from llm import chat, chat_msgs, last_block, strip_think  # noqa: E402
 from sandbox import run_python
 from api_shim import SHIM  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 SIZES = {"knapsack": (10, 20, 40, 80), "tsp": (8, 12, 20, 40), "color": (10, 20, 40), "sched": (10, 20, 40)}
 HELDOUT = {"binpack": (10, 20, 40), "vcover": (10, 20, 40)}   # held-out problems (added after all CO findings; not tuned on)
 REAL = {"cvrp": (8, 12, 16), "vrptw": (8, 12)}   # review item 3: realistic multi-constraint problem (capacitated vehicle routing), added after all findings

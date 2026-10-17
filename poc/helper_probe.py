@@ -15,7 +15,8 @@ from run_geo_mr import mr_check  # noqa: E402
 from sandbox import run_python  # noqa: E402
 from steer_filter import SIZES, fix_tb, prompt_txt  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 
 
 def all_correct(code, task, V):

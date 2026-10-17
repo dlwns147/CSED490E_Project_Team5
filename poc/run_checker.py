@@ -27,7 +27,8 @@ from llm import chat_many, last_block  # noqa: E402
 from run_perturb import MULTI_RE  # noqa: E402
 from sandbox import run_many, run_python, same_output  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 N_COR, N_INC, N_TESTS = 5, 10, 40
 CACHE = f"{RES}/checker_outputs.json"
 
@@ -82,7 +83,7 @@ def wrapped(src):
 
 
 def load_items(max_items):
-    df = pd.concat([pd.read_parquet(glob.glob(f"/NAS/SJ/POSTECH/nlp/data/code_contests/data/{s}-*.parquet")[0])
+    df = pd.concat([pd.read_parquet(glob.glob(f"{ROOT}/data/code_contests/data/{s}-*.parquet")[0])
                     for s in ("test", "valid")])
     df = df[df.description.str.contains(MULTI_RE, case=False, regex=True)]
     items = []

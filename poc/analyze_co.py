@@ -5,7 +5,9 @@ from collections import defaultdict
 
 import numpy as np
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+import os
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 refs = json.load(open(f"{RES}/co_refs.json"))
 for tag in sys.argv[1:]:
     rows = [json.loads(l) for l in open(f"{RES}/co_{tag}.jsonl")]

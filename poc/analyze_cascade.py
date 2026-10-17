@@ -5,7 +5,8 @@ cheap mode best-of-2 + example check. Averaged over the seeds both modes have.
 usage: python analyze_cascade.py"""
 import json, os
 
-RES = "/NAS/SJ/POSTECH/nlp/results/h2"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results/h2"
 P = {p["name"]: p for p in json.load(open(f"{RES}/cc_geometry_full.json"))}
 NPUB = {n: sum(t["kind"] == "public" for t in p["tests"]) for n, p in P.items()}
 

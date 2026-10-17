@@ -6,7 +6,8 @@ from collections import Counter
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from geo_distractors import RELATED  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results/h2"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results/h2"
 NAMES = list(RELATED)
 uses = lambda code: bool(code) and any(re.search(rf"\b{n}\s*\(", code) for n in NAMES)
 from math import comb

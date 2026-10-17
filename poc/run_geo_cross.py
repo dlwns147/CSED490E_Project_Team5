@@ -23,7 +23,8 @@ from llm import chat, last_block, strip_think  # noqa: E402
 from run_geo import answer, base_instance, render, variants  # noqa: E402
 from sandbox import run_python  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 
 
 def classify(res):
@@ -259,7 +260,7 @@ def main():
                 if a.area_helper == "abs":
                     tb = tb.replace("for i in range(len(poly)))\n", "for i in range(len(poly))))\n", 1)
         if a.auto_contract and tb:   # M2: verified behaviour statements from harness-side metamorphic probing
-            C_ = json.load(open("/NAS/SJ/POSTECH/nlp/results/contracts.json"))
+            C_ = json.load(open(f"{ROOT}/results/contracts.json"))
             lines = tb.split("\n")
             for name, info in C_.items():
                 if info.get("statement"):

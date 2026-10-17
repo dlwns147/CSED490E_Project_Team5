@@ -25,7 +25,8 @@ from llm import chat_msgs, last_block  # noqa: E402
 from run_geo import answer, base_instance, render, variants  # noqa: E402
 from sandbox import run_python  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 SIZES = {"hull": (10, 20), "area2": (8, 14), "pip": (8, 14), "segs": (6, 10), "close": (10, 20)}
 MR = ["translate", "rot90", "mirror", "permute", "scale", "big"]
 REL = {"translate": "the same geometry shifted by a constant vector", "rot90": "the same geometry rotated by 90 degrees",

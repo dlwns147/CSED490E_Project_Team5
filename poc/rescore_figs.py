@@ -36,7 +36,8 @@ from run_geo_cross import classify, prims  # noqa: E402
 from run_geo_mr import MR, expected_rel, run_out  # noqa: E402
 from sandbox import run_python  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 OUT = f"{RES}/figs_packaging_free.json"
 NB, SEED = 10_000, 0
 Q = ("8b", "14b", "32b")

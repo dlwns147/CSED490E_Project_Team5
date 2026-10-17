@@ -10,12 +10,14 @@ Selection set = even-indexed labelled solutions, test set = odd-indexed (same sp
 import json
 import sys
 
-sys.path.insert(0, "/NAS/SJ/POSTECH/nlp/poc")
+import os
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+sys.path.insert(0, f"{ROOT}/poc")
 from run_checker import collect_outputs, exact_verdicts, load_items, run_checker  # noqa: E402
 from run_checker2 import score  # noqa: E402
 
 tag = sys.argv[1]
-RES = "/NAS/SJ/POSTECH/nlp/results"
+RES = f"{ROOT}/results"
 items = load_items(60)
 outs_all = collect_outputs(items)
 codes = {}

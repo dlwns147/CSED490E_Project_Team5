@@ -2,7 +2,8 @@
 MR-select k=3 and plain vote, paired cluster bootstrap CIs over instances."""
 import json, os, subprocess, sys
 import numpy as np
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 L = lambda t: {(r["task"], r["n"], r["inst"]): r["class"] == "correct_all" for r in map(json.loads, open(f"{RES}/geocross_{t}.jsonl"))} if os.path.exists(f"{RES}/geocross_{t}.jsonl") else None
 rng = np.random.default_rng(0)
 def ci(a, b):

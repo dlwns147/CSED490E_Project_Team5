@@ -23,7 +23,8 @@ sys.path.insert(0, os.path.dirname(__file__))
 from llm import chat_msgs, last_block, strip_think  # noqa: E402
 from sandbox import run_python  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 EXTRA_API = [   # correct but UNNEEDED CP-SAT features for zebra (distractor dose-response for NL->solver, cf. geometry S4d)
     "  b = m.NewBoolVar('b'); m.Add(x == y).OnlyEnforceIf(b); m.Add(x != y).OnlyEnforceIf(b.Not())   # reified constraint\n",
     "  m.AddElement(index_var, [10, 20, 30], target_var)               # target == list[index]\n",

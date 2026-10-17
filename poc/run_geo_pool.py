@@ -12,7 +12,8 @@ from llm import chat, last_block  # noqa: E402
 from run_geo import base_instance, render, variants  # noqa: E402
 from run_geo_hack import breaks, degen_candidates, rand_candidates, valid  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 
 
 def main():

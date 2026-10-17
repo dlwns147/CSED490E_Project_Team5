@@ -28,21 +28,22 @@ figs/       figures
 
 ```bash
 pip install -r poc/requirements.txt sympy math-verify pandas
-bash poc/start_server.sh <model dir> 8041 <gpu> 0.88 <tag>   # vLLM server (OpenAI-compatible)
-export POC_BASE_URL=http://127.0.0.1:8041/v1
-export POC_REASONING_EFFORT=medium                           # gpt-oss only: low | medium | high
-python poc/sanity_check.py                                   # check the harness without a model
+python poc/sanity_check.py                           # check the harness without a model (CPU)
+python bench.py list                                 # benchmarks, arms (prompt conditions) and model aliases
+python bench.py serve q32b --gpu 0                   # vLLM server on port 8041; model folders under $MODELS_DIR
+python bench.py run geo k8 --model q32b --seed 1     # one arm of one benchmark -> results/
 ```
 
-| Experiment | Example command |
+| Experiment | Commands (`python bench.py ...`) |
 |---|---|
-| Geometry + unneeded tools (slide 7) | `python poc/run_geo_cross.py --model_tag S2_N10_geo_k8_s1 --distract 8 --seed 1 --temperature 0.7` |
-| Optimization + docs (slide 6) | `python poc/run_co.py --model_tag S2_N10_co_snippet_s1 --arms solver --api_doc --api_doc_task --seed 1 --temperature 0.7` |
-| Contest geometry (slide 8) | `CC_SET=full python poc/run_cc.py run oss120_medium 1 --max_tokens 16000` |
-| Program reuse (slide 9) | `POC_REASONING_EFFORT=low python poc/run_solomon.py run oss120_low_plain 1` → `REUSE_SEEDS=1 python poc/analyze_reuse_curve.py oss120_low_plain` |
-| Job-shop / competition math / optimization modeling / Lean | `poc/run_jssp.py`, `run_math.py`, `run_nlopt.py`, `run_lean.py` (usage at the top of each file) |
+| Geometry + unneeded tools (slide 7) | `run geo none`, `run geo k8`, `run geo think` (each `--model q32b`), then `N10_PREFIX=q32b python bench.py analyze n12 1 geo` |
+| Optimization + docs (slide 6) | `run co nodoc` / `doc` / `snippet` / `rag3` / `think` `--model q32b` |
+| Contest geometry (slide 8) | `run contest plain --model oss120 --effort medium` (high effort: `serve oss120 -- --max-model-len 65536`, `run ... --effort high -- --max_tokens 62000`) |
+| Program reuse (slide 9) | `run vrptw plain --model oss120 --effort low` (seeds 1, 2), then `REUSE_SEEDS=1,2 python poc/analyze_reuse_curve.py oss120_low_plain` |
+| Job-shop, competition math, optimization modeling, Lean, factual QA | `run jssp plain`, `run math text\|prog\|think`, `run nlopt mip\|mipf\|think\|thinkf`, `run lean gen`, `run popqa direct\|recall\|think` |
 
+`bench.py` only fills in the settings we used; anything after `--` goes to the harness (`poc/run_*.py`, usage at the top of each).
 Full commands for each experiment: `poc/queues/queue_s2_<id>.sh`. Outputs go to `results/`.
 
-**Notes:** scripts hard-code the path `/NAS/SJ/POSTECH/nlp`; change it on another machine. GPUs are shared, so check
+**Notes:** the Python code finds the repository root by itself; only the recorded queue scripts hard-code `/NAS/SJ/POSTECH/nlp`. GPUs are shared, so check
 `nvidia-smi` for a free GPU and port. We claim a result only if it holds on 3 seeds.

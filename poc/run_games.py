@@ -21,7 +21,8 @@ from concurrent.futures import ThreadPoolExecutor
 sys.path.insert(0, os.path.dirname(__file__))
 from llm import chat_msgs, strip_think  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 
 GUESS_RULES = ("Let's play a game. I have chosen a secret integer between 1 and {N} (inclusive). Find it using as "
                "few guesses as possible. Each turn, reply with one guess on the last line in the form `GUESS x`. "

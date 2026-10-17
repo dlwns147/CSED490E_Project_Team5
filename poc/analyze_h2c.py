@@ -9,7 +9,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from run_cc import MAX_GEN, OPRE, PFILE, SET, VFILE, tok_eq  # noqa: E402
 from sandbox import run_python  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results/h2"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results/h2"
 NSEL = 20
 P = {p["name"]: p for p in json.load(open(PFILE))}
 VAL = json.load(open(VFILE))

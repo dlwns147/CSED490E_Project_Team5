@@ -14,7 +14,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from run_geo import base_instance, variants  # noqa: E402
 from run_geo_mr import mr_check  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 M = sys.argv[1] if len(sys.argv) > 1 else "8b"
 SEEDS = (1, 2, 3)
 

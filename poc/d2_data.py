@@ -1,7 +1,9 @@
 """D2 (docs/prereg/PREREG_D1.md): S = up to 3 distinct own correct no-think answers per train problem (Qwen3-8B seeds 1-8);
 L = the teacher programs of D1 arm A restricted to train problems the student solves in >= 1 of its 8 samples."""
 import json
-RES = "/NAS/SJ/POSTECH/nlp/results/h2"
+import os
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results/h2"
 S = json.load(open(f"{RES}/d1_split.json")); train = set(S["train"])
 P = {p["name"]: p for p in json.load(open(f"{RES}/cc_geometry_full.json"))}
 prompt = lambda n: P[n]["description"].strip() + "\n\nWrite a Python 3 program that reads the input from stdin and prints the answer to stdout. Give the program in a single ```python code block."

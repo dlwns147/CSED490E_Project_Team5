@@ -11,7 +11,8 @@ from geo_distractors import RELATED, render_names  # noqa: E402
 from run_geo import base_instance, variants  # noqa: E402
 import random  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 PRE = "\n".join(re.findall(r"```python\n(.*?)```", render_names(list(RELATED)), re.S)) + "\n"
 
 

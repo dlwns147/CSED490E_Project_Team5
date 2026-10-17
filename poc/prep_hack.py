@@ -84,10 +84,12 @@ def process(r):
                 public_tests=[{"input": i, "output": o} for i, o in zip(r["public_tests"]["input"], r["public_tests"]["output"])])
 
 
+import os
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
 if __name__ == "__main__":
     rows = []
     for sp in ("test", "valid"):
-        df = pd.read_parquet(glob.glob(f"/NAS/SJ/POSTECH/nlp/data/code_contests/data/{sp}-*.parquet")[0])
+        df = pd.read_parquet(glob.glob(f"{ROOT}/data/code_contests/data/{sp}-*.parquet")[0])
         rows += [r for _, r in df.iterrows()]
     print("problems:", len(rows), flush=True)
     out = []
@@ -97,7 +99,7 @@ if __name__ == "__main__":
                 out.append(item)
             if k % 25 == 0:
                 print(k, len(out), flush=True)
-    with open("/NAS/SJ/POSTECH/nlp/data/hack_bench.jsonl", "w") as f:
+    with open(f"{ROOT}/data/hack_bench.jsonl", "w") as f:
         for it in out:
             f.write(json.dumps(it) + "\n")
     print("kept", len(out), "ratings", np.percentile([o["cf_rating"] for o in out], [10, 50, 90]))

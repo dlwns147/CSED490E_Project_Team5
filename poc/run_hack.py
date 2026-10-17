@@ -102,6 +102,7 @@ def run_stress(item, gen_code, n_gen, cache):
     return {"verdict": verdict, "n_valid": n_valid, "first_hit": first}
 
 
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
 def placebo_codes(items):
     """A DIFFERENT wrong Python-3 solution of the same problem, shown instead of the target (placebo control):
     if the model really uses the code, showing unrelated buggy code should not help as much as the target's."""
@@ -109,7 +110,7 @@ def placebo_codes(items):
     import pandas as pd
     want = {it["name"]: it["wrong"]["code"] for it in items}
     out = {}
-    for f in glob.glob("/NAS/SJ/POSTECH/nlp/data/code_contests/data/[tv][ea]*-*.parquet"):
+    for f in glob.glob(f"{ROOT}/data/code_contests/data/[tv][ea]*-*.parquet"):
         df = pd.read_parquet(f, columns=["name", "incorrect_solutions"])
         for _, r in df[df.name.isin(want)].iterrows():
             cands = sorted({c for c, l in zip(r.incorrect_solutions["solution"], r.incorrect_solutions["language"])
@@ -121,7 +122,7 @@ def placebo_codes(items):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--bench", default="/NAS/SJ/POSTECH/nlp/data/hack_bench.jsonl")
+    ap.add_argument("--bench", default=f"{ROOT}/data/hack_bench.jsonl")
     ap.add_argument("--model_tag", required=True)
     ap.add_argument("--n_items", type=int, default=40)
     ap.add_argument("--k", type=int, default=2)
@@ -136,7 +137,7 @@ def main():
     random.Random(0).shuffle(items)
     items = items[: a.n_items]
     placebo = placebo_codes(items) if "placebo" in a.strategies else {}
-    out_path = f"/NAS/SJ/POSTECH/nlp/results/hack_{a.model_tag}.jsonl"
+    out_path = f"{ROOT}/results/hack_{a.model_tag}.jsonl"
     done = set()
     if os.path.exists(out_path):
         done = {(d["name"], d["strategy"], d["sample"]) for d in map(json.loads, open(out_path))}

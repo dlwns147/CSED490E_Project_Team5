@@ -22,7 +22,8 @@ sys.path.insert(0, os.path.dirname(__file__))
 from llm import chat_many, last_block  # noqa: E402
 from sandbox import run_python, same_output  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 REWRITE = {
     "story": ("Rewrite the following competitive-programming problem with a COMPLETELY different story, setting, "
               "characters and object names (e.g. move it to a different domain), while keeping the underlying "
@@ -48,7 +49,7 @@ def load(max_rating, n, source="eval", exclude_multi=False):
     """source='eval': CodeContests test+valid; 'train': the downloaded train shards (Codeforces only).
     exclude_multi drops problems whose statement admits several correct outputs (exact-match judge invalid)."""
     pats = ["test", "valid"] if source == "eval" else ["train"]
-    files = [f for p in pats for f in sorted(glob.glob(f"/NAS/SJ/POSTECH/nlp/data/code_contests/data/{p}-*.parquet"))]
+    files = [f for p in pats for f in sorted(glob.glob(f"{ROOT}/data/code_contests/data/{p}-*.parquet"))]
     df = pd.concat([pd.read_parquet(f) for f in files])
     df = df[(df.cf_rating <= max_rating) & (df.cf_rating > 0) & (df.source == 2)]
     df = df[df.generated_tests.apply(lambda g: len(g["input"]) > 0)]

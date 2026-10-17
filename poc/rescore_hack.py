@@ -3,8 +3,9 @@ import json, sys, os
 sys.path.insert(0, os.path.dirname(__file__))
 from run_hack import check_input, extract_input
 tag = sys.argv[1]
-path = f"/NAS/SJ/POSTECH/nlp/results/hack_{tag}.jsonl"
-items = {json.loads(l)["name"]: json.loads(l) for l in open("/NAS/SJ/POSTECH/nlp/data/hack_bench.jsonl")}
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+path = f"{ROOT}/results/hack_{tag}.jsonl"
+items = {json.loads(l)["name"]: json.loads(l) for l in open(f"{ROOT}/data/hack_bench.jsonl")}
 rows, changed, caches = [json.loads(l) for l in open(path)], 0, {}
 for r in rows:
     if not r["strategy"].startswith("stress"):

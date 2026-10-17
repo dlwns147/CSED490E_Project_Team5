@@ -10,7 +10,8 @@ from geo_distractors import RELATED, render_names  # noqa: E402
 from llm import chat, last_block  # noqa: E402
 from run_geo import answer, base_instance, render, variants  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 PRE = "\n".join(re.findall(r"```python\n(.*?)```", render_names(list(RELATED)), re.S)) + "\n"
 m = sys.argv[1]
 

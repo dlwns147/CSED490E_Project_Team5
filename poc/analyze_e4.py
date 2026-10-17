@@ -5,7 +5,8 @@ behavioural classes only.
 usage: python analyze_e4.py [arms, default A,B,C]"""
 import json, os, random, sys
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 ARMS = (sys.argv[1] if len(sys.argv) > 1 else "A,B,C").split(",")
 
 

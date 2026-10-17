@@ -1,7 +1,8 @@
 """S4d dose-response summary: all-variants-correct /100 and distractor-call rate by model x K (related) + unrelated control."""
 import json, os, sys
 import numpy as np
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 import re
 
 

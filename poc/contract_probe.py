@@ -10,7 +10,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from geo_distractors import NEW, RELATED, with_deps  # noqa: E402
 import run_geo as G  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 POINT_ARGS = {"a", "b", "c", "d", "p", "q", "o"}
 
 

@@ -12,7 +12,8 @@ import run_geo as G  # noqa: E402
 from llm import chat, last_block  # noqa: E402
 from sandbox import run_python  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 GEO = {"hull": 10, "area2": 8, "pip": 8, "segs": 6, "close": 10, "convex": 8, "tri": 10, "overlap": 8, "lattice": 8, "rectunion": 5,
        "clip": 6, "delaunay": 8, "diameter": 12}
 CO = {"knapsack": 10, "tsp": 8, "color": 10, "sched": 10, "binpack": 10, "vcover": 10, "cvrp": 8, "vrptw": 8}

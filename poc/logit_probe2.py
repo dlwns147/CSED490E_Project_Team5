@@ -21,7 +21,8 @@ from llm import BASE_URL, client  # noqa: E402
 import geo_distractors as D  # noqa: E402
 import run_geo as G  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 TASKS = ("hull", "area2", "close")
 
 

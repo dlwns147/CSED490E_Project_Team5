@@ -5,7 +5,9 @@ from collections import Counter, defaultdict
 
 import numpy as np
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+import os
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 
 
 def boot_ci(per_item, n=2000, seed=0):
@@ -70,7 +72,7 @@ def perturb_validity(source="eval"):
     io_broken    : a rewrite no longer contains the original example input verbatim (e.g. it renamed the
                    input alphabet A/B/C -> X/Y/Z), so the original tests no longer match the statement."""
     import re
-    sys.path.insert(0, "/NAS/SJ/POSTECH/nlp/poc")
+    sys.path.insert(0, f"{ROOT}/poc")
     from run_perturb import load
     items = {it["name"]: it for it in load(10**9, 10**9, source)}
     rw = json.load(open(f"{RES}/perturb_rewrites.json" if source == "eval" else f"{RES}/perturb_rewrites_{source}.json"))

@@ -284,3 +284,6 @@ S2_U1r q36 done (416/416 think rows) Sat Oct 17 06:08:27 UTC 2026
 S2_U1r runs done Sat Oct 17 06:08:27 UTC 2026
 S2_X6 (re)queued by hourly-cron session: GPU0 q32b thinkf, GPU2 q36 4 arms, GPU3 q8b 4 arms (queue_s2_x6b.sh); X1 regrade waiter queue_s2_x1fin.sh Sat Oct 17 06:29:06 UTC 2026
 S2_X6 relaunched 06:31 (first launch stopped by PID after 1 min: 'think' arm test was wrong; no rows written) Sat Oct 17 06:29:42 UTC 2026
+S2_X1 q32b thinking: 1680/1680 rows Sat Oct 17 07:33:39 UTC 2026
+S2 resumable thinking re-run finished Sat Oct 17 07:33:39 UTC 2026
+S2_X1fin regrade + analysis done Sat Oct 17 07:34:32 UTC 2026

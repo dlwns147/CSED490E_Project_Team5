@@ -1,7 +1,8 @@
 """Cross-family recipe check (X_ tags): geometry greedy base/pt, sampled base x3 → MR-select k=3, K=0 vs K=8 toolbox; CO no doc/full/scoped."""
 import json, os, subprocess, sys
 import numpy as np
-R = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+R = f"{ROOT}/results"
 rng = np.random.default_rng(0)
 G = lambda t: {(r["task"], r["n"], r["inst"]): r["class"] == "correct_all" for r in map(json.loads, open(f"{R}/geocross_{t}.jsonl"))} if os.path.exists(f"{R}/geocross_{t}.jsonl") else None
 ok = lambda r: bool(r["feasible"] and r["gap"] is not None and r["gap"] <= 1)

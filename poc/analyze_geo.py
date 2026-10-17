@@ -7,7 +7,9 @@ from collections import defaultdict
 
 import numpy as np
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+import os
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 VARS = ["identity", "translate", "rot90", "mirror", "permute", "scale", "big", "degen"]
 INV = ["identity", "translate", "rot90", "mirror", "permute", "scale", "big"]
 

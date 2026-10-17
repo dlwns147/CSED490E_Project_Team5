@@ -3,7 +3,9 @@ A sample 'passes the public tests' if its first n_public tests (the statement's 
 usage: python analyze_h2b.py"""
 import json
 
-RES = "/NAS/SJ/POSTECH/nlp/results/h2"
+import os
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results/h2"
 P = {p["name"]: p for p in json.load(open(f"{RES}/cc_geometry_local.json"))}
 NPUB = {n: sum(t["kind"] == "public" for t in p["tests"]) for n, p in P.items()}
 for tag in ("q32b_plain", "oss20_low", "oss120_low"):

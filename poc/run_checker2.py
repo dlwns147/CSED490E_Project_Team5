@@ -18,7 +18,8 @@ sys.path.insert(0, os.path.dirname(__file__))
 from llm import chat_many, last_block  # noqa: E402
 from run_checker import collect_outputs, exact_verdicts, load_items, run_checker  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 
 PROMPT_V2 = """Below is a competitive-programming problem whose answer is NOT unique (several different outputs can be correct).
 Write a Python 3 *checker*:

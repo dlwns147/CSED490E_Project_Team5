@@ -3,7 +3,8 @@ usage: python analyze_b3.py"""
 import json, os, random, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 src = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "analyze_e2.py")).read().split("\nfor m in MODELS")[0]
 NS = {"__file__": os.path.join(os.path.dirname(os.path.abspath(__file__)), "analyze_e2.py")}
 exec(src, NS)

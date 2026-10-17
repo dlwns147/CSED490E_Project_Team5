@@ -17,7 +17,8 @@ from concurrent.futures import ThreadPoolExecutor
 sys.path.insert(0, os.path.dirname(__file__))
 from llm import chat  # noqa: E402
 
-RES = "/NAS/SJ/POSTECH/nlp/results"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
+RES = f"{ROOT}/results"
 NAMES = ("Alice Bob Carol Dave Erin Frank Grace Heidi Ivan Judy Karl Liam Mona Nick Olga Paul Quinn Rita Sam Tina "
          "Uma Vic Wendy Xena Yuri Zoe Adam Beth Carl Dana Eli Fay Gus Hana Igor Jade Kurt Lola").split()
 
