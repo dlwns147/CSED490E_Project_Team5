@@ -97,3 +97,14 @@ oss20_medium30k) and + the definitions of all 48 constructions — what each req
 - GEO-P3: the larger budget cuts proposals without a clause from 42% to ≤ 20%.
 - GEO-P4: the definitions halve the engine's rejections among written clauses (argument mismatch, unknown points), but proved problems
   stay ≤ 3 of 18: knowing the language is not knowing which point unlocks the proof.
+
+## Results (2026-10-18 09:36 UTC): gpt-oss-20b medium on Lean; Qwen3.6 thinking as the geometry proposer
+- gpt-oss-20b medium: 47 / 55 / 67 / 72 of 244 (low: 66) at 14.5k tokens per attempt (9 × low; 320 runs at the 32k cap). **PROOF-P5 holds
+  for gpt-oss-20b** (more than low, far fewer than the provers) — reasoning effort buys 6 statements for 9 × the tokens.
+- Qwen3.6 thinking (30k cap) as the geometry proposer: **1 of 18** problems proved (IMO 2014 P4 with `d = midpoint d b c`, 55 s), 86 valid
+  of 288 proposals; 151 proposals stopped at the 30k cap without a clause (Qwen3.6 thinks 20.6k tokens on average here).
+**Pre-registered now (before running):**
+- GEO-P5: Qwen3.6 thinking proposer with an 80k cap (tag q36_think80k, same 18 × 16; server max-model-len 90,000; GPU2;
+  queue_s2_geoproof4.sh): ≤ 10% of proposals without a clause, and 1–4 problems proved.
+- PROOF-P7: DeepSeek-Prover-V2-7B, attempts 9–32 on its 79 statements unsolved after 8 (GPU1, queue_s2_proof5.sh): ≥ 10 more proved
+  (card: 75.6% at 32 attempts ≈ 184).

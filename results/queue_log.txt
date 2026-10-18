@@ -348,3 +348,9 @@ S2_GEOPROOF oss20_medium checked by DD+AR Sun Oct 18 07:43:03 UTC 2026
 S2_PROOF q36_think generated 1952/1952 Sun Oct 18 08:05:28 UTC 2026
 S2_PROOF q36_think checked Sun Oct 18 08:17:19 UTC 2026
 S2_GEOPROOF3 queued (gpt-oss-20b 30k, with / without construction definitions; GPU0) Sun Oct 18 08:36:30 UTC 2026
+S2_GEOPROOF q36_think proposals done Sun Oct 18 08:55:46 UTC 2026
+S2_PROOF oss20_medium generated 1952/1952 Sun Oct 18 09:02:17 UTC 2026
+S2_PROOF oss20_medium checked Sun Oct 18 09:09:52 UTC 2026
+S2_PROOF3 analysis -> results/x4/proof_analysis.log Sun Oct 18 09:09:57 UTC 2026
+S2_GEOPROOF q36_think checked by DD+AR Sun Oct 18 09:19:29 UTC 2026
+S2_GEOPROOF4 (GPU2) and S2_PROOF5 (GPU1) queued Sun Oct 18 09:36:06 UTC 2026
