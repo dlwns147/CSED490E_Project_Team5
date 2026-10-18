@@ -342,3 +342,5 @@ S2_PROOF q14a_think generated 1952/1952 Sun Oct 18 05:55:15 UTC 2026
 S2_PROOF q14a_think checked Sun Oct 18 06:00:16 UTC 2026
 S2_PROOF analysis -> results/x4/proof_analysis.log Sun Oct 18 06:00:22 UTC 2026
 S2_GEOPROOF queued (gpt-oss-20b proposes auxiliary points for 18 IMO-AG-30 problems, DD+AR checks; GPU2; PREREG_PROOF.md phase 3a) Sun Oct 18 06:38:11 UTC 2026
+S2_GEOPROOF oss20_medium proposals done Sun Oct 18 07:07:23 UTC 2026
+S2_GEOPROOF2 queued (Qwen3.6 thinking proposer; GPU2) Sun Oct 18 07:36:03 UTC 2026

@@ -80,3 +80,6 @@ compile-gated loop); invented names in 27% of failed attempts.
   at 6 × their tokens; per 100k tokens of the compile-gated loop: Goedel 1.9, DeepSeek 2.8, Qwen3.6 4.4, gpt-oss-20b 2.4, Qwen3-14B think 0.12.
 **Reading:** for formal proofs, thinking does not substitute for knowing Lean 4 and Mathlib: a general 14B model that thinks for 9k
 tokens mostly writes invalid Lean; the 8B prover trained on Lean proves 9 × more statements.
+- Phase 3a addendum (2026-10-18 07:36 UTC, before any proposal was checked): 122 of gpt-oss-20b's 288 proposals stopped at the 16k cap without a
+  clause (counted as invalid). Second proposer: Qwen3.6 with thinking (T 1.0 / top_k 20, no presence penalty, 30k cap; tag q36_think),
+  same 18 problems × 16 samples, GPU2 (poc/queues/queue_s2_geoproof2.sh). GEO-P1 / P2 apply to it too.
