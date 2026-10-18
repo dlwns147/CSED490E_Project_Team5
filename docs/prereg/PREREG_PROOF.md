@@ -137,3 +137,10 @@ proofs / premises (ReProver, LeanDojo; retrieval-augmented provers).
   statements nobody proves (8 failed attempts × 7k tokens each), which a cheap first stage cannot skip; the statements a cheap model can
   prove, the prover also proves at its first attempt. The lever for cost is the attempt budget on hopeless statements (Goedel: 169 with
   4 attempts vs 180 with 8), not routing.
+- PROOF-R addendum (2026-10-18 13:35 UTC, before running): the same revision test for DeepSeek-Prover-V2-7B (its failed first attempts; GPU2,
+  queue_s2_proof9.sh), same prediction. And a larger geometry benchmark: DD+AR alone on JGEX-AG-231 (CPU, ≤ 6 h) as the baseline for
+  later proposer runs.
+- Phase 4, first look (offline, 2026-10-18 13:36 UTC): the 50 of 244 miniF2F statements whose conclusion is an inequality or bound (the competition
+  form of an optimization proof) are proved as often as the rest by the provers (Goedel 72% vs 74%, DeepSeek 66% vs 68%) but less often
+  by general models (Qwen3.6 48% vs 56%, gpt-oss-20b 10% vs 31%, Qwen3-14B thinking 2% vs 10%): bound proofs are where a general model
+  most needs the specialized tool.
