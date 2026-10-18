@@ -329,3 +329,12 @@ S2_SIZECC done (1857/1866 rows) Sun Oct 18 00:52:22 UTC 2026
 S2_SIZECC analysis -> results/h2/sizecc_analysis.log Sun Oct 18 00:52:23 UTC 2026
 S2_PROOF q14a_think started on GPU2 Sun Oct 18 01:35:45 UTC 2026
 S2_SIZECC fix queued (10 missing high64k s2 problems; next free GPU) Sun Oct 18 01:36:34 UTC 2026
+S2_PROOF gpv2 generated 1952/1952 Sun Oct 18 02:05:48 UTC 2026
+S2_X6d q36d done (2070/2070 rows) Sun Oct 18 02:20:30 UTC 2026
+S2_SIZECC fix: high64k s2 now 311/311 rows Sun Oct 18 02:20:50 UTC 2026
+S2_SIZECC analysis -> results/h2/sizecc_analysis.log Sun Oct 18 02:20:52 UTC 2026
+S2_PROOF gpv2 checked Sun Oct 18 02:24:13 UTC 2026
+S2_PROOF dspv2 generated 1952/1952 Sun Oct 18 02:30:43 UTC 2026
+S2_PROOF dspv2 checked Sun Oct 18 02:54:51 UTC 2026
+S2_PROOF3 queued (Qwen3.6 think GPU0, gpt-oss-20b medium GPU1 on miniF2F; PREREG_PROOF.md addendum) Sun Oct 18 05:01:35 UTC 2026
+S2_PROOF4 queued (Goedel k=32 on the 64 unsolved; GPU3) Sun Oct 18 05:02:11 UTC 2026

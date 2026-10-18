@@ -79,6 +79,8 @@ def gen(tag, split, k, logprobs, mt, think=False, card=False):
     from llm import chat
     from concurrent.futures import as_completed
     P = problems(split)
+    if os.environ.get("LEAN_ONLY"):   # a file with one statement name per line (e.g. the ones still unsolved after 8 attempts)
+        keep = set(open(os.environ["LEAN_ONLY"]).read().split()); P = [p for p in P if p["name"] in keep]
     os.makedirs(OUT, exist_ok=True)
     path = f"{OUT}/lean_{tag}_{split}.jsonl"   # rows flushed as they finish; a re-run resumes (2026-10-17)
     done = {(r["name"], r["sample"]) for r in _rows(path)}
@@ -100,9 +102,10 @@ def check_file(path):
     M = {m["name"]: m for m in json.load(open(f"{RES}/x3/minif2f.json"))}
     rows = [json.loads(l) for l in open(path)]
     os.makedirs("/SSD/lean_postech/tmp", exist_ok=True)
+    todo = [r for r in rows if "ok" not in r]   # rows checked before keep their result (2026-10-18: extra attempts appended later)
     with ThreadPoolExecutor(24) as ex:
-        res = list(ex.map(lambda r: check(M[r["name"]]["header"], M[r["name"]]["formal_statement"], r.get("body")), rows))
-    for r, c in zip(rows, res):
+        res = list(ex.map(lambda r: check(M[r["name"]]["header"], M[r["name"]]["formal_statement"], r.get("body")), todo))
+    for r, c in zip(todo, res):
         r.update(c)
     with open(path, "w") as f:
         for r in rows:

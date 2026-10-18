@@ -140,3 +140,13 @@ Accuracy @ output tokens per item (share of items the check accepts; wrong share
 **Reading:** a second cheap program is a better check than "it runs": with it, fact-first-then-think reaches always-thinking accuracy
 for 8B / 14B-AWQ / gpt-oss-20b and *exceeds* it for Qwen3-32B (74.8% vs 72.0% at 48% of the tokens, because a thinking run sometimes
 breaks what the fact program had right). For the 4B model no cheap check rescues the fact program; it needs thinking on most items.
+
+## SIZE-CC results (2026-10-18 05:02 UTC; results/h2/sizecc_analysis.log; 311 contest geometry problems × 3 seeds)
+gpt-oss-20b (fits a 3090): low 37.7% @ 1.5k; medium (16k) 47.0% @ 8.7k (268 / 933 runs at the cap); **medium (62k) 52.4% @ 12.7k** (14 at
+the cap); high (62k) 37.9% @ 47.5k (470 / 933 at the cap). Escalating when the statement's example tests fail: low → medium 54.6% @ 11.0k;
+low → medium → high 56.3% @ 25.8k. Reference gpt-oss-120b (no 3090): medium 56.8% @ 6.8k, high (64k) 66.2% @ 30.1k.
+- **SIZE-CC-P1 holds** (1.5% at the cap; +5.4 points over the 16k cap). **P2 refuted:** at high effort the 20B model thinks past 62k on half
+  the problems (37.9%), so its high effort cannot be used on one GPU at this budget. **P3 holds** but only because always-high is cut:
+  low → medium → high is +18.4 points over always-high at 54% of its tokens.
+**Reading:** on real contest geometry the 3090-class model with check-gated escalation (low → medium, 54.6% @ 11k) comes within 2.2 points
+of the 120B model at medium; the 120B's high effort (66%) stays out of reach.

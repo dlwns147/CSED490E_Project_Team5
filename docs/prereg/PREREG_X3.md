@@ -186,3 +186,9 @@ saves what thinking would have broken. With a check that only asks "does it run 
 X6c (card sampling incl. presence penalty) stays paused at 423 / 2,070 rows (vLLM applies the penalty on the CPU). X1-Q36R showed the
 token cap is the main factor; so think / thinkf for Qwen3.6 are re-run with T 1.0, top_p 0.95, top_k 20, no presence penalty, 80k cap
 (tag q36d), GPU0 (poc/queues/queue_s2_x6d.sh). Predictions X6c-P1..P3 apply to q36d; analysis X6_THINK_TAG=q36d python poc/analyze_x6.py q36.
+
+## X6 results, Qwen3.6 with an 80k cap (q36d; 2026-10-18 05:02 UTC; results/x3/analysis_x6_q36d.log)
+mip 68.6% @ 0.9k; mipf 74.6% @ 0.8k; think 59.6% @ 22.0k; **thinkf 79.1% @ 22.6k**; fact-first-then-think 78.2% @ 3.0k (escalates 7%);
+thinkf → mipf 82.6% @ 22.7k. 17 of 2,070 thinking runs at the cap.
+- X6c-P1 holds (0.8% at the cap). X6c-P2 holds (thinkf − think = +19.5; thinking without the fact *loses* 9 points: 255 runtime
+  errors, invented Solver.Status / INFINITY). X6c-P3 holds (fact-first −1.0 point vs always-thinkf at 13% of its tokens).
