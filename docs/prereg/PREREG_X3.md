@@ -240,3 +240,8 @@ Qwen3-32B and Qwen3.6 as GPUs free up.
 characters for Qwen3-8B: CreateSolver, IntVar, Minimize, Add, Solve, solution_value — usage with almost no formulation) as the fact;
 arms mips / thinks, Qwen3-8B on GPU3 (queue_s2_x6ver2.sh). VER2-P1: mips ≥ mipf − 2 and its pass-but-wrong share ≤ mipf's (30%);
 VER2-P2: mips → thinks within 3 points of mipf → thinkf (68.3%).
+- X6-VER2, Qwen3-8B without thinking (2026-10-18 22:35 UTC): mips (the shortest check-passing program) **52.1%** vs snippet 51.7%, mined similar example
+  51.0%, no fact 34.3%; runtime errors 162 (snippet 267). But 84% of programs now pass the check and 38% of those are wrong (snippet:
+  74% / 30%). VER2-P1 accuracy part holds; the pass-but-wrong part is refuted. Pattern across all facts: the better a fact removes
+  crashes, the more wrong-but-running programs reach the check (no fact 41% → 30–38%; run share 59% → 74–84%) — a crash was itself a
+  free check, and fixing the API takes it away. Thinking arm still running.
