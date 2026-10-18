@@ -123,3 +123,4 @@ proofs / premises (ReProver, LeanDojo; retrieval-augmented provers).
   proves 133 of 244 — exactly as many as without (133) — and fewer at the first attempt (77 vs 94), at 1.25 × the tokens; invented names
   stay at 23% of failed attempts. A worked example of a *similar* proof is not the missing fact: what the provers have is broad knowledge
   of Lean 4 + Mathlib, not one example.
+- PROOF-P9 refuted (2026-10-18 12:19 UTC): gpt-oss-20b low with a verified similar proof proves 65 of 244 (without: 66).
