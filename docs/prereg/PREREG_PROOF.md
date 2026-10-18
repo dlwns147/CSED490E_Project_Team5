@@ -154,3 +154,11 @@ proofs / premises (ReProver, LeanDojo; retrieval-augmented provers).
 **Pre-registered now:** GEO-J: on JGEX-AG-231 (DD+AR alone 187), gpt-oss-20b medium (30k cap) proposes 8 points for each of the 44
 unsolved problems (GPU0, queue_s2_geoproof5.sh); prediction ≥ 5 more proved (these are easier than IMO problems).
 DeepSeek-Prover revision run relaunched (its first launch crashed on over-long prompts before the fix).
+- PROOF-R for DeepSeek-Prover-V2 (2026-10-18 16:36 UTC): revision 5 of 112 (4.2k tokens) vs fresh second attempt 13 (7.1k): **refuted for both provers**
+  — per token too (Goedel 0.9 vs 1.8, DeepSeek 1.2 vs 1.8 proofs per 1k tokens). With our prompt, a fresh sample beats a repair.
+**Phase 4b pre-registration (2026-10-18 16:36 UTC, before running): a fact sheet for bound proofs (the OR-Tools-snippet analogue).** The 50 inequality /
+bound statements (results/x4/ineq50.txt); a hand-written 10-line "inequality toolkit" (results/x4/ineq_toolkit.txt: nlinarith with
+squares, positivity, clearing denominators, sqrt / abs lemma names, omega / interval_cases) before the task; Qwen3.6 without thinking,
+8 attempts (tag q36_ineqhint; LEAN_HINT + LEAN_ONLY), GPU2 (queue_s2_proof10.sh). Baseline: the stored Qwen3.6 attempts on the same 50
+(24 proved).
+- PROOF-P10: ≥ 29 of 50 proved (+5), and invented names fall below 15% of failed attempts (the sheet names real lemmas and tactics).

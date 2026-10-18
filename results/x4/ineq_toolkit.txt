@@ -1,0 +1,10 @@
+How bound and inequality goals are usually closed in Lean 4 + Mathlib (all names below exist):
+- `nlinarith [sq_nonneg (a - b), sq_nonneg (a + b), mul_pos ha hb, sq_nonneg (a * b - 1)]`: give the squares / products whose
+  non-negativity implies the goal; `nlinarith` then finds the linear combination.
+- `positivity` proves `0 < e` / `0 ≤ e` for sums, products, powers and quotients of positive terms.
+- `linarith` for linear goals; `norm_num` / `norm_num [h]` to simplify numerals; `field_simp` then `rw [div_le_div_iff (by positivity) (by positivity)]`
+  (or `div_le_iff`, `le_div_iff`) to clear denominators.
+- AM-GM for two terms: from `sq_nonneg (a - b)` (a² + b² ≥ 2ab); `Real.add_pow_le_pow_mul_pow_of_sq_le_sq` is NOT needed — prefer squares.
+- `Real.sqrt`: `Real.sqrt_nonneg`, `Real.sq_sqrt (h : 0 ≤ a)`, `Real.sqrt_le_sqrt`, `Real.sqrt_lt_sqrt`; `abs`: `abs_nonneg`, `abs_le`, `abs_sub_lt_iff`.
+- Integers / naturals: `omega` for linear arithmetic, `interval_cases x` after bounding x, `decide` for small finite checks.
+- Case splits: `rcases le_or_lt a b with h | h`, `by_contra h; push_neg at h`.

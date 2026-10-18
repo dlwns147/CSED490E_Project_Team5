@@ -116,6 +116,8 @@ def gen(tag, split, k, logprobs, mt, think=False, card=False, ex_tag=""):
     def one(j):
         p, s = j
         q = (CARD_PROMPT if card else PROMPT).format(header=p["header"].strip(), stmt=p["formal_statement"])
+        if os.environ.get("LEAN_HINT"):   # phase 4: a curated fact sheet (e.g. the inequality toolkit) before the task
+            q = open(os.environ["LEAN_HINT"]).read().strip() + "\n\n" + q
         if p["name"] in EX:   # phase 2: a verified proof of the most similar other statement, before the task
             q = ("Here is a similar theorem with a proof that Lean 4 + Mathlib accepts:\n```lean4\n" + EX[p["name"]] + "\n```\n\n" + q)
         o = chat(q, temperature=0.7, max_tokens=mt, think=think,

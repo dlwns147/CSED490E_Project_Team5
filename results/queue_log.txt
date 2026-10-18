@@ -374,3 +374,5 @@ S2_PROOF8 relaunched (revise: prompt-length-aware max_tokens, per-item errors re
 S2_PROOF9 (DeepSeek-Prover revision from compiler errors) done 37 rows Sun Oct 18 14:43:57 UTC 2026
 S2_PROOF8 (Goedel revision from compiler errors) done 107 rows Sun Oct 18 15:18:52 UTC 2026
 S2_GEOPROOF5 (JGEX proposer, GPU0) and S2_PROOF9 relaunch (GPU2) Sun Oct 18 15:36:06 UTC 2026
+S2_PROOF9 (DeepSeek-Prover revision from compiler errors) done 112 rows Sun Oct 18 15:55:50 UTC 2026
+S2_PROOF10 queued (inequality fact sheet; GPU2) Sun Oct 18 16:36:39 UTC 2026
