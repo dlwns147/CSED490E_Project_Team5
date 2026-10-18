@@ -46,6 +46,14 @@ def _verified_examples(src_tag):
     docs = [(r, Counter(tok(Q[r["id"]]["q"]))) for r in pool if r["id"] in Q]
     df = Counter(w for _, d in docs for w in d); N = max(1, len(docs)); avg = sum(sum(d.values()) for _, d in docs) / N
 
+    if os.environ.get("NLOPT_EX_SHORTEST"):   # X6-VER2: the shortest check-passing program of the other benchmark (least problem-specific)
+        short = {}
+        for r, _ in docs:
+            b_ = Q[r["id"]]["src"]
+            if b_ not in short or len(r["code"]) < len(short[b_]):
+                short[b_] = r["code"]
+        return lambda p: next((c for b_, c in short.items() if b_ != p["src"]), None)
+
     def best(p):
         q = set(tok(p["q"])); src = p["src"]
         cands = [(sum(math.log(1 + (N - df[w] + .5) / (df[w] + .5)) * d[w] * 2.2 / (d[w] + 1.2 * (.25 + .75 * sum(d.values()) / avg))
@@ -105,15 +113,17 @@ def main():
     mt = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else 8192
     think = "--think" in sys.argv
 
-    EX = _verified_examples(os.environ.get("NLOPT_EX_TAG", tag)) if mode in ("mipv", "thinkv") else None
+    if mode in ("mips", "thinks"):
+        os.environ["NLOPT_EX_SHORTEST"] = "1"
+    EX = _verified_examples(os.environ.get("NLOPT_EX_TAG", tag)) if mode in ("mipv", "thinkv", "mips", "thinks") else None
 
     def one(p):
         sd = seed * 1000 + zlib.crc32(p["id"].encode()) % 997
         tmpl = {"mip": P_MIP, "mipf": P_MIP + SNIP, "cpsat": P_CPSAT, "text": P_TEXT, "think": P_MIP, "thinkf": P_MIP + SNIP,
                 "mipa": P_MIP + AUTO.replace("{", "{{").replace("}", "}}"), "thinka": P_MIP + AUTO.replace("{", "{{").replace("}", "}}"),
-                "mipv": P_MIP, "thinkv": P_MIP}[mode]
+                "mipv": P_MIP, "thinkv": P_MIP, "mips": P_MIP, "thinks": P_MIP}[mode]
         q = tmpl.format(q=p["q"])
-        if mode in ("mipv", "thinkv"):   # automatic usage fact: a check-passing program of this model for a similar problem of the other benchmark
+        if mode in ("mipv", "thinkv", "mips", "thinks"):   # automatic usage fact: a check-passing program of this model for a similar problem of the other benchmark
             ex = EX(p)
             if ex:
                 q += "\n\nA program that runs with this library (written for a different problem):\n```python\n" + ex.strip() + "\n```"

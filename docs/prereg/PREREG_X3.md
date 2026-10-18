@@ -231,3 +231,12 @@ Qwen3-32B and Qwen3.6 as GPUs free up.
   the hand-written snippet 51.7% and no fact 34.3%; runtime errors 215 (snippet 267, none 409), invented SetMaximize 0. **VER-P1 holds
   for Qwen3-8B** — an automatically mined usage example is as good a fact as the hand-written one. Thinking arm and the other two models
   running.
+- X6-VER results so far (2026-10-18 21:36 UTC): Qwen3-32B mipv 66.0% (snippet 66.2%; runtime errors 88 vs 127) — **VER-P1 holds for Qwen3-32B too.**
+  Qwen3-8B with thinking: thinkv 67.7% vs thinkf 72.2%; fact-first mipv → thinkv 60.0% vs mipf → thinkf 68.3%: **VER-P2 refuted for
+  Qwen3-8B.** Raw counts: the similar-problem example makes more programs run (79% vs 74% pass the check) but more of the passing ones are
+  wrong (35% vs 30%), and thinking with it fixes fewer failures (93 vs 105 of 219): the model copies the other problem's *formulation*,
+  so the "runs and prints" check passes wrong programs. The hand-written snippet carries usage without a formulation to copy.
+**X6-VER2 pre-registration (before running):** the shortest check-passing program of the other benchmark (one per benchmark, ≈ 0.9k
+characters for Qwen3-8B: CreateSolver, IntVar, Minimize, Add, Solve, solution_value — usage with almost no formulation) as the fact;
+arms mips / thinks, Qwen3-8B on GPU3 (queue_s2_x6ver2.sh). VER2-P1: mips ≥ mipf − 2 and its pass-but-wrong share ≤ mipf's (30%);
+VER2-P2: mips → thinks within 3 points of mipf → thinkf (68.3%).
