@@ -144,3 +144,13 @@ proofs / premises (ReProver, LeanDojo; retrieval-augmented provers).
   form of an optimization proof) are proved as often as the rest by the provers (Goedel 72% vs 74%, DeepSeek 66% vs 68%) but less often
   by general models (Qwen3.6 48% vs 56%, gpt-oss-20b 10% vs 31%, Qwen3-14B thinking 2% vs 10%): bound proofs are where a general model
   most needs the specialized tool.
+
+## Results (2026-10-18 15:36 UTC): repair from compiler errors; Qwen3.6 proposer with 80k
+- **PROOF-R refuted for Goedel-Prover-V2-8B:** on the 107 statements whose first attempt failed, one revision shown the failed proof and
+  Lean's error lines proves 11 (11.7k tokens each; 26 at the cap, 3 requests over the context), a fresh second attempt proves 22 (12.3k);
+  either: 24. Caveat: our revision prompt is single-turn, not the model's own self-correction format (its card's pipeline script).
+- **GEO-P5 holds** (Qwen3.6 thinking, 80k: 24 of 288 proposals without a clause = 8%; 184 valid; still 1 of 18 problems, IMO 2014 P4,
+  at 35k tokens per proposal). General LLMs write valid auxiliary points but almost never the one that unlocks the proof.
+**Pre-registered now:** GEO-J: on JGEX-AG-231 (DD+AR alone 187), gpt-oss-20b medium (30k cap) proposes 8 points for each of the 44
+unsolved problems (GPU0, queue_s2_geoproof5.sh); prediction ≥ 5 more proved (these are easier than IMO problems).
+DeepSeek-Prover revision run relaunched (its first launch crashed on over-long prompts before the fix).

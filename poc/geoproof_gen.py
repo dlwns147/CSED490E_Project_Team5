@@ -33,10 +33,14 @@ uses). Write it as a single clause with a new point name that is not used yet, u
 Answer with the clause only, on the last line, for example: `x = midpoint x a b`"""
 
 
+SET = os.environ.get("GEO_SET", "imo30")   # imo30 = IMO-AG-30; jgex = JGEX-AG-231 (2026-10-18)
+
+
 def problems():
-    txt = open(f"{AG}/imo_ag_30.txt").read().strip().split("\n")
+    src, log = {"imo30": ("imo_ag_30.txt", "ddar_imo30.log"), "jgex": ("jgex_ag_231.txt", "ddar_jgex231.log")}[SET]
+    txt = open(f"{AG}/{src}").read().strip().split("\n")
     P = dict(zip(txt[0::2], txt[1::2]))
-    solved = {l.split()[0] for l in open(f"{OUT}/ddar_imo30.log") if " solved " in f" {l} " and "not solved" not in l}
+    solved = {l.split()[0] for l in open(f"{OUT}/{log}") if " solved " in f" {l} " and "not solved" not in l}
     return {n: p for n, p in P.items() if n not in solved}
 
 

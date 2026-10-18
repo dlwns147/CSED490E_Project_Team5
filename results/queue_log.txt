@@ -371,3 +371,6 @@ S2_GEOPROOF JGEX-AG-231 DD+AR baseline (CPU, <= 6 h) Sun Oct 18 13:35:58 UTC 202
 S2_GEOPROOF4 q36_think80k checked by DD+AR Sun Oct 18 13:59:49 UTC 2026
 S2_PROOF8 (Goedel revision from compiler errors) done 16 rows Sun Oct 18 14:13:25 UTC 2026
 S2_PROOF8 relaunched (revise: prompt-length-aware max_tokens, per-item errors recorded); q36_think80k DD+AR check relaunched (engine exceptions now caught) Sun Oct 18 14:36:04 UTC 2026
+S2_PROOF9 (DeepSeek-Prover revision from compiler errors) done 37 rows Sun Oct 18 14:43:57 UTC 2026
+S2_PROOF8 (Goedel revision from compiler errors) done 107 rows Sun Oct 18 15:18:52 UTC 2026
+S2_GEOPROOF5 (JGEX proposer, GPU0) and S2_PROOF9 relaunch (GPU2) Sun Oct 18 15:36:06 UTC 2026
