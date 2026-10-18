@@ -368,3 +368,6 @@ S2_PROOF8 queued (Goedel revises failed first attempts from Lean errors; GPU0) S
 S2_GEOPROOF4 q36_think80k proposals done Sun Oct 18 13:25:53 UTC 2026
 S2_PROOF9 queued (DeepSeek-Prover revises failed first attempts; GPU2 port 8091) Sun Oct 18 13:35:58 UTC 2026
 S2_GEOPROOF JGEX-AG-231 DD+AR baseline (CPU, <= 6 h) Sun Oct 18 13:35:58 UTC 2026
+S2_GEOPROOF4 q36_think80k checked by DD+AR Sun Oct 18 13:59:49 UTC 2026
+S2_PROOF8 (Goedel revision from compiler errors) done 16 rows Sun Oct 18 14:13:25 UTC 2026
+S2_PROOF8 relaunched (revise: prompt-length-aware max_tokens, per-item errors recorded); q36_think80k DD+AR check relaunched (engine exceptions now caught) Sun Oct 18 14:36:04 UTC 2026

@@ -213,7 +213,12 @@ def revise(tag, split, mt=32000):
         errs = "\n".join(r.get("errors") or ["(no proof was produced)"])
         q = (CARD_PROMPT.format(header=p["header"].strip(), stmt=p["formal_statement"]) + "\n\nA previous attempt:\n```lean4\n" + prev +
              "\n```\nLean 4 reports:\n" + errs + "\nRevise the proof so that it compiles. Give the complete theorem in a single ```lean4 block.")
-        o = chat(q, temperature=0.7, max_tokens=mt, think=True, seed=7000 + zlib.crc32(r["name"].encode()) % 997)
+        room = min(mt, 40000 - len(q) // 3 - 1000)   # server context is 40k: a long failed proof leaves less room (2026-10-18: 400 errors)
+        try:
+            o = chat(q, temperature=0.7, max_tokens=room, think=True, seed=7000 + zlib.crc32(r["name"].encode()) % 997)
+        except Exception as e:   # e.g. the prompt alone exceeds the context: record, do not stop the run
+            return {"name": r["name"], "ok": False, "errors": [f"request failed: {str(e)[:120]}"], "unknown": [], "out_tokens": 0,
+                    "finish": "error", "body": None, "text": ""}
         body = proof_body(o["text"]); c = check(p["header"], p["formal_statement"], body)
         return {"name": r["name"], "ok": c["ok"], "errors": c["errors"], "unknown": c["unknown"], "out_tokens": o.get("out_tokens"),
                 "finish": o.get("finish"), "body": body, "text": (o["text"] or "")[-3000:]}

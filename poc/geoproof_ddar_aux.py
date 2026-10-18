@@ -22,8 +22,11 @@ def attempt(args):
     except Exception as e:   # unknown construction, wrong arity, reused name, impossible configuration
         return {"valid": False, "proved": False, "why": f"{type(e).__name__}: {str(e)[:80]}"}
     t = time.time()
-    ddar.solve(g, RULES, p, max_level=1000)
-    ok = bool(g.check(p.goal.name, g.names2nodes(p.goal.args)))
+    try:   # 2026-10-18: the engine can raise during deduction (numericals.InvalidLineIntersectError); count as not proved
+        ddar.solve(g, RULES, p, max_level=1000)
+        ok = bool(g.check(p.goal.name, g.names2nodes(p.goal.args)))
+    except Exception as e:
+        return {"valid": True, "proved": False, "why": f"engine error: {type(e).__name__}"}
     return {"valid": True, "proved": ok, "seconds": round(time.time() - t, 1)}
 
 
@@ -34,6 +37,8 @@ def run(args, timeout):
             return r.get(timeout)
         except mp.TimeoutError:
             return {"valid": True, "proved": False, "why": "timeout"}
+        except Exception as e:   # anything else the worker raised
+            return {"valid": False, "proved": False, "why": f"{type(e).__name__}: {str(e)[:80]}"}
 
 
 if __name__ == "__main__":
