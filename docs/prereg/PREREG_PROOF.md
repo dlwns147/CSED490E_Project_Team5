@@ -108,3 +108,10 @@ oss20_medium30k) and + the definitions of all 48 constructions — what each req
   queue_s2_geoproof4.sh): ≤ 10% of proposals without a clause, and 1–4 problems proved.
 - PROOF-P7: DeepSeek-Prover-V2-7B, attempts 9–32 on its 79 statements unsolved after 8 (GPU1, queue_s2_proof5.sh): ≥ 10 more proved
   (card: 75.6% at 32 attempts ≈ 184).
+
+## Phase 2 pre-registration (2026-10-18 10:36 UTC, before running): facts first for proofs = a verified proof of a similar statement
+For each statement, the most similar OTHER miniF2F statement (BM25 over statement tokens) that Goedel-Prover-V2 proved, with its
+Lean-accepted proof, is shown before the task (run_lean.py --exemplar gpv2; leave-one-out: never the statement itself). Qwen3.6 without
+thinking (tag q36_ex), 8 attempts, X4 prompt otherwise unchanged, GPU0 (poc/queues/queue_s2_proof6.sh). Prior art: retrieval of similar
+proofs / premises (ReProver, LeanDojo; retrieval-augmented provers).
+- PROOF-P8: Qwen3.6 proves ≥ 145 of 244 (without the example: 133), and invented names fall from 22% to ≤ 15% of failed attempts.

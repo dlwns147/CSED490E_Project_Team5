@@ -1,7 +1,7 @@
 """X4 (docs/prereg/PREREG_X3.md, X4 section): whole-proof generation for miniF2F (Lean 4 v4.15.0 + Mathlib v4.15.0 in /SSD/lean_postech/mf2f).
 The file checked is the dataset header + the dataset's formal statement (never the model's) + the model's proof body (the text after
 the first ':= by' of the model's Lean block). Accepted = compiles with no error, no `sorry` / `admit` / `axiom`.
-usage: POC_BASE_URL=... python run_lean.py gen <tag> <split> <k> [--logprobs] [--max_tokens N] [--think] [--card_prompt]  -> results/x4/lean_<tag>_<split>.jsonl
+usage: POC_BASE_URL=... python run_lean.py gen <tag> <split> <k> [--logprobs] [--max_tokens N] [--think] [--card_prompt] [--exemplar <tag>]  -> results/x4/lean_<tag>_<split>.jsonl
        python run_lean.py check <file.jsonl>          (compile every attempt; adds ok / errors / unknown identifiers)
        POC_BASE_URL=... python run_lean.py fix <tag> <split>   (one feedback round for proofs whose errors name unknown identifiers)"""
 import json, os, re, subprocess, sys, tempfile, zlib
@@ -75,7 +75,33 @@ def check(header, stmt, body, timeout=180):
         os.unlink(path)
 
 
-def gen(tag, split, k, logprobs, mt, think=False, card=False):
+def exemplars(src_tag, split):
+    """phase 2 (facts first for proofs): for each statement, the most similar OTHER statement (BM25 over statement tokens) that
+    <src_tag> proved, with its verified proof"""
+    import math
+    from collections import Counter
+    rows = [r for r in _rows(f"{OUT}/lean_{src_tag}_{split}.jsonl") if r.get("ok")]
+    best = {}
+    for r in rows:
+        best.setdefault(r["name"], r)   # one verified proof per statement
+    M = {m["name"]: m for m in problems(split)}
+    tok = lambda t: re.findall(r"[A-Za-z_][A-Za-z_0-9.]*|\d+|[^\sA-Za-z_0-9]", t)
+    docs = {n: Counter(tok(M[n]["formal_statement"])) for n in best if n in M}
+    df = Counter(w for d in docs.values() for w in d); N = max(1, len(docs)); avg = sum(sum(d.values()) for d in docs.values()) / N
+    def score(q, d):
+        L = sum(d.values())
+        return sum(math.log(1 + (N - df[w] + .5) / (df[w] + .5)) * d[w] * 2.2 / (d[w] + 1.2 * (.25 + .75 * L / avg)) for w in q if w in d)
+    out = {}
+    for n, m in M.items():
+        q = set(tok(m["formal_statement"]))
+        cands = [(score(q, d), o) for o, d in docs.items() if o != n]
+        if cands:
+            o = max(cands)[1]
+            out[n] = (M[o]["formal_statement"] + best[o]["body"]).strip()
+    return out
+
+
+def gen(tag, split, k, logprobs, mt, think=False, card=False, ex_tag=""):
     from llm import chat
     from concurrent.futures import as_completed
     P = problems(split)
@@ -85,10 +111,14 @@ def gen(tag, split, k, logprobs, mt, think=False, card=False):
     path = f"{OUT}/lean_{tag}_{split}.jsonl"   # rows flushed as they finish; a re-run resumes (2026-10-17)
     done = {(r["name"], r["sample"]) for r in _rows(path)}
     jobs = [(p, s) for p in P for s in range(1, k + 1) if (p["name"], s) not in done]
+    EX = exemplars(ex_tag, split) if ex_tag else {}
 
     def one(j):
         p, s = j
-        o = chat((CARD_PROMPT if card else PROMPT).format(header=p["header"].strip(), stmt=p["formal_statement"]), temperature=0.7, max_tokens=mt, think=think,
+        q = (CARD_PROMPT if card else PROMPT).format(header=p["header"].strip(), stmt=p["formal_statement"])
+        if p["name"] in EX:   # phase 2: a verified proof of the most similar other statement, before the task
+            q = ("Here is a similar theorem with a proof that Lean 4 + Mathlib accepts:\n```lean4\n" + EX[p["name"]] + "\n```\n\n" + q)
+        o = chat(q, temperature=0.7, max_tokens=mt, think=think,
                  seed=s * 1000 + zlib.crc32(p["name"].encode()) % 997, logprobs=logprobs)
         return {"name": p["name"], "sample": s, "text": (o["text"] or "")[-6000:], "body": proof_body(o["text"]),
                 "out_tokens": o.get("out_tokens"), "finish": o.get("finish"), **({"lp": o.get("lp"), "lp_tok": o.get("lp_tok")} if logprobs else {})}
@@ -169,7 +199,8 @@ def fix(tag, split):
 if __name__ == "__main__":
     a = sys.argv
     if a[1] == "gen":
-        gen(a[2], a[3], int(a[4]), "--logprobs" in a, int(a[a.index("--max_tokens") + 1]) if "--max_tokens" in a else 8192, "--think" in a, "--card_prompt" in a)
+        gen(a[2], a[3], int(a[4]), "--logprobs" in a, int(a[a.index("--max_tokens") + 1]) if "--max_tokens" in a else 8192, "--think" in a, "--card_prompt" in a,
+            a[a.index("--exemplar") + 1] if "--exemplar" in a else "")
     elif a[1] == "check":
         check_file(a[2])
     elif a[1] == "recheck":

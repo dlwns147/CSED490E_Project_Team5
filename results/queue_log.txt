@@ -354,3 +354,8 @@ S2_PROOF oss20_medium checked Sun Oct 18 09:09:52 UTC 2026
 S2_PROOF3 analysis -> results/x4/proof_analysis.log Sun Oct 18 09:09:57 UTC 2026
 S2_GEOPROOF q36_think checked by DD+AR Sun Oct 18 09:19:29 UTC 2026
 S2_GEOPROOF4 (GPU2) and S2_PROOF5 (GPU1) queued Sun Oct 18 09:36:06 UTC 2026
+S2_GEOPROOF3 proposals done Sun Oct 18 09:37:57 UTC 2026
+S2_GEOPROOF4 q36_think80k proposals done Sun Oct 18 10:19:38 UTC 2026
+S2_GEOPROOF4 q36_think80k checked by DD+AR Sun Oct 18 10:29:40 UTC 2026
+S2_GEOPROOF4 relaunched with retries (first Qwen3.6 server died 10:11, NCCL watchdog during a host-load spike, 15-min load 552; 22 rows kept) Sun Oct 18 10:35:52 UTC 2026
+S2_PROOF6 queued (phase 2: Qwen3.6 + a verified similar proof; GPU0) Sun Oct 18 10:36:35 UTC 2026
