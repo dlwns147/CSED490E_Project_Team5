@@ -92,6 +92,8 @@ We compared ways to spend the same budget on geometry and optimization suites (3
 
 The recipe is both the most accurate and among the cheapest, on every seed. Difficulty is the wrong signal: spending thinking on the hardest-looking problems is worse than spending it where a check fails.
 
+**Which policy for a new task?** Over 63 model × task × seed cells, "fact first, think on failure" is the best fixed default (it loses 1.4 points on average to the best policy of each cell; always thinking loses 8.4, counting 0.5 points per 1k tokens); labelling 30 problems of a new task and picking the best policy on them cuts the loss to 0.6 points.
+
 **Small GPUs.** Once they get the fact, models that fit one 24 GB GPU (e.g. RTX 3090) match or beat Qwen3-32B. Optimization suite with the recipe: gpt-oss-20b 94–97%, Qwen3-14B (4-bit) 87–92%, Qwen3-32B 79–85%. Word problems: gpt-oss-20b with the recipe 73.0% at 0.7k tokens, Qwen3-32B with the fact and always thinking 72.0% at 5.5k. Below 14B the optimization suite stays at 47% or less whatever we add; geometry is solved from 4B up.
 
 ## 5. Where the recipe stops
