@@ -364,3 +364,4 @@ S2_PROOF7 queued (gpt-oss-20b low + verified similar proof; GPU0) Sun Oct 18 11:
 S2_PROOF q36_ex (phase 2) generated + checked Sun Oct 18 11:32:07 UTC 2026
 S2_PROOF7 relaunched with the right model (first launch started Qwen3.6 by a script-copy error; stopped by PID within 1 min, no rows) Sun Oct 18 11:32:12 UTC 2026
 S2_PROOF oss20_ex (phase 2) generated + checked Sun Oct 18 11:57:24 UTC 2026
+S2_PROOF8 queued (Goedel revises failed first attempts from Lean errors; GPU0) Sun Oct 18 12:36:12 UTC 2026

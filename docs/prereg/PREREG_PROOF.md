@@ -124,3 +124,16 @@ proofs / premises (ReProver, LeanDojo; retrieval-augmented provers).
   stay at 23% of failed attempts. A worked example of a *similar* proof is not the missing fact: what the provers have is broad knowledge
   of Lean 4 + Mathlib, not one example.
 - PROOF-P9 refuted (2026-10-18 12:19 UTC): gpt-oss-20b low with a verified similar proof proves 65 of 244 (without: 66).
+
+## Pre-registration (2026-10-18 12:36 UTC, before computing / running): a cheap model first, and repair from the compiler's errors
+- PROOF-C (offline, stored attempts 1–8): cascade "Qwen3.6 without thinking, up to 2 attempts, then Goedel-Prover-V2 up to 8" (stop at
+  the first proof that compiles) proves ≥ 178 of 244 (Goedel alone: 180) at ≤ 60% of Goedel's compute (active parameters × output
+  tokens: Qwen3.6 3B, Goedel 8B). Same with gpt-oss-20b low (3.6B) as the first stage: ≥ 175 at ≤ 70%.
+- PROOF-R (GPU0, queue_s2_proof8.sh): for the statements whose first Goedel attempt failed, one revision shown the failed proof and Lean's
+  error lines (Goedel-Prover-V2 is trained for self-correction) solves ≥ 1.5 × as many as the stored fresh second attempt, at ≤ 1.2 × its
+  tokens. Prior art: Goedel-Prover-V2 self-correction mode; our N9 / X4-P2 found repair ≈ fresh for general models.
+- **PROOF-C refuted (2026-10-18 12:36 UTC; results/x4/proof_cascade.log):** a cheap first stage keeps the provers' accuracy (Qwen3.6 × 1 → Goedel:
+  180 / 244; → DeepSeek: 166) but saves nothing (98–105% of the compute, 101–122% of the tokens). The provers' cost is dominated by the
+  statements nobody proves (8 failed attempts × 7k tokens each), which a cheap first stage cannot skip; the statements a cheap model can
+  prove, the prover also proves at its first attempt. The lever for cost is the attempt budget on hopeless statements (Goedel: 169 with
+  4 attempts vs 180 with 8), not routing.

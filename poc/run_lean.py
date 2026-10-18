@@ -196,6 +196,33 @@ def fix(tag, split):
           f"identifiers: fix {sum(bool(r['fix_unknown']) for r in out)}, fresh {sum(bool(r['fresh_unknown']) for r in out)}", flush=True)
 
 
+def revise(tag, split, mt=32000):
+    """PROOF-R (docs/prereg/PREREG_PROOF.md): for statements whose FIRST attempt failed, one revision from the compiler's errors
+    (self-correction) vs the fresh second attempt already stored; card prompt + thinking (provers). -> results/x4/revise_<tag>_<split>.jsonl"""
+    from llm import chat
+    from concurrent.futures import as_completed
+    M = {m["name"]: m for m in problems(split)}
+    first = {r["name"]: r for r in _rows(f"{OUT}/lean_{tag}_{split}.jsonl") if r["sample"] == 1 and "ok" in r and not r["ok"]}
+    path = f"{OUT}/revise_{tag}_{split}.jsonl"
+    done = {r["name"] for r in _rows(path)}
+    os.makedirs("/SSD/lean_postech/tmp", exist_ok=True)
+
+    def one(r):
+        p = M[r["name"]]
+        prev = (p["formal_statement"] + (r.get("body") or "\n  sorry")).strip()
+        errs = "\n".join(r.get("errors") or ["(no proof was produced)"])
+        q = (CARD_PROMPT.format(header=p["header"].strip(), stmt=p["formal_statement"]) + "\n\nA previous attempt:\n```lean4\n" + prev +
+             "\n```\nLean 4 reports:\n" + errs + "\nRevise the proof so that it compiles. Give the complete theorem in a single ```lean4 block.")
+        o = chat(q, temperature=0.7, max_tokens=mt, think=True, seed=7000 + zlib.crc32(r["name"].encode()) % 997)
+        body = proof_body(o["text"]); c = check(p["header"], p["formal_statement"], body)
+        return {"name": r["name"], "ok": c["ok"], "errors": c["errors"], "unknown": c["unknown"], "out_tokens": o.get("out_tokens"),
+                "finish": o.get("finish"), "body": body, "text": (o["text"] or "")[-3000:]}
+    with ThreadPoolExecutor(32) as ex, open(path, "a") as f:
+        for fu in as_completed([ex.submit(one, r) for n, r in first.items() if n not in done]):
+            f.write(json.dumps(fu.result()) + "\n"); f.flush()
+    print(tag, "revised", sum(1 for _ in open(path)), "first-attempt failures", flush=True)
+
+
 if __name__ == "__main__":
     a = sys.argv
     if a[1] == "gen":
@@ -205,5 +232,7 @@ if __name__ == "__main__":
         check_file(a[2])
     elif a[1] == "recheck":
         recheck_missing(a[2])
+    elif a[1] == "revise":
+        revise(a[2], a[3])
     elif a[1] == "fix":
         fix(a[2], a[3])
