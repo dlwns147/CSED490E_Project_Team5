@@ -169,3 +169,4 @@ squares, positivity, clearing denominators, sqrt / abs lemma names, omega / inte
   often suffices; on IMO problems (1 of 18) it rarely does.
 - PROOF-P6 (2026-10-18 18:36 UTC): 24 more Goedel attempts on its 64 unsolved statements prove 7 more (180 → 183 at 16, 187 at 32 attempts) for 24.1M
   tokens — 3.4M tokens per extra proof vs 51k per proof in the first 8 attempts (67 ×). P6's "≥ 10 more" narrowly refuted; the cost part holds.
+- PROOF-P7 refuted (2026-10-18 20:36 UTC): 24 more DeepSeek-Prover-V2 attempts on its 79 unsolved statements prove 4 more (165 → 167 at 16, 169 at 32) for 14.4M tokens (3.6M per extra proof); both provers' extra attempts cost ≈ 3.5M tokens per additional proof.
