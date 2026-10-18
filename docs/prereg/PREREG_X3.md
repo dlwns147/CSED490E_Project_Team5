@@ -203,3 +203,14 @@ De-Hallucinator); new here: an introspected card as the fact in the fact-first-t
   SetMaximize / SetMinimize ≤ 30 (think: 314).
 - AUTO-P2: mipa ≥ mipf − 2 points for each model.
 - AUTO-P3: mipa → thinka (fact-first-then-think with the automatic card) is within 2 points of mipf → thinkf for each model.
+
+## X6-AUTO, part 1: without thinking (2026-10-18 18:36 UTC; thinking arms still running)
+| model | mip (no fact) | mipf (hand-written 6-line snippet) | **mipa (introspected name list)** |
+|---|---|---|---|
+| Qwen3-32B-AWQ | 65.4% (122 runtime errors) | 66.2% (127) | **56.1%** (177) |
+| Qwen3-8B | 34.3% (409) | 51.7% (267) | **44.3%** (329) |
+- **AUTO-P2 refuted** (−10.1 and −7.4 points vs the snippet). Raw programs (Qwen3-32B, 53 items right with the snippet and wrong with the card):
+  the name list pulls the model toward names it does not know how to use — `CreateSolver('SCIP_MIXED_INTEGER_PROGRAMMING')` (an enum name
+  from the list; returns None), `MakeRowConstraint` overloads, an objective created but never set (prints 0.0). For the 8B model the card
+  still beats no fact (+10.0). **A list of names is not a usage fact:** the snippet works because it shows *how* the five needed calls
+  fit together. Next automatic fact to test: usage mined from programs that passed the check.

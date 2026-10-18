@@ -167,3 +167,5 @@ squares, positivity, clearing denominators, sqrt / abs lemma names, omega / inte
 - **GEO-J holds (2026-10-18 17:36 UTC):** on the 44 JGEX-AG-231 problems DD+AR cannot do alone, gpt-oss-20b's proposals (8 per problem, 30k cap) make
   13 provable (193 of 352 valid, 38 proving): DD+AR + LLM points 200 / 231 vs 187 alone. On easier problems an LLM's auxiliary point
   often suffices; on IMO problems (1 of 18) it rarely does.
+- PROOF-P6 (2026-10-18 18:36 UTC): 24 more Goedel attempts on its 64 unsolved statements prove 7 more (180 → 183 at 16, 187 at 32 attempts) for 24.1M
+  tokens — 3.4M tokens per extra proof vs 51k per proof in the first 8 attempts (67 ×). P6's "≥ 10 more" narrowly refuted; the cost part holds.
