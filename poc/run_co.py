@@ -833,7 +833,7 @@ def main():
     out_path = f"{RES}/co_{a.model_tag}.jsonl"
     prev = []
     if a.resume and os.path.exists(out_path):   # keep finished rows after a server crash (2026-10-17)
-        prev = [json.loads(l) for l in open(out_path) if l.strip()]
+        prev = [json.loads(l) for l in open(out_path, errors='replace') if l.strip() and not l.startswith(chr(0))]   # skip a NUL-filled torn line (2026-10-18)
         done = {(r["key"], r["arm"]) for r in prev}
         jobs = [j for j in jobs if (j[0], j[4]) not in done]
     with ThreadPoolExecutor(48) as ex, open(out_path, "a" if prev else "w") as f:

@@ -25,6 +25,17 @@ P_CPSAT = ("{q}\n\nWrite a complete Python 3 program that formulates this proble
 P_TEXT = "{q}\n\nSolve the problem. Put the optimal objective value in \\boxed{{}} (or \\boxed{{No Best Solution}} if there is none)."
 
 
+
+def _rows(path):
+    """rows of a results file; skips a torn line (a NUL-filled line from an interrupted write on the NAS, 2026-10-18)"""
+    out = []
+    for l in (open(path, errors="replace") if os.path.exists(path) else []):
+        try:
+            out.append(json.loads(l))
+        except ValueError:
+            pass
+    return out
+
 def problems():
     out = []
     for name in ("nl4opt", "industryor"):
@@ -84,7 +95,7 @@ def main():
         return row
 
     path = f"{RES}/opt_{tag}_{mode}_s{seed}.jsonl"   # rows are flushed as they finish; a re-run resumes (2026-10-17)
-    done = {json.loads(l)["id"] for l in open(path)} if os.path.exists(path) else set()
+    done = {r["id"] for r in _rows(path)}
     with ThreadPoolExecutor(48) as ex, open(path, "a") as f:
         for fu in as_completed([ex.submit(one, p) for p in problems() if p["id"] not in done]):
             f.write(json.dumps(fu.result()) + "\n"); f.flush()

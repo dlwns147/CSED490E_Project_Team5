@@ -214,7 +214,12 @@ def run(tag, seed, mode):
     if shard:
         i, n = map(int, shard.split("/")); todo = [x for k, x in enumerate(todo) if k % n == i]
     path = f"{RES}/{OPRE}{tag}_s{seed}" + (f"_shard{shard.replace('/', 'of')}" if shard else "") + ".jsonl"
-    done = {json.loads(l)["name"] for l in open(path)} if os.path.exists(path) else set()   # rows flushed as they finish; resumes (2026-10-17)
+    done = set()   # rows flushed as they finish; resumes (2026-10-17); skips a torn line (a NUL-filled line on the NAS, 2026-10-18)
+    for l in (open(path, errors="replace") if os.path.exists(path) else []):
+        try:
+            done.add(json.loads(l)["name"])
+        except ValueError:
+            pass
     from concurrent.futures import as_completed
     with ThreadPoolExecutor(16) as ex, open(path, "a") as f:
         for fu in as_completed([ex.submit(one, x) for x in todo if x not in done]):

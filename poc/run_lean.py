@@ -20,6 +20,17 @@ CARD_PROMPT = ("Complete the following Lean 4 code:\n\n```lean4\n{header}\n{stmt
                "intermediate lemmas, and proof structures that will guide the construction of the final formal proof.")
 
 
+
+def _rows(path):
+    """rows of a results file; skips a torn line (a NUL-filled line from an interrupted write on the NAS, 2026-10-18)"""
+    out = []
+    for l in (open(path, errors="replace") if os.path.exists(path) else []):
+        try:
+            out.append(json.loads(l))
+        except ValueError:
+            pass
+    return out
+
 def problems(split):
     M = json.load(open(f"{RES}/x3/minif2f.json"))
     return [m for m in M if m["split"] == split]
@@ -70,7 +81,7 @@ def gen(tag, split, k, logprobs, mt, think=False, card=False):
     P = problems(split)
     os.makedirs(OUT, exist_ok=True)
     path = f"{OUT}/lean_{tag}_{split}.jsonl"   # rows flushed as they finish; a re-run resumes (2026-10-17)
-    done = {(r["name"], r["sample"]) for r in map(json.loads, open(path))} if os.path.exists(path) else set()
+    done = {(r["name"], r["sample"]) for r in _rows(path)}
     jobs = [(p, s) for p in P for s in range(1, k + 1) if (p["name"], s) not in done]
 
     def one(j):

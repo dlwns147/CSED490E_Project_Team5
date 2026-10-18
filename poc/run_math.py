@@ -16,6 +16,17 @@ from sandbox import run_python  # noqa: E402
 RES = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "results", "x1")
 
 
+
+def _rows(path):
+    """rows of a results file; skips a torn line (a NUL-filled line from an interrupted write on the NAS, 2026-10-18)"""
+    out = []
+    for l in (open(path, errors="replace") if os.path.exists(path) else []):
+        try:
+            out.append(json.loads(l))
+        except ValueError:
+            pass
+    return out
+
 def problems():   # results/x1/problems.json, prepared by the writing session for X1 (MATH-500, AIME 2024, AIME 2025)
     D = json.load(open(f"{RES}/problems.json"))
     return [{**r, "id": str(r["id"]), "src": src, "answer": str(r["answer"])} for src in ("math500", "aime24", "aime25") for r in D[src]]
@@ -108,7 +119,7 @@ def main():
     import threading
     from concurrent.futures import as_completed
     path = f"{RES}/math_{tag}_{mode}_s{seed}.jsonl"
-    done = {json.loads(l)["id"] for l in open(path)} if os.path.exists(path) else set()   # resume after a crash (2026-10-17)
+    done = {r["id"] for r in _rows(path)}   # resume after a crash (2026-10-17)
     todo = [p for p in P if p["id"] not in done]
     lock = threading.Lock()
     with ThreadPoolExecutor(48) as ex, open(path, "a") as f:

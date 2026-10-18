@@ -324,3 +324,8 @@ S2_U1Q36D done (624/624 rows) Sat Oct 17 21:02:07 UTC 2026
 S2_U1Q36D analysis -> results/u1_q36d_cure{1,2,3}.log Sat Oct 17 21:05:07 UTC 2026
 S2_PROOF dspv2 started on GPU1 Sat Oct 17 21:36:25 UTC 2026
 S2_PROOF re-queued as parallel lanes (queue_s2_proof2.sh): gpv2 continues on GPU3, dspv2 / q14a_think each on the first free GPU Sat Oct 17 21:36:27 UTC 2026
+S2_GEOPROOF prep: DD+AR alone on IMO-AG-30 (CPU, nice, <= 3 h) -> results/geoproof/ddar_imo30.log Sun Oct 18 00:41:25 UTC 2026
+S2_SIZECC done (1857/1866 rows) Sun Oct 18 00:52:22 UTC 2026
+S2_SIZECC analysis -> results/h2/sizecc_analysis.log Sun Oct 18 00:52:23 UTC 2026
+S2_PROOF q14a_think started on GPU2 Sun Oct 18 01:35:45 UTC 2026
+S2_SIZECC fix queued (10 missing high64k s2 problems; next free GPU) Sun Oct 18 01:36:34 UTC 2026
