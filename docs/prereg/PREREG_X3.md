@@ -224,3 +224,10 @@ NL4OPT examples for IndustryOR problems and vice versa). Arms mipv / thinkv, see
 Qwen3-32B and Qwen3.6 as GPUs free up.
 - VER-P1: mipv ≥ mipf − 2 points (the mined example is as good a usage fact as the hand-written snippet) for each model.
 - VER-P2: fact-first with it (mipv → thinkv) is within 3 points of mipf → thinkf for each model.
+- X6-AUTO, Qwen3-32B with thinking (2026-10-18 20:36 UTC): thinka 56.3% (invented SetMaximize / SetMinimize 241; think 314, thinkf 71) vs thinkf 72.0%;
+  fact-first with the card 63.1% @ 1.7k vs with the snippet 72.4% @ 1.3k. **AUTO-P1 and AUTO-P3 refuted:** a list that contains
+  SetMaximization does not stop the model from inventing SetMaximize while it thinks; the snippet's worked call does.
+- **X6-VER, Qwen3-8B without thinking:** mipv (its own check-passing program for a similar problem of the other benchmark) **51.0%** vs
+  the hand-written snippet 51.7% and no fact 34.3%; runtime errors 215 (snippet 267, none 409), invented SetMaximize 0. **VER-P1 holds
+  for Qwen3-8B** — an automatically mined usage example is as good a fact as the hand-written one. Thinking arm and the other two models
+  running.

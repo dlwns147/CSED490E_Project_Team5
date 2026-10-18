@@ -383,3 +383,6 @@ S2_PROOF gpv2 k=32 on the unsolved tail done (3488 rows, checked) Sun Oct 18 17:
 S2_X6AUTO queued (introspected API card; GPU0 q32b, GPU3 q8b, GPU2 q36d) Sun Oct 18 17:37:48 UTC 2026
 S2_X6AUTO q8b done (2070/2070) Sun Oct 18 19:07:59 UTC 2026
 S2_X6VER q8b queued (GPU3) Sun Oct 18 19:36:26 UTC 2026
+S2_X6AUTO q32b done (2070/2070) Sun Oct 18 20:12:59 UTC 2026
+S2_PROOF dspv2 k=32 on the unsolved tail done (3848 rows, checked) Sun Oct 18 20:20:10 UTC 2026
+S2_X6VER q32b (GPU0) and q36d (GPU1; example source = q36 mip_s1) queued Sun Oct 18 20:35:54 UTC 2026
