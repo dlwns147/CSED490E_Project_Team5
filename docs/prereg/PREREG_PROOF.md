@@ -83,3 +83,17 @@ tokens mostly writes invalid Lean; the 8B prover trained on Lean proves 9 × mor
 - Phase 3a addendum (2026-10-18 07:36 UTC, before any proposal was checked): 122 of gpt-oss-20b's 288 proposals stopped at the 16k cap without a
   clause (counted as invalid). Second proposer: Qwen3.6 with thinking (T 1.0 / top_k 20, no presence penalty, 30k cap; tag q36_think),
   same 18 problems × 16 samples, GPU2 (poc/queues/queue_s2_geoproof2.sh). GEO-P1 / P2 apply to it too.
+
+## Phase 3a result, gpt-oss-20b (2026-10-18 08:36 UTC; results/geoproof/aux_oss20_medium.jsonl) and phase 3b pre-registration
+288 proposals for the 18 problems DD+AR cannot prove alone: 122 stopped at the 16k cap without a clause, 62 were rejected by the engine
+(33 'cannot unpack Point', 10 argument mismatch, 10 unknown point names, …), 104 valid; of the valid ones 62 finished without a proof
+and 42 hit the 600 s limit. **Problems proved: 0 of 18.** **GEO-P1 refuted** (predicted 1–6 more); **GEO-P2 holds** (64% invalid).
+Qwen3.6 with thinking: 129 / 244 Lean statements (no thinking: 133) at 4 × the tokens: **PROOF-P5 refuted for Qwen3.6** (thinking does
+not help it on Lean either).
+**Phase 3b (before running): give the construction language as a fact, and enough budget.** gpt-oss-20b medium, 30k cap (server
+max-model-len 36,000), same 18 problems × 16 samples, two arms on GPU0 (poc/queues/queue_s2_geoproof3.sh): plain prompt (tag
+oss20_medium30k) and + the definitions of all 48 constructions — what each requires and what it gives, from the engine's defs.txt
+(tag oss20_defs30k, flag --defs).
+- GEO-P3: the larger budget cuts proposals without a clause from 42% to ≤ 20%.
+- GEO-P4: the definitions halve the engine's rejections among written clauses (argument mismatch, unknown points), but proved problems
+  stay ≤ 3 of 18: knowing the language is not knowing which point unlocks the proof.

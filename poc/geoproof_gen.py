@@ -1,6 +1,6 @@
 """PROOF phase 3a (docs/prereg/PREREG_PROOF.md): an LLM proposes one auxiliary construction for an olympiad geometry problem written in
 AlphaGeometry's language; AlphaGeometry's symbolic engine (DD+AR) then tries to prove the goal (checked by /SSD/lean_postech/ag/ddar_aux.py).
-usage: POC_BASE_URL=... python geoproof_gen.py <tag> <k> [--think] [--max_tokens N]  -> results/geoproof/aux_<tag>.jsonl
+usage: POC_BASE_URL=... python geoproof_gen.py <tag> <k> [--think] [--max_tokens N] [--defs]  -> results/geoproof/aux_<tag>.jsonl
 Only problems DD+AR cannot prove alone (results/geoproof/ddar_imo30.log) are attempted."""
 import json, os, re, sys, zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -13,6 +13,13 @@ AG = "/SSD/lean_postech/ag/alphageometry"
 OUT = f"{ROOT}/results/geoproof"
 DEFS = [blk.split("\n")[0].strip() for blk in open(f"{AG}/defs.txt").read().split("\n\n") if blk.strip()]
 CONSTR = [d for d in DEFS if d.split()[1:2] == ["x"]]   # constructions that create one new point x
+# --defs (phase 3b, the "fact"): what each construction requires and what it gives, from the engine's own defs.txt
+_BLK = {blk.split("\n")[0].strip(): blk.split("\n") for blk in open(f"{AG}/defs.txt").read().split("\n\n") if blk.strip()}
+DEFS_TXT = ("Meaning of each construction (requires = conditions on the given points; gives = facts about x). Predicates: coll = collinear, "
+            "perp a b c d = ab ⊥ cd, para = parallel, cong a b c d = |ab| = |cd|, cyclic = concyclic, eqangle = equal angles, "
+            "ncoll / npara / diff = not collinear / not parallel / distinct.\n" +
+            "\n".join(f"{c}: requires [{_BLK[c][2].split('=', 1)[1].strip() if '=' in _BLK[c][2] else ''}]; gives [{_BLK[c][3].split(':', 1)[1].strip()}]"
+                      for c in CONSTR if c in _BLK and len(_BLK[c]) > 3))
 PROMPT = """This is an olympiad geometry problem written in AlphaGeometry's construction language. Each clause `p = c p args` builds point p
 with construction c from earlier points; several constructions for the same point are separated by commas; the goal follows `?`.
 
@@ -54,7 +61,8 @@ if __name__ == "__main__":
 
     def one(j):
         n, s = j
-        o = chat(PROMPT.format(prob=P[n], constr="\n".join(CONSTR)), think="--think" in sys.argv, max_tokens=mt, temperature=0.7,
+        constr = DEFS_TXT if "--defs" in sys.argv else "\n".join(CONSTR)
+        o = chat(PROMPT.format(prob=P[n], constr=constr), think="--think" in sys.argv, max_tokens=mt, temperature=0.7,
                  seed=s * 1000 + zlib.crc32(n.encode()) % 997)
         return {"name": n, "sample": s, "problem": P[n], "aux": clause(o["text"]), "text": (o["text"] or "")[-1500:],
                 "out_tokens": o.get("out_tokens"), "finish": o.get("finish")}
