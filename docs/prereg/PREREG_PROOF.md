@@ -58,3 +58,25 @@ of 15, imo 7 vs 4 of 20.
   holds** (largest gains on amc12 +31 and aime +40 points; imo +15, mathd_algebra +16). **P4** pending (Qwen3-14B thinking).
 **Reading:** for proofs the "right tool" is a specialized 8B prover that fits a 3090: it proves a third more statements than a general
 35B model, almost never invents a lemma name, but spends 2–3 × the tokens per statement (it writes a long proof plan first).
+
+## Phase 3a pre-registration (2026-10-18 06:38 UTC, before running): geometry proofs — the LLM proposes the auxiliary point, a symbolic engine proves
+IMO-AG-30 (AlphaGeometry's 30 IMO geometry problems in its construction language). AlphaGeometry's engine DD+AR alone, no language model,
+proves 12 (paper: 14). For each of the other 18, gpt-oss-20b (medium effort; fits a 3090) proposes ONE auxiliary point (16 samples per
+problem, the 48 one-point constructions listed in the prompt); each proposal is inserted before the goal and DD+AR runs for ≤ 600 s
+(poc/geoproof_gen.py, /SSD/lean_postech/ag/ddar_aux.py, poc/queues/queue_s2_geoproof.sh). The check is exact (the engine's proof).
+Prior art: AlphaGeometry (Trinh et al., Nature 2024; a trained 150M model proposing constructions reaches 25 / 30; their GPT-4 baseline
+adds little), AlphaGeometry2, TongGeometry.
+- GEO-P1: with one proposed point, 13–18 of 30 are proved (1–6 more than DD+AR alone): general LLMs are weak at auxiliary constructions.
+- GEO-P2: ≥ 30% of proposals are invalid (unknown or misused construction, reused name, impossible configuration): the construction
+  language is a missing fact.
+
+## Phase-1 result, Qwen3-14B-AWQ with thinking (2026-10-18 06:39 UTC) and an extractor fix
+Raw check first: 606 of its 1,952 attempts had "no proof"; 320 of them wrote ':=' and 'by' on separate lines, which the extractor
+missed (fixed: ':=\s*by'; all finished files re-checked: +11 proved attempts for Qwen3-14B, +0 for the other models). The rest are
+real: 234 runs hit the 16k cap and 129 answers use Lean 3 syntax (begin … end), which Lean 4 rejects.
+Qwen3-14B-AWQ thinking: 8 / 14 / 17 / **21** of 244 with 1 / 2 / 4 / 8 attempts at 9.1k tokens per attempt (71k per statement in the
+compile-gated loop); invented names in 27% of failed attempts.
+- **PROOF-P4 refuted:** Qwen3-14B with thinking solves fewer statements (21) than gpt-oss-20b (66) and Qwen3.6 (133) without thinking,
+  at 6 × their tokens; per 100k tokens of the compile-gated loop: Goedel 1.9, DeepSeek 2.8, Qwen3.6 4.4, gpt-oss-20b 2.4, Qwen3-14B think 0.12.
+**Reading:** for formal proofs, thinking does not substitute for knowing Lean 4 and Mathlib: a general 14B model that thinks for 9k
+tokens mostly writes invalid Lean; the 8B prover trained on Lean proves 9 × more statements.

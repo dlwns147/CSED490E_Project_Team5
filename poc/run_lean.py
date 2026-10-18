@@ -41,9 +41,9 @@ def proof_body(text):
     if not blocks:
         return None
     b = blocks[-1]
-    i = b.find(":= by")
-    if i >= 0:
-        return b[i + len(":= by"):]
+    m = re.search(r":=\s*by\b", b)   # ':= by', also ':=\n  by' (2026-10-18: Qwen3-14B writes the line break; 'no proof' was a harness miss)
+    if m:
+        return b[m.end():]
     t = b.lstrip()   # a block that is only the proof ("by\n  tactics"): 26 of 1,952 gpt-oss attempts (fixed 20:30)
     return "\n" + t[2:] if t.startswith("by") and (len(t) == 2 or t[2] in " \n") else None
 

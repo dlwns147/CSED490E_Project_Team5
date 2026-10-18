@@ -338,3 +338,7 @@ S2_PROOF dspv2 generated 1952/1952 Sun Oct 18 02:30:43 UTC 2026
 S2_PROOF dspv2 checked Sun Oct 18 02:54:51 UTC 2026
 S2_PROOF3 queued (Qwen3.6 think GPU0, gpt-oss-20b medium GPU1 on miniF2F; PREREG_PROOF.md addendum) Sun Oct 18 05:01:35 UTC 2026
 S2_PROOF4 queued (Goedel k=32 on the 64 unsolved; GPU3) Sun Oct 18 05:02:11 UTC 2026
+S2_PROOF q14a_think generated 1952/1952 Sun Oct 18 05:55:15 UTC 2026
+S2_PROOF q14a_think checked Sun Oct 18 06:00:16 UTC 2026
+S2_PROOF analysis -> results/x4/proof_analysis.log Sun Oct 18 06:00:22 UTC 2026
+S2_GEOPROOF queued (gpt-oss-20b proposes auxiliary points for 18 IMO-AG-30 problems, DD+AR checks; GPU2; PREREG_PROOF.md phase 3a) Sun Oct 18 06:38:11 UTC 2026
