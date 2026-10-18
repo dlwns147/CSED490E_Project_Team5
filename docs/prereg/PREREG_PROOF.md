@@ -115,3 +115,7 @@ Lean-accepted proof, is shown before the task (run_lean.py --exemplar gpv2; leav
 thinking (tag q36_ex), 8 attempts, X4 prompt otherwise unchanged, GPU0 (poc/queues/queue_s2_proof6.sh). Prior art: retrieval of similar
 proofs / premises (ReProver, LeanDojo; retrieval-augmented provers).
 - PROOF-P8: Qwen3.6 proves ≥ 145 of 244 (without the example: 133), and invented names fall from 22% to ≤ 15% of failed attempts.
+- Phase 3b result (2026-10-18 11:31 UTC): with a 30k budget gpt-oss-20b's proposals prove **1 of 18** (IMO 2014 P4; 143 valid of 288, 5 proving
+  proposals; 16k budget: 0); with the construction definitions also 1 (133 valid, 4 proving). GEO-P3/P4 to be scored from the raw
+  rows; the definitions did not reduce rejections (valid 133 vs 143). PROOF-P9 (pre-registered now): gpt-oss-20b low with the same
+  verified similar proof (tag oss20_ex, GPU0, queue_s2_proof7.sh) proves ≥ 80 of 244 (without: 66).

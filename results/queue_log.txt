@@ -359,3 +359,7 @@ S2_GEOPROOF4 q36_think80k proposals done Sun Oct 18 10:19:38 UTC 2026
 S2_GEOPROOF4 q36_think80k checked by DD+AR Sun Oct 18 10:29:40 UTC 2026
 S2_GEOPROOF4 relaunched with retries (first Qwen3.6 server died 10:11, NCCL watchdog during a host-load spike, 15-min load 552; 22 rows kept) Sun Oct 18 10:35:52 UTC 2026
 S2_PROOF6 queued (phase 2: Qwen3.6 + a verified similar proof; GPU0) Sun Oct 18 10:36:35 UTC 2026
+S2_GEOPROOF3 checked by DD+AR Sun Oct 18 11:29:51 UTC 2026
+S2_PROOF7 queued (gpt-oss-20b low + verified similar proof; GPU0) Sun Oct 18 11:31:44 UTC 2026
+S2_PROOF q36_ex (phase 2) generated + checked Sun Oct 18 11:32:07 UTC 2026
+S2_PROOF7 relaunched with the right model (first launch started Qwen3.6 by a script-copy error; stopped by PID within 1 min, no rows) Sun Oct 18 11:32:12 UTC 2026
