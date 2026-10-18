@@ -162,3 +162,8 @@ squares, positivity, clearing denominators, sqrt / abs lemma names, omega / inte
 8 attempts (tag q36_ineqhint; LEAN_HINT + LEAN_ONLY), GPU2 (queue_s2_proof10.sh). Baseline: the stored Qwen3.6 attempts on the same 50
 (24 proved).
 - PROOF-P10: ≥ 29 of 50 proved (+5), and invented names fall below 15% of failed attempts (the sheet names real lemmas and tactics).
+- **Phase 4b result (2026-10-18 17:36 UTC): PROOF-P10 refuted.** With the 10-line inequality toolkit Qwen3.6 proves 21 of the 50 bound statements
+  (without: 24) at 1.26 × the tokens; invented names 22% (24%). Like the worked example (phase 2), a prompt-level fact does not help Lean.
+- **GEO-J holds (2026-10-18 17:36 UTC):** on the 44 JGEX-AG-231 problems DD+AR cannot do alone, gpt-oss-20b's proposals (8 per problem, 30k cap) make
+  13 provable (193 of 352 valid, 38 proving): DD+AR + LLM points 200 / 231 vs 187 alone. On easier problems an LLM's auxiliary point
+  often suffices; on IMO problems (1 of 18) it rarely does.

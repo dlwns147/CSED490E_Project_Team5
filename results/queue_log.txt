@@ -376,3 +376,8 @@ S2_PROOF8 (Goedel revision from compiler errors) done 107 rows Sun Oct 18 15:18:
 S2_GEOPROOF5 (JGEX proposer, GPU0) and S2_PROOF9 relaunch (GPU2) Sun Oct 18 15:36:06 UTC 2026
 S2_PROOF9 (DeepSeek-Prover revision from compiler errors) done 112 rows Sun Oct 18 15:55:50 UTC 2026
 S2_PROOF10 queued (inequality fact sheet; GPU2) Sun Oct 18 16:36:39 UTC 2026
+S2_GEOPROOF5 jgex proposals done Sun Oct 18 16:40:48 UTC 2026
+S2_PROOF10 (inequality toolkit, Qwen3.6) generated + checked Sun Oct 18 16:54:35 UTC 2026
+S2_GEOPROOF5 jgex checked by DD+AR Sun Oct 18 17:21:01 UTC 2026
+S2_PROOF gpv2 k=32 on the unsolved tail done (3488 rows, checked) Sun Oct 18 17:37:39 UTC 2026
+S2_X6AUTO queued (introspected API card; GPU0 q32b, GPU3 q8b, GPU2 q36d) Sun Oct 18 17:37:48 UTC 2026

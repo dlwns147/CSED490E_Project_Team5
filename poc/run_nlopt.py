@@ -5,7 +5,8 @@ modes: mip   = Python program with OR-Tools pywraplp (SCIP), prints the optimal 
        cpsat = Python program with OR-Tools CP-SAT (integer model), prints the optimal objective value;
        text  = reason in text, final value in \\boxed{};
        think = mip with thinking on (Qwen) / the caller's higher reasoning effort (gpt-oss);
-       thinkf = think + the snippet of mipf (X6: does the API fact make thinking pay?).
+       thinkf = think + the snippet of mipf (X6: does the API fact make thinking pay?);
+       mipa / thinka = mip / think + the library's public names by introspection (automatic fact, no human).
 usage: POC_BASE_URL=... python run_nlopt.py <tag> <mode> <seed> [--think] [--max_tokens N] -> results/x3/opt_<tag>_<mode>_s<seed>.jsonl"""
 import json, os, re, sys, zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -20,6 +21,15 @@ SNIP = ("\n\nOR-Tools pywraplp usage (exact API):\n```python\nfrom ortools.linea
         "x = s.IntVar(0, s.infinity(), 'x')      # or s.NumVar(lb, ub, name) for a continuous variable\ns.Add(2 * x + 3 <= 10)\n"
         "s.Maximize(5 * x)                       # or s.Minimize(...)\nst = s.Solve()                          # pywraplp.Solver.OPTIMAL, INFEASIBLE, UNBOUNDED\n"
         "print(s.Objective().Value() if st == pywraplp.Solver.OPTIMAL else 'No Best Solution')\n```")
+def _auto_card():
+    """MODEL / automatic facts (2026-10-18): the library's own public names, read by introspection; no human writes it"""
+    from ortools.linear_solver import pywraplp
+    return ("\n\nThe complete list of public names in OR-Tools pywraplp (anything else does not exist):\n" +
+            "\n".join(f"pywraplp.{c}: " + ", ".join(n for n in dir(getattr(pywraplp, c)) if not n.startswith("_"))
+                      for c in ("Solver", "Variable", "Constraint", "Objective")))
+
+
+AUTO = _auto_card()
 P_CPSAT = ("{q}\n\nWrite a complete Python 3 program that formulates this problem with Google OR-Tools CP-SAT (`from ortools.sat.python "
            "import cp_model`; scale any fractional coefficients to integers), solves it, and prints ONLY the optimal objective value." + TAIL)
 P_TEXT = "{q}\n\nSolve the problem. Put the optimal objective value in \\boxed{{}} (or \\boxed{{No Best Solution}} if there is none)."
@@ -75,7 +85,8 @@ def main():
 
     def one(p):
         sd = seed * 1000 + zlib.crc32(p["id"].encode()) % 997
-        tmpl = {"mip": P_MIP, "mipf": P_MIP + SNIP, "cpsat": P_CPSAT, "text": P_TEXT, "think": P_MIP, "thinkf": P_MIP + SNIP}[mode]
+        tmpl = {"mip": P_MIP, "mipf": P_MIP + SNIP, "cpsat": P_CPSAT, "text": P_TEXT, "think": P_MIP, "thinkf": P_MIP + SNIP,
+                "mipa": P_MIP + AUTO.replace("{", "{{").replace("}", "}}"), "thinka": P_MIP + AUTO.replace("{", "{{").replace("}", "}}")}[mode]
         o = chat(tmpl.format(q=p["q"]), think=think, max_tokens=mt, temperature=0.7, seed=sd)
         text = o["text"] or ""
         row = {"id": p["id"], "src": p["src"], "difficulty": p["difficulty"], "gold": p["gold"], "mode": mode,

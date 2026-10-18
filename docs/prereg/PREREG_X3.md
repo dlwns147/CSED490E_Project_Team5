@@ -192,3 +192,14 @@ mip 68.6% @ 0.9k; mipf 74.6% @ 0.8k; think 59.6% @ 22.0k; **thinkf 79.1% @ 22.6k
 thinkf → mipf 82.6% @ 22.7k. 17 of 2,070 thinking runs at the cap.
 - X6c-P1 holds (0.8% at the cap). X6c-P2 holds (thinkf − think = +19.5; thinking without the fact *loses* 9 points: 255 runtime
   errors, invented Solver.Status / INFINITY). X6c-P3 holds (fact-first −1.0 point vs always-thinkf at 13% of its tokens).
+
+## X6-AUTO pre-registration (2026-10-18 17:37 UTC, before running): facts without a human — the library's own names by introspection
+The weakest point of the main result is that the facts are hand-written. Here the fact is produced automatically from the tool itself:
+the public names of pywraplp's Solver / Variable / Constraint / Objective, read with dir() (2.1k characters; it contains SetMaximization
+but no SetMaximize). Arms mipa (no thinking + card) and thinka (thinking + card), seeds 1–3, Qwen3-32B-AWQ (GPU0), Qwen3-8B (GPU3), Qwen3.6
+(GPU2; thinking 80k, T 1.0 / top_k 20, tag q36d) (poc/queues/queue_s2_x6auto.sh). Prior art: API-reference grounding (DocPrompting;
+De-Hallucinator); new here: an introspected card as the fact in the fact-first-then-think policy.
+- AUTO-P1: Qwen3-32B thinka ≥ 66.0% (recovers ≥ 70% of the hand-written snippet's thinking gain: think 52.0 → thinkf 72.0) and invented
+  SetMaximize / SetMinimize ≤ 30 (think: 314).
+- AUTO-P2: mipa ≥ mipf − 2 points for each model.
+- AUTO-P3: mipa → thinka (fact-first-then-think with the automatic card) is within 2 points of mipf → thinkf for each model.
