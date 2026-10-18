@@ -214,3 +214,13 @@ De-Hallucinator); new here: an introspected card as the fact in the fact-first-t
   from the list; returns None), `MakeRowConstraint` overloads, an objective created but never set (prints 0.0). For the 8B model the card
   still beats no fact (+10.0). **A list of names is not a usage fact:** the snippet works because it shows *how* the five needed calls
   fit together. Next automatic fact to test: usage mined from programs that passed the check.
+- X6-AUTO, Qwen3-8B with thinking (2026-10-18 19:36 UTC): thinka 57.5% (220 runtime errors) vs think 67.7%, thinkf 72.2%; fact-first with the card
+  (mipa → thinka) 59.7% vs with the snippet 68.3%: **AUTO-P3 refuted for Qwen3-8B**; the name list hurts with thinking too.
+
+## X6-VER pre-registration (2026-10-18 19:36 UTC, before running): the automatic usage fact = a check-passing program of the same model
+For each problem, the most similar problem of the OTHER benchmark (BM25 over question words) whose program — written by the same model
+with no fact (mode mip, seed 1) — runs and prints a value is shown as an example (label-free: the check, not the answer, selects it;
+NL4OPT examples for IndustryOR problems and vice versa). Arms mipv / thinkv, seeds 1–3; Qwen3-8B on GPU3 now (queue_s2_x6ver.sh), then
+Qwen3-32B and Qwen3.6 as GPUs free up.
+- VER-P1: mipv ≥ mipf − 2 points (the mined example is as good a usage fact as the hand-written snippet) for each model.
+- VER-P2: fact-first with it (mipv → thinkv) is within 3 points of mipf → thinkf for each model.

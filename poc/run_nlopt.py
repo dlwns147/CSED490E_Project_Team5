@@ -30,6 +30,28 @@ def _auto_card():
 
 
 AUTO = _auto_card()
+
+
+def _verified_examples(src_tag):
+    """automatic usage fact (2026-10-18): programs of the same model WITHOUT any fact (mode mip, seed 1) that pass the label-free check
+    (run and print a value) on the OTHER benchmark; for each problem the most similar such program (BM25 over question words) is shown"""
+    import math
+    from collections import Counter
+    pool = []
+    for r in _rows(f"{RES}/opt_{src_tag}_mip_s1.jsonl"):
+        if r.get("status") == "ok" and r.get("pred") is not None and r.get("code"):
+            pool.append(r)
+    Q = {p["id"]: p for p in problems()}
+    tok = lambda t: re.findall(r"[a-z]+", t.lower())
+    docs = [(r, Counter(tok(Q[r["id"]]["q"]))) for r in pool if r["id"] in Q]
+    df = Counter(w for _, d in docs for w in d); N = max(1, len(docs)); avg = sum(sum(d.values()) for _, d in docs) / N
+
+    def best(p):
+        q = set(tok(p["q"])); src = p["src"]
+        cands = [(sum(math.log(1 + (N - df[w] + .5) / (df[w] + .5)) * d[w] * 2.2 / (d[w] + 1.2 * (.25 + .75 * sum(d.values()) / avg))
+                      for w in q if w in d), r["code"]) for r, d in docs if Q[r["id"]]["src"] != src]
+        return max(cands)[1] if cands else None
+    return best
 P_CPSAT = ("{q}\n\nWrite a complete Python 3 program that formulates this problem with Google OR-Tools CP-SAT (`from ortools.sat.python "
            "import cp_model`; scale any fractional coefficients to integers), solves it, and prints ONLY the optimal objective value." + TAIL)
 P_TEXT = "{q}\n\nSolve the problem. Put the optimal objective value in \\boxed{{}} (or \\boxed{{No Best Solution}} if there is none)."
@@ -83,11 +105,19 @@ def main():
     mt = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else 8192
     think = "--think" in sys.argv
 
+    EX = _verified_examples(os.environ.get("NLOPT_EX_TAG", tag)) if mode in ("mipv", "thinkv") else None
+
     def one(p):
         sd = seed * 1000 + zlib.crc32(p["id"].encode()) % 997
         tmpl = {"mip": P_MIP, "mipf": P_MIP + SNIP, "cpsat": P_CPSAT, "text": P_TEXT, "think": P_MIP, "thinkf": P_MIP + SNIP,
-                "mipa": P_MIP + AUTO.replace("{", "{{").replace("}", "}}"), "thinka": P_MIP + AUTO.replace("{", "{{").replace("}", "}}")}[mode]
-        o = chat(tmpl.format(q=p["q"]), think=think, max_tokens=mt, temperature=0.7, seed=sd)
+                "mipa": P_MIP + AUTO.replace("{", "{{").replace("}", "}}"), "thinka": P_MIP + AUTO.replace("{", "{{").replace("}", "}}"),
+                "mipv": P_MIP, "thinkv": P_MIP}[mode]
+        q = tmpl.format(q=p["q"])
+        if mode in ("mipv", "thinkv"):   # automatic usage fact: a check-passing program of this model for a similar problem of the other benchmark
+            ex = EX(p)
+            if ex:
+                q += "\n\nA program that runs with this library (written for a different problem):\n```python\n" + ex.strip() + "\n```"
+        o = chat(q, think=think, max_tokens=mt, temperature=0.7, seed=sd)
         text = o["text"] or ""
         row = {"id": p["id"], "src": p["src"], "difficulty": p["difficulty"], "gold": p["gold"], "mode": mode,
                "out_tokens": o.get("out_tokens"), "finish": o.get("finish")}
