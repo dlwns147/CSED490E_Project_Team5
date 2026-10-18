@@ -388,3 +388,6 @@ S2_PROOF dspv2 k=32 on the unsolved tail done (3848 rows, checked) Sun Oct 18 20
 S2_X6VER q32b (GPU0) and q36d (GPU1; example source = q36 mip_s1) queued Sun Oct 18 20:35:54 UTC 2026
 S2_X6VER q8b done (2070/2070) Sun Oct 18 21:02:16 UTC 2026
 S2_X6VER2 queued (shortest working program as the fact; q8b GPU3) Sun Oct 18 21:36:38 UTC 2026
+S2_X6VER q32b done (2070/2070) Sun Oct 18 22:55:23 UTC 2026
+S2_X6VER2 q8b done (2070/2070) Sun Oct 18 23:03:30 UTC 2026
+S2_X6VER3 queued (q32b shortest GPU0; q14a similar + shortest GPU3) Sun Oct 18 23:36:23 UTC 2026

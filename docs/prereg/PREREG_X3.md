@@ -245,3 +245,19 @@ VER2-P2: mips → thinks within 3 points of mipf → thinkf (68.3%).
   74% / 30%). VER2-P1 accuracy part holds; the pass-but-wrong part is refuted. Pattern across all facts: the better a fact removes
   crashes, the more wrong-but-running programs reach the check (no fact 41% → 30–38%; run share 59% → 74–84%) — a crash was itself a
   free check, and fixing the API takes it away. Thinking arm still running.
+
+## Automatic facts in the full pipeline (2026-10-18 23:36 UTC; results/x3/analysis_autofacts.log; FF = fact program, thinking if it does not run;
+FFR = thinking unless two fact programs run and agree)
+| fact | Qwen3-8B FF | Qwen3-8B FFR | Qwen3-32B FF | Qwen3-32B FFR | Qwen3-32B always-think |
+|---|---|---|---|---|---|
+| none | 60.5% @ 3.9k | 66.4% @ 7.1k | 70.0% @ 1.3k | 70.4% @ 3.5k | 52.0% |
+| snippet (hand-written) | 68.3% @ 2.5k | 72.9% @ 5.4k | 72.4% @ 1.3k | 75.2% @ 3.0k | 72.0% |
+| name list (introspection) | 59.7% @ 3.3k | 62.1% @ 6.2k | 63.1% @ 1.7k | 65.4% @ 4.3k | 56.3% |
+| own similar check-passing program | 60.0% @ 2.4k | 65.7% @ 4.9k | **70.8% @ 1.0k** | **75.8% @ 3.0k** | 71.4% |
+| own shortest check-passing program | 61.7% @ 1.8k | 67.0% @ 4.7k | (running) | | |
+- **VER-P2 holds for Qwen3-32B** (FF −1.6 points at 77% of the tokens; with the agreement check the automatic fact is +0.6 at equal
+  tokens), refuted for Qwen3-8B (−6 to −8). The mined example also repairs Qwen3-32B's thinking (52.0% → 71.4%, like the snippet's 72.0%).
+**Reading:** for the 32B model a fact mined automatically from its own check-passing programs on another benchmark replaces the
+hand-written snippet; for the 8B model it falls 6 points short (it copies formulations, and its wrong programs run). Added now
+(pre-registered): the shortest-program fact for Qwen3-32B (GPU0) and both automatic facts for Qwen3-14B-AWQ (3090-class; GPU3),
+predicting Qwen3-14B lands between the 8B and 32B gaps (FFR within 4 points of its hand-written FFR).
