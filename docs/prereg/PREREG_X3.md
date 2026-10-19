@@ -270,3 +270,7 @@ predicting Qwen3-14B lands between the 8B and 32B gaps (FFR within 4 points of i
   75.6% @ 2.1k, similar example 74.5% (**within 2 points: holds**); Qwen3.6 — similar example FFR 75.7% @ 9.5k vs snippet 80.3% @ 9.3k
   (−4.6; FF 73.2 vs 78.2). Summary over 4 models: a mined fact replaces the hand-written one for Qwen3-32B and gpt-oss-20b (≤ 1 point),
   not for Qwen3-8B and Qwen3.6 (5–6 points short).
+- Shortest own check-passing program, more models (2026-10-19 02:36 UTC): Qwen3-32B FF 72.6% @ 1.2k (snippet 72.4%), FFR 74.8% (75.2%); **Qwen3-14B-AWQ
+  FF 71.3% (70.7%), FFR 75.4% (76.0%)** — within 1 point (prediction: within 4). Final picture on the word problems: the model's own
+  shortest working program from the other benchmark replaces the hand-written snippet for Qwen3-32B, Qwen3-14B-AWQ and gpt-oss-20b
+  (≤ 1 point), not for Qwen3-8B (−6) or Qwen3.6 (−5, similar-example variant).

@@ -236,3 +236,15 @@ the U1 THINK arm if it fails the check), optimization domain only (geometry fact
   retrieved-first (BM25 documentation) policy.
 - MINED-P2: on CVRP / VRPTW (routing API facts) the mined fact helps less than the hand-written snippet (the TSP example has no capacity
   or time-window dimension calls).
+
+## U1-MINED results (2026-10-19 02:36 UTC; results/u1_mined.log): refuted — across problem types a mined fact transfers the wrong tool
+Optimization suite, X-first-then-think (cure seeds 1 / 2 / 3): hand-written fact vs retrieved documentation vs mined program
+- Qwen3-32B: 79 / 85 / 81% vs 78 / 82 / 77% vs **65 / 72 / 67%** (mined alone 47–53%; hand 74–76%).
+- Qwen3-8B: 46 / 46 / 46% vs 49 / 48 / 46% vs **25 / 31 / 29%** (mined alone 2–5%, below no fact at all: 24%).
+- Qwen3.6: 97 / 97 / 96% vs 92 / 94 / 93% vs **80 / 82 / 77%** (at 4–9 × the tokens).
+**MINED-P1 refuted** (14–21 points below the hand-written fact; also below retrieval); **MINED-P2 holds** (CVRP / VRPTW: 0–1 of 12
+optimal with the mined TSP example). Raw: the 8B model's knapsack programs copy the bin-packing example's library and backend
+(pywraplp with GLOP, a continuous LP solver) and then call CP-SAT methods on it ('Solver' object has no attribute 'Value'); feasible but
+not optimal. **Reading:** a mined program is a good fact only within one problem family (X6: every word problem is an LP / MIP in
+pywraplp, and the mined program matches the snippet for Qwen3-32B / 14B / gpt-oss-20b); across problem types it carries the other
+type's tool choice (library, solver backend), which is exactly the fact that differs. The fact must match the task's tool.

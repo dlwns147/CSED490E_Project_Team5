@@ -41,7 +41,7 @@ def _verified_examples(src_tag):
     for r in _rows(f"{RES}/opt_{src_tag}_mip_s1.jsonl"):
         if r.get("status") == "ok" and r.get("pred") is not None and r.get("code"):
             pool.append(r)
-    Q = {p["id"]: p for p in problems()}
+    Q = {p["id"]: p for p in problems("all")}
     tok = lambda t: re.findall(r"[a-z]+", t.lower())
     docs = [(r, Counter(tok(Q[r["id"]]["q"]))) for r in pool if r["id"] in Q]
     df = Counter(w for _, d in docs for w in d); N = max(1, len(docs)); avg = sum(sum(d.values()) for _, d in docs) / N
@@ -76,12 +76,22 @@ def _rows(path):
             pass
     return out
 
-def problems():
+MAMO = "/SSD/huggingface/datasets/MAMO"   # X7 (2026-10-19): held-out benchmark, MAMO EasyLP 652 + ComplexLP 211 (NLOPT_SET=mamo)
+
+
+def problems(which=None):
+    which = which or os.environ.get("NLOPT_SET", "x3")
     out = []
-    for name in ("nl4opt", "industryor"):
-        for k, r in enumerate(json.load(open(f"{RES}/{name}.json"))):
-            out.append({"id": f"{name}-{k}", "src": name, "q": r["en_question"], "gold": str(r["en_answer"]).strip(),
-                        "difficulty": r.get("difficulty", "NL4OPT")})
+    if which in ("x3", "all"):
+        for name in ("nl4opt", "industryor"):
+            for k, r in enumerate(json.load(open(f"{RES}/{name}.json"))):
+                out.append({"id": f"{name}-{k}", "src": name, "q": r["en_question"], "gold": str(r["en_answer"]).strip(),
+                            "difficulty": r.get("difficulty", "NL4OPT")})
+    if which in ("mamo", "all"):
+        for name, fn in (("mamo_easy", "MAMO_EasyLP"), ("mamo_complex", "MAMO_ComplexLP")):
+            for k, l in enumerate(l for l in open(f"{MAMO}/{fn}.json") if l.strip()):
+                r = json.loads(l)
+                out.append({"id": f"{name}-{k}", "src": name, "q": r["en_question"], "gold": str(r["en_answer"]).strip(), "difficulty": name})
     return out
 
 
