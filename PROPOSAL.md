@@ -195,7 +195,7 @@ All measured here, with the same problems, models and checks; accuracy @ output 
 
 Done since the last version: contest geometry and competition math on 24 GB GPUs; Qwen3.6 with the model card's settings (headline unchanged: 86.7–87.5%); automatic facts and the held-out MAMO test; choosing the policy from 30 labels; proofs (Lean, geometry).
 
-1. Finish the MAMO replication (Qwen3-32B, Qwen3.6 on 3 seeds; gpt-oss-20b, Qwen3-14B and Qwen3-8B done). Baselines on our harness done (ORLM, STORM, AdaptThink). Next: the errors left after the recipe are mostly misread problem text (e.g. an over-strict balance that makes the model infeasible); our recipe on top of STORM is running.
+1. Finish the MAMO replication (Qwen3-32B, Qwen3.6 on 3 seeds; gpt-oss-20b, Qwen3-14B and Qwen3-8B done). Baselines on our harness done (ORLM, STORM, AdaptThink). Next: on MAMO about half of the errors left after the recipe are disputed labels (7.6% of problems); the rest are mostly one wrong formulation repeated across a problem type (TSP order constraints, supply balances written as equalities) that a repair turn and thinking do not fix; testing whether one fact does. (STORM's no-thinking mode is broken, so the recipe cannot sit on top of it.)
 2. Automatic facts across problem types: mine one fact per problem type instead of borrowing another type's program.
 3. Final report and slides; a closed API model, if access is available.
 
