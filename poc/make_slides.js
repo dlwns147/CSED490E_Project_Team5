@@ -723,6 +723,8 @@ function buildTalk() {
     "(5초) 감사합니다. 질문 받겠습니다.",
   ];
   const QA_KO = {   // speaker notes of the extra pages: a short Korean answer to the page's question
+    hintwork: "(답변) 좋은 힌트의 조건은 네 가지입니다. 그 종류에 필요한 정확한 호출, 필요한 것만, 짧게, 같은 종류에서. 경로 문제는 23%에서 83%, 기하는 도우미 함수를 다 주면 75%, 필요한 것만 주면 92%입니다. 반대로 규칙 하나가 빠진 긴 매뉴얼은 7%, 비슷하지만 다른 문서가 섞이면 83%에서 57%, 다른 종류의 프로그램은 14에서 21점 손해, 함수 이름 목록만 주면 66%에서 56%로 떨어집니다. 고르는 순서는 이렇습니다. 같은 종류의 지난 프로그램과 공짜 검사가 있으면 통과한 것 중 가장 짧은 것을 씁니다. 없으면 제목이 붙은 코드 조각 문서에서 맨 위 하나만 검색하고, 그것도 없으면 사람이 종류마다 한 번 씁니다.",
+    hintcost: "(답변) 힌트의 비용은 입력 토큰입니다. 최적화 문제에서 힌트 없이 488토큰이던 프롬프트가 정확한 코드 조각을 붙이면 701토큰으로 213토큰 늘고, 긴 참조 문서는 901, 검색 상위 3개는 1,138토큰입니다. 입력 토큰은 출력보다 싸고 같은 종류 문제끼리 캐시됩니다. 대신 생각에 쓰는 출력 토큰이 크게 줍니다. 문장제에서 힌트를 주고 항상 생각하면 5.5k, 힌트를 먼저 주고 실패할 때만 생각하면 1.3k로 정확도는 같습니다. 208문제 전체에서는 힌트 없이 4.1k에 74%, 힌트 먼저로 2.5k에 87%입니다. 한 번 드는 비용은 종류마다 사람의 시간, 코드 조각 문서, 또는 지난 문제들을 한 번 풀어 보는 것입니다.",
     howhint: "(답변) 힌트는 문제마다가 아니라 문제 종류마다 하나이고, 과제 앞에 붙여 줍니다. 그 종류에 필요한 호출만 보여 줍니다. 얻는 방법은 세 가지입니다. 첫째, 사람이 종류마다 한 번 씁니다. 트럭 경로라면 OR-Tools 사용법 11줄입니다. 둘째, 제목이 붙은 코드 조각 라이브러리에서 BM25로 검색해 맨 위 하나를 씁니다. 손으로 쓴 것과 거의 같지만, 비슷하지만 다른 문서가 섞이면 크게 떨어집니다. 셋째, 모델이 같은 종류의 다른 문제에서 짠 프로그램 중 공짜 검사를 통과한 가장 짧은 것을 씁니다. 처음 쓰는 MAMO에서 사람이 쓴 힌트와 같은 정확도였습니다. 다만 같은 종류 안에서만 통하고, 다른 종류의 프로그램을 주면 14에서 21점 떨어집니다. 필요한 것만 주는 것도 중요해서, 기하에서 도우미 함수를 다 주면 75%, 필요한 것만 주면 92%였습니다.",
     why: "(답변) 세 가지 이유입니다. 답이 정확히 하나라 코드로 채점할 수 있고, 정답 없이 쓸 수 있는 검사가 있으며, 실제 코딩 에이전트가 이미 경로 계획, 스케줄러, 기하 코드를 씁니다. 그리고 종류마다 필요한 것이 다릅니다. 기하와 경시는 맞는 알고리즘이 필요하고, 둘의 차이는 난이도입니다. 경로와 문장제는 솔버 라이브러리를 맞게 부르는 힌트가 필요하고, 문장제는 글을 수식으로 옮기는 단계가 더 있습니다. 그래서 추가 노력을 힌트, 검사, 생각 중 어디에 쓸지 비교하기 좋습니다.",
     coverage: "(답변) 아니요, 모든 단계를 네 종류 전부에 쓰지는 않습니다. 경시 문제는 라이브러리 없이 알고리즘만 짜는 문제라 힌트로 채울 빈칸이 없고, 실패 원인은 추론입니다. 가장 가까운 힌트로 관련 기하 함수 8개를 줘 봤는데, Qwen3-32B는 12.1%에서 13.7%로 차이가 없었고 gpt-oss-20b는 37.7%에서 33.4%로 오히려 떨어졌습니다. 함수를 받으면 덜 생각하고 다른 오답을 썼습니다. 문제마다 알고리즘을 알려 주는 힌트는 사실상 풀이의 일부라 싸지도 자동도 아닙니다. 그래서 경시에는 검사와 생각만 써서, 항상 생각할 때와 같은 66%를 18% 적은 토큰에 얻습니다. 재사용도 매번 새 문제라 맞지 않습니다.",
@@ -1131,6 +1133,50 @@ function buildTalk() {
     caption(s, "Only the needed calls: with all helpers 75%, with only the needed ones 92% (geometry)");
   }
 
+  function slideQHintWork() {
+    qSlide("Q: how do we get a hint that works?");
+    panel(s, 0.6, 1.4, 5.95, 4.65, "what makes a hint work");
+    txt(s, "What makes a hint work, or hurt", 0.85, 1.48, 5.45, 0.42, { fontSize: 18, bold: true, color: BLUE });
+    [["✓", "the exact calls this type needs", "routing 23% → 83%", "38761D"],
+     ["✓", "only what is needed", "geometry 75% → 92%", "38761D"],
+     ["✓", "short, from the same type", "MAMO: 79% = by hand", "38761D"],
+     ["✗", "a long manual missing one rule", "routing 7%", RED],
+     ["✗", "a near-miss page next to the right one", "routing 83% → 57%", RED],
+     ["✗", "a program from another problem type", "−14 to −21 points", RED],
+     ["✗", "a bare list of function names", "66% → 56%", RED]].forEach(([m, t, num, col], r) => {
+      const y = 1.98 + r * 0.56;
+      txt(s, m, 0.85, y, 0.3, 0.5, { fontSize: 18, bold: true, color: col });
+      txt(s, t, 1.18, y, 2.95, 0.5, { fontSize: 14 });
+      txt(s, num, 4.15, y, 2.25, 0.5, { fontSize: 14, bold: true, color: col });
+    });
+    panel(s, 6.75, 1.4, 5.95, 4.65, "which source when");
+    txt(s, "Which source, when (once per problem type)", 7.0, 1.48, 5.45, 0.42, { fontSize: 18, bold: true, color: BLUE });
+    const q = (t, y) => box(s, t, 7.0, y, 3.3, 0.62, "FFFFFF", { fontSize: 14 });
+    const a = (t, y) => box(s, t, 10.6, y, 1.9, 0.62, "E2F0D9", { fontSize: 14, bold: true, color: "38761D" });
+    q("Past programs of this type, and a free check?", 2.0); arrow(s, 10.3, 2.31, 10.6, 2.31); a("use the shortest that passed", 2.0);
+    txt(s, "no ↓", 8.4, 2.64, 0.6, 0.3, { fontSize: 14, color: "7F7F7F" });
+    q("Documentation with titled usage snippets?", 2.95); arrow(s, 10.3, 3.26, 10.6, 3.26); a("search, take only the top one", 2.95);
+    txt(s, "no ↓", 8.4, 3.59, 0.6, 0.3, { fontSize: 14, color: "7F7F7F" });
+    q("Neither", 3.9); arrow(s, 10.3, 4.21, 10.6, 4.21); a("write it by hand, once", 3.9);
+    txt(s, "Then use it on every problem of that type, and let the free check catch the cases it does not fit.", 7.0, 4.75, 5.45, 1.0, { fontSize: 14, color: C.text2, valign: "top" });
+    caption(s, "Precise beats complete: the exact calls, nothing extra, from the same problem type");
+  }
+  function slideQHintCost() {
+    qSlide("Q: what does a hint cost, and what does it save?");
+    panel(s, 0.6, 1.4, 5.95, 4.65, "hint cost");
+    txt(s, "Cost: input tokens per prompt (optimization)", 0.85, 1.48, 5.45, 0.42, { fontSize: 18, bold: true, color: BLUE });
+    hbars(s, 0.85, 2.0, 5.45, [["no hint", 43, "488", "7F7F7F"], ["exact snippet", 62, "701 (+213)", BLUE], ["long reference sheet", 79, "901", RED], ["search, top 3", 100, "1,138", RED]], 0.6, 2.0, 1.4);
+    txt(s, "Geometry: all helper functions add 912 input tokens, only the needed ones 113. Input tokens are cheaper than output tokens and can be cached across problems of one type.", 0.85, 4.5, 5.45, 1.4, { fontSize: 14, color: C.text2, valign: "top" });
+    panel(s, 6.75, 1.4, 5.95, 4.65, "hint saves");
+    txt(s, "Saving: output tokens per problem", 7.0, 1.48, 5.45, 0.42, { fontSize: 18, bold: true, color: BLUE });
+    txt(s, "Word problems (Qwen3-32B)", 7.0, 1.95, 5.45, 0.32, { fontSize: 15, bold: true });
+    costRows(7.0, 2.25, 5.45, 2.5, [["hint + always think", "72.0%", 5.5, "5.5k", "7F7F7F"], ["hint first, think on failure", "72.4%", 1.3, "1.3k", BLUE]], 5.5, 0.48);
+    txt(s, "208 geometry + optimization problems × 3 models", 7.0, 3.72, 5.45, 0.32, { fontSize: 15, bold: true });
+    costRows(7.0, 4.0, 5.45, 2.5, [["no hint (usual way)", "74%", 4.1, "4.1k", "7F7F7F"], ["hint first, think on failure", "87%", 2.5, "2.5k", BLUE]], 5.5, 0.48);
+    txt(s, "One-time cost per type: an expert's time, a snippet library, or one pass over past problems.", 7.0, 5.42, 5.45, 0.55, { fontSize: 14, color: C.text2, valign: "top" });
+    caption(s, "A hint adds about 200 input tokens and saves thousands of thinking tokens");
+  }
+
   const EXTRAS = [   // [key, index label, slide], in the order of the talk slides that raise the questions
     ["why", "Why these problems", slideQWhy],
     ["coverage", "Which kinds each finding covers", slideQCoverage],
@@ -1138,6 +1184,8 @@ function buildTalk() {
     ["two", "Two versions, in detail", () => slideTwoVersions("Extra pages", "Extra: two versions catch each other's mistakes")],
     ["fact", "What the fact is", slideQFact],
     ["howhint", "How we get the hint", slideQHowHint],
+    ["hintwork", "A hint that works", slideQHintWork],
+    ["hintcost", "What a hint costs and saves", slideQHintCost],
     ["rag", "Can retrieval find the fact?", slideQRag],
     ["think", "Why thinking can hurt", slideQThink],
     ["leak", "A wrong program passes the check", slideQLeak],
@@ -1162,6 +1210,7 @@ function buildTalk() {
     [4, "Why does helper code change the answer?", ["two"]],
     [5, "What exactly is the fact? Isn't it the answer?", ["fact"]],
     [5, "How do we get the exact hint?", ["howhint", "auto"]],
+    [5, "How do we get a hint that works, cheaply?", ["hintwork", "hintcost"]],
     [5, "Can retrieval (RAG) find the fact?", ["rag"]],
     [5, "Why can thinking make it worse?", ["think"]],
     [6, "What if a wrong program passes the check?", ["leak"]],
