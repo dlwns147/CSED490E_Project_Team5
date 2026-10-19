@@ -639,6 +639,26 @@ s.addNotes((pre || "") + "Numbers as reported by the papers or model cards; our 
 }
 slideReported("Method", "Numbers reported in papers, next to ours");
 
+// 9d. Setup and fairness (models, benchmarks, scoring, how comparisons are kept fair)
+function slideSetup(section, title, pre) {
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
+s.addText(title, { placeholder: "title" });
+[["robot", "Models", "open models run locally: Qwen3 1.7B–32B, Qwen3.6-35B, gpt-oss-20b and 120b; Goedel- and DeepSeek-Prover for proofs"],
+ ["shapes", "Benchmarks", "13 geometry and 8 optimization tasks (generated); 311 Codeforces geometry; 56 Solomon routing; 82 job-shop; 1,208 word problems (NL4OPT, IndustryOR, MAMO); MATH-500 + AIME; miniF2F"],
+ ["check", "Exact scoring", "geometry right on all 8 moved copies; plans obey every rule; contest programs pass all official tests; math and word problems by exact answer"],
+ ["fact", "Fair comparisons", "one change at a time; predictions written before each run; every claim on 3 seeds; baselines run in our own harness"],
+ ["coins", "Cost", "every result reported with its output tokens per problem"],
+ ["gpu", "Hardware", "one model per GPU (RTX PRO 6000, 96 GB); the small models fit one 24 GB GPU"]].forEach(([icon, head, body], k) => {
+  const x = 0.6 + (k % 2) * 6.15, y = 1.4 + Math.floor(k / 2) * 1.75;
+  panel(s, x, y, 5.95, 1.6, head);
+  s.addImage({ path: ICON(icon), x: x + 0.2, y: y + 0.2, w: 0.5, h: 0.5, objectName: "icon " + icon });
+  txt(s, head, x + 0.85, y + 0.15, 4.9, 0.5, { fontSize: 18, bold: true });
+  txt(s, body, x + 0.85, y + 0.65, 4.95, 0.9, { fontSize: 14, valign: "top" });
+});
+s.addNotes((pre || "") + "How we test. Models: open models run locally (Qwen3 1.7B, 4B, 8B, 14B, 32B; Qwen3.6-35B-A3B; gpt-oss-20b and 120b; Goedel-Prover-V2-8B and DeepSeek-Prover-V2-7B for Lean). Benchmarks with exact answers. Every comparison changes one thing, is pre-registered (predictions written before the run, docs/prereg), replicated on 3 seeds, and reports output tokens per problem; published baselines are rerun in the same harness.");
+}
+slideSetup("Method", "Setup and fairness");
+
 // 10. Limits and next
 function slideLimits(section, title, pre) {   // pre: text put before the speaker notes
 s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
@@ -666,22 +686,170 @@ slideLimits("Next", "Where the recipe stops, and what is next");
 const FULL = path.join(ROOT, "PROPOSAL_slides_full.pptx");
 pres.writeFile({ fileName: FULL }).then(async () => { await applyTheme(FULL, THEME); console.log("written", FULL); buildTalk(); });
 
-// ================= 5-minute talk + 5 minutes of questions (PROPOSAL_slides.pptx): 10 slides, then extra pages =================
+// ================= 5-minute talk + 5 minutes of questions (PROPOSAL_slides.pptx): 8 slides, then extra pages =================
 function buildTalk() {
   pres = newDeck();
   pres.addSection({ title: "Talk" });
   slideTitle("Talk", "POSTECH CSED490E (Graduate NLP) · Team 5 · 5-minute proposal talk",
-    "(10 s) We study how to solve computational math with LLMs: answers that must be computed exactly, with the fewest tokens and the smallest GPU. Ten slides, then extra pages for questions.");
-  slideProblem("Talk", "(30 s) " + PROBLEM_NOTES);
-  slideKinds("Talk", "The problems we study, and how hard they are", "(30 s) ");
-  slideWhy("Talk", "What goes wrong, and what we do", "(30 s) ");
-  slideFact("Talk", "Finding 1: give the fact, not the manual", "(35 s) ");
-  slideTwoVersions("Talk", "Finding 2: two versions catch each other's mistakes", "(35 s) ");
-  slideHard("Talk", "Finding 3: think harder only when a check fails", "(35 s) ");
-  slideAuto("Talk", "Finding 4: the fact can be found without a human", "(35 s) ");
-  slideMethod("Talk", "Our method: cheap steps first", "(50 s) The findings give one recipe, shown on a real problem: write a program, add the missing fact, run a free check, think harder only if it fails, reuse the checked program for the same kind of problem. ");
+    "(5 s) Hello, we are Team 5. Our project: how to solve computational math with LLMs accurately and cheaply. The question is where the extra effort should go: a fact, a check, or more thinking.");
 
-  // closing slide: the takeaway, then 5 minutes of questions with the extra pages as an index
+  // 2. the problem: programs beat words, but they fail silently and thinking is expensive
+  s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
+  s.addText("Programs help, but two things go wrong", { placeholder: "title" });
+  [["pen", "answer in words"], ["code", "write a program"], ["gears", "call a solver library"], ["brain", "think longer first"]].forEach(([icon, t], k) => {
+    const x = 0.6 + k * 3.05;
+    box(s, "", x, 1.3, 2.9, 0.6, "F2F2F2");
+    s.addImage({ path: ICON(icon), x: x + 0.15, y: 1.37, w: 0.46, h: 0.46, objectName: "icon " + icon });
+    txt(s, t, x + 0.75, 1.3, 2.1, 0.6, { fontSize: 16, bold: true });
+  });
+  function pane2(x, head, col, fill) {
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 2.1, w: 3.95, h: 3.05, rectRadius: 0.08, fill: { color: fill }, line: { color: col, width: 1 }, objectName: "pane " + head });
+    txt(s, head, x + 0.2, 2.17, 3.6, 0.45, { fontSize: 18, bold: true, color: col });
+  }
+  pane2(0.6, "Programs beat words", BLUE, "EEF3FB");
+  s.addImage({ path: FIG("slide2_shapes.png"), x: 0.8, y: 2.68, w: 3.55, h: 0.77, objectName: "four copies of one polygon", altText: "one polygon: original, moved, turned, flipped" });
+  [["words", [["436", 1], ["2944", 0], ["392", 0], ["728", 0]], 3.6], ["program", [["436", 1], ["436", 1], ["436", 1], ["436", 1]], 4.15]].forEach(([lab, ans, y]) => {
+    txt(s, lab, 0.75, y, 0.85, 0.42, { fontSize: 14, bold: true });
+    ans.forEach(([t, ok], k) => {
+      const x = 1.6 + k * 0.72;
+      s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w: 0.66, h: 0.42, rectRadius: 0.08, fill: { color: ok ? "E2F0D9" : "FADBD8" }, line: { color: ok ? GREEN : RED, width: 0.75 }, objectName: `${lab} ${k}` });
+      txt(s, t, x, y, 0.66, 0.42, { fontSize: 14, bold: true, align: "center", color: ok ? "38761D" : RED });
+    });
+  });
+  txt(s, "the same shape, moved and turned (Qwen3-8B)", 0.75, 4.62, 3.7, 0.4, { fontSize: 14, color: C.text2 });
+  pane2(4.7, "1. They fail silently", RED, "FDF2F1");
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 4.85, y: 2.7, w: 3.65, h: 1.2, rectRadius: 0.05, fill: { color: "262626" }, line: { color: "262626" }, objectName: "terminal" });
+  s.addText([{ text: "task only     → 6", options: { color: "8FD16A", bold: true, breakLine: true } },
+             { text: "+ 8 helpers   → 0", options: { color: "FF7B7B", bold: true, breakLine: true } },
+             { text: "(no error message)", options: { color: "BFBFBF" } }],
+    { isTextBox: true, x: 5.0, y: 2.72, w: 3.4, h: 1.16, fontFace: "Courier New", fontSize: 15, valign: "middle", margin: 0 });
+  txt(s, [{ text: "24–37%", options: { bold: true, fontSize: 22, color: RED } }, { text: " of wrong programs pass the problem's own examples" }],
+      4.9, 4.0, 3.6, 1.05, { fontSize: 14, valign: "top" });
+  pane2(8.8, "2. Thinking is expensive", THEME.colors.accent2, "FDF0E6");
+  [["medium", "57%", 10, "page", 2.75], ["high", "66%", 43, "pagehot", 3.25]].forEach(([lab, acc, n, icon, y]) => {
+    txt(s, [{ text: lab + " ", options: { bold: true } }, { text: acc }], 8.95, y, 1.15, 0.4, { fontSize: 14 });
+    for (let k = 0; k < n; k++) s.addImage({ path: ICON(icon), x: 10.1 + (k % 15) * 0.17, y: y + 0.03 + Math.floor(k / 15) * 0.2, w: 0.16, h: 0.18, objectName: `${lab} page ${k}` });
+  });
+  txt(s, "one page ≈ 700 tokens", 8.95, 3.95, 3.6, 0.3, { fontSize: 14, color: C.text2 });
+  txt(s, [{ text: "4.4× tokens", options: { bold: true, fontSize: 22, color: THEME.colors.accent2 } }, { text: " for 9 more points (311 contest problems)" }],
+      8.95, 4.3, 3.65, 0.85, { fontSize: 14, valign: "top" });
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 0.6, y: 5.35, w: 12.1, h: 0.8, rectRadius: 0.08, fill: { color: "DEEBF7" }, line: { color: "BDD7EE", width: 0.75 }, objectName: "our question" });
+  txt(s, "Where should the extra effort go?", 0.85, 5.35, 4.4, 0.8, { fontSize: 19, bold: true, color: BLUE });
+  [["fact", "a missing fact", "E2F0D9", "38761D"], ["check", "a free check", "E2F0D9", "38761D"], ["brain", "more thinking", "FADBD8", RED]].forEach(([icon, t, fill, col], k) => {
+    const x = 5.3 + k * 2.45;
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 5.48, w: 2.3, h: 0.55, rectRadius: 0.2, fill: { color: fill }, line: { color: col, width: 1 }, objectName: "option " + t });
+    s.addImage({ path: ICON(icon), x: x + 0.14, y: 5.57, w: 0.36, h: 0.36, objectName: "icon " + icon });
+    txt(s, t, x + 0.62, 5.48, 1.65, 0.55, { fontSize: 16, bold: true, color: col });
+  });
+  caption(s, "It matters: agents already write such code, tokens cost money, and most teams have one small GPU");
+  s.addNotes("(40 s) An LLM can answer a math problem in words, write a program, call a solver library, or think longer first. For computation, programs win: asked for the area of the same shape moved and turned, Qwen3-8B answers 436, 2944, 392, 728 in words, but its program says 436 every time. Two things go wrong. Programs fail silently: the same model's hull program prints 6, or 0 when extra helper functions are in the prompt, with no error; and a quarter to a third of wrong programs pass the problem's own examples. And thinking is expensive: high effort uses 4.4 times the tokens for 9 more points. So: where should the extra effort go?");
+
+  // 3. what we solve, and how hard
+  s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
+  s.addText("What we solve, and how hard it is", { placeholder: "title" });
+  [["shapes", "Geometry", "corners of the rubber band around 10 points", "≈ LeetCode Easy–Hard", BLUE],
+   ["trophy", "Contest problems", "311 Codeforces geometry problems", "mostly LeetCode Hard or harder", RED],
+   ["truck", "Routing, scheduling", "routes for 100 customers with time windows", "no LeetCode match: needs a solver", THEME.colors.accent2],
+   ["calc", "Word problems", "most coins from 500 gold and 300 wires?", "school level; the solver API is hard", "38761D"],
+   ["sqrt", "Math and proofs", "AIME answers; Lean proofs", "not a coding test", "595959"]].forEach(([icon, head, ex, tag, col], k) => {
+    const x = 0.6 + k * 2.45;
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.4, w: 2.3, h: 4.45, rectRadius: 0.08, fill: { color: "F7F7F7" }, line: { color: "D9D9D9", width: 0.75 }, objectName: "kind " + head });
+    s.addImage({ path: ICON(icon), x: x + 0.75, y: 1.6, w: 0.8, h: 0.8, objectName: "icon " + icon });
+    txt(s, head, x + 0.1, 2.55, 2.1, 0.75, { fontSize: 18, bold: true, align: "center" });
+    txt(s, ex, x + 0.15, 3.35, 2.0, 1.2, { fontSize: 15, align: "center", valign: "top" });
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: x + 0.1, y: 4.7, w: 2.1, h: 0.95, rectRadius: 0.1, fill: { color: "FFFFFF" }, line: { color: col, width: 1.25 }, objectName: "tag " + head });
+    txt(s, tag, x + 0.15, 4.7, 2.0, 0.95, { fontSize: 15, bold: true, color: col, align: "center" });
+  });
+  caption(s, "Our contest problems: median rating 2200 (LeetCode Hard); 46% are harder than any LeetCode problem");
+  s.addNotes("(25 s) We test five kinds of computational math: exact geometry, real Codeforces contest problems, routing and scheduling benchmarks that need a solver library, optimization word problems, and competition math and proofs. Next to coding tests: the geometry tasks are like LeetCode easy to hard, but must be exact on moved copies; our contest problems have a median Codeforces rating of 2200, LeetCode Hard, and almost half are harder than any LeetCode problem; routing has no LeetCode equivalent at all.");
+
+  // 4. finding 1
+  s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
+  s.addText("Finding 1: give the fact, not the manual", { placeholder: "title" });
+  txt(s, "Qwen3-32B plans delivery routes with Google's OR-Tools library", 0.6, 1.3, 12.1, 0.45, { fontSize: 17 });
+  [["with the whole manual", "RegisterUnaryLongLivingCallback()", "✗ does not exist: crash", "FCE4D6", RED, 1.95],
+   ["with 5 exact lines", "RegisterUnaryTransitCallback()", "✓ runs: best route", "E2F0D9", "38761D", 2.75]].forEach(([lab, call, res, fill, col, y]) => {
+    box(s, lab, 0.6, y, 2.7, 0.6, fill, { fontSize: 16, bold: true });
+    arrow(s, 3.3, y + 0.3, 3.65, y + 0.3);
+    code(s, call, 3.65, y, 4.9, 0.6, col, 15);
+    txt(s, res, 8.75, y, 3.9, 0.6, { fontSize: 17, bold: true, color: col });
+  });
+  txt(s, "Routing problems solved optimally (out of 100):", 0.6, 3.65, 12.1, 0.4, { fontSize: 17, bold: true });
+  hbars(s, 0.6, 4.1, 12.1, [["nothing extra", 23, "23", "7F7F7F"], ["think longer", 3, "3", RED], ["whole manual", 7, "7", RED], ["5 exact lines", 83, "77–90", BLUE]], 0.5, 2.6);
+  caption(s, "Thinking cannot supply a fact the model does not have");
+  s.addNotes("(35 s) Finding one. Qwen3-32B writes route-planning code with OR-Tools. Given the whole manual, it calls a function that sounds right but does not exist, and the program crashes. Given five lines with the exact call, it finds the best route. Out of 100 routing problems: 23 with nothing extra, only 3 when it thinks longer, 7 with the whole manual, and 77 to 90 with five exact lines. Thinking cannot supply a fact the model does not have.");
+
+  // 5. finding 2: free checks decide when to think
+  s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
+  s.addText("Finding 2: think harder only when a free check fails", { placeholder: "title" });
+  function checkPane(x, head, rows, bars, sub) {
+    panel(s, x, 1.35, 5.95, 4.6, head);
+    txt(s, head, x + 0.25, 1.45, 5.45, 0.5, { fontSize: 18, bold: true, color: BLUE });
+    rows.forEach(([t, col, fill], r) => box(s, t, x + 0.25, 2.05 + r * 0.72, 5.45, 0.6, fill, { fontSize: 15, color: col }));
+    txt(s, sub, x + 0.25, 3.6, 5.45, 0.4, { fontSize: 14, color: C.text2 });
+    bars.forEach(([lab, v, shown, col], r) => {
+      const y = 4.05 + r * 0.6;
+      txt(s, lab, x + 0.25, y, 2.2, 0.5, { fontSize: 14, align: "right" });
+      s.addShape(pres.shapes.RECTANGLE, { x: x + 2.55, y: y + 0.12, w: 1.6 * v, h: 0.28, fill: { color: col }, line: { color: col, width: 0.5 }, objectName: head + " " + lab });
+      txt(s, shown, x + 2.65 + 1.6 * v, y, 1.6, 0.5, { fontSize: 15, bold: true, color: col });
+    });
+  }
+  checkPane(0.6, "Check A: the problem's own examples", [["\"Make a triangle!\": examples pass → submit", "38761D", "E2F0D9"], ["\"Arrow\": an example fails → think harder → right", RED, "FADBD8"]],
+            [["always think hard", 1.0, "66.2% · 30k", "7F7F7F"], ["only on failure", 0.82, "66.3% · 25k", BLUE]], "311 contest problems (gpt-oss-120b), tokens per problem:");
+  checkPane(6.75, "Check B: two versions must agree", [["task only → program prints 6", "38761D", "E2F0D9"], ["+ 8 unneeded helpers → prints 0 → differ → think", RED, "FADBD8"]],
+            [["always think", 1.0, "98% · 5.9k", "7F7F7F"], ["only if they differ", 0.73, "99% · 4.3k", BLUE]], "108 geometry problems (Qwen3-32B, 3 runs):");
+  caption(s, "Same accuracy as always thinking, with 18–27% fewer tokens; no answers needed");
+  s.addNotes("(40 s) Finding two: thinking should be paid only when a free check fails. Check A uses the examples printed in every contest problem: 'Make a triangle!' passes them and is submitted; 'Arrow' fails one, so only it gets high effort. Same 66% as always thinking hard, 18% fewer tokens. Check B writes the program twice, with and without extra tools: if the answers differ, think. 99% vs 98%, with 27% fewer tokens. Neither check needs the answer.");
+
+  // 6. the method on one problem, and what it gives overall
+  s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
+  s.addText("Our method: cheap steps first", { placeholder: "title" });
+  txt(s, "One real problem (Qwen3-8B): products X, Y, Z at $10, $15, $20 under three limits; minimum cost? → 20000", 0.6, 1.28, 12.1, 0.4, { fontSize: 16 });
+  [["1 Program", "Objective()\n.Minimize()", "✗ crash, no fact", RED, "FADBD8", 1.0],
+   ["2 + Fact", "solver\n.Minimize(...)", "found automatically: its own checked program", "38761D", "E2F0D9", 1.0],
+   ["3 Free check", "20000 = 20000", "a second version agrees", "38761D", "E2F0D9", 1.0],
+   ["4 Think?", "skipped", "only if they differ", "7F7F7F", "F2F2F2", 1.0],
+   ["5 Reuse", "same program", "same kind, new data", BLUE, "DEEBF7", 1.0]].forEach(([head, big, small, col, fill], k) => {
+    const x = 0.6 + k * 2.45;
+    txt(s, head, x, 1.78, 2.3, 0.4, { fontSize: 17, bold: true, color: BLUE });
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 2.2, w: 2.3, h: 1.45, rectRadius: 0.08, fill: { color: fill }, line: { color: col, width: 1 }, objectName: "step " + head });
+    txt(s, big, x + 0.08, 2.25, 2.14, 0.62, { fontSize: k < 2 ? 14 : 18, bold: true, color: col, align: "center", fontFace: k < 2 ? "Courier New" : THEME.bodyFontFace });
+    txt(s, small, x + 0.1, 2.9, 2.1, 0.72, { fontSize: 14, align: "center", valign: "top" });
+    if (k < 4) arrow(s, x + 2.3, 2.92, x + 2.45, 2.92);
+  });
+  txt(s, "All 624 geometry and optimization problems, 3 models:", 0.6, 3.95, 7.0, 0.4, { fontSize: 16, bold: true });
+  hbars(s, 0.6, 4.4, 7.2, [["think on hardest", 74, "74% · 4.1k", "7F7F7F"], ["our method", 87, "87% · 2.5k", BLUE]], 0.6, 2.2, 1.6);
+  [["79% = 79%", "automatic fact vs hand-written, on a benchmark never used before"], ["0.6k vs 5.3k", "tokens on this problem vs thinking alone"]].forEach(([big, lab], r) => {
+    const y = 3.95 + r * 1.05;
+    txt(s, big, 8.2, y, 4.5, 0.5, { fontSize: 24, bold: true, color: BLUE });
+    txt(s, lab, 8.2, y + 0.48, 4.5, 0.5, { fontSize: 14, valign: "top" });
+  });
+  caption(s, "More accurate and cheaper than spending thinking on the hardest-looking problems");
+  s.addNotes("(60 s) Together this gives our method, shown on one real word problem. Without a fact, the program calls a method that does not exist. The fact is found automatically: the model's own earlier program for another problem that passed the check, showing the right call. With it, two versions both print 20000, they agree, so we skip thinking and accept: 0.6 thousand tokens instead of 5.3 thousand. A problem of the same kind with new data reuses the checked program. Over 624 problems and 3 models: 87% at 2.5 thousand tokens, versus 74% at 4.1 thousand for the usual idea of thinking more on the hardest-looking problems. And the automatic fact matches a hand-written one on a benchmark we never used before: 79 versus 79%.");
+
+  // 7. what is new, the plan, and the takeaway
+  s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
+  s.addText("What is new, and our plan", { placeholder: "title" });
+  panel(s, 0.6, 1.35, 5.95, 3.55, "new");
+  txt(s, "New compared with prior work", 0.85, 1.45, 5.45, 0.5, { fontSize: 18, bold: true, color: BLUE });
+  bullets(s, ["Prior work spends compute by difficulty or trains a switch; we decide with a free check after a fact, no training (87% vs 74%)",
+              "Prior work retrieves manuals or distils teacher programs checked against answers; our facts are the model's own checked programs",
+              "No training: Qwen3-8B on one GPU matches the fine-tuned ORLM-8B (69.5% vs 69.5%)"], { x: 0.85, y: 2.0, w: 5.5, h: 2.85, fontSize: 15 });
+  panel(s, 6.75, 1.35, 5.95, 3.55, "plan");
+  txt(s, "Plan until the final report", 7.0, 1.45, 5.45, 0.5, { fontSize: 18, bold: true, color: BLUE });
+  [["1", "Replicate on held-out data for 3 more models; run the closest baselines (STORM, AdaptThink)"],
+   ["2", "Find facts automatically for every problem type"],
+   ["3", "Final report, code and the recipe as a reusable tool"]].forEach(([n, t], r) => {
+    const y = 2.05 + r * 0.92;
+    s.addShape(pres.shapes.OVAL, { x: 7.0, y: y + 0.05, w: 0.5, h: 0.5, fill: { color: BLUE }, line: { color: BLUE }, objectName: "plan " + n });
+    txt(s, n, 7.0, y + 0.05, 0.5, 0.5, { fontSize: 17, bold: true, color: "FFFFFF", align: "center" });
+    txt(s, t, 7.65, y, 4.9, 0.8, { fontSize: 15, valign: "top" });
+  });
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 0.6, y: 5.15, w: 12.1, h: 0.95, rectRadius: 0.08, fill: { color: "DEEBF7" }, line: { color: "BDD7EE", width: 0.75 }, objectName: "takeaway" });
+  txt(s, [{ text: "Takeaway: ", options: { bold: true, color: BLUE } }, { text: "give the missing fact first, and think only where a free check fails: more accurate, fewer tokens, one 24 GB GPU." }],
+      0.85, 5.15, 11.6, 0.95, { fontSize: 18 });
+  s.addNotes("(30 s) What is new: prior work spends compute by difficulty or trains a model to decide when to think; we decide with a free execution check after giving a fact, with no training. Prior work retrieves manuals or distils a teacher's programs checked against answers; our facts are the model's own checked programs. And without training, an 8B model on one GPU matches a fine-tuned specialist. Next: replicate on held-out data and run the closest baselines, find facts for every problem type, and release the recipe. Takeaway: give the missing fact first, and think only where a free check fails. Thank you.");
+
   function slidePays(section, title) {
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
   s.addText(title, { placeholder: "title" });
@@ -701,30 +869,33 @@ function buildTalk() {
   s.addNotes("Left: four ways to spend compute on the same 624 problems (Qwen3-8B, Qwen3-32B, Qwen3.6; same order on 3 seeds). Thinking on the hardest-looking problems, the compute-optimal scaling idea, gets 74% at 4.1k tokens; fact first and thinking only when the check fails gets 87% at 2.5k. Right: the fact needs no human (the model's own checked program for a similar problem: gpt-oss-20b 78.8% vs 78.9% hand-written on held-out MAMO); models that fit one 24 GB GPU match Qwen3-32B with the fact; 30 labelled problems choose the best policy for a new task (0.6 points from the best on average).");
   }
   const EXTRAS = [   // [index label, slide]
-    ["It pays off: no human, small GPU, 30 labels", () => slidePays("Extra pages", "Extra: it pays off, even without a human or a big GPU")],
-    ["All policies, cost vs accuracy", () => slideTogether("Extra pages", "Extra: all policies, cost vs accuracy")],
+    ["Setup and fairness", () => slideSetup("Extra pages", "Extra: setup and fairness")],
+    ["Contest problems on the LeetCode scale", () => slideKinds("Extra pages", "Extra: our problems, and how hard they are next to LeetCode")],
+    ["Two versions, in detail", () => slideTwoVersions("Extra pages", "Extra: two versions catch each other's mistakes")],
+    ["The examples check, in detail", () => slideHard("Extra pages", "Extra: think harder only when the examples fail")],
+    ["Facts without a human, in detail", () => slideAuto("Extra pages", "Extra: the fact can be found without a human")],
     ["One fact helps small models most", () => slideSmall("Extra pages", "Extra: one fact helps small models most")],
     ["Reuse a checked program", () => slideReuse("Extra pages", "Extra: repeated problems need one checked program")],
-    ["Proofs need a specialized model", () => slideProof("Extra pages", "Extra: proofs need a specialized model, not a fact")],
+    ["All policies, cost vs accuracy", () => slideTogether("Extra pages", "Extra: all policies, cost vs accuracy")],
+    ["It pays off: small GPU, 30 labels", () => slidePays("Extra pages", "Extra: it pays off, even without a human or a big GPU")],
     ["Compared with published methods", () => slideBaselines("Extra pages", "Extra: compared with published methods")],
     ["Related research map", () => slideRelated("Extra pages", "Extra: where this work sits in related research")],
     ["Numbers reported in papers", () => slideReported("Extra pages", "Extra: numbers reported in papers, next to ours")],
-    ["Where the recipe stops, and next", () => slideLimits("Extra pages", "Extra: where the recipe stops, and what is next")],
+    ["Proofs need a specialized model", () => slideProof("Extra pages", "Extra: proofs need a specialized model, not a fact")],
+    ["Where the recipe stops", () => slideLimits("Extra pages", "Extra: where the recipe stops, and what is next")],
     ["All findings at a glance", () => slideGlance("Extra pages", "Extra: all findings at a glance")],
     ["Words we use", () => slideWords("Extra pages", "Extra: words we use")],
   ];
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
   s.addText("Thank you: questions?", { placeholder: "title" });
-  panel(s, 0.6, 1.5, 12.1, 1.5, "takeaway");
-  txt(s, [{ text: "Takeaway: ", options: { bold: true } }, { text: "give the model the missing fact first, and spend thinking only where a free check fails. More accurate, fewer tokens, and it works on one 24 GB GPU." }],
-      0.9, 1.6, 11.5, 1.3, { fontSize: 20 });
-  txt(s, "Extra pages for questions", 0.6, 3.3, 12.1, 0.45, { fontSize: 18, bold: true, color: BLUE });
+  txt(s, "Extra pages for questions (type the number and press Enter in the slide show)", 0.6, 1.4, 12.1, 0.45, { fontSize: 17, bold: true, color: BLUE });
   const first = pres.slides.length + 1;
   EXTRAS.forEach(([t], k) => {
-    const x = 0.6 + (k % 3) * 4.1, y = 3.85 + Math.floor(k / 3) * 0.75;
-    txt(s, [{ text: (first + k) + "  ", options: { bold: true, color: BLUE } }, { text: t }], x, y, 3.95, 0.6, { fontSize: 15 });
+    const x = 0.6 + (k % 4) * 3.05, y = 2.0 + Math.floor(k / 4) * 1.0;
+    box(s, "", x, y, 2.9, 0.85, "F2F2F2");
+    txt(s, [{ text: String(first + k), options: { bold: true, color: BLUE, fontSize: 20, breakLine: true } }, { text: t, options: { fontSize: 14 } }], x + 0.15, y, 2.65, 0.85, {});
   });
-  s.addNotes(`End of the 5-minute talk; 5 minutes of questions follow. The extra pages (slides ${first}-${first + EXTRAS.length - 1}) answer the likely questions: ` + EXTRAS.map(([t], k) => `${first + k} ${t}`).join("; ") + ".");
+  s.addNotes(`End of the 5-minute talk; 5 minutes of questions follow. Extra pages (slides ${first}-${first + EXTRAS.length - 1}): ` + EXTRAS.map(([t], k) => `${first + k} ${t}`).join("; ") + ". Likely questions: why not GPT or Claude (open models only, cost and reproducibility); is the hand-written fact cheating (the automatic fact matches it); is the difference real (3 seeds, pre-registered); bigger model vs this recipe (small GPU page).");
 
   pres.addSection({ title: "Extra pages" });
   EXTRAS.forEach(([, make]) => make());
