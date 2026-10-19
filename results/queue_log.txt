@@ -483,3 +483,5 @@ S2_HOL started on GPU2 Mon Oct 19 19:39:52 UTC 2026
 S2_HOL oss20 done Mon Oct 19 19:47:23 UTC 2026
 S2_STORM_HO done Mon Oct 19 20:04:09 UTC 2026
 S2_HO q8b arms done Mon Oct 19 20:34:59 UTC 2026
+S2_CD queued (code vs description, matched content; GPU1; PREREG_CD.md) Mon Oct 19 20:39:03 UTC 2026
+S2_CD started on GPU1 Mon Oct 19 20:39:03 UTC 2026
