@@ -4,8 +4,8 @@ State as of 2026-10-13 08:00 UTC. All GPU work on the old servers has been stopp
 
 ## 0. Server 2 status (2026-10-13 14:00 UTC)
 STATUS 11:55 (10-19): check headroom (offline, FINDINGS): a perfect check adds only 0.8-2.6 points for 14B+ models on word problems. ADAPT
-r1d7 cheap arms done (NoThinking text 80.5% MATH-500 = paper); r1d7 prog 35% no-code replies -> read raw before trusting (run_adapt now
-saves 'raw' for no-code rows; finished prog files lack it). Next free GPU: decide from PROPOSAL §9 (Qwen3.6 / Qwen3-8B MAMO finishing).
+r1d7 cheap arms done (NoThinking text 80.5% MATH-500 = paper); r1d7 prog 35% no-code replies = the model answering in text, verified on re-asked samples
+(run_adapt now saves 'raw' for no-code rows). Next free GPU: decide from PROPOSAL §9 (Qwen3.6 / Qwen3-8B MAMO finishing).
 STATUS 10:55 (10-19): RUNNING GPU0 STORM-Qwen3-4B official TIR on MAMO (inference pid 4037001, orphaned on purpose: its 6 h timeout was
 killed because results are written only at the end; queue_s2_storm_cont.sh waits on it, then runs x3, then rmdir .gpu_claim_0) -> regrade
 out_mamo_full with run_nlopt.correct (PREREG_X7.md STORM prediction). GPU1 ADAPT (queue_s2_adapt.sh: r1d7 + adt7 servers, X1 text/prog/think
