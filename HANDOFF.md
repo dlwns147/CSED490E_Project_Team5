@@ -3,6 +3,12 @@
 State as of 2026-10-13 08:00 UTC. All GPU work on the old servers has been stopped and the hourly loop cancelled.
 
 ## 0. Server 2 status (2026-10-13 14:00 UTC)
+STATUS 18:45 (10-19): MAIN LINE (user: 'do important things') = HO, the whole label-free recipe on unseen OptMATH-Bench (PREREG_HO.md;
+NLOPT_SET=optmath; analyze_ho.py). Raw finding: pywraplp-only prompts make the ~27 nonlinear problems unsolvable -> HO-L arms
+free/thinkfree (solver choice; cvxpy+scipy installed in the venv) queued for GPU1/2 (queue_s2_hol.sh). GPU0 queue_s2_ho.sh (q14a, q8b,
+then formx library). STORM on OptMATH queued (queue_s2_storm_ho.sh -> /SSD/lean_postech/storm/out_optmath; regrade with
+/opt/conda/bin/python poc/analyze_storm.py optmath). CH done (verdict in PREREG_CH.md); CH-R fresh seeds 4-8 finishing (side note only).
+Next after HO: matched-content test 'working code vs description' (same knowledge as one sentence vs a few code lines).
 STATUS 15:35 (10-19): USER TASK CH (approach hints on the 311 contest geometry problems; docs/prereg/PREREG_CH.md, committed 1caf94f before
 running). RUNNING queue_s2_ch.sh: gpt-oss-120b GPU1 port 8044, gpt-oss-20b GPU2 port 8045; tags <m>_medium_tag (255 tagged problems) and
 <m>_medium_plan, seeds 1-3 -> results/h2/cc_full_*; auto-analysis results/h2/ch_analysis.log (poc/analyze_ch.py; oracle-agreement cache
