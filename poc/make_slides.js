@@ -686,11 +686,22 @@ slideLimits("Next", "Where the recipe stops, and what is next");
 const FULL = path.join(ROOT, "PROPOSAL_slides_full.pptx");
 pres.writeFile({ fileName: FULL }).then(async () => { await applyTheme(FULL, THEME); console.log("written", FULL); buildTalk(); });
 
-// ================= 5-minute talk + 5 minutes of questions (PROPOSAL_slides.pptx): 9 slides, then extra pages =================
+// ================= 5-minute talk + 5 minutes of questions (PROPOSAL_slides.pptx): 9 slides, then extra pages for expected questions =================
 function buildTalk() {
   pres = newDeck();
-  const addSlide = pres.addSlide.bind(pres);   // the talk deck has no speaker notes (the full deck keeps them)
-  pres.addSlide = (o) => { const sl = addSlide(o); sl.addNotes = () => sl; return sl; };
+  const addSlide = pres.addSlide.bind(pres);   // notes only on the 9 talk slides (Korean script, SCRIPT_KO); the extra pages drop the full deck's notes
+  pres.addSlide = (o) => { const sl = addSlide(o); sl.say = sl.addNotes.bind(sl); sl.addNotes = () => sl; return sl; };
+  const SCRIPT_KO = [   // speaker notes of slides 1-9, about 4 minutes in all
+    "(10초) 안녕하세요, 5조입니다. LLM으로 계산 수학 문제를 정확하고 싸게 푸는 방법을 제안합니다. 질문은 하나입니다. 추가 노력을 사실, 검사, 생각 중 어디에 써야 할까요?",
+    "(25초) 저희가 푸는 문제는 다섯 종류입니다. 기하 계산, Codeforces 기하 문제, 배송 경로, 최적화 문장제, 그리고 경시 수학과 증명입니다. 쉽지 않습니다. 경시 문제의 중앙값은 Codeforces Master 수준이고, AIME는 고등학생 상위 5% 정도가 치는 시험입니다. 공개 모델인 Qwen3와 gpt-oss를 직접 돌리고, 맞힌 문제 수와 쓴 토큰 수를 함께 잽니다.",
+    "(20초) LLM은 말로 답할 수도 있고, 프로그램을 짤 수도 있습니다. Qwen3-8B에게 같은 도형의 넓이의 두 배를 물었습니다. 옮기고 돌리고 뒤집어도 답은 436입니다. 말로 답하면 매번 다른 답이 나오지만, 프로그램은 네 번 모두 436입니다. 계산에는 프로그램이 맞는 도구입니다.",
+    "(35초) 하지만 두 가지 문제가 있습니다. 첫째, 프로그램은 조용히 틀립니다. 같은 문제인데 프롬프트에 보조 코드만 더하면 6 대신 0을 출력하고, 에러 메시지도 없습니다. 없는 라이브러리 함수를 불러서 죽기도 합니다. 둘째, 오래 생각하면 비쌉니다. gpt-oss-120b는 오래 생각하면 57%에서 66%로 오르지만, 토큰은 4.4배를 씁니다. 그래서 질문입니다. 추가 노력을 빠진 사실, 공짜 검사, 더 많은 생각 중 어디에 써야 할까요?",
+    "(35초) 첫 번째 발견입니다. 매뉴얼이 아니라 사실을 주세요. Qwen3-32B가 OR-Tools로 배송 경로 프로그램을 짭니다. 매뉴얼 전체를 주면 존재하지 않는 함수를 불러서 죽고, 정확한 사용법 다섯 줄을 주면 최적 경로를 찾습니다. 100문제 중 최적해는 아무것도 안 주면 23개, 오래 생각하면 오히려 3개, 매뉴얼 전체는 7개, 다섯 줄은 77에서 90개입니다. 모르는 사실은 생각한다고 생기지 않습니다.",
+    "(30초) 두 번째 발견입니다. 공짜 검사가 실패할 때만 생각하게 하세요. 검사 A는 문제에 적힌 예제입니다. 예제를 통과하면 바로 제출하고, 틀리면 그 문제만 더 생각합니다. 검사 B는 프로그램을 두 버전으로 짜서, 답이 다를 때만 생각합니다. 두 경우 모두 항상 생각할 때와 정확도는 같고, 토큰은 18에서 27% 적습니다. 그리고 두 검사 모두 정답이 필요 없습니다.",
+    "(50초) 두 발견을 합친 것이 저희 방법입니다. 실제 최적화 문제로 보겠습니다. 1단계, 모델이 없는 메서드를 불러서 죽습니다. 2단계, 사실을 줍니다. 이 사실은 사람이 쓴 것이 아니라, 모델이 다른 문제에서 짜서 검사를 통과한 자기 프로그램에서 자동으로 가져옵니다. 3단계, 두 버전의 답이 20000으로 같으니, 4단계 생각은 건너뜁니다. 생각만 했다면 5.3k 토큰이 들었을 문제를 0.6k로 풉니다. 5단계, 같은 종류의 새 데이터에는 검사된 프로그램을 재사용합니다. 624문제 전체에서, 어려워 보이는 문제에 생각을 몰아주면 74%, 저희 방법은 87%이고 토큰도 더 적습니다.",
+    "(35초) 새로운 점은 세 가지입니다. 학습 없이, 공짜 검사가 실패할 때만 생각합니다. 정답 없이, 모델 자신의 검사된 프로그램을 사실로 줍니다. 그리고 특화 모델을 파인튜닝하지 않고도, 24GB GPU 한 장으로 같은 정확도를 냅니다. 다음으로는 더 많은 모델로 검증을 마치고, 검사로 못 잡는 오류, 즉 실행은 되지만 문제를 잘못 모델링한 프로그램을 다루겠습니다. 정리하면, 빠진 사실을 먼저 주고, 공짜 검사가 실패한 곳에서만 생각하게 하자는 것입니다.",
+    "(5초) 감사합니다. 질문 받겠습니다. 예상 질문마다 보충 슬라이드를 준비했습니다.",
+  ];
   const CHOICES = [["fact", "a missing fact", "E2F0D9", "38761D"], ["check", "a free check", "E2F0D9", "38761D"], ["brain", "more thinking", "FADBD8", RED]];
   function pill(x, y, k, fs = 15) {   // choice k from "where should the extra effort go?"
     const [icon, t, fill, col] = CHOICES[k];
@@ -761,8 +772,8 @@ function buildTalk() {
   txt(s, "Our question: where should the extra effort go?", 0.85, 5.75, 5.5, 0.9, { fontSize: 19, bold: true, color: BLUE });
   [0, 1, 2].forEach(k => pill(6.25 + k * 2.15, 5.92, k));
 
-  function costRows(x, y, w, labW, rows) {   // [label, % solved, tokens, tokens shown, colour]: the number is accuracy, the bar is cost
-    const maxTok = Math.max(...rows.map(r => r[2])), barX = x + labW + 1.0, barMax = w - labW - 1.0 - 0.8;
+  function costRows(x, y, w, labW, rows, maxTok = Math.max(...rows.map(r => r[2]))) {   // [label, % solved, tokens, tokens shown, colour]: the number is accuracy, the bar is cost
+    const barX = x + labW + 1.0, barMax = w - labW - 1.0 - 0.8;
     txt(s, "solved", x + labW, y, 0.9, 0.35, { fontSize: 14, color: "7F7F7F", align: "center" });
     txt(s, "tokens per problem", barX, y, barMax + 0.8, 0.35, { fontSize: 14, color: "7F7F7F" });
     rows.forEach(([lab, acc, tok, shown, col], r) => {
@@ -883,36 +894,149 @@ function buildTalk() {
   caption(s, "\"Spend more on hard problems\" loses to \"facts first, think where the check fails\"");
   s.addNotes("Left: four ways to spend compute on the same 624 problems (Qwen3-8B, Qwen3-32B, Qwen3.6; same order on 3 seeds). Thinking on the hardest-looking problems, the compute-optimal scaling idea, gets 74% at 4.1k tokens; fact first and thinking only when the check fails gets 87% at 2.5k. Right: the fact needs no human (the model's own checked program for a similar problem: gpt-oss-20b 78.8% vs 78.9% hand-written on held-out MAMO); models that fit one 24 GB GPU match Qwen3-32B with the fact; 30 labelled problems choose the best policy for a new task (0.6 points from the best on average).");
   }
-  const EXTRAS = [   // [index label, slide]
-    ["Setup and fairness", () => slideSetup("Extra pages", "Extra: setup and fairness")],
-    ["How hard: contest ranks, exams", () => slideKinds("Extra pages", "Extra: how hard, by contest ranks and exams")],
-    ["Two versions, in detail", () => slideTwoVersions("Extra pages", "Extra: two versions catch each other's mistakes")],
-    ["The examples check, in detail", () => slideHard("Extra pages", "Extra: think harder only when the examples fail")],
-    ["Facts without a human, in detail", () => slideAuto("Extra pages", "Extra: the fact can be found without a human")],
-    ["One fact helps small models most", () => slideSmall("Extra pages", "Extra: one fact helps small models most")],
-    ["Reuse a checked program", () => slideReuse("Extra pages", "Extra: repeated problems need one checked program")],
-    ["All policies, cost vs accuracy", () => slideTogether("Extra pages", "Extra: all policies, cost vs accuracy")],
-    ["It pays off: small GPU, 30 labels", () => slidePays("Extra pages", "Extra: it pays off, even without a human or a big GPU")],
-    ["Compared with published methods", () => slideBaselines("Extra pages", "Extra: compared with published methods")],
-    ["Related research map", () => slideRelated("Extra pages", "Extra: where this work sits in related research")],
-    ["Numbers reported in papers", () => slideReported("Extra pages", "Extra: numbers reported in papers, next to ours")],
-    ["Proofs need a specialized model", () => slideProof("Extra pages", "Extra: proofs need a specialized model, not a fact")],
-    ["Where the recipe stops", () => slideLimits("Extra pages", "Extra: where the recipe stops, and what is next")],
-    ["All findings at a glance", () => slideGlance("Extra pages", "Extra: all findings at a glance")],
-    ["Words we use", () => slideWords("Extra pages", "Extra: words we use")],
+  // ---- extra pages that answer expected questions (each title is the question)
+  function qSlide(title, sub) {
+    s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Extra pages" });
+    s.addText(title, { placeholder: "title" });
+    if (sub) txt(s, sub, 0.6, 1.3, 12.1, 0.45, { fontSize: 17 });
+  }
+  function slideQLeak() {
+    qSlide("Q: what if a wrong program passes the check?", "It happens, but a perfect check would buy little: thinking rarely fixes those problems");
+    [["24–37%", "of gpt-oss-120b's wrong contest programs pass the problem's examples"],
+     ["12–16%", "of word problems: both programs agree and both are wrong (14B+ models)"]].forEach(([big, lab], k) => {
+      const x = 0.6 + k * 4.1;
+      panel(s, x, 1.95, 3.95, 1.9, "leak " + big);
+      txt(s, big, x + 0.25, 2.05, 3.5, 0.75, { fontSize: 36, bold: true, color: RED });
+      txt(s, lab, x + 0.25, 2.85, 3.5, 0.9, { fontSize: 15, valign: "top" });
+    });
+    panel(s, 8.8, 1.95, 3.9, 1.9, "example Find Color");
+    txt(s, [{ text: "Example: \"Find Color\" (contest)", options: { bold: true, breakLine: true } }, { text: "passes all 3 examples → submitted", options: { breakLine: true } }, { text: "✗ fails hidden test 11", options: { bold: true, color: RED } }],
+        9.05, 2.1, 3.45, 1.6, { fontSize: 15, valign: "top" });
+    panel(s, 0.6, 4.1, 12.1, 1.85, "perfect check");
+    txt(s, "If the check were perfect (word problems, every seed):", 0.85, 4.15, 11.6, 0.45, { fontSize: 16, bold: true });
+    [["the leaked problems go to thinking", "FFFFFF"], ["thinking fixes only 7–16% of them", "FFFFFF"], ["+0.8 to +2.6 points (Qwen3-8B: +5.6)", "DEEBF7"]].forEach(([t, fill], k) => {
+      const x = 0.85 + k * 3.0;
+      box(s, t, x, 4.7, 2.6, 1.0, fill, { fontSize: 15, bold: k === 2, color: k === 2 ? "1F3864" : C.text1 });
+      if (k < 2) arrow(s, x + 2.6, 5.2, x + 3.0, 5.2);
+    });
+    txt(s, "some 'wrong' answers are wrong labels: nl4opt-174 gold 7500, true 5625 (3 of 4 we read)", 9.85, 4.7, 2.7, 1.0, { fontSize: 14, color: C.text2 });
+    caption(s, "Next target: programs that run and agree but model the problem wrong");
+  }
+  function slideQThink() {
+    qSlide("Q: why can thinking make it worse?", "Qwen3-32B writes OR-Tools programs for optimization word problems (NL4OPT + IndustryOR)");
+    [["thinking, no fact", "Objective().SetMaximize()", "✗ invented method: crash", "FCE4D6", RED, 1.95],
+     ["6 exact lines first", "solver.Maximize(...)", "✓ the real call: runs", "E2F0D9", "38761D", 2.75]].forEach(([lab, call, res, fill, col, y]) => {
+      box(s, lab, 0.6, y, 2.7, 0.6, fill, { fontSize: 16, bold: true });
+      arrow(s, 3.3, y + 0.3, 3.65, y + 0.3);
+      code(s, call, 3.65, y, 4.9, 0.6, col, 15);
+      txt(s, res, 8.75, y, 3.9, 0.6, { fontSize: 17, bold: true, color: col });
+    });
+    txt(s, "% solved:", 0.6, 3.6, 12.1, 0.4, { fontSize: 17, bold: true });
+    hbars(s, 0.6, 4.0, 12.1, [["no fact, no thinking", 65.4, "65.4%", "7F7F7F"], ["no fact, thinking", 52.0, "52.0%", RED],
+                              ["fact, always thinking", 72.0, "72.0% · 5.5k tokens", "7F7F7F"], ["fact first, think on failure", 72.4, "72.4% · 1.3k tokens", BLUE]], 0.5, 3.4, 2.6);
+    caption(s, "Thinking cannot add a fact the model lacks; given the fact first, thinking helps");
+  }
+  function slideQHard() {
+    qSlide("Q: is 'think on the hardest' a weak baseline?", "We gave the router each problem's true Codeforces rating (exploratory; 311 contest problems, gpt-oss-120b, 3 seeds)");
+    txt(s, "Send a problem to high effort when ...", 0.6, 1.9, 7.8, 0.4, { fontSize: 16, bold: true });
+    costRows(0.6, 2.3, 7.8, 3.3, [["true rating ≥ 2600", "61.4%", 19.4, "19.4k", "7F7F7F"], ["true rating ≥ 2400", "63.3%", 22.7, "22.7k", "7F7F7F"],
+      ["true rating ≥ 1800", "65.3%", 27.8, "27.8k", "7F7F7F"], ["its first answer is long", "62.1%", 23.0, "23.0k", "7F7F7F"],
+      ["always", "66.2%", 30.1, "30.1k", "7F7F7F"], ["an example fails (free check)", "65.0%", 20.2, "20.2k", BLUE]]);
+    [["74% → 87%", "624 problems, 3 models: think on the hardest-looking (Snell et al.) → fact first, think on failure"],
+     ["79%", "even with the best fix chosen per difficulty level"]].forEach(([big, lab], r) => {
+      const y = 1.95 + r * 1.8;
+      txt(s, big, 8.8, y, 3.9, 0.65, { fontSize: 32, bold: true, color: BLUE });
+      txt(s, lab, 8.8, y + 0.7, 3.9, 0.9, { fontSize: 15, valign: "top" });
+    });
+    caption(s, "Even the true difficulty does not say which program is wrong; a free check does");
+  }
+  function slideQVote() {
+    qSlide("Q: why not majority voting?");
+    panel(s, 0.6, 1.35, 5.95, 4.65, "pick one of three");
+    txt(s, "Pick 1 of 3 programs (Qwen3-8B, 300 geometry problems): % picked wrong", 0.85, 1.45, 5.5, 0.7, { fontSize: 16, bold: true, valign: "top" });
+    hbars(s, 0.85, 2.25, 5.5, [["majority vote", 43, "4.3%", "7F7F7F"], ["CodeT (+340 tokens)", 40, "4.0%", "7F7F7F"], ["DeepConf", 53, "5.3%", "7F7F7F"],
+                               ["MBR-exec", 63, "6.3%", "7F7F7F"], ["symmetry check", 3, "0.3%", BLUE]], 0.55, 2.2, 0.9);
+    txt(s, "symmetry check: run the program on a moved copy; a right program gives the same answer (no extra tokens)", 0.85, 5.1, 5.5, 0.8, { fontSize: 14, color: C.text2, valign: "top" });
+    panel(s, 6.75, 1.35, 5.95, 4.65, "votes vs checks");
+    txt(s, "Qwen3-32B, word problems", 7.0, 1.45, 5.45, 0.4, { fontSize: 16, bold: true });
+    costRows(7.0, 1.85, 5.45, 2.5, [["vote of 3 programs", "68.4%", 1.1, "1.1k", "7F7F7F"], ["vote of 3 thinking runs", "79.4%", 16.4, "16.4k", "7F7F7F"], ["fact first, think on failure", "72.4%", 1.3, "1.3k", BLUE]], 16.4);
+    txt(s, "Qwen3-32B, competition math (MATH-500)", 7.0, 4.0, 5.45, 0.4, { fontSize: 16, bold: true });
+    costRows(7.0, 4.4, 5.45, 2.5, [["vote of 3 text answers", "89.2%", 2.3, "2.3k", "7F7F7F"], ["text = program, else think", "97.2%", 3.4, "3.4k", BLUE]], 16.4);
+    caption(s, "A check picks the right answer, a vote the popular one; 3 thinking runs win only at 12× tokens");
+  }
+  function slideQFair() {
+    qSlide("Q: is the comparison fair?");
+    [["coins", "Input tokens count too", "+213 tokens", "input tokens for the 5-line fact (701 vs 488); a long manual adds 413, extra tools 912. Input is cheaper and cacheable: no conclusion flips. Running programs uses CPU, which we do not count."],
+     ["trophy", "Memorized problems?", "81% vs 83%", "older vs newer contests at the same difficulty (rating below 2000): no sign of memory, though all are before 2022. MAMO was held out until the end, and every method runs on the same model."],
+     ["check", "Small differences", "3 seeds", "every claim pre-registered; when the gap is 1–4 problems we say 'same accuracy, fewer tokens', not 'better' (3 vs 1 problems: p = 0.62)."]].forEach(([icon, head, big, body], k) => {
+      const x = 0.6 + k * 4.1;
+      panel(s, x, 1.4, 3.9, 4.55, "fair " + head);
+      s.addImage({ path: ICON(icon), x: x + 0.25, y: 1.6, w: 0.55, h: 0.55, objectName: "icon " + icon });
+      txt(s, head, x + 0.95, 1.6, 2.8, 0.55, { fontSize: 18, bold: true });
+      txt(s, big, x + 0.25, 2.35, 3.4, 0.75, { fontSize: 32, bold: true, color: BLUE });
+      txt(s, body, x + 0.25, 3.2, 3.4, 2.6, { fontSize: 15, valign: "top" });
+    });
+    caption(s, "Same models, problems and grader for every method; every accuracy comes with its cost");
+  }
+
+  const EXTRAS = [   // [key, index label, slide], in the order of the expected questions
+    ["published", "Compared with published methods", () => slideBaselines("Extra pages", "Extra: compared with published methods")],
+    ["related", "Related research map", () => slideRelated("Extra pages", "Extra: where this work sits in related research")],
+    ["reported", "Numbers reported in papers", () => slideReported("Extra pages", "Extra: numbers reported in papers, next to ours")],
+    ["leak", "A wrong program passes the check", slideQLeak],
+    ["think", "Why thinking can hurt", slideQThink],
+    ["hard", "Is difficulty the right signal?", slideQHard],
+    ["vote", "Why not majority voting?", slideQVote],
+    ["fair", "Is the comparison fair?", slideQFair],
+    ["auto", "Facts without a human", () => slideAuto("Extra pages", "Extra: the fact can be found without a human")],
+    ["small", "One fact helps small models most", () => slideSmall("Extra pages", "Extra: one fact helps small models most")],
+    ["pays", "It pays off: small GPU, 30 labels", () => slidePays("Extra pages", "Extra: it pays off, even without a human or a big GPU")],
+    ["policies", "All policies, cost vs accuracy", () => slideTogether("Extra pages", "Extra: all policies, cost vs accuracy")],
+    ["proof", "Proofs need a specialized model", () => slideProof("Extra pages", "Extra: proofs need a specialized model, not a fact")],
+    ["limits", "Where the recipe stops", () => slideLimits("Extra pages", "Extra: where the recipe stops, and what is next")],
+    ["kinds", "How hard: contest ranks, exams", () => slideKinds("Extra pages", "Extra: how hard, by contest ranks and exams")],
+    ["reuse", "Reuse a checked program", () => slideReuse("Extra pages", "Extra: repeated problems need one checked program")],
+    ["two", "Two versions, in detail", () => slideTwoVersions("Extra pages", "Extra: two versions catch each other's mistakes")],
+    ["examples", "The examples check, in detail", () => slideHard("Extra pages", "Extra: think harder only when the examples fail")],
+    ["setup", "Setup", () => slideSetup("Extra pages", "Extra: setup, scoring and hardware")],
+    ["glance", "All findings at a glance", () => slideGlance("Extra pages", "Extra: all findings at a glance")],
+    ["words", "Words we use", () => slideWords("Extra pages", "Extra: words we use")],
+  ];
+  const QUESTIONS = [   // [expected question, extra pages that answer it]
+    ["What is new vs PAL and cascades?", ["published", "related", "reported"]],
+    ["What if a wrong program passes the check?", ["leak"]],
+    ["Why can thinking make it worse?", ["think"]],
+    ["Is 'think on the hardest' a weak baseline?", ["hard"]],
+    ["Why not majority voting?", ["vote"]],
+    ["Is the comparison fair?", ["fair", "setup"]],
+    ["Who writes the fact?", ["auto"]],
+    ["Does it hold for smaller models?", ["small", "pays"]],
+    ["Which policy for a new task?", ["policies", "pays"]],
+    ["Proofs? Where does it stop?", ["proof", "limits"]],
+    ["How hard are the problems?", ["kinds"]],
+    ["What if the same problem repeats?", ["reuse"]],
   ];
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
   s.addText("Thank you: questions?", { placeholder: "title" });
-  txt(s, "Extra pages for questions (type the number and press Enter in the slide show)", 0.6, 1.4, 12.1, 0.45, { fontSize: 17, bold: true, color: BLUE });
-  const first = pres.slides.length + 1;
-  EXTRAS.forEach(([t], k) => {
-    const x = 0.6 + (k % 4) * 3.05, y = 2.0 + Math.floor(k / 4) * 1.0;
-    box(s, "", x, y, 2.9, 0.85, "F2F2F2");
-    txt(s, [{ text: String(first + k), options: { bold: true, color: BLUE, fontSize: 20, breakLine: true } }, { text: t, options: { fontSize: 14 } }], x + 0.15, y, 2.65, 0.85, {});
+  txt(s, "Expected questions → extra page (type the number and press Enter in the slide show)", 0.6, 1.3, 12.1, 0.45, { fontSize: 17, bold: true, color: BLUE });
+  const first = pres.slides.length + 1, page = key => first + EXTRAS.findIndex(e => e[0] === key);
+  QUESTIONS.forEach(([q, keys], k) => {
+    const x = 0.6 + Math.floor(k / 6) * 6.15, y = 1.9 + (k % 6) * 0.72;
+    box(s, "", x, y, 5.95, 0.62, "F2F2F2");
+    txt(s, q, x + 0.15, y, 5.6 - keys.length * 0.6, 0.62, { fontSize: 15 });
+    keys.sort((a, b) => page(a) - page(b)).forEach((key, j) => {
+      const cx = x + 5.95 - 0.1 - (keys.length - j) * 0.6;
+      s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: cx + 0.05, y: y + 0.11, w: 0.5, h: 0.4, rectRadius: 0.08, fill: { color: BLUE }, line: { color: BLUE }, objectName: "page " + key });
+      txt(s, String(page(key)), cx + 0.05, y + 0.11, 0.5, 0.4, { fontSize: 15, bold: true, color: "FFFFFF", align: "center" });
+    });
   });
+  txt(s, "Also: " + ["two", "examples", "glance", "words"].map(key => `${page(key)} ${EXTRAS.find(e => e[0] === key)[1].toLowerCase()}`).join(" · "),
+      0.6, 6.3, 12.1, 0.4, { fontSize: 15, color: C.text2 });
+
+  SCRIPT_KO.forEach((t, i) => pres.slides[i].say(t));
 
   pres.addSection({ title: "Extra pages" });
-  EXTRAS.forEach(([, make]) => make());
+  EXTRAS.forEach(([, , make]) => make());
 
   pres.writeFile({ fileName: OUT }).then(async () => { await applyTheme(OUT, THEME); console.log("written", OUT); });
 }
