@@ -498,3 +498,5 @@ S2_HOL done Mon Oct 19 21:47:49 UTC 2026
 S2_STORM_OB started on GPU2 Mon Oct 19 21:47:54 UTC 2026
 S2_OB oss20 done Mon Oct 19 21:51:20 UTC 2026
 S2_X7REP q32b_mamo done (5178/5178) Mon Oct 19 22:36:26 UTC 2026
+S2_OBF queued (usage card + library on OptiBench; GPU3; PREREG_HO.md OB-F) Mon Oct 19 23:37:58 UTC 2026
+S2_OBF started on GPU3 Mon Oct 19 23:37:58 UTC 2026
