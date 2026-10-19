@@ -301,7 +301,7 @@ function mini(s, k, title, sub, rows) {
 }
 const G = "A5A5A5";
 mini(s, 0, "Add the missing fact", "delivery routing, Qwen3-32B: % optimal",
-     [["task only", 23, "23%", G], ["think longer", 3, "3%", RED], ["whole manual", 7, "7%", RED], ["5 exact lines", 83, "77–90%", BLUE]]);
+     [["task only", 23, "23%", G], ["think longer", 3, "3%", RED], ["long manual", 7, "7%", RED], ["exact usage", 83, "77–90%", BLUE]]);
 mini(s, 1, "Small models gain most", "word problems: % solved",
      [["Qwen3-1.7B", 0.1, "0%", G], ["1.7B + fact", 44.5, "45%", BLUE], ["Qwen3-32B", 65.4, "65%", G], ["32B + fact", 66.2, "66%", BLUE]]);
 mini(s, 2, "Compare two versions", "geometry, Qwen3-32B: % · tokens",
@@ -312,7 +312,7 @@ mini(s, 4, "Reuse a checked program", "48 routing days: % valid · tokens",
      [["new each day", 7, "7% · 86k", G], ["own notes", 36, "31–40%", G], ["reuse one", 94, "94% · 28k", BLUE]]);
 mini(s, 5, "All together", "624 problems, 3 models: % · tokens",
      [["think on hardest", 74, "74% · 4.1k", G], ["fix by type", 83, "83% · 4.2k", G], ["fact first", 87, "87% · 2.5k", BLUE]]);
-s.addNotes((pre || "") + "One panel per result. Add the fact: routing 23% to 77-90% (thinking longer 3%, whole manual 7%). Small models gain most: Qwen3-1.7B 0% to 45%, Qwen3-32B 65% to 66% (word problems). Compare two versions: 99% at 4.3k tokens vs always thinking 98% at 5.9k; with 8 extra tools 59%. Think only on a failed check (gpt-oss-120b, contest): 66.3% at 24.7k vs 66.2% at 30.1k. Reuse: 94% of 48 routing days vs 7% with a new program per day; Dynamic Cheatsheet (DC, the model's own notes) 31-40%. All together: fact first then think on failure 87% at 2.5k vs 74% at 4.1k for thinking on the hardest-looking problems (Snell-style) and 83% for choosing the fix by failure type.");
+s.addNotes((pre || "") + "One panel per result. Add the fact: routing 23% to 77-90% (thinking longer 3%, long reference sheet 7%). Small models gain most: Qwen3-1.7B 0% to 45%, Qwen3-32B 65% to 66% (word problems). Compare two versions: 99% at 4.3k tokens vs always thinking 98% at 5.9k; with 8 extra tools 59%. Think only on a failed check (gpt-oss-120b, contest): 66.3% at 24.7k vs 66.2% at 30.1k. Reuse: 94% of 48 routing days vs 7% with a new program per day; Dynamic Cheatsheet (DC, the model's own notes) 31-40%. All together: fact first then think on failure 87% at 2.5k vs 74% at 4.1k for thinking on the hardest-looking problems (Snell-style) and 83% for choosing the fix by failure type.");
 }
 slideGlance("Findings", "Findings at a glance: same or better, for fewer tokens");
 
@@ -326,13 +326,13 @@ prompt(s, "Prompt A: task + a long OR-Tools reference sheet", ["...the task...",
 arrow(s, 5.6, 2.52, 6.0, 2.52);
 code(s, "RegisterUnaryLongLivingCallback(...)", 6.0, 2.25, 4.6, 0.55, RED, 12);
 txt(s, "✗ crash: no such function", 10.75, 2.15, 2.0, 0.75, { fontSize: 15, bold: true, color: RED });
-prompt(s, "Prompt B: task + 5 lines of exact usage", ["...the task...", "dcb = r.RegisterUnaryTransitCallback(demand)", "r.AddDimensionWithVehicleCapacity(dcb, ...)"], 0.6, 3.3, 5.0, 1.15, "E2F0D9");
+prompt(s, "Prompt B: task + the exact usage (11 lines)", ["...the task...", "dcb = r.RegisterUnaryTransitCallback(demand)", "r.AddDimensionWithVehicleCapacity(dcb, ...)"], 0.6, 3.3, 5.0, 1.15, "E2F0D9");
 arrow(s, 5.6, 3.87, 6.0, 3.87);
 code(s, "RegisterUnaryTransitCallback(...)", 6.0, 3.6, 4.6, 0.55, GREEN, 12);
 txt(s, "✓ runs, best route", 10.75, 3.5, 2.0, 0.75, { fontSize: 15, bold: true, color: GREEN });
-txt(s, "Out of 100 routing problems, how many it solves best:", 0.6, 4.65, 12.1, 0.4, { bold: true, fontSize: 17 });
-hbars(s, 0.6, 5.05, 12.1, [["Nothing extra", 23, "23", "7F7F7F"], ["Think longer", 3, "3", RED], ["Long reference sheet", 7, "7", RED], ["5 exact lines", 83, "77–90", GREEN]], 0.38);
-s.addNotes((pre || "") + "The model writes the program (the right side shows the line that matters). With a long reference sheet it guesses a plausible function name that does not exist and crashes; with five lines showing the exact call it writes the right one. Thinking longer cannot supply a fact it does not have (3 of 100). On the 56 standard Solomon routing problems, three such facts together take gpt-oss-120b to a valid plan on every instance.");
+txt(s, "% of 30 routing problems solved optimally:", 0.6, 4.65, 12.1, 0.4, { bold: true, fontSize: 17 });
+hbars(s, 0.6, 5.05, 12.1, [["Nothing extra", 23, "23%", "7F7F7F"], ["Think longer", 3, "3%", RED], ["Long reference sheet", 7, "7%", RED], ["Exact usage", 83, "77–90%", GREEN]], 0.38);
+s.addNotes((pre || "") + "The model writes the program (the right side shows the line that matters). With a long reference sheet it guesses a plausible function name that does not exist and crashes; with the exact usage (11 lines) it writes the right one. Thinking longer cannot supply a fact it does not have (3%). On the 56 standard Solomon routing problems, three such facts together take gpt-oss-120b to a valid plan on every instance.");
 }
 slideFact("Findings", "Finding 1: give the fact, not the manual");
 
@@ -591,7 +591,7 @@ s.addText(title, { placeholder: "title" });
     ["Where to spend thinking", "think on the hardest-looking problems (Snell et al. 2025)", "74% · 4.1k", OURS("fact first, think on failure: 87% · 2.5k")],
     ["Contest geometry", "always high effort (reasoning-model default)", "66.2% · 30.1k", OURS("think only on a failed check: 66.3% · 24.7k")],
     ["Pick 1 of 3 programs", "CodeT: the model writes tests", "96.0% (+340 tokens)", OURS("symmetry check: 99.7% (0 tokens)")],
-    ["Library documentation", "DRoC: decompose, retrieve per constraint (ICLR 2025)", "72% · 2.1k", OURS("exact 5-line snippet: 77% · 1.7k")],
+    ["Library documentation", "DRoC: decompose, retrieve per constraint (ICLR 2025)", "72% · 2.1k", OURS("exact snippet: 77% · 1.7k")],
     ["Unneeded tools", "System 2 Attention / a \"use only if needed\" sentence", "64% / 76%", OURS("only the needed tools: 92%")],
     ["Daily routing", "Dynamic Cheatsheet: the model's own notes", "31–40%", OURS("reuse a checked program: 94%")],
     ["Word problems (held-out MAMO)", "ORLM-8B: a fine-tuned modeling specialist", "69.5% · 1.1k", OURS("Qwen3-8B, no training: 69.5% · 1.0k; gpt-oss-20b 78.8%")],
@@ -611,7 +611,7 @@ const ADD = (t) => ({ text: t, options: { color: "38761D" } });
 table(s, [
   [HDR("Theme"), HDR("Closest work"), HDR("What we add")],
   ["Programs instead of text", "PAL, Program-of-Thoughts, Mixture-of-Thought (ICLR 2024)", ADD("when a program helps; text vs program as a free check")],
-  ["Library facts for code", "DRoC (ICLR 2025), CP-Bench, CloudAPIBench, DRAFT", ADD("5 exact lines beat the manual and thinking; facts mined without a human")],
+  ["Library facts for code", "DRoC (ICLR 2025), CP-Bench, CloudAPIBench, DRAFT", ADD("an exact snippet beats the manual and thinking; facts mined without a human")],
   ["Misleading context", "Invisible Lottery (2606.04057), unneeded tools (2609.14157), CodeCrash, S2A", ADD("the harm on exact geometry, turned into a check")],
   ["Choosing a program", "CodeT, MBR-exec, AlphaCode's example filter, DeepConf", ADD("symmetry check of one program: 99.7% vs CodeT 96.0%")],
   ["Spending test-time compute", "Snell et al. 2025, FrugalGPT, DART, Thinkless, AdaptThink", ADD("fact + execution check, no training: 87% vs 74%")],
@@ -696,7 +696,7 @@ function buildTalk() {
     "(25초) 저희가 푸는 문제는 다섯 종류입니다. 기하 계산, Codeforces 기하 문제, 배송 경로, 최적화 문장제, 그리고 경시 수학과 증명입니다. 쉽지 않습니다. 경시 문제의 중앙값은 Codeforces Master 수준이고, AIME는 고등학생 상위 5% 정도가 치는 시험입니다. 공개 모델인 Qwen3와 gpt-oss를 직접 돌리고, 맞힌 문제 수와 쓴 토큰 수를 함께 잽니다.",
     "(20초) LLM은 말로 답할 수도 있고, 프로그램을 짤 수도 있습니다. Qwen3-8B에게 같은 도형의 넓이의 두 배를 물었습니다. 옮기고 돌리고 뒤집어도 답은 436입니다. 말로 답하면 매번 다른 답이 나오지만, 프로그램은 네 번 모두 436입니다. 계산에는 프로그램이 맞는 도구입니다.",
     "(35초) 하지만 두 가지 문제가 있습니다. 첫째, 프로그램은 조용히 틀립니다. 같은 문제인데 프롬프트에 보조 코드만 더하면 6 대신 0을 출력하고, 에러 메시지도 없습니다. 없는 라이브러리 함수를 불러서 죽기도 합니다. 둘째, 오래 생각하면 비쌉니다. gpt-oss-120b는 오래 생각하면 57%에서 66%로 오르지만, 토큰은 4.4배를 씁니다. 그래서 질문입니다. 추가 노력을 빠진 사실, 공짜 검사, 더 많은 생각 중 어디에 써야 할까요?",
-    "(35초) 첫 번째 발견입니다. 매뉴얼이 아니라 사실을 주세요. Qwen3-32B가 OR-Tools로 배송 경로 프로그램을 짭니다. 매뉴얼 전체를 주면 존재하지 않는 함수를 불러서 죽고, 정확한 사용법 다섯 줄을 주면 최적 경로를 찾습니다. 100문제 중 최적해는 아무것도 안 주면 23개, 오래 생각하면 오히려 3개, 매뉴얼 전체는 7개, 다섯 줄은 77에서 90개입니다. 모르는 사실은 생각한다고 생기지 않습니다.",
+    "(35초) 첫 번째 발견입니다. 매뉴얼이 아니라 사실을 주세요. Qwen3-32B가 OR-Tools로 배송 경로 프로그램을 짭니다. 긴 참조 문서를 주면 존재하지 않는 함수를 불러서 죽고, 정확한 사용법 열한 줄을 주면 최적 경로를 찾습니다. 경로 문제 30개에서 최적해를 찾는 비율은 아무것도 안 주면 23%, 오래 생각하면 오히려 3%, 긴 참조 문서는 7%, 정확한 사용법은 77에서 90%입니다. 모르는 사실은 생각한다고 생기지 않습니다.",
     "(30초) 두 번째 발견입니다. 공짜 검사가 실패할 때만 생각하게 하세요. 검사 A는 문제에 적힌 예제입니다. 예제를 통과하면 바로 제출하고, 틀리면 그 문제만 더 생각합니다. 검사 B는 프로그램을 두 버전으로 짜서, 답이 다를 때만 생각합니다. 두 경우 모두 항상 생각할 때와 정확도는 같고, 토큰은 18에서 27% 적습니다. 그리고 두 검사 모두 정답이 필요 없습니다.",
     "(50초) 두 발견을 합친 것이 저희 방법입니다. 실제 최적화 문제로 보겠습니다. 1단계, 모델이 없는 메서드를 불러서 죽습니다. 2단계, 사실을 줍니다. 이 사실은 사람이 쓴 것이 아니라, 모델이 다른 문제에서 짜서 검사를 통과한 자기 프로그램에서 자동으로 가져옵니다. 3단계, 두 버전의 답이 20000으로 같으니, 4단계 생각은 건너뜁니다. 생각만 했다면 5.3k 토큰이 들었을 문제를 0.6k로 풉니다. 5단계, 같은 종류의 새 데이터에는 검사된 프로그램을 재사용합니다. 624문제 전체에서, 어려워 보이는 문제에 생각을 몰아주면 74%, 저희 방법은 87%이고 토큰도 더 적습니다.",
     "(35초) 새로운 점은 세 가지입니다. 학습 없이, 공짜 검사가 실패할 때만 생각합니다. 정답 없이, 모델 자신의 검사된 프로그램을 사실로 줍니다. 그리고 특화 모델을 파인튜닝하지 않고도, 24GB GPU 한 장으로 같은 정확도를 냅니다. 다음으로는 더 많은 모델로 검증을 마치고, 검사로 못 잡는 오류, 즉 실행은 되지만 문제를 잘못 모델링한 프로그램을 다루겠습니다. 정리하면, 빠진 사실을 먼저 주고, 공짜 검사가 실패한 곳에서만 생각하게 하자는 것입니다.",
@@ -794,15 +794,15 @@ function buildTalk() {
   s.addText("Finding 1: give the fact, not the manual", { placeholder: "title" });
   answerBadge([0]);
   txt(s, "Qwen3-32B plans delivery routes with Google's OR-Tools library", 0.6, 1.3, 12.1, 0.45, { fontSize: 17 });
-  [["with the whole manual", "RegisterUnaryLongLivingCallback()", "✗ does not exist: crash", "FCE4D6", RED, 1.95],
-   ["with 5 exact lines", "RegisterUnaryTransitCallback()", "✓ runs: best route", "E2F0D9", "38761D", 2.75]].forEach(([lab, call, res, fill, col, y]) => {
+  [["a long reference sheet", "RegisterUnaryLongLivingCallback()", "✗ does not exist: crash", "FCE4D6", RED, 1.95],
+   ["the exact usage (11 lines)", "RegisterUnaryTransitCallback()", "✓ runs: best route", "E2F0D9", "38761D", 2.75]].forEach(([lab, call, res, fill, col, y]) => {
     box(s, lab, 0.6, y, 2.7, 0.6, fill, { fontSize: 16, bold: true });
     arrow(s, 3.3, y + 0.3, 3.65, y + 0.3);
     code(s, call, 3.65, y, 4.9, 0.6, col, 15);
     txt(s, res, 8.75, y, 3.9, 0.6, { fontSize: 17, bold: true, color: col });
   });
-  txt(s, "Routing problems solved optimally (out of 100):", 0.6, 3.65, 12.1, 0.4, { fontSize: 17, bold: true });
-  hbars(s, 0.6, 4.1, 12.1, [["nothing extra", 23, "23", "7F7F7F"], ["think longer", 3, "3", RED], ["whole manual", 7, "7", RED], ["5 exact lines", 83, "77–90", BLUE]], 0.5, 2.6);
+  txt(s, "% of 30 routing problems solved optimally:", 0.6, 3.65, 12.1, 0.4, { fontSize: 17, bold: true });
+  hbars(s, 0.6, 4.1, 12.1, [["nothing extra", 23, "23%", "7F7F7F"], ["think longer", 3, "3%", RED], ["long reference sheet", 7, "7%", RED], ["exact usage", 83, "77–90% (3 seeds)", BLUE]], 0.5, 2.6, 2.6);
   caption(s, "Thinking cannot supply a fact the model does not have");
 
   // 6. finding 2: free checks decide when to think
@@ -876,24 +876,6 @@ function buildTalk() {
   });
   caption(s, "Takeaway: give the missing fact first, and think only where a free check fails");
 
-  function slidePays(section, title) {
-  s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
-  s.addText(title, { placeholder: "title" });
-  txt(s, "624 geometry and optimization problems, 3 models: % solved · tokens per problem", 0.6, 1.35, 7.6, 0.45, { fontSize: 16 });
-  hbars(s, 0.6, 1.95, 7.6, [["Think on hardest (Snell et al.)", 74, "74% · 4.1k", "7F7F7F"],
-                            ["Think when the check fails", 77, "77% · 4.2k", "7F7F7F"],
-                            ["Fix by failure type", 83, "83% · 4.2k", "7F7F7F"],
-                            ["Fact first, think on failure", 87, "87% · 2.5k", BLUE]], 0.7, 3.3, 1.5);
-  [["79% = 79%", "fact found automatically = hand-written, on a benchmark never used before (MAMO)"],
-   ["24 GB", "one RTX 3090-class GPU: gpt-oss-20b and Qwen3-14B match Qwen3-32B"],
-   ["30", "labelled problems pick the best policy for a new task"]].forEach(([big, label], r) => {
-    const y = 1.45 + r * 1.55;
-    txt(s, big, 8.6, y, 4.1, 0.6, { fontSize: 30, bold: true, color: BLUE });
-    txt(s, label, 8.6, y + 0.6, 4.1, 0.75, { fontSize: 14, valign: "top" });
-  });
-  caption(s, "\"Spend more on hard problems\" loses to \"facts first, think where the check fails\"");
-  s.addNotes("Left: four ways to spend compute on the same 624 problems (Qwen3-8B, Qwen3-32B, Qwen3.6; same order on 3 seeds). Thinking on the hardest-looking problems, the compute-optimal scaling idea, gets 74% at 4.1k tokens; fact first and thinking only when the check fails gets 87% at 2.5k. Right: the fact needs no human (the model's own checked program for a similar problem: gpt-oss-20b 78.8% vs 78.9% hand-written on held-out MAMO); models that fit one 24 GB GPU match Qwen3-32B with the fact; 30 labelled problems choose the best policy for a new task (0.6 points from the best on average).");
-  }
   // ---- extra pages that answer expected questions (each title is the question)
   function qSlide(title, sub) {
     s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Extra pages" });
@@ -925,7 +907,7 @@ function buildTalk() {
   function slideQThink() {
     qSlide("Q: why can thinking make it worse?", "Qwen3-32B writes OR-Tools programs for optimization word problems (NL4OPT + IndustryOR)");
     [["thinking, no fact", "Objective().SetMaximize()", "✗ invented method: crash", "FCE4D6", RED, 1.95],
-     ["6 exact lines first", "solver.Maximize(...)", "✓ the real call: runs", "E2F0D9", "38761D", 2.75]].forEach(([lab, call, res, fill, col, y]) => {
+     ["exact usage first", "solver.Maximize(...)", "✓ the real call: runs", "E2F0D9", "38761D", 2.75]].forEach(([lab, call, res, fill, col, y]) => {
       box(s, lab, 0.6, y, 2.7, 0.6, fill, { fontSize: 16, bold: true });
       arrow(s, 3.3, y + 0.3, 3.65, y + 0.3);
       code(s, call, 3.65, y, 4.9, 0.6, col, 15);
@@ -966,7 +948,7 @@ function buildTalk() {
   }
   function slideQFair() {
     qSlide("Q: is the comparison fair?");
-    [["coins", "Input tokens count too", "+213 tokens", "input tokens for the 5-line fact (701 vs 488); a long manual adds 413, extra tools 912. Input is cheaper and cacheable: no conclusion flips. Running programs uses CPU, which we do not count."],
+    [["coins", "Input tokens count too", "+213 tokens", "input tokens for the exact snippet (701 vs 488); a long reference sheet adds 413, extra tools 912. Input is cheaper and cacheable: no conclusion flips. Running programs uses CPU, which we do not count."],
      ["trophy", "Memorized problems?", "81% vs 83%", "older vs newer contests at the same difficulty (rating below 2000): no sign of memory, though all are before 2022. MAMO was held out until the end, and every method runs on the same model."],
      ["check", "Small differences", "3 seeds", "every claim pre-registered; when the gap is 1–4 problems we say 'same accuracy, fewer tokens', not 'better' (3 vs 1 problems: p = 0.62)."]].forEach(([icon, head, big, body], k) => {
       const x = 0.6 + k * 4.1;
@@ -979,59 +961,126 @@ function buildTalk() {
     caption(s, "Same models, problems and grader for every method; every accuracy comes with its cost");
   }
 
-  const EXTRAS = [   // [key, index label, slide], in the order of the expected questions
+  function slideQWords() {
+    qSlide("Q: is a program always better than words?");
+    [["Computing an answer", "twice the area of one shape, 8 copies (Qwen3-8B)", [["in words", "1 of 8 right", RED], ["a program", "8 of 8 right", BLUE]], "→ write a program"],
+     ["Short-answer contest math", "MATH-500 (Qwen3.6)", [["in words", "98.3%", BLUE], ["a program", "86.8%", "7F7F7F"]], "→ words are fine"],
+     ["A second opinion", "two answers agree: how often both are wrong (gpt-oss-20b)", [["two in words", "1.5%", "7F7F7F"], ["words + program", "0.3%", BLUE]], "→ the program as a check"]].forEach(([head, sub, rows, verdict], k) => {
+      const x = 0.6 + k * 4.1;
+      panel(s, x, 1.4, 3.9, 4.55, "words vs program " + head);
+      txt(s, head, x + 0.25, 1.5, 3.4, 0.5, { fontSize: 19, bold: true, color: BLUE });
+      txt(s, sub, x + 0.25, 2.0, 3.4, 0.7, { fontSize: 15, valign: "top" });
+      rows.forEach(([lab, val, col], r) => {
+        txt(s, lab, x + 0.25, 2.85 + r * 0.85, 1.6, 0.7, { fontSize: 16 });
+        txt(s, val, x + 1.85, 2.85 + r * 0.85, 1.85, 0.7, { fontSize: 26, bold: true, color: col });
+      });
+      txt(s, verdict, x + 0.25, 4.85, 3.4, 0.6, { fontSize: 17, bold: true });
+    });
+    caption(s, "Write a program when the answer must be computed; elsewhere, use it as a second opinion");
+  }
+  function slideQFact() {
+    qSlide("Q: what exactly is the fact? Isn't it the answer?", "The fact for the routing problems of Finding 1: how to call OR-Tools (excerpt of the 11-line snippet)");
+    s.addShape(pres.shapes.RECTANGLE, { x: 0.6, y: 1.95, w: 7.3, h: 3.95, fill: { color: "F7F7F7" }, line: { color: "BFBFBF", width: 0.75 }, objectName: "the fact, excerpt" });
+    const L = (t, hot) => ({ text: t, options: { breakLine: true, bold: !!hot, color: hot ? "38761D" : C.text1 } });
+    s.addText([L("mgr = pywrapcp.RoutingIndexManager(n + 1, K, 0)"), L("r = pywrapcp.RoutingModel(mgr)"), L("cb = r.RegisterTransitCallback(cost)"),
+               L("r.SetArcCostEvaluatorOfAllVehicles(cb)"), L("dcb = r.RegisterUnaryTransitCallback(demand)", 1),
+               L("r.AddDimensionWithVehicleCapacity(dcb, 0, [Q] * K,", 1), L("                 True, \"Load\")", 1),
+               L("p.first_solution_strategy = ...PATH_CHEAPEST_ARC"), L("sol = r.SolveWithParameters(p)"), { text: "...  (11 lines in all)", options: { color: "7F7F7F" } }],
+      { isTextBox: true, x: 0.8, y: 2.05, w: 7.0, h: 3.75, fontFace: "Courier New", fontSize: 14, valign: "middle", margin: 0 });
+    [["✓", "how to call the library: names and arguments", "38761D"], ["✓", "the same text for all 30 problems of this kind", "38761D"], ["✗", "no route, no numbers, no answer", RED]].forEach(([m, t, col], r) => {
+      txt(s, m, 8.2, 1.95 + r * 0.55, 0.35, 0.5, { fontSize: 18, bold: true, color: col });
+      txt(s, t, 8.55, 1.95 + r * 0.55, 4.15, 0.5, { fontSize: 15 });
+    });
+    panel(s, 8.2, 3.75, 4.5, 2.15, "why the sheet hurts");
+    txt(s, [{ text: "Why is a long reference sheet worse than nothing (7% vs 23%)?", options: { bold: true, breakLine: true } },
+            { text: "It shows routing, but not the capacity rule. The model fills the gap with a call that does not exist (10 programs: RegisterUnaryLongLivingCallback)." }],
+        8.4, 3.85, 4.1, 1.95, { fontSize: 14, valign: "top" });
+    caption(s, "The fact says how to call the library, not how to solve the problem");
+  }
+  function slideQRag() {
+    qSlide("Q: can retrieval (RAG) find the fact?", "BM25 search over a library of titled snippets, Qwen3-32B, % solved optimally (seed 1)");
+    [["6 optimization problems", [["no fact", 67, "67%", "7F7F7F"], ["hand-written fact", 96, "96%", "7F7F7F"], ["retrieved, top 1", 97, "97%", BLUE], ["retrieved, top 3", 93, "93%", BLUE], ["untitled pages, top 3", 90, "90%", "7F7F7F"]]],
+     ["Routing (30 CVRP problems)", [["no fact", 23, "23%", "7F7F7F"], ["hand-written fact", 83, "83%", "7F7F7F"], ["retrieved, top 1", 70, "70%", BLUE], ["top 3 (+ a near miss)", 57, "57%", RED], ["untitled pages, top 3", 53, "53%", "7F7F7F"]]]].forEach(([head, rows], k) => {
+      const x = 0.6 + k * 6.15;
+      panel(s, x, 1.9, 5.95, 3.7, "rag " + head);
+      txt(s, head, x + 0.25, 2.0, 5.45, 0.45, { fontSize: 18, bold: true, color: BLUE });
+      hbars(s, x + 0.25, 2.55, 5.5, rows, 0.58, 2.3, 0.75);
+    });
+    txt(s, `The near miss: top 3 also brings the TSP routing page. No documentation at all? The model's own checked program is the fact (page ${page("auto")}).`, 0.6, 5.65, 12.1, 0.5, { fontSize: 15, color: C.text2 });
+    caption(s, "Precise retrieval works like a hand-written fact; a near-miss page can cost 26 points");
+  }
+  function slideQChecks() {
+    qSlide("Q: is there always a free check?");
+    table(s, [[HDR("Problem"), HDR("Free check (no answer key)"), HDR("How well it works")],
+      ["Contest problems", "the examples printed in the problem", "never rejects a right program; 24–37% of wrong ones pass"],
+      ["Geometry", "move or turn the input: the answer must not change; or two versions must agree", "picks the right program 99.7% of the time (majority vote: 95.7%)"],
+      ["Routing, scheduling", "code checks every rule of the plan (capacity, time windows)", "exact for the rules; whether the plan is the best is not checked"],
+      ["Word problems", "two programs must agree", "12–16% agree but are both wrong"],
+      ["Competition math", "the text answer and the program must agree", "when they agree, 0.3% are wrong (gpt-oss-20b)"],
+      ["Proofs", "Lean checks every step", "a perfect check; writing the proof is the hard part"]],
+      { x: 0.6, y: 1.45, w: 12.1, colW: [2.4, 5.0, 4.7], fontSize: 15, rowH: 0.64 });
+    caption(s, "Every task here has a free check; how much it catches decides how much thinking it saves");
+  }
+
+  const EXTRAS = [   // [key, index label, slide], in the order of the talk slides that raise the questions
+    ["kinds", "How hard: contest ranks, exams", () => slideKinds("Extra pages", "Extra: how hard, by contest ranks and exams")],
+    ["progwords", "A program or words?", slideQWords],
+    ["two", "Two versions, in detail", () => slideTwoVersions("Extra pages", "Extra: two versions catch each other's mistakes")],
+    ["fact", "What the fact is", slideQFact],
+    ["rag", "Can retrieval find the fact?", slideQRag],
+    ["think", "Why thinking can hurt", slideQThink],
+    ["leak", "A wrong program passes the check", slideQLeak],
+    ["checks", "A free check for every problem", slideQChecks],
+    ["auto", "Facts without a human", () => slideAuto("Extra pages", "Extra: the fact can be found without a human")],
+    ["hard", "Is difficulty the right signal?", slideQHard],
     ["published", "Compared with published methods", () => slideBaselines("Extra pages", "Extra: compared with published methods")],
     ["related", "Related research map", () => slideRelated("Extra pages", "Extra: where this work sits in related research")],
     ["reported", "Numbers reported in papers", () => slideReported("Extra pages", "Extra: numbers reported in papers, next to ours")],
-    ["leak", "A wrong program passes the check", slideQLeak],
-    ["think", "Why thinking can hurt", slideQThink],
-    ["hard", "Is difficulty the right signal?", slideQHard],
     ["vote", "Why not majority voting?", slideQVote],
     ["fair", "Is the comparison fair?", slideQFair],
-    ["auto", "Facts without a human", () => slideAuto("Extra pages", "Extra: the fact can be found without a human")],
     ["small", "One fact helps small models most", () => slideSmall("Extra pages", "Extra: one fact helps small models most")],
-    ["pays", "It pays off: small GPU, 30 labels", () => slidePays("Extra pages", "Extra: it pays off, even without a human or a big GPU")],
     ["policies", "All policies, cost vs accuracy", () => slideTogether("Extra pages", "Extra: all policies, cost vs accuracy")],
     ["proof", "Proofs need a specialized model", () => slideProof("Extra pages", "Extra: proofs need a specialized model, not a fact")],
     ["limits", "Where the recipe stops", () => slideLimits("Extra pages", "Extra: where the recipe stops, and what is next")],
-    ["kinds", "How hard: contest ranks, exams", () => slideKinds("Extra pages", "Extra: how hard, by contest ranks and exams")],
     ["reuse", "Reuse a checked program", () => slideReuse("Extra pages", "Extra: repeated problems need one checked program")],
-    ["two", "Two versions, in detail", () => slideTwoVersions("Extra pages", "Extra: two versions catch each other's mistakes")],
-    ["examples", "The examples check, in detail", () => slideHard("Extra pages", "Extra: think harder only when the examples fail")],
     ["setup", "Setup", () => slideSetup("Extra pages", "Extra: setup, scoring and hardware")],
-    ["glance", "All findings at a glance", () => slideGlance("Extra pages", "Extra: all findings at a glance")],
-    ["words", "Words we use", () => slideWords("Extra pages", "Extra: words we use")],
   ];
-  const QUESTIONS = [   // [expected question, extra pages that answer it]
-    ["What is new vs PAL and cascades?", ["published", "related", "reported"]],
-    ["What if a wrong program passes the check?", ["leak"]],
-    ["Why can thinking make it worse?", ["think"]],
-    ["Is 'think on the hardest' a weak baseline?", ["hard"]],
-    ["Why not majority voting?", ["vote"]],
-    ["Is the comparison fair?", ["fair", "setup"]],
-    ["Who writes the fact?", ["auto"]],
-    ["Does it hold for smaller models?", ["small", "pays"]],
-    ["Which policy for a new task?", ["policies", "pays"]],
-    ["Proofs? Where does it stop?", ["proof", "limits"]],
-    ["How hard are the problems?", ["kinds"]],
-    ["What if the same problem repeats?", ["reuse"]],
+  const QUESTIONS = [   // [talk slide that raises it, expected question, extra pages that answer it]
+    [2, "How hard are the problems?", ["kinds"]],
+    [2, "Proofs? Where does it stop?", ["proof", "limits"]],
+    [3, "Is a program always better than words?", ["progwords"]],
+    [4, "Why does helper code change the answer?", ["two"]],
+    [5, "What exactly is the fact? Isn't it the answer?", ["fact"]],
+    [5, "Can retrieval (RAG) find the fact?", ["rag"]],
+    [5, "Why can thinking make it worse?", ["think"]],
+    [6, "What if a wrong program passes the check?", ["leak"]],
+    [6, "Is there always a free check?", ["checks"]],
+    [7, "Who writes the fact?", ["auto"]],
+    [7, "Is 'think on the hardest' a weak baseline?", ["hard"]],
+    [7, "What if the same problem repeats?", ["reuse"]],
+    [8, "What is new vs PAL and cascades?", ["published", "related", "reported"]],
+    [8, "Why not majority voting?", ["vote"]],
+    [8, "Is the comparison fair?", ["fair", "setup"]],
+    [8, "Does it hold for smaller models?", ["small"]],
   ];
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
   s.addText("Thank you: questions?", { placeholder: "title" });
-  txt(s, "Expected questions → extra page (type the number and press Enter in the slide show)", 0.6, 1.3, 12.1, 0.45, { fontSize: 17, bold: true, color: BLUE });
+  txt(s, "Expected questions, by the talk slide that raises them → extra page (type the number and press Enter)", 0.6, 1.3, 12.1, 0.45, { fontSize: 16, bold: true, color: BLUE });
   const first = pres.slides.length + 1, page = key => first + EXTRAS.findIndex(e => e[0] === key);
-  QUESTIONS.forEach(([q, keys], k) => {
-    const x = 0.6 + Math.floor(k / 6) * 6.15, y = 1.9 + (k % 6) * 0.72;
-    box(s, "", x, y, 5.95, 0.62, "F2F2F2");
-    txt(s, q, x + 0.15, y, 5.6 - keys.length * 0.6, 0.62, { fontSize: 15 });
+  QUESTIONS.forEach(([from, q, keys], k) => {
+    const x = 0.6 + Math.floor(k / 8) * 6.15, y = 1.85 + (k % 8) * 0.56;
+    box(s, "", x, y, 5.95, 0.5, "F2F2F2");
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: x + 0.08, y: y + 0.08, w: 0.85, h: 0.34, rectRadius: 0.06, fill: { color: "D9D9D9" }, line: { color: "D9D9D9" }, objectName: "from slide " + from });
+    txt(s, "slide " + from, x + 0.08, y + 0.08, 0.85, 0.34, { fontSize: 14, color: "404040", align: "center" });
+    txt(s, q, x + 1.05, y, 4.8 - keys.length * 0.55, 0.5, { fontSize: 14 });
     keys.sort((a, b) => page(a) - page(b)).forEach((key, j) => {
-      const cx = x + 5.95 - 0.1 - (keys.length - j) * 0.6;
-      s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: cx + 0.05, y: y + 0.11, w: 0.5, h: 0.4, rectRadius: 0.08, fill: { color: BLUE }, line: { color: BLUE }, objectName: "page " + key });
-      txt(s, String(page(key)), cx + 0.05, y + 0.11, 0.5, 0.4, { fontSize: 15, bold: true, color: "FFFFFF", align: "center" });
+      const cx = x + 5.95 - 0.08 - (keys.length - j) * 0.55;
+      s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: cx + 0.04, y: y + 0.07, w: 0.48, h: 0.36, rectRadius: 0.08, fill: { color: BLUE }, line: { color: BLUE }, objectName: "page " + key });
+      txt(s, String(page(key)), cx + 0.04, y + 0.07, 0.48, 0.36, { fontSize: 14, bold: true, color: "FFFFFF", align: "center" });
     });
   });
-  txt(s, "Also: " + ["two", "examples", "glance", "words"].map(key => `${page(key)} ${EXTRAS.find(e => e[0] === key)[1].toLowerCase()}`).join(" · "),
-      0.6, 6.3, 12.1, 0.4, { fontSize: 15, color: C.text2 });
+  txt(s, "Also: " + ["policies"].map(key => `${page(key)} ${EXTRAS.find(e => e[0] === key)[1].toLowerCase()}`).join(" · "),
+      0.6, 6.4, 12.1, 0.4, { fontSize: 15, color: C.text2 });
 
   SCRIPT_KO.forEach((t, i) => pres.slides[i].say(t));
 

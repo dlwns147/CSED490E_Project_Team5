@@ -33,7 +33,7 @@ box(1, 21, 15, 12, "1. Write\na program", "#eef3fb", "semibold", 10.5)
 box(21, 21, 19, 12, "2. Add the\nmissing fact", "#eef3fb", "semibold", 10.5)
 box(45, 21, 19, 12, "3. Run a\nfree check", "#eef3fb", "semibold", 10.5)
 ax.text(8.5, 18.6, "not a text answer", ha="center", va="top", fontsize=8.8, color=st.INK2)
-ax.text(30.5, 18.6, "e.g. 5 lines of exact\nlibrary usage", ha="center", va="top", fontsize=8.8, color=st.INK2)
+ax.text(30.5, 18.6, "e.g. the exact library\nusage, a few lines", ha="center", va="top", fontsize=8.8, color=st.INK2)
 ax.text(54.5, 18.6, "the statement's examples,\nor two versions agree", ha="center", va="top", fontsize=8.8, color=st.INK2)
 box(71, 27.5, 27, 7, "pass → done (cheap)", "#e3f4ec", size=10.5)
 box(71, 15.5, 27, 9, "fail → 4. think harder,\nonly for this problem", "#fde8df", size=10.5)
@@ -86,8 +86,8 @@ print("wrote fig18_recipe.png, fig19_cost_accuracy.png, fig20_fact_by_size.png")
 GREY, BLUE, RED = st.MUTED, st.S1, "#c0392b"
 PANELS = [  # title, subtitle, rows: (label, value for the bar, shown text, colour)
     ("Add the missing fact", "delivery routing (CVRP), Qwen3-32B: % optimal", [
-        ("task only", 23, "23%", GREY), ("think longer", 3, "3%", RED), ("+ whole manual", 7, "7%", RED),
-        ("+ 5 exact lines", 83, "77–90%", BLUE)]),
+        ("task only", 23, "23%", GREY), ("think longer", 3, "3%", RED), ("+ long reference sheet", 7, "7%", RED),
+        ("+ exact usage", 83, "77–90%", BLUE)]),
     ("Small models gain the most", "word problems → solver programs: % solved", [
         ("Qwen3-1.7B", 0.1, "0%", GREY), ("Qwen3-1.7B + fact", 44.5, "45%", BLUE),
         ("Qwen3-32B", 65.4, "65%", GREY), ("Qwen3-32B + fact", 66.2, "66%", BLUE)]),

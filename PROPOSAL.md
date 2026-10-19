@@ -43,9 +43,9 @@ Seven findings, each measured against the usual way (blue: the better way; grey:
 ## 3. Findings
 
 **Finding 1. Give the fact, not the manual: it beats thinking.**
-> *Example* (Qwen3-32B, delivery routes with OR-Tools). With the whole OR-Tools manual it calls a method that does not exist, `RegisterUnaryLongLivingCallback`, and crashes. With 5 lines showing the right call, `RegisterUnaryTransitCallback`, it finds the optimal plan.
+> *Example* (Qwen3-32B, delivery routes with OR-Tools). With a long OR-Tools reference sheet (routing, but not the capacity rule) it calls a method that does not exist, `RegisterUnaryLongLivingCallback`, and crashes. With 11 lines of exact usage showing the right call, `RegisterUnaryTransitCallback`, it finds the optimal plan (30 problems: 23% with nothing, 3% thinking longer, 7% with the sheet, 77–90% with the exact usage over 3 seeds).
 
-![Finding 1: the exact usage lines vs the whole manual](figs/ex_finding1.png)
+![Finding 1: the exact usage vs a long reference sheet](figs/ex_finding1.png)
 
 Thinking cannot supply a fact the model lacks, and it can make things worse: on word problems (NL4OPT, IndustryOR) thinking *lowers* Qwen3-32B from 65.4% to 52.0%, because while reasoning it invents `Objective().SetMaximize`; with a 6-line snippet thinking helps instead (72.0%). On the 56 Solomon routing benchmarks, three facts together (file layout, "OR-Tools needs integers", a start strategy) take gpt-oss-120b from at most 6% to 100% valid plans. **Less is also more for tools:** 8 helper functions the task does not need lower Qwen3-32B on geometry from 77% to 59%, because it builds its method on an offered helper.
 
@@ -96,7 +96,7 @@ In Lean (miniF2F, 244 statements, 8 attempts) a specialized prover that fits one
 ![The recipe](figs/fig18_recipe.png)
 
 1. **Write a program** for anything that needs exact computation (Section 1).
-2. **Add the missing fact** (findings 1–2): a few lines of exact usage, not a whole manual and not extra tools; written by hand, or mined automatically from the model's own checked programs (finding 6).
+2. **Add the missing fact** (findings 1–2): a few lines of exact usage, not a long manual and not extra tools; written by hand, or mined automatically from the model's own checked programs (finding 6).
 3. **Run a free check** (finding 3): the examples in the problem statement, or two different versions that should agree.
 4. **Think harder only when the check fails** (finding 4).
 5. **When the same problem returns with new data, reuse the program that passed** (finding 5).
@@ -133,7 +133,7 @@ The recipe is both the most accurate and among the cheapest, on every seed. Diff
 | Theme | Closest work | What they do | What we add |
 |---|---|---|---|
 | Programs instead of text | PAL, Program-of-Thoughts; Mixture-of-Thought cascade (ICLR 2024) | the model writes code; MoT escalates when a text answer and a program disagree | when a program helps (computation) and when it does not (competition math); text–program agreement as a free check |
-| Library facts for solver code | DRoC (ICLR 2025), CP-Bench (2506.06052), CloudAPIBench (2407.09726), DRAFT | retrieve or rewrite documentation for API / solver code | 5 exact lines beat the manual *and* thinking; near-miss documents ≈ no document; the fact can be mined from the model's own checked programs |
+| Library facts for solver code | DRoC (ICLR 2025), CP-Bench (2506.06052), CloudAPIBench (2407.09726), DRAFT | retrieve or rewrite documentation for API / solver code | an exact snippet beats the manual *and* thinking; near-miss documents ≈ no document; the fact can be mined from the model's own checked programs |
 | Misleading context and tools | "Invisible Lottery" (2606.04057), unneeded tools (2609.14157), CodeCrash, System 2 Attention | prompt cues steer or hurt generated code | the effect on exact geometry (77% → 59%), and a fix that turns it into a check (two versions) |
 | Choosing a program without labels | CodeT, MBR-exec, AlphaCode's example filter, DeepConf, S* | pick the best of several sampled programs | one program checked on moved copies of the given input (99.7% vs CodeT 96.0%) |
 | Spending test-time compute | compute-optimal scaling (Snell et al. 2025), FrugalGPT / AutoMix cascades, DART; Thinkless and AdaptThink (RL-trained switch) | more compute for harder problems; a learned think / no-think switch | difficulty is the wrong signal; a fact first and an execution check decide, with no training (87% vs 74%); on AdaptThink's own base model (MATH-500) the learned switch is cheaper (91.7% @ 1.9k vs our gate 93.0% @ 3.9k), and our check on its skipped answers adds 2.2 points |
@@ -154,7 +154,7 @@ All measured here, with the same problems, models and checks; accuracy @ output 
 | | one repair round from the error (Self-Debugging), from low effort | 53.1% @ 4.6k | |
 | Picking 1 of 3 programs (Qwen3-8B, geometry, 300) | CodeT (model-written tests) | 96.0% (+340 tokens) | **symmetry check: 99.7%** (no extra tokens) |
 | | majority vote (self-consistency) / DeepConf (confidence) / MBR-exec | 95.7% / 94.7% / 93.7% | |
-| Library documentation (Qwen3-32B, CVRP) | the whole manual | 7% | **exact snippet: 77% @ 1.7k** |
+| Library documentation (Qwen3-32B, CVRP) | a long reference sheet (routing without the capacity rule) | 7% | **exact snippet: 77% @ 1.7k** |
 | | BM25 retrieval / DRoC (decompose, retrieve per constraint; ICLR 2025) | 48% @ 2.3k / 72% @ 2.1k | |
 | Unneeded tools (Qwen3-32B, 5 geometry tasks) | scope sentence "use a helper only if needed" (2609.14157) / System 2 Attention | 76% / 64% (no fix: 75%) | **only the needed tools: 92%** |
 | Daily routing (gpt-oss-120b, 48 new Solomon instances) | a new program per instance (standard practice) / + one repair round | 7% / 25% | **reuse one checked program: 94%** (28k in total); hand-written facts: 100% |

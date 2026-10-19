@@ -100,7 +100,7 @@ python bench.py run geo none --model oss20 --effort low   # prints, per task, ho
 ```bash
 python bench.py download q32b
 python bench.py serve q32b --gpu 0
-for arm in nodoc doc snippet; do                          # nothing extra / long reference sheet / 5 exact lines
+for arm in nodoc doc snippet; do                          # nothing extra / long reference sheet / exact snippet
   python bench.py run co $arm --model q32b --seed 1
   python bench.py analyze co q32b_co_${arm}_s1            # feasible and optimal per problem
 done
