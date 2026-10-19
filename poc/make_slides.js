@@ -172,27 +172,27 @@ s.addNotes(notes);
 const PROBLEM_NOTES = "Four ways an LLM can solve a math problem: answer in words, write a program, write a program that calls a solver library (for optimization), or think longer first (reasoning mode, more tokens). Example, Qwen3-8B, real outputs. Asked to answer directly, it gives a different area for each copy of the same polygon (only the original is right). Asked for a program, it writes the shoelace formula and the computer gets all copies right. Programs still fail silently, and thinking longer is expensive: on 311 contest problems gpt-oss-120b goes from 57% to 66% for 4.4 times the tokens. Goal: effective (exactly right) and efficient (fewest tokens, smallest GPU).";
 slideProblem("Problem", PROBLEM_NOTES);
 
-// 2a. The problems we study, and how hard they are next to LeetCode
+// 2a. The problems we study, and how hard they are by well-known yardsticks (human contest ranks, exams, classic benchmarks)
 function slideKinds(section, title, pre) {
 s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
 s.addText(title, { placeholder: "title" });
-[["shapes", "Geometry", "How many corners does the rubber band around 10 points have?", "≈ LeetCode Easy–Hard (#812, #587)", BLUE],
- ["trophy", "Contest problems", "311 Codeforces geometry problems, hidden tests", "mostly LeetCode Hard or harder", RED],
- ["truck", "Routing, scheduling", "routes for 100 customers with time windows", "no LeetCode match: needs a solver", THEME.colors.accent2],
- ["calc", "Word problems", "most coins from 500 gold and 300 wires?", "school level, but the solver API is hard", "38761D"],
- ["sqrt", "Math and proofs", "AIME answers; Lean proofs of olympiad statements", "not a coding test", "595959"]].forEach(([icon, head, ex, tag, col], k) => {
+[["shapes", "Geometry", "How many corners does the rubber band around 10 points have?", "textbook algorithms, exact on every copy", BLUE],
+ ["trophy", "Contest problems", "311 Codeforces geometry problems, hidden tests", "Codeforces Master to Grandmaster level", RED],
+ ["truck", "Routing, scheduling", "routes for 100 customers with time windows", "classic OR benchmark: a greedy plan is 48% worse", THEME.colors.accent2],
+ ["calc", "Word problems", "most coins from 500 gold and 300 wires?", "OR-course exercises (NL4OPT, NeurIPS 2022)", "38761D"],
+ ["sqrt", "Math and proofs", "AIME answers; Lean proofs of olympiad statements", "AIME: top ~5% of AMC; IMO gold: 25.9/30", "595959"]].forEach(([icon, head, ex, tag, col], k) => {
   const x = 0.6 + k * 2.45;
   s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.3, w: 2.3, h: 2.35, rectRadius: 0.08, fill: { color: "F7F7F7" }, line: { color: "D9D9D9", width: 0.75 }, objectName: "kind " + head });
   s.addImage({ path: ICON(icon), x: x + 0.15, y: 1.42, w: 0.48, h: 0.48, objectName: "icon " + icon });
   txt(s, head, x + 0.7, 1.4, 1.55, 0.55, { fontSize: 15, bold: true });
   txt(s, ex, x + 0.15, 2.0, 2.0, 0.9, { fontSize: 13, valign: "top" });
   s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: x + 0.1, y: 2.95, w: 2.1, h: 0.6, rectRadius: 0.1, fill: { color: "FFFFFF" }, line: { color: col, width: 1 }, objectName: "tag " + head });
-  txt(s, tag, x + 0.15, 2.95, 2.0, 0.6, { fontSize: 12, bold: true, color: col, align: "center" });
+  txt(s, tag, x + 0.15, 2.95, 2.0, 0.6, { fontSize: 12.5, bold: true, color: col, align: "center" });
 });
-// the contest problems on the LeetCode scale: counts per Codeforces rating band
-txt(s, "Our 311 contest problems on the LeetCode scale (Codeforces rating; rough rule of thumb)", 0.6, 3.8, 12.1, 0.4, { fontSize: 15, bold: true });
+// the contest problems by Codeforces rating, under the human rank at that level
+txt(s, "Our 311 contest problems by Codeforces rating, with the human rank at that level", 0.6, 3.8, 12.1, 0.4, { fontSize: 15, bold: true });
 const X = (r) => 1.0 + (r - 800) * 11.4 / 2800, BASE = 5.4;
-[[800, 1200, "LeetCode Easy", "E2F0D9"], [1200, 1800, "Medium", "FFF2CC"], [1800, 2300, "Hard", "FCE4D6"], [2300, 3600, "harder than LeetCode", "FADBD8"]].forEach(([a, b, lab, fill]) => {
+[[800, 1200, "Newbie", "E2F0D9"], [1200, 1600, "Pupil, Specialist", "FFF2CC"], [1600, 2100, "Expert, Cand. Master", "FCE4D6"], [2100, 2400, "Master, Int. Master", "F8CBAD"], [2400, 3600, "Grandmaster and above", "FADBD8"]].forEach(([a, b, lab, fill]) => {
   s.addShape(pres.shapes.RECTANGLE, { x: X(a), y: BASE + 0.05, w: X(b) - X(a), h: 0.38, fill: { color: fill }, line: { color: "FFFFFF", width: 1 }, objectName: "zone " + lab });
   txt(s, lab, X(a), BASE + 0.05, X(b) - X(a), 0.38, { fontSize: 13, bold: true, align: "center" });
 });
@@ -203,8 +203,8 @@ const X = (r) => 1.0 + (r - 800) * 11.4 / 2800, BASE = 5.4;
   txt(s, String(r), X(r) - 0.3, BASE + 0.45, 0.6, 0.25, { fontSize: 11, color: C.text2, align: "center" });
 });
 txt(s, "3600", X(3600) - 0.3, BASE + 0.45, 0.6, 0.25, { fontSize: 11, color: C.text2, align: "center" });
-caption(s, "Median 2200 (LeetCode Hard); 46% are 2400+, where even gpt-oss-120b solves only 48%");
-s.addNotes((pre || "") + "What the problems are: exact geometry from coordinates; real contest problems (CodeContests, Codeforces geometry, official hidden tests); routing and scheduling benchmarks (Solomon, OR-Library) that need a solver library and have no LeetCode equivalent; optimization word problems (NL4OPT, IndustryOR, MAMO); and competition math (MATH-500, AIME) and Lean proofs (miniF2F). LeetCode comparison is a rough community rule of thumb (Easy about Codeforces 800-1200, Medium 1200-1800, Hard 1800-2300). Our contest set: median rating 2200, 142 of 311 at 2400 or more (4 unrated not shown). gpt-oss-120b at high effort solves 89% of the easiest band and 48% of the 2400+ band; the generated geometry tasks resemble LeetCode 812 (Easy, triangle area) and 587 (Hard, convex hull) but must be exactly right on moved, turned and mirrored copies.");
+caption(s, "Median 2200 = Master; 46% at Grandmaster level, where even gpt-oss-120b solves only 48%");
+s.addNotes((pre || "") + "How hard, by well-known yardsticks. Contest problems: Codeforces ratings with the human rank at that level (Newbie up to 1199, Pupil 1200-1399, Specialist 1400-1599, Expert 1600-1899, Candidate Master 1900-2099, Master 2100-2299, International Master 2300-2399, Grandmaster 2400+); our median is 2200 (Master) and 142 of 311 are 2400+; 56 problems (18%) are solved by none of our 9 model settings. Routing: the Solomon VRPTW benchmark (1987); a simple greedy plan is valid on all 56 but 47.6% longer than the best known. Word problems: NL4OPT (a NeurIPS 2022 competition) is undergraduate OR-exercise level. Math: AIME invites at least the top 2.5% of AMC 10 and top 5% of AMC 12 takers. Proofs: on IMO-AG-30 an average IMO gold medallist solves 25.9 of 30 and an average participant 15.2 (AlphaGeometry paper). gpt-oss-120b at high effort solves 89% of the easiest contest band and 48% of the 2400+ band.");
 }
 slideKinds("Problem", "The problems we study, and how hard they are");
 
@@ -632,8 +632,8 @@ table(s, [
   ["MAMO Easy / Complex", "ORLM-LLaMA-3-8B 82.3 / 37.4% (fine-tuned)\nSTORM-Qwen3-4B 86.3 / 70.3% (SFT + RL)\nOptiSkill with frontier models 90.8–94.3 / 56.8–64.0%",
    OURS("no training: Qwen3-14B 82.8 / 37.4%, gpt-oss-20b 85.6 / 57.8%\nORLM-8B in our harness: 80.5 / 35.5%")],
   ["miniF2F, 32 tries", "Goedel-Prover-V2-8B 84.6%", OURS("the same model in our harness: 76.6%")],
-  ["IMO-AG-30 geometry", "AlphaGeometry 25 of 30; its symbolic engine alone 14", OURS("engine alone 12 in our setup; with our models' points 13")],
-], { x: 0.6, y: 1.5, w: 12.1, colW: [2.4, 5.0, 4.7], rowH: [0.5, 1.3, 0.6, 0.6], fontSize: 15 });
+  ["IMO-AG-30 geometry", "AlphaGeometry 25 of 30; its symbolic engine alone 14; average IMO gold medallist 25.9, average participant 15.2", OURS("engine alone 12 in our setup; with our models' points 13")],
+], { x: 0.6, y: 1.5, w: 12.1, colW: [2.4, 5.0, 4.7], rowH: [0.5, 1.3, 0.6, 0.9], fontSize: 15 });
 caption(s, "Different harnesses and graders: for orientation only");
 s.addNotes((pre || "") + "Numbers as reported by the papers or model cards; our harness, prompts and graders differ (MAMO labels are noisy; reported ORLM numbers range 81.6-88.2% on Easy). ORLM-8B rerun in our harness gives 80.5 / 35.5%, close to its report. STORM-Qwen3-4B is being run in our harness. Goedel-Prover-V2-8B: 187 of 244 with 32 tries in our Lean setup vs 84.6% on its card. AlphaGeometry's DD+AR engine proves 12 of IMO-AG-30 here (14 in the paper; one problem does not parse in this engine version).");
 }
@@ -747,11 +747,11 @@ function buildTalk() {
   // 3. what we solve, and how hard
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
   s.addText("What we solve, and how hard it is", { placeholder: "title" });
-  [["shapes", "Geometry", "corners of the rubber band around 10 points", "≈ LeetCode Easy–Hard", BLUE],
-   ["trophy", "Contest problems", "311 Codeforces geometry problems", "mostly LeetCode Hard or harder", RED],
-   ["truck", "Routing, scheduling", "routes for 100 customers with time windows", "no LeetCode match: needs a solver", THEME.colors.accent2],
-   ["calc", "Word problems", "most coins from 500 gold and 300 wires?", "school level; the solver API is hard", "38761D"],
-   ["sqrt", "Math and proofs", "AIME answers; Lean proofs", "not a coding test", "595959"]].forEach(([icon, head, ex, tag, col], k) => {
+  [["shapes", "Geometry", "corners of the rubber band around 10 points", "textbook algorithms, exact on every copy", BLUE],
+   ["trophy", "Contest problems", "311 Codeforces geometry problems", "Codeforces Master to Grandmaster level", RED],
+   ["truck", "Routing, scheduling", "routes for 100 customers with time windows", "classic OR benchmark: greedy is 48% worse", THEME.colors.accent2],
+   ["calc", "Word problems", "most coins from 500 gold and 300 wires?", "OR-course exercises (NL4OPT)", "38761D"],
+   ["sqrt", "Math and proofs", "AIME answers; Lean proofs", "AIME: top ~5% of AMC; IMO gold: 25.9/30", "595959"]].forEach(([icon, head, ex, tag, col], k) => {
     const x = 0.6 + k * 2.45;
     s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.4, w: 2.3, h: 4.45, rectRadius: 0.08, fill: { color: "F7F7F7" }, line: { color: "D9D9D9", width: 0.75 }, objectName: "kind " + head });
     s.addImage({ path: ICON(icon), x: x + 0.75, y: 1.6, w: 0.8, h: 0.8, objectName: "icon " + icon });
@@ -760,8 +760,8 @@ function buildTalk() {
     s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: x + 0.1, y: 4.7, w: 2.1, h: 0.95, rectRadius: 0.1, fill: { color: "FFFFFF" }, line: { color: col, width: 1.25 }, objectName: "tag " + head });
     txt(s, tag, x + 0.15, 4.7, 2.0, 0.95, { fontSize: 15, bold: true, color: col, align: "center" });
   });
-  caption(s, "Our contest problems: median rating 2200 (LeetCode Hard); 46% are harder than any LeetCode problem");
-  s.addNotes("(25 s) We test five kinds of computational math: exact geometry, real Codeforces contest problems, routing and scheduling benchmarks that need a solver library, optimization word problems, and competition math and proofs. Next to coding tests: the geometry tasks are like LeetCode easy to hard, but must be exact on moved copies; our contest problems have a median Codeforces rating of 2200, LeetCode Hard, and almost half are harder than any LeetCode problem; routing has no LeetCode equivalent at all.");
+  caption(s, "Contest problems: median = Codeforces Master; 46% are at Grandmaster level");
+  s.addNotes("(25 s) We test five kinds of computational math, and here is how hard they are by well-known yardsticks. Exact geometry uses textbook algorithms, but must be right on moved and turned copies. Our contest problems are Codeforces problems at the level of Master to Grandmaster players; 18% are solved by none of our nine model setups. Routing is a classic operations-research benchmark where a simple greedy plan is 48% worse than the best known. Word problems are operations-research course exercises. And competition math goes up to AIME, taken by the top few percent of AMC students, and olympiad proofs, where an IMO gold medallist solves about 26 of 30 geometry problems.");
 
   // 4. finding 1
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
@@ -876,7 +876,7 @@ function buildTalk() {
   }
   const EXTRAS = [   // [index label, slide]
     ["Setup and fairness", () => slideSetup("Extra pages", "Extra: setup and fairness")],
-    ["Contest problems on the LeetCode scale", () => slideKinds("Extra pages", "Extra: our problems, and how hard they are next to LeetCode")],
+    ["How hard: contest ranks, exams", () => slideKinds("Extra pages", "Extra: how hard, by contest ranks and exams")],
     ["Two versions, in detail", () => slideTwoVersions("Extra pages", "Extra: two versions catch each other's mistakes")],
     ["The examples check, in detail", () => slideHard("Extra pages", "Extra: think harder only when the examples fail")],
     ["Facts without a human, in detail", () => slideAuto("Extra pages", "Extra: the fact can be found without a human")],

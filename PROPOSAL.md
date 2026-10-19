@@ -9,14 +9,14 @@
 
 **Computational math** means problems whose answer is *computed*, exactly:
 
-| Kind | Example | Answer | Next to coding tests like LeetCode |
+| Kind | Example | Answer | How hard, by a well-known yardstick |
 |---|---|---|---|
-| Geometry | How many corners does the tightest rubber band around these 10 points have? | 6 | ≈ Easy–Hard (#812 triangle area, #587 convex hull), but exact on moved, turned and mirrored copies |
-| Optimization | Plan delivery routes for 100 customers, each with an opening time window, using the fewest kilometres | a route plan | no match: no fast exact algorithm is known; needs a solver library |
-| Contest problems | *Make a triangle!* (Codeforces): sticks of 2, 5 and 3 cm; how many cm must be added before they form a triangle? | 1 | median rating 2200 ≈ Hard; 46% are 2400+, harder than almost any LeetCode problem |
-| Word problems | Process A uses 3 gold and 2 wires to plate 5 coins; B uses 5 gold and 3 wires for 7. With 500 gold and 300 wires, how many coins at most? | 750 | school level; the hard part is the solver's API |
-| Competition math | AIME, MATH-500 | a number | not a coding test |
-| Proofs (extension) | Prove a competition statement in Lean 4 (miniF2F), or a geometry theorem (IMO) | a proof the computer accepts | not a coding test |
+| Geometry | How many corners does the tightest rubber band around these 10 points have? | 6 | textbook algorithms (convex hull, shoelace area), but exact on moved, turned and mirrored copies |
+| Optimization | Plan delivery routes for 100 customers, each with an opening time window, using the fewest kilometres | a route plan | classic OR benchmarks (Solomon 1987); a simple greedy plan is 48% longer than the best known |
+| Contest problems | *Make a triangle!* (Codeforces): sticks of 2, 5 and 3 cm; how many cm must be added before they form a triangle? | 1 | Codeforces players' ranks: median 2200 = Master; 46% at Grandmaster level (2400+); 18% solved by none of our 9 model setups |
+| Word problems | Process A uses 3 gold and 2 wires to plate 5 coins; B uses 5 gold and 3 wires for 7. With 500 gold and 300 wires, how many coins at most? | 750 | undergraduate OR-course exercises (NL4OPT, a NeurIPS 2022 competition); the hard part is the solver's API |
+| Competition math | AIME, MATH-500 | a number | AIME invites roughly the top 2.5–5% of AMC takers |
+| Proofs (extension) | Prove a competition statement in Lean 4 (miniF2F), or a geometry theorem (IMO) | a proof the computer accepts | IMO-AG-30: an average IMO gold medallist solves 25.9 of 30 |
 
 ![The problems and their difficulty](figs/ex_problems.png)
 
