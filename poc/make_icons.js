@@ -13,6 +13,8 @@ const ICONS = {   // name: [component, colour]
   robot: [fa.FaRobot, "#4472C4"], coins: [fa.FaCoins, "#ED7D31"], gpu: [bs.BsGpuCard, "#44546A"],
   fact: [fa.FaFileAlt, "#38761D"], check: [fa.FaCheckCircle, "#38761D"], brain: [fa.FaBrain, "#C00000"],
   page: [fa.FaFileAlt, "#A5A5A5"], pagehot: [fa.FaFileAlt, "#ED7D31"], warn: [fa.FaExclamationTriangle, "#C00000"],
+  trophy: [fa.FaTrophy, "#C00000"], truck: [fa.FaTruck, "#ED7D31"], calc: [fa.FaCalculator, "#38761D"], sqrt: [fa.FaSquareRootAlt, "#595959"],
+  pen: [fa.FaPenFancy, "#7F7F7F"], code: [fa.FaCode, "#4472C4"], gears: [fa.FaCogs, "#ED7D31"], shapes: [fa.FaDrawPolygon, "#4472C4"],
 };
 fs.mkdirSync(OUT, { recursive: true });
 (async () => {

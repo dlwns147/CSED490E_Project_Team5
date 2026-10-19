@@ -9,16 +9,18 @@
 
 **Computational math** means problems whose answer is *computed*, exactly:
 
-| Kind | Example | Answer |
-|---|---|---|
-| Geometry | How many corners does the tightest rubber band around these 10 points have? | 6 |
-| Optimization | Plan delivery routes for 100 customers, each with an opening time window, using the fewest kilometres | a route plan |
-| Contest problems | *Make a triangle!* (Codeforces): sticks of 2, 5 and 3 cm; how many cm must be added before they form a triangle? | 1 |
-| Word problems | Process A uses 3 gold and 2 wires to plate 5 coins; B uses 5 gold and 3 wires for 7. With 500 gold and 300 wires, how many coins at most? | 750 |
-| Competition math | AIME, MATH-500 | a number |
-| Proofs (extension) | Prove a competition statement in Lean 4 (miniF2F), or a geometry theorem (IMO) | a proof the computer accepts |
+| Kind | Example | Answer | Next to coding tests like LeetCode |
+|---|---|---|---|
+| Geometry | How many corners does the tightest rubber band around these 10 points have? | 6 | ≈ Easy–Hard (#812 triangle area, #587 convex hull), but exact on moved, turned and mirrored copies |
+| Optimization | Plan delivery routes for 100 customers, each with an opening time window, using the fewest kilometres | a route plan | no match: no fast exact algorithm is known; needs a solver library |
+| Contest problems | *Make a triangle!* (Codeforces): sticks of 2, 5 and 3 cm; how many cm must be added before they form a triangle? | 1 | median rating 2200 ≈ Hard; 46% are 2400+, harder than almost any LeetCode problem |
+| Word problems | Process A uses 3 gold and 2 wires to plate 5 coins; B uses 5 gold and 3 wires for 7. With 500 gold and 300 wires, how many coins at most? | 750 | school level; the hard part is the solver's API |
+| Competition math | AIME, MATH-500 | a number | not a coding test |
+| Proofs (extension) | Prove a competition statement in Lean 4 (miniF2F), or a geometry theorem (IMO) | a proof the computer accepts | not a coding test |
 
-An LLM can answer in text, **write a program** and run it, or **think longer** first (a reasoning mode that writes thousands of extra tokens). For computation, text is unreliable: asked for twice the area of one polygon in 8 equivalent copies (moved, rotated, mirrored), Qwen3-8B answers 436, 2944, 392 and 728; the program it writes is right on all 8.
+![The problems and their difficulty](figs/ex_problems.png)
+
+An LLM can solve them in four ways: answer in text, **write a program** and run it, write a program that **calls a solver library** (e.g. OR-Tools for routing), or **think longer** first (a reasoning mode that writes thousands of extra tokens). For computation, text is unreliable: asked for twice the area of one polygon in 8 equivalent copies (moved, rotated, mirrored), Qwen3-8B answers 436, 2944, 392 and 728; the program it writes is right on all 8.
 
 Programs are the right tool when the answer must be computed. On short-answer competition math, text is as good or better (Qwen3.6 on MATH-500: text 98.3%, program 86.8%); there the program is most useful as a *second opinion*: when gpt-oss-20b's text answer and program agree, only 0.3% are wrong (two text answers that agree: 1.5%).
 

@@ -7,6 +7,7 @@ try { ({ applyTheme } = require(process.env.PPTX_THEME_JS || "/root/.claude/skil
 
 const ROOT = process.env.PROJECT_ROOT || path.join(__dirname, "..");   // repository root (this file is poc/make_slides.js)
 const FIG = (f) => path.join(ROOT, "figs", f);
+const ICON = (name) => FIG(path.join("icons", name + ".png"));   // figs/icons/*.png, drawn by poc/make_icons.js
 const OUT = path.join(ROOT, "PROPOSAL_slides.pptx");
 
 const THEME = {
@@ -142,30 +143,72 @@ pres.addSection({ title: "Problem" });
 slideTitle("Problem", "POSTECH CSED490E (Graduate NLP) · Team 5 · October 2026",
   "Computational math: geometry, optimization, contest problems, word problems whose answer must be computed exactly. We ask how to get them right with the fewest tokens and the smallest GPU.");
 
-// 2. Problem
+// 2. Problem: the four ways an LLM can solve a math problem, and words vs a program on one example
 function slideProblem(section, notes) {
 s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
-s.addText("Let the computer do the math", { placeholder: "title" });
-s.addText("Same shape moved, turned or flipped, so the right answer never changes: 436 (twice its area)",
-  { isTextBox: true, x: 3.9, y: 1.35, w: 8.8, h: 0.45, fontSize: 16, color: C.text1, align: "center", margin: 0 });
-s.addImage({ path: FIG("slide2_shapes.png"), x: 3.9, y: 1.85, w: 8.8, h: 1.9, objectName: "four copies of one polygon", altText: "one polygon: original, moved, turned, flipped" });
-["original", "moved", "turned", "flipped"].forEach((t, k) => {
-  s.addText(t, { isTextBox: true, x: 3.9 + k * 2.2, y: 3.55, w: 2.2, h: 0.35, fontSize: 16, color: C.text2, align: "center", margin: 0 });
+s.addText("How an LLM solves a math problem", { placeholder: "title" });
+[["pen", "Answer in words", "it does the arithmetic itself"], ["code", "Write a program", "the computer computes the answer"],
+ ["gears", "Call a solver library", "e.g. OR-Tools finds the best routes"], ["brain", "Think longer first", "more hidden notes = more tokens"]].forEach(([icon, head, sub], k) => {
+  const x = 0.6 + k * 3.05;
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.3, w: 2.9, h: 0.85, rectRadius: 0.08, fill: { color: "F2F2F2" }, line: { color: "D9D9D9", width: 0.75 }, objectName: "approach " + head });
+  s.addImage({ path: ICON(icon), x: x + 0.15, y: 1.47, w: 0.5, h: 0.5, objectName: "icon " + icon });
+  txt(s, [{ text: head, options: { bold: true, fontSize: 16, breakLine: true } }, { text: sub, options: { fontSize: 12.5, color: C.text2 } }], x + 0.75, 1.3, 2.1, 0.85, {});
 });
-[["Answer in words", "the model does the arithmetic itself", [["436 ✓", 1], ["2944 ✗", 0], ["392 ✗", 0], ["728 ✗", 0]], 4.3],
- ["Write a program", "the computer does the arithmetic", [["436 ✓", 1], ["436 ✓", 1], ["436 ✓", 1], ["436 ✓", 1]], 5.15]].forEach(([head, sub, ans, y]) => {
-  s.addText([{ text: head, options: { bold: true, fontSize: 20, breakLine: true } }, { text: sub, options: { fontSize: 14, color: THEME.colors.dk2 } }],
-    { isTextBox: true, x: 0.6, y: y - 0.1, w: 3.2, h: 0.8, valign: "middle", margin: 0, color: C.text1 });
+s.addText("Example: one shape moved, turned or flipped, so the right answer never changes: 436 (twice its area)",
+  { isTextBox: true, x: 3.9, y: 2.35, w: 8.8, h: 0.4, fontSize: 15, color: C.text1, align: "center", margin: 0 });
+s.addImage({ path: FIG("slide2_shapes.png"), x: 4.6, y: 2.75, w: 7.4, h: 1.6, objectName: "four copies of one polygon", altText: "one polygon: original, moved, turned, flipped" });
+["original", "moved", "turned", "flipped"].forEach((t, k) => {
+  s.addText(t, { isTextBox: true, x: 3.9 + k * 2.2, y: 4.25, w: 2.2, h: 0.3, fontSize: 14, color: C.text2, align: "center", margin: 0 });
+});
+[["Answer in words", "the model does the arithmetic itself", [["436 ✓", 1], ["2944 ✗", 0], ["392 ✗", 0], ["728 ✗", 0]], 4.7],
+ ["Write a program", "the computer does the arithmetic", [["436 ✓", 1], ["436 ✓", 1], ["436 ✓", 1], ["436 ✓", 1]], 5.45]].forEach(([head, sub, ans, y]) => {
+  s.addText([{ text: head, options: { bold: true, fontSize: 19, breakLine: true } }, { text: sub, options: { fontSize: 13, color: THEME.colors.dk2 } }],
+    { isTextBox: true, x: 0.6, y: y - 0.1, w: 3.2, h: 0.75, valign: "middle", margin: 0, color: C.text1 });
   ans.forEach(([t, ok], k) => chip(s, t, ok, 3.9 + k * 2.2, y));
 });
-caption(s, "But programs can be silently wrong, and thinking is expensive. Goal: right answers, lowest cost.");
+caption(s, "Programs get the arithmetic right, but they can be silently wrong, and thinking is expensive");
 s.addNotes(notes);
 }
-const PROBLEM_NOTES = "Qwen3-8B, real outputs. Asked to answer directly, it gives a different area for each copy of the same polygon (only the original is right). Asked for a program, it writes the shoelace formula and the computer gets all copies right. Programs still fail silently, and thinking longer is expensive: on 311 contest problems gpt-oss-120b goes from 57% to 66% for 4.4 times the tokens. Goal: effective (exactly right) and efficient (fewest tokens, smallest GPU).";
+const PROBLEM_NOTES = "Four ways an LLM can solve a math problem: answer in words, write a program, write a program that calls a solver library (for optimization), or think longer first (reasoning mode, more tokens). Example, Qwen3-8B, real outputs. Asked to answer directly, it gives a different area for each copy of the same polygon (only the original is right). Asked for a program, it writes the shoelace formula and the computer gets all copies right. Programs still fail silently, and thinking longer is expensive: on 311 contest problems gpt-oss-120b goes from 57% to 66% for 4.4 times the tokens. Goal: effective (exactly right) and efficient (fewest tokens, smallest GPU).";
 slideProblem("Problem", PROBLEM_NOTES);
 
+// 2a. The problems we study, and how hard they are next to LeetCode
+function slideKinds(section, title, pre) {
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
+s.addText(title, { placeholder: "title" });
+[["shapes", "Geometry", "How many corners does the rubber band around 10 points have?", "≈ LeetCode Easy–Hard (#812, #587)", BLUE],
+ ["trophy", "Contest problems", "311 Codeforces geometry problems, hidden tests", "mostly LeetCode Hard or harder", RED],
+ ["truck", "Routing, scheduling", "routes for 100 customers with time windows", "no LeetCode match: needs a solver", THEME.colors.accent2],
+ ["calc", "Word problems", "most coins from 500 gold and 300 wires?", "school level, but the solver API is hard", "38761D"],
+ ["sqrt", "Math and proofs", "AIME answers; Lean proofs of olympiad statements", "not a coding test", "595959"]].forEach(([icon, head, ex, tag, col], k) => {
+  const x = 0.6 + k * 2.45;
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.3, w: 2.3, h: 2.35, rectRadius: 0.08, fill: { color: "F7F7F7" }, line: { color: "D9D9D9", width: 0.75 }, objectName: "kind " + head });
+  s.addImage({ path: ICON(icon), x: x + 0.15, y: 1.42, w: 0.48, h: 0.48, objectName: "icon " + icon });
+  txt(s, head, x + 0.7, 1.4, 1.55, 0.55, { fontSize: 15, bold: true });
+  txt(s, ex, x + 0.15, 2.0, 2.0, 0.9, { fontSize: 13, valign: "top" });
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: x + 0.1, y: 2.95, w: 2.1, h: 0.6, rectRadius: 0.1, fill: { color: "FFFFFF" }, line: { color: col, width: 1 }, objectName: "tag " + head });
+  txt(s, tag, x + 0.15, 2.95, 2.0, 0.6, { fontSize: 12, bold: true, color: col, align: "center" });
+});
+// the contest problems on the LeetCode scale: counts per Codeforces rating band
+txt(s, "Our 311 contest problems on the LeetCode scale (Codeforces rating; rough rule of thumb)", 0.6, 3.8, 12.1, 0.4, { fontSize: 15, bold: true });
+const X = (r) => 1.0 + (r - 800) * 11.4 / 2800, BASE = 5.4;
+[[800, 1200, "LeetCode Easy", "E2F0D9"], [1200, 1800, "Medium", "FFF2CC"], [1800, 2300, "Hard", "FCE4D6"], [2300, 3600, "harder than LeetCode", "FADBD8"]].forEach(([a, b, lab, fill]) => {
+  s.addShape(pres.shapes.RECTANGLE, { x: X(a), y: BASE + 0.05, w: X(b) - X(a), h: 0.38, fill: { color: fill }, line: { color: "FFFFFF", width: 1 }, objectName: "zone " + lab });
+  txt(s, lab, X(a), BASE + 0.05, X(b) - X(a), 0.38, { fontSize: 13, bold: true, align: "center" });
+});
+[[800, 29], [1200, 24], [1600, 59], [2000, 53], [2400, 85], [2800, 40], [3200, 17]].forEach(([r, n]) => {
+  const h = 0.8 * n / 85, x = X(r) + 0.08, w = X(r + 400) - X(r) - 0.16;
+  s.addShape(pres.shapes.RECTANGLE, { x, y: BASE - h, w, h, fill: { color: r >= 2400 ? RED : "7F7F7F" }, line: { color: "FFFFFF", width: 0.5 }, objectName: "rating " + r });
+  txt(s, String(n), x, BASE - h - 0.3, w, 0.28, { fontSize: 13, bold: true, align: "center", color: r >= 2400 ? RED : "404040" });
+  txt(s, String(r), X(r) - 0.3, BASE + 0.45, 0.6, 0.25, { fontSize: 11, color: C.text2, align: "center" });
+});
+txt(s, "3600", X(3600) - 0.3, BASE + 0.45, 0.6, 0.25, { fontSize: 11, color: C.text2, align: "center" });
+caption(s, "Median 2200 (LeetCode Hard); 46% are 2400+, where even gpt-oss-120b solves only 48%");
+s.addNotes((pre || "") + "What the problems are: exact geometry from coordinates; real contest problems (CodeContests, Codeforces geometry, official hidden tests); routing and scheduling benchmarks (Solomon, OR-Library) that need a solver library and have no LeetCode equivalent; optimization word problems (NL4OPT, IndustryOR, MAMO); and competition math (MATH-500, AIME) and Lean proofs (miniF2F). LeetCode comparison is a rough community rule of thumb (Easy about Codeforces 800-1200, Medium 1200-1800, Hard 1800-2300). Our contest set: median rating 2200, 142 of 311 at 2400 or more (4 unrated not shown). gpt-oss-120b at high effort solves 89% of the easiest band and 48% of the 2400+ band; the generated geometry tasks resemble LeetCode 812 (Easy, triangle area) and 587 (Hard, convex hull) but must be exactly right on moved, turned and mirrored copies.");
+}
+slideKinds("Problem", "The problems we study, and how hard they are");
+
 // 2b. What goes wrong, why it matters, and what we do
-const ICON = (name) => FIG(path.join("icons", name + ".png"));   // figs/icons/*.png, drawn by poc/make_icons.js
 function slideWhy(section, title, pre) {
 s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
 s.addText(title, { placeholder: "title" });
@@ -623,19 +666,20 @@ slideLimits("Next", "Where the recipe stops, and what is next");
 const FULL = path.join(ROOT, "PROPOSAL_slides_full.pptx");
 pres.writeFile({ fileName: FULL }).then(async () => { await applyTheme(FULL, THEME); console.log("written", FULL); buildTalk(); });
 
-// ================= 5-minute talk + 5 minutes of questions (PROPOSAL_slides.pptx): 9 slides, then extra pages =================
+// ================= 5-minute talk + 5 minutes of questions (PROPOSAL_slides.pptx): 10 slides, then extra pages =================
 function buildTalk() {
   pres = newDeck();
   pres.addSection({ title: "Talk" });
   slideTitle("Talk", "POSTECH CSED490E (Graduate NLP) · Team 5 · 5-minute proposal talk",
-    "(10 s) We study how to solve computational math with LLMs: answers that must be computed exactly, with the fewest tokens and the smallest GPU. Nine slides, then extra pages for questions.");
-  slideProblem("Talk", "(25 s) " + PROBLEM_NOTES);
-  slideWhy("Talk", "What goes wrong, and what we do", "(35 s) ");
-  slideFact("Talk", "Finding 1: give the fact, not the manual", "(40 s) ");
-  slideTwoVersions("Talk", "Finding 2: two versions catch each other's mistakes", "(40 s) ");
-  slideHard("Talk", "Finding 3: think harder only when a check fails", "(40 s) ");
-  slideAuto("Talk", "Finding 4: the fact can be found without a human", "(40 s) ");
-  slideMethod("Talk", "Our method: cheap steps first", "(60 s) The findings give one recipe, shown on a real problem: write a program, add the missing fact, run a free check, think harder only if it fails, reuse the checked program for the same kind of problem. ");
+    "(10 s) We study how to solve computational math with LLMs: answers that must be computed exactly, with the fewest tokens and the smallest GPU. Ten slides, then extra pages for questions.");
+  slideProblem("Talk", "(30 s) " + PROBLEM_NOTES);
+  slideKinds("Talk", "The problems we study, and how hard they are", "(30 s) ");
+  slideWhy("Talk", "What goes wrong, and what we do", "(30 s) ");
+  slideFact("Talk", "Finding 1: give the fact, not the manual", "(35 s) ");
+  slideTwoVersions("Talk", "Finding 2: two versions catch each other's mistakes", "(35 s) ");
+  slideHard("Talk", "Finding 3: think harder only when a check fails", "(35 s) ");
+  slideAuto("Talk", "Finding 4: the fact can be found without a human", "(35 s) ");
+  slideMethod("Talk", "Our method: cheap steps first", "(50 s) The findings give one recipe, shown on a real problem: write a program, add the missing fact, run a free check, think harder only if it fails, reuse the checked program for the same kind of problem. ");
 
   // closing slide: the takeaway, then 5 minutes of questions with the extra pages as an index
   function slidePays(section, title) {
