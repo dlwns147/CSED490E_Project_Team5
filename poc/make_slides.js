@@ -129,6 +129,7 @@ function prompt(s, title, lines, x, y, w, h, fill) {
 
 // 1. Title
 let s;
+let WITH_MATH = true;   // false in the talk deck: competition math and proofs are left out of the talk for now (the full deck and PROPOSAL.md keep them)
 function slideTitle(section, sub, notes) {
 s = pres.addSlide({ masterName: "Title Slide", sectionTitle: section });
 s.addText([{ text: "Solving Computational Math", options: { fontSize: 44, breakLine: true } },
@@ -180,14 +181,14 @@ s.addText(title, { placeholder: "title" });
  ["trophy", "Contest problems", "311 Codeforces geometry problems, hidden tests", "Codeforces Master to Grandmaster level", RED],
  ["truck", "Routing, scheduling", "routes for 100 customers with time windows", "classic OR benchmark: a greedy plan is 48% worse", THEME.colors.accent2],
  ["calc", "Word problems", "most coins from 500 gold and 300 wires?", "OR-course exercises (NL4OPT, NeurIPS 2022)", "38761D"],
- ["sqrt", "Math and proofs", "AIME answers; Lean proofs of olympiad statements", "AIME: top ~5% of AMC; IMO gold: 25.9/30", "595959"]].forEach(([icon, head, ex, tag, col], k) => {
-  const x = 0.6 + k * 2.45;
-  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.3, w: 2.3, h: 2.35, rectRadius: 0.08, fill: { color: "F7F7F7" }, line: { color: "D9D9D9", width: 0.75 }, objectName: "kind " + head });
+ ...(WITH_MATH ? [["sqrt", "Math and proofs", "AIME answers; Lean proofs of olympiad statements", "AIME: top ~5% of AMC; IMO gold: 25.9/30", "595959"]] : [])].forEach(([icon, head, ex, tag, col], k, all) => {
+  const wide = all.length === 4, cw = wide ? 2.9 : 2.3, x = 0.6 + k * (cw + (wide ? 0.17 : 0.15));
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.3, w: cw, h: 2.35, rectRadius: 0.08, fill: { color: "F7F7F7" }, line: { color: "D9D9D9", width: 0.75 }, objectName: "kind " + head });
   s.addImage({ path: ICON(icon), x: x + 0.15, y: 1.42, w: 0.48, h: 0.48, objectName: "icon " + icon });
-  txt(s, head, x + 0.7, 1.4, 1.55, 0.55, { fontSize: 15, bold: true });
-  txt(s, ex, x + 0.15, 2.0, 2.0, 0.9, { fontSize: 13, valign: "top" });
-  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: x + 0.1, y: 2.95, w: 2.1, h: 0.6, rectRadius: 0.1, fill: { color: "FFFFFF" }, line: { color: col, width: 1 }, objectName: "tag " + head });
-  txt(s, tag, x + 0.15, 2.95, 2.0, 0.6, { fontSize: 12.5, bold: true, color: col, align: "center" });
+  txt(s, head, x + 0.7, 1.4, cw - 0.75, 0.55, { fontSize: wide ? 16 : 15, bold: true });
+  txt(s, ex, x + 0.15, 2.0, cw - 0.3, 0.9, { fontSize: wide ? 14 : 13, valign: "top" });
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: x + 0.1, y: 2.95, w: cw - 0.2, h: 0.6, rectRadius: 0.1, fill: { color: "FFFFFF" }, line: { color: col, width: 1 }, objectName: "tag " + head });
+  txt(s, tag, x + 0.15, 2.95, cw - 0.3, 0.6, { fontSize: wide ? 13 : 12.5, bold: true, color: col, align: "center" });
 });
 // the contest problems by Codeforces rating, under the human rank at that level
 txt(s, "Our 311 contest problems by Codeforces rating, with the human rank at that level", 0.6, 3.8, 12.1, 0.4, { fontSize: 15, bold: true });
@@ -610,14 +611,14 @@ s.addText(title, { placeholder: "title" });
 const ADD = (t) => ({ text: t, options: { color: "38761D" } });
 table(s, [
   [HDR("Theme"), HDR("Closest work"), HDR("What we add")],
-  ["Programs instead of text", "PAL, Program-of-Thoughts, Mixture-of-Thought (ICLR 2024)", ADD("when a program helps; text vs program as a free check")],
+  ["Programs instead of text", "PAL, Program-of-Thoughts, Mixture-of-Thought (ICLR 2024)", ADD(WITH_MATH ? "when a program helps; text vs program as a free check" : "a program for computation; two versions of it as a free check")],
   ["Library facts for code", "DRoC (ICLR 2025), CP-Bench, CloudAPIBench, DRAFT", ADD("an exact snippet beats the manual and thinking; facts mined without a human")],
   ["Misleading context", "Invisible Lottery (2606.04057), unneeded tools (2609.14157), CodeCrash, S2A", ADD("the harm on exact geometry, turned into a check")],
   ["Choosing a program", "CodeT, MBR-exec, AlphaCode's example filter, DeepConf", ADD("symmetry check of one program: 99.7% vs CodeT 96.0%")],
   ["Spending test-time compute", "Snell et al. 2025, FrugalGPT, DART, Thinkless, AdaptThink", ADD("fact + execution check, no training: 87% vs 74%")],
   ["Optimization modeling", "ORLM, STORM, EVOM, OR-R1 (trained); OptiMUS, OptiSkill (agents)", ADD("training-free, no answers; matches fine-tuned ORLM-8B")],
   ["One program, many instances", "FunSearch, HeuriGym, ARS, 2605.14141", ADD("measured 7% → 94%; edit a verified program for new rules")],
-  ["Proofs", "Goedel-Prover-V2, DeepSeek-Prover-V2, AlphaGeometry", ADD("facts and checks do not carry over: use a specialized prover")],
+  ...(WITH_MATH ? [["Proofs", "Goedel-Prover-V2, DeepSeek-Prover-V2, AlphaGeometry", ADD("facts and checks do not carry over: use a specialized prover")]] : []),
 ], { x: 0.6, y: 1.35, w: 12.1, colW: [2.6, 4.9, 4.6], rowH: 0.57, fontSize: 13 });
 s.addNotes((pre || "") + "Closest work per theme (details and how we differ: PROPOSAL.md section 6.1 and docs/notes/RELATED_WORK.md). Closest overall: OptiSkill (2609.22987) builds a skill bank from a strong teacher's programs validated against answers and routes it by problem type; our facts are the same small model's own programs chosen by a label-free check, and we show why routing by problem type is needed (a fact from another type costs 14-21 points). For when-to-think, Thinkless and AdaptThink train a switch with RL; we decide with an execution check after giving the fact; a same-backbone comparison with AdaptThink-7B is running.");
 }
@@ -631,8 +632,9 @@ table(s, [
   [HDR("Benchmark"), HDR("Reported in the paper or model card"), HDR("Ours")],
   ["MAMO Easy / Complex", "ORLM-LLaMA-3-8B 82.3 / 37.4% (fine-tuned)\nSTORM-Qwen3-4B 86.3 / 70.3% (SFT + RL)\nOptiSkill with frontier models 90.8–94.3 / 56.8–64.0%",
    OURS("no training: Qwen3-14B 82.8 / 37.4%, gpt-oss-20b 85.6 / 57.8%\nORLM-8B in our harness: 80.5 / 35.5%")],
+  ...(WITH_MATH ? [
   ["miniF2F, 32 tries", "Goedel-Prover-V2-8B 84.6%", OURS("the same model in our harness: 76.6%")],
-  ["IMO-AG-30 geometry", "AlphaGeometry 25 of 30; its symbolic engine alone 14; average IMO gold medallist 25.9, average participant 15.2", OURS("engine alone 12 in our setup; with our models' points 13")],
+  ["IMO-AG-30 geometry", "AlphaGeometry 25 of 30; its symbolic engine alone 14; average IMO gold medallist 25.9, average participant 15.2", OURS("engine alone 12 in our setup; with our models' points 13")]] : []),
 ], { x: 0.6, y: 1.5, w: 12.1, colW: [2.4, 5.0, 4.7], rowH: [0.5, 1.3, 0.6, 0.9], fontSize: 15 });
 caption(s, "Different harnesses and graders: for orientation only");
 s.addNotes((pre || "") + "Numbers as reported by the papers or model cards; our harness, prompts and graders differ (MAMO labels are noisy; reported ORLM numbers range 81.6-88.2% on Easy). ORLM-8B rerun in our harness gives 80.5 / 35.5%, close to its report. STORM-Qwen3-4B is being run in our harness. Goedel-Prover-V2-8B: 187 of 244 with 32 tries in our Lean setup vs 84.6% on its card. AlphaGeometry's DD+AR engine proves 12 of IMO-AG-30 here (14 in the paper; one problem does not parse in this engine version).");
@@ -643,9 +645,9 @@ slideReported("Method", "Numbers reported in papers, next to ours");
 function slideSetup(section, title, pre) {
 s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
 s.addText(title, { placeholder: "title" });
-[["robot", "Models", "open models run locally: Qwen3 1.7B–32B, Qwen3.6-35B, gpt-oss-20b and 120b; Goedel- and DeepSeek-Prover for proofs"],
- ["shapes", "Benchmarks", "13 geometry and 8 optimization tasks (generated); 311 Codeforces geometry; 56 Solomon routing; 82 job-shop; 1,208 word problems (NL4OPT, IndustryOR, MAMO); MATH-500 + AIME; miniF2F"],
- ["check", "Exact scoring", "geometry right on all 8 moved copies; plans obey every rule; contest programs pass all official tests; math and word problems by exact answer"],
+[["robot", "Models", "open models run locally: Qwen3 1.7B–32B, Qwen3.6-35B, gpt-oss-20b and 120b" + (WITH_MATH ? "; Goedel- and DeepSeek-Prover for proofs" : "")],
+ ["shapes", "Benchmarks", "13 geometry and 8 optimization tasks (generated); 311 Codeforces geometry; 56 Solomon routing; 82 job-shop; 1,208 word problems (NL4OPT, IndustryOR, MAMO)" + (WITH_MATH ? "; MATH-500 + AIME; miniF2F" : "")],
+ ["check", "Exact scoring", "geometry right on all 8 moved copies; plans obey every rule; contest programs pass all official tests; " + (WITH_MATH ? "math and word problems" : "word problems") + " by exact answer"],
  ["fact", "Fair comparisons", "one change at a time; predictions written before each run; every claim on 3 seeds; baselines run in our own harness"],
  ["coins", "Cost", "every result reported with its output tokens per problem"],
  ["gpu", "Hardware", "one model per GPU (RTX PRO 6000, 96 GB); the small models fit one 24 GB GPU"]].forEach(([icon, head, body], k) => {
@@ -664,7 +666,7 @@ function slideLimits(section, title, pre) {   // pre: text put before the speake
 s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
 s.addText(title, { placeholder: "title" });
 [["Where it stops", RED, [
-   "Proofs: a skill, not a fact (use a specialized prover)",
+   ...(WITH_MATH ? ["Proofs: a skill, not a fact (use a specialized prover)"] : []),
    "Automatic facts only within one kind of problem",
    "Checks leak: 24–37% of wrong contest programs pass the examples",
    "Missing world knowledge: thinking adds 2–5 points at 70–200× tokens"]],
@@ -689,43 +691,58 @@ pres.writeFile({ fileName: FULL }).then(async () => { await applyTheme(FULL, THE
 // ================= 5-minute talk + 5 minutes of questions (Proposal_Team5.pptx): 9 slides, then extra pages for expected questions =================
 function buildTalk() {
   pres = newDeck();
+  WITH_MATH = false;
   const addSlide = pres.addSlide.bind(pres);   // notes only on the 9 talk slides (Korean script, SCRIPT_KO); the extra pages drop the full deck's notes
-  pres.addSlide = (o) => { const sl = addSlide(o); sl.say = sl.addNotes.bind(sl); sl.addNotes = () => sl; return sl; };
+  // beginners read "a code hint" where the full deck and PROPOSAL.md say "a fact"; every text, table and chart label of the talk passes through term()
+  const TERMS = [["A fact, a check, or more thinking", "A hint, a check, or more thinking"], ["a missing fact", "a code hint"],
+                 ["give the fact, not the manual", "give a short hint, not the manual"], ["give the missing fact first", "give a short hint first"],
+                 ["Add the missing fact", "Add a code hint"], ["Thinking cannot supply a fact the model does not have", "Thinking cannot supply what the model does not know"],
+                 ["Thinking cannot add a fact the model lacks", "Thinking cannot add what the model does not know"]];
+  const term = t => typeof t !== "string" ? t : TERMS.reduce((u, [a, b]) => u.split(a).join(b), t)
+    .replace(/\bFacts\b/g, "Hints").replace(/\bfacts\b/g, "hints").replace(/\bFact\b/g, "Hint").replace(/\bfact\b/g, "hint");
+  const termText = x => Array.isArray(x) ? x.map(r => ({ ...r, text: term(r.text) })) : term(x);
+  const termCell = c => typeof c === "string" ? term(c) : (c && typeof c === "object" ? { ...c, text: termText(c.text) } : c);
+  pres.addSlide = (o) => {
+    const sl = addSlide(o), text = sl.addText.bind(sl), tab = sl.addTable.bind(sl), chart = sl.addChart.bind(sl);
+    sl.say = sl.addNotes.bind(sl); sl.addNotes = () => sl;
+    sl.addText = (t, op) => text(termText(t), op);
+    sl.addTable = (rows, op) => tab(rows.map(r => r.map(termCell)), op);
+    sl.addChart = (type, data, op) => chart(type, Array.isArray(data) ? data.map(d => d && d.labels ? { ...d, name: term(d.name), labels: d.labels.map(term) } : d) : data, op);
+    return sl;
+  };
   const SCRIPT_KO = [   // speaker notes of slides 1-9 (seconds at a calm pace in brackets)
-    "(15초) 안녕하세요, 5조입니다. LLM으로 계산 수학 문제를 정확하고 싸게 푸는 방법을 제안합니다. 질문은 하나입니다. 추가 노력을 사실, 검사, 생각 중 어디에 써야 할까요?",
+    "(15초) 안녕하세요, 5조입니다. LLM으로 계산 수학 문제를 정확하고 싸게 푸는 방법을 제안합니다. 질문은 하나입니다. 추가 노력을 힌트, 검사, 생각 중 어디에 써야 할까요?",
     "(30초) 저희가 푸는 문제는 네 종류이고, 두 무리로 나뉩니다. 기하 계산과 Codeforces 경시 문제는 맞는 알고리즘이 필요하고, 경시 문제는 그중 어려운 쪽으로 중앙값이 Codeforces Master 수준입니다. 배송 경로와 최적화 문장제는 솔버를 맞게 부르는 법이 필요하고, 문장제는 글을 수식으로 옮기는 단계가 더 있습니다. 이 문제들을 고른 이유는 답이 정확히 하나라 코드로 채점할 수 있고, 필요한 것이 서로 달라서 추가 노력을 어디에 써야 할지 비교할 수 있기 때문입니다. 공개 모델 Qwen3와 gpt-oss로 맞힌 문제 수와 토큰 수를 함께 잽니다.",
     "(20초) LLM은 말로 답할 수도 있고, 프로그램을 짤 수도 있습니다. Qwen3-8B에게 같은 도형의 넓이의 두 배를 물었습니다. 옮기고 돌리고 뒤집어도 답은 436입니다. 말로 답하면 매번 다른 답이 나오지만, 프로그램은 네 번 모두 436입니다. 계산에는 프로그램이 맞는 도구입니다.",
-    "(35초) 하지만 두 가지 문제가 있습니다. 첫째, 프로그램은 조용히 틀립니다. 같은 문제인데 프롬프트에 보조 코드만 더하면 6 대신 0을 출력하고, 에러 메시지도 없습니다. 없는 라이브러리 함수를 불러서 죽기도 합니다. 둘째, 오래 생각하면 비쌉니다. 경시 문제 311개에서 gpt-oss-120b는 오래 생각하면 57%에서 66%로 오르지만, 토큰은 4.4배를 씁니다. 그래서 질문입니다. 추가 노력을 빠진 사실, 공짜 검사, 더 많은 생각 중 어디에 써야 할까요?",
-    "(35초) 첫 번째 발견입니다. 매뉴얼이 아니라 사실을 주세요. Qwen3-32B가 OR-Tools로 배송 경로 프로그램을 짭니다. 긴 참조 문서를 주면 존재하지 않는 함수를 불러서 죽고, 정확한 사용법 열한 줄을 주면 최적 경로를 찾습니다. 경로 문제 30개에서 최적해를 찾는 비율은 아무것도 안 주면 23%, 오래 생각하면 오히려 3%, 긴 참조 문서는 7%, 정확한 사용법은 77에서 90%입니다. 최적화 문장제와 기하에서도 같았습니다. 모르는 사실은 생각한다고 생기지 않습니다.",
+    "(35초) 하지만 두 가지 문제가 있습니다. 첫째, 프로그램은 조용히 틀립니다. 같은 문제인데 프롬프트에 보조 코드만 더하면 6 대신 0을 출력하고, 에러 메시지도 없습니다. 없는 라이브러리 함수를 불러서 죽기도 합니다. 둘째, 오래 생각하면 비쌉니다. 경시 문제 311개에서 gpt-oss-120b는 오래 생각하면 57%에서 66%로 오르지만, 토큰은 4.4배를 씁니다. 그래서 질문입니다. 추가 노력을 코드 힌트, 공짜 검사, 더 많은 생각 중 어디에 써야 할까요?",
+    "(35초) 첫 번째 발견입니다. 매뉴얼이 아니라 짧은 힌트를 주세요. Qwen3-32B가 OR-Tools로 배송 경로 프로그램을 짭니다. 긴 참조 문서를 주면 존재하지 않는 함수를 불러서 죽고, 정확한 사용법 열한 줄을 주면 최적 경로를 찾습니다. 경로 문제 30개에서 최적해를 찾는 비율은 아무것도 안 주면 23%, 오래 생각하면 오히려 3%, 긴 참조 문서는 7%, 정확한 사용법은 77에서 90%입니다. 최적화 문장제와 기하에서도 같았습니다. 모르는 것은 생각한다고 생기지 않습니다.",
     "(40초) 두 번째 발견입니다. 공짜 검사가 실패할 때만 생각하게 하세요. 검사 A는 문제에 적힌 예제입니다. 예제를 통과하면 바로 제출하고, 틀리면 그 문제만 더 생각합니다. 예제만 쓰면 65%로 조금 낮고, 모든 경우를 다 따져 보는 짧은 프로그램과도 답을 맞춰 보면 66%가 됩니다. 검사 B는 프로그램을 두 버전으로 짜서, 답이 다를 때만 생각합니다. 두 경우 모두 항상 생각할 때와 정확도는 같고, 토큰은 18에서 27% 적습니다. 두 검사 모두 정답이 필요 없고, 기하, 경시, 경로, 문장제에서 모두 통했습니다.",
-    "(55초) 두 발견을 합친 것이 저희 방법입니다. 실제 최적화 문제로 보겠습니다. 1단계, 모델이 없는 메서드를 불러서 죽습니다. 2단계, 사실을 줍니다. 이 사실은 사람이 쓴 것이 아니라, 모델이 다른 문제에서 짜서 검사를 통과한 자기 프로그램에서 자동으로 가져옵니다. 3단계, 두 버전의 답이 20000으로 같으니, 4단계 생각은 건너뜁니다. 생각만 했다면 5.3k 토큰이 들었을 문제를 0.6k로 풉니다. 5단계, 같은 종류의 새 데이터에는 검사된 프로그램을 재사용합니다. 기하와 최적화 208문제를 세 모델로 풀면, 어려워 보이는 문제에 생각을 몰아주면 74%, 저희 방법은 87%이고 토큰도 더 적습니다. 처음 써 본 문장제 벤치마크에서도, 자동으로 찾은 사실이 사람이 쓴 사실과 같은 79%였습니다.",
-    "(35초) 새로운 점은 세 가지입니다. 학습 없이, 공짜 검사가 실패할 때만 생각합니다. 정답 없이, 모델 자신의 검사된 프로그램을 사실로 줍니다. 그리고 특화 모델을 파인튜닝하지 않고도, 24GB GPU 한 장으로 같은 정확도를 냅니다. 다음으로는 더 많은 모델로 검증을 마치고, 검사로 못 잡는 오류, 즉 실행은 되지만 문제를 잘못 모델링한 프로그램을 다루겠습니다. 정리하면, 빠진 사실을 먼저 주고, 공짜 검사가 실패한 곳에서만 생각하게 하자는 것입니다.",
+    "(55초) 두 발견을 합친 것이 저희 방법입니다. 실제 최적화 문제로 보겠습니다. 1단계, 모델이 없는 메서드를 불러서 죽습니다. 2단계, 힌트를 줍니다. 이 힌트는 사람이 쓴 것이 아니라, 모델이 다른 문제에서 짜서 검사를 통과한 자기 프로그램에서 자동으로 가져옵니다. 3단계, 두 버전의 답이 20000으로 같으니, 4단계 생각은 건너뜁니다. 생각만 했다면 5.3k 토큰이 들었을 문제를 0.6k로 풉니다. 5단계, 같은 종류의 새 데이터에는 검사된 프로그램을 재사용합니다. 기하와 최적화 208문제를 세 모델로 풀면, 어려워 보이는 문제에 생각을 몰아주면 74%, 저희 방법은 87%이고 토큰도 더 적습니다. 처음 써 본 문장제 벤치마크에서도, 자동으로 찾은 힌트가 사람이 쓴 힌트와 같은 79%였습니다.",
+    "(35초) 새로운 점은 세 가지입니다. 학습 없이, 공짜 검사가 실패할 때만 생각합니다. 정답 없이, 모델 자신의 검사된 프로그램을 힌트로 줍니다. 그리고 특화 모델을 파인튜닝하지 않고도, 24GB GPU 한 장으로 같은 정확도를 냅니다. 다음으로는 더 많은 모델로 검증을 마치고, 검사로 못 잡는 오류, 즉 실행은 되지만 문제를 잘못 모델링한 프로그램을 다루겠습니다. 정리하면, 짧은 힌트를 먼저 주고, 공짜 검사가 실패한 곳에서만 생각하게 하자는 것입니다.",
     "(10초) 감사합니다. 질문 받겠습니다. 예상 질문마다 보충 슬라이드를 준비했으니, 번호를 누르면 바로 넘어갑니다.",
   ];
   const QA_KO = {   // speaker notes of the extra pages: a short Korean answer to the page's question
-    why: "(답변) 세 가지 이유입니다. 답이 정확히 하나라 코드로 채점할 수 있고, 정답 없이 쓸 수 있는 검사가 있으며, 실제 코딩 에이전트가 이미 경로 계획, 스케줄러, 기하 코드를 씁니다. 그리고 종류마다 필요한 것이 다릅니다. 기하와 경시는 맞는 알고리즘이 필요하고, 둘의 차이는 난이도입니다. 경로와 문장제는 솔버 라이브러리를 맞게 부르는 사실이 필요하고, 문장제는 글을 수식으로 옮기는 단계가 더 있습니다. 그래서 추가 노력을 사실, 검사, 생각 중 어디에 쓸지 비교하기 좋습니다.",
-    coverage: "(답변) 아니요, 모든 결과를 네 종류 전부에서 잰 것은 아닙니다. 사실 주기는 기하, 경로, 문장제에서, 공짜 검사는 네 종류 모두에서 확인했습니다. 전체 방법의 87% 대 74%는 기하 108문제와 최적화 100문제를 세 모델로 푼 결과입니다. 확장으로 시험한 경시 수학은 말로 답해도 충분하고, 증명은 특화된 증명 모델이 필요해서 이 방법의 범위 밖입니다.",
-    kinds: "(답변) 사람 기준으로 보면, 경시 문제 311개의 Codeforces 레이팅 중앙값은 2200으로 Master 수준이고, 46%는 Grandmaster 수준인 2400 이상입니다. 그 구간에서는 gpt-oss-120b도 48%만 풉니다. 경로 문제는 단순한 탐욕 계획이 최선보다 48% 길고, AIME는 AMC 응시자 중 상위 2.5에서 5%만 초대받는 시험입니다.",
-    progwords: "(답변) 항상은 아닙니다. 답을 계산해야 하는 문제에서는 말로 답하면 8개 복사본 중 1개만 맞고, 프로그램은 8개 모두 맞습니다. 하지만 짧은 답의 경시 수학인 MATH-500에서는 말이 98.3%로 프로그램 86.8%보다 낫습니다. 거기서는 프로그램을 두 번째 의견으로 씁니다. 말과 프로그램이 일치하면 틀린 경우가 0.3%뿐이고, 말 두 개가 일치할 때는 1.5%입니다.",
+    why: "(답변) 세 가지 이유입니다. 답이 정확히 하나라 코드로 채점할 수 있고, 정답 없이 쓸 수 있는 검사가 있으며, 실제 코딩 에이전트가 이미 경로 계획, 스케줄러, 기하 코드를 씁니다. 그리고 종류마다 필요한 것이 다릅니다. 기하와 경시는 맞는 알고리즘이 필요하고, 둘의 차이는 난이도입니다. 경로와 문장제는 솔버 라이브러리를 맞게 부르는 힌트가 필요하고, 문장제는 글을 수식으로 옮기는 단계가 더 있습니다. 그래서 추가 노력을 힌트, 검사, 생각 중 어디에 쓸지 비교하기 좋습니다.",
+    coverage: "(답변) 아니요, 모든 결과를 네 종류 전부에서 잰 것은 아닙니다. 힌트 주기는 기하, 경로, 문장제에서, 공짜 검사는 네 종류 모두에서 확인했습니다. 전체 방법의 87% 대 74%는 기하 108문제와 최적화 100문제를 세 모델로 푼 결과이고, 경시 문제에는 검사와 생각만 썼습니다.",
+    kinds: "(답변) 사람 기준으로 보면, 경시 문제 311개의 Codeforces 레이팅 중앙값은 2200으로 Master 수준이고, 46%는 Grandmaster 수준인 2400 이상입니다. 그 구간에서는 gpt-oss-120b도 48%만 풉니다. 경로 문제는 단순한 탐욕 계획이 최선보다 48% 길고, 문장제는 대학 OR 수업 연습문제 수준입니다.",
     two: "(답변) 보조 코드를 주면 모델이 그 함수에 맞춰 방법을 짭니다. 이 예에서는 필요 없는 polar_sort로 각도 정렬을 하다가 0을 출력했습니다. 기하 108문제에서 보조 코드가 있으면 59%, 없으면 77%입니다. 두 버전을 모두 짜서 답이 다를 때만 생각하면 99%를 4.3k 토큰에 얻습니다.",
-    fact: "(답변) 사실은 라이브러리를 어떻게 부르는지, 즉 함수 이름과 인자를 보여 주는 11줄짜리 코드 조각입니다. 같은 종류의 30문제에 똑같이 붙이고, 경로나 숫자나 정답은 들어 있지 않습니다. 긴 참조 문서가 아무것도 안 준 것보다 나쁜 이유는, 경로 설명은 있지만 용량 규칙이 없어서 모델이 빈 곳을 없는 함수로 채우기 때문입니다. 10개 프로그램이 RegisterUnaryLongLivingCallback을 불렀습니다.",
-    rag: "(답변) 네. 제목이 붙은 코드 조각 라이브러리에서 BM25로 찾으면, 최적화 6문제에서 손으로 쓴 사실과 같은 수준입니다. 97% 대 96%입니다. 다만 비슷하지만 다른 문서가 섞이면 손해가 큽니다. 경로 문제에서 TSP 문서가 함께 들어오면 83%에서 57%로 떨어집니다. 문서가 아예 없으면 모델 자신의 검사된 프로그램을 사실로 씁니다.",
+    fact: "(답변) 힌트는 라이브러리를 어떻게 부르는지, 즉 함수 이름과 인자를 보여 주는 11줄짜리 코드 조각입니다. 같은 종류의 30문제에 똑같이 붙이고, 경로나 숫자나 정답은 들어 있지 않습니다. 긴 참조 문서가 아무것도 안 준 것보다 나쁜 이유는, 경로 설명은 있지만 용량 규칙이 없어서 모델이 빈 곳을 없는 함수로 채우기 때문입니다. 10개 프로그램이 RegisterUnaryLongLivingCallback을 불렀습니다.",
+    rag: "(답변) 네. 제목이 붙은 코드 조각 라이브러리에서 BM25로 찾으면, 최적화 6문제에서 손으로 쓴 힌트와 같은 수준입니다. 97% 대 96%입니다. 다만 비슷하지만 다른 문서가 섞이면 손해가 큽니다. 경로 문제에서 TSP 문서가 함께 들어오면 83%에서 57%로 떨어집니다. 문서가 아예 없으면 모델 자신의 검사된 프로그램을 힌트로 씁니다.",
     think: "(답변) 모르는 함수를 생각하는 동안 지어내기 때문입니다. Qwen3-32B는 문장제에서 생각을 켜면 65.4%에서 52.0%로 떨어지는데, 존재하지 않는 Objective().SetMaximize를 부릅니다. 정확한 사용법을 먼저 주면 생각이 도움이 되어 72%가 되고, 실패할 때만 생각하면 같은 정확도를 1.3k 토큰에 냅니다.",
     leak: "(답변) 생깁니다. 경시 문제에서는 틀린 프로그램의 24에서 37%가 예제를 통과하고, 문장제에서는 12에서 16%가 두 프로그램이 같은 오답을 냅니다. 하지만 이런 문제를 완벽한 검사로 모두 생각에 보내도 생각이 7에서 16%만 고치기 때문에, 14B 이상 모델에서는 1에서 3점밖에 오르지 않습니다. 일부는 정답 레이블 자체가 틀렸습니다. 그래서 다음 목표는 실행은 되지만 문제를 잘못 모델링한 프로그램입니다.",
-    checks: "(답변) 저희가 다룬 문제에는 모두 정답 없이 쓸 수 있는 검사가 있습니다. 경시는 예제와 모든 경우를 따지는 짧은 프로그램, 기하는 입력을 옮기거나 돌려도 답이 같아야 한다는 검사나 두 버전의 일치, 경로는 계획이 모든 규칙을 지키는지 코드로 확인, 문장제는 두 프로그램의 일치, 경시 수학은 말과 프로그램의 일치, 증명은 Lean의 검사입니다. 검사가 얼마나 잡아내느냐가 생각을 얼마나 아낄지를 정합니다.",
-    auto: "(답변) 사람이 쓰지 않습니다. 모델이 다른 문제에서 짜서 공짜 검사를 통과한 자기 프로그램 중 가장 짧은 것을 사실로 붙입니다. 끝까지 쓰지 않고 남겨 둔 MAMO 863문제에서 세 모델 모두 사람이 쓴 사실과 약 2점 안에 들었습니다. 단, 다른 종류의 문제에서 가져온 프로그램은 오히려 14에서 21점 손해이고, 라이브러리 이름 목록만 주면 66%에서 56%로 떨어집니다.",
+    checks: "(답변) 저희가 다룬 네 종류에는 모두 정답 없이 쓸 수 있는 검사가 있습니다. 경시는 예제와 모든 경우를 따지는 짧은 프로그램, 기하는 입력을 옮기거나 돌려도 답이 같아야 한다는 검사나 두 버전의 일치, 경로는 계획이 모든 규칙을 지키는지 코드로 확인, 문장제는 두 프로그램의 일치입니다. 검사가 얼마나 잡아내느냐가 생각을 얼마나 아낄지를 정합니다.",
+    auto: "(답변) 사람이 쓰지 않습니다. 모델이 다른 문제에서 짜서 공짜 검사를 통과한 자기 프로그램 중 가장 짧은 것을 힌트로 붙입니다. 끝까지 쓰지 않고 남겨 둔 MAMO 863문제에서 세 모델 모두 사람이 쓴 힌트와 약 2점 안에 들었습니다. 단, 다른 종류의 문제에서 가져온 프로그램은 오히려 14에서 21점 손해이고, 라이브러리 이름 목록만 주면 66%에서 56%로 떨어집니다.",
     hard: "(답변) 오히려 강한 기준선을 만들어 봤습니다. 각 문제의 실제 Codeforces 레이팅을 알려 주고 어려운 문제만 높은 노력으로 보내도 예제 검사보다 못합니다. 레이팅 2600 이상만 보내면 61.4%, 1800 이상이면 65.3%인데 토큰이 27.8k로, 예제 검사의 65.0%, 20.2k보다 비쌉니다. 이 분석은 탐색적이라 사전 등록은 하지 않았습니다. 기하와 최적화에서도 난이도 기준 배분은 74%, 저희 방법은 87%입니다.",
     published: "(답변) 같은 문제와 같은 모델로 기존 방법을 직접 돌려 비교했습니다. 난이도별 생각 배분은 74%, 4.1k 대 저희 87%, 2.5k이고, 항상 높은 노력은 66.2%, 30.1k 대 66.3%, 24.7k이고, 모델이 테스트를 쓰는 CodeT는 96.0% 대 대칭 검사 99.7%입니다. 특화 모델 ORLM-8B의 69.5%는 학습 없는 Qwen3-8B도 같은 69.5%입니다. 저희 방법은 더 정확하거나, 더 싸거나, 둘 다입니다.",
-    related: "(답변) 관련 연구는 여덟 갈래입니다. 텍스트 대신 프로그램, 코드용 라이브러리 문서, 오도하는 문맥, 프로그램 고르기, 테스트 시간 계산 배분, 최적화 모델링, 한 프로그램 재사용, 그리고 증명입니다. 저희가 더하는 것은 실패 원인에 맞춰 사실과 공짜 검사를 먼저 쓰고, 학습도 정답도 없이 생각을 아끼는 것입니다.",
-    reported: "(답변) 논문 수치와 나란히 놓으면, MAMO Easy에서 학습 없는 Qwen3-14B가 82.8%로 파인튜닝한 ORLM의 82.3%와 비슷하고, gpt-oss-20b는 85.6%입니다. 프런티어 모델을 쓰는 OptiSkill의 90.8에서 94.3%보다는 낮습니다. miniF2F에서 Goedel-Prover-V2-8B는 논문 84.6%, 저희 환경에서 76.6%입니다. 평가 환경이 달라서 참고용입니다.",
-    vote: "(답변) 다수결은 많이 나온 답을 고르고, 검사는 맞는 답을 고릅니다. 기하에서 세 프로그램 중 하나를 고를 때 다수결은 4.3% 틀리고, 대칭 검사는 0.3%만 틀립니다. 문장제에서 생각 세 번의 다수결은 79.4%로 저희보다 7점 높지만, 토큰이 16.4k로 12배입니다. MATH-500에서는 말 답 세 개의 다수결 89.2%보다 말과 프로그램 일치 검사가 97.2%로 높습니다.",
-    fair: "(답변) 세 가지를 확인했습니다. 첫째, 입력 토큰입니다. 사실 조각은 입력을 213토큰 늘리고, 입력은 출력보다 싸고 캐시되므로 결론이 바뀌지 않습니다. 다만 프로그램을 돌리는 CPU 시간은 세지 않았습니다. 둘째, 암기입니다. 같은 난이도에서 오래된 대회와 최근 대회의 정답률이 81% 대 83%로 차이가 없고, MAMO는 끝까지 쓰지 않았으며, 모든 방법이 같은 모델을 씁니다. 셋째, 작은 차이는 '더 낫다'가 아니라 '같은 정확도에 더 적은 토큰'이라고만 말합니다.",
-    small: "(답변) 네, 작은 모델일수록 효과가 큽니다. 문장제 345문제에서 사실 하나로 Qwen3-1.7B는 44점, 4B는 31점 오르고, 32B는 1점 오릅니다. 그래서 24GB GPU 한 장에 들어가는 gpt-oss-20b가 사실과 함께 73%로, Qwen3-32B의 72%를 토큰 8분의 1로 따라잡습니다.",
-    policies: "(답변) 기하와 최적화 208문제를 세 모델로 푼 정책 비교입니다. 사실을 먼저 주고 실패할 때만 생각하는 정책이 87%, 2.5k로 가장 정확하고 가장 싼 편입니다. 새 과제라면 30문제만 라벨링해서 네 정책 중 고르면, 63개 설정에서 최선 대비 손실이 0.6점입니다. 이 정책을 기본값으로 쓰면 1.4점, 항상 생각하면 8.4점 손해입니다.",
-    proof: "(답변) 증명은 사실이 아니라 기술이 부족합니다. miniF2F 244문제에서 특화 증명 모델 Goedel-Prover-V2-8B가 74%를 증명하고, 일반 모델은 13에서 55%입니다. 일반 모델에는 비슷한 문제의 증명, 생각, 부등식 도구 모음 모두 도움이 되지 않았습니다. 이 8B 모델은 24GB GPU 한 장에 들어갑니다.",
-    limits: "(답변) 방법이 멈추는 곳은 네 가지입니다. 증명, 다른 종류의 문제 사이의 자동 사실, 예제를 통과하는 틀린 프로그램, 그리고 세계 지식이 필요한 문제입니다. 다음으로는 MAMO 검증을 더 많은 모델로 마치고, 검사로 못 잡는 문제 모델링 오류를 다루고, 문제 종류마다 자동 사실을 찾겠습니다.",
+    related: "(답변) 관련 연구는 일곱 갈래입니다. 텍스트 대신 프로그램, 코드용 라이브러리 문서, 오도하는 문맥, 프로그램 고르기, 테스트 시간 계산 배분, 최적화 모델링, 한 프로그램 재사용입니다. 저희가 더하는 것은 실패 원인에 맞춰 힌트와 공짜 검사를 먼저 쓰고, 학습도 정답도 없이 생각을 아끼는 것입니다.",
+    reported: "(답변) 논문 수치와 나란히 놓으면, MAMO Easy에서 학습 없는 Qwen3-14B가 82.8%로 파인튜닝한 ORLM의 82.3%와 비슷하고, gpt-oss-20b는 85.6%입니다. 프런티어 모델을 쓰는 OptiSkill의 90.8에서 94.3%보다는 낮습니다. 평가 환경이 달라서 참고용입니다.",
+    vote: "(답변) 다수결은 많이 나온 답을 고르고, 검사는 맞는 답을 고릅니다. 기하에서 세 프로그램 중 하나를 고를 때 다수결은 4.3% 틀리고, 대칭 검사는 0.3%만 틀립니다. 문장제에서 생각 세 번의 다수결은 79.4%로 저희보다 7점 높지만, 토큰이 16.4k로 12배입니다.",
+    fair: "(답변) 세 가지를 확인했습니다. 첫째, 입력 토큰입니다. 힌트 조각은 입력을 213토큰 늘리고, 입력은 출력보다 싸고 캐시되므로 결론이 바뀌지 않습니다. 다만 프로그램을 돌리는 CPU 시간은 세지 않았습니다. 둘째, 암기입니다. 같은 난이도에서 오래된 대회와 최근 대회의 정답률이 81% 대 83%로 차이가 없고, MAMO는 끝까지 쓰지 않았으며, 모든 방법이 같은 모델을 씁니다. 셋째, 작은 차이는 '더 낫다'가 아니라 '같은 정확도에 더 적은 토큰'이라고만 말합니다.",
+    small: "(답변) 네, 작은 모델일수록 효과가 큽니다. 문장제 345문제에서 힌트 하나로 Qwen3-1.7B는 44점, 4B는 31점 오르고, 32B는 1점 오릅니다. 그래서 24GB GPU 한 장에 들어가는 gpt-oss-20b가 힌트와 함께 73%로, Qwen3-32B의 72%를 토큰 8분의 1로 따라잡습니다.",
+    policies: "(답변) 기하와 최적화 208문제를 세 모델로 푼 정책 비교입니다. 힌트를 먼저 주고 실패할 때만 생각하는 정책이 87%, 2.5k로 가장 정확하고 가장 싼 편입니다. 새 과제라면 30문제만 라벨링해서 네 정책 중 고르면, 63개 설정에서 최선 대비 손실이 0.6점입니다. 이 정책을 기본값으로 쓰면 1.4점, 항상 생각하면 8.4점 손해입니다.",
+    limits: "(답변) 방법이 멈추는 곳은 세 가지입니다. 다른 종류의 문제 사이의 자동 힌트, 예제를 통과하는 틀린 프로그램, 그리고 세계 지식이 필요한 문제입니다. 다음으로는 MAMO 검증을 더 많은 모델로 마치고, 검사로 못 잡는 문제 모델링 오류를 다루고, 문제 종류마다 자동 힌트를 찾겠습니다.",
     reuse: "(답변) 같은 종류의 문제가 데이터만 바뀌어 반복되면, 검사된 프로그램 하나를 재사용합니다. 배송 경로 48일 동안 매일 새 프로그램을 쓰면 7%의 날만 유효하고 86k 토큰이 듭니다. 16개 프로그램을 한 번 쓰고 지난 8일에 유효한 것을 재사용하면 94%의 날이 유효하고 모두 28k 토큰입니다. 4배 큰 입력에서도 통했고, 규칙이 바뀌면 모델에게 고치게 하면 됩니다.",
-    setup: "(답변) 모델은 Qwen3 1.7B에서 32B, Qwen3.6-35B, gpt-oss-20b와 120b, 증명용 Goedel과 DeepSeek-Prover이고 모두 직접 돌렸습니다. 채점은 정확히 맞았는지만 보고, 모든 결과에 토큰 비용을 함께 적습니다. 예측을 먼저 적고 한 번에 하나만 바꾸며 3개 시드로 확인했습니다. GPU는 96GB 한 장이고, 작은 모델은 24GB 한 장에 들어갑니다.",
+    setup: "(답변) 모델은 Qwen3 1.7B에서 32B, Qwen3.6-35B, gpt-oss-20b와 120b이고 모두 직접 돌렸습니다. 채점은 정확히 맞았는지만 보고, 모든 결과에 토큰 비용을 함께 적습니다. 예측을 먼저 적고 한 번에 하나만 바꾸며 3개 시드로 확인했습니다. GPU는 96GB 한 장이고, 작은 모델은 24GB 한 장에 들어갑니다.",
   };
   const CHOICES = [["fact", "a missing fact", "E2F0D9", "38761D"], ["check", "a free check", "E2F0D9", "38761D"], ["brain", "more thinking", "FADBD8", RED]];
   function pill(x, y, k, fs = 15) {   // choice k from "where should the extra effort go?"
@@ -980,8 +997,7 @@ function buildTalk() {
     panel(s, 6.75, 1.35, 5.95, 4.65, "votes vs checks");
     txt(s, "Qwen3-32B, word problems", 7.0, 1.45, 5.45, 0.4, { fontSize: 16, bold: true });
     costRows(7.0, 1.85, 5.45, 2.5, [["vote of 3 programs", "68.4%", 1.1, "1.1k", "7F7F7F"], ["vote of 3 thinking runs", "79.4%", 16.4, "16.4k", "7F7F7F"], ["fact first, think on failure", "72.4%", 1.3, "1.3k", BLUE]], 16.4);
-    txt(s, "Qwen3-32B, competition math (MATH-500)", 7.0, 4.0, 5.45, 0.4, { fontSize: 16, bold: true });
-    costRows(7.0, 4.4, 5.45, 2.5, [["vote of 3 text answers", "89.2%", 2.3, "2.3k", "7F7F7F"], ["text = program, else think", "97.2%", 3.4, "3.4k", BLUE]], 16.4);
+    txt(s, "Voting three thinking runs is 7 points better here, but costs 12× the tokens of a free check.", 7.0, 4.25, 5.45, 0.9, { fontSize: 15, color: C.text2, valign: "top" });
     caption(s, "A check picks the right answer, a vote the popular one; 3 thinking runs win only at 12× tokens");
   }
   function slideQFair() {
@@ -999,23 +1015,6 @@ function buildTalk() {
     caption(s, "Same models, problems and grader for every method; every accuracy comes with its cost");
   }
 
-  function slideQWords() {
-    qSlide("Q: is a program always better than words?");
-    [["Computing an answer", "twice the area of one shape, 8 copies (Qwen3-8B)", [["in words", "1 of 8 right", RED], ["a program", "8 of 8 right", BLUE]], "→ write a program"],
-     ["Short-answer contest math", "MATH-500 (Qwen3.6)", [["in words", "98.3%", BLUE], ["a program", "86.8%", "7F7F7F"]], "→ words are fine"],
-     ["A second opinion", "two answers agree: how often both are wrong (gpt-oss-20b)", [["two in words", "1.5%", "7F7F7F"], ["words + program", "0.3%", BLUE]], "→ the program as a check"]].forEach(([head, sub, rows, verdict], k) => {
-      const x = 0.6 + k * 4.1;
-      panel(s, x, 1.4, 3.9, 4.55, "words vs program " + head);
-      txt(s, head, x + 0.25, 1.5, 3.4, 0.5, { fontSize: 19, bold: true, color: BLUE });
-      txt(s, sub, x + 0.25, 2.0, 3.4, 0.7, { fontSize: 15, valign: "top" });
-      rows.forEach(([lab, val, col], r) => {
-        txt(s, lab, x + 0.25, 2.85 + r * 0.85, 1.6, 0.7, { fontSize: 16 });
-        txt(s, val, x + 1.85, 2.85 + r * 0.85, 1.85, 0.7, { fontSize: 26, bold: true, color: col });
-      });
-      txt(s, verdict, x + 0.25, 4.85, 3.4, 0.6, { fontSize: 17, bold: true });
-    });
-    caption(s, "Write a program when the answer must be computed; elsewhere, use it as a second opinion");
-  }
   function slideQFact() {
     qSlide("Q: what exactly is the fact? Isn't it the answer?", "The fact for the routing problems of Finding 1: how to call OR-Tools (excerpt of the 11-line snippet)");
     s.addShape(pres.shapes.RECTANGLE, { x: 0.6, y: 1.95, w: 7.3, h: 3.95, fill: { color: "F7F7F7" }, line: { color: "BFBFBF", width: 0.75 }, objectName: "the fact, excerpt" });
@@ -1054,9 +1053,8 @@ function buildTalk() {
       ["Geometry", "move or turn the input: the answer must not change; or two versions must agree", "picks the right program 99.7% of the time (majority vote: 95.7%)"],
       ["Routing, scheduling", "code checks every rule of the plan (capacity, time windows)", "exact for the rules; whether the plan is the best is not checked"],
       ["Word problems", "two programs must agree", "12–16% agree but are both wrong"],
-      ["Competition math", "the text answer and the program must agree", "when they agree, 0.3% are wrong (gpt-oss-20b)"],
-      ["Proofs", "Lean checks every step", "a perfect check; writing the proof is the hard part"]],
-      { x: 0.6, y: 1.45, w: 12.1, colW: [2.4, 5.0, 4.7], fontSize: 15, rowH: 0.64 });
+],
+      { x: 0.6, y: 1.45, w: 12.1, colW: [2.4, 5.0, 4.7], fontSize: 15, rowH: 0.8 });
     caption(s, "Every task here has a free check; how much it catches decides how much thinking it saves");
   }
 
@@ -1064,15 +1062,14 @@ function buildTalk() {
     qSlide("Q: do the findings cover every kind?", "Where each result was measured (models and numbers as on the talk slides)");
     const OK = "38761D", PART = "C55A11", NA = "8C8C8C";
     const c = (t, col) => ({ text: t, options: { color: col } }), row = t => ({ text: t, options: { bold: true } });
-    table(s, [["", "Geometry", "Contest problems", "Routing, scheduling", "Word problems", "Math, proofs (extension)"].map(HDR),
-      [row("A program, not words"), c("✓ 8 of 8 copies right vs 1 of 8", OK), c("– a program by design", NA), c("– a program by design", NA), c("– a program by design", NA), c("✗ words as good (98% vs 87%); the program as a second opinion", RED)],
-      [row("Give the fact"), c("✓ only the needed tools: 92% vs 75%", OK), c("– not tested", NA), c("✓ 23% → 77–90%; 6% → 100% valid plans", OK), c("✓ 65% → 72%; small models +44 points", OK), c("✗ no fact helps proofs", RED)],
-      [row("Free check, think on failure"), c("✓ 99% @ 4.3k vs 98% @ 5.9k", OK), c("✓ 66.3% @ 24.7k vs 66.2% @ 30.1k (examples + brute force)", OK), c("✓ part of the 87% below", OK), c("✓ beats always thinking at 12–22% of its tokens", OK), c("~ MATH-500: same accuracy at 77% of the tokens; AIME: costs more", PART)],
-      [row("Whole recipe"), c("✓ 87% @ 2.5k vs 74% @ 4.1k, with routing", OK), c("~ check and think only (no fact)", PART), c("✓ 87% @ 2.5k vs 74% @ 4.1k, with geometry", OK), c("✓ held-out MAMO: automatic fact = hand-written", OK), c("✗ proofs need a specialized prover", RED)],
-      [row("Reuse a checked program"), c("– not tested", NA), c("– not tested", NA), c("✓ 94% vs 7% of days valid", OK), c("– not tested", NA), c("– not tested", NA)]],
-      { x: 0.6, y: 1.85, w: 12.1, colW: [2.1, 2.0, 2.0, 2.0, 2.0, 2.0], fontSize: 13, rowH: [0.4, 0.75, 0.75, 0.75, 0.75, 0.55] });
-    txt(s, "✓ holds   ~ partly   ✗ does not help   – not tested.   The 87% pools 108 geometry and 100 optimization problems, each solved by 3 models.", 0.6, 5.75, 12.1, 0.4, { fontSize: 14, color: C.text2 });
-    caption(s, "The recipe is shown on geometry, routing and word problems; proofs need a different tool");
+    table(s, [["", "Geometry", "Contest problems", "Routing, scheduling", "Word problems"].map(HDR),
+      [row("Give the fact"), c("✓ only the needed tools: 92% vs 75%", OK), c("– not tested", NA), c("✓ 23% → 77–90%; 6% → 100% valid plans", OK), c("✓ 65% → 72%; small models +44 points", OK)],
+      [row("Free check, think on failure"), c("✓ 99% @ 4.3k vs 98% @ 5.9k", OK), c("✓ 66.3% @ 24.7k vs 66.2% @ 30.1k (examples + brute force)", OK), c("✓ part of the 87% below", OK), c("✓ beats always thinking at 12–22% of its tokens", OK)],
+      [row("Whole recipe"), c("✓ 87% @ 2.5k vs 74% @ 4.1k, with routing", OK), c("~ check and think only (no fact)", PART), c("✓ 87% @ 2.5k vs 74% @ 4.1k, with geometry", OK), c("✓ held-out MAMO: automatic fact = hand-written", OK)],
+      [row("Reuse a checked program"), c("– not tested", NA), c("– not tested", NA), c("✓ 94% vs 7% of days valid", OK), c("– not tested", NA)]],
+      { x: 0.6, y: 1.85, w: 12.1, colW: [2.5, 2.4, 2.4, 2.4, 2.4], fontSize: 14, rowH: [0.45, 0.85, 0.85, 0.85, 0.6] });
+    txt(s, "✓ holds   ~ partly   – not tested.   The 87% pools 108 geometry and 100 optimization problems, each solved by 3 models.", 0.6, 5.75, 12.1, 0.4, { fontSize: 14, color: C.text2 });
+    caption(s, "The whole recipe is shown on geometry, routing and word problems; contest problems use the check");
   }
 
   function slideQWhy() {
@@ -1095,7 +1092,6 @@ function buildTalk() {
     ["why", "Why these problems", slideQWhy],
     ["coverage", "Which kinds each finding covers", slideQCoverage],
     ["kinds", "How hard: contest ranks, exams", () => slideKinds("Extra pages", "Extra: how hard, by contest ranks and exams")],
-    ["progwords", "A program or words?", slideQWords],
     ["two", "Two versions, in detail", () => slideTwoVersions("Extra pages", "Extra: two versions catch each other's mistakes")],
     ["fact", "What the fact is", slideQFact],
     ["rag", "Can retrieval find the fact?", slideQRag],
@@ -1111,7 +1107,6 @@ function buildTalk() {
     ["fair", "Is the comparison fair?", slideQFair],
     ["small", "One fact helps small models most", () => slideSmall("Extra pages", "Extra: one fact helps small models most")],
     ["policies", "All policies, cost vs accuracy", () => slideTogether("Extra pages", "Extra: all policies, cost vs accuracy")],
-    ["proof", "Proofs need a specialized model", () => slideProof("Extra pages", "Extra: proofs need a specialized model, not a fact")],
     ["limits", "Where the recipe stops", () => slideLimits("Extra pages", "Extra: where the recipe stops, and what is next")],
     ["reuse", "Reuse a checked program", () => slideReuse("Extra pages", "Extra: repeated problems need one checked program")],
     ["setup", "Setup", () => slideSetup("Extra pages", "Extra: setup, scoring and hardware")],
@@ -1120,8 +1115,6 @@ function buildTalk() {
     [2, "Why these problems? How do they differ?", ["why"]],
     [2, "Do the findings cover every kind?", ["coverage"]],
     [2, "How hard are the problems?", ["kinds"]],
-    [2, "What about competition math and proofs?", ["proof", "limits"]],
-    [3, "Is a program always better than words?", ["progwords"]],
     [4, "Why does helper code change the answer?", ["two"]],
     [5, "What exactly is the fact? Isn't it the answer?", ["fact"]],
     [5, "Can retrieval (RAG) find the fact?", ["rag"]],
@@ -1131,6 +1124,7 @@ function buildTalk() {
     [7, "Who writes the fact?", ["auto"]],
     [7, "Is 'think on the hardest' a weak baseline?", ["hard"]],
     [7, "What if the same problem repeats?", ["reuse"]],
+    [7, "Where does the recipe stop?", ["limits"]],
     [8, "What is new vs PAL and cascades?", ["published", "related", "reported"]],
     [8, "Why not majority voting?", ["vote"]],
     [8, "Is the comparison fair?", ["fair", "setup"]],
