@@ -136,7 +136,7 @@ The recipe is both the most accurate and among the cheapest, on every seed. Diff
 | Library facts for solver code | DRoC (ICLR 2025), CP-Bench (2506.06052), CloudAPIBench (2407.09726), DRAFT | retrieve or rewrite documentation for API / solver code | 5 exact lines beat the manual *and* thinking; near-miss documents ≈ no document; the fact can be mined from the model's own checked programs |
 | Misleading context and tools | "Invisible Lottery" (2606.04057), unneeded tools (2609.14157), CodeCrash, System 2 Attention | prompt cues steer or hurt generated code | the effect on exact geometry (77% → 59%), and a fix that turns it into a check (two versions) |
 | Choosing a program without labels | CodeT, MBR-exec, AlphaCode's example filter, DeepConf, S* | pick the best of several sampled programs | one program checked on moved copies of the given input (99.7% vs CodeT 96.0%) |
-| Spending test-time compute | compute-optimal scaling (Snell et al. 2025), FrugalGPT / AutoMix cascades, DART; Thinkless and AdaptThink (RL-trained switch) | more compute for harder problems; a learned think / no-think switch | difficulty is the wrong signal; a fact first and an execution check decide, with no training (87% vs 74%); the AdaptThink comparison is running |
+| Spending test-time compute | compute-optimal scaling (Snell et al. 2025), FrugalGPT / AutoMix cascades, DART; Thinkless and AdaptThink (RL-trained switch) | more compute for harder problems; a learned think / no-think switch | difficulty is the wrong signal; a fact first and an execution check decide, with no training (87% vs 74%); on AdaptThink's own base model (MATH-500) the learned switch is cheaper (91.7% @ 1.9k vs our gate 93.0% @ 3.9k), and our check on its skipped answers adds 2.2 points |
 | LLMs for optimization modeling | ORLM, STORM / CALM, EVOM, OR-R1 (fine-tuned); OptiMUS, OptiSkill (agents, skill banks from teacher programs checked against answers) | train a modeling model, or build agents | training-free and label-free; on held-out MAMO a 24 GB-GPU model with the recipe matches the fine-tuned ORLM-8B (below) |
 | One program for many instances | FunSearch, HeuriGym, ARS, 2605.14141, 2608.27296 | write a solver once per problem family | the measured gap (7% vs 94%), choosing the program without answers, editing a verified program when the rules change |
 | Proofs | Goedel-Prover-V2, DeepSeek-Prover-V2, AlphaGeometry | specialized provers; a symbolic engine plus constructions from a language model | the recipe's facts and checks do not carry over to proofs: a specialized 8B prover is the right tool |
@@ -169,7 +169,7 @@ All measured here, with the same problems, models and checks; accuracy @ output 
 
 | Benchmark | Reported in the paper or model card | Ours |
 |---|---|---|
-| MAMO Easy / Complex | ORLM-LLaMA-3-8B 82.3 / 37.4% (fine-tuned); STORM-Qwen3-4B 86.3 / 70.3% (SFT + RL); OptiSkill with frontier models 90.8–94.3 / 56.8–64.0% | no training: Qwen3-14B 82.8 / 37.4%, gpt-oss-20b 85.6 / 57.8%; ORLM-8B in our harness 80.5 / 35.5%; STORM in our harness is running |
+| MAMO Easy / Complex | ORLM-LLaMA-3-8B 82.3 / 37.4% (fine-tuned); STORM-Qwen3-4B 86.3 / 70.3% (SFT + RL); OptiSkill with frontier models 90.8–94.3 / 56.8–64.0% | no training: Qwen3-14B 82.8 / 37.4%, gpt-oss-20b 85.6 / 57.8%; ORLM-8B in our harness 80.5 / 35.5%; STORM-4B in our harness 85.7 / 69.5% (81.8% overall) at 8.4k tokens, 4.4× gpt-oss-20b's |
 | miniF2F, 32 tries | Goedel-Prover-V2-8B 84.6% | the same model in our harness: 76.6% |
 | IMO-AG-30 geometry | AlphaGeometry 25 / 30; its symbolic engine alone 14 | the engine alone 12 in our setup; with points proposed by our models 13 |
 
@@ -195,7 +195,7 @@ All measured here, with the same problems, models and checks; accuracy @ output 
 
 Done since the last version: contest geometry and competition math on 24 GB GPUs; Qwen3.6 with the model card's settings (headline unchanged: 86.7–87.5%); automatic facts and the held-out MAMO test; choosing the policy from 30 labels; proofs (Lean, geometry).
 
-1. Finish the MAMO replication (Qwen3-32B, Qwen3.6 on 3 seeds; gpt-oss-20b, Qwen3-14B and Qwen3-8B done). Baselines on our harness: ORLM done; STORM-Qwen3-4B (trained specialist) and AdaptThink-7B (trained when-to-think switch, against our check on the same base model) running.
+1. Finish the MAMO replication (Qwen3-32B, Qwen3.6 on 3 seeds; gpt-oss-20b, Qwen3-14B and Qwen3-8B done). Baselines on our harness done (ORLM, STORM, AdaptThink). Next: the errors left after the recipe are mostly misread problem text (e.g. an over-strict balance that makes the model infeasible); our recipe on top of STORM is running.
 2. Automatic facts across problem types: mine one fact per problem type instead of borrowing another type's program.
 3. Final report and slides; a closed API model, if access is available.
 

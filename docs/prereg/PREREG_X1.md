@@ -163,3 +163,22 @@ Costs: all output tokens. 3090: both are 7B (15 GB in bf16).
   program (adt7 prog); if they disagree, pay for r1d7 thinking — gains ≥ +1.0 point over AdaptThink alone on MATH-500 at ≤ +40% tokens.
 - ADAPT-P4 (3090 frontier): on MATH-500 Qwen3-8B with our gate (96.7% @ 4.3k, X1-SIZE) is ≥ 3 points above AdaptThink-7B at ≥ 1.5× its
   tokens: neither dominates; on AIME Qwen3-8B thinking (68.3%) is ≥ 8 points above AdaptThink.
+
+## ADAPT results (2026-10-19 13:41 UTC; results/x1/analysis_adapt.log; 560 problems × 3 seeds; side baseline — competition math is outside the CG + CO scope)
+| MATH-500 (accuracy @ output tokens) | | AIME 24+25 | |
+|---|---|---|---|
+| R1-Distill-7B text, no thinking | 80.5% @ 0.65k | | 17.2% @ 2.5k |
+| R1-Distill-7B thinking | 92.9% @ 3.59k (130 caps of 1,680 at 16K) | | 42.2% @ 10.7k |
+| our gate on R1-Distill (text == program, else think) | 93.0% @ 3.92k | | 41.1% @ 14.0k |
+| AdaptThink-7B as released (it chooses; NoThinking 76.5% / 3.9%) | 91.7% @ 1.88k | | 47.8% @ 8.4k |
+| AdaptThink + our check on its skipped answers (else R1-Distill thinking) | **93.9% @ 3.35k** | | 46.7% @ 8.7k |
+- **ADAPT-P1 holds** (base thinking 92.9 vs 90.2 reported; NoThinking 80.5 vs 80.6; AdaptThink 91.7 vs 92.0 at 52% of the base's tokens;
+  NoThinking share 76.5% / 3.9%). **P2 narrowly refuted:** AdaptThink is 1.3 points below our gate (not within 1) but at 48% of its tokens —
+  neither dominates. **P3 half holds:** the check on its skipped answers adds +2.2 points (≥ 1) but +78% tokens (not ≤ 40%).
+  **P4 holds** (Qwen3-8B with our gate 96.7% @ 4.3k, +5.0 at 2.3× the tokens; AIME thinking 68.3 vs 47.8%).
+- Raw outputs: R1-Distill without thinking ignores 'write a program' on a third of problems (answers in text: 599 of 1,680 'program'
+  replies have no code); AdaptThink skips thinking on 98 / 96 / 84 / 78 / 49% of level 1–5 problems and its skipped answers are right
+  98 / 96 / 98 / 93 / 92% (thought answers 100 / 100 / 96 / 84 / 74%): it skips well; 55 of its 124 MATH-500 errors are skipped answers,
+  which is what the program check can catch.
+**Reading:** a trained when-to-think switch is the cheaper way to save tokens on easy math (half the tokens of our training-free gate, −1.3
+points); our label-free check is complementary (+2.2 on top of it).

@@ -66,3 +66,27 @@ Prediction: STORM ≥ our best training-free 3090-class result on MAMO (gpt-oss-
   fact's favour. Plain automatic fact-first 68.8–71.1% @ 0.9–1.0k vs always thinking with the hand snippet 67.3–69.2% @ 7.7–7.9k.
 **Replication, Qwen3-32B-AWQ (pre-registered now, 2026-10-19 12:37 UTC; queue_s2_x7rep_q32b.sh, GPU3):** cheap arms seed 3, thinking seeds 2–3.
 Predictions: (a) automatic minus hand FFR within ±2 points on each seed pair; (b) automatic FF ≥ hand FF on each seed (seed 1: 76.9 vs 74.0%).
+
+## STORM results (2026-10-19 13:41 UTC; poc/analyze_storm.py; its official TIR inference, 3 samples, T 0.6, 32k per call)
+STORM-Qwen3-4B on all 863 MAMO problems, graded with our tolerance: **81.8%** (Easy 85.7 / Complex 69.5%) at **8.4k tokens per sample**
+(its own grader: 83.5%; pass@3 87.3%). **Prediction holds** (≥ 78.8% at ≥ 3× the tokens: +3.0 points at 4.4× gpt-oss-20b's FFR tokens).
+Cascade, offline (our model's two cheap programs agree → accept, else STORM's sample of the same seed): gpt-oss-20b 79.5–80.4% @ 3.0–3.1k,
+Qwen3-14B-AWQ 77.3–79.7% @ 2.9–3.2k, Qwen3-8B 74.9–76.1% @ 2.9–3.1k (3 seeds) — below STORM alone, because the cheap programs' agreeing-but-wrong
+answers are kept: STORM's first sample is right on 28–49% of those leaked problems. Raw reading of 12 of gpt-oss-20b's leaked problems that STORM
+gets right: 'the difference between A and B cannot exceed c' written as |A − B| ≤ c where the label means A − B ≤ c (3); a balance written as an
+equality, so the surplus cannot stay and the model is infeasible (2); 'minimum returns' maximised (1); a per-unit cost applied to a quantity
+limit, infeasible (1); answer left in thousands (1); the sign of a 'loss' bound (1); int() truncating 17.9999 to 17 (1); one wrong label that
+STORM matches (mamo_complex-68: brute force gives 175 = ours, label 158); one problem whose bounds are missing from the text (easy-606).
+MAMO has no infeasible labels, yet 21–29 leaked pairs per model agree on 'infeasible'; counting 'infeasible' as a failed check adds +0.1 to +1.6
+points (Qwen3-8B +1.3 to +1.6) at +0.1–0.4k tokens on MAMO, −0.3 to +0.9 on NL4OPT + IndustryOR (which has 14 infeasible labels).
+
+## STORM-RECIPE pre-registration (2026-10-19 13:41 UTC, before running): our recipe on top of the specialist (queue_s2_stormrecipe.sh, GPU1)
+STORM always thinks with tools (8.4k tokens). Cheap arm = STORM writing one OR-Tools program WITHOUT thinking (no-think template), with the
+hand snippet (mipf) or its own mined program (mips); escalation = its official TIR sample of the same seed. 3 seeds, MAMO + NL4OPT/IndustryOR.
+- SR-P1: STORM's no-think program runs and prints a value on ≥ 80% of MAMO problems (its RL training may have broken the no-think mode).
+- SR-P2 (main): STORM-FFR (two cheap programs agree → accept, else its TIR) within 2 points of STORM TIR alone (81.8%) at ≤ 50% of its
+  tokens, on each seed.
+- SR-P3: STORM's cheap programs leak less than gpt-oss-20b's (agreeing-but-wrong share of agreeing pairs ≤ 12% vs 15%).
+**Qwen3.6 on MAMO (seed 1, 2026-10-19 13:41 UTC):** automatic FFR 75.0% @ 8.6k vs hand-written 73.6% @ 9.1k (+1.4); automatic FF 75.0% @ 3.2k vs always thinking
+70.7–71.8% @ 27–29k. **Prediction refuted in the good direction** (expected automatic ≥ 3 below hand). On MAMO thinking hurts Qwen3.6 (−3.2 vs
+fact-first at 9× the tokens); pilot-of-30 regret 1.25 (best policy FF). One seed only: not used for claims.
