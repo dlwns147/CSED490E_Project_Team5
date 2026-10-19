@@ -723,6 +723,7 @@ function buildTalk() {
     "(5초) 감사합니다. 질문 받겠습니다.",
   ];
   const QA_KO = {   // speaker notes of the extra pages: a short Korean answer to the page's question
+    coldstart: "(답변) 지난 프로그램이 따로 없어도 됩니다. 필요한 것은 정답이 아니라 검사를 통과한 프로그램뿐이라서, 문제가 들어오는 대로 라이브러리를 채울 수 있습니다. 새 문제가 오면 지금까지 모인 것 중 가장 비슷한 검사 통과 프로그램을 힌트로 주고, 그 문제의 프로그램이 검사를 통과하면 라이브러리에 넣습니다. 첫 문제는 다른 벤치마크의 예제 프로그램 하나로 시작했습니다. MAMO를 이렇게 흘려보내면 gpt-oss-20b는 78.6%에서 79.0%, Qwen3-14B는 72.5%에서 76.4%, Qwen3-8B는 72.1%에서 75.9%가 되고 토큰은 15에서 26% 줄었습니다. 다만 전체 라이브러리를 미리 가진 경우 이득의 60에서 77%이고, 라이브러리에는 다섯 모델의 프로그램이 들어 있었으며, 어떤 종류에서 모델 자신의 프로그램이 모두 틀리면 힌트도 틀립니다. 문제가 다양하면 주로 토큰만 줄어듭니다.",
     checkwork: "(답변) 검사가 잘 잡으려면 두 번째 관점이 다른 실수를 해야 합니다. 입력을 옮기고 돌린 복사본에서 같은 답이 나오는지 보면 맞는 프로그램을 99.7% 골라냅니다. 도우미 함수가 있는 버전과 없는 버전을 비교하면 99%로 항상 생각할 때의 98%와 같고, 경시 문제는 예제에 느린 완전 탐색 프로그램을 더하면 65.0%가 66.3%가 됩니다. 글 답과 프로그램을 비교하면 같이 틀리는 경우가 17%에서 10%로 줄어듭니다. 반대로 같은 모델에게 다시 물어 다수결을 하면 4.3%를 잘못 고르고, 같은 실수를 공유하는 두 버전은 토큰만 더 씁니다. 그리고 검사를 완벽하게 해도 14B 이상 모델에서 1에서 3점밖에 오르지 않습니다. 그런 문제는 생각해도 7에서 16%만 고쳐지기 때문입니다. 그 다음은 검사보다 푸는 쪽을 고쳐야 합니다.",
     checkcost: "(답변) 예제, 옮긴 복사본, 경로 계획의 규칙 확인은 CPU에서 돌기 때문에 토큰이 들지 않습니다. 모델이 테스트를 쓰는 CodeT는 문제당 340토큰, 두 번째 버전은 프로그램 하나만큼, 느린 완전 탐색 프로그램은 경시에서 문제당 약 4.5k 토큰이 더 듭니다. 경시 문제에서 항상 생각하면 66.2%에 30k, 예제만 쓰면 65.0%에 20k, 완전 탐색을 더하면 66.3%에 25k, 다른 모델의 의견을 더하면 65.5%에 25k입니다. 그래서 순서는 토큰이 들지 않는 검사부터 쓰고, 조용히 틀리는 곳에만 다른 두 번째 버전을 더하고, 더 좋은 검사가 1에서 3점밖에 못 줄 때는 멈추는 것입니다.",
     hintwork: "(답변) 좋은 힌트의 조건은 네 가지입니다. 그 종류에 필요한 정확한 호출, 필요한 것만, 짧게, 같은 종류에서. 경로 문제는 23%에서 83%, 기하는 도우미 함수를 다 주면 75%, 필요한 것만 주면 92%입니다. 반대로 규칙 하나가 빠진 긴 매뉴얼은 7%, 비슷하지만 다른 문서가 섞이면 83%에서 57%, 다른 종류의 프로그램은 14에서 21점 손해, 함수 이름 목록만 주면 66%에서 56%로 떨어집니다. 고르는 순서는 이렇습니다. 같은 종류의 지난 프로그램과 공짜 검사가 있으면 통과한 것 중 가장 짧은 것을 씁니다. 없으면 제목이 붙은 코드 조각 문서에서 맨 위 하나만 검색하고, 그것도 없으면 사람이 종류마다 한 번 씁니다.",
@@ -1224,6 +1225,27 @@ function buildTalk() {
     caption(s, "Free checks cost CPU, not tokens; pay for a second version only where it changes the decision");
   }
 
+  function slideQColdStart() {
+    qSlide("Q: what about the first time, with no past programs?", "No answers are needed, only programs that passed the check; the library can fill up as problems arrive");
+    panel(s, 0.6, 1.9, 5.95, 4.15, "stream");
+    txt(s, "As problems arrive (a stream)", 0.85, 1.98, 5.45, 0.42, { fontSize: 18, bold: true, color: BLUE });
+    [["a new problem arrives", "FFFFFF", C.text1], ["hint = the most similar checked program so far", "FFFFFF", C.text1], ["its program passes the check → add it to the library", "E2F0D9", "38761D"]].forEach(([t, fill, col], k) => {
+      box(s, t, 0.85, 2.5 + k * 0.85, 5.45, 0.6, fill, { fontSize: 15, color: col });
+      if (k < 2) arrow(s, 3.57, 3.1 + k * 0.85, 3.57, 3.35 + k * 0.85);
+    });
+    txt(s, "The first problem starts from one example program of another benchmark; no answer key is used anywhere.", 0.85, 5.15, 5.45, 0.8, { fontSize: 14, color: C.text2, valign: "top" });
+    panel(s, 6.75, 1.9, 5.95, 4.15, "stream result");
+    txt(s, "MAMO as a stream (3 runs), with the check", 7.0, 1.98, 5.45, 0.42, { fontSize: 18, bold: true, color: BLUE });
+    table(s, [["", "one fixed example", "stream library"].map(HDR),
+      ["gpt-oss-20b", "78.6% · 1.9k", { text: "79.0% · 1.6k", options: { bold: true, color: "38761D" } }],
+      ["Qwen3-14B", "72.5% · 2.8k", { text: "76.4% · 2.1k", options: { bold: true, color: "38761D" } }],
+      ["Qwen3-8B", "72.1% · 3.2k", { text: "75.9% · 2.3k", options: { bold: true, color: "38761D" } }]],
+      { x: 7.0, y: 2.5, w: 5.45, colW: [1.65, 1.9, 1.9], fontSize: 14, rowH: 0.42 });
+    txt(s, [{ text: "Limits: ", options: { bold: true } }, { text: "it keeps 60–77% of what a full library gives; the library holds five models' programs; if a model's own programs for a type are all wrong, so is its hint; on varied problems it mostly saves tokens." }],
+        7.0, 4.35, 5.45, 1.6, { fontSize: 14, valign: "top" });
+    caption(s, "No past programs needed: the library builds itself from checked programs as problems arrive");
+  }
+
   const EXTRAS = [   // [key, index label, slide], in the order of the talk slides that raise the questions
     ["why", "Why these problems", slideQWhy],
     ["coverage", "Which kinds each finding covers", slideQCoverage],
@@ -1240,6 +1262,7 @@ function buildTalk() {
     ["checkwork", "A check that catches more", slideQCheckWork],
     ["checkcost", "What a check costs", slideQCheckCost],
     ["auto", "Facts without a human", () => slideAuto("Extra pages", "Extra: the fact can be found without a human")],
+    ["coldstart", "The first time: no past programs", slideQColdStart],
     ["hard", "Is difficulty the right signal?", slideQHard],
     ["published", "Compared with published methods", () => slideBaselines("Extra pages", "Extra: compared with published methods")],
     ["related", "Related research map", () => slideRelated("Extra pages", "Extra: where this work sits in related research")],
@@ -1266,6 +1289,7 @@ function buildTalk() {
     [6, "Is there always a free check?", ["checks"]],
     [6, "How do we check well, and cheaply?", ["checkwork", "checkcost"]],
     [7, "Who writes the fact?", ["auto"]],
+    [7, "What about the first time, with no past programs?", ["coldstart"]],
     [7, "Is 'think on the hardest' a weak baseline?", ["hard"]],
     [7, "What if the same problem repeats?", ["reuse"]],
     [7, "Why no hint for contest problems?", ["coverage"]],
