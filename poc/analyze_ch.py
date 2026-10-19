@@ -116,6 +116,12 @@ def report(m):
             per = [100 * (sum(x[2] for x in L if x[1] == s) - sum(B[(x[0], x[1])] for x in L if x[1] == s)) / len(V) for s in (1, 2, 3)]
             line += f" | vs {ref}: +{gain} / -{lost}, sign p = {sign_p(gain, lost):.3f}, per seed " + " / ".join(f"{d:+.1f}" for d in per)
         print(line)
+    bf = [json.loads(l) for s in (1, 2, 3) if os.path.exists(f"{RES}/ch_basefail_{med}_s{s}.jsonl")
+          for l in open(f"{RES}/ch_basefail_{med}_s{s}.jsonl")]   # poc/ch_basefail.py: the medium runs did not record failure kinds
+    if bf:
+        mt = sorted(tok(r) for s in (1, 2, 3) for r in R[(med, s)].values())
+        print(f"  medium runs: tokens mean {sum(mt) / len(mt):.0f}, p90 {mt[int(.9 * len(mt))]}; finish "
+              f"{dict(Counter(r['finish'] for s in (1, 2, 3) for r in R[(med, s)].values()))}; fail kinds {dict(Counter(x['fail'] for x in bf))}")
     for a, t in arms.items():   # token tails, finish reasons, failure kinds of the hint runs (only the problems actually run)
         if not have_arm[a]:
             continue
