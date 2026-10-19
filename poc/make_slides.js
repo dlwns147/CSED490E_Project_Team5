@@ -165,47 +165,55 @@ const PROBLEM_NOTES = "Qwen3-8B, real outputs. Asked to answer directly, it give
 slideProblem("Problem", PROBLEM_NOTES);
 
 // 2b. What goes wrong, why it matters, and what we do
+const ICON = (name) => FIG(path.join("icons", name + ".png"));   // figs/icons/*.png, drawn by poc/make_icons.js
 function slideWhy(section, title, pre) {
 s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
 s.addText(title, { placeholder: "title" });
 function pane(x, head, col, fill) {
-  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.4, w: 5.95, h: 3.0, rectRadius: 0.08, fill: { color: fill }, line: { color: col, width: 1 }, objectName: "why " + head });
-  txt(s, head, x + 0.25, 1.5, 5.45, 0.55, { fontSize: 22, bold: true, color: col });
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.35, w: 5.95, h: 3.3, rectRadius: 0.08, fill: { color: fill }, line: { color: col, width: 1 }, objectName: "why " + head });
+  txt(s, head, x + 0.25, 1.43, 5.45, 0.5, { fontSize: 21, bold: true, color: col });
 }
-// left: a wrong answer with no error
+// 1. a wrong answer with no error, shown as the picture and the two program runs
 pane(0.6, "1. Programs fail silently", RED, "FDF2F1");
-txt(s, "Same task (corners around 10 points), two programs:", 0.85, 2.0, 5.5, 0.3, { fontSize: 13, color: C.text2 });
-chip(s, "6 ✓", true, 0.75, 2.4);
-txt(s, "program A", 0.85, 3.02, 1.7, 0.3, { fontSize: 13, color: C.text2, align: "center" });
-chip(s, "0 ✗", false, 2.85, 2.4);
-txt(s, "program B: no error, just wrong", 2.65, 3.02, 2.5, 0.3, { fontSize: 13, color: C.text2, align: "center" });
-txt(s, [{ text: "24–37%", options: { bold: true, fontSize: 28, color: RED } }, { text: "  of wrong programs pass the problem's examples", options: { fontSize: 15 } }],
-    0.85, 3.4, 5.5, 0.85, { valign: "middle" });
-// right: more thinking, small gain
+s.addImage({ path: FIG("slide5_hull.png"), x: 0.8, y: 2.0, w: 1.45, h: 1.45, objectName: "ten points and their hull", altText: "10 points; the rubber band touches 6 of them" });
+txt(s, "10 points: 6 corners", 0.65, 3.45, 1.75, 0.3, { fontSize: 12, bold: true, color: GREEN, align: "center" });
+s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 2.45, y: 2.0, w: 3.95, h: 1.55, rectRadius: 0.05, fill: { color: "262626" }, line: { color: "262626" }, objectName: "terminal" });
+s.addText([
+  { text: "$ python hull_A.py   # task only", options: { color: "BFBFBF", breakLine: true } },
+  { text: "6", options: { color: "8FD16A", bold: true, breakLine: true } },
+  { text: "$ python hull_B.py   # + 8 helpers", options: { color: "BFBFBF", breakLine: true } },
+  { text: "0    ← no error, just wrong", options: { color: "FF7B7B", bold: true } },
+], { isTextBox: true, x: 2.6, y: 2.05, w: 3.7, h: 1.45, fontFace: "Courier New", fontSize: 12.5, valign: "middle", margin: 0 });
+s.addImage({ path: ICON("warn"), x: 0.85, y: 3.93, w: 0.35, h: 0.35, objectName: "warning icon" });
+txt(s, "The problem's own examples miss it too: \"Find Color\" passes all 3, then fails hidden test 11", 1.3, 3.85, 5.1, 0.6, { fontSize: 13 });
+// 2. more thinking costs many more tokens; one page ≈ 700 tokens
 pane(6.75, "2. Thinking longer is expensive", THEME.colors.accent2, "FDF0E6");
-txt(s, "311 contest problems (gpt-oss-120b), by effort:", 7.0, 2.0, 5.5, 0.3, { fontSize: 13, color: C.text2 });
-[["medium", 57, 6.8, "57% · 6.8k tokens", "A5A5A5"], ["high", 66, 30.1, "66% · 30k tokens", THEME.colors.accent2]].forEach(([lab, acc, tok, shown, col], r) => {
-  const y = 2.4 + r * 0.5;
-  txt(s, lab, 6.95, y, 0.9, 0.4, { fontSize: 15, align: "right" });
-  s.addShape(pres.shapes.RECTANGLE, { x: 7.95, y: y + 0.07, w: 3.0 * tok / 30.1, h: 0.3, fill: { color: col }, line: { color: col, width: 0.5 }, objectName: "effort " + lab });
-  txt(s, shown, 8.05 + 3.0 * tok / 30.1, y, 1.9, 0.4, { fontSize: 13, bold: true, color: col === "A5A5A5" ? "595959" : col });
+txt(s, "tokens per contest problem (gpt-oss-120b); one page ≈ 700 tokens", 7.0, 1.95, 5.5, 0.3, { fontSize: 12.5, color: C.text2 });
+[["medium effort", "57% solved", 10, "page", 2.35], ["high effort", "66% solved", 43, "pagehot", 2.9]].forEach(([lab, acc, n, icon, y]) => {
+  txt(s, [{ text: lab, options: { bold: true, breakLine: true } }, { text: acc }], 7.0, y, 1.55, 0.5, { fontSize: 13 });
+  for (let k = 0; k < n; k++) {
+    s.addImage({ path: ICON(icon), x: 8.6 + (k % 20) * 0.195, y: y + Math.floor(k / 20) * 0.24, w: 0.19, h: 0.22, objectName: `${lab} page ${k}` });
+  }
 });
-txt(s, [{ text: "4.4× tokens", options: { bold: true, fontSize: 28, color: THEME.colors.accent2 } }, { text: "  for only 9 more points", options: { fontSize: 15 } }],
-    7.0, 3.4, 5.5, 0.85, { valign: "middle" });
-// why it matters, in three chips
-txt(s, "Why it matters:", 0.6, 4.6, 2.0, 0.5, { fontSize: 16, bold: true });
-["agents already write this code", "tokens = cost and waiting time", "most teams have one 24 GB GPU"].forEach((t, k) => {
-  box(s, t, 2.6 + k * 3.4, 4.6, 3.25, 0.5, "F2F2F2", { fontSize: 15 });
+txt(s, [{ text: "4.4× the pages", options: { bold: true, fontSize: 22, color: THEME.colors.accent2 } }, { text: "  for only 9 more points", options: { fontSize: 15 } }],
+    7.0, 3.85, 5.5, 0.6, { valign: "middle" });
+// why it matters
+[["robot", "agents already write this code"], ["coins", "tokens cost money and time"], ["gpu", "most teams have one 24 GB GPU"]].forEach(([icon, t], k) => {
+  const x = 0.6 + k * 4.1;
+  box(s, "", x, 4.82, 3.9, 0.55, "F2F2F2");
+  s.addImage({ path: ICON(icon), x: x + 0.15, y: 4.88, w: 0.42, h: 0.42, objectName: "icon " + icon });
+  txt(s, t, x + 0.7, 4.82, 3.1, 0.55, { fontSize: 15 });
 });
-// the question
-s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 0.6, y: 5.35, w: 12.1, h: 1.2, rectRadius: 0.08, fill: { color: "DEEBF7" }, line: { color: "BDD7EE", width: 0.75 }, objectName: "our question" });
-txt(s, "Where should extra effort go?", 0.85, 5.45, 4.3, 0.6, { fontSize: 20, bold: true, color: BLUE });
-[["a missing fact", "E2F0D9", "38761D"], ["a free check", "E2F0D9", "38761D"], ["more thinking", "FADBD8", RED]].forEach(([t, fill, col], k) => {
-  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 5.3 + k * 2.45, y: 5.5, w: 2.25, h: 0.5, rectRadius: 0.2, fill: { color: fill }, line: { color: col, width: 1 }, objectName: "option " + t });
-  txt(s, t, 5.3 + k * 2.45, 5.5, 2.25, 0.5, { fontSize: 16, bold: true, color: col, align: "center" });
+// the question, with the three options
+s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 0.6, y: 5.55, w: 12.1, h: 1.05, rectRadius: 0.08, fill: { color: "DEEBF7" }, line: { color: "BDD7EE", width: 0.75 }, objectName: "our question" });
+txt(s, "Where should extra effort go?", 0.85, 5.6, 4.4, 0.95, { fontSize: 20, bold: true, color: BLUE });
+[["fact", "a missing fact", "E2F0D9", "38761D"], ["check", "a free check", "E2F0D9", "38761D"], ["brain", "more thinking", "FADBD8", RED]].forEach(([icon, t, fill, col], k) => {
+  const x = 5.3 + k * 2.45;
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 5.8, w: 2.3, h: 0.55, rectRadius: 0.2, fill: { color: fill }, line: { color: col, width: 1 }, objectName: "option " + t });
+  s.addImage({ path: ICON(icon), x: x + 0.14, y: 5.89, w: 0.36, h: 0.36, objectName: "icon " + icon });
+  txt(s, t, x + 0.62, 5.8, 1.65, 0.55, { fontSize: 16, bold: true, color: col });
 });
-txt(s, "We test each on geometry, routing, scheduling, contest, word problems, math and proofs, counting accuracy and tokens.", 0.85, 6.05, 11.6, 0.42, { fontSize: 14, color: C.text2 });
-s.addNotes((pre || "") + "Two problems. (1) Programs fail silently: for the same task (how many corners does the rubber band around 10 points have?) Qwen3-14B's program prints 6 with only the task, and 0 when the prompt also offers 8 unneeded helper functions, with no error message; and 24-37% of gpt-oss-120b's wrong contest programs pass the examples printed in the problem. (2) Thinking longer is expensive: on 311 Codeforces geometry problems gpt-oss-120b solves 57% at medium effort (6.8k tokens per problem) and 66% at high effort (30k), 4.4 times the tokens for 9 more points. Why it matters: agents already write route planners, schedulers and geometry code; tokens are cost and latency; most teams have one small GPU. Our question: where should extra effort go, a missing fact, a free check, or more thinking? We test each on seven kinds of problems, counting accuracy and tokens, and combine what works.");
+s.addNotes((pre || "") + "Two problems. (1) Programs fail silently: for the same task (how many corners does the rubber band around these 10 points have?) Qwen3-14B's program prints 6 with only the task, and 0 when the prompt also offers 8 unneeded helper functions, with no error message. Even the examples in a contest problem miss such bugs: a program for 'Find Color' passes all 3 and fails hidden test 11; 24-37% of gpt-oss-120b's wrong contest programs pass the examples. (2) Thinking longer is expensive: on 311 Codeforces geometry problems gpt-oss-120b uses 6.8k tokens per problem at medium effort (about 10 pages) and solves 57%, and 30k tokens at high effort (about 43 pages) for 66%: 4.4 times the tokens for 9 more points. Why it matters: agents already write route planners, schedulers and geometry code; tokens are cost and latency; most teams have one small GPU. Our question: where should extra effort go, a missing fact, a free check, or more thinking? We test each on geometry, routing, scheduling, contest problems, word problems, math and proofs, counting accuracy and tokens.");
 }
 slideWhy("Problem", "What goes wrong, and what we do");
 

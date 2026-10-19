@@ -155,6 +155,7 @@ predictions and results in `docs/prereg/PREREG_<id>.md`.
 
 Figures and slides: `python poc/make_figures_frame.py` (figs 18–22), `node poc/make_slides.js` (needs `npm install pptxgenjs`),
 then `python poc/export_slide_figs.py` (the example pictures `figs/ex_*.png` used in the proposal).
+The slide icons (`figs/icons/`) come from `node poc/make_icons.js` (needs react, react-dom, react-icons and sharp).
 
 **Notes:** GPUs are shared: check `nvidia-smi` for a free GPU and port first. We claim a result only if it holds on
 3 seeds. Every output row stores its tokens (`out_tokens`), so accuracy can always be read with its cost.
