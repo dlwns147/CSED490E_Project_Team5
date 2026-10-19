@@ -410,3 +410,4 @@ S2_X7 q8b_mamo done (6041/6041) Mon Oct 19 05:29:26 UTC 2026
 S2_X7REP queued (q14a GPU1, oss20 GPU3) Mon Oct 19 05:36:39 UTC 2026
 S2_X7REP oss20_mamo done (5178/5178) Mon Oct 19 06:00:58 UTC 2026
 S2_X7REP q8b queued (GPU3) Mon Oct 19 06:38:30 UTC 2026
+S2_ORLM queued (waits for a free GPU) Mon Oct 19 07:36:43 UTC 2026

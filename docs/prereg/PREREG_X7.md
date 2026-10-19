@@ -33,3 +33,13 @@ Replication (pre-registered now; our rule: positive claims need ≥ 3 seeds): ch
 (GPU1) and gpt-oss-20b (GPU3) (queue_s2_x7rep.sh); prediction: the automatic-vs-hand FFR gap stays within ±2 points on each seed pair.
 - **Replication, gpt-oss-20b, 3 seeds (2026-10-19 06:36 UTC):** automatic minus hand-written FFR = −0.1 / −0.8 / −1.2 points (78.8 / 78.6 / 78.4% vs 78.9 / 79.4 /
   79.6%), at the same tokens (1.8–1.9k); the ±2 prediction holds on every seed. Qwen3-14B-AWQ seeds running; Qwen3-32B / Qwen3.6 finishing.
+
+## ORLM same-harness baseline, pre-registration (2026-10-19 07:36 UTC, before running)
+ORLM-LLaMA-3-8B (fine-tuned for optimization modeling; its model-card template, coptpy, greedy decoding = seed 1, plus sampled seeds 2–3 at
+T 0.7) on NL4OPT + IndustryOR (tag orlm) and MAMO (tag orlm_mamo); the objective is read from the solver (Model.solve wrapped), graded with
+the same tolerance as every other arm (poc/run_orlm.py; poc/queues/queue_s2_orlm.sh, first free GPU).
+- ORLM-P1: greedy MAMO Easy / Complex within ±4 points of the reported 82.3 / 37.4%.
+- ORLM-P2: our training-free recipe (automatic fact, two agreeing programs, else think) with Qwen3-8B is within 3 points of ORLM on MAMO overall
+  (same model size, no training); with gpt-oss-20b it is ≥ 5 points above.
+- ORLM-P3 (cost): ORLM's single greedy program is cheaper per problem than our FFR (fewer output tokens), so per token ORLM wins; per accuracy
+  at a 3090 budget gpt-oss-20b wins.

@@ -24,25 +24,19 @@ But programs fail **silently** (they still print an answer), and thinking is **e
 
 **Goal.** Solve these problems **effectively** (exactly right under strict checks) and **efficiently** (the fewest tokens, the smallest GPU). The question is *where* extra effort should go.
 
-## 2. Our answer: a recipe
+Programs are the right tool when the answer must be computed (the polygon above). On short-answer competition math, text is as good or better (Qwen3.6 on MATH-500: text 98.3%, program 86.8%); there the program is most useful as a *second opinion*: when gpt-oss-20b's text answer and program agree, only 0.3% are wrong (two text answers that agree: 1.5%).
 
-![The recipe](figs/fig18_recipe.png)
+## 2. Findings at a glance
 
-1. **Write a program** for anything that needs exact computation.
-2. **Add the missing fact**: a few lines of exact usage, not a whole manual and not extra tools. It can be written by hand or mined automatically: the model's own program that passed the check on a similar problem.
-3. **Run a free check**: the examples in the problem statement, or two different versions that should agree.
-4. **Think harder only when the check fails.**
-5. **When the same problem returns with new data, reuse the program that passed.**
+Seven findings, each measured against the usual way (blue: the better way; grey: the usual way or a published method). Section 3 gives an example and the numbers for each; Section 4 turns them into one method.
 
-Each step is a measured result (Section 3). Together they beat the usual ways of spending compute (Section 4).
+![Findings at a glance](figs/fig21_results_glance.png)
 
-![Results at a glance](figs/fig21_results_glance.png)
+![New results](figs/fig22_new_results.png)
 
-## 3. Evidence for each step
+## 3. Findings
 
-**Step 1. Write a program, where exact computation is needed.** Programs win on geometry and optimization (the polygon above). On short-answer competition math, text is as good or better (Qwen3.6 on MATH-500: text 98.3%, program 86.8%); there the program is most useful as a *second opinion*: when gpt-oss-20b's text answer and program agree, only 0.3% are wrong (two text answers that agree: 1.5%).
-
-**Step 2. Add the missing fact; it beats thinking.**
+**Finding 1. Give the fact, not the manual: it beats thinking.**
 > *Example* (Qwen3-32B, delivery routes with OR-Tools). With the whole OR-Tools manual it calls a method that does not exist, `RegisterUnaryLongLivingCallback`, and crashes. With 5 lines showing the right call, `RegisterUnaryTransitCallback`, it finds the optimal plan.
 
 | Delivery routing (CVRP), Qwen3-32B | optimal |
@@ -54,29 +48,41 @@ Each step is a measured result (Section 3). Together they beat the usual ways of
 
 Thinking cannot supply a fact the model lacks, and it can make things worse: on word problems (NL4OPT, IndustryOR) thinking *lowers* Qwen3-32B from 65.4% to 52.0%, because while reasoning it invents `Objective().SetMaximize`; with a 6-line snippet thinking helps instead (72.0%). On the 56 Solomon routing benchmarks, three facts together (file layout, "OR-Tools needs integers", a start strategy) take gpt-oss-120b from at most 6% to 100% valid plans. **Less is also more for tools:** 8 helper functions the task does not need lower Qwen3-32B on geometry from 77% to 59%, because it builds its method on an offered helper.
 
-The smaller the model, the more one fact helps:
+**Finding 2. One fact helps small models most.** The smaller the model, the bigger the gain:
 
 ![One fact helps small models most](figs/fig20_fact_by_size.png)
 
-**Step 3. Run a free check, and know what it misses.** The examples in a problem statement never reject a correct program, but 24–37% of gpt-oss-120b's *wrong* contest programs pass them too. Checks that look at the problem differently catch more: two programs written with and without the extra tools, or a text answer against a program, make different mistakes.
+**Finding 3. A free check catches mistakes, and two different versions catch more.** The examples in a problem statement never reject a correct program, but 24–37% of gpt-oss-120b's *wrong* contest programs pass them too. Checks that look at the problem differently catch more: two programs written with and without the extra tools, or a text answer against a program, make different mistakes. Writing the geometry program with and without the extra tools and thinking only when the two disagree gives 99% at 4.3k tokens, vs 98% at 5.9k for always thinking (Qwen3-32B, 3 seeds). It fails when both versions share the same mistake (gpt-oss-120b's two contest programs).
 
-**Step 4. Think harder only when the check fails.**
+**Finding 4. Think harder only when a check fails.**
 > *Example* (gpt-oss-120b). *Make a triangle!* (rated 800): the quick medium-effort program passes the examples, so it is submitted, correct, at no extra cost. *Arrow* (rated 2000): the quick program prints the wrong corners on the example, so only this problem gets high effort (4k + 13k tokens), and the new program is correct.
 
 ![Pay for thinking only when a check fails](figs/fig14_reasoning_policies.png)
 
-- Contest geometry: same accuracy as always using high effort (66.3% vs 66.2%) with 18% fewer tokens (24.7k vs 30.1k).
-- Geometry with extra tools (Qwen3-32B, 3 seeds): write the program with and without the tools and think only if they disagree: 99% at 4.3k tokens, vs always thinking 98% at 5.9k.
-- It fails when both versions share the same mistake (gpt-oss-120b's two contest programs).
+On all 311 contest problems this keeps the accuracy of always using high effort (66.3% vs 66.2%) with 18% fewer tokens (24.7k vs 30.1k).
 
-**Step 5. Reuse a checked program when the problem repeats.**
+**Finding 5. Repeated problems need only one checked program.**
 > *Example* (gpt-oss-120b, Solomon routing: think of each instance as one day's orders). Writing a new program every day gives a valid plan on 7% of 48 days (≈ 86k tokens). Writing 16 programs once, keeping the one that is valid on 8 past days and reusing it gives a valid plan on 94% (28k tokens in total).
 
 ![Verify once, reuse](figs/fig12_reuse_cost.png)
 
 The reused programs also work on 4× larger instances (60 of 60). When the rules change (job-shop scheduling gains release dates), asking the model to *edit* the working program with "change as few lines as possible" beats starting over (Qwen3-32B: 10% → 68% valid schedules).
 
-## 4. Putting it together
+**Finding 6. The fact can be found without a human.** We tested this on a benchmark we never used before: MAMO (863 optimization word problems) was held out until the end. The fact is mined automatically: the model's own shortest program that passed the free check on the other word-problem benchmarks. With it, the recipe matches the hand-written fact: gpt-oss-20b 78.8% vs 78.9% (within 1.2 points on 3 seeds), Qwen3-14B 71.7% vs 71.4%, Qwen3-8B 71.0% vs 72.0% (no fact: 73%, 60%, 46%). Fact first beats always thinking at 12–22% of its tokens. This works within one kind of problem: a program borrowed from a different problem type misleads (14–21 points below the hand-written fact on the optimization suite), and a bare list of the library's names hurts (Qwen3-32B 66.2% → 56.1%).
+
+**Finding 7. Proofs need a specialized model, not a fact.** In Lean (miniF2F, 244 statements, 8 attempts) a specialized prover that fits one 24 GB GPU proves the most: Goedel-Prover-V2-8B 180 (74%), DeepSeek-Prover-V2-7B 165, vs general models Qwen3.6 133, gpt-oss-20b 66, Qwen3-32B 31. For general models none of our steps helps: a verified proof of a similar statement (133 vs 133), thinking (129), a 10-line inequality toolkit (21 vs 24 of 50 bounds). Even for the provers, repairing a failed proof from Lean's error messages proves half as many as a fresh attempt (Goedel: 11 vs 22 of 107). Geometry proofs: AlphaGeometry's symbolic engine alone proves 187 of 231 JGEX problems and 12 of 30 IMO problems; auxiliary points proposed by gpt-oss-20b add 13 JGEX problems, but only one IMO problem (2014 P4) is unlocked by any model.
+
+## 4. Our method: a recipe built from the findings
+
+![The recipe](figs/fig18_recipe.png)
+
+1. **Write a program** for anything that needs exact computation (Section 1).
+2. **Add the missing fact** (findings 1–2): a few lines of exact usage, not a whole manual and not extra tools; written by hand, or mined automatically from the model's own checked programs (finding 6).
+3. **Run a free check** (finding 3): the examples in the problem statement, or two different versions that should agree.
+4. **Think harder only when the check fails** (finding 4).
+5. **When the same problem returns with new data, reuse the program that passed** (finding 5).
+
+## 5. Does the whole recipe pay off?
 
 We compared ways to spend the same budget on geometry and optimization suites (3 models, 624 problems, 3 seeds):
 
@@ -93,31 +99,11 @@ We compared ways to spend the same budget on geometry and optimization suites (3
 
 The recipe is both the most accurate and among the cheapest, on every seed. Difficulty is the wrong signal: spending thinking on the hardest-looking problems is worse than spending it where a check fails.
 
-**Which policy for a new task?** Over 63 model × task × seed cells, "fact first, think on failure" is the best fixed default (it loses 1.4 points on average to the best policy of each cell; always thinking loses 8.4, counting 0.5 points per 1k tokens); labelling 30 problems of a new task and picking the best policy on them cuts the loss to 0.6 points.
-
-**No human in the loop, on a benchmark we never used before.** MAMO (863 optimization word problems) was held out until the end. The fact is mined automatically: the model's own shortest program that passed the free check on the other word-problem benchmarks. With it, the recipe matches the hand-written fact: gpt-oss-20b 78.8% vs 78.9% (within 1.2 points on 3 seeds), Qwen3-14B 71.7% vs 71.4%, Qwen3-8B 71.0% vs 72.0% (no fact: 73%, 60%, 46%). Fact first beats always thinking at 12–22% of its tokens, and 30 labelled problems pick the best policy within 0.8–1.4 points.
-
-![New results](figs/fig22_new_results.png)
+**Which policy for a new task?** Over 63 model × task × seed cells, "fact first, think on failure" is the best fixed default (it loses 1.4 points on average to the best policy of each cell; always thinking loses 8.4, counting 0.5 points per 1k tokens); labelling 30 problems of a new task and picking the best policy on them cuts the loss to 0.6 points (on the held-out MAMO: 0.8–1.4).
 
 **Small GPUs.** Once they get the fact, models that fit one 24 GB GPU (e.g. RTX 3090) match or beat Qwen3-32B. Optimization suite with the recipe: gpt-oss-20b 94–97%, Qwen3-14B (4-bit) 87–92%, Qwen3-32B 79–85%. Word problems: gpt-oss-20b with the recipe 73.0% at 0.7k tokens, Qwen3-32B with the fact and always thinking 72.0% at 5.5k. Competition math: Qwen3-14B (4-bit) thinking 97.3% / 73.3% on MATH-500 / AIME (Qwen3-32B: 97.4% / 77.2%). Contest geometry: gpt-oss-20b, escalating from low to medium effort when the examples fail, solves 54.6% at 11k tokens (gpt-oss-120b at medium: 56.8%). Below 14B the optimization suite stays at 47% or less whatever we add; geometry is solved from 4B up.
 
-## 5. Where the recipe stops
-
-- **Proofs need a different tool, not a fact.** In Lean (miniF2F, 244 statements, 8 attempts) a specialized prover that fits one 24 GB GPU proves the most: Goedel-Prover-V2-8B 180 (74%), DeepSeek-Prover-V2-7B 165, vs general models Qwen3.6 133, gpt-oss-20b 66, Qwen3-32B 31. For general models none of our steps helps: a verified proof of a similar statement (133 vs 133), thinking (129), a 10-line inequality toolkit (21 vs 24 of 50 bounds). Even for the provers, repairing a failed proof from Lean's error messages proves half as many as a fresh attempt (Goedel: 11 vs 22 of 107). Geometry proofs: AlphaGeometry's symbolic engine alone proves 187 of 231 JGEX problems and 12 of 30 IMO problems; auxiliary points proposed by gpt-oss-20b add 13 JGEX problems, but only one IMO problem (2014 P4) is unlocked by any model.
-- **Missing knowledge.** For factual questions (PopQA), thinking adds only 1.8–5 points at 70–200× the tokens, and only for well-known facts.
-- **Checks leak.** A wrong program that passes the check is never sent to thinking; that caps every policy above.
-- **Automatic facts stay within a problem family.** The mined fact works when the other problems are of the same kind (word problems, MAMO above), but a program for a *different* problem type misleads: on the optimization suite it is 14–21 points below the hand-written fact, because the model copies the other type's library and formulation. A bare list of the library's names hurts too (Qwen3-32B 66.2% → 56.1%; it breaks thinking for Qwen3.6). BM25 retrieval keeps most of the gain (84% vs 87%).
-- **Thinking settings matter.** With our sampling settings Qwen3.6 ran out of its 28k-token budget on 213 of 1,680 math problems; with the model card's settings and an 80k budget only 4 did, and thinking rose from 91.7 / 47.8% to 99.6 / 94.4% (MATH-500 / AIME), above text without thinking (98.3 / 68.3%). Most of the gain is the budget; the sampling adds about 3 points.
-- Open models only; mechanisms were first found on generated tasks.
-
-## 6. Setup
-
-- **Strict scoring.** Geometry: right on all 8 copies of each input. Routing and scheduling: every rule satisfied, length compared with the best known. Contest problems: all official tests. Math and word problems: the exact answer.
-- **Fair comparisons.** One change at a time, predictions written before each run, 3 seeds per claim, and accuracy always reported with its token cost.
-- **Models** (open, run locally): Qwen3 1.7B–32B, Qwen3.6-35B-A3B, gpt-oss-20b and 120b; for proofs Goedel-Prover-V2-8B and DeepSeek-Prover-V2-7B.
-- **Benchmarks:** 13 generated geometry tasks; 8 generated optimization problems; 311 Codeforces geometry problems (CodeContests); 56 Solomon routing instances; 82 job-shop instances (OR-Library and larger); NL4OPT + IndustryOR (345 word problems); MAMO (863 word problems, held out); MATH-500 + AIME 2024/2025 (560); miniF2F (244 Lean proofs); IMO-AG-30 and JGEX-AG-231 (geometry proofs); PopQA (1,500 questions).
-
-## 7. Compared with published methods
+## 6. Compared with published methods
 
 All measured here, with the same problems, models and checks; accuracy @ output tokens per problem.
 
@@ -140,9 +126,25 @@ All measured here, with the same problems, models and checks; accuracy @ output 
 | Lean proofs (Goedel-Prover-V2-8B, 107 failed statements) | repair from the compiler's error messages (Self-Debugging-style) | 11 proved | a fresh attempt: 22 (same tokens) |
 | Competition math (Qwen3-32B, MATH-500) | accept when text and program agree, else think (Mixture-of-Thought cascade, ICLR 2024) | 97.2% at 77% of always-thinking's tokens (97.4% @ 5.4k); on AIME it costs more than always thinking | used as a check (step 3) |
 
-**Related work.** Misleading prompt context and tools (2606.04057, 2609.14157, CodeCrash, DRAFT, ContractEval); documentation for solver code (DRoC, CP-Bench); selecting and repairing programs (CodeT, MBR-exec, AlphaCode, Self-Debugging); compute allocation (Snell et al., FrugalGPT, Mixture-of-Thought); one program for many instances (FunSearch, HeuriGym, 2605.14141, 2608.27296). **New here:** these methods compared on exact-answer benchmarks with every result priced in tokens, showing that *facts before compute* is the cheapest way to accuracy, especially for small models.
+**Related work.** Misleading prompt context and tools (2606.04057, 2609.14157, CodeCrash, DRAFT, ContractEval); documentation for solver code (DRoC, CP-Bench); selecting and repairing programs (CodeT, MBR-exec, AlphaCode, Self-Debugging); compute allocation (Snell et al., FrugalGPT, Mixture-of-Thought); one program for many instances (FunSearch, HeuriGym, 2605.14141, 2608.27296). Closest on optimization modeling: OptiSkill (2609.22987) routes problems to a skill bank distilled from a strong teacher's programs and checked against answers; ORLM, STORM and EVOM train the model. Our recipe needs no training, teacher or answers: on MAMO it puts untrained 24 GB-GPU models at the level of ORLM-8B (Qwen3-14B 82.8 / 37.4% vs 82.3 / 37.4% on MAMO Easy / Complex; grading conventions differ across papers). Thinkless and AdaptThink train when to think; we decide it with an execution check after giving the fact. **New here:** these methods compared on exact-answer benchmarks with every result priced in tokens, showing that *facts before compute* is the cheapest way to accuracy, especially for small models.
 
-## 8. Plan
+## 7. Where the recipe stops
+
+- **Proofs** need a specialized prover, not a fact (finding 7).
+- **Missing knowledge.** For factual questions (PopQA), thinking adds only 1.8–5 points at 70–200× the tokens, and only for well-known facts.
+- **Checks leak.** A wrong program that passes the check is never sent to thinking; that caps every policy above.
+- **Automatic facts stay within a problem family** (finding 6): the model copies another type's library and formulation. Mining one fact per problem type is next; BM25 retrieval keeps most of the gain meanwhile (84% vs 87%).
+- **Thinking settings matter.** With our sampling settings Qwen3.6 ran out of its 28k-token budget on 213 of 1,680 math problems; with the model card's settings and an 80k budget only 4 did, and thinking rose from 91.7 / 47.8% to 99.6 / 94.4% (MATH-500 / AIME), above text without thinking (98.3 / 68.3%). Most of the gain is the budget; the sampling adds about 3 points.
+- Open models only; mechanisms were first found on generated tasks.
+
+## 8. Setup
+
+- **Strict scoring.** Geometry: right on all 8 copies of each input. Routing and scheduling: every rule satisfied, length compared with the best known. Contest problems: all official tests. Math and word problems: the exact answer.
+- **Fair comparisons.** One change at a time, predictions written before each run, 3 seeds per claim, and accuracy always reported with its token cost.
+- **Models** (open, run locally): Qwen3 1.7B–32B, Qwen3.6-35B-A3B, gpt-oss-20b and 120b; for proofs Goedel-Prover-V2-8B and DeepSeek-Prover-V2-7B.
+- **Benchmarks:** 13 generated geometry tasks; 8 generated optimization problems; 311 Codeforces geometry problems (CodeContests); 56 Solomon routing instances; 82 job-shop instances (OR-Library and larger); NL4OPT + IndustryOR (345 word problems); MAMO (863 word problems, held out); MATH-500 + AIME 2024/2025 (560); miniF2F (244 Lean proofs); IMO-AG-30 and JGEX-AG-231 (geometry proofs); PopQA (1,500 questions).
+
+## 9. Plan
 
 Done since the last version: contest geometry and competition math on 24 GB GPUs; Qwen3.6 with the model card's settings (headline unchanged: 86.7–87.5%); automatic facts and the held-out MAMO test; choosing the policy from 30 labels; proofs (Lean, geometry).
 
