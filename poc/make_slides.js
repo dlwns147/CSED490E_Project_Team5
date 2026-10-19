@@ -310,7 +310,7 @@ mini(s, 3, "Think only on failure", "311 contest problems: % · tokens",
      [["always high", 66.2, "66% · 30k", G], ["high on failure", 66.3, "66% · 25k", BLUE]]);
 mini(s, 4, "Reuse a checked program", "48 routing days: % valid · tokens",
      [["new each day", 7, "7% · 86k", G], ["own notes", 36, "31–40%", G], ["reuse one", 94, "94% · 28k", BLUE]]);
-mini(s, 5, "All together", "624 problems, 3 models: % · tokens",
+mini(s, 5, "All together", "208 problems × 3 models: % · tokens",
      [["think on hardest", 74, "74% · 4.1k", G], ["fix by type", 83, "83% · 4.2k", G], ["fact first", 87, "87% · 2.5k", BLUE]]);
 s.addNotes((pre || "") + "One panel per result. Add the fact: routing 23% to 77-90% (thinking longer 3%, long reference sheet 7%). Small models gain most: Qwen3-1.7B 0% to 45%, Qwen3-32B 65% to 66% (word problems). Compare two versions: 99% at 4.3k tokens vs always thinking 98% at 5.9k; with 8 extra tools 59%. Think only on a failed check (gpt-oss-120b, contest): 66.3% at 24.7k vs 66.2% at 30.1k. Reuse: 94% of 48 routing days vs 7% with a new program per day; Dynamic Cheatsheet (DC, the model's own notes) 31-40%. All together: fact first then think on failure 87% at 2.5k vs 74% at 4.1k for thinking on the hardest-looking problems (Snell-style) and 83% for choosing the fix by failure type.");
 }
@@ -545,7 +545,7 @@ function pair(x, head, rows) {   // two labelled bars
   });
 }
 pair(0.6, "This problem: tokens (both answers right)", [["always think", 1.0, "5.3k", "7F7F7F"], ["our method", 0.12, "0.6k", BLUE]]);
-pair(6.8, "All 624 problems, 3 models: % solved · tokens", [["think on hardest", 0.74, "74% · 4.1k", "7F7F7F"], ["our method", 0.87, "87% · 2.5k", BLUE]]);
+pair(6.8, "208 problems × 3 models: % solved · tokens", [["think on hardest", 0.74, "74% · 4.1k", "7F7F7F"], ["our method", 0.87, "87% · 2.5k", BLUE]]);
 txt(s, "Free check, no answers needed:", 0.6, 5.85, 3.1, 0.45, { fontSize: 14, bold: true });
 [["contest", "sample tests pass"], ["geometry", "moved copies agree"], ["routing", "plan obeys rules"], ["word problems", "two versions agree"]].forEach(([k, v], r) => {
   box(s, "", 3.7 + r * 2.27, 5.83, 2.17, 0.5, "F2F2F2");
@@ -559,7 +559,7 @@ slideMethod("Method", "Our method on one real problem");
 function slideTogether(section, title, pre) {   // pre: text put before the speaker notes
 s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
 s.addText(title, { placeholder: "title" });
-txt(s, "Same 624 geometry and optimization problems, 3 models: % solved · tokens per problem", 0.6, 1.35, 12.1, 0.45, { fontSize: 18 });
+txt(s, "Same 208 geometry and optimization problems × 3 models: % solved · tokens per problem", 0.6, 1.35, 12.1, 0.45, { fontSize: 18 });
 hbars(s, 0.6, 1.95, 8.2, [["First program, no help", 63, "63% · 0.7k", "A5A5A5"],
                           ["Think on hardest-looking", 74, "74% · 4.1k", "7F7F7F"],
                           ["Think when check fails", 77, "77% · 4.2k", "7F7F7F"],
@@ -599,7 +599,7 @@ s.addText(title, { placeholder: "title" });
   table(s, rows, { x: 0.6, y: 1.45, w: 12.1, colW: [2.3, 3.9, 2.2, 3.7], rowH: 0.57, fontSize: 15 });
 }
 caption(s, "Measured here with the same problems and models: the recipe is more accurate, cheaper, or both");
-s.addNotes((pre || "") + "All baselines were run by us on our benchmarks. Models: U1 policies over Qwen3-8B / Qwen3-32B / Qwen3.6 (624 problems); contest geometry gpt-oss-120b (311); selection Qwen3-8B (300 geometry instances, 3 candidates); documentation Qwen3-32B on CVRP; tools Qwen3-32B on 5 geometry tasks; daily routing gpt-oss-120b on 48 held-out Solomon instances. Tokens are output tokens per problem. ORLM-LLaMA-3-8B was run in our harness on MAMO (863 held-out word problems; greedy 80.5 / 35.5% on Easy / Complex, as reported). More rows (MBR-exec, majority vote, DeepConf, Self-Debugging, Mixture-of-Thought cascade, BM25 retrieval) are in PROPOSAL.md section 6.");
+s.addNotes((pre || "") + "All baselines were run by us on our benchmarks. Models: U1 policies over Qwen3-8B / Qwen3-32B / Qwen3.6 (208 problems × 3 models); contest geometry gpt-oss-120b (311); selection Qwen3-8B (300 geometry instances, 3 candidates); documentation Qwen3-32B on CVRP; tools Qwen3-32B on 5 geometry tasks; daily routing gpt-oss-120b on 48 held-out Solomon instances. Tokens are output tokens per problem. ORLM-LLaMA-3-8B was run in our harness on MAMO (863 held-out word problems; greedy 80.5 / 35.5% on Easy / Complex, as reported). More rows (MBR-exec, majority vote, DeepConf, Self-Debugging, Mixture-of-Thought cascade, BM25 retrieval) are in PROPOSAL.md section 6.");
 }
 slideBaselines("Method", "Compared with published methods");
 
@@ -693,12 +693,12 @@ function buildTalk() {
   pres.addSlide = (o) => { const sl = addSlide(o); sl.say = sl.addNotes.bind(sl); sl.addNotes = () => sl; return sl; };
   const SCRIPT_KO = [   // speaker notes of slides 1-9, about 4 minutes in all
     "(10초) 안녕하세요, 5조입니다. LLM으로 계산 수학 문제를 정확하고 싸게 푸는 방법을 제안합니다. 질문은 하나입니다. 추가 노력을 사실, 검사, 생각 중 어디에 써야 할까요?",
-    "(25초) 저희가 푸는 문제는 다섯 종류입니다. 기하 계산, Codeforces 기하 문제, 배송 경로, 최적화 문장제, 그리고 경시 수학과 증명입니다. 쉽지 않습니다. 경시 문제의 중앙값은 Codeforces Master 수준이고, AIME는 고등학생 상위 5% 정도가 치는 시험입니다. 공개 모델인 Qwen3와 gpt-oss를 직접 돌리고, 맞힌 문제 수와 쓴 토큰 수를 함께 잽니다.",
+    "(25초) 저희가 푸는 문제는 다섯 종류입니다. 기하 계산, Codeforces 기하 문제, 배송 경로, 최적화 문장제, 그리고 확장으로 경시 수학과 증명입니다. 쉽지 않습니다. 경시 문제의 중앙값은 Codeforces Master 수준이고, AIME는 고등학생 상위 5% 정도가 치는 시험입니다. 공개 모델인 Qwen3와 gpt-oss를 직접 돌리고, 맞힌 문제 수와 쓴 토큰 수를 함께 잽니다.",
     "(20초) LLM은 말로 답할 수도 있고, 프로그램을 짤 수도 있습니다. Qwen3-8B에게 같은 도형의 넓이의 두 배를 물었습니다. 옮기고 돌리고 뒤집어도 답은 436입니다. 말로 답하면 매번 다른 답이 나오지만, 프로그램은 네 번 모두 436입니다. 계산에는 프로그램이 맞는 도구입니다.",
     "(35초) 하지만 두 가지 문제가 있습니다. 첫째, 프로그램은 조용히 틀립니다. 같은 문제인데 프롬프트에 보조 코드만 더하면 6 대신 0을 출력하고, 에러 메시지도 없습니다. 없는 라이브러리 함수를 불러서 죽기도 합니다. 둘째, 오래 생각하면 비쌉니다. gpt-oss-120b는 오래 생각하면 57%에서 66%로 오르지만, 토큰은 4.4배를 씁니다. 그래서 질문입니다. 추가 노력을 빠진 사실, 공짜 검사, 더 많은 생각 중 어디에 써야 할까요?",
-    "(35초) 첫 번째 발견입니다. 매뉴얼이 아니라 사실을 주세요. Qwen3-32B가 OR-Tools로 배송 경로 프로그램을 짭니다. 긴 참조 문서를 주면 존재하지 않는 함수를 불러서 죽고, 정확한 사용법 열한 줄을 주면 최적 경로를 찾습니다. 경로 문제 30개에서 최적해를 찾는 비율은 아무것도 안 주면 23%, 오래 생각하면 오히려 3%, 긴 참조 문서는 7%, 정확한 사용법은 77에서 90%입니다. 모르는 사실은 생각한다고 생기지 않습니다.",
-    "(30초) 두 번째 발견입니다. 공짜 검사가 실패할 때만 생각하게 하세요. 검사 A는 문제에 적힌 예제입니다. 예제를 통과하면 바로 제출하고, 틀리면 그 문제만 더 생각합니다. 검사 B는 프로그램을 두 버전으로 짜서, 답이 다를 때만 생각합니다. 두 경우 모두 항상 생각할 때와 정확도는 같고, 토큰은 18에서 27% 적습니다. 그리고 두 검사 모두 정답이 필요 없습니다.",
-    "(50초) 두 발견을 합친 것이 저희 방법입니다. 실제 최적화 문제로 보겠습니다. 1단계, 모델이 없는 메서드를 불러서 죽습니다. 2단계, 사실을 줍니다. 이 사실은 사람이 쓴 것이 아니라, 모델이 다른 문제에서 짜서 검사를 통과한 자기 프로그램에서 자동으로 가져옵니다. 3단계, 두 버전의 답이 20000으로 같으니, 4단계 생각은 건너뜁니다. 생각만 했다면 5.3k 토큰이 들었을 문제를 0.6k로 풉니다. 5단계, 같은 종류의 새 데이터에는 검사된 프로그램을 재사용합니다. 624문제 전체에서, 어려워 보이는 문제에 생각을 몰아주면 74%, 저희 방법은 87%이고 토큰도 더 적습니다.",
+    "(35초) 첫 번째 발견입니다. 매뉴얼이 아니라 사실을 주세요. Qwen3-32B가 OR-Tools로 배송 경로 프로그램을 짭니다. 긴 참조 문서를 주면 존재하지 않는 함수를 불러서 죽고, 정확한 사용법 열한 줄을 주면 최적 경로를 찾습니다. 경로 문제 30개에서 최적해를 찾는 비율은 아무것도 안 주면 23%, 오래 생각하면 오히려 3%, 긴 참조 문서는 7%, 정확한 사용법은 77에서 90%입니다. 최적화 문장제와 기하에서도 같았습니다. 모르는 사실은 생각한다고 생기지 않습니다.",
+    "(30초) 두 번째 발견입니다. 공짜 검사가 실패할 때만 생각하게 하세요. 검사 A는 문제에 적힌 예제입니다. 예제를 통과하면 바로 제출하고, 틀리면 그 문제만 더 생각합니다. 검사 B는 프로그램을 두 버전으로 짜서, 답이 다를 때만 생각합니다. 두 경우 모두 항상 생각할 때와 정확도는 같고, 토큰은 18에서 27% 적습니다. 두 검사 모두 정답이 필요 없고, 기하, 경시, 경로, 문장제에서 모두 통했습니다.",
+    "(50초) 두 발견을 합친 것이 저희 방법입니다. 실제 최적화 문제로 보겠습니다. 1단계, 모델이 없는 메서드를 불러서 죽습니다. 2단계, 사실을 줍니다. 이 사실은 사람이 쓴 것이 아니라, 모델이 다른 문제에서 짜서 검사를 통과한 자기 프로그램에서 자동으로 가져옵니다. 3단계, 두 버전의 답이 20000으로 같으니, 4단계 생각은 건너뜁니다. 생각만 했다면 5.3k 토큰이 들었을 문제를 0.6k로 풉니다. 5단계, 같은 종류의 새 데이터에는 검사된 프로그램을 재사용합니다. 기하와 최적화 208문제를 세 모델로 풀면, 어려워 보이는 문제에 생각을 몰아주면 74%, 저희 방법은 87%이고 토큰도 더 적습니다.",
     "(35초) 새로운 점은 세 가지입니다. 학습 없이, 공짜 검사가 실패할 때만 생각합니다. 정답 없이, 모델 자신의 검사된 프로그램을 사실로 줍니다. 그리고 특화 모델을 파인튜닝하지 않고도, 24GB GPU 한 장으로 같은 정확도를 냅니다. 다음으로는 더 많은 모델로 검증을 마치고, 검사로 못 잡는 오류, 즉 실행은 되지만 문제를 잘못 모델링한 프로그램을 다루겠습니다. 정리하면, 빠진 사실을 먼저 주고, 공짜 검사가 실패한 곳에서만 생각하게 하자는 것입니다.",
     "(5초) 감사합니다. 질문 받겠습니다. 예상 질문마다 보충 슬라이드를 준비했습니다.",
   ];
@@ -722,9 +722,10 @@ function buildTalk() {
    ["calc", "Word problems", "most coins from 500 gold and 300 wires?", "university operations-research exercises", "38761D"],
    ["sqrt", "Math and proofs", "contest answers; machine-checked proofs", "AIME: top ~5% of high-school contestants", "595959"]].forEach(([icon, head, ex, tag, col], k) => {
     const x = 0.6 + k * 2.45;
-    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.4, w: 2.3, h: 4.45, rectRadius: 0.08, fill: { color: "F7F7F7" }, line: { color: "D9D9D9", width: 0.75 }, objectName: "kind " + head });
+    const ext = icon === "sqrt";   // an extension: the recipe is shown on the other four kinds
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.4, w: 2.3, h: 4.45, rectRadius: 0.08, fill: { color: "F7F7F7" }, line: { color: ext ? "A6A6A6" : "D9D9D9", width: ext ? 1.25 : 0.75, dashType: ext ? "dash" : "solid" }, objectName: "kind " + head });
     s.addImage({ path: ICON(icon), x: x + 0.75, y: 1.6, w: 0.8, h: 0.8, objectName: "icon " + icon });
-    txt(s, head, x + 0.1, 2.55, 2.1, 0.75, { fontSize: 18, bold: true, align: "center" });
+    txt(s, ext ? [{ text: head, options: { breakLine: true } }, { text: "(extension)", options: { fontSize: 15, bold: false, color: "7F7F7F" } }] : head, x + 0.1, 2.5, 2.1, 0.8, { fontSize: 18, bold: true, align: "center" });
     txt(s, ex, x + 0.15, 3.35, 2.0, 1.2, { fontSize: 15, align: "center", valign: "top" });
     s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: x + 0.1, y: 4.7, w: 2.1, h: 0.95, rectRadius: 0.1, fill: { color: "FFFFFF" }, line: { color: col, width: 1.25 }, objectName: "tag " + head });
     txt(s, tag, x + 0.15, 4.7, 2.0, 0.95, { fontSize: 15, bold: true, color: col, align: "center" });
@@ -785,6 +786,13 @@ function buildTalk() {
     });
   }
 
+  const KINDS = ["shapes", "trophy", "truck", "calc", "sqrt"];   // the five kinds of slide 2, in order
+  function holdsOn(on) {   // faded: not tested there, or it does not hold (detail on the coverage page)
+    txt(s, "holds on", 9.2, 1.08, 1.25, 0.3, { fontSize: 14, color: "7F7F7F", align: "right" });
+    KINDS.forEach((icon, k) => s.addImage({ path: ICON(icon), x: 10.6 + k * 0.42, y: 1.07, w: 0.3, h: 0.3, transparency: on.includes(icon) ? 0 : 82,
+                                            objectName: (on.includes(icon) ? "holds on " : "not shown on ") + icon }));
+  }
+
   function answerBadge(ks) {   // the matching choice(s), top right
     ks.forEach((k, j) => pill(12.7 - (ks.length - j) * 2.15, 0.52, k, 14));
   }
@@ -793,6 +801,7 @@ function buildTalk() {
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
   s.addText("Finding 1: give the fact, not the manual", { placeholder: "title" });
   answerBadge([0]);
+  holdsOn(["shapes", "truck", "calc"]);
   txt(s, "Qwen3-32B plans delivery routes with Google's OR-Tools library", 0.6, 1.3, 12.1, 0.45, { fontSize: 17 });
   [["a long reference sheet", "RegisterUnaryLongLivingCallback()", "✗ does not exist: crash", "FCE4D6", RED, 1.95],
    ["the exact usage (11 lines)", "RegisterUnaryTransitCallback()", "✓ runs: best route", "E2F0D9", "38761D", 2.75]].forEach(([lab, call, res, fill, col, y]) => {
@@ -809,12 +818,13 @@ function buildTalk() {
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
   s.addText("Finding 2: think only when a free check fails", { placeholder: "title" });
   answerBadge([1]);
+  holdsOn(["shapes", "trophy", "truck", "calc"]);
   function checkPane(x, head, rows, bars, sub) {
-    panel(s, x, 1.35, 5.95, 4.6, head);
-    txt(s, head, x + 0.25, 1.45, 5.45, 0.5, { fontSize: 18, bold: true, color: BLUE });
-    rows.forEach(([t, col, fill], r) => box(s, t, x + 0.25, 2.05 + r * 0.72, 5.45, 0.6, fill, { fontSize: 15, color: col }));
-    txt(s, sub, x + 0.25, 3.55, 5.45, 0.4, { fontSize: 15, bold: true });
-    costRows(x + 0.25, 4.0, 5.45, 2.05, bars);
+    panel(s, x, 1.45, 5.95, 4.5, head);
+    txt(s, head, x + 0.25, 1.55, 5.45, 0.5, { fontSize: 18, bold: true, color: BLUE });
+    rows.forEach(([t, col, fill], r) => box(s, t, x + 0.25, 2.15 + r * 0.72, 5.45, 0.6, fill, { fontSize: 15, color: col }));
+    txt(s, sub, x + 0.25, 3.65, 5.45, 0.4, { fontSize: 15, bold: true });
+    costRows(x + 0.25, 4.1, 5.45, 2.05, bars);
   }
   checkPane(0.6, "Check A: the problem's own examples", [["\"Make a triangle!\": examples pass → submit", "38761D", "E2F0D9"], ["\"Arrow\": an example fails → think harder → right", RED, "FADBD8"]],
             [["always think hard", "66.2%", 30.1, "30k", "7F7F7F"], ["only on failure", "66.3%", 24.7, "25k", BLUE]], "311 contest problems (gpt-oss-120b)");
@@ -826,7 +836,8 @@ function buildTalk() {
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
   s.addText("Our method: cheap steps first", { placeholder: "title" });
   answerBadge([0, 1]);
-  txt(s, "One real problem (Qwen3-8B): products X, Y, Z at $10, $15, $20 under three limits; minimum cost? → 20000", 0.6, 1.28, 12.1, 0.4, { fontSize: 16 });
+  holdsOn(["shapes", "truck", "calc"]);
+  txt(s, "One real problem (Qwen3-8B): minimum cost of X, Y, Z under three limits → 20000", 0.6, 1.28, 8.6, 0.4, { fontSize: 16 });
   [["1 Program", "Objective()\n.Minimize()", "✗ crash, no fact", RED, "FADBD8", 1.0],
    ["2 + Fact", "solver\n.Minimize(...)", "found automatically: its own checked program", "38761D", "E2F0D9", 1.0],
    ["3 Free check", "20000 = 20000", "a second version agrees", "38761D", "E2F0D9", 1.0],
@@ -839,7 +850,7 @@ function buildTalk() {
     txt(s, small, x + 0.1, 2.9, 2.1, 0.72, { fontSize: 14, align: "center", valign: "top" });
     if (k < 4) arrow(s, x + 2.3, 2.92, x + 2.45, 2.92);
   });
-  txt(s, "All 624 geometry and optimization problems, 3 models:", 0.6, 3.95, 7.0, 0.4, { fontSize: 16, bold: true });
+  txt(s, "108 geometry + 100 optimization problems × 3 models:", 0.6, 3.95, 7.0, 0.4, { fontSize: 16, bold: true });
   costRows(0.6, 4.35, 7.0, 2.2, [["think on hardest-looking", "74%", 4.1, "4.1k", "7F7F7F"], ["our method", "87%", 2.5, "2.5k", BLUE]]);
   [["79% = 79%", "the fact found automatically (its own earlier checked program) = a hand-written fact, on new problems"], ["0.6k vs 5.3k", "tokens on this problem vs thinking alone"]].forEach(([big, lab], r) => {
     const y = 3.95 + r * 1.05;
@@ -924,7 +935,7 @@ function buildTalk() {
     costRows(0.6, 2.3, 7.8, 3.3, [["true rating ≥ 2600", "61.4%", 19.4, "19.4k", "7F7F7F"], ["true rating ≥ 2400", "63.3%", 22.7, "22.7k", "7F7F7F"],
       ["true rating ≥ 1800", "65.3%", 27.8, "27.8k", "7F7F7F"], ["its first answer is long", "62.1%", 23.0, "23.0k", "7F7F7F"],
       ["always", "66.2%", 30.1, "30.1k", "7F7F7F"], ["an example fails (free check)", "65.0%", 20.2, "20.2k", BLUE]]);
-    [["74% → 87%", "624 problems, 3 models: think on the hardest-looking (Snell et al.) → fact first, think on failure"],
+    [["74% → 87%", "208 geometry and optimization problems × 3 models: think on the hardest-looking (Snell et al.) → fact first, think on failure"],
      ["79%", "even with the best fix chosen per difficulty level"]].forEach(([big, lab], r) => {
       const y = 1.95 + r * 1.8;
       txt(s, big, 8.8, y, 3.9, 0.65, { fontSize: 32, bold: true, color: BLUE });
@@ -1022,7 +1033,23 @@ function buildTalk() {
     caption(s, "Every task here has a free check; how much it catches decides how much thinking it saves");
   }
 
+  function slideQCoverage() {
+    qSlide("Q: do the findings cover all five kinds?", "Where each result was measured (models and numbers as on the talk slides)");
+    const OK = "38761D", PART = "C55A11", NA = "8C8C8C";
+    const c = (t, col) => ({ text: t, options: { color: col } }), row = t => ({ text: t, options: { bold: true } });
+    table(s, [["", "Geometry", "Contest problems", "Routing, scheduling", "Word problems", "Math and proofs"].map(HDR),
+      [row("A program, not words"), c("✓ 8 of 8 copies right vs 1 of 8", OK), c("– a program by design", NA), c("– a program by design", NA), c("– a program by design", NA), c("✗ words as good (98% vs 87%); the program as a second opinion", RED)],
+      [row("Give the fact"), c("✓ only the needed tools: 92% vs 75%", OK), c("– not tested", NA), c("✓ 23% → 77–90%; 6% → 100% valid plans", OK), c("✓ 65% → 72%; small models +44 points", OK), c("✗ no fact helps proofs", RED)],
+      [row("Free check, think on failure"), c("✓ 99% @ 4.3k vs 98% @ 5.9k", OK), c("✓ 66.3% @ 24.7k vs 66.2% @ 30.1k", OK), c("✓ part of the 87% below", OK), c("✓ beats always thinking at 12–22% of its tokens", OK), c("~ MATH-500: same accuracy at 77% of the tokens; AIME: costs more", PART)],
+      [row("Whole recipe"), c("✓ 87% @ 2.5k vs 74% @ 4.1k, with routing", OK), c("~ check and think only (no fact)", PART), c("✓ 87% @ 2.5k vs 74% @ 4.1k, with geometry", OK), c("✓ held-out MAMO: automatic fact = hand-written", OK), c("✗ proofs need a specialized prover", RED)],
+      [row("Reuse a checked program"), c("– not tested", NA), c("– not tested", NA), c("✓ 94% vs 7% of days valid", OK), c("– not tested", NA), c("– not tested", NA)]],
+      { x: 0.6, y: 1.85, w: 12.1, colW: [2.1, 2.0, 2.0, 2.0, 2.0, 2.0], fontSize: 13, rowH: [0.4, 0.75, 0.75, 0.75, 0.75, 0.55] });
+    txt(s, "✓ holds   ~ partly   ✗ does not help   – not tested.   The 87% pools 108 geometry and 100 optimization problems, each solved by 3 models.", 0.6, 5.75, 12.1, 0.4, { fontSize: 14, color: C.text2 });
+    caption(s, "The recipe is shown on geometry, routing and word problems; proofs need a different tool");
+  }
+
   const EXTRAS = [   // [key, index label, slide], in the order of the talk slides that raise the questions
+    ["coverage", "Which kinds each finding covers", slideQCoverage],
     ["kinds", "How hard: contest ranks, exams", () => slideKinds("Extra pages", "Extra: how hard, by contest ranks and exams")],
     ["progwords", "A program or words?", slideQWords],
     ["two", "Two versions, in detail", () => slideTwoVersions("Extra pages", "Extra: two versions catch each other's mistakes")],
@@ -1046,6 +1073,7 @@ function buildTalk() {
     ["setup", "Setup", () => slideSetup("Extra pages", "Extra: setup, scoring and hardware")],
   ];
   const QUESTIONS = [   // [talk slide that raises it, expected question, extra pages that answer it]
+    [2, "Do the findings cover all five kinds?", ["coverage"]],
     [2, "How hard are the problems?", ["kinds"]],
     [2, "Proofs? Where does it stop?", ["proof", "limits"]],
     [3, "Is a program always better than words?", ["progwords"]],
@@ -1068,19 +1096,19 @@ function buildTalk() {
   txt(s, "Expected questions, by the talk slide that raises them → extra page (type the number and press Enter)", 0.6, 1.3, 12.1, 0.45, { fontSize: 16, bold: true, color: BLUE });
   const first = pres.slides.length + 1, page = key => first + EXTRAS.findIndex(e => e[0] === key);
   QUESTIONS.forEach(([from, q, keys], k) => {
-    const x = 0.6 + Math.floor(k / 8) * 6.15, y = 1.85 + (k % 8) * 0.56;
-    box(s, "", x, y, 5.95, 0.5, "F2F2F2");
-    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: x + 0.08, y: y + 0.08, w: 0.85, h: 0.34, rectRadius: 0.06, fill: { color: "D9D9D9" }, line: { color: "D9D9D9" }, objectName: "from slide " + from });
-    txt(s, "slide " + from, x + 0.08, y + 0.08, 0.85, 0.34, { fontSize: 14, color: "404040", align: "center" });
-    txt(s, q, x + 1.05, y, 4.8 - keys.length * 0.55, 0.5, { fontSize: 14 });
+    const x = 0.6 + Math.floor(k / 9) * 6.15, y = 1.8 + (k % 9) * 0.5;
+    box(s, "", x, y, 5.95, 0.44, "F2F2F2");
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: x + 0.08, y: y + 0.06, w: 0.85, h: 0.32, rectRadius: 0.06, fill: { color: "D9D9D9" }, line: { color: "D9D9D9" }, objectName: "from slide " + from });
+    txt(s, "slide " + from, x + 0.08, y + 0.06, 0.85, 0.32, { fontSize: 14, color: "404040", align: "center" });
+    txt(s, q, x + 1.05, y, 4.8 - keys.length * 0.55, 0.44, { fontSize: 14 });
     keys.sort((a, b) => page(a) - page(b)).forEach((key, j) => {
       const cx = x + 5.95 - 0.08 - (keys.length - j) * 0.55;
-      s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: cx + 0.04, y: y + 0.07, w: 0.48, h: 0.36, rectRadius: 0.08, fill: { color: BLUE }, line: { color: BLUE }, objectName: "page " + key });
-      txt(s, String(page(key)), cx + 0.04, y + 0.07, 0.48, 0.36, { fontSize: 14, bold: true, color: "FFFFFF", align: "center" });
+      s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: cx + 0.04, y: y + 0.05, w: 0.48, h: 0.34, rectRadius: 0.08, fill: { color: BLUE }, line: { color: BLUE }, objectName: "page " + key });
+      txt(s, String(page(key)), cx + 0.04, y + 0.05, 0.48, 0.34, { fontSize: 14, bold: true, color: "FFFFFF", align: "center" });
     });
   });
   txt(s, "Also: " + ["policies"].map(key => `${page(key)} ${EXTRAS.find(e => e[0] === key)[1].toLowerCase()}`).join(" · "),
-      0.6, 6.4, 12.1, 0.4, { fontSize: 15, color: C.text2 });
+      0.6, 6.35, 12.1, 0.4, { fontSize: 15, color: C.text2 });
 
   SCRIPT_KO.forEach((t, i) => pres.slides[i].say(t));
 

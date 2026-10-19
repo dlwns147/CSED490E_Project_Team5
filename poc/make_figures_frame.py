@@ -62,7 +62,7 @@ for lab, y, x, c, (dx, dy, ha) in P:
 ax.set_xlim(0, 4.9); ax.set_ylim(58, 92)
 ax.set_xlabel("output tokens per problem (thousands)"); ax.set_ylabel("problems solved (%)")
 st.finish(ax, "Facts first, think only on failure: most accurate and cheaper",
-          "Qwen3-8B, Qwen3-32B, Qwen3.6 on geometry + optimization (624 problems); same ranking on 3 seeds", "fig19_cost_accuracy.png")
+          "Qwen3-8B, Qwen3-32B, Qwen3.6 on 208 geometry + optimization problems; same ranking on 3 seeds", "fig19_cost_accuracy.png")
 
 # ---------- fig20: one fact helps small models most ----------
 M = ["Qwen3-1.7B", "Qwen3-4B", "Qwen3-8B", "Qwen3-14B\n(4-bit)", "Qwen3-32B\n(4-bit)"]
@@ -99,7 +99,7 @@ PANELS = [  # title, subtitle, rows: (label, value for the bar, shown text, colo
     ("Reuse a checked program", "48 days of delivery routing, gpt-oss-120b: % valid · tokens in total", [
         ("new program every day", 7, "7% · 86k", GREY), ("own notes (Dyn. Cheatsheet)", 36, "31–40%", GREY),
         ("reuse one checked program", 94, "94% · 28k", BLUE)]),
-    ("All together", "3 models, 624 problems: % solved · tokens per problem", [
+    ("All together", "208 problems × 3 models: % solved · tokens per problem", [
         ("think on hardest (Snell)", 74, "74% · 4.1k", GREY), ("fix by failure type", 83, "83% · 4.2k", GREY),
         ("fact first, think on failure", 87, "87% · 2.5k", BLUE)]),
 ]

@@ -107,7 +107,7 @@ In Lean (miniF2F, 244 statements, 8 attempts) a specialized prover that fits one
 
 ## 5. Does the whole recipe pay off?
 
-We compared ways to spend the same budget on geometry and optimization suites (3 models, 624 problems, 3 seeds):
+We compared ways to spend the same budget on the geometry suite (108 problems) and the optimization suite (100 problems: routing, scheduling, packing), each solved by 3 models (624 runs), on 3 seeds. Contest problems, word problems and proofs are tested separately (Sections 3 and 6):
 
 ![Cost vs accuracy of each policy](figs/fig19_cost_accuracy.png)
 
@@ -147,7 +147,7 @@ All measured here, with the same problems, models and checks; accuracy @ output 
 
 | Task (model) | Published method | Its result | Ours, same problems |
 |---|---|---|---|
-| Where to spend thinking (3 models, 624 problems) | think on the hardest-looking problems (compute-optimal scaling, Snell et al. 2025) | 74% @ 4.1k (best fix per difficulty bin: 79% @ 5.2k) | **fact first, think on failure: 87% @ 2.5k** |
+| Where to spend thinking (208 geometry and optimization problems × 3 models) | think on the hardest-looking problems (compute-optimal scaling, Snell et al. 2025) | 74% @ 4.1k (best fix per difficulty bin: 79% @ 5.2k) | **fact first, think on failure: 87% @ 2.5k** |
 | | think whenever the check fails, no fact (FrugalGPT-style cascade) | 77% @ 4.2k | |
 | Contest geometry (gpt-oss-120b, 311) | always high effort (reasoning-model default) | 66.2% @ 30.1k | **66.3% @ 24.7k** (examples + brute-force check) |
 | | keep programs passing the examples, else high effort (AlphaCode filter + cascade) | 65.0% @ 20.2k | |
