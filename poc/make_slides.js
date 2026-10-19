@@ -686,63 +686,57 @@ slideLimits("Next", "Where the recipe stops, and what is next");
 const FULL = path.join(ROOT, "PROPOSAL_slides_full.pptx");
 pres.writeFile({ fileName: FULL }).then(async () => { await applyTheme(FULL, THEME); console.log("written", FULL); buildTalk(); });
 
-// ================= 5-minute talk + 5 minutes of questions (PROPOSAL_slides.pptx): 8 slides, then extra pages =================
+// ================= 5-minute talk + 5 minutes of questions (PROPOSAL_slides.pptx): 9 slides, then extra pages =================
 function buildTalk() {
   pres = newDeck();
   pres.addSection({ title: "Talk" });
   slideTitle("Talk", "POSTECH CSED490E (Graduate NLP) · Team 5 · 5-minute proposal talk",
     "(5 s) Hello, we are Team 5. Our project: how to solve computational math with LLMs accurately and cheaply. The question is where the extra effort should go: a fact, a check, or more thinking.");
 
-  // 2. the problem: programs beat words, but they fail silently and thinking is expensive
+  // 2. one idea: let the computer do the arithmetic
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
-  s.addText("Programs help, but two things go wrong", { placeholder: "title" });
-  [["pen", "answer in words"], ["code", "write a program"], ["gears", "call a solver library"], ["brain", "think longer first"]].forEach(([icon, t], k) => {
-    const x = 0.6 + k * 3.05;
-    box(s, "", x, 1.3, 2.9, 0.6, "F2F2F2");
-    s.addImage({ path: ICON(icon), x: x + 0.15, y: 1.37, w: 0.46, h: 0.46, objectName: "icon " + icon });
-    txt(s, t, x + 0.75, 1.3, 2.1, 0.6, { fontSize: 16, bold: true });
+  s.addText("Let the computer do the math", { placeholder: "title" });
+  txt(s, "One shape, moved and turned: the right answer never changes (436)", 0.6, 1.35, 12.1, 0.45, { fontSize: 18, align: "center" });
+  s.addImage({ path: FIG("slide2_shapes.png"), x: 3.9, y: 1.95, w: 8.8, h: 1.9, objectName: "four copies of one polygon", altText: "one polygon: original, moved, turned, flipped" });
+  [["Answer in words", [["436 ✓", 1], ["2944 ✗", 0], ["392 ✗", 0], ["728 ✗", 0]], 4.25], ["Write a program", [["436 ✓", 1], ["436 ✓", 1], ["436 ✓", 1], ["436 ✓", 1]], 5.1]].forEach(([head, ans, y]) => {
+    txt(s, head, 0.6, y, 3.2, 0.6, { fontSize: 22, bold: true });
+    ans.forEach(([t, ok], k) => chip(s, t, ok, 3.9 + k * 2.2, y));
   });
-  function pane2(x, head, col, fill) {
-    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 2.1, w: 3.95, h: 3.05, rectRadius: 0.08, fill: { color: fill }, line: { color: col, width: 1 }, objectName: "pane " + head });
-    txt(s, head, x + 0.2, 2.17, 3.6, 0.45, { fontSize: 18, bold: true, color: col });
+  caption(s, "For computation, a program is the right tool");
+  s.addNotes("(20 s) An LLM can answer a math problem in words, or write a program and let the computer do the arithmetic. Here Qwen3-8B is asked for twice the area of one shape, moved and turned. In words it says 436, 2944, 392 and 728; its program says 436 every time. So for computation, programs are the right tool. (Other ways, used later: call a solver library, or think longer first.)");
+
+  // 3. two problems, one example each, and the question
+  s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
+  s.addText("But two things go wrong", { placeholder: "title" });
+  function pane3(x, head, col, fill) {
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.35, w: 5.95, h: 3.6, rectRadius: 0.08, fill: { color: fill }, line: { color: col, width: 1 }, objectName: "pane " + head });
+    txt(s, head, x + 0.25, 1.45, 5.45, 0.55, { fontSize: 22, bold: true, color: col });
   }
-  pane2(0.6, "Programs beat words", BLUE, "EEF3FB");
-  s.addImage({ path: FIG("slide2_shapes.png"), x: 0.8, y: 2.68, w: 3.55, h: 0.77, objectName: "four copies of one polygon", altText: "one polygon: original, moved, turned, flipped" });
-  [["words", [["436", 1], ["2944", 0], ["392", 0], ["728", 0]], 3.6], ["program", [["436", 1], ["436", 1], ["436", 1], ["436", 1]], 4.15]].forEach(([lab, ans, y]) => {
-    txt(s, lab, 0.75, y, 0.85, 0.42, { fontSize: 14, bold: true });
-    ans.forEach(([t, ok], k) => {
-      const x = 1.6 + k * 0.72;
-      s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w: 0.66, h: 0.42, rectRadius: 0.08, fill: { color: ok ? "E2F0D9" : "FADBD8" }, line: { color: ok ? GREEN : RED, width: 0.75 }, objectName: `${lab} ${k}` });
-      txt(s, t, x, y, 0.66, 0.42, { fontSize: 14, bold: true, align: "center", color: ok ? "38761D" : RED });
-    });
+  pane3(0.6, "1. Programs can be silently wrong", RED, "FDF2F1");
+  s.addImage({ path: FIG("slide5_hull.png"), x: 0.85, y: 2.15, w: 1.9, h: 1.9, objectName: "ten points and their hull", altText: "10 points; the rubber band touches 6 of them" });
+  txt(s, "answer: 6 corners", 0.75, 4.1, 2.1, 0.4, { fontSize: 15, bold: true, color: GREEN, align: "center" });
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 2.95, y: 2.25, w: 3.4, h: 1.7, rectRadius: 0.05, fill: { color: "262626" }, line: { color: "262626" }, objectName: "terminal" });
+  s.addText([{ text: "program A  → 6", options: { color: "8FD16A", bold: true, breakLine: true } },
+             { text: "program B  → 0", options: { color: "FF7B7B", bold: true, breakLine: true } },
+             { text: "no error message", options: { color: "BFBFBF" } }],
+    { isTextBox: true, x: 3.15, y: 2.3, w: 3.1, h: 1.6, fontFace: "Courier New", fontSize: 18, valign: "middle", margin: 0 });
+  txt(s, "B only had extra helper code in its prompt", 2.95, 4.05, 3.4, 0.6, { fontSize: 14, color: C.text2, valign: "top" });
+  pane3(6.75, "2. Thinking longer is expensive", THEME.colors.accent2, "FDF0E6");
+  [["normal", "57% solved", 10, "page", 2.25], ["think hard", "66% solved", 43, "pagehot", 3.0]].forEach(([lab, acc, n, icon, y]) => {
+    txt(s, [{ text: lab, options: { bold: true, breakLine: true } }, { text: acc }], 7.0, y, 1.6, 0.65, { fontSize: 15 });
+    for (let k = 0; k < n; k++) s.addImage({ path: ICON(icon), x: 8.65 + (k % 18) * 0.21, y: y + 0.02 + Math.floor(k / 18) * 0.24, w: 0.2, h: 0.22, objectName: `${lab} page ${k}` });
   });
-  txt(s, "the same shape, moved and turned (Qwen3-8B)", 0.75, 4.62, 3.7, 0.4, { fontSize: 14, color: C.text2 });
-  pane2(4.7, "1. They fail silently", RED, "FDF2F1");
-  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 4.85, y: 2.7, w: 3.65, h: 1.2, rectRadius: 0.05, fill: { color: "262626" }, line: { color: "262626" }, objectName: "terminal" });
-  s.addText([{ text: "task only     → 6", options: { color: "8FD16A", bold: true, breakLine: true } },
-             { text: "+ 8 helpers   → 0", options: { color: "FF7B7B", bold: true, breakLine: true } },
-             { text: "(no error message)", options: { color: "BFBFBF" } }],
-    { isTextBox: true, x: 5.0, y: 2.72, w: 3.4, h: 1.16, fontFace: "Courier New", fontSize: 15, valign: "middle", margin: 0 });
-  txt(s, [{ text: "24–37%", options: { bold: true, fontSize: 22, color: RED } }, { text: " of wrong programs pass the problem's own examples" }],
-      4.9, 4.0, 3.6, 1.05, { fontSize: 14, valign: "top" });
-  pane2(8.8, "2. Thinking is expensive", THEME.colors.accent2, "FDF0E6");
-  [["medium", "57%", 10, "page", 2.75], ["high", "66%", 43, "pagehot", 3.25]].forEach(([lab, acc, n, icon, y]) => {
-    txt(s, [{ text: lab + " ", options: { bold: true } }, { text: acc }], 8.95, y, 1.15, 0.4, { fontSize: 14 });
-    for (let k = 0; k < n; k++) s.addImage({ path: ICON(icon), x: 10.1 + (k % 15) * 0.17, y: y + 0.03 + Math.floor(k / 15) * 0.2, w: 0.16, h: 0.18, objectName: `${lab} page ${k}` });
-  });
-  txt(s, "one page ≈ 700 tokens", 8.95, 3.95, 3.6, 0.3, { fontSize: 14, color: C.text2 });
-  txt(s, [{ text: "4.4× tokens", options: { bold: true, fontSize: 22, color: THEME.colors.accent2 } }, { text: " for 9 more points (311 contest problems)" }],
-      8.95, 4.3, 3.65, 0.85, { fontSize: 14, valign: "top" });
-  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 0.6, y: 5.35, w: 12.1, h: 0.8, rectRadius: 0.08, fill: { color: "DEEBF7" }, line: { color: "BDD7EE", width: 0.75 }, objectName: "our question" });
-  txt(s, "Where should the extra effort go?", 0.85, 5.35, 4.4, 0.8, { fontSize: 19, bold: true, color: BLUE });
+  txt(s, [{ text: "4.4× the pages", options: { bold: true, fontSize: 24, color: THEME.colors.accent2 } }, { text: "  for 9 more points  (1 page ≈ 700 tokens)", options: { fontSize: 15 } }],
+      7.0, 4.15, 5.6, 0.6, {});
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 0.6, y: 5.25, w: 12.1, h: 0.9, rectRadius: 0.08, fill: { color: "DEEBF7" }, line: { color: "BDD7EE", width: 0.75 }, objectName: "our question" });
+  txt(s, "Our question: where should the extra effort go?", 0.85, 5.25, 5.5, 0.9, { fontSize: 19, bold: true, color: BLUE });
   [["fact", "a missing fact", "E2F0D9", "38761D"], ["check", "a free check", "E2F0D9", "38761D"], ["brain", "more thinking", "FADBD8", RED]].forEach(([icon, t, fill, col], k) => {
-    const x = 5.3 + k * 2.45;
-    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 5.48, w: 2.3, h: 0.55, rectRadius: 0.2, fill: { color: fill }, line: { color: col, width: 1 }, objectName: "option " + t });
-    s.addImage({ path: ICON(icon), x: x + 0.14, y: 5.57, w: 0.36, h: 0.36, objectName: "icon " + icon });
-    txt(s, t, x + 0.62, 5.48, 1.65, 0.55, { fontSize: 16, bold: true, color: col });
+    const x = 6.25 + k * 2.15;
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 5.42, w: 2.0, h: 0.55, rectRadius: 0.2, fill: { color: fill }, line: { color: col, width: 1 }, objectName: "option " + t });
+    s.addImage({ path: ICON(icon), x: x + 0.12, y: 5.51, w: 0.36, h: 0.36, objectName: "icon " + icon });
+    txt(s, t, x + 0.55, 5.42, 1.45, 0.55, { fontSize: 15, bold: true, color: col });
   });
-  caption(s, "It matters: agents already write such code, tokens cost money, and most teams have one small GPU");
-  s.addNotes("(40 s) An LLM can answer a math problem in words, write a program, call a solver library, or think longer first. For computation, programs win: asked for the area of the same shape moved and turned, Qwen3-8B answers 436, 2944, 392, 728 in words, but its program says 436 every time. Two things go wrong. Programs fail silently: the same model's hull program prints 6, or 0 when extra helper functions are in the prompt, with no error; and a quarter to a third of wrong programs pass the problem's own examples. And thinking is expensive: high effort uses 4.4 times the tokens for 9 more points. So: where should the extra effort go?");
+  s.addNotes("(30 s) But two things go wrong. First, programs can be silently wrong: two programs for the same question, how many corners the rubber band around these points has; one prints 6, the other prints 0, with no error message. The only difference: the second prompt had some extra helper code. Second, thinking longer is expensive: on contest problems, thinking hard uses 4.4 times the tokens, drawn here as pages, for 9 more points. So our question: where should the extra effort go? A missing fact, a free check, or more thinking?");
 
   // 3. what we solve, and how hard
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
