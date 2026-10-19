@@ -129,3 +129,16 @@ Gains are real but fewer: 1158_D / 1359_F, where the plan fixed the greedy direc
 933_C (graphs) — the tag points to Euler's formula on the planar graph of circle intersections; 535_E (math, uninformative tag) — both build
 the same hull, only the tagged run's integer comparison is right (sampling luck). Losses: 23_D a syntax error (`dot(p,p])`), 820_B a different
 index formula, 136_D a wrong rectangle test — none caused by the tag.
+
+## CH-R: retry at medium with the free check instead of high effort (gpt-oss-20b) — found offline, pre-registered for fresh seeds (2026-10-19 17:47 UTC)
+Exploratory finding on seeds 1–3 (offline, not pre-registered): for gpt-oss-20b, whose high effort is weak (37.9% @ 47.5k, cap hits), up to
+three medium attempts (seeds s, s+1, s+2), accepting the first that passes the check (examples, then the brute-force oracle; oracle charged
+once), else keeping the last, reaches **55.9% @ 20.7k** — above N13b (51.9% @ 37.7k) at 55% of its tokens; up to two attempts 52.8% @ 15.6k;
+with high as the last resort 56.7% @ 41.7k. For gpt-oss-120b high stays the better last step (3 medium attempts, keep last: 62.9% @ 15.0k vs
+N13b 66.2% @ 24.8k). The three attempts were also the data the policy was found on, so it is tested on fresh samples:
+gpt-oss-20b medium seeds 4–8 (same prompt and settings; poc/queues/queue_s2_chretry.sh, GPU1 + GPU2).
+- R-P1: on seeds 4–6 (each seed s uses attempts s, s+1, s+2 within 4–6), up to 3 attempts, keep the last: ≥ 54.0% at ≤ 23k tokens per problem
+  (vs medium alone on the same seeds, and vs N13b's 51.9% @ 37.7k on seeds 1–3).
+- R-P2: with 5 attempts (seeds 4–8) the gain over 3 attempts is ≤ +1.5 points at ≥ +4k tokens (diminishing returns: the check, not the
+  number of tries, is the limit; 24–37% of wrong programs pass the examples).
+- R-P3: the oracle-checked retry is what matters: the same 3 attempts accepting on the examples alone are ≥ 1.5 points lower.

@@ -462,3 +462,5 @@ S2_CHJUDGE started on GPU0 Mon Oct 19 15:40:58 UTC 2026
 S2_CH oss20 done (1698/1698) Mon Oct 19 16:36:08 UTC 2026
 S2_CH oss120 done (1698/1698) Mon Oct 19 17:41:57 UTC 2026
 S2_CH done (analysis: results/h2/ch_analysis.log) Mon Oct 19 17:44:38 UTC 2026
+S2_CHR queued (gpt-oss-20b medium seeds 4-8: retry-with-check vs high; GPU1 + GPU2; PREREG_CH.md CH-R) Mon Oct 19 17:47:53 UTC 2026
+S2_CHR started Mon Oct 19 17:47:53 UTC 2026
