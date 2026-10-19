@@ -18,7 +18,9 @@ from run_nlopt import RES, P_MIP, SNIP, problems, value_of, correct, _rows, _ver
 
 POOL_MODELS = ("oss20", "q14a", "q8b", "q32b", "q36")
 SET = os.environ.get("NLOPT_SET", "mamo")
-SRC = "{m}_mamo_mips" if SET == "mamo" else "{m}_mipf"   # the cheap arm whose programs form the pool
+SRC = {"mamo": "{m}_mamo_mips", "optmath": "{m}_optmath_mips"}.get(SET, "{m}_mipf")   # the cheap arm whose programs form the pool
+if SET == "optmath":   # held-out (PREREG_HO.md): only the models run there
+    POOL_MODELS = ("oss20", "q14a", "q8b")
 FACT = {"tsp": "Formulation note: with Miller-Tucker-Zemlin subtour elimination, write the order constraints u[i] - u[j] + n*x[i][j] <= n - 1 "
                "only for cities i, j other than the start city, with 1 <= u[i] <= n - 1; constraining the start city too makes the model infeasible.",
         "redistribution": "Formulation note: a center may end with more supplies than it needs; require final stock >= need (not == need), "
@@ -76,7 +78,7 @@ if __name__ == "__main__":
     from llm import chat, last_block
     from sandbox import run_python
     m, mode, seed = sys.argv[1], sys.argv[2], int(sys.argv[3])
-    tag = f"{m}_mamo" if SET == "mamo" else m
+    tag = {"mamo": f"{m}_mamo", "optmath": f"{m}_optmath"}.get(SET, m)
     os.environ["NLOPT_EX_SHORTEST"] = "1"
     EX = _verified_examples(os.environ.get("NLOPT_EX_TAG", m))   # the mips example, kept in formh so only the sentence differs
     if mode == "formo":
@@ -88,7 +90,7 @@ if __name__ == "__main__":
     done = {r["id"] for r in _rows(path)}
 
     def one(p):
-        q = (P_MIP if SET == "mamo" else P_MIP + SNIP).format(q=p["q"]); src = None
+        q = (P_MIP + SNIP if SET == "x3" else P_MIP).format(q=p["q"]); src = None
         if mode == "formh":
             ex = EX(p)
             if ex:

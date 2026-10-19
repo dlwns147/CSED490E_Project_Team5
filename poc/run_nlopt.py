@@ -79,6 +79,9 @@ def _rows(path):
 MAMO = "/SSD/huggingface/datasets/MAMO"   # X7 (2026-10-19): held-out benchmark, MAMO EasyLP 652 + ComplexLP 211 (NLOPT_SET=mamo)
 
 
+OPTMATH = "/SSD/lean_postech/storm/STORM/data/test.tir_prompt.OptMath.jsonl"
+
+
 def problems(which=None):
     which = which or os.environ.get("NLOPT_SET", "x3")
     out = []
@@ -87,6 +90,11 @@ def problems(which=None):
             for k, r in enumerate(json.load(open(f"{RES}/{name}.json"))):
                 out.append({"id": f"{name}-{k}", "src": name, "q": r["en_question"], "gold": str(r["en_answer"]).strip(),
                             "difficulty": r.get("difficulty", "NL4OPT")})
+    if which == "optmath":   # held-out (PREREG_HO.md): OptMATH-Bench test problems as shipped with STORM's code (100), problem text only
+        for k, l in enumerate(open(OPTMATH)):
+            r = json.loads(l)
+            out.append({"id": f"optmath-{k}", "src": "optmath", "q": r["prompt"].split("### Problem:\n", 1)[1].strip(),
+                        "gold": str(r["gt_answer"]).strip(), "difficulty": "optmath"})
     if which in ("mamo", "all"):
         for name, fn in (("mamo_easy", "MAMO_EasyLP"), ("mamo_complex", "MAMO_ComplexLP")):
             for k, l in enumerate(l for l in open(f"{MAMO}/{fn}.json") if l.strip()):
