@@ -309,7 +309,7 @@ mini(s, 2, "Compare two versions", "geometry, Qwen3-32B: % · tokens",
 mini(s, 3, "Think only on failure", "311 contest problems: % · tokens",
      [["always high", 66.2, "66% · 30k", G], ["high on failure", 66.3, "66% · 25k", BLUE]]);
 mini(s, 4, "Reuse a checked program", "48 routing days: % valid · tokens",
-     [["new each day", 7, "7% · 86k", G], ["own notes (DC)", 36, "31–40%", G], ["reuse one", 94, "94% · 28k", BLUE]]);
+     [["new each day", 7, "7% · 86k", G], ["own notes", 36, "31–40%", G], ["reuse one", 94, "94% · 28k", BLUE]]);
 mini(s, 5, "All together", "624 problems, 3 models: % · tokens",
      [["think on hardest", 74, "74% · 4.1k", G], ["fix by type", 83, "83% · 4.2k", G], ["fact first", 87, "87% · 2.5k", BLUE]]);
 s.addNotes((pre || "") + "One panel per result. Add the fact: routing 23% to 77-90% (thinking longer 3%, whole manual 7%). Small models gain most: Qwen3-1.7B 0% to 45%, Qwen3-32B 65% to 66% (word problems). Compare two versions: 99% at 4.3k tokens vs always thinking 98% at 5.9k; with 8 extra tools 59%. Think only on a failed check (gpt-oss-120b, contest): 66.3% at 24.7k vs 66.2% at 30.1k. Reuse: 94% of 48 routing days vs 7% with a new program per day; Dynamic Cheatsheet (DC, the model's own notes) 31-40%. All together: fact first then think on failure 87% at 2.5k vs 74% at 4.1k for thinking on the hardest-looking problems (Snell-style) and 83% for choosing the fix by failure type.");
@@ -691,8 +691,16 @@ function buildTalk() {
   pres = newDeck();
   const addSlide = pres.addSlide.bind(pres);   // the talk deck has no speaker notes (the full deck keeps them)
   pres.addSlide = (o) => { const sl = addSlide(o); sl.addNotes = () => sl; return sl; };
+  const CHOICES = [["fact", "a missing fact", "E2F0D9", "38761D"], ["check", "a free check", "E2F0D9", "38761D"], ["brain", "more thinking", "FADBD8", RED]];
+  function pill(x, y, k, fs = 15) {   // choice k from "where should the extra effort go?"
+    const [icon, t, fill, col] = CHOICES[k];
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w: 2.05, h: 0.55, rectRadius: 0.2, fill: { color: fill }, line: { color: col, width: 1 }, objectName: "choice " + t });
+    s.addImage({ path: ICON(icon), x: x + 0.12, y: y + 0.095, w: 0.36, h: 0.36, objectName: "choice icon " + icon });
+    txt(s, t, x + 0.55, y, 1.5, 0.55, { fontSize: fs, bold: true, color: col });
+  }
   pres.addSection({ title: "Talk" });
   slideTitle("Talk", "POSTECH CSED490E (Graduate NLP) · Team 5", "");
+  [0, 1, 2].forEach(k => pill(3.44 + k * 2.2, 5.35, k));
 
   // 2. what we solve, and how hard
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
@@ -730,16 +738,17 @@ function buildTalk() {
     s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.35, w: 5.95, h: 4.15, rectRadius: 0.08, fill: { color: fill }, line: { color: col, width: 1 }, objectName: "pane " + head });
     txt(s, head, x + 0.25, 1.45, 5.45, 0.55, { fontSize: 22, bold: true, color: col });
   }
-  pane3(0.6, "1. Programs can be silently wrong", RED, "FDF2F1");
+  pane3(0.6, "1. Programs fail, often silently", RED, "FDF2F1");
   txt(s, "How many corners does the rubber band have?", 0.85, 2.05, 5.5, 0.4, { fontSize: 15 });
-  s.addImage({ path: FIG("slide5_hull.png"), x: 0.85, y: 2.55, w: 2.2, h: 2.2, objectName: "ten points and their hull", altText: "10 points; the rubber band touches 6 of them" });
-  txt(s, "answer: 6 corners", 0.75, 4.8, 2.4, 0.4, { fontSize: 15, bold: true, color: GREEN, align: "center" });
-  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 3.25, y: 2.65, w: 3.1, h: 1.7, rectRadius: 0.05, fill: { color: "262626" }, line: { color: "262626" }, objectName: "terminal" });
+  s.addImage({ path: FIG("slide5_hull.png"), x: 0.95, y: 2.5, w: 2.0, h: 2.0, objectName: "ten points and their hull", altText: "10 points; the rubber band touches 6 of them" });
+  txt(s, "answer: 6 corners", 0.75, 4.5, 2.4, 0.35, { fontSize: 15, bold: true, color: GREEN, align: "center" });
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 3.25, y: 2.55, w: 3.1, h: 1.55, rectRadius: 0.05, fill: { color: "262626" }, line: { color: "262626" }, objectName: "terminal" });
   s.addText([{ text: "program A  → 6", options: { color: "8FD16A", bold: true, breakLine: true } },
              { text: "program B  → 0", options: { color: "FF7B7B", bold: true, breakLine: true } },
              { text: "no error message", options: { color: "BFBFBF" } }],
-    { isTextBox: true, x: 3.45, y: 2.7, w: 2.8, h: 1.6, fontFace: "Courier New", fontSize: 18, valign: "middle", margin: 0 });
-  txt(s, "B's prompt only added helper code (Qwen3-14B)", 3.25, 4.45, 3.1, 0.6, { fontSize: 14, color: C.text2, valign: "top" });
+    { isTextBox: true, x: 3.45, y: 2.55, w: 2.8, h: 1.55, fontFace: "Courier New", fontSize: 18, valign: "middle", margin: 0 });
+  txt(s, "B's prompt only added helper code (Qwen3-14B)", 3.25, 4.15, 3.1, 0.6, { fontSize: 14, color: C.text2, valign: "top" });
+  txt(s, "✗ or it crashes on a library function that does not exist", 0.85, 4.95, 5.5, 0.4, { fontSize: 15, bold: true, color: RED });
   pane3(6.75, "2. Thinking longer is expensive", THEME.colors.accent2, "FDF0E6");
   txt(s, "311 contest problems, gpt-oss-120b · 1 page ≈ 700 tokens", 7.0, 2.05, 5.5, 0.4, { fontSize: 15 });
   [["normal", "57% solved", 10, "page", 2.6], ["think hard", "66% solved", 43, "pagehot", 3.35]].forEach(([lab, acc, n, icon, y]) => {
@@ -750,12 +759,7 @@ function buildTalk() {
       7.0, 4.65, 5.6, 0.6, {});
   s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 0.6, y: 5.75, w: 12.1, h: 0.9, rectRadius: 0.08, fill: { color: "DEEBF7" }, line: { color: "BDD7EE", width: 0.75 }, objectName: "our question" });
   txt(s, "Our question: where should the extra effort go?", 0.85, 5.75, 5.5, 0.9, { fontSize: 19, bold: true, color: BLUE });
-  [["fact", "a missing fact", "E2F0D9", "38761D"], ["check", "a free check", "E2F0D9", "38761D"], ["brain", "more thinking", "FADBD8", RED]].forEach(([icon, t, fill, col], k) => {
-    const x = 6.25 + k * 2.15;
-    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 5.92, w: 2.0, h: 0.55, rectRadius: 0.2, fill: { color: fill }, line: { color: col, width: 1 }, objectName: "option " + t });
-    s.addImage({ path: ICON(icon), x: x + 0.12, y: 6.01, w: 0.36, h: 0.36, objectName: "icon " + icon });
-    txt(s, t, x + 0.55, 5.92, 1.45, 0.55, { fontSize: 15, bold: true, color: col });
-  });
+  [0, 1, 2].forEach(k => pill(6.25 + k * 2.15, 5.92, k));
 
   function costRows(x, y, w, labW, rows) {   // [label, % solved, tokens, tokens shown, colour]: the number is accuracy, the bar is cost
     const maxTok = Math.max(...rows.map(r => r[2])), barX = x + labW + 1.0, barMax = w - labW - 1.0 - 0.8;
@@ -770,19 +774,14 @@ function buildTalk() {
     });
   }
 
-  function answerBadge(items) {   // the matching choice(s) from "where should the extra effort go?", top right
-    items.forEach(([icon, t], k) => {
-      const x = 12.7 - (items.length - k) * 2.15;
-      s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 0.55, w: 2.05, h: 0.5, rectRadius: 0.2, fill: { color: "E2F0D9" }, line: { color: "38761D", width: 1 }, objectName: "answer " + t });
-      s.addImage({ path: ICON(icon), x: x + 0.1, y: 0.62, w: 0.36, h: 0.36, objectName: "answer icon " + icon });
-      txt(s, t, x + 0.5, 0.55, 1.5, 0.5, { fontSize: 14, bold: true, color: "38761D" });
-    });
+  function answerBadge(ks) {   // the matching choice(s), top right
+    ks.forEach((k, j) => pill(12.7 - (ks.length - j) * 2.15, 0.52, k, 14));
   }
 
   // 5. finding 1
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
   s.addText("Finding 1: give the fact, not the manual", { placeholder: "title" });
-  answerBadge([["fact", "a missing fact"]]);
+  answerBadge([0]);
   txt(s, "Qwen3-32B plans delivery routes with Google's OR-Tools library", 0.6, 1.3, 12.1, 0.45, { fontSize: 17 });
   [["with the whole manual", "RegisterUnaryLongLivingCallback()", "✗ does not exist: crash", "FCE4D6", RED, 1.95],
    ["with 5 exact lines", "RegisterUnaryTransitCallback()", "✓ runs: best route", "E2F0D9", "38761D", 2.75]].forEach(([lab, call, res, fill, col, y]) => {
@@ -798,7 +797,7 @@ function buildTalk() {
   // 6. finding 2: free checks decide when to think
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
   s.addText("Finding 2: think only when a free check fails", { placeholder: "title" });
-  answerBadge([["check", "a free check"]]);
+  answerBadge([1]);
   function checkPane(x, head, rows, bars, sub) {
     panel(s, x, 1.35, 5.95, 4.6, head);
     txt(s, head, x + 0.25, 1.45, 5.45, 0.5, { fontSize: 18, bold: true, color: BLUE });
@@ -810,18 +809,18 @@ function buildTalk() {
             [["always think hard", "66.2%", 30.1, "30k", "7F7F7F"], ["only on failure", "66.3%", 24.7, "25k", BLUE]], "311 contest problems (gpt-oss-120b)");
   checkPane(6.75, "Check B: two versions must agree", [["program A (task only) → 6", "38761D", "E2F0D9"], ["program B (+ helper code) → 0: differ → think", RED, "FADBD8"]],
             [["always think", "98%", 5.9, "5.9k", "7F7F7F"], ["only if they differ", "99%", 4.3, "4.3k", BLUE]], "108 geometry problems (Qwen3-32B, 3 runs)");
-  caption(s, "Same accuracy as always thinking, with 18–27% fewer tokens; no answers needed");
+  caption(s, "Same accuracy as always thinking, 18–27% fewer tokens, and no answer key needed");
 
   // 7. the method on one problem, and what it gives overall
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
   s.addText("Our method: cheap steps first", { placeholder: "title" });
-  answerBadge([["fact", "a missing fact"], ["check", "a free check"]]);
+  answerBadge([0, 1]);
   txt(s, "One real problem (Qwen3-8B): products X, Y, Z at $10, $15, $20 under three limits; minimum cost? → 20000", 0.6, 1.28, 12.1, 0.4, { fontSize: 16 });
   [["1 Program", "Objective()\n.Minimize()", "✗ crash, no fact", RED, "FADBD8", 1.0],
    ["2 + Fact", "solver\n.Minimize(...)", "found automatically: its own checked program", "38761D", "E2F0D9", 1.0],
    ["3 Free check", "20000 = 20000", "a second version agrees", "38761D", "E2F0D9", 1.0],
-   ["4 Think?", "skipped", "only if they differ", "7F7F7F", "F2F2F2", 1.0],
-   ["5 Reuse", "same program", "same kind, new data", BLUE, "DEEBF7", 1.0]].forEach(([head, big, small, col, fill], k) => {
+   ["4 Think?", "skipped", "think only if the two differ", "7F7F7F", "F2F2F2", 1.0],
+   ["5 Reuse", "same program", "same kind, new data: no new tokens", BLUE, "DEEBF7", 1.0]].forEach(([head, big, small, col, fill], k) => {
     const x = 0.6 + k * 2.45;
     txt(s, head, x, 1.78, 2.3, 0.4, { fontSize: 17, bold: true, color: BLUE });
     s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 2.2, w: 2.3, h: 1.45, rectRadius: 0.08, fill: { color: fill }, line: { color: col, width: 1 }, objectName: "step " + head });
@@ -830,7 +829,7 @@ function buildTalk() {
     if (k < 4) arrow(s, x + 2.3, 2.92, x + 2.45, 2.92);
   });
   txt(s, "All 624 geometry and optimization problems, 3 models:", 0.6, 3.95, 7.0, 0.4, { fontSize: 16, bold: true });
-  costRows(0.6, 4.35, 7.0, 2.2, [["think on hardest", "74%", 4.1, "4.1k", "7F7F7F"], ["our method", "87%", 2.5, "2.5k", BLUE]]);
+  costRows(0.6, 4.35, 7.0, 2.2, [["think on hardest-looking", "74%", 4.1, "4.1k", "7F7F7F"], ["our method", "87%", 2.5, "2.5k", BLUE]]);
   [["79% = 79%", "the fact found automatically (its own earlier checked program) = a hand-written fact, on new problems"], ["0.6k vs 5.3k", "tokens on this problem vs thinking alone"]].forEach(([big, lab], r) => {
     const y = 3.95 + r * 1.05;
     txt(s, big, 8.2, y, 4.5, 0.5, { fontSize: 24, bold: true, color: BLUE });
@@ -844,7 +843,7 @@ function buildTalk() {
   txt(s, "The usual way", 0.6, 1.3, 5.3, 0.4, { fontSize: 16, bold: true, color: "7F7F7F", align: "center" });
   txt(s, "Ours", 7.4, 1.3, 5.3, 0.4, { fontSize: 16, bold: true, color: BLUE, align: "center" });
   [["brain", "think more on hard-looking problems, or train when to think", "check", "think only when a free check fails; no training (87% vs 74%)"],
-   ["page", "give the manual, or a teacher's programs checked against answers", "fact", "give one fact: the model's own checked program; no answers"],
+   ["page", "give the manual, or a teacher's programs checked against answers", "fact", "give one fact: the model's own checked program; no answer key"],
    ["robot", "fine-tune a specialist model (ORLM-8B)", "gpu", "no training, one 24 GB GPU: the same 69.5% on MAMO"]].forEach(([li, lt, ri, rt], r) => {
     const y = 1.75 + r * 0.9;
     box(s, "", 0.6, y, 5.3, 0.75, "F2F2F2");
