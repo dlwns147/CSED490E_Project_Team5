@@ -868,13 +868,12 @@ function buildTalk() {
   txt(s, "Result: 30 routing problems solved optimally", 7.0, 1.58, 5.45, 0.42, { fontSize: 18, bold: true, color: BLUE });
   hbars(s, 7.0, 2.1, 5.45, [["task only", 23, "23%", "7F7F7F"], ["+ think longer", 3, "3%", RED], ["+ long sheet", 7, "7%", RED], ["+ short hint", 83, "83%", BLUE]], 0.55, 1.75, 1.9);
   // how we pick the hint, once per problem type, with no human: the model's own shortest check-passing program
-  txt(s, "How we pick the hint (once per problem type):", 7.0, 4.4, 5.45, 0.35, { fontSize: 15, bold: true });
-  [["solve other problems of this type", "FFFFFF", C.text1], ["keep those passing the check", "FFFFFF", C.text1], ["pick the shortest one", "FFFFFF", C.text1], ["= the hint", "E2F0D9", "38761D"]].forEach(([t, fill, col], k) => {
-    const x = 7.0 + k * 1.4;
-    box(s, t, x, 4.8, 1.22, 0.82, fill, { fontSize: 14, bold: k === 3, color: col });
-    if (k < 3) arrow(s, x + 1.22, 5.21, x + 1.4, 5.21);
+  txt(s, "How we pick the hint (per problem type, no human):", 7.0, 4.5, 5.45, 0.38, { fontSize: 15, bold: true });
+  [["its past programs", "FFFFFF", C.text1], ["✓ passed the check", "FFFFFF", C.text1], ["shortest = hint", "E2F0D9", "38761D"]].forEach(([t, fill, col], k) => {
+    const x = 7.0 + k * 1.92;
+    box(s, t, x, 5.0, 1.6, 0.62, fill, { fontSize: 15, bold: k === 2, color: col });
+    if (k < 2) arrow(s, x + 1.6, 5.31, x + 1.92, 5.31);
   });
-  txt(s, "no human needed; a hand-written or searched hint also works", 7.0, 5.66, 5.45, 0.32, { fontSize: 14, color: C.text2 });
   caption(s, "Thinking cannot supply what the model does not know: give it the hint");
 
   // 6. finding 2: free checks decide when to think
