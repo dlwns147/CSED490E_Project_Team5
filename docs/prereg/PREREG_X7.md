@@ -31,3 +31,5 @@ below hand-written (as on X6).
 - **X7-P2 holds** for both (automatic FF ≥ always-thinks − 2 at 12–13% of its tokens). **X7-P3 holds** (regret 0.82 / 1.35).
 Replication (pre-registered now; our rule: positive claims need ≥ 3 seeds): cheap arms seed 3 and thinking seeds 2–3 for Qwen3-14B-AWQ
 (GPU1) and gpt-oss-20b (GPU3) (queue_s2_x7rep.sh); prediction: the automatic-vs-hand FFR gap stays within ±2 points on each seed pair.
+- **Replication, gpt-oss-20b, 3 seeds (2026-10-19 06:36 UTC):** automatic minus hand-written FFR = −0.1 / −0.8 / −1.2 points (78.8 / 78.6 / 78.4% vs 78.9 / 79.4 /
+  79.6%), at the same tokens (1.8–1.9k); the ±2 prediction holds on every seed. Qwen3-14B-AWQ seeds running; Qwen3-32B / Qwen3.6 finishing.

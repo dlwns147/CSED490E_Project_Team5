@@ -40,19 +40,20 @@ def pol(it):
     return {p: (100 * acc[p] / n, tok[p] / n / 1000) for p in acc}
 
 
-for m in sys.argv[1:] or ["q32b", "q14a", "oss20", "q8b"]:
-    tag = f"{m}_mamo"; nofact = rows(tag, "mip", 1)
-    print(f"=== {m} on MAMO" + (f" (no fact: {100 * sum(r['correct'] for r in nofact.values()) / len(nofact):.1f}%)" if nofact else ""))
-    for name, (c, t) in (("hand-written", ("mipf", "thinkf")), ("automatic", ("mips", "thinks"))):
-        it = items(tag, c, t)
-        if not it:
-            print(f"  {name}: incomplete"); continue
-        P = pol(it)
-        print(f"  {name:12} " + " | ".join(f"{p} {a:.1f}%@{k:.1f}k" for p, (a, k) in P.items())
-              + "  [easy / complex FFR: " + " / ".join(f"{pol([x for x in it if x['src'] == s])['FFR'][0]:.1f}" for s in ("mamo_easy", "mamo_complex")) + "]")
-        if name == "automatic":
-            u = lambda P: {p: a - 0.5 * k for p, (a, k) in P.items()}
-            full = u(P); best = max(full, key=full.get); rng = random.Random(0); reg = []
-            for _ in range(1000):
-                pick = max((v := u(pol(rng.sample(it, 30)))), key=v.get); reg.append(full[best] - full[pick])
-            print(f"  automatic: best policy {best}; pilot-of-30 regret {sum(reg) / len(reg):.2f} points (lambda 0.5)")
+if __name__ == "__main__":
+    for m in sys.argv[1:] or ["q32b", "q14a", "oss20", "q8b"]:
+        tag = f"{m}_mamo"; nofact = rows(tag, "mip", 1)
+        print(f"=== {m} on MAMO" + (f" (no fact: {100 * sum(r['correct'] for r in nofact.values()) / len(nofact):.1f}%)" if nofact else ""))
+        for name, (c, t) in (("hand-written", ("mipf", "thinkf")), ("automatic", ("mips", "thinks"))):
+            it = items(tag, c, t)
+            if not it:
+                print(f"  {name}: incomplete"); continue
+            P = pol(it)
+            print(f"  {name:12} " + " | ".join(f"{p} {a:.1f}%@{k:.1f}k" for p, (a, k) in P.items())
+                  + "  [easy / complex FFR: " + " / ".join(f"{pol([x for x in it if x['src'] == s])['FFR'][0]:.1f}" for s in ("mamo_easy", "mamo_complex")) + "]")
+            if name == "automatic":
+                u = lambda P: {p: a - 0.5 * k for p, (a, k) in P.items()}
+                full = u(P); best = max(full, key=full.get); rng = random.Random(0); reg = []
+                for _ in range(1000):
+                    pick = max((v := u(pol(rng.sample(it, 30)))), key=v.get); reg.append(full[best] - full[pick])
+                print(f"  automatic: best policy {best}; pilot-of-30 regret {sum(reg) / len(reg):.2f} points (lambda 0.5)")
