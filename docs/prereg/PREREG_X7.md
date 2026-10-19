@@ -192,3 +192,9 @@ on NL4OPT + IndustryOR the library raises the Qwen3 models' cheap program (+1.8,
 the pipeline LOSES 0.5–1.4 points (at 6–35% fewer tokens): a similar problem's program also makes more wrong programs agree (the X6-VER
 pattern), and these problems repeat less than MAMO's templates. **Reading:** the checked-program library pays where problem types recur
 (MAMO: TSPs, redistributions, diets), also online; on diverse problems it only saves tokens.
+
+## Replication, Qwen3-32B-AWQ, 3 seeds (2026-10-19 23:36 UTC)
+Automatic minus hand-written FFR = **+4.6 / +5.6 / +5.1** (75.3 / 76.2 / 76.2% vs 70.7 / 70.7 / 71.1%) at fewer tokens (2.2–2.3k vs 2.6–2.7k); FF
+76.9 / 78.3 / 76.7% @ 0.5–0.6k (automatic) vs 74.0 / 71.7 / 73.7% @ 0.9–1.0k (hand) vs always thinking 63.2–64.4% @ 7.0k. **(a) refuted in the good
+direction** (the gap is outside ±2 on every seed: the model's own mined program is a better fact than our snippet for Qwen3-32B); **(b) holds**
+(automatic FF ≥ hand FF on every seed). All four Qwen3 / gpt-oss models of the MAMO test now have 3 seeds; Qwen3.6 has one.
