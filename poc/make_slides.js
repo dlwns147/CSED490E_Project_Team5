@@ -130,12 +130,12 @@ function prompt(s, title, lines, x, y, w, h, fill) {
 // 1. Title
 let s;
 let WITH_MATH = true;   // false in the talk deck: competition math and proofs are left out of the talk for now (the full deck and PROPOSAL.md keep them)
-function slideTitle(section, sub, notes) {
+function slideTitle(section, sub, notes, lead = "A fact, a check, or more thinking: where should the extra effort go?") {
 s = pres.addSlide({ masterName: "Title Slide", sectionTitle: section });
 s.addText([{ text: "Solving Computational Math", options: { fontSize: 44, breakLine: true } },
             { text: "with LLMs, Accurately and Cheaply", options: { fontSize: 40 } }], { placeholder: "title" });
 s.addText([
-  { text: "A fact, a check, or more thinking: where should the extra effort go?", options: { breakLine: true } },
+  { text: lead, options: { breakLine: true } },
   { text: sub, options: { fontSize: 16, color: THEME.colors.dk2 } },
 ], { placeholder: "body" });
 s.addNotes(notes);
@@ -712,7 +712,7 @@ function buildTalk() {
     return sl;
   };
   const SCRIPT_KO = [   // speaker notes of slides 1-9 (seconds at a calm pace in brackets; about 4.5 minutes spoken)
-    "(10초) 안녕하세요, 5조입니다. LLM으로 계산 수학 문제를 정확하고 싸게 푸는 방법을 제안합니다. 추가 노력을 힌트, 검사, 생각 중 어디에 써야 할까요?",
+    "(10초) 안녕하세요, 5조입니다. 저희는 답을 정확히 계산해야 하는 수학 문제를 LLM이 프로그램을 짜서 푸는 경우에 집중합니다. 목표는 더 적은 토큰으로 맞는 답을 얻는 것입니다.",
     "(25초) 저희가 푸는 문제는 네 종류입니다. 기하와 Codeforces 경시 문제는 맞는 알고리즘이, 배송 경로와 최적화 문장제는 솔버를 맞게 부르는 법이 필요합니다. 경시 문제의 중앙값은 Codeforces Master 수준입니다. 답이 정확히 하나라 코드로 채점할 수 있고, 필요한 것이 서로 달라서 추가 노력을 어디에 쓸지 비교하기 좋습니다.",
     "(15초) LLM은 말로 답할 수도, 프로그램을 짤 수도 있습니다. 같은 도형을 옮기고 돌리면 말로 한 답은 매번 바뀌지만, 프로그램은 항상 436입니다. 그래서 계산은 프로그램에 맡깁니다.",
     "(25초) 하지만 두 가지가 문제입니다. 첫째, 프로그램은 조용히 틀립니다. 같은 문제에 보조 코드만 더하면 6 대신 0을 내고 에러도 없습니다. 없는 함수를 불러 죽기도 합니다. 둘째, 오래 생각하면 비쌉니다. gpt-oss-120b는 토큰을 4.4배 써서 9점을 더 얻습니다. 그래서 추가 노력을 힌트, 공짜 검사, 생각 중 어디에 쓸지가 저희 질문입니다.",
@@ -754,8 +754,8 @@ function buildTalk() {
     txt(s, t, x + 0.55, y, 1.5, 0.55, { fontSize: fs, bold: true, color: col });
   }
   pres.addSection({ title: "Talk" });
-  slideTitle("Talk", "Team 5: Sangjun Lee, Seongbin Park · POSTECH CSED490E", "");
-  [0, 1, 2].forEach(k => pill(3.44 + k * 2.2, 5.35, k));
+  slideTitle("Talk", "Team 5: Sangjun Lee, Seongbin Park · POSTECH CSED490E", "",
+             "Focus: math with an exact answer, solved by programs an LLM writes");
 
   // 2. what we solve, and how hard
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
