@@ -12,3 +12,11 @@ Arms: mip s1 (no fact); mipf s1–2 + thinkf s1 (hand-written); mips s1–2 + th
 - X7-P1: automatic FFR within 2 points of hand-written FFR for Qwen3-32B, Qwen3-14B-AWQ and gpt-oss-20b; ≥ 4 points below for Qwen3-8B.
 - X7-P2: automatic FF ≥ always-thinks − 2 points at ≤ 40% of its tokens for those three models.
 - X7-P3: picking the policy (CHEAP / FF / FFR / THINK) from 30 labelled MAMO items gives ≤ 1.5 points of regret (λ = 0.5) per model.
+
+## Results, gpt-oss-20b (2026-10-19 03:36 UTC; results/x3/analysis_x7.log; MAMO 863 problems, seeds 1–2 for the cheap arms)
+No fact 73.2%. Hand-written fact: CHEAP 76.1% @ 0.5k, FF 79.3% @ 0.6k, FFR 78.9% @ 1.7k, THINK 77.4% @ 2.5k. **Automatic fact: CHEAP 74.4%,
+FF 77.3% @ 0.6k, FFR 78.8% @ 1.9k, THINK 76.0% @ 2.7k** (EasyLP / ComplexLP FFR 85.6 / 57.8%).
+- **X7-P1 holds for gpt-oss-20b** (automatic FFR −0.1 points vs hand-written). **X7-P2 holds** (automatic FF 77.3% ≥ always-thinks 76.0% − 2,
+  at 22% of its tokens). **X7-P3 holds** (pilot-of-30 regret 1.27 points; best policy FFR).
+Addendum (before running): Qwen3.6 on MAMO, same arms, 80k thinking (T 1.0 / top_k 20), GPU2 — prediction: automatic FFR ≥ 3 points
+below hand-written (as on X6).
