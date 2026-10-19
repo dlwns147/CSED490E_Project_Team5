@@ -173,7 +173,7 @@ All measured here, with the same problems, models and checks; accuracy @ output 
 
 - **Proofs** need a specialized prover, not a fact (finding 7).
 - **Missing knowledge.** For factual questions (PopQA), thinking adds only 1.8–5 points at 70–200× the tokens, and only for well-known facts.
-- **Checks leak.** A wrong program that passes the check is never sent to thinking; that caps every policy above.
+- **Checks leak.** A wrong program that passes the check is never sent to thinking; that caps every policy above. On word problems 12–16% of problems leak, but a perfect check would add only 0.8–2.6 points for 14B+ models (5.6 for Qwen3-8B): thinking solves only 7–16% of the leaked problems, and some are wrong labels.
 - **Automatic facts stay within a problem family** (finding 6): the model copies another type's library and formulation. Mining one fact per problem type is next; BM25 retrieval keeps most of the gain meanwhile (84% vs 87%).
 - **Thinking settings matter.** With our sampling settings Qwen3.6 ran out of its 28k-token budget on 213 of 1,680 math problems; with the model card's settings and an 80k budget only 4 did, and thinking rose from 91.7 / 47.8% to 99.6 / 94.4% (MATH-500 / AIME), above text without thinking (98.3 / 68.3%). Most of the gain is the budget; the sampling adds about 3 points.
 - Open models only; mechanisms were first found on generated tasks.
