@@ -225,3 +225,14 @@ Headline re-pooled over the three models with this arm (624 items): FACT-FIRST-T
 **Reading:** with its thinking no longer cut off, Qwen3.6's thinking arm is good (97% geometry) but very expensive (≈ 33k tokens per
 geometry item, 40–70 × the fact program); the policy ordering and the headline numbers are unchanged (fact-first 87%, within 0.3
 points of the confounded run), so the main result did not depend on the setup error.
+
+## U1-MINED pre-registration (2026-10-19 01:37 UTC, before running): the headline suite without hand-written facts (optimization domain)
+The U1 FACT arm for optimization is a hand-written API snippet per problem type. Replacement with no human: the shortest feasible program
+the same model wrote (U1 base arm, label-free feasibility check) for the most similar OTHER problem type (BM25 over the problem
+descriptions: e.g. CVRP / VRPTW ← TSP, knapsack ← bin packing), shown as an example (run_co.py --mined_from). Arm mined, cure seeds 1–3,
+Qwen3-32B (GPU1) and Qwen3.6 (GPU2) now, Qwen3-8B next (poc/queues/queue_s2_u1mined.sh). Policy: MINED-FIRST-THEN-THINK (mined program;
+the U1 THINK arm if it fails the check), optimization domain only (geometry facts are algorithm hints; not mined here).
+- MINED-P1: mined-first-then-think is within 5 points of the hand-written FACT-FIRST-THEN-THINK in optimization for each model, and ≥ the
+  retrieved-first (BM25 documentation) policy.
+- MINED-P2: on CVRP / VRPTW (routing API facts) the mined fact helps less than the hand-written snippet (the TSP example has no capacity
+  or time-window dimension calls).

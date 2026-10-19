@@ -266,3 +266,7 @@ predicting Qwen3-14B lands between the 8B and 32B gaps (FFR within 4 points of i
   3.0k with the snippet. Raw: 408 runtime errors, 294 of them wrong argument types in low-level calls the list exposes
   (`solver.Constraint(lb, ub)`, `solver.Var(...)`, enum names passed as strings). Same mechanism in all three models: **a name list
   without usage points the model to calls it cannot use** — AUTO refuted for every model.
+- Automatic facts, gpt-oss-20b and Qwen3.6 (2026-10-19 01:37 UTC; analysis_autofacts.log): gpt-oss-20b — shortest own program FFR 74.7% @ 2.2k vs snippet
+  75.6% @ 2.1k, similar example 74.5% (**within 2 points: holds**); Qwen3.6 — similar example FFR 75.7% @ 9.5k vs snippet 80.3% @ 9.3k
+  (−4.6; FF 73.2 vs 78.2). Summary over 4 models: a mined fact replaces the hand-written one for Qwen3-32B and gpt-oss-20b (≤ 1 point),
+  not for Qwen3-8B and Qwen3.6 (5–6 points short).

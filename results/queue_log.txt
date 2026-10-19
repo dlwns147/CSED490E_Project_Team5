@@ -394,3 +394,6 @@ S2_X6VER3 queued (q32b shortest GPU0; q14a similar + shortest GPU3) Sun Oct 18 2
 S2_X6AUTO q36d done (2070/2070) Sun Oct 18 23:40:53 UTC 2026
 S2_X6AUTO runs done Sun Oct 18 23:40:53 UTC 2026
 S2_X6VER oss20 queued (GPU2) Mon Oct 19 00:36:11 UTC 2026
+S2_X6VER oss20 (v, s) done (4140/4140) Mon Oct 19 00:51:20 UTC 2026
+S2_X6VER q36d done (2070/2070) Mon Oct 19 01:03:38 UTC 2026
+S2_U1MINED queued (GPU1 q32b, GPU2 q36, then q8b) Mon Oct 19 01:37:53 UTC 2026

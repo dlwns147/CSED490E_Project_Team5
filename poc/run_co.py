@@ -636,13 +636,16 @@ def prompt(arm, prob, inst):
     ex = (f"\n\nExample stdin (this instance):\n```\n{describe(prob, inst)[1]}```") if SHOW_STDIN else ""
     rs = (" Before writing the program, list the fields of the stdin format in order (one per line, with their meaning), then write the "
           "program.") if RESTATE else ""
+    mn = (f"\n\nA program that runs and passes the feasibility check with OR-Tools, written for a different problem ({MINED[prob][0]}):"
+          f"\n```python\n{MINED[prob][1]}\n```") if (MINED and prob in MINED and arm == "solver") else ""   # automatic fact (2026-10-19)
     ad = (f"\n\nBelow is a Python program that {ADAPT[1]}. Use it as your starting point and adapt it to THIS problem (keep what "
           f"still applies, change what the new problem requires):\n```python\n{ADAPT[0]}\n```") if ADAPT else ""   # N14
     return (f"{text}\n\nWrite a Python 3 program that solves this problem for any input in the stdin format: {fmt}. "
-            f"{lib} Print only {outfmt} on one line. Give the program in a single ```python code block.{rs}{ex}{doc}{ad}")
+            f"{lib} Print only {outfmt} on one line. Give the program in a single ```python code block.{rs}{ex}{doc}{ad}{mn}")
 
 
 ADAPT = None   # N14: (source program, one-line description) appended to the prompt
+MINED = {}   # automatic fact: prob -> (other problem, the shortest feasible program the same model wrote for it)
 LIBCHOICE = ""   # N15: "", free, cpsat, routing, mip
 LIBS = {"free": "Use Google OR-Tools to model and solve it, with whichever of its solvers fits best (CP-SAT `ortools.sat.python.cp_model`, "
                 "the routing library `ortools.constraint_solver`, or the MIP wrapper `ortools.linear_solver.pywraplp` with SCIP or CBC); "
@@ -689,6 +692,7 @@ def main():
     ap.add_argument("--restate", action="store_true", help="B4: ask the model to list the stdin fields before writing the program")
     ap.add_argument("--show_stdin", action="store_true", help="append this instance's literal stdin to the prompt (format example)")
     ap.add_argument("--api_doc_task", action="store_true", help="solver arm: only the API calls this problem needs")
+    ap.add_argument("--mined_from", default="", help="automatic fact: shortest feasible program of ANOTHER problem from these runs (tag prefix)")
     ap.add_argument("--adapt_from", default="", help="N14: a source program file appended to the prompt as a starting point")
     ap.add_argument("--adapt_note", default="solves a related problem", help="N14: how the source program is described")
     ap.add_argument("--logprobs", action="store_true", help="N16: store the raw log-probs of the first program's tokens")
@@ -697,6 +701,22 @@ def main():
     a = ap.parse_args()
     global ADAPT, LIBCHOICE
     ADAPT = (open(a.adapt_from).read(), a.adapt_note) if a.adapt_from else None
+    if a.mined_from:   # rows of earlier runs of this model (e.g. S2_U1_q32b_co_base): feasible programs, label-free check
+        pool = [json.loads(l) for sd_ in (1, 2, 3) if os.path.exists(f"{RES}/co_{a.mined_from}_s{sd_}.jsonl")
+                for l in open(f"{RES}/co_{a.mined_from}_s{sd_}.jsonl") if l.strip()]
+        pool = [r for r in pool if r.get("status") == "ok" and r.get("feasible") and r.get("code")]
+        import math, random as _rnd
+        from collections import Counter
+        tok_ = lambda t: re.findall(r"[a-z]+", t.lower())
+        desc = {p_: Counter(tok_(describe(p_, gen(p_, 10, _rnd.Random(0)))[0])) for p_ in {r["prob"] for r in pool} | set(a.probs.split(","))}
+        df_ = Counter(w for d in desc.values() for w in d); N_ = len(desc)
+        sim = lambda x, y: sum(math.log(1 + N_ / df_[w]) * min(desc[x][w], desc[y][w]) for w in desc[x] if w in desc[y])
+        for p_ in desc:   # the most similar OTHER problem (by its description) with a feasible program; its shortest such program
+            others = [q for q in {r["prob"] for r in pool} if q != p_]
+            if others:
+                q = max(others, key=lambda q: sim(p_, q))
+                best_ = min((r for r in pool if r["prob"] == q), key=lambda r: len(r["code"]))
+                MINED[p_] = (q, best_["code"])
     LIBCHOICE = a.lib
     global SHOW_STDIN, LIB_K, DROC, RESTATE, FMT_FIX
     SHOW_STDIN = a.show_stdin; LIB_K = a.rag_lib; DROC = a.droc; RESTATE = a.restate; FMT_FIX = a.fmt_fix

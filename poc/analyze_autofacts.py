@@ -8,6 +8,8 @@ FACTS = {"none": ("mip", "think"), "snippet (hand)": ("mipf", "thinkf"), "name l
 
 
 def rows(m, a, s):
+    if m == "q36":   # Qwen3.6: cheap no-fact / snippet arms under q36, every arm run with the 80k thinking setup under q36d
+        m = "q36" if a in ("mip", "mipf") else "q36d"
     f = f"{X3}/opt_{m}_{a}_s{s}.jsonl"
     return {r["id"]: r for r in map(json.loads, open(f))} if os.path.exists(f) else None
 
