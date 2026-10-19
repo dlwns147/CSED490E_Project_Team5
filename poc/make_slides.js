@@ -719,7 +719,7 @@ function buildTalk() {
     "(30초) 첫 번째 발견입니다. 매뉴얼이 아니라 짧은 힌트를 주세요. 트럭 경로를 짜는 과제에 OR-Tools 사용법 열한 줄을 붙이면, Qwen3-32B가 맞는 함수를 불러 최적 경로를 찾습니다. 긴 참조 문서를 주면 없는 함수를 지어내 죽습니다. 30문제에서 아무것도 안 주면 23%, 오래 생각하면 3%, 짧은 힌트는 83%입니다. 이 힌트를 사람 없이 고르는 방법은 뒤의 방법 슬라이드에서 보여 드립니다.\n\n[참고, 읽지 않음] 모델은 답을 무작위로 뽑기 때문에 같은 실험도 돌릴 때마다 조금씩 다릅니다. 짧은 힌트 막대는 같은 실험을 세 번 돌린 평균입니다(77, 83, 90%). 나머지 막대는 한 번씩 돌린 결과입니다.",
     "(40초) 두 번째 발견입니다. 공짜 검사가 실패할 때만 생각하게 하세요. 공짜 검사란 프로그램을 실행해서 이미 아는 것과 비교해 보는 것으로, 정답도 추가 생각도 필요 없습니다. 문제에 '막대 3, 4, 5면 답 0'이라는 예제가 있으면, 모델 없이 우리 프로그램을 3, 4, 5로 돌려 봅니다. 0이 나오면 그대로 내고, 다르면 그 문제만 더 생각합니다. 예제가 없으면 프로그램을 두 번 짜서 비교합니다. 그러면 경시 문제에서 66%, 기하에서 99%로, 항상 생각할 때와 같은 정확도를 18에서 27% 적은 토큰에 얻습니다.\n\n[참고, 읽지 않음] 경시 66.3%는 예제와, 작은 입력을 전부 따져 보는 느린 프로그램, 두 검사를 함께 쓴 결과입니다. 예제만 쓰면 20k 토큰에 65.0%입니다.",
     "(40초) 둘을 합친 것이 저희 방법입니다. 힌트를 붙여 쓰고, 검사하고, 실패할 때만 생각하고, 같은 종류가 다시 오면 재사용합니다. 힌트는 사람 없이 이렇게 고릅니다. 모델이 같은 종류의 문제에 짰던 프로그램 중 검사를 통과한 것을 모으고, 가장 짧은 것을 힌트로 씁니다. 실제 문제 하나에서는 힌트 없이 죽던 프로그램이 힌트로 바로 20000을 맞혀, 5.3k 대신 0.6k 토큰을 썼습니다. 기하와 최적화 208문제를 세 모델로 풀면, 답이 갈리는 문제에 생각을 몰아주는 기존 방식은 74%, 저희는 87%이고 토큰도 적습니다.",
-    "(40초) 새로운 점은 세 가지입니다. 학습 없이 공짜 검사로 생각할 때를 정하고, 정답 없이 모델 자신의 프로그램을 힌트로 쓰며, 파인튜닝한 특화 모델 ORLM-8B와 같은 69.5%를 학습하지 않은 8B 모델로 냅니다. 다음으로는 힌트와 검사를 자동으로, 더 정확하고 싸게 만들겠습니다. 문제 종류마다 힌트를 자동으로 고르고, 토큰 없이 더 많은 실수를 잡는 검사도 자동으로 고르고, 더 많은 모델에서 확인해 보고서와 코드로 내겠습니다. 정리하면, 짧은 힌트를 먼저 주고, 공짜 검사가 실패한 곳에서만 생각하게 하자는 것입니다.\n\n[더 자세히: 질문이 나오거나 시간이 남을 때]\n첫째 줄, 생각을 어디에 쓸지. 기존 방법은 어려워 보이는 문제에 계산을 더 쓰는 Snell 등의 방식과, 언제 생각할지를 강화학습으로 가르치는 Thinkless, AdaptThink입니다. 저희는 정답 없이 돌리는 공짜 검사가 실패한 문제에만 생각을 씁니다. 기하와 최적화 208문제를 세 모델로 풀면 74%가 87%로 오르고, 토큰은 문제당 4.1k에서 2.5k로 줄었습니다. 87%는 사람이 쓴 힌트를 쓴 결과이고, 검색으로 찾은 힌트로도 84%입니다.\n둘째 줄, 모델에게 무엇을 주는지. 기존에는 매뉴얼 전체를 주거나, 더 큰 교사 모델이 짜서 정답으로 확인한 프로그램 모음을 줍니다. 저희 힌트는 모델이 다른 문제에서 짜서 공짜 검사를 통과한 자기 프로그램입니다. 끝까지 남겨 둔 MAMO 벤치마크에서 사람이 쓴 힌트와 같은 79%를 냈습니다.\n셋째 줄, 비용. ORLM-8B는 최적화 문장제용으로 파인튜닝한 공개 모델이고, 모델 카드의 형식과 솔버, 그리디 디코딩으로 저희 채점기에서 돌렸습니다: MAMO 69.5%, 문제당 1.1k 토큰(샘플링하면 64~66%). Qwen3-8B는 학습 없이 자기 힌트를 붙여 프로그램을 한 번 짜고 실행이 안 될 때만 생각하게 해서 69.5%, 1.0k 토큰입니다. 두 버전 검사까지 쓰면 71%(3.1k), gpt-oss-20b는 78.8%입니다.\n다음 계획. 하나, 힌트: 지금은 같은 종류의 문제 안에서만 자동 힌트가 통하므로, 새 문제의 종류를 먼저 알아내고 종류마다 힌트를 자동으로 고릅니다. 둘, 검사: MAMO에서 남은 오류의 절반쯤은 정답 라벨이 의심스러운 문제이고, 나머지는 실행도 되고 두 버전이 일치하지만 문제를 잘못 수식으로 옮긴 경우입니다. 이런 실수를 다른 관점으로 잡는 값싼 검사를 찾고, 문제 종류마다 어떤 검사를 쓸지 자동으로 고릅니다. 지금도 30문제만 라벨링하면 정책을 고를 수 있어서, 최선 대비 손실이 0.6점입니다. 셋, MAMO 검증을 Qwen3-32B와 Qwen3.6까지 세 번씩 마치고, 최종 보고서와 코드를 냅니다.",
+    "(55초) 새로운 점은 세 가지입니다. 학습 없이 공짜 검사로 생각할 때를 정하고, 정답 없이 모델 자신의 프로그램을 힌트로 쓰며, 파인튜닝한 특화 모델 ORLM-8B와 같은 69.5%를 학습하지 않은 8B 모델로 냅니다. 다음 연구는 힌트와 검사를 자동으로, 정확하고 싸게 얻는 것입니다. 힌트는 문제 종류마다 검사를 통과한 가장 짧은 프로그램을 자동으로 고르고, 새 문제의 종류부터 알아내며, 필요한 호출만 남깁니다. 검사는 토큰이 들지 않는 검사부터 쓰고, 조용히 틀리는 곳에만 다르게 틀리는 두 번째 관점을 더하고, 종류마다 30문제로 쓸 방법을 고릅니다. 그다음 더 많은 모델에서 확인해 보고서와 코드로 내겠습니다. 정리하면, 짧은 힌트를 먼저 주고, 공짜 검사가 실패한 곳에서만 생각하게 하자는 것입니다.\n\n[더 자세히: 질문이 나오거나 시간이 남을 때]\n첫째 줄, 생각을 어디에 쓸지. 기존 방법은 어려워 보이는 문제에 계산을 더 쓰는 Snell 등의 방식과, 언제 생각할지를 강화학습으로 가르치는 Thinkless, AdaptThink입니다. 저희는 정답 없이 돌리는 공짜 검사가 실패한 문제에만 생각을 씁니다. 기하와 최적화 208문제를 세 모델로 풀면 74%가 87%로 오르고, 토큰은 문제당 4.1k에서 2.5k로 줄었습니다. 87%는 사람이 쓴 힌트를 쓴 결과이고, 검색으로 찾은 힌트로도 84%입니다.\n둘째 줄, 모델에게 무엇을 주는지. 기존에는 매뉴얼 전체를 주거나, 더 큰 교사 모델이 짜서 정답으로 확인한 프로그램 모음을 줍니다. 저희 힌트는 모델이 다른 문제에서 짜서 공짜 검사를 통과한 자기 프로그램입니다. 끝까지 남겨 둔 MAMO 벤치마크에서 사람이 쓴 힌트와 같은 79%를 냈습니다.\n셋째 줄, 비용. ORLM-8B는 최적화 문장제용으로 파인튜닝한 공개 모델이고, 모델 카드의 형식과 솔버, 그리디 디코딩으로 저희 채점기에서 돌렸습니다: MAMO 69.5%, 문제당 1.1k 토큰(샘플링하면 64~66%). Qwen3-8B는 학습 없이 자기 힌트를 붙여 프로그램을 한 번 짜고 실행이 안 될 때만 생각하게 해서 69.5%, 1.0k 토큰입니다. 두 버전 검사까지 쓰면 71%(3.1k), gpt-oss-20b는 78.8%입니다.\n다음 계획. 하나, 힌트: 지금은 같은 종류의 문제 안에서만 자동 힌트가 통하므로, 새 문제의 종류를 먼저 알아내고 종류마다 힌트를 자동으로 고릅니다. 둘, 검사: MAMO에서 남은 오류의 절반쯤은 정답 라벨이 의심스러운 문제이고, 나머지는 실행도 되고 두 버전이 일치하지만 문제를 잘못 수식으로 옮긴 경우입니다. 이런 실수를 다른 관점으로 잡는 값싼 검사를 찾고, 문제 종류마다 어떤 검사를 쓸지 자동으로 고릅니다. 지금도 30문제만 라벨링하면 정책을 고를 수 있어서, 최선 대비 손실이 0.6점입니다. 셋, MAMO 검증을 Qwen3-32B와 Qwen3.6까지 세 번씩 마치고, 최종 보고서와 코드를 냅니다.",
     "(5초) 감사합니다. 질문 받겠습니다.",
   ];
   const QA_KO = {   // speaker notes of the extra pages: a short Korean answer to the page's question
@@ -941,24 +941,26 @@ function buildTalk() {
   [["When to think", "brain", "think more on hard-looking problems, or train the model when to think", "check", "think only when a free check fails; no training: 87% vs 74% (208 problems)"],
    ["What to give", "page", "the whole manual, or programs from a bigger model checked with answers", "fact", "one short fact: the model's own program that passed the check; no answers"],
    ["What it costs", "robot", "fine-tune a specialist (ORLM-8B): 69.5% on MAMO", "gpu", "untrained Qwen3-8B + that fact, one 24 GB GPU: the same 69.5%"]].forEach(([topic, li, lt, ri, rt], r) => {
-    const y = 1.75 + r * 0.9;
-    txt(s, topic, 0.6, y, 1.6, 0.75, { fontSize: 16, bold: true });
-    box(s, "", 2.3, y, 4.6, 0.75, "F2F2F2");
-    s.addImage({ path: ICON(li), x: 2.42, y: y + 0.15, w: 0.45, h: 0.45, objectName: "usual icon " + r });
-    txt(s, lt, 3.0, y, 3.8, 0.75, { fontSize: 15, color: "404040" });
-    s.addShape(pres.shapes.RIGHT_ARROW, { x: 7.0, y: y + 0.2, w: 0.5, h: 0.36, fill: { color: BLUE }, line: { color: BLUE }, objectName: "arrow " + r });
-    box(s, "", 7.6, y, 5.1, 0.75, "DEEBF7");
-    s.addImage({ path: ICON(ri), x: 7.72, y: y + 0.15, w: 0.45, h: 0.45, objectName: "ours icon " + r });
-    txt(s, rt, 8.3, y, 4.3, 0.75, { fontSize: 15, bold: true, color: "1F3864" });
+    const y = 1.7 + r * 0.74;
+    txt(s, topic, 0.6, y, 1.6, 0.66, { fontSize: 16, bold: true });
+    box(s, "", 2.3, y, 4.6, 0.66, "F2F2F2");
+    s.addImage({ path: ICON(li), x: 2.42, y: y + 0.12, w: 0.42, h: 0.42, objectName: "usual icon " + r });
+    txt(s, lt, 3.0, y, 3.8, 0.66, { fontSize: 14, color: "404040" });
+    s.addShape(pres.shapes.RIGHT_ARROW, { x: 7.0, y: y + 0.15, w: 0.5, h: 0.36, fill: { color: BLUE }, line: { color: BLUE }, objectName: "arrow " + r });
+    box(s, "", 7.6, y, 5.1, 0.66, "DEEBF7");
+    s.addImage({ path: ICON(ri), x: 7.72, y: y + 0.12, w: 0.42, h: 0.42, objectName: "ours icon " + r });
+    txt(s, rt, 8.3, y, 4.3, 0.66, { fontSize: 14, bold: true, color: "1F3864" });
   });
-  // next steps as a timeline
-  txt(s, "Next: get the hints and run the checks automatically, better and cheaper", 0.6, 4.5, 12.1, 0.4, { fontSize: 16, bold: true });
-  s.addShape(pres.shapes.LINE, { x: 2.4, y: 5.25, w: 8.5, h: 0, line: { color: "BFBFBF", width: 3 } });
-  [["fact", "hints: picked automatically for every problem type"], ["check", "checks: chosen automatically, catching more for no extra tokens"], ["code", "test both on more models; report and code"]].forEach(([icon, t], k) => {
-    const x = 2.4 + k * 4.25;
-    s.addShape(pres.shapes.OVAL, { x: x - 0.3, y: 4.95, w: 0.6, h: 0.6, fill: { color: "FFFFFF" }, line: { color: BLUE, width: 2 }, objectName: "milestone " + k });
-    s.addImage({ path: ICON(icon), x: x - 0.19, y: 5.06, w: 0.38, h: 0.38, objectName: "milestone icon " + k });
-    txt(s, t, x - 1.8, 5.58, 3.6, 0.55, { fontSize: 15, align: "center", valign: "top" });
+  // next: how to get the hints and run the checks automatically, effectively and cheaply (details on extra pages)
+  txt(s, "Next: get the hints and run the checks automatically, effectively and cheaply", 0.6, 3.95, 9.3, 0.38, { fontSize: 16, bold: true });
+  txt(s, "then: more models, report and code", 9.0, 3.95, 3.7, 0.38, { fontSize: 14, color: "7F7F7F", align: "right" });
+  [["fact", "Hints", ["pick per type: the shortest past program that passed the check", "tell a new problem's type first (another type's hint misleads)", "keep only the needed calls: about 200 input tokens"]],
+   ["check", "Checks", ["zero-token checks first: examples, moved copies, plan rules", "add a second view that errs differently where errors stay silent", "choose the policy per type from 30 labelled problems"]]].forEach(([icon, head, items], k) => {
+    const x = 0.6 + k * 6.15;
+    panel(s, x, 4.38, 5.95, 1.72, "next " + head);
+    s.addImage({ path: ICON(icon), x: x + 0.18, y: 4.48, w: 0.36, h: 0.36, objectName: "next icon " + icon });
+    txt(s, head, x + 0.62, 4.45, 3.0, 0.42, { fontSize: 16, bold: true, color: BLUE });
+    items.forEach((t, j) => txt(s, "• " + t, x + 0.2, 4.88 + j * 0.39, 5.6, 0.37, { fontSize: 14 }));
   });
   caption(s, "Takeaway: give the missing fact first, and think only where a free check fails");
 
