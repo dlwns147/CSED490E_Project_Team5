@@ -68,7 +68,7 @@ The examples in a problem statement never reject a correct program, but 24–37%
 
 ![Finding 4: think harder only when the examples fail](figs/ex_finding4.png)
 
-On all 311 contest problems this keeps the accuracy of always using high effort (66.3% vs 66.2%) with 18% fewer tokens (24.7k vs 30.1k).
+On all 311 contest problems the examples alone give 65.0% at 20.2k tokens (always high effort: 66.2% at 30.1k); also escalating when a quick brute-force program disagrees on small inputs keeps the accuracy of always using high effort (66.3% vs 66.2%) with 18% fewer tokens (24.7k vs 30.1k).
 
 **Finding 5. Repeated problems need only one checked program.**
 > *Example* (gpt-oss-120b, Solomon routing: think of each instance as one day's orders). Writing a new program every day gives a valid plan on 7% of 48 days (≈ 86k tokens). Writing 16 programs once, keeping the one that is valid on 8 past days and reusing it gives a valid plan on 94% (28k tokens in total).

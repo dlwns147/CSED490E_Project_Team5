@@ -307,7 +307,7 @@ mini(s, 1, "Small models gain most", "word problems: % solved",
 mini(s, 2, "Compare two versions", "geometry, Qwen3-32B: % · tokens",
      [["8 extra tools", 59, "59% · 0.6k", RED], ["always think", 98, "98% · 5.9k", G], ["think if differ", 99, "99% · 4.3k", BLUE]]);
 mini(s, 3, "Think only on failure", "311 contest problems: % · tokens",
-     [["always high", 66.2, "66% · 30k", G], ["high on failure", 66.3, "66% · 25k", BLUE]]);
+     [["always high", 66.2, "66% · 30k", G], ["examples fail", 65.0, "65% · 20k", "5B9BD5"], ["+ brute force", 66.3, "66% · 25k", BLUE]]);
 mini(s, 4, "Reuse a checked program", "48 routing days: % valid · tokens",
      [["new each day", 7, "7% · 86k", G], ["own notes", 36, "31–40%", G], ["reuse one", 94, "94% · 28k", BLUE]]);
 mini(s, 5, "All together", "208 problems × 3 models: % · tokens",
@@ -403,8 +403,8 @@ function caseCard(s, x, name, lines, col, fill) {
 }
 caseCard(s, 0.6, "\"Make a triangle!\" (easy)", "Q: how many cm to add so 3 sticks make a triangle?\nsamples (3,4,5) → 0 and (2,5,3) → 1: program agrees ✓\n→ submit; correct, no extra tokens", GREEN, "F3F9EF");
 caseCard(s, 6.8, "\"Arrow\" (hard)", "Q: print the 7 corners of an arrow shape\nprogram's corners ≠ the sample ✗ → think harder → correct ✓\n4k + 13k tokens, paid only because the check failed", RED, "FDF2F1");
-txt(s, "Over 311 problems (gpt-oss-120b): same 66% solved as always thinking hard, 18% fewer tokens", 0.6, 5.35, 12.1, 0.45, { fontSize: 17, bold: true });
-hbars(s, 0.6, 5.8, 9.5, [["Always think hard", 100, "30k tokens", "7F7F7F"], ["Think hard only on a failed check", 82, "25k tokens", BLUE]], 0.4, 3.6);
+txt(s, "Over 311 problems (gpt-oss-120b), with a quick brute-force check added: same 66% as always thinking hard, 18% fewer tokens", 0.6, 5.35, 12.1, 0.45, { fontSize: 17, bold: true });
+hbars(s, 0.6, 5.8, 9.5, [["Always think hard", 100, "30k tokens", "7F7F7F"], ["Think hard only when a check fails", 82, "25k tokens", BLUE]], 0.4, 3.6);
 s.addNotes((pre || "") + "Real gpt-oss-120b runs on Codeforces geometry problems. The examples are a free check: if the quick (medium-effort) program gets them right we submit it; if not, we pay for high effort. Examples can miss bugs (Find Color passed all 3 examples and failed hidden test 11), so the full policy also runs a quick brute-force comparison on small inputs. Result: 66.3% at 24.7k tokens per problem vs 66.2% at 30.1k for always high effort.");
 }
 slideHard("Findings", "Finding 4: think harder only when a check fails");
@@ -589,7 +589,7 @@ s.addText(title, { placeholder: "title" });
   const rows = [
     [HDR("Task"), HDR("Published method"), HDR("Its result"), HDR("Ours (same problems)")],
     ["Where to spend thinking", "think on the hardest-looking problems (Snell et al. 2025)", "74% · 4.1k", OURS("fact first, think on failure: 87% · 2.5k")],
-    ["Contest geometry", "always high effort (reasoning-model default)", "66.2% · 30.1k", OURS("think only on a failed check: 66.3% · 24.7k")],
+    ["Contest geometry", "always high effort (reasoning-model default)", "66.2% · 30.1k", OURS("think when the examples or a brute-force check fail: 66.3% · 24.7k")],
     ["Pick 1 of 3 programs", "CodeT: the model writes tests", "96.0% (+340 tokens)", OURS("symmetry check: 99.7% (0 tokens)")],
     ["Library documentation", "DRoC: decompose, retrieve per constraint (ICLR 2025)", "72% · 2.1k", OURS("exact snippet: 77% · 1.7k")],
     ["Unneeded tools", "System 2 Attention / a \"use only if needed\" sentence", "64% / 76%", OURS("only the needed tools: 92%")],
@@ -697,7 +697,7 @@ function buildTalk() {
     "(20초) LLM은 말로 답할 수도 있고, 프로그램을 짤 수도 있습니다. Qwen3-8B에게 같은 도형의 넓이의 두 배를 물었습니다. 옮기고 돌리고 뒤집어도 답은 436입니다. 말로 답하면 매번 다른 답이 나오지만, 프로그램은 네 번 모두 436입니다. 계산에는 프로그램이 맞는 도구입니다.",
     "(35초) 하지만 두 가지 문제가 있습니다. 첫째, 프로그램은 조용히 틀립니다. 같은 문제인데 프롬프트에 보조 코드만 더하면 6 대신 0을 출력하고, 에러 메시지도 없습니다. 없는 라이브러리 함수를 불러서 죽기도 합니다. 둘째, 오래 생각하면 비쌉니다. gpt-oss-120b는 오래 생각하면 57%에서 66%로 오르지만, 토큰은 4.4배를 씁니다. 그래서 질문입니다. 추가 노력을 빠진 사실, 공짜 검사, 더 많은 생각 중 어디에 써야 할까요?",
     "(35초) 첫 번째 발견입니다. 매뉴얼이 아니라 사실을 주세요. Qwen3-32B가 OR-Tools로 배송 경로 프로그램을 짭니다. 긴 참조 문서를 주면 존재하지 않는 함수를 불러서 죽고, 정확한 사용법 열한 줄을 주면 최적 경로를 찾습니다. 경로 문제 30개에서 최적해를 찾는 비율은 아무것도 안 주면 23%, 오래 생각하면 오히려 3%, 긴 참조 문서는 7%, 정확한 사용법은 77에서 90%입니다. 최적화 문장제와 기하에서도 같았습니다. 모르는 사실은 생각한다고 생기지 않습니다.",
-    "(30초) 두 번째 발견입니다. 공짜 검사가 실패할 때만 생각하게 하세요. 검사 A는 문제에 적힌 예제입니다. 예제를 통과하면 바로 제출하고, 틀리면 그 문제만 더 생각합니다. 검사 B는 프로그램을 두 버전으로 짜서, 답이 다를 때만 생각합니다. 두 경우 모두 항상 생각할 때와 정확도는 같고, 토큰은 18에서 27% 적습니다. 두 검사 모두 정답이 필요 없고, 기하, 경시, 경로, 문장제에서 모두 통했습니다.",
+    "(30초) 두 번째 발견입니다. 공짜 검사가 실패할 때만 생각하게 하세요. 검사 A는 문제에 적힌 예제입니다. 예제를 통과하면 바로 제출하고, 틀리면 그 문제만 더 생각합니다. 예제만 쓰면 65%로 조금 낮고, 모든 경우를 다 따져 보는 짧은 프로그램과도 답을 맞춰 보면 66%가 됩니다. 검사 B는 프로그램을 두 버전으로 짜서, 답이 다를 때만 생각합니다. 두 경우 모두 항상 생각할 때와 정확도는 같고, 토큰은 18에서 27% 적습니다. 두 검사 모두 정답이 필요 없고, 기하, 경시, 경로, 문장제에서 모두 통했습니다.",
     "(50초) 두 발견을 합친 것이 저희 방법입니다. 실제 최적화 문제로 보겠습니다. 1단계, 모델이 없는 메서드를 불러서 죽습니다. 2단계, 사실을 줍니다. 이 사실은 사람이 쓴 것이 아니라, 모델이 다른 문제에서 짜서 검사를 통과한 자기 프로그램에서 자동으로 가져옵니다. 3단계, 두 버전의 답이 20000으로 같으니, 4단계 생각은 건너뜁니다. 생각만 했다면 5.3k 토큰이 들었을 문제를 0.6k로 풉니다. 5단계, 같은 종류의 새 데이터에는 검사된 프로그램을 재사용합니다. 기하와 최적화 208문제를 세 모델로 풀면, 어려워 보이는 문제에 생각을 몰아주면 74%, 저희 방법은 87%이고 토큰도 더 적습니다.",
     "(35초) 새로운 점은 세 가지입니다. 학습 없이, 공짜 검사가 실패할 때만 생각합니다. 정답 없이, 모델 자신의 검사된 프로그램을 사실로 줍니다. 그리고 특화 모델을 파인튜닝하지 않고도, 24GB GPU 한 장으로 같은 정확도를 냅니다. 다음으로는 더 많은 모델로 검증을 마치고, 검사로 못 잡는 오류, 즉 실행은 되지만 문제를 잘못 모델링한 프로그램을 다루겠습니다. 정리하면, 빠진 사실을 먼저 주고, 공짜 검사가 실패한 곳에서만 생각하게 하자는 것입니다.",
     "(5초) 감사합니다. 질문 받겠습니다. 예상 질문마다 보충 슬라이드를 준비했습니다.",
@@ -820,14 +820,14 @@ function buildTalk() {
   answerBadge([1]);
   holdsOn(["shapes", "trophy", "truck", "calc"]);
   function checkPane(x, head, rows, bars, sub) {
-    panel(s, x, 1.45, 5.95, 4.5, head);
+    panel(s, x, 1.45, 5.95, 4.55, head);
     txt(s, head, x + 0.25, 1.55, 5.45, 0.5, { fontSize: 18, bold: true, color: BLUE });
-    rows.forEach(([t, col, fill], r) => box(s, t, x + 0.25, 2.15 + r * 0.72, 5.45, 0.6, fill, { fontSize: 15, color: col }));
-    txt(s, sub, x + 0.25, 3.65, 5.45, 0.4, { fontSize: 15, bold: true });
-    costRows(x + 0.25, 4.1, 5.45, 2.05, bars);
+    rows.forEach(([t, col, fill], r) => box(s, t, x + 0.25, 2.1 + r * 0.66, 5.45, 0.56, fill, { fontSize: 15, color: col }));
+    txt(s, sub, x + 0.25, 3.45, 5.45, 0.4, { fontSize: 15, bold: true });
+    costRows(x + 0.25, 3.85, 5.45, 2.35, bars);
   }
   checkPane(0.6, "Check A: the problem's own examples", [["\"Make a triangle!\": examples pass → submit", "38761D", "E2F0D9"], ["\"Arrow\": an example fails → think harder → right", RED, "FADBD8"]],
-            [["always think hard", "66.2%", 30.1, "30k", "7F7F7F"], ["only on failure", "66.3%", 24.7, "25k", BLUE]], "311 contest problems (gpt-oss-120b)");
+            [["always think hard", "66.2%", 30.1, "30k", "7F7F7F"], ["an example fails", "65.0%", 20.2, "20k", "5B9BD5"], ["+ brute-force check", "66.3%", 24.7, "25k", BLUE]], "311 contest problems (gpt-oss-120b)");
   checkPane(6.75, "Check B: two versions must agree", [["program A (task only) → 6", "38761D", "E2F0D9"], ["program B (+ helper code) → 0: differ → think", RED, "FADBD8"]],
             [["always think", "98%", 5.9, "5.9k", "7F7F7F"], ["only if they differ", "99%", 4.3, "4.3k", BLUE]], "108 geometry problems (Qwen3-32B, 3 runs)");
   caption(s, "Same accuracy as always thinking, 18–27% fewer tokens, and no answer key needed");
@@ -1023,7 +1023,7 @@ function buildTalk() {
   function slideQChecks() {
     qSlide("Q: is there always a free check?");
     table(s, [[HDR("Problem"), HDR("Free check (no answer key)"), HDR("How well it works")],
-      ["Contest problems", "the examples printed in the problem", "never rejects a right program; 24–37% of wrong ones pass"],
+      ["Contest problems", "the examples printed in the problem; a quick brute-force program must agree", "examples never reject a right program, but 24–37% of wrong ones pass; with brute force: 66.3% = always thinking"],
       ["Geometry", "move or turn the input: the answer must not change; or two versions must agree", "picks the right program 99.7% of the time (majority vote: 95.7%)"],
       ["Routing, scheduling", "code checks every rule of the plan (capacity, time windows)", "exact for the rules; whether the plan is the best is not checked"],
       ["Word problems", "two programs must agree", "12–16% agree but are both wrong"],
@@ -1040,7 +1040,7 @@ function buildTalk() {
     table(s, [["", "Geometry", "Contest problems", "Routing, scheduling", "Word problems", "Math and proofs"].map(HDR),
       [row("A program, not words"), c("✓ 8 of 8 copies right vs 1 of 8", OK), c("– a program by design", NA), c("– a program by design", NA), c("– a program by design", NA), c("✗ words as good (98% vs 87%); the program as a second opinion", RED)],
       [row("Give the fact"), c("✓ only the needed tools: 92% vs 75%", OK), c("– not tested", NA), c("✓ 23% → 77–90%; 6% → 100% valid plans", OK), c("✓ 65% → 72%; small models +44 points", OK), c("✗ no fact helps proofs", RED)],
-      [row("Free check, think on failure"), c("✓ 99% @ 4.3k vs 98% @ 5.9k", OK), c("✓ 66.3% @ 24.7k vs 66.2% @ 30.1k", OK), c("✓ part of the 87% below", OK), c("✓ beats always thinking at 12–22% of its tokens", OK), c("~ MATH-500: same accuracy at 77% of the tokens; AIME: costs more", PART)],
+      [row("Free check, think on failure"), c("✓ 99% @ 4.3k vs 98% @ 5.9k", OK), c("✓ 66.3% @ 24.7k vs 66.2% @ 30.1k (examples + brute force)", OK), c("✓ part of the 87% below", OK), c("✓ beats always thinking at 12–22% of its tokens", OK), c("~ MATH-500: same accuracy at 77% of the tokens; AIME: costs more", PART)],
       [row("Whole recipe"), c("✓ 87% @ 2.5k vs 74% @ 4.1k, with routing", OK), c("~ check and think only (no fact)", PART), c("✓ 87% @ 2.5k vs 74% @ 4.1k, with geometry", OK), c("✓ held-out MAMO: automatic fact = hand-written", OK), c("✗ proofs need a specialized prover", RED)],
       [row("Reuse a checked program"), c("– not tested", NA), c("– not tested", NA), c("✓ 94% vs 7% of days valid", OK), c("– not tested", NA), c("– not tested", NA)]],
       { x: 0.6, y: 1.85, w: 12.1, colW: [2.1, 2.0, 2.0, 2.0, 2.0, 2.0], fontSize: 13, rowH: [0.4, 0.75, 0.75, 0.75, 0.75, 0.55] });

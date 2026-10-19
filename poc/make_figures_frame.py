@@ -95,7 +95,8 @@ PANELS = [  # title, subtitle, rows: (label, value for the bar, shown text, colo
         ("with 8 unneeded tools", 59, "59% · 0.6k", RED), ("always think", 98, "98% · 5.9k", GREY),
         ("think only if they differ", 99, "99% · 4.3k", BLUE)]),
     ("Think only on a failed check", "311 contest problems, gpt-oss-120b", [
-        ("always high effort", 66.2, "66.2% · 30.1k", GREY), ("high only on failure", 66.3, "66.3% · 24.7k", BLUE)]),
+        ("always high effort", 66.2, "66.2% · 30.1k", GREY), ("examples fail", 65.0, "65.0% · 20.2k", "#5b9bd5"),
+        ("+ a brute-force check", 66.3, "66.3% · 24.7k", BLUE)]),
     ("Reuse a checked program", "48 days of delivery routing, gpt-oss-120b: % valid · tokens in total", [
         ("new program every day", 7, "7% · 86k", GREY), ("own notes (Dyn. Cheatsheet)", 36, "31–40%", GREY),
         ("reuse one checked program", 94, "94% · 28k", BLUE)]),
