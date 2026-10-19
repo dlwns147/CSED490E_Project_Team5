@@ -498,13 +498,50 @@ s.addText(title, { placeholder: "title" });
     ["Library documentation", "DRoC: decompose, retrieve per constraint (ICLR 2025)", "72% · 2.1k", OURS("exact 5-line snippet: 77% · 1.7k")],
     ["Unneeded tools", "System 2 Attention / a \"use only if needed\" sentence", "64% / 76%", OURS("only the needed tools: 92%")],
     ["Daily routing", "Dynamic Cheatsheet: the model's own notes", "31–40%", OURS("reuse a checked program: 94%")],
+    ["Word problems (held-out MAMO)", "ORLM-8B: a fine-tuned modeling specialist", "69.5% · 1.1k", OURS("Qwen3-8B, no training: 69.5% · 1.0k; gpt-oss-20b 78.8%")],
   ];
-  table(s, rows, { x: 0.6, y: 1.45, w: 12.1, colW: [2.3, 3.9, 2.2, 3.7], rowH: 0.62, fontSize: 15 });
+  table(s, rows, { x: 0.6, y: 1.45, w: 12.1, colW: [2.3, 3.9, 2.2, 3.7], rowH: 0.57, fontSize: 15 });
 }
 caption(s, "Measured here with the same problems and models: the recipe is more accurate, cheaper, or both");
-s.addNotes((pre || "") + "All baselines were run by us on our benchmarks. Models: U1 policies over Qwen3-8B / Qwen3-32B / Qwen3.6 (624 problems); contest geometry gpt-oss-120b (311); selection Qwen3-8B (300 geometry instances, 3 candidates); documentation Qwen3-32B on CVRP; tools Qwen3-32B on 5 geometry tasks; daily routing gpt-oss-120b on 48 held-out Solomon instances. Tokens are output tokens per problem. More rows (MBR-exec, majority vote, DeepConf, Self-Debugging, Mixture-of-Thought cascade, BM25 retrieval) are in PROPOSAL.md section 7.");
+s.addNotes((pre || "") + "All baselines were run by us on our benchmarks. Models: U1 policies over Qwen3-8B / Qwen3-32B / Qwen3.6 (624 problems); contest geometry gpt-oss-120b (311); selection Qwen3-8B (300 geometry instances, 3 candidates); documentation Qwen3-32B on CVRP; tools Qwen3-32B on 5 geometry tasks; daily routing gpt-oss-120b on 48 held-out Solomon instances. Tokens are output tokens per problem. ORLM-LLaMA-3-8B was run in our harness on MAMO (863 held-out word problems; greedy 80.5 / 35.5% on Easy / Complex, as reported). More rows (MBR-exec, majority vote, DeepConf, Self-Debugging, Mixture-of-Thought cascade, BM25 retrieval) are in PROPOSAL.md section 6.");
 }
 slideBaselines("Method", "Compared with published methods");
+
+// 9c. Related research: where this work sits, and numbers reported in papers
+function slideRelated(section, title, pre) {
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
+s.addText(title, { placeholder: "title" });
+const ADD = (t) => ({ text: t, options: { color: "38761D" } });
+table(s, [
+  [HDR("Theme"), HDR("Closest work"), HDR("What we add")],
+  ["Programs instead of text", "PAL, Program-of-Thoughts, Mixture-of-Thought (ICLR 2024)", ADD("when a program helps; text vs program as a free check")],
+  ["Library facts for code", "DRoC (ICLR 2025), CP-Bench, CloudAPIBench, DRAFT", ADD("5 exact lines beat the manual and thinking; facts mined without a human")],
+  ["Misleading context", "Invisible Lottery (2606.04057), unneeded tools (2609.14157), CodeCrash, S2A", ADD("the harm on exact geometry, turned into a check")],
+  ["Choosing a program", "CodeT, MBR-exec, AlphaCode's example filter, DeepConf", ADD("symmetry check of one program: 99.7% vs CodeT 96.0%")],
+  ["Spending test-time compute", "Snell et al. 2025, FrugalGPT, DART, Thinkless, AdaptThink", ADD("fact + execution check, no training: 87% vs 74%")],
+  ["Optimization modeling", "ORLM, STORM, EVOM, OR-R1 (trained); OptiMUS, OptiSkill (agents)", ADD("training-free, no answers; matches fine-tuned ORLM-8B")],
+  ["One program, many instances", "FunSearch, HeuriGym, ARS, 2605.14141", ADD("measured 7% → 94%; edit a verified program for new rules")],
+  ["Proofs", "Goedel-Prover-V2, DeepSeek-Prover-V2, AlphaGeometry", ADD("facts and checks do not carry over: use a specialized prover")],
+], { x: 0.6, y: 1.35, w: 12.1, colW: [2.6, 4.9, 4.6], rowH: 0.57, fontSize: 13 });
+s.addNotes((pre || "") + "Closest work per theme (details and how we differ: PROPOSAL.md section 6.1 and docs/notes/RELATED_WORK.md). Closest overall: OptiSkill (2609.22987) builds a skill bank from a strong teacher's programs validated against answers and routes it by problem type; our facts are the same small model's own programs chosen by a label-free check, and we show why routing by problem type is needed (a fact from another type costs 14-21 points). For when-to-think, Thinkless and AdaptThink train a switch with RL; we decide with an execution check after giving the fact; a same-backbone comparison with AdaptThink-7B is running.");
+}
+slideRelated("Method", "Where this work sits in related research");
+
+function slideReported(section, title, pre) {
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
+s.addText(title, { placeholder: "title" });
+const OURS = (t) => ({ text: t, options: { bold: true, color: "38761D" } });
+table(s, [
+  [HDR("Benchmark"), HDR("Reported in the paper or model card"), HDR("Ours")],
+  ["MAMO Easy / Complex", "ORLM-LLaMA-3-8B 82.3 / 37.4% (fine-tuned)\nSTORM-Qwen3-4B 86.3 / 70.3% (SFT + RL)\nOptiSkill with frontier models 90.8–94.3 / 56.8–64.0%",
+   OURS("no training: Qwen3-14B 82.8 / 37.4%, gpt-oss-20b 85.6 / 57.8%\nORLM-8B in our harness: 80.5 / 35.5%")],
+  ["miniF2F, 32 tries", "Goedel-Prover-V2-8B 84.6%", OURS("the same model in our harness: 76.6%")],
+  ["IMO-AG-30 geometry", "AlphaGeometry 25 of 30; its symbolic engine alone 14", OURS("engine alone 12 in our setup; with our models' points 13")],
+], { x: 0.6, y: 1.5, w: 12.1, colW: [2.4, 5.0, 4.7], rowH: [0.5, 1.3, 0.6, 0.6], fontSize: 15 });
+caption(s, "Different harnesses and graders: for orientation only");
+s.addNotes((pre || "") + "Numbers as reported by the papers or model cards; our harness, prompts and graders differ (MAMO labels are noisy; reported ORLM numbers range 81.6-88.2% on Easy). ORLM-8B rerun in our harness gives 80.5 / 35.5%, close to its report. STORM-Qwen3-4B is being run in our harness. Goedel-Prover-V2-8B: 187 of 244 with 32 tries in our Lean setup vs 84.6% on its card. AlphaGeometry's DD+AR engine proves 12 of IMO-AG-30 here (14 in the paper; one problem does not parse in this engine version).");
+}
+slideReported("Method", "Numbers reported in papers, next to ours");
 
 // 10. Limits and next
 function slideLimits(section, title, pre) {   // pre: text put before the speaker notes
@@ -572,6 +609,8 @@ function buildTalk() {
     ["Reuse a checked program", () => slideReuse("Extra pages", "Extra: repeated problems need one checked program")],
     ["Proofs need a specialized model", () => slideProof("Extra pages", "Extra: proofs need a specialized model, not a fact")],
     ["Compared with published methods", () => slideBaselines("Extra pages", "Extra: compared with published methods")],
+    ["Related research map", () => slideRelated("Extra pages", "Extra: where this work sits in related research")],
+    ["Numbers reported in papers", () => slideReported("Extra pages", "Extra: numbers reported in papers, next to ours")],
     ["Where the recipe stops, and next", () => slideLimits("Extra pages", "Extra: where the recipe stops, and what is next")],
     ["All findings at a glance", () => slideGlance("Extra pages", "Extra: all findings at a glance")],
     ["Words we use", () => slideWords("Extra pages", "Extra: words we use")],

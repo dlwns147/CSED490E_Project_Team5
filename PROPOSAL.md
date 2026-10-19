@@ -120,7 +120,22 @@ The recipe is both the most accurate and among the cheapest, on every seed. Diff
 
 **Small GPUs.** Once they get the fact, models that fit one 24 GB GPU (e.g. RTX 3090) match or beat Qwen3-32B. Optimization suite with the recipe: gpt-oss-20b 94–97%, Qwen3-14B (4-bit) 87–92%, Qwen3-32B 79–85%. Word problems: gpt-oss-20b with the recipe 73.0% at 0.7k tokens, Qwen3-32B with the fact and always thinking 72.0% at 5.5k. Competition math: Qwen3-14B (4-bit) thinking 97.3% / 73.3% on MATH-500 / AIME (Qwen3-32B: 97.4% / 77.2%). Contest geometry: gpt-oss-20b, escalating from low to medium effort when the examples fail, solves 54.6% at 11k tokens (gpt-oss-120b at medium: 56.8%). Below 14B the optimization suite stays at 47% or less whatever we add; geometry is solved from 4B up.
 
-## 6. Compared with published methods
+## 6. Related research and how we compare
+
+### 6.1 Where this work sits
+
+| Theme | Closest work | What they do | What we add |
+|---|---|---|---|
+| Programs instead of text | PAL, Program-of-Thoughts; Mixture-of-Thought cascade (ICLR 2024) | the model writes code; MoT escalates when a text answer and a program disagree | when a program helps (computation) and when it does not (competition math); text–program agreement as a free check |
+| Library facts for solver code | DRoC (ICLR 2025), CP-Bench (2506.06052), CloudAPIBench (2407.09726), DRAFT | retrieve or rewrite documentation for API / solver code | 5 exact lines beat the manual *and* thinking; near-miss documents ≈ no document; the fact can be mined from the model's own checked programs |
+| Misleading context and tools | "Invisible Lottery" (2606.04057), unneeded tools (2609.14157), CodeCrash, System 2 Attention | prompt cues steer or hurt generated code | the effect on exact geometry (77% → 59%), and a fix that turns it into a check (two versions) |
+| Choosing a program without labels | CodeT, MBR-exec, AlphaCode's example filter, DeepConf, S* | pick the best of several sampled programs | one program checked on moved copies of the given input (99.7% vs CodeT 96.0%) |
+| Spending test-time compute | compute-optimal scaling (Snell et al. 2025), FrugalGPT / AutoMix cascades, DART; Thinkless and AdaptThink (RL-trained switch) | more compute for harder problems; a learned think / no-think switch | difficulty is the wrong signal; a fact first and an execution check decide, with no training (87% vs 74%); the AdaptThink comparison is running |
+| LLMs for optimization modeling | ORLM, STORM / CALM, EVOM, OR-R1 (fine-tuned); OptiMUS, OptiSkill (agents, skill banks from teacher programs checked against answers) | train a modeling model, or build agents | training-free and label-free; on held-out MAMO a 24 GB-GPU model with the recipe matches the fine-tuned ORLM-8B (below) |
+| One program for many instances | FunSearch, HeuriGym, ARS, 2605.14141, 2608.27296 | write a solver once per problem family | the measured gap (7% vs 94%), choosing the program without answers, editing a verified program when the rules change |
+| Proofs | Goedel-Prover-V2, DeepSeek-Prover-V2, AlphaGeometry | specialized provers; a symbolic engine plus constructions from a language model | the recipe's facts and checks do not carry over to proofs: a specialized 8B prover is the right tool |
+
+### 6.2 Same problems, same harness
 
 All measured here, with the same problems, models and checks; accuracy @ output tokens per problem.
 
@@ -141,9 +156,18 @@ All measured here, with the same problems, models and checks; accuracy @ output 
 | Word problems (Qwen3-32B, NL4OPT + IndustryOR) | always think before writing the program, no fact (reasoning-model default) | 52.0% | **fact first, think on failure: 72.4% @ 1.3k** (always think + fact: 72.0% @ 5.5k) |
 | Word problems and competition math (Qwen3-32B) | majority vote of 3 samples (self-consistency) | word problems: 3 programs 68.4% @ 1.1k, 3 thinking runs 79.4% @ 16.4k; MATH-500: 3 text answers 89.2% @ 2.3k | **72.4% @ 1.3k** (fact first) / **97.2% @ 3.4k** (text = program, else think) |
 | Lean proofs (Goedel-Prover-V2-8B, 107 failed statements) | repair from the compiler's error messages (Self-Debugging-style) | 11 proved | a fresh attempt: 22 (same tokens) |
+| Word problems, held-out MAMO (863) | ORLM-LLaMA-3-8B, a fine-tuned modeling specialist | 69.5% @ 1.1k | **Qwen3-8B, no training: 69.5% @ 1.0k** (71.0% with the two-version check); **gpt-oss-20b 78.8% @ 1.9k** |
 | Competition math (Qwen3-32B, MATH-500) | accept when text and program agree, else think (Mixture-of-Thought cascade, ICLR 2024) | 97.2% at 77% of always-thinking's tokens (97.4% @ 5.4k); on AIME it costs more than always thinking | used as a check (step 3) |
 
-**Related work.** Misleading prompt context and tools (2606.04057, 2609.14157, CodeCrash, DRAFT, ContractEval); documentation for solver code (DRoC, CP-Bench); selecting and repairing programs (CodeT, MBR-exec, AlphaCode, Self-Debugging); compute allocation (Snell et al., FrugalGPT, Mixture-of-Thought); one program for many instances (FunSearch, HeuriGym, 2605.14141, 2608.27296). Closest on optimization modeling: OptiSkill (2609.22987) routes problems to a skill bank distilled from a strong teacher's programs and checked against answers; ORLM, STORM and EVOM train the model. Our recipe needs no training, teacher or answers: run on our harness and grader, ORLM-8B gets 69.5% on MAMO (Easy / Complex 80.5 / 35.5%, as its paper reports) at 1.1k tokens; untrained Qwen3-8B with the recipe matches it (69.5% @ 1.0k) and gpt-oss-20b beats it (78.8%). Thinkless and AdaptThink train when to think; we decide it with an execution check after giving the fact. **New here:** these methods compared on exact-answer benchmarks with every result priced in tokens, showing that *facts before compute* is the cheapest way to accuracy, especially for small models.
+### 6.3 Numbers reported in papers (different harnesses and graders; for orientation)
+
+| Benchmark | Reported in the paper or model card | Ours |
+|---|---|---|
+| MAMO Easy / Complex | ORLM-LLaMA-3-8B 82.3 / 37.4% (fine-tuned); STORM-Qwen3-4B 86.3 / 70.3% (SFT + RL); OptiSkill with frontier models 90.8–94.3 / 56.8–64.0% | no training: Qwen3-14B 82.8 / 37.4%, gpt-oss-20b 85.6 / 57.8%; ORLM-8B in our harness 80.5 / 35.5%; STORM in our harness is running |
+| miniF2F, 32 tries | Goedel-Prover-V2-8B 84.6% | the same model in our harness: 76.6% |
+| IMO-AG-30 geometry | AlphaGeometry 25 / 30; its symbolic engine alone 14 | the engine alone 12 in our setup; with points proposed by our models 13 |
+
+**What is new here.** (1) Every method is compared on exact-answer benchmarks in one harness, with accuracy *and* tokens. (2) *Facts before compute*: one exact fact plus a free execution check beats spending thinking by difficulty. (3) The fact needs no human and no answers: the model's own checked programs work within a problem family. (4) Training-free models on one 24 GB GPU reach a fine-tuned specialist (ORLM-8B) on a held-out benchmark.
 
 ## 7. Where the recipe stops
 
