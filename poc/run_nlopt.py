@@ -69,6 +69,16 @@ SNIP_TEXT = ("\n\nOR-Tools pywraplp usage, in words: create the solver with pywr
              "s.Add(linear expression); set the objective with s.Maximize(expression) or s.Minimize(expression); solve with st = s.Solve() "
              "and compare st with pywraplp.Solver.OPTIMAL (or INFEASIBLE / UNBOUNDED); read the optimal value with s.Objective().Value().")
 # CD (PREREG_CD.md, 2026-10-19): the content of SNIP as a description instead of code (matched-content test)
+LIBCARD = ("\n\nInstalled solver libraries and their exact usage (pulp, gurobipy and pyomo are NOT installed):\n```python\n"
+           "from ortools.linear_solver import pywraplp            # linear / mixed-integer\n"
+           "s = pywraplp.Solver.CreateSolver('SCIP')\nx = s.IntVar(0, s.infinity(), 'x'); y = s.NumVar(0, 10, 'y')\n"
+           "s.Add(2 * x + y <= 10); s.Maximize(3 * x + y); st = s.Solve()\n"
+           "print(s.Objective().Value() if st == pywraplp.Solver.OPTIMAL else 'No Best Solution')\n"
+           "import cvxpy as cp                                     # convex continuous (quadratic / cone terms must follow DCP rules)\n"
+           "z = cp.Variable(2); prob = cp.Problem(cp.Minimize(cp.sum_squares(z)), [z >= 1]); prob.solve()   # default solver (ECOS is not installed)\n"
+           "print(prob.value if prob.status == 'optimal' else 'No Best Solution')\n"
+           "from scipy.optimize import minimize                   # smooth nonlinear: minimize(f, x0, bounds=..., constraints=[...])\n```")
+# OB-F (PREREG_HO.md, 2026-10-19): the usage fact for the solver-choice prompt (hand-written, from the held-out crashes' library list)
 P_CPSAT = ("{q}\n\nWrite a complete Python 3 program that formulates this problem with Google OR-Tools CP-SAT (`from ortools.sat.python "
            "import cp_model`; scale any fractional coefficients to integers), solves it, and prints ONLY the optimal objective value." + TAIL)
 P_TEXT = "{q}\n\nSolve the problem. Put the optimal objective value in \\boxed{{}} (or \\boxed{{No Best Solution}} if there is none)."
@@ -153,7 +163,7 @@ def main():
         sd = seed * 1000 + zlib.crc32(p["id"].encode()) % 997
         tmpl = {"mip": P_MIP, "mipf": P_MIP + SNIP, "cpsat": P_CPSAT, "text": P_TEXT, "think": P_MIP, "thinkf": P_MIP + SNIP,
                 "mipa": P_MIP + AUTO.replace("{", "{{").replace("}", "}}"), "thinka": P_MIP + AUTO.replace("{", "{{").replace("}", "}}"),
-                "mipv": P_MIP, "thinkv": P_MIP, "mips": P_MIP, "thinks": P_MIP, "free": P_FREE, "thinkfree": P_FREE, "mipt": P_MIP + SNIP_TEXT}[mode]
+                "mipv": P_MIP, "thinkv": P_MIP, "mips": P_MIP, "thinks": P_MIP, "free": P_FREE, "thinkfree": P_FREE, "mipt": P_MIP + SNIP_TEXT, "freef": P_FREE + LIBCARD}[mode]
         q = tmpl.format(q=p["q"])
         if mode in ("mipv", "thinkv", "mips", "thinks"):   # automatic usage fact: a check-passing program of this model for a similar problem of the other benchmark
             ex = EX(p)
@@ -170,7 +180,7 @@ def main():
         else:
             code = last_block(text, ("python", "py", "python3"))
             r = run_python(code, "", timeout=60, mem_bytes=4 << 30,   # free modes may pick multi-threaded CP-SAT: CPU limit >> wall (H5 bug)
-                           cpu_s=(3600 if mode in ("free", "thinkfree") else None)) if code else None
+                           cpu_s=(3600 if mode in ("free", "thinkfree", "freef") else None)) if code else None
             out = (r.stdout if r and r.status == "ok" else "") or ""
             lines = [l for l in out.strip().splitlines() if l.strip()]
             pred = value_of(lines[-1]) if lines else None

@@ -118,3 +118,13 @@ The best policy is FF in 9 cells, FFR in 4, THINK in 2. **Always using FF costs 
 always thinking costs up to 11.0, always FFR up to 10.8. A 30-problem labelled pilot picks with 0.3–1.3 points of regret — no better than
 simply using FF. So the in-distribution result (MODEL: FF the best fixed default, regret 1.4) holds on unseen benchmarks, where no labels are
 needed at all.
+
+## OB-F pre-registration (2026-10-19 23:37 UTC, before running): does a fact help on the unseen benchmark where the failures ARE usage errors?
+On OptiBench the Qwen3 models' solver-choice programs crash with usage errors in 14–21% of runs (missing attributes, wrong signatures,
+pulp not installed; gpt-oss-20b 3%), unlike OptMATH where the failures were formulation / data. Arms (GPU3; queue_s2_obf.sh), seeds 1–3,
+gpt-oss-20b (low), Qwen3-14B-AWQ, Qwen3-8B: freef = the solver-choice prompt + a hand-written usage card for the installed libraries
+(pywraplp, cvxpy, scipy; "pulp / gurobipy / pyomo not installed"; poc/run_nlopt.py LIBCARD); formx = label-free library: the solver-choice
+prompt + the program of the most similar OTHER OptiBench problem from the three models' strict-check-passing programs.
+- OB-F-P1: freef halves the usage-error crashes and raises the cheap program by ≥ +5 points for each Qwen3 model; ≤ +2 for gpt-oss-20b.
+- OB-F-P2: with freef as the cheap arm, FF gains ≥ +2 over FF with free, at fewer tokens (fewer failures go to thinking), for each Qwen3 model.
+- OB-F-P3: formx (no human) gets ≥ half of freef's cheap-program gain for the Qwen3 models.
