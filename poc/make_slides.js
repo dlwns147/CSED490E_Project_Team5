@@ -418,38 +418,46 @@ s.addNotes(notes);
 }
 slideRecipe("Method", "Our method: a recipe built from the findings", true, "Each step is a measured result, shown on the finding slides with an example. Step 1: the polygon. Step 2: delivery routing with OR-Tools (Qwen3-32B). Step 3: free checks (the problem's examples; two versions that should agree). Step 4: contest geometry with gpt-oss-120b. Step 5: reuse on the Solomon routing benchmark. Together (3 models, 624 geometry and optimization problems, 3 seeds): fact first and thinking only on a failed check solves 87% at 2.5k tokens per problem.");
 
-// 4c. Method in detail: one problem through the recipe, and what the free check is for each kind of problem
-function slideWalkthrough(section, title, pre) {
+// 4c. The method on one real problem: each step with what it produced, its tokens, and the overall result
+function slideMethod(section, title, pre) {
 s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
 s.addText(title, { placeholder: "title" });
-txt(s, "Qwen3-8B on a MAMO word problem: products X, Y, Z cost $10, $15, $20 under three limits; minimum cost? (answer 20000)", 0.6, 1.3, 12.1, 0.4, { fontSize: 16 });
-function wstep(n, head, detail, cost, x, w, fill, costCol) {
-  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.85, w, h: 2.1, rectRadius: 0.08, fill: { color: fill }, line: { color: "BFBFBF", width: 0.75 }, objectName: "walk " + n });
-  s.addShape(pres.shapes.OVAL, { x: x + 0.1, y: 1.97, w: 0.45, h: 0.45, fill: { color: BLUE }, line: { color: BLUE }, objectName: "walk badge " + n });
-  s.addText(String(n), { isTextBox: true, x: x + 0.1, y: 1.97, w: 0.45, h: 0.45, fontSize: 15, bold: true, color: "FFFFFF", align: "center", valign: "middle", margin: 0 });
-  txt(s, head, x + 0.62, 1.95, w - 0.7, 0.5, { fontSize: 15, bold: true });
-  txt(s, detail, x + 0.14, 2.55, w - 0.28, 1.35, { fontSize: 13.5, valign: "top" });
-  txt(s, cost, x, 4.02, w, 0.35, { fontSize: 15, bold: true, color: costCol || C.text2, align: "center" });
+txt(s, "One real problem (Qwen3-8B): products X, Y, Z cost $10, $15, $20 under three limits. Minimum cost? → 20000", 0.6, 1.28, 12.1, 0.4, { fontSize: 16 });
+const STEPS = [["Write a program", "Objective().Minimize()", "✗ crash: no such method", RED, "FADBD8", "without a fact"],
+               ["Add the fact", "solver.Minimize(v)", "the call, from its own checked program → prints 20000 ✓", "38761D", "E2F0D9", "316 tokens"],
+               ["Free check", "20000 = 20000", "a 2nd version agrees ✓", "38761D", "E2F0D9", "+312 tokens"],
+               ["Think harder?", "skipped", "only if the versions differ or crash", "7F7F7F", "F2F2F2", "0 tokens"],
+               ["Reuse", "same program", "same kind of problem, new data", BLUE, "DEEBF7", "≈ 0 tokens"]];
+STEPS.forEach(([head, big, small, col, fill, cost], k) => {
+  const x = 0.6 + k * 2.45;
+  s.addShape(pres.shapes.OVAL, { x, y: 1.83, w: 0.5, h: 0.5, fill: { color: BLUE }, line: { color: BLUE }, objectName: "method badge " + (k + 1) });
+  s.addText(String(k + 1), { isTextBox: true, x, y: 1.83, w: 0.5, h: 0.5, fontSize: 18, bold: true, color: "FFFFFF", align: "center", valign: "middle", margin: 0 });
+  txt(s, head, x + 0.6, 1.83, 1.75, 0.5, { fontSize: 17, bold: true });
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 2.45, w: 2.3, h: 1.3, rectRadius: 0.08, fill: { color: fill }, line: { color: col, width: 1 }, objectName: "method step " + head });
+  txt(s, big, x + 0.1, 2.5, 2.1, 0.5, { fontSize: big.length > 18 ? 10.5 : big.length > 14 ? 13 : 18, bold: true, color: col, align: "center", fontFace: k < 2 ? "Courier New" : THEME.bodyFontFace });
+  txt(s, small, x + 0.1, 3.02, 2.1, 0.68, { fontSize: 13, color: C.text1, align: "center", valign: "top" });
+  txt(s, cost, x, 3.8, 2.3, 0.3, { fontSize: 14, bold: true, color: C.text2, align: "center" });
+  if (k < 4) arrow(s, x + 2.3, 3.07, x + 2.45, 3.07);
+});
+function pair(x, head, rows) {   // two labelled bars
+  txt(s, head, x, 4.25, 5.9, 0.4, { fontSize: 15, bold: true });
+  rows.forEach(([lab, v, shown, col], r) => {
+    const y = 4.72 + r * 0.48;
+    txt(s, lab, x, y, 2.3, 0.4, { fontSize: 14, align: "right" });
+    s.addShape(pres.shapes.RECTANGLE, { x: x + 2.4, y: y + 0.08, w: Math.max(0.05, 2.4 * v), h: 0.26, fill: { color: col }, line: { color: col, width: 0.5 }, objectName: head + " " + lab });
+    txt(s, shown, x + 2.5 + 2.4 * v, y, 1.3, 0.4, { fontSize: 14, bold: true, color: col });
+  });
 }
-wstep(0, "Mine the fact (once)", "for this kind of problem: the model's own program for another problem (vans and trucks) that passed the check; it shows solver.Minimize(...)", "paid once", 0.6, 2.75, "E2F0D9");
-arrow(s, 3.35, 2.7, 3.55, 2.7);
-wstep("1-2", "Program + fact", "writes solver.Minimize(10*x + 15*y + 20*z) and prints 20000 (without the fact it crashes)", "316 tokens", 3.55, 2.35, "DEEBF7", BLUE);
-arrow(s, 5.9, 2.7, 6.1, 2.7);
-wstep(3, "Free check", "a second version also runs and prints 20000: the two agree", "+312 tokens", 6.1, 2.2, "DEEBF7", BLUE);
-arrow(s, 8.3, 2.7, 8.5, 2.7);
-wstep(4, "Think? No", "think harder only if they disagree or crash; here accept 20000 (thinking alone: 5.3k tokens)", "total 0.6k", 8.5, 2.3, "FFFFFF", "38761D");
-arrow(s, 10.8, 2.7, 11.0, 2.7);
-wstep(5, "Reuse", "same kind of problem with new data: run the checked program again", "≈ 0 tokens", 11.0, 1.7, "F2F2F2");
-txt(s, "The free check depends on the kind of problem (no answers needed)", 0.6, 4.5, 12.1, 0.4, { fontSize: 16, bold: true });
-table(s, [
-  [HDR("Contest problems"), HDR("Geometry"), HDR("Routing and scheduling"), HDR("Word problems and math")],
-  ["run the sample tests printed in the statement", "same answer on moved, turned and mirrored copies; or two versions agree",
-   "the plan obeys every rule (capacity, time windows)", "the program runs and prints a value; two versions (or text and program) agree"],
-], { x: 0.6, y: 4.92, w: 12.1, colW: [3.0, 3.1, 3.0, 3.0], rowH: [0.42, 0.85], fontSize: 14 });
-caption(s, "Cheap steps first: this problem cost 0.6k tokens instead of 5.3k, and it is right");
-s.addNotes((pre || "") + "Real run (Qwen3-8B, MAMO easy-189). Step 0 happens once per kind of problem: the model's own shortest program for another benchmark problem that passed the label-free check becomes the fact. Steps 1-2: with it the program calls solver.Minimize(10*x + 15*y + 20*z) and prints 20000 (316 tokens); without it, it calls Objective().Minimize() and crashes. Step 3: a second program (312 tokens) also prints 20000, so they agree. Step 4: thinking is used only when the two disagree or a program crashes; here it is skipped (thinking alone took 5,323 tokens). Step 5: if the same kind of problem comes back with new data, the checked program is reused. Table: what the free check is in each domain; none needs the answer.");
+pair(0.6, "This problem: tokens (both answers right)", [["always think", 1.0, "5.3k", "7F7F7F"], ["our method", 0.12, "0.6k", BLUE]]);
+pair(6.8, "All 624 problems, 3 models: % solved · tokens", [["think on hardest", 0.74, "74% · 4.1k", "7F7F7F"], ["our method", 0.87, "87% · 2.5k", BLUE]]);
+txt(s, "Free check, no answers needed:", 0.6, 5.85, 3.1, 0.45, { fontSize: 14, bold: true });
+[["contest", "sample tests pass"], ["geometry", "moved copies agree"], ["routing", "plan obeys rules"], ["word problems", "two versions agree"]].forEach(([k, v], r) => {
+  box(s, "", 3.7 + r * 2.27, 5.83, 2.17, 0.5, "F2F2F2");
+  txt(s, [{ text: k + ": ", options: { bold: true } }, { text: v }], 3.75 + r * 2.27, 5.83, 2.07, 0.5, { fontSize: 13, align: "center" });
+});
+s.addNotes((pre || "") + "Real run (Qwen3-8B, MAMO easy-189, answer 20000). 1: without a fact the program calls Objective().Minimize(), which does not exist, and crashes. 2: the fact is the model's own earlier program for another problem (vans and trucks) that passed the check; with it the program writes solver.Minimize(10*x + 15*y + 20*z) and prints 20000 (316 tokens). 3: the free check, a second version, also prints 20000 (312 tokens): they agree. 4: so no thinking (thinking alone took 5,323 tokens). 5: the same kind of problem with new data reuses the checked program. Bottom: this problem 0.6k vs 5.3k tokens; over 624 geometry and optimization problems (Qwen3-8B, Qwen3-32B, Qwen3.6, 3 seeds) 87% at 2.5k vs 74% at 4.1k for thinking on the hardest-looking problems. The free check in each domain needs no answers: contest sample tests, geometry copies that must agree, routing plans that must obey every rule, word problems with two versions that must agree.");
 }
-slideWalkthrough("Method", "How the recipe runs on one problem");
+slideMethod("Method", "Our method on one real problem");
 
 // 9. All together
 function slideTogether(section, title, pre) {   // pre: text put before the speaker notes
@@ -525,21 +533,18 @@ slideLimits("Next", "Where the recipe stops, and what is next");
 const FULL = path.join(ROOT, "PROPOSAL_slides_full.pptx");
 pres.writeFile({ fileName: FULL }).then(async () => { await applyTheme(FULL, THEME); console.log("written", FULL); buildTalk(); });
 
-// ================= 5-minute talk + 5 minutes of questions (PROPOSAL_slides.pptx): 9 slides, then extra pages =================
+// ================= 5-minute talk + 5 minutes of questions (PROPOSAL_slides.pptx): 8 slides, then extra pages =================
 function buildTalk() {
   pres = newDeck();
   pres.addSection({ title: "Talk" });
   slideTitle("Talk", "POSTECH CSED490E (Graduate NLP) · Team 5 · 5-minute proposal talk",
-    "(10 s) We study how to solve computational math with LLMs: answers that must be computed exactly, with the fewest tokens and the smallest GPU. Nine slides, then extra pages for questions.");
+    "(10 s) We study how to solve computational math with LLMs: answers that must be computed exactly, with the fewest tokens and the smallest GPU. Eight slides, then extra pages for questions.");
   slideProblem("Talk", "(30 s) " + PROBLEM_NOTES);
   slideFact("Talk", "Finding 1: give the fact, not the manual", "(40 s) ");
   slideTwoVersions("Talk", "Finding 2: two versions catch each other's mistakes", "(40 s) ");
   slideHard("Talk", "Finding 3: think harder only when a check fails", "(40 s) ");
   slideAuto("Talk", "Finding 4: the fact can be found without a human", "(40 s) ");
-  slideRecipe("Talk", "Our method: a recipe from these findings", false,
-    "(35 s) The findings give a recipe, cheapest steps first: write a program, add the missing fact (by hand or mined automatically), run a free check, think harder only on a failure, reuse a checked program when the problem repeats. Together, on 624 geometry and optimization problems with 3 models: 87% at 2.5k tokens per problem, vs 74% at 4.1k for spending thinking on the hardest-looking problems. Takeaway: give the fact first, think only where a free check fails. Extra pages: small models, reuse, proofs, the full comparison with published methods, limits.");
-
-  slideWalkthrough("Talk", "How the recipe runs on one problem", "(40 s) ");
+  slideMethod("Talk", "Our method: cheap steps first", "(60 s) The findings give one recipe, shown on a real problem: write a program, add the missing fact, run a free check, think harder only if it fails, reuse the checked program for the same kind of problem. ");
 
   // closing slide: the takeaway, then 5 minutes of questions with the extra pages as an index
   function slidePays(section, title) {
