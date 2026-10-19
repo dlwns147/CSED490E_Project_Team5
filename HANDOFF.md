@@ -3,6 +3,13 @@
 State as of 2026-10-13 08:00 UTC. All GPU work on the old servers has been stopped and the hourly loop cancelled.
 
 ## 0. Server 2 status (2026-10-13 14:00 UTC)
+STATUS 15:35 (10-19): USER TASK CH (approach hints on the 311 contest geometry problems; docs/prereg/PREREG_CH.md, committed 1caf94f before
+running). RUNNING queue_s2_ch.sh: gpt-oss-120b GPU1 port 8044, gpt-oss-20b GPU2 port 8045; tags <m>_medium_tag (255 tagged problems) and
+<m>_medium_plan, seeds 1-3 -> results/h2/cc_full_*; auto-analysis results/h2/ch_analysis.log (poc/analyze_ch.py; oracle-agreement cache
+results/h2/ch_oracle_agree.jsonl). STILL TO DO after the runs: LLM judge 'hint followed' (gpt-oss-120b low; validate on 20 by reading),
+read >= 10 flipped programs both directions, failure kinds of the baseline medium runs (re-run stored code), FINDINGS entry, git push.
+Baselines (analyze_ch): 120b medium 56.8% @ 6.8k, high 66.2% @ 30.1k, N13b 66.2% @ 24.8k; 20b medium 47.1% @ 8.7k, high 37.9% @ 47.5k, N13b 51.9% @ 37.7k.
+GPU3: Qwen3-32B MAMO replication (queue_s2_x7rep_q32b.sh). FORM / FORM-S / FORM2 done (PREREG_X7.md).
 STATUS 11:55 (10-19): check headroom (offline, FINDINGS): a perfect check adds only 0.8-2.6 points for 14B+ models on word problems. ADAPT
 r1d7 cheap arms done (NoThinking text 80.5% MATH-500 = paper); r1d7 prog 35% no-code replies = the model answering in text, verified on re-asked samples
 (run_adapt now saves 'raw' for no-code rows). Next free GPU: decide from PROPOSAL §9 (Qwen3.6 / Qwen3-8B MAMO finishing).
