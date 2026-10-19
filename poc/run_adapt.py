@@ -46,7 +46,8 @@ if __name__ == "__main__":
             code = last_block(text, ("python", "py", "python3"))
             res = run_python(code, "", timeout=30, mem_bytes=2 << 30) if code else None
             out = (res.stdout if res and res.status == "ok" else "") or ""
-            row.update(code=code, status=(res.status if res else "no_code"), stdout=out[-500:], cands=to_candidates(out))
+            row.update(code=code, status=(res.status if res else "no_code"), stdout=out[-500:], cands=to_candidates(out),
+                       raw=text[-1500:] if not code else "")   # 2026-10-19: keep the reply when no program was found (audit)
         else:
             row.update(text=text[-3000:], head=raw[:300])
         return row
