@@ -20,3 +20,14 @@ FF 77.3% @ 0.6k, FFR 78.8% @ 1.9k, THINK 76.0% @ 2.7k** (EasyLP / ComplexLP FFR 
   at 22% of its tokens). **X7-P3 holds** (pilot-of-30 regret 1.27 points; best policy FFR).
 Addendum (before running): Qwen3.6 on MAMO, same arms, 80k thinking (T 1.0 / top_k 20), GPU2 — prediction: automatic FFR ≥ 3 points
 below hand-written (as on X6).
+
+## Results, Qwen3-14B-AWQ and Qwen3-8B (2026-10-19 05:36 UTC)
+| model | no fact | hand: CHEAP / FF / FFR / THINK | automatic: CHEAP / FF / FFR / THINK | pilot-30 regret |
+|---|---|---|---|---|
+| Qwen3-14B-AWQ | 59.7% | 68.0 / 71.4 @ 0.9k / 71.4 @ 2.6k / 65.5 @ 6.5k | 68.4 / **70.7 @ 0.8k** / **71.7 @ 2.8k** / 68.8 @ 6.6k | 0.82 |
+| Qwen3-8B | 45.5% | 57.5 / 70.2 @ 1.8k / 72.0 @ 4.5k / 69.2 @ 7.9k | **67.7** / 69.5 @ 1.0k / 71.0 @ 3.1k / 65.1 @ 7.7k | 1.35 |
+- **X7-P1 holds for Qwen3-14B-AWQ** (+0.3); **refuted for Qwen3-8B in the good direction** (−1.0, not ≥ 4 below): on MAMO the 8B model's mined
+  example is a *better* cheap fact than the snippet (67.7 vs 57.5%: 94% of its programs run vs 84%, pass-but-wrong 28% vs 30%).
+- **X7-P2 holds** for both (automatic FF ≥ always-thinks − 2 at 12–13% of its tokens). **X7-P3 holds** (regret 0.82 / 1.35).
+Replication (pre-registered now; our rule: positive claims need ≥ 3 seeds): cheap arms seed 3 and thinking seeds 2–3 for Qwen3-14B-AWQ
+(GPU1) and gpt-oss-20b (GPU3) (queue_s2_x7rep.sh); prediction: the automatic-vs-hand FFR gap stays within ±2 points on each seed pair.

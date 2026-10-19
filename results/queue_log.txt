@@ -405,3 +405,6 @@ S2_X6VER3 q14a (v s) done (4140/4140) Mon Oct 19 02:15:06 UTC 2026
 S2_X7 queued (MAMO held-out; 4 models on GPUs 0-3; PREREG_X7.md) Mon Oct 19 02:38:05 UTC 2026
 S2_X7 oss20_mamo done (6041/6041) Mon Oct 19 02:58:47 UTC 2026
 S2_X7 q36 queued (GPU2) Mon Oct 19 03:36:14 UTC 2026
+S2_X7 q14a_mamo done (6041/6041) Mon Oct 19 05:04:03 UTC 2026
+S2_X7 q8b_mamo done (6041/6041) Mon Oct 19 05:29:26 UTC 2026
+S2_X7REP queued (q14a GPU1, oss20 GPU3) Mon Oct 19 05:36:39 UTC 2026
