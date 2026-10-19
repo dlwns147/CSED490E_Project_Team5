@@ -2,7 +2,8 @@
 fig18: the recipe; fig19: cost vs accuracy of compute-allocation policies (docs/prereg/PREREG_U1.md, results/u1r_all_cure1.log:
 3 models x geometry + optimization suites, 624 items, cure seed 1; first-program tokens from the S2_U1 base_s1 runs);
 fig20: gain of one API fact by model size (docs/prereg/PREREG_SIZE.md, X6 = NL4OPT + IndustryOR, 345 problems x 3 seeds);
-fig21: results at a glance (numbers from PROPOSAL.md sections 3, 4 and 7)."""
+fig21: results at a glance (numbers from PROPOSAL.md sections 3, 4 and 7);
+fig22: newer results (docs/prereg/PREREG_X7.md held-out MAMO, PREREG_MODEL.md policy choice, PREREG_PROOF.md Lean proofs)."""
 import os
 import sys
 
@@ -118,3 +119,32 @@ fig.text(0.006, 0.975, "Results at a glance: the same or better accuracy for few
 fig.text(0.006, 0.93, "blue = our recipe step;  grey = the usual way or a published method;  red = makes it worse", fontsize=11.5, color=st.INK2, va="top")
 fig.savefig(os.path.join(st.OUT, "fig21_results_glance.png"), dpi=200); plt.close(fig)
 print("wrote fig21_results_glance.png")
+
+# ---------- fig22: newer results (automatic facts on a held-out benchmark, choosing the policy, proofs) ----------
+NEW = [
+    ("Facts found automatically", "held-out MAMO (863 word problems), gpt-oss-20b: % solved", [
+        ("no fact", 73.2, "73%", GREY), ("hand-written fact", 78.9, "79%", GREY),
+        ("model's own program", 78.8, "79% (no human)", BLUE)]),
+    ("Choosing the policy", "63 settings: points lost vs each one's best policy (lower is better)", [
+        ("always think", 84, "8.4", GREY), ("fact first, think on failure", 14, "1.4", BLUE),
+        ("best of 4 on 30 labelled", 6, "0.6", BLUE)]),
+    ("Proofs need a specialized model", "Lean proofs (miniF2F, 244), 8 tries: % proved", [
+        ("Qwen3-32B", 12.7, "13%", GREY), ("gpt-oss-20b", 27.0, "27%", GREY),
+        ("Qwen3.6-35B", 54.5, "55%", GREY), ("Goedel-Prover-V2-8B", 73.8, "74%", BLUE)]),
+]
+fig, ax = plt.subplots(figsize=(16, 4.7))
+fig.subplots_adjust(left=0.005, right=0.995, top=0.81, bottom=0.01)
+ax.set_xlim(0, 160); ax.set_ylim(43.5, 76); ax.axis("off")
+for k, (title, sub, rows) in enumerate(NEW):
+    x0, top = 1 + k * 53, 75
+    ax.text(x0, top, title, fontsize=14, weight="semibold", color=st.INK, va="top")
+    ax.text(x0, top - 3.6, sub, fontsize=10, color=st.INK2, va="top")
+    for r, (lab, v, shown, col) in enumerate(rows):
+        y = top - 10.5 - r * 5.6
+        ax.text(x0 + 18, y, lab, fontsize=11, color=st.INK2, ha="right", va="center")
+        ax.add_patch(plt.Rectangle((x0 + 19, y - 1.8), max(0.3, 0.21 * v), 3.6, color=col, lw=0))
+        ax.text(x0 + 19.8 + 0.21 * v, y, shown, fontsize=11.5, weight="semibold", va="center", color=col if col != GREY else st.INK2)
+fig.text(0.006, 0.97, "New results: facts without a human, a policy from 30 labels, and where proofs need another tool", fontsize=17, weight="semibold", color=st.INK, va="top")
+fig.text(0.006, 0.885, "blue = our recipe or the tool that works;  grey = the alternatives", fontsize=11.5, color=st.INK2, va="top")
+fig.savefig(os.path.join(st.OUT, "fig22_new_results.png"), dpi=200); plt.close(fig)
+print("wrote fig22_new_results.png")

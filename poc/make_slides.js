@@ -301,6 +301,45 @@ txt(s, "each square = one of 48 new days · green = a valid route plan", 4.1, 5.
 txt(s, "Only the data change, so one checked program keeps working (also on 4× bigger days). New rule? Ask the model to edit it.", 0.6, 5.85, 12.1, 0.6, { fontSize: 17 });
 s.addNotes("Analogy for the 56 Solomon routing problems: each problem is like one day's orders. A: a new program per day is valid on 6 and 1 of 48 days in two runs (7%; drawn as 3), about 1.8k tokens each. B: draw 16 programs once, keep the one that gives valid plans on 8 practice days, reuse it: valid on 45 of 48 days (94%), 28k tokens in total. Reused programs also work on 200- and 400-customer problems; for a new rule (job-shop with release dates) editing the working program beats writing a new one (10% to 68-100%).");
 
+// 7b. Finding 6: automatic facts
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Findings" });
+s.addText("Finding 6: the fact can be found without a human", { placeholder: "title" });
+box(s, "solve other problems of the same kind (another benchmark)", 0.6, 1.45, 3.7, 0.8, "FFFFFF", { fontSize: 15 });
+arrow(s, 4.3, 1.85, 4.75, 1.85);
+box(s, "keep the model's shortest program that passed the free check", 4.75, 1.45, 3.9, 0.8, "DEEBF7", { fontSize: 15 });
+arrow(s, 8.65, 1.85, 9.1, 1.85);
+box(s, "show it as the fact for new problems", 9.1, 1.45, 3.6, 0.8, "E2F0D9", { fontSize: 15 });
+s.addChart(pres.charts.BAR, [
+  { name: "no fact", labels: ["gpt-oss-20b", "Qwen3-14B (4-bit)", "Qwen3-8B"], values: [73.2, 59.7, 45.5] },
+  { name: "hand-written fact", labels: ["gpt-oss-20b", "Qwen3-14B (4-bit)", "Qwen3-8B"], values: [78.9, 71.4, 72.0] },
+  { name: "found automatically", labels: ["gpt-oss-20b", "Qwen3-14B (4-bit)", "Qwen3-8B"], values: [78.8, 71.7, 71.0] },
+], { x: 0.6, y: 2.45, w: 7.7, h: 3.6, barDir: "col", barGrouping: "clustered", chartColors: ["A5A5A5", "7F7F7F", THEME.colors.accent1],
+     showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0", dataLabelFontSize: 12, dataLabelFontFace: "+mn-lt",
+     valAxisMaxVal: 100, valAxisMinVal: 0, valAxisLabelFontSize: 11, valAxisLabelFontFace: "+mn-lt", valAxisLabelColor: "595959",
+     catAxisLabelFontSize: 13, catAxisLabelFontFace: "+mn-lt", catAxisLabelColor: "404040",
+     valGridLine: { color: "E7E6E6", size: 0.75 }, catGridLine: { style: "none" },
+     showLegend: true, legendPos: "t", legendFontSize: 13, legendFontFace: "+mn-lt",
+     showTitle: true, title: "MAMO: 863 word problems we never used before (% solved)", titleFontSize: 14, titleFontFace: "+mn-lt", titleColor: "404040",
+     objectName: "automatic fact on held-out MAMO" });
+panel(s, 8.6, 2.55, 4.1, 3.45, "what does not work");
+txt(s, "What does not work", 8.85, 2.7, 3.6, 0.45, { fontSize: 18, bold: true, color: RED });
+bullets(s, ["a program from a different problem type: 14–21 points worse", "a list of the library's names: Qwen3-32B 66% → 56%"], { x: 8.85, y: 3.25, w: 3.6, h: 2.6, fontSize: 16 });
+caption(s, "Automatic = hand-written within about 1 point, with no human in the loop");
+s.addNotes("X6-AUTO / X6-VER / X7. The fact is the model's own shortest program from NL4OPT / IndustryOR that passed the label-free check (it runs and prints a value); no answers, no human. On the held-out MAMO benchmark the recipe (two programs with this fact, think only if they disagree) matches the hand-written snippet: gpt-oss-20b 78.8 vs 78.9% (within 1.2 points on 3 seeds), Qwen3-14B-AWQ 71.7 vs 71.4%, Qwen3-8B 71.0 vs 72.0%. It stays within a problem family: a program of another problem type is 14-21 points below the hand-written fact on the optimization suite, and an introspected list of the library's names hurts (Qwen3-32B 66.2 to 56.1%).");
+
+// 7c. Finding 7: proofs
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Findings" });
+s.addText("Finding 7: proofs need a specialized model, not a fact", { placeholder: "title" });
+txt(s, "Lean 4 proofs of competition statements (miniF2F, 244), 8 tries each: % proved", 0.6, 1.35, 7.9, 0.45, { fontSize: 17, bold: true });
+hbars(s, 0.6, 1.9, 7.9, [["Qwen3-32B", 12.7, "13%", "A5A5A5"], ["gpt-oss-20b", 27.0, "27%", "A5A5A5"], ["Qwen3.6-35B", 54.5, "55%", "A5A5A5"],
+                         ["DeepSeek-Prover-V2-7B", 67.6, "68%", "5B9BD5"], ["Goedel-Prover-V2-8B", 73.8, "74%", BLUE]], 0.58, 2.9, 1.0);
+panel(s, 8.8, 1.4, 3.9, 3.3, "nothing in the recipe helps");
+txt(s, "For general models, no step helps", 9.0, 1.5, 3.5, 0.75, { fontSize: 17, bold: true, color: RED, valign: "top" });
+bullets(s, ["a verified similar proof: 133 → 133", "thinking: 133 → 129", "inequality fact sheet: 24 → 21 (of 50)", "fixing from Lean's errors: half as good as a fresh try"], { x: 9.0, y: 2.25, w: 3.5, h: 2.4, fontSize: 15 });
+txt(s, "Geometry proofs (AlphaGeometry's symbolic engine): IMO 12 of 30 alone → 13 with LLM-proposed points; easier JGEX 187 of 231 → 200", 0.6, 5.0, 12.1, 0.8, { fontSize: 16 });
+caption(s, "The missing piece is a skill, not a fact: use a specialized 8B prover (fits one 24 GB GPU)");
+s.addNotes("PREREG_PROOF. miniF2F test (244), 8 attempts, Lean 4 + Mathlib compiler as the exact check. Specialized provers that fit a 24 GB GPU prove the most and rarely invent lemma names (6-7% of failed attempts vs 22-40%). For general models a verified proof of the most similar statement (Qwen3.6 133 vs 133; gpt-oss-20b 65 vs 66), thinking (Qwen3.6 129), or a 10-line inequality toolkit (21 vs 24 of 50 bound statements) does not help; even for the provers, revising a failed proof from Lean's error lines proves half as many as a fresh attempt (Goedel 11 vs 22 of 107; DeepSeek 5 vs 13 of 112). Geometry: AlphaGeometry's DD+AR engine alone proves 12 of IMO-AG-30 and 187 of JGEX-AG-231; auxiliary points proposed by gpt-oss-20b add 13 JGEX problems; only IMO 2014 P4 is unlocked by any model's proposal.");
+
 pres.addSection({ title: "Method" });
 // 4. Recipe
 s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Method" });
@@ -314,7 +353,7 @@ function step(s, n, head, res, x, y, w) {
 }
 step(s, 1, "Write a program", "right on 8 of 8 copies (slide 2)", 0.6, 1.7, 2.9);
 arrow(s, 3.5, 2.37, 3.9, 2.37);
-step(s, 2, "Add the missing fact", "routing 23% → 77–90% (findings 1–2)", 3.9, 1.7, 3.0);
+step(s, 2, "Add the missing fact", "23% → 77–90%; can be automatic (findings 1, 2, 6)", 3.9, 1.7, 3.0);
 arrow(s, 6.9, 2.37, 7.3, 2.37);
 step(s, 3, "Run a free check", "examples, or two versions agree (finding 3)", 7.3, 1.7, 2.9);
 arrow(s, 10.2, 2.1, 10.6, 1.85); arrow(s, 10.2, 2.65, 10.6, 2.95);
@@ -329,14 +368,23 @@ s.addNotes("Each step is a measured result, shown on the next slides with an exa
 s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Method" });
 s.addText("All together: facts first, think only on failure", { placeholder: "title" });
 txt(s, "Same 624 geometry and optimization problems, 3 models: % solved · tokens per problem", 0.6, 1.35, 12.1, 0.45, { fontSize: 18 });
-hbars(s, 0.6, 1.95, 12.1, [["First program, no help", 63, "63% · 0.7k", "A5A5A5"],
-                           ["Think on the hardest-looking problems", 74, "74% · 4.1k", "7F7F7F"],
-                           ["Think whenever the check fails", 77, "77% · 4.2k", "7F7F7F"],
-                           ["Choose the fix by failure type", 83, "83% · 4.2k", THEME.colors.accent2],
-                           ["Retrieved fact first, then think on failure", 84, "84% · 3.3k", "5B9BD5"],
-                           ["Fact first, then think on failure", 87, "87% · 2.5k", BLUE]], 0.62, 4.6, 2.1);
+hbars(s, 0.6, 1.95, 8.2, [["First program, no help", 63, "63% · 0.7k", "A5A5A5"],
+                          ["Think on hardest-looking", 74, "74% · 4.1k", "7F7F7F"],
+                          ["Think when check fails", 77, "77% · 4.2k", "7F7F7F"],
+                          ["Fix by failure type", 83, "83% · 4.2k", THEME.colors.accent2],
+                          ["Retrieved fact, then think", 84, "84% · 3.3k", "5B9BD5"],
+                          ["Fact first, then think", 87, "87% · 2.5k", BLUE]], 0.62, 2.9, 1.7);
+panel(s, 9.0, 1.9, 3.7, 3.9, "new task");
+txt(s, "A new task? Label 30 problems", 9.2, 2.0, 3.3, 0.75, { fontSize: 17, bold: true, valign: "top" });
+txt(s, "points lost vs the best policy, over 63 settings (lower is better)", 9.2, 2.75, 3.3, 0.6, { fontSize: 13, color: C.text2, valign: "top" });
+[["always think", 8.4, "A5A5A5"], ["fact first (default)", 1.4, BLUE], ["pick on 30 labels", 0.6, BLUE]].forEach(([lab, v, col], r) => {
+  const y = 3.5 + r * 0.7;
+  txt(s, lab, 9.2, y, 3.3, 0.3, { fontSize: 14 });
+  s.addShape(pres.shapes.RECTANGLE, { x: 9.2, y: y + 0.32, w: Math.max(0.05, 0.3 * v), h: 0.22, fill: { color: col }, line: { color: col, width: 0.5 }, objectName: "loss " + lab });
+  txt(s, String(v), 9.3 + 0.3 * v, y + 0.25, 0.6, 0.35, { fontSize: 14, bold: true, color: col === "A5A5A5" ? "595959" : col });
+});
 caption(s, "Most accurate and among the cheapest on all 3 seeds: spend thinking where a check fails");
-s.addNotes("U1 / U1r / U2 (pre-registered). Qwen3-8B, Qwen3-32B and Qwen3.6 on the generated geometry and optimization suites, 624 problems, cure seed 1 shown; the order is the same on seeds 2 and 3. Thinking on the hardest-looking problems (difficulty-based allocation, as in compute-optimal scaling work) is even below thinking whenever the check fails. Giving the fact first and thinking only when the check fails is the most accurate and uses fewer tokens than any thinking policy; with automatically retrieved facts (BM25) it still reaches 84%.");
+s.addNotes("Right panel (MODEL, 63 model x task x seed cells; 0.5 points per 1k tokens): fact first, think on failure is the best fixed default (1.4 points from each cell's best policy; always thinking 8.4); choosing among 4 policies on 30 labelled problems of the new task cuts it to 0.6 (MAMO: 0.8-1.4). U1 / U1r / U2 (pre-registered). Qwen3-8B, Qwen3-32B and Qwen3.6 on the generated geometry and optimization suites, 624 problems, cure seed 1 shown; the order is the same on seeds 2 and 3. Thinking on the hardest-looking problems (difficulty-based allocation, as in compute-optimal scaling work) is even below thinking whenever the check fails. Giving the fact first and thinking only when the check fails is the most accurate and uses fewer tokens than any thinking policy; with automatically retrieved facts (BM25) it still reaches 84%.");
 
 // 9b. Published methods
 s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Method" });
@@ -362,19 +410,20 @@ pres.addSection({ title: "Next" });
 s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Next" });
 s.addText("Where the recipe stops, and what is next", { placeholder: "title" });
 [["Where it stops", RED, [
-   "Missing knowledge that is not a library fact: Lean proofs, factual questions. Thinking cannot add it (+2–5 points at 70–200× tokens)",
+   "Proofs: a skill, not a fact (use a specialized prover)",
+   "Automatic facts only within one kind of problem",
    "Checks leak: 24–37% of wrong contest programs pass the examples",
-   "Facts were hand-written; automatic retrieval keeps most of the gain (84% vs 87%)"]],
+   "Missing world knowledge: thinking adds 2–5 points at 70–200× tokens"]],
  ["Next", BLUE, [
-   "Contest geometry on one 24 GB GPU (gpt-oss-20b, running)",
-   "Competition math for small models (running)",
-   "Facts found automatically; a commercial model; final report"]]].forEach(([head, col, items], i) => {
+   "Repeat the held-out MAMO test for 3 more models (3 seeds)",
+   "Automatic facts for each problem type",
+   "Final report; a commercial model if available"]]].forEach(([head, col, items], i) => {
   const x = 0.6 + i * 6.15;
   panel(s, x, 1.55, 5.95, 4.1, head);
   txt(s, head, x + 0.3, 1.7, 5.35, 0.6, { fontSize: 26, bold: true, color: col });
   bullets(s, items, { x: x + 0.3, y: 2.4, w: 5.35, h: 3.1, fontSize: 17 });
 });
 caption(s, "Every claim pre-registered and checked on 3 seeds; accuracy always reported with its token cost");
-s.addNotes("Limits: for Lean proofs an invented lemma stands for a missing proof step (similar-name feedback fixes 2.7%, a fresh try 3.2%); for PopQA thinking adds 1.8-5 points at 70-200 times the tokens, only for well-known facts. Checks leak, which caps every policy. Facts were hand-written; BM25 retrieval recovers most of the gain. Next: SIZE-CC (gpt-oss-20b on contest geometry with check-gated escalation), X1-SIZE (competition math for Qwen3-4B/8B/14B), automatic facts, a closed API model, final report.");
+s.addNotes("Updated 2026-10-19. Done since the last version: contest geometry and competition math on 24 GB GPUs, Qwen3.6 with the model card settings (headline unchanged), automatic facts and the held-out MAMO test, the policy model, proofs. Older notes: for Lean proofs an invented lemma stands for a missing proof step (similar-name feedback fixes 2.7%, a fresh try 3.2%); for PopQA thinking adds 1.8-5 points at 70-200 times the tokens, only for well-known facts. Checks leak, which caps every policy. Facts were hand-written; BM25 retrieval recovers most of the gain. Next: SIZE-CC (gpt-oss-20b on contest geometry with check-gated escalation), X1-SIZE (competition math for Qwen3-4B/8B/14B), automatic facts, a closed API model, final report.");
 
 pres.writeFile({ fileName: OUT }).then(async () => { await applyTheme(OUT, THEME); console.log("written", OUT); });

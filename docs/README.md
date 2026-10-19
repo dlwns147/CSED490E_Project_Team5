@@ -22,3 +22,6 @@ Commands are in `poc/queues/queue_*<id>*.sh`, analyses in `poc/analyze_<id>.py`.
 | Beyond computation | X1 competition math, X2 reuse on variants, X3 optimization modeling (X4 Lean proofs, X6), VIEWS when a model can catch its own mistakes |
 | Allocating compute | U1 by failure mechanism vs by difficulty (U1r, U2: facts first, then think only on failure) |
 | Small models (one 24 GB GPU) | SIZE Qwen3-1.7B to 14B and gpt-oss-20b with the recipe, vs Qwen3-32B (SIZE-CC: contest geometry) |
+| Choosing the policy | MODEL: which policy wins where; 30 labelled problems pick it for a new task |
+| Facts without a human | X3 (X6-AUTO, X6-VER: the model's own checked program as the fact); X7 held-out MAMO with no hand-written component |
+| Proofs | PROOF: Lean 4 (miniF2F) with specialized provers vs general models; geometry proofs with AlphaGeometry's engine (IMO-AG-30, JGEX-AG-231) |

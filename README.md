@@ -9,8 +9,14 @@ program when the problem repeats.**
 
 ![Results at a glance](figs/fig21_results_glance.png)
 
-With the fact first, models that fit one 24 GB GPU match Qwen3-32B. Details: `PROPOSAL.md` (Korean: `PROPOSAL_ko.md`),
-`PROPOSAL_slides.pptx` (13 slides), `docs/README.md` (all experiments). Published baselines (compute-optimal scaling by difficulty,
+With the fact first, models that fit one 24 GB GPU match Qwen3-32B. The fact can be found without a human (the model's own
+program that passed the check; on a held-out benchmark it matches the hand-written fact), and 30 labelled problems pick the
+policy for a new task. Proofs are where the recipe stops: a specialized 8B prover beats every general model.
+
+![New results](figs/fig22_new_results.png)
+
+Details: `PROPOSAL.md` (Korean: `PROPOSAL_ko.md`),
+`PROPOSAL_slides.pptx` (15 slides), `docs/README.md` (all experiments). Published baselines (compute-optimal scaling by difficulty,
 CodeT, MBR-exec, DeepConf, DRoC, System 2 Attention, Self-Debugging, Dynamic Cheatsheet, ...) are measured on the same problems:
 `PROPOSAL.md` section 7.
 
@@ -19,7 +25,7 @@ CodeT, MBR-exec, DeepConf, DRoC, System 2 Attention, Self-Debugging, Dynamic Che
 ```
 bench.py                              one entry point: list / serve / run / analyze
 PROPOSAL.md, PROPOSAL_ko.md           proposal (English, Korean)
-PROPOSAL_slides.pptx                  13-slide overview with examples
+PROPOSAL_slides.pptx                  15-slide overview with examples
 HANDOFF.md                            server notes for continuing the work
 docs/                                 lab log, one pre-registration + results file per experiment, notes (index: docs/README.md)
 poc/                                  code: run_*.py benchmarks, analyze_*.py analyses, queues/ the exact commands we ran
