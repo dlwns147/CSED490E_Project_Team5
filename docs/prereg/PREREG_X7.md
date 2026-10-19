@@ -90,3 +90,20 @@ hand snippet (mipf) or its own mined program (mips); escalation = its official T
 **Qwen3.6 on MAMO (seed 1, 2026-10-19 13:41 UTC):** automatic FFR 75.0% @ 8.6k vs hand-written 73.6% @ 9.1k (+1.4); automatic FF 75.0% @ 3.2k vs always thinking
 70.7–71.8% @ 27–29k. **Prediction refuted in the good direction** (expected automatic ≥ 3 below hand). On MAMO thinking hurts Qwen3.6 (−3.2 vs
 fact-first at 9× the tokens); pilot-of-30 regret 1.25 (best policy FF). One seed only: not used for claims.
+
+## What the leak is made of (2026-10-19 13:44 UTC, offline) and INFEAS pre-registration (before running)
+On 66 MAMO problems (7.6%) at least 14 of our 20 programs (5 models × 2 seeds × 2 facts, ≥ 4 models) agree on an answer that differs from the
+label; STORM, trained separately, gives our answer on 60 of them (167 of 198 samples) and the label's on 10. The 3 we read are wrong or
+ill-posed labels (easy-71: the text gives 3000, label 1340; easy-157: the text as written gives 0; easy-2: two contradictory effectiveness
+definitions). Split of the leaked problems (two cheap programs agree, wrong; seed 1): gpt-oss-20b 106 = 51 disputed labels + 29 'infeasible'
++ 26 other; Qwen3-14B-AWQ 127 = 60 + 24 + 43; Qwen3-8B 158 = 57 + 29 + 72; Qwen3-32B 103 = 55 + 21 + 27; Qwen3.6 128 = 59 + 5 + 64.
+Without the 66 disputed problems STORM scores 87.7% and gpt-oss-20b's cheap automatic-fact program 80.1%. So for the strong models the
+largest catchable class of real errors is the over-strict (infeasible) model, which our check accepts and thinking fixes only 17–45% of.
+**INFEAS (poc/run_infeas.py; queue_s2_infeas.sh, GPU2):** every cheap program that printed 'No Best Solution' gets ONE repair turn without
+thinking: its program and a generic message (the solver says infeasible; the problem has a solution; find the constraint written more
+strictly than the text). gpt-oss-20b (low), Qwen3-14B-AWQ, Qwen3-8B; MAMO (automatic fact, mips) and NL4OPT + IndustryOR (hand fact, mipf);
+seeds 1–3. Policy compared offline: FFR where 'infeasible' fails the check and goes to (a) thinking or (b) the repair, then thinking only if
+the repaired program still fails.
+- IF-P1: on MAMO the repair makes ≥ 40% of the infeasible programs correct, per model and seed (thinking: 17–45% of the agreeing ones).
+- IF-P2: policy (b) ≥ policy (a) + 0.5 points on MAMO at fewer tokens, each model and seed.
+- IF-P3: on NL4OPT + IndustryOR (14 true 'No Best Solution' labels) the gain of (b) over (a) is at most half of MAMO's.
