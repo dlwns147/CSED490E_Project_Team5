@@ -133,7 +133,7 @@ s = pres.addSlide({ masterName: "Title Slide", sectionTitle: section });
 s.addText([{ text: "Solving Computational Math", options: { fontSize: 44, breakLine: true } },
             { text: "with LLMs, Accurately and Cheaply", options: { fontSize: 40 } }], { placeholder: "title" });
 s.addText([
-  { text: "Tools, Facts, and Checks", options: { breakLine: true } },
+  { text: "A fact, a check, or more thinking: where should the extra effort go?", options: { breakLine: true } },
   { text: sub, options: { fontSize: 16, color: THEME.colors.dk2 } },
 ], { placeholder: "body" });
 s.addNotes(notes);
@@ -163,6 +163,43 @@ s.addNotes(notes);
 }
 const PROBLEM_NOTES = "Qwen3-8B, real outputs. Asked to answer directly, it gives a different area for each copy of the same polygon (only the original is right). Asked for a program, it writes the shoelace formula and the computer gets all copies right. Programs still fail silently, and thinking longer is expensive: on 311 contest problems gpt-oss-120b goes from 57% to 66% for 4.4 times the tokens. Goal: effective (exactly right) and efficient (fewest tokens, smallest GPU).";
 slideProblem("Problem", PROBLEM_NOTES);
+
+// 2b. What goes wrong, why it matters, and what we do
+function slideWhy(section, title, pre) {
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
+s.addText(title, { placeholder: "title" });
+function card(x, head, col, fill) {
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.4, w: 3.9, h: 3.45, rectRadius: 0.08, fill: { color: fill }, line: { color: col, width: 1 }, objectName: "why " + head });
+  txt(s, head, x + 0.2, 1.5, 3.5, 0.5, { fontSize: 19, bold: true, color: col });
+}
+card(0.6, "1. Programs fail silently", RED, "FDF2F1");
+txt(s, "a convex-hull program (Qwen3-14B, 10 points):", 0.8, 2.05, 3.5, 0.35, { fontSize: 14 });
+code(s, "output: 0      (right answer: 6)", 0.8, 2.42, 3.5, 0.5, RED, 14);
+txt(s, "no error message, just a wrong number", 0.8, 2.95, 3.5, 0.35, { fontSize: 14, color: RED });
+txt(s, [{ text: "24–37%", options: { bold: true, fontSize: 24, color: RED, breakLine: true } },
+        { text: "of wrong contest programs still pass the examples in the problem" }], 0.8, 3.45, 3.5, 1.3, { fontSize: 14, valign: "top" });
+card(4.7, "2. Thinking is expensive", THEME.colors.accent2, "FDF0E6");
+txt(s, "311 contest problems (gpt-oss-120b)", 4.9, 2.05, 3.5, 0.35, { fontSize: 14 });
+[["medium effort", 57, "57% · 6.8k", "A5A5A5"], ["high effort", 66, "66% · 30k", THEME.colors.accent2]].forEach(([lab, v, shown, col], r) => {
+  const y = 2.5 + r * 0.55;
+  txt(s, lab, 4.8, y, 1.3, 0.4, { fontSize: 14, align: "right" });
+  s.addShape(pres.shapes.RECTANGLE, { x: 6.2, y: y + 0.07, w: 1.25 * v / 66, h: 0.28, fill: { color: col }, line: { color: col, width: 0.5 }, objectName: "effort " + lab });
+  txt(s, shown, 6.25 + 1.25 * v / 66, y, 1.15, 0.4, { fontSize: 14, bold: true, color: col === "A5A5A5" ? "595959" : col });
+});
+txt(s, [{ text: "4.4× the tokens", options: { bold: true, fontSize: 24, color: THEME.colors.accent2, breakLine: true } },
+        { text: "for 9 more points" }], 4.9, 3.6, 3.5, 1.2, { fontSize: 14, valign: "top" });
+card(8.8, "3. Why it matters", BLUE, "EEF3FB");
+bullets(s, ["coding agents already write route planners, schedulers and geometry code", "tokens are the cost and the waiting time",
+            "many teams have one 24 GB GPU, not a 120B model"], { x: 9.0, y: 2.05, w: 3.5, h: 2.7, fontSize: 15 });
+s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 0.6, y: 5.05, w: 12.1, h: 1.55, rectRadius: 0.08, fill: { color: "F2F2F2" }, line: { color: "D9D9D9", width: 0.75 }, objectName: "what we do" });
+txt(s, [{ text: "Our question: ", options: { bold: true, color: BLUE } },
+        { text: "where should the extra effort go: give a missing fact, run a cheap check, or think longer?", options: { breakLine: true } },
+        { text: "What we do: ", options: { bold: true, color: BLUE } },
+        { text: "test each fix on geometry, routing, scheduling, contest problems, word problems, competition math and proofs, with open models, scoring accuracy and tokens; then combine the winners into one recipe." }],
+    0.85, 5.1, 11.6, 1.45, { fontSize: 16 });
+s.addNotes((pre || "") + "Two problems: (1) programs fail silently: with extra helper functions Qwen3-14B's convex-hull program prints 0 corners instead of 6, with no error; 24-37% of gpt-oss-120b's wrong contest programs pass the examples printed in the problem. (2) Thinking is expensive: on 311 Codeforces geometry problems gpt-oss-120b solves 57% at medium effort (6.8k tokens per problem) and 66% at high effort (30k), 4.4 times the tokens for 9 more points. Why it matters: agents already write such code; tokens are cost and latency; most teams have one small GPU. Our question and plan: compare cheap fixes (a fact, a check, reuse) with thinking longer on real benchmarks, priced in tokens, and combine what works.");
+}
+slideWhy("Problem", "What goes wrong, and what we do");
 
 // 3. Words
 function slideWords(section, title, pre) {   // pre: text put before the speaker notes
@@ -570,13 +607,14 @@ slideLimits("Next", "Where the recipe stops, and what is next");
 const FULL = path.join(ROOT, "PROPOSAL_slides_full.pptx");
 pres.writeFile({ fileName: FULL }).then(async () => { await applyTheme(FULL, THEME); console.log("written", FULL); buildTalk(); });
 
-// ================= 5-minute talk + 5 minutes of questions (PROPOSAL_slides.pptx): 8 slides, then extra pages =================
+// ================= 5-minute talk + 5 minutes of questions (PROPOSAL_slides.pptx): 9 slides, then extra pages =================
 function buildTalk() {
   pres = newDeck();
   pres.addSection({ title: "Talk" });
   slideTitle("Talk", "POSTECH CSED490E (Graduate NLP) · Team 5 · 5-minute proposal talk",
-    "(10 s) We study how to solve computational math with LLMs: answers that must be computed exactly, with the fewest tokens and the smallest GPU. Eight slides, then extra pages for questions.");
-  slideProblem("Talk", "(30 s) " + PROBLEM_NOTES);
+    "(10 s) We study how to solve computational math with LLMs: answers that must be computed exactly, with the fewest tokens and the smallest GPU. Nine slides, then extra pages for questions.");
+  slideProblem("Talk", "(25 s) " + PROBLEM_NOTES);
+  slideWhy("Talk", "What goes wrong, and what we do", "(35 s) ");
   slideFact("Talk", "Finding 1: give the fact, not the manual", "(40 s) ");
   slideTwoVersions("Talk", "Finding 2: two versions catch each other's mistakes", "(40 s) ");
   slideHard("Talk", "Finding 3: think harder only when a check fails", "(40 s) ");

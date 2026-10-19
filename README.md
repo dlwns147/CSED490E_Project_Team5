@@ -17,7 +17,7 @@ repeats. With it, models that fit one 24 GB GPU match Qwen3-32B, and 30 labelled
 Proofs are where it stops: a specialized 8B prover beats every general model.
 
 Details: `PROPOSAL.md` (Korean: `PROPOSAL_ko.md`),
-`PROPOSAL_slides.pptx` (5-minute talk in 8 slides + 9 extra pages for the 5-minute Q&A; all findings in `PROPOSAL_slides_full.pptx`), `docs/README.md` (all experiments). Published baselines (compute-optimal scaling by difficulty,
+`PROPOSAL_slides.pptx` (5-minute talk in 9 slides + 11 extra pages for the 5-minute Q&A; all findings in `PROPOSAL_slides_full.pptx`), `docs/README.md` (all experiments). Published baselines (compute-optimal scaling by difficulty,
 CodeT, MBR-exec, DeepConf, DRoC, System 2 Attention, Self-Debugging, Dynamic Cheatsheet, ...) are measured on the same problems,
 and related research is mapped with reported numbers: `PROPOSAL.md` section 6 (and the talk's extra pages).
 
@@ -26,7 +26,7 @@ and related research is mapped with reported numbers: `PROPOSAL.md` section 6 (a
 ```
 bench.py                              one entry point: list / serve / run / analyze
 PROPOSAL.md, PROPOSAL_ko.md           proposal (English, Korean)
-PROPOSAL_slides.pptx                  5-minute talk (8 slides) + extra pages for questions
+PROPOSAL_slides.pptx                  5-minute talk (9 slides) + extra pages for questions
 PROPOSAL_slides_full.pptx             all findings with examples (15 slides)
 HANDOFF.md                            server notes for continuing the work
 docs/                                 lab log, one pre-registration + results file per experiment, notes (index: docs/README.md)

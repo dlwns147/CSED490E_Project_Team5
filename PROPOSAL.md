@@ -26,6 +26,10 @@ But programs fail **silently** (they still print an answer), and thinking is **e
 
 **Goal.** Solve these problems **effectively** (exactly right under strict checks) and **efficiently** (the fewest tokens, the smallest GPU). The question is *where* extra effort should go.
 
+**Why it matters.** Coding agents already write route planners, schedulers and geometry code; tokens are the cost and the waiting time; and many teams have one 24 GB GPU, not a 120B model.
+
+**What we do.** We test each cheap fix (a missing fact, a free check, reuse) against thinking longer, on geometry, routing, scheduling, contest problems, word problems, competition math and proofs, with open models, scoring accuracy and tokens; then we combine the winners into one recipe.
+
 ## 2. Findings at a glance
 
 Seven findings, each measured against the usual way (blue: the better way; grey: the usual way or a published method). Section 3 gives an example and the numbers for each; Section 4 turns them into one method, and Section 5 tests it (the "All together" and "Choosing the policy" panels).
