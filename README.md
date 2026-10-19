@@ -152,7 +152,8 @@ Each harness (`poc/run_*.py`) explains its options at the top of the file; anyth
 passed to it. The exact commands behind every reported number are in `poc/queues/queue_s2_<id>.sh`, and the
 predictions and results in `docs/prereg/PREREG_<id>.md`.
 
-Figures and slides: `python poc/make_figures_explain.py`, `node poc/make_slides.js` (needs `npm install pptxgenjs`).
+Figures and slides: `python poc/make_figures_frame.py` (figs 18–22), `node poc/make_slides.js` (needs `npm install pptxgenjs`),
+then `python poc/export_slide_figs.py` (the example pictures `figs/ex_finding*.png` used in the proposal).
 
 **Notes:** GPUs are shared: check `nvidia-smi` for a free GPU and port first. We claim a result only if it holds on
 3 seeds. Every output row stores its tokens (`out_tokens`), so accuracy can always be read with its cost.

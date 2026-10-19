@@ -39,38 +39,51 @@ Seven findings, each measured against the usual way (blue: the better way; grey:
 **Finding 1. Give the fact, not the manual: it beats thinking.**
 > *Example* (Qwen3-32B, delivery routes with OR-Tools). With the whole OR-Tools manual it calls a method that does not exist, `RegisterUnaryLongLivingCallback`, and crashes. With 5 lines showing the right call, `RegisterUnaryTransitCallback`, it finds the optimal plan.
 
-| Delivery routing (CVRP), Qwen3-32B | optimal |
-|---|---|
-| task only | 23% |
-| task only, think longer | 3% |
-| task + whole manual | 7% |
-| **task + 5 exact lines** | **77–90%** |
+![Finding 1: the exact usage lines vs the whole manual](figs/ex_finding1.png)
 
 Thinking cannot supply a fact the model lacks, and it can make things worse: on word problems (NL4OPT, IndustryOR) thinking *lowers* Qwen3-32B from 65.4% to 52.0%, because while reasoning it invents `Objective().SetMaximize`; with a 6-line snippet thinking helps instead (72.0%). On the 56 Solomon routing benchmarks, three facts together (file layout, "OR-Tools needs integers", a start strategy) take gpt-oss-120b from at most 6% to 100% valid plans. **Less is also more for tools:** 8 helper functions the task does not need lower Qwen3-32B on geometry from 77% to 59%, because it builds its method on an offered helper.
 
-**Finding 2. One fact helps small models most.** The smaller the model, the bigger the gain (Qwen3-1.7B 0% → 45%, Qwen3-32B 65% → 66%):
+**Finding 2. One fact helps small models most.**
+> *Example* (Qwen3-1.7B, word problems). Without the fact its programs check `status == pywraplp.Solver.SUCCESS` or use `solver.INFINITY`, names that do not exist, and almost all of them crash (0.1% solved). The 6-line snippet shows `pywraplp.Solver.OPTIMAL` and `s.infinity()`, and it solves 45%.
+
+The smaller the model, the bigger the gain (Qwen3-32B: 65% → 66%):
 
 ![One fact helps small models most](figs/fig20_fact_by_size.png)
 
-**Finding 3. A free check catches mistakes, and two different versions catch more.** The examples in a problem statement never reject a correct program, but 24–37% of gpt-oss-120b's *wrong* contest programs pass them too. Checks that look at the problem differently catch more: two programs written with and without the extra tools, or a text answer against a program, make different mistakes. Writing the geometry program with and without the extra tools and thinking only when the two disagree gives 99% at 4.3k tokens, vs 98% at 5.9k for always thinking (Qwen3-32B, 3 seeds). It fails when both versions share the same mistake (gpt-oss-120b's two contest programs).
+**Finding 3. A free check catches mistakes, and two different versions catch more.**
+> *Example* (Qwen3-14B, real output). "How many corners does the rubber band around these 10 points have?" Prompt A gives only the task: the program prints 6, correct. Prompt B adds 8 helper functions the task does not need: the program builds on `polar_sort` and prints 0. The two answers differ, so only this problem gets thinking. What a check can miss: on the contest problem *Find Color* a program passes all 3 examples in the statement and still fails hidden test 11.
+
+![Finding 3: two versions of the program](figs/ex_finding3.png)
+
+The examples in a problem statement never reject a correct program, but 24–37% of gpt-oss-120b's *wrong* contest programs pass them too. Checks that look at the problem differently catch more: two programs written with and without the extra tools, or a text answer against a program, make different mistakes. Writing the geometry program with and without the extra tools and thinking only when the two disagree gives 99% at 4.3k tokens, vs 98% at 5.9k for always thinking (Qwen3-32B, 3 seeds). It fails when both versions share the same mistake (gpt-oss-120b's two contest programs).
 
 **Finding 4. Think harder only when a check fails.**
 > *Example* (gpt-oss-120b). *Make a triangle!* (rated 800): the quick medium-effort program passes the examples, so it is submitted, correct, at no extra cost. *Arrow* (rated 2000): the quick program prints the wrong corners on the example, so only this problem gets high effort (4k + 13k tokens), and the new program is correct.
 
-![Pay for thinking only when a check fails](figs/fig14_reasoning_policies.png)
+![Finding 4: think harder only when the examples fail](figs/ex_finding4.png)
 
 On all 311 contest problems this keeps the accuracy of always using high effort (66.3% vs 66.2%) with 18% fewer tokens (24.7k vs 30.1k).
 
 **Finding 5. Repeated problems need only one checked program.**
 > *Example* (gpt-oss-120b, Solomon routing: think of each instance as one day's orders). Writing a new program every day gives a valid plan on 7% of 48 days (≈ 86k tokens). Writing 16 programs once, keeping the one that is valid on 8 past days and reusing it gives a valid plan on 94% (28k tokens in total).
 
-![Verify once, reuse](figs/fig12_reuse_cost.png)
+![Finding 5: one checked program for 48 days](figs/ex_finding5.png)
 
 The reused programs also work on 4× larger instances (60 of 60). When the rules change (job-shop scheduling gains release dates), asking the model to *edit* the working program with "change as few lines as possible" beats starting over (Qwen3-32B: 10% → 68% valid schedules).
 
-**Finding 6. The fact can be found without a human.** We tested this on a benchmark we never used before: MAMO (863 optimization word problems) was held out until the end. The fact is mined automatically: the model's own shortest program that passed the free check on the other word-problem benchmarks. With it, writing the program twice and thinking only when the two disagree matches the hand-written fact: gpt-oss-20b 78.8% vs 78.9% (within 1.2 points on 3 seeds), Qwen3-14B 71.7% vs 71.4%, Qwen3-8B 71.0% vs 72.0% (no fact: 73%, 60%, 46%). Giving this fact first beats always thinking at 12–22% of its tokens. This works within one kind of problem: a program borrowed from a different problem type misleads (14–21 points below the hand-written fact on the optimization suite), and a bare list of the library's names hurts (Qwen3-32B 66.2% → 56.1%).
+**Finding 6. The fact can be found without a human.**
+> *Example* (Qwen3-8B, MAMO). "Products X, Y, Z cost $10, $15 and $20; X + Y ≤ 5000, Y + Z ≤ 4000, X + Z ≥ 2000. What is the minimum cost?" (answer 20000). Without a fact the program calls `solver.Objective().Minimize()`, which does not exist, and crashes. The fact is picked automatically: the model's own program for another problem (vans and trucks) that passed the free check, which calls `solver.Minimize(v)`. With it, both programs write `solver.Minimize(10*x + 15*y + 20*z)` and print 20000; they agree, so no thinking is needed (0.6k tokens; thinking alone took 5.3k).
 
-**Finding 7. Proofs need a specialized model, not a fact.** In Lean (miniF2F, 244 statements, 8 attempts) a specialized prover that fits one 24 GB GPU proves the most: Goedel-Prover-V2-8B 180 (74%), DeepSeek-Prover-V2-7B 165, vs general models Qwen3.6 133, gpt-oss-20b 66, Qwen3-32B 31. For general models none of our steps helps: a verified proof of a similar statement (133 vs 133), thinking (129), a 10-line inequality toolkit (21 vs 24 of 50 bounds). Even for the provers, repairing a failed proof from Lean's error messages proves half as many as a fresh attempt (Goedel: 11 vs 22 of 107). Geometry proofs: AlphaGeometry's symbolic engine alone proves 187 of 231 JGEX problems and 12 of 30 IMO problems; auxiliary points proposed by gpt-oss-20b add 13 JGEX problems, but only one IMO problem (2014 P4) is unlocked by any model.
+![Finding 6: the model's own checked program as the fact](figs/ex_finding6.png)
+
+We tested this on a benchmark we never used before: MAMO (863 optimization word problems) was held out until the end. The fact is mined automatically: the model's own shortest program that passed the free check on the other word-problem benchmarks. With it, writing the program twice and thinking only when the two disagree matches the hand-written fact: gpt-oss-20b 78.8% vs 78.9% (within 1.2 points on 3 seeds), Qwen3-14B 71.7% vs 71.4%, Qwen3-8B 71.0% vs 72.0% (no fact: 73%, 60%, 46%). Giving this fact first beats always thinking at 12–22% of its tokens. This works within one kind of problem: a program borrowed from a different problem type misleads (14–21 points below the hand-written fact on the optimization suite), and a bare list of the library's names hurts (Qwen3-32B 66.2% → 56.1%).
+
+**Finding 7. Proofs need a specialized model, not a fact.**
+> *Example* (miniF2F). Prove: if x < 100 and 9x mod 100 = 1, then x = 89. Qwen3-32B's 8 attempts cite lemmas that do not exist (e.g. `Nat.ModEq_iff_modEq`) and all fail. Goedel-Prover-V2-8B writes `interval_cases x <;> norm_num at h₁ ⊢ <;> omega`, which simply checks all 100 values, and Lean accepts it.
+
+![Finding 7: a specialized prover vs a general model](figs/ex_finding7.png)
+
+In Lean (miniF2F, 244 statements, 8 attempts) a specialized prover that fits one 24 GB GPU proves the most: Goedel-Prover-V2-8B 180 (74%), DeepSeek-Prover-V2-7B 165, vs general models Qwen3.6 133, gpt-oss-20b 66, Qwen3-32B 31. For general models none of our steps helps: a verified proof of a similar statement (133 vs 133), thinking (129), a 10-line inequality toolkit (21 vs 24 of 50 bounds). Even for the provers, repairing a failed proof from Lean's error messages proves half as many as a fresh attempt (Goedel: 11 vs 22 of 107). Geometry proofs: AlphaGeometry's symbolic engine alone proves 187 of 231 JGEX problems and 12 of 30 IMO problems; auxiliary points proposed by gpt-oss-20b add 13 JGEX problems, but only one IMO problem (2014 P4, with the point "the midpoint of BC") is unlocked by any model.
 
 ## 4. Our method: a recipe built from the findings
 
@@ -81,6 +94,8 @@ The reused programs also work on 4× larger instances (60 of 60). When the rules
 3. **Run a free check** (finding 3): the examples in the problem statement, or two different versions that should agree.
 4. **Think harder only when the check fails** (finding 4).
 5. **When the same problem returns with new data, reuse the program that passed** (finding 5).
+
+**One problem through the recipe** (Qwen3-8B, the MAMO problem of finding 6): (1) it writes a program; (2) the prompt carries the mined fact, so the program calls `solver.Minimize(...)` instead of the non-existent `Objective().Minimize()`; (3) the free check: two such programs both run and print 20000; (4) they agree, so it stops there, at 0.6k tokens, instead of thinking for 5.3k. Had they disagreed or crashed, only this problem would get thinking.
 
 ## 5. Does the whole recipe pay off?
 
@@ -99,7 +114,7 @@ We compared ways to spend the same budget on geometry and optimization suites (3
 
 The recipe is both the most accurate and among the cheapest, on every seed. Difficulty is the wrong signal: spending thinking on the hardest-looking problems is worse than spending it where a check fails.
 
-**Which policy for a new task?** Over 63 model × task × seed cells, "fact first, think on failure" is the best fixed default (it loses 1.4 points on average to the best policy of each cell; always thinking loses 8.4, counting 0.5 points per 1k tokens); labelling 30 problems of a new task and picking the best policy on them cuts the loss to 0.6 points (on the held-out MAMO: 0.8–1.4).
+**Which policy for a new task?** How it works: label 30 problems of the new task, run four policies on them (one cheap program; fact first; fact first with two versions; always think) and keep the one with the best accuracy after a token penalty. Over 63 model × task × seed cells, "fact first, think on failure" is the best fixed default (it loses 1.4 points on average to the best policy of each cell; always thinking loses 8.4, counting 0.5 points per 1k tokens); labelling 30 problems of a new task and picking the best policy on them cuts the loss to 0.6 points (on the held-out MAMO: 0.8–1.4).
 
 **Small GPUs.** Once they get the fact, models that fit one 24 GB GPU (e.g. RTX 3090) match or beat Qwen3-32B. Optimization suite with the recipe: gpt-oss-20b 94–97%, Qwen3-14B (4-bit) 87–92%, Qwen3-32B 79–85%. Word problems: gpt-oss-20b with the recipe 73.0% at 0.7k tokens, Qwen3-32B with the fact and always thinking 72.0% at 5.5k. Competition math: Qwen3-14B (4-bit) thinking 97.3% / 73.3% on MATH-500 / AIME (Qwen3-32B: 97.4% / 77.2%). Contest geometry: gpt-oss-20b, escalating from low to medium effort when the examples fail, solves 54.6% at 11k tokens (gpt-oss-120b at medium: 56.8%). Below 14B the optimization suite stays at 47% or less whatever we add; geometry is solved from 4B up.
 

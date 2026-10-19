@@ -304,41 +304,51 @@ s.addNotes("Analogy for the 56 Solomon routing problems: each problem is like on
 // 7b. Finding 6: automatic facts
 s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Findings" });
 s.addText("Finding 6: the fact can be found without a human", { placeholder: "title" });
-box(s, "solve other problems of the same kind (another benchmark)", 0.6, 1.45, 3.7, 0.8, "FFFFFF", { fontSize: 15 });
-arrow(s, 4.3, 1.85, 4.75, 1.85);
-box(s, "keep the model's shortest program that passed the free check", 4.75, 1.45, 3.9, 0.8, "DEEBF7", { fontSize: 15 });
-arrow(s, 8.65, 1.85, 9.1, 1.85);
-box(s, "show it as the fact for new problems", 9.1, 1.45, 3.6, 0.8, "E2F0D9", { fontSize: 15 });
+txt(s, "Example (Qwen3-8B, MAMO): products X, Y, Z cost $10, $15, $20; X+Y ≤ 5000, Y+Z ≤ 4000, X+Z ≥ 2000. Minimum cost? (20000)", 0.6, 1.3, 12.1, 0.45, { fontSize: 16 });
+txt(s, "No fact", 0.6, 1.85, 6.7, 0.35, { fontSize: 15, bold: true });
+code(s, "solver.Objective().Minimize()", 0.6, 2.2, 4.4, 0.5, RED, 13);
+txt(s, "✗ crash: no such method", 5.15, 2.2, 2.2, 0.5, { fontSize: 14, bold: true, color: RED });
+prompt(s, "The fact: its own program for another problem (vans and trucks) that passed the free check", [
+  "solver = pywraplp.Solver.CreateSolver('SCIP')", "v = solver.IntVar(0, solver.infinity(), 'v')", "solver.Minimize(v)", "status = solver.Solve()"], 0.6, 2.9, 6.7, 1.45, "E2F0D9");
+txt(s, "With the fact (written twice; both agree, so no thinking)", 0.6, 4.5, 6.7, 0.35, { fontSize: 15, bold: true });
+code(s, "solver.Minimize(10*x + 15*y + 20*z)", 0.6, 4.85, 4.4, 0.5, GREEN, 13);
+txt(s, "✓ 20000 · 0.6k tokens (thinking: 5.3k)", 5.15, 4.85, 2.4, 0.5, { fontSize: 13, bold: true, color: GREEN });
 s.addChart(pres.charts.BAR, [
-  { name: "no fact", labels: ["gpt-oss-20b", "Qwen3-14B (4-bit)", "Qwen3-8B"], values: [73.2, 59.7, 45.5] },
-  { name: "hand-written fact", labels: ["gpt-oss-20b", "Qwen3-14B (4-bit)", "Qwen3-8B"], values: [78.9, 71.4, 72.0] },
-  { name: "found automatically", labels: ["gpt-oss-20b", "Qwen3-14B (4-bit)", "Qwen3-8B"], values: [78.8, 71.7, 71.0] },
-], { x: 0.6, y: 2.45, w: 7.7, h: 3.6, barDir: "col", barGrouping: "clustered", chartColors: ["A5A5A5", "7F7F7F", THEME.colors.accent1],
-     showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0", dataLabelFontSize: 12, dataLabelFontFace: "+mn-lt",
-     valAxisMaxVal: 100, valAxisMinVal: 0, valAxisLabelFontSize: 11, valAxisLabelFontFace: "+mn-lt", valAxisLabelColor: "595959",
-     catAxisLabelFontSize: 13, catAxisLabelFontFace: "+mn-lt", catAxisLabelColor: "404040",
+  { name: "no fact", labels: ["gpt-oss-20b", "Qwen3-14B", "Qwen3-8B"], values: [73.2, 59.7, 45.5] },
+  { name: "hand-written", labels: ["gpt-oss-20b", "Qwen3-14B", "Qwen3-8B"], values: [78.9, 71.4, 72.0] },
+  { name: "automatic", labels: ["gpt-oss-20b", "Qwen3-14B", "Qwen3-8B"], values: [78.8, 71.7, 71.0] },
+], { x: 7.7, y: 1.85, w: 5.0, h: 3.6, barDir: "col", barGrouping: "clustered", chartColors: ["A5A5A5", "7F7F7F", THEME.colors.accent1],
+     showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0", dataLabelFontSize: 11, dataLabelFontFace: "+mn-lt",
+     valAxisMaxVal: 100, valAxisMinVal: 0, valAxisLabelFontSize: 10, valAxisLabelFontFace: "+mn-lt", valAxisLabelColor: "595959",
+     catAxisLabelFontSize: 12, catAxisLabelFontFace: "+mn-lt", catAxisLabelColor: "404040",
      valGridLine: { color: "E7E6E6", size: 0.75 }, catGridLine: { style: "none" },
-     showLegend: true, legendPos: "t", legendFontSize: 13, legendFontFace: "+mn-lt",
-     showTitle: true, title: "MAMO: 863 word problems we never used before (% solved)", titleFontSize: 14, titleFontFace: "+mn-lt", titleColor: "404040",
+     showLegend: true, legendPos: "t", legendFontSize: 12, legendFontFace: "+mn-lt",
+     showTitle: true, title: "MAMO, 863 problems never used before: % solved", titleFontSize: 13, titleFontFace: "+mn-lt", titleColor: "404040",
      objectName: "automatic fact on held-out MAMO" });
-panel(s, 8.6, 2.55, 4.1, 3.45, "what does not work");
-txt(s, "What does not work", 8.85, 2.7, 3.6, 0.45, { fontSize: 18, bold: true, color: RED });
-bullets(s, ["a program from a different problem type: 14–21 points worse", "a list of the library's names: Qwen3-32B 66% → 56%"], { x: 8.85, y: 3.25, w: 3.6, h: 2.6, fontSize: 16 });
-caption(s, "Automatic = hand-written within about 1 point, with no human in the loop");
-s.addNotes("X6-AUTO / X6-VER / X7. The fact is the model's own shortest program from NL4OPT / IndustryOR that passed the label-free check (it runs and prints a value); no answers, no human. On the held-out MAMO benchmark the recipe (two programs with this fact, think only if they disagree) matches the hand-written snippet: gpt-oss-20b 78.8 vs 78.9% (within 1.2 points on 3 seeds), Qwen3-14B-AWQ 71.7 vs 71.4%, Qwen3-8B 71.0 vs 72.0%. It stays within a problem family: a program of another problem type is 14-21 points below the hand-written fact on the optimization suite, and an introspected list of the library's names hurts (Qwen3-32B 66.2 to 56.1%).");
+txt(s, "Does not work: a program of a different problem type (−14 to −21 points); a list of the library's names (66% → 56%)", 7.7, 5.5, 5.0, 0.6, { fontSize: 13, color: RED, valign: "top" });
+caption(s, "No human writes the fact: the model's own checked program shows the right call");
+s.addNotes("Real outputs, Qwen3-8B on MAMO easy-189 (gold 20000). Without a fact it writes solver.Objective().Minimize() and crashes (AttributeError). The fact is chosen automatically: its own shortest program from NL4OPT (a vans-and-trucks problem) that passed the label-free check (it runs and prints a value); no answers, no human. With it, both programs write solver.Minimize(10*x + 15*y + 20*z) and print 20000 (316 + 312 tokens), they agree, so no thinking is needed (thinking alone: 5,323 tokens). Chart: on the held-out MAMO the automatic fact matches the hand-written one (gpt-oss-20b within 1.2 points on 3 seeds). It stays within a problem family: a program of another problem type is 14-21 points below the hand-written fact on the optimization suite, and an introspected list of names hurts (Qwen3-32B 66.2 to 56.1%).");
 
 // 7c. Finding 7: proofs
 s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Findings" });
 s.addText("Finding 7: proofs need a specialized model, not a fact", { placeholder: "title" });
-txt(s, "Lean 4 proofs of competition statements (miniF2F, 244), 8 tries each: % proved", 0.6, 1.35, 7.9, 0.45, { fontSize: 17, bold: true });
-hbars(s, 0.6, 1.9, 7.9, [["Qwen3-32B", 12.7, "13%", "A5A5A5"], ["gpt-oss-20b", 27.0, "27%", "A5A5A5"], ["Qwen3.6-35B", 54.5, "55%", "A5A5A5"],
-                         ["DeepSeek-Prover-V2-7B", 67.6, "68%", "5B9BD5"], ["Goedel-Prover-V2-8B", 73.8, "74%", BLUE]], 0.58, 2.9, 1.0);
-panel(s, 8.8, 1.4, 3.9, 3.3, "nothing in the recipe helps");
-txt(s, "For general models, no step helps", 9.0, 1.5, 3.5, 0.75, { fontSize: 17, bold: true, color: RED, valign: "top" });
-bullets(s, ["a verified similar proof: 133 → 133", "thinking: 133 → 129", "inequality fact sheet: 24 → 21 (of 50)", "fixing from Lean's errors: half as good as a fresh try"], { x: 9.0, y: 2.25, w: 3.5, h: 2.4, fontSize: 15 });
-txt(s, "Geometry proofs (AlphaGeometry's symbolic engine): IMO 12 of 30 alone → 13 with LLM-proposed points; easier JGEX 187 of 231 → 200", 0.6, 5.0, 12.1, 0.8, { fontSize: 16 });
+txt(s, "Example (miniF2F): show that if x < 100 and 9x mod 100 = 1, then x = 89", 0.6, 1.3, 6.6, 0.45, { fontSize: 16 });
+code(s, "theorem (x : ℕ) (h₀ : x < 100) (h₁ : x * 9 % 100 = 1) : x = 89", 0.6, 1.8, 6.6, 0.5, null, 12);
+txt(s, "General model (Qwen3-32B)", 0.6, 2.45, 6.6, 0.35, { fontSize: 15, bold: true });
+code(s, "... Nat.ModEq_iff_modEq ...", 0.6, 2.8, 3.6, 0.5, RED, 13);
+txt(s, "✗ no such lemma in the library", 4.35, 2.8, 2.9, 0.5, { fontSize: 14, bold: true, color: RED });
+txt(s, "Specialized prover (Goedel-Prover-V2-8B)", 0.6, 3.45, 6.6, 0.35, { fontSize: 15, bold: true });
+code(s, "interval_cases x <;> norm_num at h₁ ⊢ <;> omega", 0.6, 3.8, 5.2, 0.5, GREEN, 12);
+txt(s, "✓ tries all 100 x", 5.9, 3.8, 1.5, 0.5, { fontSize: 14, bold: true, color: GREEN });
+txt(s, "244 statements, 8 tries each: % proved", 7.6, 1.3, 5.1, 0.45, { fontSize: 15, bold: true });
+hbars(s, 7.6, 1.8, 5.1, [["Qwen3-32B", 12.7, "13%", "A5A5A5"], ["gpt-oss-20b", 27.0, "27%", "A5A5A5"], ["Qwen3.6-35B", 54.5, "55%", "A5A5A5"],
+                         ["DeepSeek-Prover-7B", 67.6, "68%", "5B9BD5"], ["Goedel-Prover-8B", 73.8, "74%", BLUE]], 0.5, 2.0, 0.75);
+txt(s, "For general models no step helps: a similar verified proof 133 → 133 · thinking 133 → 129 · an inequality fact sheet 24 → 21; fixing a proof from Lean's errors works half as well as a fresh try",
+    0.6, 4.6, 12.1, 0.7, { fontSize: 15 });
+txt(s, "Geometry proofs (AlphaGeometry's solver + LLM-proposed points): IMO 12 → 13 of 30 (only 2014 P4: \"take the midpoint of BC\"); easier JGEX 187 → 200 of 231",
+    0.6, 5.35, 12.1, 0.7, { fontSize: 15 });
 caption(s, "The missing piece is a skill, not a fact: use a specialized 8B prover (fits one 24 GB GPU)");
-s.addNotes("PREREG_PROOF. miniF2F test (244), 8 attempts, Lean 4 + Mathlib compiler as the exact check. Specialized provers that fit a 24 GB GPU prove the most and rarely invent lemma names (6-7% of failed attempts vs 22-40%). For general models a verified proof of the most similar statement (Qwen3.6 133 vs 133; gpt-oss-20b 65 vs 66), thinking (Qwen3.6 129), or a 10-line inequality toolkit (21 vs 24 of 50 bound statements) does not help; even for the provers, revising a failed proof from Lean's error lines proves half as many as a fresh attempt (Goedel 11 vs 22 of 107; DeepSeek 5 vs 13 of 112). Geometry: AlphaGeometry's DD+AR engine alone proves 12 of IMO-AG-30 and 187 of JGEX-AG-231; auxiliary points proposed by gpt-oss-20b add 13 JGEX problems; only IMO 2014 P4 is unlocked by any model's proposal.");
+s.addNotes("Real outputs. miniF2F mathd_numbertheory_34 (9^-1 mod 100 = 89). Qwen3-32B's 8 attempts all fail; they cite lemmas that do not exist, e.g. Nat.ModEq_iff_modEq. Goedel-Prover-V2-8B proves it by checking every x below 100 (interval_cases, then norm_num and omega). Specialized provers rarely invent names (6-7% of failed attempts vs 22-40%). For general models a verified proof of the most similar statement, thinking, or an inequality toolkit does not help; even for provers, revising from Lean's errors proves half as many as a fresh attempt (Goedel 11 vs 22 of 107). Geometry: AlphaGeometry's DD+AR engine alone proves 12 of IMO-AG-30 and 187 of JGEX-AG-231; LLM auxiliary points add 13 JGEX problems and only IMO 2014 P4 (d = midpoint of b c).");
 
 pres.addSection({ title: "Method" });
 // 4. Recipe
