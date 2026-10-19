@@ -719,10 +719,12 @@ function buildTalk() {
     "(30초) 첫 번째 발견입니다. 매뉴얼이 아니라 짧은 힌트를 주세요. 트럭 경로를 짜는 과제에 OR-Tools 사용법 열한 줄을 붙이면, Qwen3-32B가 맞는 함수를 불러 최적 경로를 찾습니다. 긴 참조 문서를 주면 없는 함수를 지어내 죽습니다. 30문제에서 아무것도 안 주면 23%, 오래 생각하면 3%, 짧은 힌트는 83%입니다. 이 힌트를 사람 없이 고르는 방법은 뒤의 방법 슬라이드에서 보여 드립니다.\n\n[참고, 읽지 않음] 모델은 답을 무작위로 뽑기 때문에 같은 실험도 돌릴 때마다 조금씩 다릅니다. 짧은 힌트 막대는 같은 실험을 세 번 돌린 평균입니다(77, 83, 90%). 나머지 막대는 한 번씩 돌린 결과입니다.",
     "(40초) 두 번째 발견입니다. 공짜 검사가 실패할 때만 생각하게 하세요. 공짜 검사란 프로그램을 실행해서 이미 아는 것과 비교해 보는 것으로, 정답도 추가 생각도 필요 없습니다. 문제에 '막대 3, 4, 5면 답 0'이라는 예제가 있으면, 모델 없이 우리 프로그램을 3, 4, 5로 돌려 봅니다. 0이 나오면 그대로 내고, 다르면 그 문제만 더 생각합니다. 예제가 없으면 프로그램을 두 번 짜서 비교합니다. 그러면 경시 문제에서 66%, 기하에서 99%로, 항상 생각할 때와 같은 정확도를 18에서 27% 적은 토큰에 얻습니다.\n\n[참고, 읽지 않음] 경시 66.3%는 예제와, 작은 입력을 전부 따져 보는 느린 프로그램, 두 검사를 함께 쓴 결과입니다. 예제만 쓰면 20k 토큰에 65.0%입니다.",
     "(40초) 둘을 합친 것이 저희 방법입니다. 힌트를 붙여 쓰고, 검사하고, 실패할 때만 생각하고, 같은 종류가 다시 오면 재사용합니다. 힌트는 사람 없이 이렇게 고릅니다. 모델이 같은 종류의 문제에 짰던 프로그램 중 검사를 통과한 것을 모으고, 가장 짧은 것을 힌트로 씁니다. 실제 문제 하나에서는 힌트 없이 죽던 프로그램이 힌트로 바로 20000을 맞혀, 5.3k 대신 0.6k 토큰을 썼습니다. 기하와 최적화 208문제를 세 모델로 풀면, 답이 갈리는 문제에 생각을 몰아주는 기존 방식은 74%, 저희는 87%이고 토큰도 적습니다.",
-    "(35초) 새로운 점은 세 가지입니다. 학습 없이 공짜 검사로 생각할 때를 정하고, 정답 없이 모델 자신의 프로그램을 힌트로 쓰며, 파인튜닝한 특화 모델 ORLM-8B와 같은 69.5%를 학습하지 않은 8B 모델로 냅니다. 다음으로는 더 많은 모델로 검증하고, 실행은 되지만 문제를 잘못 수식으로 옮긴 오류를 다루고, 문제 종류마다 힌트를 찾겠습니다. 정리하면, 짧은 힌트를 먼저 주고, 공짜 검사가 실패한 곳에서만 생각하게 하자는 것입니다.\n\n[더 자세히: 질문이 나오거나 시간이 남을 때]\n첫째 줄, 생각을 어디에 쓸지. 기존 방법은 어려워 보이는 문제에 계산을 더 쓰는 Snell 등의 방식과, 언제 생각할지를 강화학습으로 가르치는 Thinkless, AdaptThink입니다. 저희는 정답 없이 돌리는 공짜 검사가 실패한 문제에만 생각을 씁니다. 기하와 최적화 208문제를 세 모델로 풀면 74%가 87%로 오르고, 토큰은 문제당 4.1k에서 2.5k로 줄었습니다. 87%는 사람이 쓴 힌트를 쓴 결과이고, 검색으로 찾은 힌트로도 84%입니다.\n둘째 줄, 모델에게 무엇을 주는지. 기존에는 매뉴얼 전체를 주거나, 더 큰 교사 모델이 짜서 정답으로 확인한 프로그램 모음을 줍니다. 저희 힌트는 모델이 다른 문제에서 짜서 공짜 검사를 통과한 자기 프로그램입니다. 끝까지 남겨 둔 MAMO 벤치마크에서 사람이 쓴 힌트와 같은 79%를 냈습니다.\n셋째 줄, 비용. ORLM-8B는 최적화 문장제용으로 파인튜닝한 공개 모델이고, 모델 카드의 형식과 솔버, 그리디 디코딩으로 저희 채점기에서 돌렸습니다: MAMO 69.5%, 문제당 1.1k 토큰(샘플링하면 64~66%). Qwen3-8B는 학습 없이 자기 힌트를 붙여 프로그램을 한 번 짜고 실행이 안 될 때만 생각하게 해서 69.5%, 1.0k 토큰입니다. 두 버전 검사까지 쓰면 71%(3.1k), gpt-oss-20b는 78.8%입니다.\n다음 계획. 하나, MAMO 검증을 Qwen3-32B와 Qwen3.6까지 세 시드로 마칩니다. 둘, 검사로 못 잡는 오류입니다. 지금 남은 오류의 절반쯤은 정답 라벨이 의심스러운 문제이고, 나머지는 같은 유형에서 같은 수식 실수가 반복됩니다. 예를 들어 순서 제약이나 공급 균형을 잘못 씁니다. 고치기 한 번이나 생각으로는 안 고쳐져서, 힌트 하나로 고쳐지는지 시험합니다. 셋, 지금은 같은 종류의 문제 안에서만 자동 힌트가 통하므로, 문제 종류마다 힌트를 찾고 최종 보고서와 코드를 냅니다.",
+    "(40초) 새로운 점은 세 가지입니다. 학습 없이 공짜 검사로 생각할 때를 정하고, 정답 없이 모델 자신의 프로그램을 힌트로 쓰며, 파인튜닝한 특화 모델 ORLM-8B와 같은 69.5%를 학습하지 않은 8B 모델로 냅니다. 다음으로는 힌트와 검사를 더 정확하고 싸게 만들겠습니다. 문제 종류마다 힌트를 자동으로 고르고, 토큰 없이 더 많은 실수를 잡는 검사를 찾고, 더 많은 모델에서 확인해 보고서와 코드로 내겠습니다. 정리하면, 짧은 힌트를 먼저 주고, 공짜 검사가 실패한 곳에서만 생각하게 하자는 것입니다.\n\n[더 자세히: 질문이 나오거나 시간이 남을 때]\n첫째 줄, 생각을 어디에 쓸지. 기존 방법은 어려워 보이는 문제에 계산을 더 쓰는 Snell 등의 방식과, 언제 생각할지를 강화학습으로 가르치는 Thinkless, AdaptThink입니다. 저희는 정답 없이 돌리는 공짜 검사가 실패한 문제에만 생각을 씁니다. 기하와 최적화 208문제를 세 모델로 풀면 74%가 87%로 오르고, 토큰은 문제당 4.1k에서 2.5k로 줄었습니다. 87%는 사람이 쓴 힌트를 쓴 결과이고, 검색으로 찾은 힌트로도 84%입니다.\n둘째 줄, 모델에게 무엇을 주는지. 기존에는 매뉴얼 전체를 주거나, 더 큰 교사 모델이 짜서 정답으로 확인한 프로그램 모음을 줍니다. 저희 힌트는 모델이 다른 문제에서 짜서 공짜 검사를 통과한 자기 프로그램입니다. 끝까지 남겨 둔 MAMO 벤치마크에서 사람이 쓴 힌트와 같은 79%를 냈습니다.\n셋째 줄, 비용. ORLM-8B는 최적화 문장제용으로 파인튜닝한 공개 모델이고, 모델 카드의 형식과 솔버, 그리디 디코딩으로 저희 채점기에서 돌렸습니다: MAMO 69.5%, 문제당 1.1k 토큰(샘플링하면 64~66%). Qwen3-8B는 학습 없이 자기 힌트를 붙여 프로그램을 한 번 짜고 실행이 안 될 때만 생각하게 해서 69.5%, 1.0k 토큰입니다. 두 버전 검사까지 쓰면 71%(3.1k), gpt-oss-20b는 78.8%입니다.\n다음 계획. 하나, 힌트: 지금은 같은 종류의 문제 안에서만 자동 힌트가 통하므로, 새 문제의 종류를 먼저 알아내고 종류마다 힌트를 자동으로 고릅니다. 둘, 검사: MAMO에서 남은 오류의 절반쯤은 정답 라벨이 의심스러운 문제이고, 나머지는 실행도 되고 두 버전이 일치하지만 문제를 잘못 수식으로 옮긴 경우입니다. 이런 실수를 다른 관점으로 잡는 값싼 검사를 찾습니다. 셋, MAMO 검증을 Qwen3-32B와 Qwen3.6까지 세 번씩 마치고, 최종 보고서와 코드를 냅니다.",
     "(5초) 감사합니다. 질문 받겠습니다.",
   ];
   const QA_KO = {   // speaker notes of the extra pages: a short Korean answer to the page's question
+    checkwork: "(답변) 검사가 잘 잡으려면 두 번째 관점이 다른 실수를 해야 합니다. 입력을 옮기고 돌린 복사본에서 같은 답이 나오는지 보면 맞는 프로그램을 99.7% 골라냅니다. 도우미 함수가 있는 버전과 없는 버전을 비교하면 99%로 항상 생각할 때의 98%와 같고, 경시 문제는 예제에 느린 완전 탐색 프로그램을 더하면 65.0%가 66.3%가 됩니다. 글 답과 프로그램을 비교하면 같이 틀리는 경우가 17%에서 10%로 줄어듭니다. 반대로 같은 모델에게 다시 물어 다수결을 하면 4.3%를 잘못 고르고, 같은 실수를 공유하는 두 버전은 토큰만 더 씁니다. 그리고 검사를 완벽하게 해도 14B 이상 모델에서 1에서 3점밖에 오르지 않습니다. 그런 문제는 생각해도 7에서 16%만 고쳐지기 때문입니다. 그 다음은 검사보다 푸는 쪽을 고쳐야 합니다.",
+    checkcost: "(답변) 예제, 옮긴 복사본, 경로 계획의 규칙 확인은 CPU에서 돌기 때문에 토큰이 들지 않습니다. 모델이 테스트를 쓰는 CodeT는 문제당 340토큰, 두 번째 버전은 프로그램 하나만큼, 느린 완전 탐색 프로그램은 경시에서 문제당 약 4.5k 토큰이 더 듭니다. 경시 문제에서 항상 생각하면 66.2%에 30k, 예제만 쓰면 65.0%에 20k, 완전 탐색을 더하면 66.3%에 25k, 다른 모델의 의견을 더하면 65.5%에 25k입니다. 그래서 순서는 토큰이 들지 않는 검사부터 쓰고, 조용히 틀리는 곳에만 다른 두 번째 버전을 더하고, 더 좋은 검사가 1에서 3점밖에 못 줄 때는 멈추는 것입니다.",
     hintwork: "(답변) 좋은 힌트의 조건은 네 가지입니다. 그 종류에 필요한 정확한 호출, 필요한 것만, 짧게, 같은 종류에서. 경로 문제는 23%에서 83%, 기하는 도우미 함수를 다 주면 75%, 필요한 것만 주면 92%입니다. 반대로 규칙 하나가 빠진 긴 매뉴얼은 7%, 비슷하지만 다른 문서가 섞이면 83%에서 57%, 다른 종류의 프로그램은 14에서 21점 손해, 함수 이름 목록만 주면 66%에서 56%로 떨어집니다. 고르는 순서는 이렇습니다. 같은 종류의 지난 프로그램과 공짜 검사가 있으면 통과한 것 중 가장 짧은 것을 씁니다. 없으면 제목이 붙은 코드 조각 문서에서 맨 위 하나만 검색하고, 그것도 없으면 사람이 종류마다 한 번 씁니다.",
     hintcost: "(답변) 힌트의 비용은 입력 토큰입니다. 최적화 문제에서 힌트 없이 488토큰이던 프롬프트가 정확한 코드 조각을 붙이면 701토큰으로 213토큰 늘고, 긴 참조 문서는 901, 검색 상위 3개는 1,138토큰입니다. 입력 토큰은 출력보다 싸고 같은 종류 문제끼리 캐시됩니다. 대신 생각에 쓰는 출력 토큰이 크게 줍니다. 문장제에서 힌트를 주고 항상 생각하면 5.5k, 힌트를 먼저 주고 실패할 때만 생각하면 1.3k로 정확도는 같습니다. 208문제 전체에서는 힌트 없이 4.1k에 74%, 힌트 먼저로 2.5k에 87%입니다. 한 번 드는 비용은 종류마다 사람의 시간, 코드 조각 문서, 또는 지난 문제들을 한 번 풀어 보는 것입니다.",
     howhint: "(답변) 힌트는 문제마다가 아니라 문제 종류마다 하나이고, 과제 앞에 붙여 줍니다. 그 종류에 필요한 호출만 보여 줍니다. 얻는 방법은 세 가지입니다. 첫째, 사람이 종류마다 한 번 씁니다. 트럭 경로라면 OR-Tools 사용법 11줄입니다. 둘째, 제목이 붙은 코드 조각 라이브러리에서 BM25로 검색해 맨 위 하나를 씁니다. 손으로 쓴 것과 거의 같지만, 비슷하지만 다른 문서가 섞이면 크게 떨어집니다. 셋째, 모델이 같은 종류의 다른 문제에서 짠 프로그램 중 공짜 검사를 통과한 가장 짧은 것을 씁니다. 처음 쓰는 MAMO에서 사람이 쓴 힌트와 같은 정확도였습니다. 다만 같은 종류 안에서만 통하고, 다른 종류의 프로그램을 주면 14에서 21점 떨어집니다. 필요한 것만 주는 것도 중요해서, 기하에서 도우미 함수를 다 주면 75%, 필요한 것만 주면 92%였습니다.",
@@ -950,9 +952,9 @@ function buildTalk() {
     txt(s, rt, 8.3, y, 4.3, 0.75, { fontSize: 15, bold: true, color: "1F3864" });
   });
   // next steps as a timeline
-  txt(s, "Next, until the final report", 0.6, 4.5, 12.1, 0.4, { fontSize: 16, bold: true });
+  txt(s, "Next: get the hints and run the checks better and cheaper", 0.6, 4.5, 12.1, 0.4, { fontSize: 16, bold: true });
   s.addShape(pres.shapes.LINE, { x: 2.4, y: 5.25, w: 8.5, h: 0, line: { color: "BFBFBF", width: 3 } });
-  [["check", "finish the held-out test on more models"], ["warn", "errors no check catches: programs that run but model the problem wrong"], ["code", "facts for every problem type; report and code"]].forEach(([icon, t], k) => {
+  [["fact", "hints: picked automatically for every problem type"], ["check", "checks: catch more mistakes, without extra tokens"], ["code", "test both on more models; report and code"]].forEach(([icon, t], k) => {
     const x = 2.4 + k * 4.25;
     s.addShape(pres.shapes.OVAL, { x: x - 0.3, y: 4.95, w: 0.6, h: 0.6, fill: { color: "FFFFFF" }, line: { color: BLUE, width: 2 }, objectName: "milestone " + k });
     s.addImage({ path: ICON(icon), x: x - 0.19, y: 5.06, w: 0.38, h: 0.38, objectName: "milestone icon " + k });
@@ -1177,6 +1179,49 @@ function buildTalk() {
     caption(s, "A hint adds about 200 input tokens and saves thousands of thinking tokens");
   }
 
+  function slideQCheckWork() {
+    qSlide("Q: how do we make a check catch more?");
+    panel(s, 0.6, 1.4, 6.6, 4.65, "make the second view different");
+    txt(s, "The second view must make different mistakes", 0.85, 1.48, 6.1, 0.42, { fontSize: 18, bold: true, color: BLUE });
+    [["✓", "run it on moved and turned copies", "picks the right program 99.7%", "38761D"],
+     ["✓", "two versions, with and without helpers", "99% vs 98% always thinking", "38761D"],
+     ["✓", "examples + a brute-force version", "65.0% → 66.3% (contest)", "38761D"],
+     ["✓", "a text answer next to the program", "wrong agreements 17% → 10%", "38761D"],
+     ["✗", "the same model asked again (majority vote)", "4.3% picked wrong", RED],
+     ["✗", "two versions that share a mistake", "no gain, more tokens", RED]].forEach(([m, t, num, col], r) => {
+      const y = 2.0 + r * 0.62;
+      txt(s, m, 0.85, y, 0.3, 0.55, { fontSize: 18, bold: true, color: col });
+      txt(s, t, 1.18, y, 3.3, 0.55, { fontSize: 14 });
+      txt(s, num, 4.5, y, 2.6, 0.55, { fontSize: 14, bold: true, color: col });
+    });
+    panel(s, 7.4, 1.4, 5.3, 4.65, "how much a better check buys");
+    txt(s, "How much can a better check still buy?", 7.65, 1.48, 4.9, 0.42, { fontSize: 18, bold: true, color: BLUE });
+    [["24–37%", "of wrong contest programs pass the examples"], ["12–16%", "of word problems: two programs agree, both wrong"], ["+1 to +3", "points from a PERFECT check (14B and larger), because thinking fixes only 7–16% of those"]].forEach(([big, lab], r) => {
+      const y = 2.0 + r * 1.2;
+      txt(s, big, 7.65, y, 4.9, 0.5, { fontSize: 24, bold: true, color: r < 2 ? RED : BLUE });
+      txt(s, lab, 7.65, y + 0.48, 4.9, 0.65, { fontSize: 14, valign: "top" });
+    });
+    caption(s, "A check works when its second view errs differently; past that, improve the solving, not the check");
+  }
+  function slideQCheckCost() {
+    qSlide("Q: what does a check cost, and when is it worth it?");
+    panel(s, 0.6, 1.4, 5.95, 4.65, "check cost");
+    txt(s, "Extra tokens per problem for each check", 0.85, 1.48, 5.45, 0.42, { fontSize: 18, bold: true, color: BLUE });
+    [["the examples in the problem", "0: runs on the CPU", "38761D"], ["moved and turned copies", "0: runs on the CPU", "38761D"], ["the rules of a plan (routing)", "0: runs on the CPU", "38761D"],
+     ["model-written tests (CodeT)", "+340", C.text1], ["a second version of the program", "one more program", C.text1], ["a slow brute-force version", "+4.5k (contest)", C.text1]].forEach(([t, c, col], r) => {
+      const y = 2.0 + r * 0.62;
+      txt(s, t, 0.85, y, 3.2, 0.55, { fontSize: 14 });
+      txt(s, c, 4.1, y, 2.3, 0.55, { fontSize: 14, bold: true, color: col });
+    });
+    panel(s, 6.75, 1.4, 5.95, 4.65, "when worth it");
+    txt(s, "311 contest problems (gpt-oss-120b)", 7.0, 1.48, 5.45, 0.42, { fontSize: 18, bold: true, color: BLUE });
+    costRows(7.0, 1.92, 5.45, 2.6, [["always think hard", "66.2%", 30.1, "30k", "7F7F7F"], ["examples only", "65.0%", 20.2, "20k", "5B9BD5"],
+      ["examples + brute force", "66.3%", 24.7, "25k", BLUE], ["examples + a 2nd model", "65.5%", 25.2, "25k", "7F7F7F"]], undefined, 0.46);
+    txt(s, "Order: start with the zero-token checks; add a different second version only where mistakes stay silent; stop when a better check would add 1–3 points.",
+        7.0, 4.6, 5.45, 1.35, { fontSize: 14, valign: "top" });
+    caption(s, "Free checks cost CPU, not tokens; pay for a second version only where it changes the decision");
+  }
+
   const EXTRAS = [   // [key, index label, slide], in the order of the talk slides that raise the questions
     ["why", "Why these problems", slideQWhy],
     ["coverage", "Which kinds each finding covers", slideQCoverage],
@@ -1190,6 +1235,8 @@ function buildTalk() {
     ["think", "Why thinking can hurt", slideQThink],
     ["leak", "A wrong program passes the check", slideQLeak],
     ["checks", "A free check for every problem", slideQChecks],
+    ["checkwork", "A check that catches more", slideQCheckWork],
+    ["checkcost", "What a check costs", slideQCheckCost],
     ["auto", "Facts without a human", () => slideAuto("Extra pages", "Extra: the fact can be found without a human")],
     ["hard", "Is difficulty the right signal?", slideQHard],
     ["published", "Compared with published methods", () => slideBaselines("Extra pages", "Extra: compared with published methods")],
@@ -1215,6 +1262,7 @@ function buildTalk() {
     [5, "Why can thinking make it worse?", ["think"]],
     [6, "What if a wrong program passes the check?", ["leak"]],
     [6, "Is there always a free check?", ["checks"]],
+    [6, "How do we check well, and cheaply?", ["checkwork", "checkcost"]],
     [7, "Who writes the fact?", ["auto"]],
     [7, "Is 'think on the hardest' a weak baseline?", ["hard"]],
     [7, "What if the same problem repeats?", ["reuse"]],
