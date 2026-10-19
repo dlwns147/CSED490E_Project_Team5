@@ -142,3 +142,15 @@ gpt-oss-20b medium seeds 4–8 (same prompt and settings; poc/queues/queue_s2_ch
 - R-P2: with 5 attempts (seeds 4–8) the gain over 3 attempts is ≤ +1.5 points at ≥ +4k tokens (diminishing returns: the check, not the
   number of tries, is the limit; 24–37% of wrong programs pass the examples).
 - R-P3: the oracle-checked retry is what matters: the same 3 attempts accepting on the examples alone are ≥ 1.5 points lower.
+
+## CH-R results (2026-10-19 19:42 UTC; results/h2/chr_analysis.log; side note — standard sample-and-filter, not a new method)
+gpt-oss-20b, up to k medium attempts, accept the first that passes the check, else keep the last:
+| | medium alone | k = 2 | k = 3 | k = 5 |
+|---|---|---|---|---|
+| seeds 1–3 (where it was found) | 47.1% @ 8.7k | 52.8% @ 15.2k | 55.9% @ 20.4k | |
+| fresh seeds 4–6 | 48.1% @ 8.7k | 54.9% @ 15.0k | **57.6% @ 19.9k** | |
+| fresh seeds 4–8 | 47.9% @ 8.7k | 54.4% @ 14.9k | 56.6% @ 19.7k | 58.6% @ 28.2k |
+Examples-only check at k = 3: 56.9% @ 18.0k (seeds 4–6). **R-P1 holds** (57.6% ≥ 54.0% at 19.9k ≤ 23k; also above the N13b cascade to high,
+51.9% @ 37.7k). **R-P2 narrowly refuted** (k = 5 adds +2.0, not ≤ +1.5, at +8.5k). **R-P3 refuted:** the brute-force oracle adds only +0.7
+over the examples (seeds 4–6) — the retries do the work. Reading: for gpt-oss-20b, whose high effort runs out of budget, retrying at
+medium and filtering by the statement's examples is the better use of tokens (AlphaCode-style sample-and-filter, here priced in tokens).

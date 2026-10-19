@@ -47,3 +47,22 @@ numpy and OR-Tools import in 0.1 s, so earlier runs — which had no scipy insta
 chosen under the free prompt run many worker threads and hit RLIMIT_CPU (the H5 bug). Fixes: BLAS / OpenMP single-threaded in the sandbox
 (cvxpy import + a cone solve: 0.6 s), and a CPU limit of 3,600 s for the free modes (wall clock still 60 s). The buggy outputs are kept as
 results/x3/opt_*_optmath_{free,thinkfree}_s*_sandboxbug.jsonl; HO-L re-runs with the same prompts, seeds and predictions.
+
+## Interim results, gpt-oss-20b (2026-10-19 19:47 UTC; after the sandbox fix; thinkfree 290 / 300 rows)
+| arm (3 seeds) | accuracy @ tokens | 'No Best Solution' | nonlinear-text problems (27) / others (73) |
+|---|---|---|---|
+| mip (no fact, s1) | 32.0% @ 1.09k | 24 / 100 | 33.3 / 31.5% |
+| mips (automatic fact) | 26.0% @ 1.07k | 66 / 300 | 19.8 / 28.3% |
+| thinks (thinking + automatic fact) | 32.7% @ 5.39k | 35 / 300 | 35.8 / 31.5% |
+| free (solver choice) | 25.3% @ 1.01k | 74 / 300 | 32.1 / 22.8% |
+| thinkfree | 36.6% @ 4.43k | 44 / 290 | 38.5 / 35.5% |
+Policies, seeds 1 / 2 / 3: **FF (mips, think on failure or 'No Best Solution') 37.0 / 35.0 / 43.0% @ 3.3–4.2k vs always thinking 34.0 / 31.0 /
+33.0% @ 5.4k**; FFR 37.0 / 33.0 / 34.0% @ 6.5–6.9k. With solver choice: FF 39.4 / 36.6 / 41.8% @ 3.0–3.3k vs always thinkfree 34.3 / 38.7 / 36.7%
+@ 3.9–4.8k; FFR 35.4 / 37.6 / 38.8% @ 5.2–5.8k.
+- So far: **the recipe's core holds on the unseen benchmark** — thinking only when the cheap program fails is more accurate than always
+  thinking (+4 to +10 points with the pywraplp prompt) at 62–77% of its tokens. **The agreement check does not pay here** (agreement is rare
+  on hard problems, so FFR pays two cheap programs and thinks anyway: HO-P2 refuted on tokens). **The automatic fact mined from NL4OPT hurts**
+  (26.0 vs 32.0% without it; HO-P1 refuted for gpt-oss-20b): a fact from easy textbook problems does not fit large structured models.
+- Solver choice (HO-L-P1 refuted: 25.3% vs 32.0%) helps the nonlinear problems (+12 points over mips; cvxpy in 64 of 81) and hurts the
+  linear ones (−5.5: more CP-SAT, more API errors). Raw cvxpy failures: array shape mismatches from transcribing large coefficient tables, and
+  `solver=cp.ECOS`, which is not installed (SolverError → 'No Best Solution') — the same missing-knowledge error the fact was built for.
