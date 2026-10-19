@@ -60,3 +60,23 @@ Numbers quoted from papers came through a page reader: re-check before citing ex
   constraint detect omitted constraints, feasible ones detect wrongly added constraints; used as rejection-sampling filter and RL reward
   (VRPCoder 8B, VRPBench 21 variants, 93% Pass@1). Relevant to our "check is the bottleneck" thesis (a label-free check of the
   constraint set, beyond feasibility of one output). Editing a verified solver under a rule change: still no prior work found.
+
+## Search 2026-10-19 (2026-10-19 07:28 UTC): optimization modeling, automatic facts, when-to-think — closest work and how we differ
+- **OptiSkill** (arXiv 2609.22987): a hierarchical SkillBank (global formulation strategies + step-level error rules) distilled from a strong
+  teacher's (DouBao-Seed-2.0-Pro) Gurobi programs on 1K OptMATH problems, **validated against ground-truth answers**, routed to 8
+  problem-type sub-banks; frontier backbones reach MAMO Easy / Complex 90.8–94.3 / 56.8–64.0%, IndustryOR 71–74%. Closest to our mined
+  facts. Differences: ours are the *same small model's* programs selected by a **label-free** check (runs and prints), no teacher, no answers;
+  we show *why* type routing is needed (a mined fact from another problem type carries the wrong library / backend: −14 to −21 points)
+  and combine the fact with check-gated thinking. Their type routing is consistent with our cross-type failure.
+- **EVOM, execution-verified RL for optimization modeling** (2604.00442), **OR-R1** (2511.09092), **Step-Opt** (2506.17637), **CALM / STORM**
+  (2510.04204: STORM-Qwen3-4B MAMO 86.3 / 70.3%), **ORLM** (2405.17743: LLaMA-3-8B, reported MAMO 82.3 / 37.4%, NL4OPT 85.7%, IndustryOR 38.0%):
+  training-based. Our recipe is training-free; on MAMO it puts untrained 3090-class models at ORLM-8B's level (Qwen3-8B 81.7 / 37.9%,
+  Qwen3-14B-AWQ 82.8 / 37.4%; gpt-oss-20b 85.6 / 57.8%), below a trained reasoning 4B (STORM) and frontier agents (OptiSkill). Grading
+  conventions differ across papers (MAMO labels are noisy; reported ORLM numbers vary 81.6–88.2% Easy); a same-harness ORLM run is queued.
+- **OptArgus** (2605.11738, multi-agent hallucination detection in optimization modeling), **localizable error-driven modeling** (2602.11164):
+  checks / repair for formulation errors — related to our check-leak finding (better facts → fewer crashes → more wrong-but-running programs).
+- **API documentation for code hallucination** (Amazon CloudAPIBench, 2407.09726): documentation helps rare APIs, hurts frequent ones with a weak
+  retriever; selective retrieval by index check or confidence (+8.2 points). Matches our N16 (log-prob trigger) and our name-list failure.
+- **When to think**: Thinkless (2505.13379, NeurIPS 2025) and AdaptThink (2505.13417) *train* a mode switch (RL); "What if we allocate
+  test-time compute adaptively?" (2602.01070, ICML 2026) allocates with a process reward model; none use an execution check after giving a
+  fact, and none compare with difficulty-based allocation (Snell et al.) at matched tokens as we do.
