@@ -165,8 +165,9 @@ const PROBLEM_NOTES = "Qwen3-8B, real outputs. Asked to answer directly, it give
 slideProblem("Problem", PROBLEM_NOTES);
 
 // 3. Words
-s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Problem" });
-s.addText("Words we use", { placeholder: "title" });
+function slideWords(section, title, pre) {   // pre: text put before the speaker notes
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
+s.addText(title, { placeholder: "title" });
 [["Program", "code the model writes; the computer runs it", "the shoelace formula for an area"],
  ["Tool", "ready-made code we put in the prompt", "orient(a, b, c); the OR-Tools route library"],
  ["Fact", "know-how the model may lack", "the exact function name to call"],
@@ -179,12 +180,15 @@ s.addText("Words we use", { placeholder: "title" });
   txt(s, d, x + 0.25, y + 0.78, 3.35, 0.7, { fontSize: 16, valign: "top" });
   txt(s, "e.g. " + e, x + 0.25, y + 1.5, 3.35, 0.55, { fontSize: 14, italic: true, color: C.text2, valign: "top" });
 });
-s.addNotes("Plain definitions for the rest of the talk. Every result is reported as accuracy and tokens (cost).");
+s.addNotes((pre || "") + "Plain definitions for the rest of the talk. Every result is reported as accuracy and tokens (cost).");
+}
+slideWords("Problem", "Words we use");
 
 pres.addSection({ title: "Findings" });
 // 4b. Results at a glance
-s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Findings" });
-s.addText("Findings at a glance: same or better, for fewer tokens", { placeholder: "title" });
+function slideGlance(section, title, pre) {   // pre: text put before the speaker notes
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
+s.addText(title, { placeholder: "title" });
 txt(s, [{ text: "blue", options: { bold: true, color: BLUE } }, { text: " = the better way   ·   " },
         { text: "grey", options: { bold: true, color: "7F7F7F" } }, { text: " = the usual way or a published method   ·   " },
         { text: "red", options: { bold: true, color: RED } }, { text: " = makes it worse" }], 0.6, 1.3, 12.1, 0.35, { fontSize: 14, color: C.text2 });
@@ -212,12 +216,15 @@ mini(s, 4, "Reuse a checked program", "48 routing days: % valid · tokens",
      [["new each day", 7, "7% · 86k", G], ["own notes (DC)", 36, "31–40%", G], ["reuse one", 94, "94% · 28k", BLUE]]);
 mini(s, 5, "All together", "624 problems, 3 models: % · tokens",
      [["think on hardest", 74, "74% · 4.1k", G], ["fix by type", 83, "83% · 4.2k", G], ["fact first", 87, "87% · 2.5k", BLUE]]);
-s.addNotes("One panel per result. Add the fact: routing 23% to 77-90% (thinking longer 3%, whole manual 7%). Small models gain most: Qwen3-1.7B 0% to 45%, Qwen3-32B 65% to 66% (word problems). Compare two versions: 99% at 4.3k tokens vs always thinking 98% at 5.9k; with 8 extra tools 59%. Think only on a failed check (gpt-oss-120b, contest): 66.3% at 24.7k vs 66.2% at 30.1k. Reuse: 94% of 48 routing days vs 7% with a new program per day; Dynamic Cheatsheet (DC, the model's own notes) 31-40%. All together: fact first then think on failure 87% at 2.5k vs 74% at 4.1k for thinking on the hardest-looking problems (Snell-style) and 83% for choosing the fix by failure type.");
+s.addNotes((pre || "") + "One panel per result. Add the fact: routing 23% to 77-90% (thinking longer 3%, whole manual 7%). Small models gain most: Qwen3-1.7B 0% to 45%, Qwen3-32B 65% to 66% (word problems). Compare two versions: 99% at 4.3k tokens vs always thinking 98% at 5.9k; with 8 extra tools 59%. Think only on a failed check (gpt-oss-120b, contest): 66.3% at 24.7k vs 66.2% at 30.1k. Reuse: 94% of 48 routing days vs 7% with a new program per day; Dynamic Cheatsheet (DC, the model's own notes) 31-40%. All together: fact first then think on failure 87% at 2.5k vs 74% at 4.1k for thinking on the hardest-looking problems (Snell-style) and 83% for choosing the fix by failure type.");
+}
+slideGlance("Findings", "Findings at a glance: same or better, for fewer tokens");
 
 // 5. Step 2: fact
 // 4. Missing knowledge
-s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Findings" });
-s.addText("Finding 1: give the fact, not the manual", { placeholder: "title" });
+function slideFact(section, title, pre) {   // pre: text put before the speaker notes
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
+s.addText(title, { placeholder: "title" });
 txt(s, "Task: plan delivery routes for trucks with a weight limit, using Google's OR-Tools library (Qwen3-32B)", 0.6, 1.4, 12.1, 0.45, { fontSize: 18 });
 prompt(s, "Prompt A: task + a long OR-Tools reference sheet", ["...the task...", "RoutingModel: AddDimension(...), Solve(...),", "SetArcCostEvaluator(...), ... (many functions)"], 0.6, 1.95, 5.0, 1.15, "FCE4D6");
 arrow(s, 5.6, 2.52, 6.0, 2.52);
@@ -229,11 +236,14 @@ code(s, "RegisterUnaryTransitCallback(...)", 6.0, 3.6, 4.6, 0.55, GREEN, 12);
 txt(s, "✓ runs, best route", 10.75, 3.5, 2.0, 0.75, { fontSize: 15, bold: true, color: GREEN });
 txt(s, "Out of 100 routing problems, how many it solves best:", 0.6, 4.65, 12.1, 0.4, { bold: true, fontSize: 17 });
 hbars(s, 0.6, 5.05, 12.1, [["Nothing extra", 23, "23", "7F7F7F"], ["Think longer", 3, "3", RED], ["Long reference sheet", 7, "7", RED], ["5 exact lines", 83, "77–90", GREEN]], 0.38);
-s.addNotes("The model writes the program (the right side shows the line that matters). With a long reference sheet it guesses a plausible function name that does not exist and crashes; with five lines showing the exact call it writes the right one. Thinking longer cannot supply a fact it does not have (3 of 100). On the 56 standard Solomon routing problems, three such facts together take gpt-oss-120b to a valid plan on every instance.");
+s.addNotes((pre || "") + "The model writes the program (the right side shows the line that matters). With a long reference sheet it guesses a plausible function name that does not exist and crashes; with five lines showing the exact call it writes the right one. Thinking longer cannot supply a fact it does not have (3 of 100). On the 56 standard Solomon routing problems, three such facts together take gpt-oss-120b to a valid plan on every instance.");
+}
+slideFact("Findings", "Finding 1: give the fact, not the manual");
 
 // 5b. Small models
-s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Findings" });
-s.addText("Finding 2: one fact helps small models most", { placeholder: "title" });
+function slideSmall(section, title, pre) {   // pre: text put before the speaker notes
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
+s.addText(title, { placeholder: "title" });
 txt(s, "Word problems → optimization programs (NL4OPT + IndustryOR, 345 problems, 3 runs): % solved", 0.6, 1.35, 12.1, 0.45, { fontSize: 18 });
 s.addChart(pres.charts.BAR, [
   { name: "program only", labels: ["Qwen3-1.7B", "Qwen3-4B", "Qwen3-8B", "Qwen3-14B (4-bit)", "Qwen3-32B (4-bit)"], values: [0.1, 14.7, 34.3, 58.1, 65.4] },
@@ -250,11 +260,14 @@ s.addChart(pres.charts.BAR, [
 });
 txt(s, "fact gain (points)", 9.2, 5.1, 3.5, 0.4, { fontSize: 13, color: C.text2 });
 caption(s, "With the fact, a model on one 24 GB GPU matches Qwen3-32B (73% vs 72%) at 1/8 of the tokens");
-s.addNotes("SIZE study. Without the snippet the 1.7B model invents OR-Tools attributes and almost never runs (0.1%); with six lines of exact usage it solves 44.5%. The gain shrinks as the model grows (+44, +31, +17, +8, +1 points). With the recipe (fact first, think only when the check fails), models that fit one 24 GB GPU match or beat Qwen3-32B: gpt-oss-20b 73.0% at 0.7k tokens vs Qwen3-32B with the fact and always thinking 72.0% at 5.5k; on the optimization suite Qwen3-14B (4-bit) 87-92% vs Qwen3-32B 79-85%. Below 14B the optimization suite stays at 47% or less.");
+s.addNotes((pre || "") + "SIZE study. Without the snippet the 1.7B model invents OR-Tools attributes and almost never runs (0.1%); with six lines of exact usage it solves 44.5%. The gain shrinks as the model grows (+44, +31, +17, +8, +1 points). With the recipe (fact first, think only when the check fails), models that fit one 24 GB GPU match or beat Qwen3-32B: gpt-oss-20b 73.0% at 0.7k tokens vs Qwen3-32B with the fact and always thinking 72.0% at 5.5k; on the optimization suite Qwen3-14B (4-bit) 87-92% vs Qwen3-32B 79-85%. Below 14B the optimization suite stays at 47% or less.");
+}
+slideSmall("Findings", "Finding 2: one fact helps small models most");
 
 // 5. Steering
-s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Findings" });
-s.addText("Finding 3: two versions catch each other's mistakes", { placeholder: "title" });
+function slideTwoVersions(section, title, pre) {   // pre: text put before the speaker notes
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
+s.addText(title, { placeholder: "title" });
 txt(s, "Extra tools can mislead the model. Write the program with and without them, and compare:", 0.6, 1.4, 12.1, 0.45, { fontSize: 18 });
 s.addImage({ path: FIG("slide5_hull.png"), x: 0.75, y: 1.95, w: 2.05, h: 2.05, objectName: "ten points and their hull", altText: "10 points; the rubber band touches 6 of them" });
 txt(s, "rubber band around 10 points: 6 corners", 0.4, 4.0, 2.75, 0.4, { fontSize: 12, bold: true, color: GREEN, align: "center" });
@@ -272,11 +285,14 @@ hbars(s, 0.6, 5.0, 12.1, [["Always Prompt B (+ helpers)", 59, "59% · 0.6k", RED
                           ["Always Prompt A (task only)", 77, "77% · 0.4k", "7F7F7F"],
                           ["Always think long", 98, "98% · 5.9k", "7F7F7F"],
                           ["Both prompts, think only if they differ", 99, "99% · 4.3k", BLUE]], 0.4, 4.1, 1.9);
-s.addNotes("The example (Qwen3-14B, real output): the only difference between the two prompts is the toolbox, eight correct helper functions that the task does not need. We run the two finished programs ourselves. Program A prints 6, the right answer; program B builds its method on polar_sort and prints 0. The bars (Qwen3-32B, 108 generated geometry problems, mean of 3 runs; tokens = output tokens per problem, both cheap programs counted for the last row): with the helpers 59%, task only 77%, always thinking 98% at 5.9k tokens, and writing both cheap programs and thinking only when their answers differ 99% at 4.3k (27% fewer tokens; the pair differs on 37-53% of problems). It does not help when both programs share the mistake (gpt-oss-120b on contest problems).");
+s.addNotes((pre || "") + "The example (Qwen3-14B, real output): the only difference between the two prompts is the toolbox, eight correct helper functions that the task does not need. We run the two finished programs ourselves. Program A prints 6, the right answer; program B builds its method on polar_sort and prints 0. The bars (Qwen3-32B, 108 generated geometry problems, mean of 3 runs; tokens = output tokens per problem, both cheap programs counted for the last row): with the helpers 59%, task only 77%, always thinking 98% at 5.9k tokens, and writing both cheap programs and thinking only when their answers differ 99% at 4.3k (27% fewer tokens; the pair differs on 37-53% of problems). It does not help when both programs share the mistake (gpt-oss-120b on contest problems).");
+}
+slideTwoVersions("Findings", "Finding 3: two versions catch each other's mistakes");
 
 // 6. Hard problems
-s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Findings" });
-s.addText("Finding 4: think harder only when a check fails", { placeholder: "title" });
+function slideHard(section, title, pre) {   // pre: text put before the speaker notes
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
+s.addText(title, { placeholder: "title" });
 txt(s, "Every contest problem lists a few sample inputs with the correct outputs. Running the program on them costs nothing:", 0.6, 1.4, 12.1, 0.45, { fontSize: 18 });
 box(s, "write a program quickly (medium effort)", 0.6, 2.2, 2.9, 0.85, "FFFFFF");
 arrow(s, 3.5, 2.62, 3.95, 2.62);
@@ -293,11 +309,14 @@ caseCard(s, 0.6, "\"Make a triangle!\" (easy)", "Q: how many cm to add so 3 stic
 caseCard(s, 6.8, "\"Arrow\" (hard)", "Q: print the 7 corners of an arrow shape\nprogram's corners ≠ the sample ✗ → think harder → correct ✓\n4k + 13k tokens, paid only because the check failed", RED, "FDF2F1");
 txt(s, "Over 311 problems (gpt-oss-120b): same 66% solved as always thinking hard, 18% fewer tokens", 0.6, 5.35, 12.1, 0.45, { fontSize: 17, bold: true });
 hbars(s, 0.6, 5.8, 9.5, [["Always think hard", 100, "30k tokens", "7F7F7F"], ["Think hard only on a failed check", 82, "25k tokens", BLUE]], 0.4, 3.6);
-s.addNotes("Real gpt-oss-120b runs on Codeforces geometry problems. The examples are a free check: if the quick (medium-effort) program gets them right we submit it; if not, we pay for high effort. Examples can miss bugs (Find Color passed all 3 examples and failed hidden test 11), so the full policy also runs a quick brute-force comparison on small inputs. Result: 66.3% at 24.7k tokens per problem vs 66.2% at 30.1k for always high effort.");
+s.addNotes((pre || "") + "Real gpt-oss-120b runs on Codeforces geometry problems. The examples are a free check: if the quick (medium-effort) program gets them right we submit it; if not, we pay for high effort. Examples can miss bugs (Find Color passed all 3 examples and failed hidden test 11), so the full policy also runs a quick brute-force comparison on small inputs. Result: 66.3% at 24.7k tokens per problem vs 66.2% at 30.1k for always high effort.");
+}
+slideHard("Findings", "Finding 4: think harder only when a check fails");
 
 // 7. Pay once
-s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Findings" });
-s.addText("Finding 5: repeated problems need one checked program", { placeholder: "title" });
+function slideReuse(section, title, pre) {   // pre: text put before the speaker notes
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
+s.addText(title, { placeholder: "title" });
 txt(s, "A delivery company plans routes every day: the same kind of problem, new customers each day (gpt-oss-120b)", 0.6, 1.4, 12.1, 0.45, { fontSize: 18 });
 function days(s, y, good, label, res, col) {
   txt(s, label, 0.6, y, 3.4, 1.3, { fontSize: 17, bold: true });
@@ -312,11 +331,14 @@ days(s, 2.15, 3, "A: ask for a new program every day", "valid on 7% of days\n≈
 days(s, 3.85, 45, "B: the model writes 16 programs; keep the one valid on 8 past days; reuse it", "valid on 94% of days\n28k tokens in total", "38761D");
 txt(s, "each square = one of 48 new days · green = a valid route plan", 4.1, 5.25, 8.6, 0.4, { fontSize: 14, color: C.text2 });
 txt(s, "Only the data change, so one checked program keeps working (also on 4× bigger days). New rule? Ask the model to edit it.", 0.6, 5.85, 12.1, 0.6, { fontSize: 17 });
-s.addNotes("Analogy for the 56 Solomon routing problems: each problem is like one day's orders. A: a new program per day is valid on 6 and 1 of 48 days in two runs (7%; drawn as 3), about 1.8k tokens each. B: draw 16 programs once, keep the one that gives valid plans on 8 practice days, reuse it: valid on 45 of 48 days (94%), 28k tokens in total. Reused programs also work on 200- and 400-customer problems; for a new rule (job-shop with release dates) editing the working program beats writing a new one (10% to 68-100%).");
+s.addNotes((pre || "") + "Analogy for the 56 Solomon routing problems: each problem is like one day's orders. A: a new program per day is valid on 6 and 1 of 48 days in two runs (7%; drawn as 3), about 1.8k tokens each. B: draw 16 programs once, keep the one that gives valid plans on 8 practice days, reuse it: valid on 45 of 48 days (94%), 28k tokens in total. Reused programs also work on 200- and 400-customer problems; for a new rule (job-shop with release dates) editing the working program beats writing a new one (10% to 68-100%).");
+}
+slideReuse("Findings", "Finding 5: repeated problems need one checked program");
 
 // 7b. Finding 6: automatic facts
-s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Findings" });
-s.addText("Finding 6: the fact can be found without a human", { placeholder: "title" });
+function slideAuto(section, title, pre) {   // pre: text put before the speaker notes
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
+s.addText(title, { placeholder: "title" });
 txt(s, "Example (Qwen3-8B, MAMO): products X, Y, Z cost $10, $15, $20; X+Y ≤ 5000, Y+Z ≤ 4000, X+Z ≥ 2000. Minimum cost? (20000)", 0.6, 1.3, 12.1, 0.45, { fontSize: 16 });
 txt(s, "No fact", 0.6, 1.85, 6.7, 0.35, { fontSize: 15, bold: true });
 code(s, "solver.Objective().Minimize()", 0.6, 2.2, 4.4, 0.5, RED, 13);
@@ -340,11 +362,14 @@ s.addChart(pres.charts.BAR, [
      objectName: "automatic fact on held-out MAMO" });
 txt(s, "Does not work: a program of a different problem type (−14 to −21 points); a list of the library's names (66% → 56%)", 7.7, 5.5, 5.0, 0.6, { fontSize: 13, color: RED, valign: "top" });
 caption(s, "No human writes the fact: the model's own checked program shows the right call");
-s.addNotes("Real outputs, Qwen3-8B on MAMO easy-189 (gold 20000). Without a fact it writes solver.Objective().Minimize() and crashes (AttributeError). The fact is chosen automatically: its own shortest program from NL4OPT (a vans-and-trucks problem) that passed the label-free check (it runs and prints a value); no answers, no human. With it, both programs write solver.Minimize(10*x + 15*y + 20*z) and print 20000 (316 + 312 tokens), they agree, so no thinking is needed (thinking alone: 5,323 tokens). Chart: on the held-out MAMO the automatic fact matches the hand-written one (gpt-oss-20b within 1.2 points on 3 seeds). It stays within a problem family: a program of another problem type is 14-21 points below the hand-written fact on the optimization suite, and an introspected list of names hurts (Qwen3-32B 66.2 to 56.1%).");
+s.addNotes((pre || "") + "Real outputs, Qwen3-8B on MAMO easy-189 (gold 20000). Without a fact it writes solver.Objective().Minimize() and crashes (AttributeError). The fact is chosen automatically: its own shortest program from NL4OPT (a vans-and-trucks problem) that passed the label-free check (it runs and prints a value); no answers, no human. With it, both programs write solver.Minimize(10*x + 15*y + 20*z) and print 20000 (316 + 312 tokens), they agree, so no thinking is needed (thinking alone: 5,323 tokens). Chart: on the held-out MAMO the automatic fact matches the hand-written one (gpt-oss-20b within 1.2 points on 3 seeds). It stays within a problem family: a program of another problem type is 14-21 points below the hand-written fact on the optimization suite, and an introspected list of names hurts (Qwen3-32B 66.2 to 56.1%).");
+}
+slideAuto("Findings", "Finding 6: the fact can be found without a human");
 
 // 7c. Finding 7: proofs
-s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Findings" });
-s.addText("Finding 7: proofs need a specialized model, not a fact", { placeholder: "title" });
+function slideProof(section, title, pre) {   // pre: text put before the speaker notes
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
+s.addText(title, { placeholder: "title" });
 txt(s, "Example (miniF2F): show that if x < 100 and 9x mod 100 = 1, then x = 89", 0.6, 1.3, 6.6, 0.45, { fontSize: 16 });
 code(s, "theorem (x : ℕ) (h₀ : x < 100) (h₁ : x * 9 % 100 = 1) : x = 89", 0.6, 1.8, 6.6, 0.5, null, 12);
 txt(s, "General model (Qwen3-32B)", 0.6, 2.45, 6.6, 0.35, { fontSize: 15, bold: true });
@@ -361,7 +386,9 @@ txt(s, "For general models no step helps: a similar verified proof 133 → 133 �
 txt(s, "Geometry proofs (AlphaGeometry's solver + LLM-proposed points): IMO 12 → 13 of 30 (only 2014 P4: \"take the midpoint of BC\"); easier JGEX 187 → 200 of 231",
     0.6, 5.35, 12.1, 0.7, { fontSize: 15 });
 caption(s, "The missing piece is a skill, not a fact: use a specialized 8B prover (fits one 24 GB GPU)");
-s.addNotes("Real outputs. miniF2F mathd_numbertheory_34 (9^-1 mod 100 = 89). Qwen3-32B's 8 attempts all fail; they cite lemmas that do not exist, e.g. Nat.ModEq_iff_modEq. Goedel-Prover-V2-8B proves it by checking every x below 100 (interval_cases, then norm_num and omega). Specialized provers rarely invent names (6-7% of failed attempts vs 22-40%). For general models a verified proof of the most similar statement, thinking, or an inequality toolkit does not help; even for provers, revising from Lean's errors proves half as many as a fresh attempt (Goedel 11 vs 22 of 107). Geometry: AlphaGeometry's DD+AR engine alone proves 12 of IMO-AG-30 and 187 of JGEX-AG-231; LLM auxiliary points add 13 JGEX problems and only IMO 2014 P4 (d = midpoint of b c).");
+s.addNotes((pre || "") + "Real outputs. miniF2F mathd_numbertheory_34 (9^-1 mod 100 = 89). Qwen3-32B's 8 attempts all fail; they cite lemmas that do not exist, e.g. Nat.ModEq_iff_modEq. Goedel-Prover-V2-8B proves it by checking every x below 100 (interval_cases, then norm_num and omega). Specialized provers rarely invent names (6-7% of failed attempts vs 22-40%). For general models a verified proof of the most similar statement, thinking, or an inequality toolkit does not help; even for provers, revising from Lean's errors proves half as many as a fresh attempt (Goedel 11 vs 22 of 107). Geometry: AlphaGeometry's DD+AR engine alone proves 12 of IMO-AG-30 and 187 of JGEX-AG-231; LLM auxiliary points add 13 JGEX problems and only IMO 2014 P4 (d = midpoint of b c).");
+}
+slideProof("Findings", "Finding 7: proofs need a specialized model, not a fact");
 
 pres.addSection({ title: "Method" });
 // 4. Recipe
@@ -392,8 +419,9 @@ s.addNotes(notes);
 slideRecipe("Method", "Our method: a recipe built from the findings", true, "Each step is a measured result, shown on the finding slides with an example. Step 1: the polygon. Step 2: delivery routing with OR-Tools (Qwen3-32B). Step 3: free checks (the problem's examples; two versions that should agree). Step 4: contest geometry with gpt-oss-120b. Step 5: reuse on the Solomon routing benchmark. Together (3 models, 624 geometry and optimization problems, 3 seeds): fact first and thinking only on a failed check solves 87% at 2.5k tokens per problem.");
 
 // 9. All together
-s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Method" });
-s.addText("All together: facts first, think only on failure", { placeholder: "title" });
+function slideTogether(section, title, pre) {   // pre: text put before the speaker notes
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
+s.addText(title, { placeholder: "title" });
 txt(s, "Same 624 geometry and optimization problems, 3 models: % solved · tokens per problem", 0.6, 1.35, 12.1, 0.45, { fontSize: 18 });
 hbars(s, 0.6, 1.95, 8.2, [["First program, no help", 63, "63% · 0.7k", "A5A5A5"],
                           ["Think on hardest-looking", 74, "74% · 4.1k", "7F7F7F"],
@@ -411,11 +439,14 @@ txt(s, "points lost vs the best policy, over 63 settings (lower is better)", 9.2
   txt(s, String(v), 9.3 + 0.3 * v, y + 0.25, 0.6, 0.35, { fontSize: 14, bold: true, color: col === "A5A5A5" ? "595959" : col });
 });
 caption(s, "Most accurate and among the cheapest on all 3 seeds: spend thinking where a check fails");
-s.addNotes("Right panel (MODEL, 63 model x task x seed cells; 0.5 points per 1k tokens): fact first, think on failure is the best fixed default (1.4 points from each cell's best policy; always thinking 8.4); choosing among 4 policies on 30 labelled problems of the new task cuts it to 0.6 (MAMO: 0.8-1.4). U1 / U1r / U2 (pre-registered). Qwen3-8B, Qwen3-32B and Qwen3.6 on the generated geometry and optimization suites, 624 problems, cure seed 1 shown; the order is the same on seeds 2 and 3. Thinking on the hardest-looking problems (difficulty-based allocation, as in compute-optimal scaling work) is even below thinking whenever the check fails. Giving the fact first and thinking only when the check fails is the most accurate and uses fewer tokens than any thinking policy; with automatically retrieved facts (BM25) it still reaches 84%.");
+s.addNotes((pre || "") + "Right panel (MODEL, 63 model x task x seed cells; 0.5 points per 1k tokens): fact first, think on failure is the best fixed default (1.4 points from each cell's best policy; always thinking 8.4); choosing among 4 policies on 30 labelled problems of the new task cuts it to 0.6 (MAMO: 0.8-1.4). U1 / U1r / U2 (pre-registered). Qwen3-8B, Qwen3-32B and Qwen3.6 on the generated geometry and optimization suites, 624 problems, cure seed 1 shown; the order is the same on seeds 2 and 3. Thinking on the hardest-looking problems (difficulty-based allocation, as in compute-optimal scaling work) is even below thinking whenever the check fails. Giving the fact first and thinking only when the check fails is the most accurate and uses fewer tokens than any thinking policy; with automatically retrieved facts (BM25) it still reaches 84%.");
+}
+slideTogether("Method", "All together: facts first, think only on failure");
 
 // 9b. Published methods
-s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Method" });
-s.addText("Compared with published methods", { placeholder: "title" });
+function slideBaselines(section, title, pre) {   // pre: text put before the speaker notes
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
+s.addText(title, { placeholder: "title" });
 {
   const OURS = (t) => ({ text: t, options: { bold: true, color: "38761D" } });
   const rows = [
@@ -430,12 +461,14 @@ s.addText("Compared with published methods", { placeholder: "title" });
   table(s, rows, { x: 0.6, y: 1.45, w: 12.1, colW: [2.3, 3.9, 2.2, 3.7], rowH: 0.62, fontSize: 15 });
 }
 caption(s, "Measured here with the same problems and models: the recipe is more accurate, cheaper, or both");
-s.addNotes("All baselines were run by us on our benchmarks. Models: U1 policies over Qwen3-8B / Qwen3-32B / Qwen3.6 (624 problems); contest geometry gpt-oss-120b (311); selection Qwen3-8B (300 geometry instances, 3 candidates); documentation Qwen3-32B on CVRP; tools Qwen3-32B on 5 geometry tasks; daily routing gpt-oss-120b on 48 held-out Solomon instances. Tokens are output tokens per problem. More rows (MBR-exec, majority vote, DeepConf, Self-Debugging, Mixture-of-Thought cascade, BM25 retrieval) are in PROPOSAL.md section 7.");
+s.addNotes((pre || "") + "All baselines were run by us on our benchmarks. Models: U1 policies over Qwen3-8B / Qwen3-32B / Qwen3.6 (624 problems); contest geometry gpt-oss-120b (311); selection Qwen3-8B (300 geometry instances, 3 candidates); documentation Qwen3-32B on CVRP; tools Qwen3-32B on 5 geometry tasks; daily routing gpt-oss-120b on 48 held-out Solomon instances. Tokens are output tokens per problem. More rows (MBR-exec, majority vote, DeepConf, Self-Debugging, Mixture-of-Thought cascade, BM25 retrieval) are in PROPOSAL.md section 7.");
+}
+slideBaselines("Method", "Compared with published methods");
 
 // 10. Limits and next
-pres.addSection({ title: "Next" });
-s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Next" });
-s.addText("Where the recipe stops, and what is next", { placeholder: "title" });
+function slideLimits(section, title, pre) {   // pre: text put before the speaker notes
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
+s.addText(title, { placeholder: "title" });
 [["Where it stops", RED, [
    "Proofs: a skill, not a fact (use a specialized prover)",
    "Automatic facts only within one kind of problem",
@@ -451,51 +484,46 @@ s.addText("Where the recipe stops, and what is next", { placeholder: "title" });
   bullets(s, items, { x: x + 0.3, y: 2.4, w: 5.35, h: 3.1, fontSize: 17 });
 });
 caption(s, "Every claim pre-registered and checked on 3 seeds; accuracy always reported with its token cost");
-s.addNotes("Updated 2026-10-19. Done since the last version: contest geometry and competition math on 24 GB GPUs, Qwen3.6 with the model card settings (headline unchanged), automatic facts and the held-out MAMO test, the policy model, proofs. Older notes: for Lean proofs an invented lemma stands for a missing proof step (similar-name feedback fixes 2.7%, a fresh try 3.2%); for PopQA thinking adds 1.8-5 points at 70-200 times the tokens, only for well-known facts. Checks leak, which caps every policy. Facts were hand-written; BM25 retrieval recovers most of the gain. Next: SIZE-CC (gpt-oss-20b on contest geometry with check-gated escalation), X1-SIZE (competition math for Qwen3-4B/8B/14B), automatic facts, a closed API model, final report.");
+s.addNotes((pre || "") + "Updated 2026-10-19. Done since the last version: contest geometry and competition math on 24 GB GPUs, Qwen3.6 with the model card settings (headline unchanged), automatic facts and the held-out MAMO test, the policy model, proofs. Older notes: for Lean proofs an invented lemma stands for a missing proof step (similar-name feedback fixes 2.7%, a fresh try 3.2%); for PopQA thinking adds 1.8-5 points at 70-200 times the tokens, only for well-known facts. Checks leak, which caps every policy. Facts were hand-written; BM25 retrieval recovers most of the gain. Next: SIZE-CC (gpt-oss-20b on contest geometry with check-gated escalation), X1-SIZE (competition math for Qwen3-4B/8B/14B), automatic facts, a closed API model, final report.");
+}
+pres.addSection({ title: "Next" });
+slideLimits("Next", "Where the recipe stops, and what is next");
 
 const FULL = path.join(ROOT, "PROPOSAL_slides_full.pptx");
 pres.writeFile({ fileName: FULL }).then(async () => { await applyTheme(FULL, THEME); console.log("written", FULL); buildTalk(); });
 
-// ================= 5-minute talk (PROPOSAL_slides.pptx, 7 slides, about 45 s each) =================
+// ================= 5-minute talk + 5 minutes of questions (PROPOSAL_slides.pptx): 8 slides, then extra pages =================
 function buildTalk() {
   pres = newDeck();
-  pres.addSection({ title: "Problem" });
-  slideTitle("Problem", "POSTECH CSED490E (Graduate NLP) · Team 5 · 5-minute proposal talk",
-    "(10 s) We study how to solve computational math with LLMs: answers that must be computed exactly, with the fewest tokens and the smallest GPU.");
-  slideProblem("Problem", "(45 s) " + PROBLEM_NOTES);
+  pres.addSection({ title: "Talk" });
+  slideTitle("Talk", "POSTECH CSED490E (Graduate NLP) · Team 5 · 5-minute proposal talk",
+    "(10 s) We study how to solve computational math with LLMs: answers that must be computed exactly, with the fewest tokens and the smallest GPU. Seven slides, then extra pages for questions.");
+  slideProblem("Talk", "(35 s) " + PROBLEM_NOTES);
+  slideFact("Talk", "Finding 1: give the fact, not the manual", "(45 s) ");
+  slideTwoVersions("Talk", "Finding 2: two versions catch each other's mistakes", "(45 s) ");
+  slideHard("Talk", "Finding 3: think harder only when a check fails", "(45 s) ");
+  slideAuto("Talk", "Finding 4: the fact can be found without a human", "(45 s) ");
+  slideRecipe("Talk", "Our method: a recipe from these findings", false,
+    "(45 s) The findings give a recipe, cheapest steps first: write a program, add the missing fact (by hand or mined automatically), run a free check, think harder only on a failure, reuse a checked program when the problem repeats. Together, on 624 geometry and optimization problems with 3 models: 87% at 2.5k tokens per problem, vs 74% at 4.1k for spending thinking on the hardest-looking problems. Takeaway: give the fact first, think only where a free check fails. Extra pages: small models, reuse, proofs, the full comparison with published methods, limits.");
 
-  // What we found: four findings, each an example and its number
-  pres.addSection({ title: "Findings" });
-  s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Findings" });
-  s.addText("What we found, each against the usual way", { placeholder: "title" });
-  [["1. Give the fact, not the manual", [["whole manual → RegisterUnaryLongLivingCallback ✗", RED],
-                                          ["5 exact lines → RegisterUnaryTransitCallback ✓", "38761D"]],
-    "Routing solved: 23% → 77–90% (thinking longer: 3%)"],
-   ["2. Two versions catch mistakes", [["task only: the program prints 6 corners ✓", "38761D"],
-                                        ["+ 8 unneeded helpers: prints 0 ✗ → differ → think", RED]],
-    "99% at 4.3k tokens (always thinking: 98% at 5.9k)"],
-   ["3. Think harder only when a check fails", [["\"Make a triangle!\": examples pass → submit", "38761D"],
-                                                 ["\"Arrow\": an example fails → think harder", RED]],
-    "Contest geometry: same 66%, 18% fewer tokens"],
-   ["4. Reuse a checked program", [["a new program every day: valid on 7% of 48 days", RED],
-                                    ["one program checked on 8 past days: 94%", "38761D"]],
-    "Better and 3× cheaper (28k vs 86k tokens in total)"]].forEach(([title, lines, result], k) => {
-    const x = 0.6 + (k % 2) * 6.15, y = 1.45 + Math.floor(k / 2) * 2.4;
-    panel(s, x, y, 5.95, 2.2, title);
-    txt(s, title, x + 0.25, y + 0.12, 5.45, 0.45, { fontSize: 19, bold: true, color: BLUE });
-    lines.forEach(([t, col], r) => txt(s, t, x + 0.25, y + 0.62 + r * 0.45, 5.45, 0.42, { fontSize: 16, color: col }));
-    txt(s, result, x + 0.25, y + 1.58, 5.45, 0.5, { fontSize: 17, bold: true });
+  // closing slide: the takeaway, then 5 minutes of questions with the extra pages as an index
+  s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
+  s.addText("Thank you: questions?", { placeholder: "title" });
+  panel(s, 0.6, 1.5, 12.1, 1.5, "takeaway");
+  txt(s, [{ text: "Takeaway: ", options: { bold: true } }, { text: "give the model the missing fact first, and spend thinking only where a free check fails. More accurate, fewer tokens, and it works on one 24 GB GPU." }],
+      0.9, 1.6, 11.5, 1.3, { fontSize: 20 });
+  txt(s, "Extra pages for questions", 0.6, 3.3, 12.1, 0.45, { fontSize: 18, bold: true, color: BLUE });
+  [["9", "It pays off: no human, small GPU, 30 labels"], ["10", "All policies, cost vs accuracy"], ["11", "One fact helps small models most"],
+   ["12", "Reuse a checked program"], ["13", "Proofs need a specialized model"], ["14", "Compared with published methods"],
+   ["15", "Where the recipe stops, and next"], ["16", "All findings at a glance"], ["17", "Words we use"]].forEach(([n, t], k) => {
+    const x = 0.6 + (k % 3) * 4.1, y = 3.85 + Math.floor(k / 3) * 0.75;
+    txt(s, [{ text: n + "  ", options: { bold: true, color: BLUE } }, { text: t }], x, y, 3.95, 0.6, { fontSize: 15 });
   });
-  caption(s, "Facts and cheap checks beat thinking longer");
-  s.addNotes("(70 s) Four findings, each a real example. (1) Qwen3-32B with the whole OR-Tools manual invents a method and crashes; five exact lines fix it: optimal plans 23% to 77-90%, while thinking longer gives 3%. (2) Extra helper functions mislead it (a convex hull built on polar_sort prints 0 instead of 6); writing the program with and without them and thinking only when they disagree gives 99% at 4.3k tokens vs 98% at 5.9k for always thinking. (3) Contest problems show sample tests: an easy problem passes and is submitted, a hard one fails and only then gets high effort; same 66% with 18% fewer tokens (gpt-oss-120b, 311 problems). (4) Daily routing: one program checked on 8 past days stays valid on 94% of 48 new days vs 7% with a new program per day.");
+  s.addNotes("End of the 5-minute talk; 5 minutes of questions follow. The extra pages after this slide answer the likely questions: does it pay off and how (9, 10), small models (11), reuse (12), proofs (13), published baselines (14), limits and next steps (15), all findings (16), terms (17).");
 
-  // Method + results
-  pres.addSection({ title: "Method" });
-  slideRecipe("Method", "Our method: a recipe from these findings", false,
-    "(45 s) The findings give a recipe, cheapest steps first: write a program, add the missing fact, run a free check, think harder only on a failure, reuse a checked program when the problem repeats.");
-
-  s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Method" });
-  s.addText("It pays off: more accurate, cheaper, small GPUs", { placeholder: "title" });
+  pres.addSection({ title: "Extra pages" });
+  s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Extra pages" });
+  s.addText("Extra: it pays off, even without a human or a big GPU", { placeholder: "title" });
   txt(s, "624 geometry and optimization problems, 3 models: % solved · tokens per problem", 0.6, 1.35, 7.6, 0.45, { fontSize: 16 });
   hbars(s, 0.6, 1.95, 7.6, [["Think on hardest (Snell et al.)", 74, "74% · 4.1k", "7F7F7F"],
                             ["Think when the check fails", 77, "77% · 4.2k", "7F7F7F"],
@@ -509,38 +537,16 @@ function buildTalk() {
     txt(s, label, 8.6, y + 0.6, 4.1, 0.75, { fontSize: 14, valign: "top" });
   });
   caption(s, "\"Spend more on hard problems\" loses to \"facts first, think where the check fails\"");
-  s.addNotes("(50 s) Left: four ways to spend compute on the same 624 problems (Qwen3-8B, Qwen3-32B, Qwen3.6; same order on 3 seeds). Thinking on the hardest-looking problems, the compute-optimal scaling idea, gets 74% at 4.1k tokens; fact first and thinking only when the check fails gets 87% at 2.5k. Right: the fact needs no human (the model's own checked program for a similar problem: gpt-oss-20b 78.8% vs 78.9% hand-written on held-out MAMO); models that fit one 24 GB GPU match Qwen3-32B with the fact; 30 labelled problems choose the best policy for a new task (0.6 points from the best on average).");
+  s.addNotes("Left: four ways to spend compute on the same 624 problems (Qwen3-8B, Qwen3-32B, Qwen3.6; same order on 3 seeds). Thinking on the hardest-looking problems, the compute-optimal scaling idea, gets 74% at 4.1k tokens; fact first and thinking only when the check fails gets 87% at 2.5k. Right: the fact needs no human (the model's own checked program for a similar problem: gpt-oss-20b 78.8% vs 78.9% hand-written on held-out MAMO); models that fit one 24 GB GPU match Qwen3-32B with the fact; 30 labelled problems choose the best policy for a new task (0.6 points from the best on average).");
 
-  s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Method" });
-  s.addText("Compared with published methods", { placeholder: "title" });
-  {
-    const OURS = (t) => ({ text: t, options: { bold: true, color: "38761D" } });
-    table(s, [
-      [HDR("Task"), HDR("Published method"), HDR("Its result"), HDR("Ours (same problems)")],
-      ["Spending thinking", "by difficulty (Snell et al. 2025)", "74% · 4.1k", OURS("87% · 2.5k")],
-      ["Contest geometry", "always high effort", "66.2% · 30.1k", OURS("66.3% · 24.7k")],
-      ["Picking a program", "CodeT: the model writes tests", "96.0% (+340 tokens)", OURS("99.7% (symmetry check)")],
-      ["Library documentation", "DRoC (ICLR 2025)", "72% · 2.1k", OURS("77% · 1.7k (5 exact lines)")],
-      ["Daily routing", "Dynamic Cheatsheet (own notes)", "31–40%", OURS("94% (reuse)")],
-    ], { x: 0.6, y: 1.5, w: 12.1, colW: [2.6, 3.9, 2.4, 3.2], rowH: 0.7, fontSize: 16 });
-  }
-  caption(s, "All measured by us on the same problems and models");
-  s.addNotes("(35 s) Published methods run on our benchmarks: difficulty-based compute allocation, the reasoning-model default of always thinking hard, CodeT selection, DRoC retrieval and Dynamic Cheatsheet memory. The recipe is more accurate, cheaper, or both in each row.");
-
-  pres.addSection({ title: "Next" });
-  s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Next" });
-  s.addText("Where it stops, and what is next", { placeholder: "title" });
-  [["Where it stops", RED, ["Proofs: a specialized 8B prover proves 74%, Qwen3-32B 13%; facts and thinking do not help",
-                            "Automatic facts work only within one kind of problem",
-                            "Checks leak: 24–37% of wrong programs pass the examples"]],
-   ["Next", BLUE, ["Repeat the held-out test for 3 more models", "Facts for each problem type", "Final report"]]].forEach(([head, col, items], i) => {
-    const x = 0.6 + i * 6.15;
-    panel(s, x, 1.55, 5.95, 4.1, head);
-    txt(s, head, x + 0.3, 1.7, 5.35, 0.6, { fontSize: 26, bold: true, color: col });
-    bullets(s, items, { x: x + 0.3, y: 2.4, w: 5.35, h: 3.1, fontSize: 18 });
-  });
-  caption(s, "Takeaway: give the fact first, and think only where a free check fails");
-  s.addNotes("(45 s) Limits: formal proofs need a specialized prover (Goedel-Prover-V2-8B 180 of 244 miniF2F statements vs Qwen3-32B 31; a similar proof, thinking or an inequality sheet does not help general models); a mined fact from a different problem type misleads; checks let some wrong programs through. Next: replicate the held-out MAMO test, mine facts per problem type, final report. Full deck with every finding: PROPOSAL_slides_full.pptx.");
+  slideTogether("Extra pages", "Extra: all policies, cost vs accuracy");
+  slideSmall("Extra pages", "Extra: one fact helps small models most");
+  slideReuse("Extra pages", "Extra: repeated problems need one checked program");
+  slideProof("Extra pages", "Extra: proofs need a specialized model, not a fact");
+  slideBaselines("Extra pages", "Extra: compared with published methods");
+  slideLimits("Extra pages", "Extra: where the recipe stops, and what is next");
+  slideGlance("Extra pages", "Extra: all findings at a glance");
+  slideWords("Extra pages", "Extra: words we use");
 
   pres.writeFile({ fileName: OUT }).then(async () => { await applyTheme(OUT, THEME); console.log("written", OUT); });
 }
