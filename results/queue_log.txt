@@ -491,3 +491,5 @@ S2_CD q14a done Mon Oct 19 20:45:52 UTC 2026
 S2_HO done Mon Oct 19 20:47:38 UTC 2026
 S2_CD q8b done Mon Oct 19 20:50:22 UTC 2026
 S2_CD done Mon Oct 19 20:50:23 UTC 2026
+S2_OB / S2_STORM_OB queued (OptiBench second held-out; PREREG_HO.md OB) Mon Oct 19 21:38:49 UTC 2026
+S2_OB started Mon Oct 19 21:38:49 UTC 2026
