@@ -61,3 +61,30 @@ seed; **no positive claim unless p < 0.05 and the difference has the same sign o
 - If TAG helps and PLAN does not, the gain depends on human labels, not on the method — reported as such.
 Reported beyond accuracy: token distributions (mean, p90, caps), finish reasons, failure kinds (WA / RE / TLE / no code), rating bands,
 unflagged problems, and at least 10 programs whose outcome the hint flipped (both directions).
+
+## Results, gpt-oss-20b (2026-10-19 16:39 UTC; results/h2/ch_analysis_oss20.log; 933 problem-seeds; gpt-oss-120b still running)
+| policy | accuracy @ tokens per problem | vs reference (paired, discordant +/−, sign p, per seed) |
+|---|---|---|
+| medium | 47.1% @ 8.7k | |
+| (a) medium + TAG | 49.2% @ 8.2k | vs medium +74 / −54, p = 0.093; +3.9 / +1.9 / +0.6 |
+| (a) medium + PLAN | 46.3% @ 9.7k | vs medium +89 / −96, p = 0.66; −2.6 / −0.6 / +1.0 |
+| N13b medium → high | 51.9% @ 37.7k | |
+| (b) N13b + TAG step | 55.3% @ 38.8k | vs N13b +34 / −2, p < 0.001; +3.2 / +3.2 / +3.9 |
+| (b) N13b + PLAN step | 55.0% @ 39.1k | vs N13b +33 / −4, p < 0.001; +2.9 / +4.2 / +2.3 |
+| **control (added after seeing the above, not pre-registered): (b) N13b + a plain second medium attempt** (another seed's medium program, no hint) | **54.6% @ 39.2k** | vs N13b +29 / −4, p < 0.001 |
+| TAG step vs the plain step | | +27 / −20, p = 0.38; −0.3 / +0.3 / +2.3 |
+| PLAN step vs the plain step | | +24 / −20, p = 0.65; −0.6 / +1.3 / +0.6 |
+- **(a): neither hint earns its place** (TAG +2.1, not significant, below +3; PLAN −0.8). CH-P2 holds (TAG +2.5 ± 2, PLAN 0 ± 2).
+- **(b): both steps fail the decision rule on tokens** (55.3 / 55.0% at 38.8 / 39.1k > 37.7k), and the **control shows why they help at all:
+  a second medium attempt with no hint gives most of it** (54.6%, +2.7); the hint adds +0.7 (TAG, p = 0.38) and +0.4 (PLAN, p = 0.65) over it.
+  For gpt-oss-20b the step before high works because its high effort is weak (37.9%, cap hits), not because of the hint.
+  CH-P4 holds on accuracy (≥ 53.0 / 52.5%) and fails on tokens (≤ 33k / 35k).
+- Mechanism, from the raw rows: TAG shortens 20b's reasoning on the 255 tagged problems (code-call tokens 8.7k → 8.1k; 16k cap hits 28.9% →
+  21.8%; replies without code 30.3% → 24.4%). Of the 74 problem-seeds TAG gains, 35 were medium replies with no code (cap); of the 54 it
+  loses, 16 are TAG replies with no code. Read (4 gained, 4 lost): 250_D (tags ternary search, two pointers): medium ran out of tokens, TAG
+  wrote the two-pointer scan the tag names and passes; 932_F (dp, data structures): both write a Li Chao tree, only TAG's is right;
+  65_C (binary search) and 13_B (implementation): medium gave no code, TAG finished; losses 989_E and 659_D (twice): TAG hit the cap with no
+  code where medium had passed; 199_E: a different tangent construction, WA.
+- PLAN: 31% of plans hit the 2,000-token cap (288 / 933) and 40 are empty — the plan step itself is expensive for 20b (1.4k tokens).
+- Hint followed (judge gpt-oss-120b low, 20b runs judged so far, validation pending): the program uses a named-algorithm tag in 75% of the
+  runs whose tags name one (CH-P6 ≥ 70%: holds so far); it follows the plan in 75% (CH-P6 ≥ 85%: refuted so far).

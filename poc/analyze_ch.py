@@ -91,6 +91,13 @@ def report(m):
             add("always high", hr["passed_all"], tok(hr))
             g = gate(med, s, n); oc = o if passes(mr) else 0
             add("N13b medium -> high", mr["passed_all"] if g else hr["passed_all"], oc + tok(mr) + (0 if g else tok(hr)))
+            # control (added 2026-10-19 16:4x, after the 20b results): the same step with NO hint = another seed's plain medium program
+            m2 = R[(med, s % 3 + 1)][n]
+            if g:
+                add("(b) N13b + plain medium step", mr["passed_all"], oc + tok(mr))
+            else:
+                g2 = gate(med, s % 3 + 1, n); oc2 = oc if oc else (o if passes(m2) else 0)
+                add("(b) N13b + plain medium step", m2["passed_all"] if g2 else hr["passed_all"], oc2 + tok(mr) + tok(m2) + (0 if g2 else tok(hr)))
             for a, t in arms.items():
                 if not have_arm[a]:
                     continue
@@ -109,12 +116,12 @@ def report(m):
         pct = lambda X: 100 * sum(x[2] for x in X) / max(1, len(X))
         line = (f"  {k:26s} {acc:5.1f}% @ {sum(t) / len(t) / 1000:5.1f}k (p90 {t[int(.9 * len(t))] / 1000:.1f}k) | <=1800 {pct(lo):.1f}%, >1800 {pct(hi):.1f}%, "
                 f"unflagged {pct(uf):.1f}%")
-        ref = "N13b medium -> high" if k.startswith("(b)") else "medium" if k.startswith("(a)") else None
-        if ref:
+        refs = (["N13b medium -> high"] + (["(b) N13b + plain medium step"] if "+ plain" not in k else [])) if k.startswith("(b)") else ["medium"] if k.startswith("(a)") else []
+        for ref in refs:
             B = {(x[0], x[1]): x[2] for x in pol[ref]}
             gain = sum(x[2] and not B[(x[0], x[1])] for x in L); lost = sum(B[(x[0], x[1])] and not x[2] for x in L)
             per = [100 * (sum(x[2] for x in L if x[1] == s) - sum(B[(x[0], x[1])] for x in L if x[1] == s)) / len(V) for s in (1, 2, 3)]
-            line += f" | vs {ref}: +{gain} / -{lost}, sign p = {sign_p(gain, lost):.3f}, per seed " + " / ".join(f"{d:+.1f}" for d in per)
+            line += f"\n      vs {ref}: +{gain} / -{lost}, sign p = {sign_p(gain, lost):.3f}, per seed " + " / ".join(f"{d:+.1f}" for d in per)
         print(line)
     bf = [json.loads(l) for s in (1, 2, 3) if os.path.exists(f"{RES}/ch_basefail_{med}_s{s}.jsonl")
           for l in open(f"{RES}/ch_basefail_{med}_s{s}.jsonl")]   # poc/ch_basefail.py: the medium runs did not record failure kinds
