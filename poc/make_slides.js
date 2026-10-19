@@ -693,7 +693,7 @@ function buildTalk() {
   pres.addSlide = (o) => { const sl = addSlide(o); sl.say = sl.addNotes.bind(sl); sl.addNotes = () => sl; return sl; };
   const SCRIPT_KO = [   // speaker notes of slides 1-9 (seconds at a calm pace in brackets)
     "(15초) 안녕하세요, 5조입니다. LLM으로 계산 수학 문제를 정확하고 싸게 푸는 방법을 제안합니다. 질문은 하나입니다. 추가 노력을 사실, 검사, 생각 중 어디에 써야 할까요?",
-    "(35초) 저희가 푸는 문제는 다섯 종류입니다. 기하 계산, Codeforces 기하 문제, 배송 경로, 최적화 문장제, 그리고 확장으로 경시 수학과 증명입니다. 쉽지 않습니다. 경시 문제의 중앙값은 Codeforces Master 수준이고, AIME는 고등학생 상위 5% 정도가 치는 시험입니다. 이 문제들을 고른 이유는, 답이 정확히 하나라 코드로 채점할 수 있고, 종류마다 필요한 것이 달라서 추가 노력을 어디에 써야 할지 비교할 수 있기 때문입니다. 기하와 경시는 맞는 알고리즘이, 경로와 문장제는 솔버를 맞게 부르는 법이 필요합니다. 공개 모델 Qwen3와 gpt-oss로 맞힌 문제 수와 토큰 수를 함께 잽니다.",
+    "(30초) 저희가 푸는 문제는 네 종류이고, 두 무리로 나뉩니다. 기하 계산과 Codeforces 경시 문제는 맞는 알고리즘이 필요하고, 경시 문제는 그중 어려운 쪽으로 중앙값이 Codeforces Master 수준입니다. 배송 경로와 최적화 문장제는 솔버를 맞게 부르는 법이 필요하고, 문장제는 글을 수식으로 옮기는 단계가 더 있습니다. 이 문제들을 고른 이유는 답이 정확히 하나라 코드로 채점할 수 있고, 필요한 것이 서로 달라서 추가 노력을 어디에 써야 할지 비교할 수 있기 때문입니다. 공개 모델 Qwen3와 gpt-oss로 맞힌 문제 수와 토큰 수를 함께 잽니다.",
     "(20초) LLM은 말로 답할 수도 있고, 프로그램을 짤 수도 있습니다. Qwen3-8B에게 같은 도형의 넓이의 두 배를 물었습니다. 옮기고 돌리고 뒤집어도 답은 436입니다. 말로 답하면 매번 다른 답이 나오지만, 프로그램은 네 번 모두 436입니다. 계산에는 프로그램이 맞는 도구입니다.",
     "(35초) 하지만 두 가지 문제가 있습니다. 첫째, 프로그램은 조용히 틀립니다. 같은 문제인데 프롬프트에 보조 코드만 더하면 6 대신 0을 출력하고, 에러 메시지도 없습니다. 없는 라이브러리 함수를 불러서 죽기도 합니다. 둘째, 오래 생각하면 비쌉니다. 경시 문제 311개에서 gpt-oss-120b는 오래 생각하면 57%에서 66%로 오르지만, 토큰은 4.4배를 씁니다. 그래서 질문입니다. 추가 노력을 빠진 사실, 공짜 검사, 더 많은 생각 중 어디에 써야 할까요?",
     "(35초) 첫 번째 발견입니다. 매뉴얼이 아니라 사실을 주세요. Qwen3-32B가 OR-Tools로 배송 경로 프로그램을 짭니다. 긴 참조 문서를 주면 존재하지 않는 함수를 불러서 죽고, 정확한 사용법 열한 줄을 주면 최적 경로를 찾습니다. 경로 문제 30개에서 최적해를 찾는 비율은 아무것도 안 주면 23%, 오래 생각하면 오히려 3%, 긴 참조 문서는 7%, 정확한 사용법은 77에서 90%입니다. 최적화 문장제와 기하에서도 같았습니다. 모르는 사실은 생각한다고 생기지 않습니다.",
@@ -704,7 +704,7 @@ function buildTalk() {
   ];
   const QA_KO = {   // speaker notes of the extra pages: a short Korean answer to the page's question
     why: "(답변) 세 가지 이유입니다. 답이 정확히 하나라 코드로 채점할 수 있고, 정답 없이 쓸 수 있는 검사가 있으며, 실제 코딩 에이전트가 이미 경로 계획, 스케줄러, 기하 코드를 씁니다. 그리고 종류마다 필요한 것이 다릅니다. 기하와 경시는 맞는 알고리즘이 필요하고, 둘의 차이는 난이도입니다. 경로와 문장제는 솔버 라이브러리를 맞게 부르는 사실이 필요하고, 문장제는 글을 수식으로 옮기는 단계가 더 있습니다. 그래서 추가 노력을 사실, 검사, 생각 중 어디에 쓸지 비교하기 좋습니다.",
-    coverage: "(답변) 아니요, 모든 결과를 다섯 종류 전부에서 잰 것은 아닙니다. 사실 주기는 기하, 경로, 문장제에서, 공짜 검사는 기하, 경시, 경로, 문장제에서 확인했습니다. 전체 방법의 87% 대 74%는 기하 108문제와 최적화 100문제를 세 모델로 푼 결과입니다. 경시 수학은 말로 답해도 충분하고, 증명은 특화된 증명 모델이 필요해서 이 방법의 범위 밖입니다.",
+    coverage: "(답변) 아니요, 모든 결과를 네 종류 전부에서 잰 것은 아닙니다. 사실 주기는 기하, 경로, 문장제에서, 공짜 검사는 네 종류 모두에서 확인했습니다. 전체 방법의 87% 대 74%는 기하 108문제와 최적화 100문제를 세 모델로 푼 결과입니다. 확장으로 시험한 경시 수학은 말로 답해도 충분하고, 증명은 특화된 증명 모델이 필요해서 이 방법의 범위 밖입니다.",
     kinds: "(답변) 사람 기준으로 보면, 경시 문제 311개의 Codeforces 레이팅 중앙값은 2200으로 Master 수준이고, 46%는 Grandmaster 수준인 2400 이상입니다. 그 구간에서는 gpt-oss-120b도 48%만 풉니다. 경로 문제는 단순한 탐욕 계획이 최선보다 48% 길고, AIME는 AMC 응시자 중 상위 2.5에서 5%만 초대받는 시험입니다.",
     progwords: "(답변) 항상은 아닙니다. 답을 계산해야 하는 문제에서는 말로 답하면 8개 복사본 중 1개만 맞고, 프로그램은 8개 모두 맞습니다. 하지만 짧은 답의 경시 수학인 MATH-500에서는 말이 98.3%로 프로그램 86.8%보다 낫습니다. 거기서는 프로그램을 두 번째 의견으로 씁니다. 말과 프로그램이 일치하면 틀린 경우가 0.3%뿐이고, 말 두 개가 일치할 때는 1.5%입니다.",
     two: "(답변) 보조 코드를 주면 모델이 그 함수에 맞춰 방법을 짭니다. 이 예에서는 필요 없는 polar_sort로 각도 정렬을 하다가 0을 출력했습니다. 기하 108문제에서 보조 코드가 있으면 59%, 없으면 77%입니다. 두 버전을 모두 짜서 답이 다를 때만 생각하면 99%를 4.3k 토큰에 얻습니다.",
@@ -741,19 +741,21 @@ function buildTalk() {
   // 2. what we solve, and how hard
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
   s.addText("What we solve, and how hard it is", { placeholder: "title" });
+  [["needs the right algorithm", BLUE, 0.6], ["needs the right solver call", "38761D", 6.74]].forEach(([t, col, x]) => {   // the two families
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.35, w: 5.96, h: 0.42, rectRadius: 0.08, fill: { color: col }, line: { color: col }, objectName: "family " + t });
+    txt(s, t, x, 1.35, 5.96, 0.42, { fontSize: 16, bold: true, color: "FFFFFF", align: "center" });
+  });
   [["shapes", "Geometry", "corners of the rubber band around 10 points", "textbook algorithms, exact on every copy", BLUE],
    ["trophy", "Contest problems", "311 Codeforces geometry problems", "Codeforces Master to Grandmaster level", RED],
    ["truck", "Routing, scheduling", "routes for 100 customers with time windows", "a simple plan drives 48% farther", THEME.colors.accent2],
-   ["calc", "Word problems", "most coins from 500 gold and 300 wires?", "university operations-research exercises", "38761D"],
-   ["sqrt", "Math and proofs", "contest answers; machine-checked proofs", "AIME: top ~5% of high-school contestants", "595959"]].forEach(([icon, head, ex, tag, col], k) => {
-    const x = 0.6 + k * 2.45;
-    const ext = icon === "sqrt";   // an extension: the recipe is shown on the other four kinds
-    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.4, w: 2.3, h: 4.45, rectRadius: 0.08, fill: { color: "F7F7F7" }, line: { color: ext ? "A6A6A6" : "D9D9D9", width: ext ? 1.25 : 0.75, dashType: ext ? "dash" : "solid" }, objectName: "kind " + head });
-    s.addImage({ path: ICON(icon), x: x + 0.75, y: 1.6, w: 0.8, h: 0.8, objectName: "icon " + icon });
-    txt(s, ext ? [{ text: head, options: { breakLine: true } }, { text: "(extension)", options: { fontSize: 15, bold: false, color: "7F7F7F" } }] : head, x + 0.1, 2.5, 2.1, 0.8, { fontSize: 18, bold: true, align: "center" });
-    txt(s, ex, x + 0.15, 3.35, 2.0, 1.2, { fontSize: 15, align: "center", valign: "top" });
-    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: x + 0.1, y: 4.7, w: 2.1, h: 0.95, rectRadius: 0.1, fill: { color: "FFFFFF" }, line: { color: col, width: 1.25 }, objectName: "tag " + head });
-    txt(s, tag, x + 0.15, 4.7, 2.0, 0.95, { fontSize: 15, bold: true, color: col, align: "center" });
+   ["calc", "Word problems", "most coins from 500 gold and 300 wires?", "university operations-research exercises", "38761D"]].forEach(([icon, head, ex, tag, col], k) => {
+    const x = 0.6 + k * 3.07;
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.9, w: 2.9, h: 3.95, rectRadius: 0.08, fill: { color: "F7F7F7" }, line: { color: "D9D9D9", width: 0.75 }, objectName: "kind " + head });
+    s.addImage({ path: ICON(icon), x: x + 1.05, y: 2.05, w: 0.8, h: 0.8, objectName: "icon " + icon });
+    txt(s, head, x + 0.1, 2.95, 2.7, 0.5, { fontSize: 19, bold: true, align: "center" });
+    txt(s, ex, x + 0.2, 3.5, 2.5, 1.0, { fontSize: 15, align: "center", valign: "top" });
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: x + 0.15, y: 4.7, w: 2.6, h: 0.95, rectRadius: 0.1, fill: { color: "FFFFFF" }, line: { color: col, width: 1.25 }, objectName: "tag " + head });
+    txt(s, tag, x + 0.2, 4.7, 2.5, 0.95, { fontSize: 15, bold: true, color: col, align: "center" });
   });
   caption(s, "Why these: exact answers that code can grade, and each kind needs something different");
 
@@ -811,10 +813,10 @@ function buildTalk() {
     });
   }
 
-  const KINDS = ["shapes", "trophy", "truck", "calc", "sqrt"];   // the five kinds of slide 2, in order
+  const KINDS = ["shapes", "trophy", "truck", "calc"];   // the four kinds of slide 2, in order
   function holdsOn(on) {   // faded: not tested there, or it does not hold (detail on the coverage page)
-    txt(s, "holds on", 9.2, 1.08, 1.25, 0.3, { fontSize: 14, color: "7F7F7F", align: "right" });
-    KINDS.forEach((icon, k) => s.addImage({ path: ICON(icon), x: 10.6 + k * 0.42, y: 1.07, w: 0.3, h: 0.3, transparency: on.includes(icon) ? 0 : 82,
+    txt(s, "holds on", 9.6, 1.08, 1.25, 0.3, { fontSize: 14, color: "7F7F7F", align: "right" });
+    KINDS.forEach((icon, k) => s.addImage({ path: ICON(icon), x: 11.0 + k * 0.42, y: 1.07, w: 0.3, h: 0.3, transparency: on.includes(icon) ? 0 : 82,
                                             objectName: (on.includes(icon) ? "holds on " : "not shown on ") + icon }));
   }
 
@@ -1059,10 +1061,10 @@ function buildTalk() {
   }
 
   function slideQCoverage() {
-    qSlide("Q: do the findings cover all five kinds?", "Where each result was measured (models and numbers as on the talk slides)");
+    qSlide("Q: do the findings cover every kind?", "Where each result was measured (models and numbers as on the talk slides)");
     const OK = "38761D", PART = "C55A11", NA = "8C8C8C";
     const c = (t, col) => ({ text: t, options: { color: col } }), row = t => ({ text: t, options: { bold: true } });
-    table(s, [["", "Geometry", "Contest problems", "Routing, scheduling", "Word problems", "Math and proofs"].map(HDR),
+    table(s, [["", "Geometry", "Contest problems", "Routing, scheduling", "Word problems", "Math, proofs (extension)"].map(HDR),
       [row("A program, not words"), c("✓ 8 of 8 copies right vs 1 of 8", OK), c("– a program by design", NA), c("– a program by design", NA), c("– a program by design", NA), c("✗ words as good (98% vs 87%); the program as a second opinion", RED)],
       [row("Give the fact"), c("✓ only the needed tools: 92% vs 75%", OK), c("– not tested", NA), c("✓ 23% → 77–90%; 6% → 100% valid plans", OK), c("✓ 65% → 72%; small models +44 points", OK), c("✗ no fact helps proofs", RED)],
       [row("Free check, think on failure"), c("✓ 99% @ 4.3k vs 98% @ 5.9k", OK), c("✓ 66.3% @ 24.7k vs 66.2% @ 30.1k (examples + brute force)", OK), c("✓ part of the 87% below", OK), c("✓ beats always thinking at 12–22% of its tokens", OK), c("~ MATH-500: same accuracy at 77% of the tokens; AIME: costs more", PART)],
@@ -1116,9 +1118,9 @@ function buildTalk() {
   ];
   const QUESTIONS = [   // [talk slide that raises it, expected question, extra pages that answer it]
     [2, "Why these problems? How do they differ?", ["why"]],
-    [2, "Do the findings cover all five kinds?", ["coverage"]],
+    [2, "Do the findings cover every kind?", ["coverage"]],
     [2, "How hard are the problems?", ["kinds"]],
-    [2, "Proofs? Where does it stop?", ["proof", "limits"]],
+    [2, "What about competition math and proofs?", ["proof", "limits"]],
     [3, "Is a program always better than words?", ["progwords"]],
     [4, "Why does helper code change the answer?", ["two"]],
     [5, "What exactly is the fact? Isn't it the answer?", ["fact"]],
