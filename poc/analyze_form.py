@@ -1,6 +1,6 @@
 """FORM (docs/prereg/PREREG_X7.md): mips (automatic API example from the other benchmark) vs formh (+ one hand formulation sentence, TSP and
 redistribution only) vs formx (label-free cross-model mined program for the most similar other MAMO problem). Accuracy by problem type
-(TSP / redistribution / other), share of 'No Best Solution', tokens; and the FFR pipeline (two cheap programs agree and are not
+(TSP / redistribution / other), forms = formx with the model's own programs only; share of 'No Best Solution', tokens; and the FFR pipeline (two cheap programs agree and are not
 'No Best Solution' -> accept, else thinking) with mips vs formx as the cheap arm.  usage: python analyze_form.py [model ...]"""
 import os, sys
 from collections import defaultdict
@@ -19,7 +19,7 @@ for m in sys.argv[1:] or ["oss20", "q14a", "q8b"]:
     print(f"=== {m}")
     for s in (1, 2, 3):
         line = []
-        for a in ("mips", "formh", "formx"):
+        for a in ("mips", "formh", "formx", "forms"):
             R = X.rows(tag, a, s)
             if not R:
                 continue
@@ -30,7 +30,7 @@ for m in sys.argv[1:] or ["oss20", "q14a", "q8b"]:
         print(f"  s{s} | " + " | ".join(line))
     for s in (1, 2, 3):
         T = X.rows(tag, "thinks", s); out = []
-        for a in ("mips", "formx"):
+        for a in ("mips", "formx", "forms"):
             F, F2 = X.rows(tag, a, s), X.rows(tag, a, s % 3 + 1)
             acc = tok = n = 0; cheap = 0
             for i, f in F.items():

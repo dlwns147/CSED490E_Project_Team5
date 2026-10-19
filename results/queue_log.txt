@@ -444,3 +444,10 @@ S2_FORM q14a done (2739/2739) Mon Oct 19 14:05:18 UTC 2026
 S2_FORM done Mon Oct 19 14:05:18 UTC 2026
 S2_FORMS queued (same-model-only mined program control; GPU1 + GPU2; PREREG_X7.md) Mon Oct 19 14:41:55 UTC 2026
 S2_FORMS started Mon Oct 19 14:41:56 UTC 2026
+S2_FORMS oss20 done (2589/2589) Mon Oct 19 14:48:44 UTC 2026
+S2_FORMS q8b done (2589/2589) Mon Oct 19 14:49:21 UTC 2026
+S2_STORM x3 done Mon Oct 19 14:53:44 UTC 2026
+S2_FORMS q14a done (2589/2589) Mon Oct 19 14:56:52 UTC 2026
+S2_FORMS done Mon Oct 19 14:56:52 UTC 2026
+S2_FORM2 queued (stream MAMO + NL4OPT/IndustryOR mined-program library; GPU0 + GPU2; PREREG_X7.md) Mon Oct 19 14:56:57 UTC 2026
+S2_FORM2 started Mon Oct 19 14:56:57 UTC 2026

@@ -156,3 +156,26 @@ model's OWN strict-check-passing programs (no other model). Its sources are righ
 redistribution 16 / 16; Qwen3-14B-AWQ 28 / 34, 1 / 16; Qwen3-8B 34 / 34, 1 / 16 (labels used only for this note).
 - FS-P1: forms keeps ≥ half of formx's cheap-program gain over mips for each model (averaged over seeds).
 - FS-P2: on a type where the model's own sources are all wrong (gpt-oss-20b TSP; Qwen3 redistribution) forms gives ≤ mips + 10 points.
+
+## FORM-S results (2026-10-19 14:56 UTC): the model's own library vs the five-model library
+| cheap program / FFR pipeline (3 seeds) | mips | forms (own programs only) | formx (all five models) |
+|---|---|---|---|
+| gpt-oss-20b | 73.7–75.7% / 78.4–78.8% @ 1.8–1.9k | 77.5–78.3% / **79.5–80.4% @ 1.5k** | 78.0–78.7% / 79.8–80.5% @ 1.5–1.6k |
+| Qwen3-14B-AWQ | 68.4–69.5% / 71.7–73.5% @ 2.6–2.8k | 70.5–71.8% / 73.9–74.3% @ 1.7k | 73.5–74.4% / **76.8–77.5% @ 2.0–2.1k** |
+| Qwen3-8B | 66.9–68.3% / 71.0–73.1% @ 3.1–3.2k | 68.4–69.8% / 71.8–72.9% @ 2.2k | 74.0–74.6% / **77.6–78.0% @ 2.1–2.2k** |
+By type the library helps exactly where it holds a right program: gpt-oss-20b's own TSP programs are all wrong → TSP 9% (five-model library
+47–59%), its own redistribution programs are right → 81–94% (five-model 56–75%); Qwen3-8B's own TSP programs are right → 94–97% (five-model
+71%), its redistribution ones wrong → 0%. **FS-P1 holds for gpt-oss-20b only** (own library = full gain); for the Qwen3 models most of the gain
+comes from other models' programs (Qwen3-14B-AWQ keeps 47%, Qwen3-8B 22%) — a label-free 'teacher' effect. **FS-P2 holds.**
+Same-harness STORM on NL4OPT + IndustryOR: **73.6%** (NL4OPT 79.0 / IndustryOR 60.3%) at 7.9k tokens (its own 5%-tolerance grader 79.6%; of the 63
+samples only its grader accepts, 61 are within 5% of the label and 2 have no parsable answer); our recipe without training: gpt-oss-20b FFR 73.6–76.8% @ 1.9–2.0k, Qwen3-14B-AWQ 74.5–76.5% @ 2.8–3.0k —
+equal or better at a quarter to a third of the tokens. STORM's MAMO lead (81.8%) does not carry to these benchmarks.
+
+## FORM2 pre-registration (2026-10-19 14:56 UTC, before running; queue_s2_form2.sh, GPU0 + GPU2)
+Two threats to the FORM result: it is transductive (every other test problem's programs can be shown) and MAMO-specific (many near-duplicate
+template problems). (a) formo: MAMO as a stream in a fixed random order — a problem can only be shown programs of problems that came
+before it (the first one gets the mips example). (b) formx on NL4OPT + IndustryOR (pool = the five models' mipf programs; the prompt keeps
+the snippet, so the comparison is mipf vs mipf + mined program). 3090-class models, seeds 1–3.
+- F2-P1 (stream): formo keeps ≥ 80% of formx's cheap-program gain over mips on MAMO, per model (seed mean).
+- F2-P2 (other benchmarks): on NL4OPT + IndustryOR formx improves the cheap program by ≥ +1.5 points and the FFR pipeline by ≥ +1 point over
+  mipf for each model (seed mean), less than on MAMO because problems repeat less.

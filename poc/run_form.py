@@ -5,16 +5,20 @@ modes: formh = the mips prompt (automatic API example) + ONE hand-written formul
        formx = label-free: P_MIP + a program for the most similar OTHER MAMO problem (BM25), taken from a pool of all five models' programs
                that pass the strict check (two seeds run, agree, and are not 'No Best Solution'); among that problem's programs the one
                whose answer most other models share, then the shortest. No labels anywhere.
-       forms = formx with the pool restricted to the SAME model's own programs (control: self-improvement, no other model).
+       forms = formx with the pool restricted to the SAME model's own programs (control: self-improvement, no other model);
+       formo = formx as a stream: problems arrive in a fixed random order and only EARLIER problems' programs can be shown (no fact yet:
+               the mips example); NLOPT_SET=x3: formx on NL4OPT + IndustryOR (pool = the models' mipf programs; prompt keeps the snippet).
 usage: NLOPT_SET=mamo POC_BASE_URL=... python run_form.py <model> <mode> <seed>   -> results/x3/opt_<model>_mamo_<mode>_s<seed>.jsonl"""
 import json, math, os, re, sys, zlib
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from run_nlopt import RES, P_MIP, problems, value_of, correct, _rows, _verified_examples  # noqa: E402
+from run_nlopt import RES, P_MIP, SNIP, problems, value_of, correct, _rows, _verified_examples  # noqa: E402
 
 POOL_MODELS = ("oss20", "q14a", "q8b", "q32b", "q36")
+SET = os.environ.get("NLOPT_SET", "mamo")
+SRC = "{m}_mamo_mips" if SET == "mamo" else "{m}_mipf"   # the cheap arm whose programs form the pool
 FACT = {"tsp": "Formulation note: with Miller-Tucker-Zemlin subtour elimination, write the order constraints u[i] - u[j] + n*x[i][j] <= n - 1 "
                "only for cities i, j other than the start city, with 1 <= u[i] <= n - 1; constraining the start city too makes the model infeasible.",
         "redistribution": "Formulation note: a center may end with more supplies than it needs; require final stock >= need (not == need), "
@@ -42,7 +46,7 @@ def pool(models=POOL_MODELS):
     """problem id -> list of (model, code, answer, n_models_sharing_the_answer) over strict-check-passing programs"""
     by = {}
     for m in models:
-        A, B = ({r["id"]: r for r in _rows(f"{RES}/opt_{m}_mamo_mips_s{s}.jsonl")} for s in (1, 2))
+        A, B = ({r["id"]: r for r in _rows(f"{RES}/opt_{SRC.format(m=m)}_s{s}.jsonl")} for s in (1, 2))
         for i, a in A.items():
             b = B.get(i)
             if b and a.get("status") == "ok" and b.get("status") == "ok" and a.get("pred") not in (None, "NBS") and same(a["pred"], b["pred"]) and a.get("code"):
@@ -50,7 +54,7 @@ def pool(models=POOL_MODELS):
     return {i: [(m, c, v, len({m2 for m2, _, v2 in L if same(v, v2)})) for m, c, v in L] for i, L in by.items()}
 
 
-def selector(models=POOL_MODELS):
+def selector(models=POOL_MODELS, rank=None):
     Q = {p["id"]: p for p in problems()}
     PL = pool(models)
     tok = lambda t: re.findall(r"[a-z]+", t.lower())
@@ -60,7 +64,7 @@ def selector(models=POOL_MODELS):
     def best(p):
         q = set(tok(p["q"]))
         sc = [(sum(math.log(1 + (N - df[w] + .5) / (df[w] + .5)) * d[w] * 2.2 / (d[w] + 1.2 * (.25 + .75 * sum(d.values()) / avg)) for w in q if w in d), i)
-              for i, d in docs.items() if i != p["id"]]   # leave-one-out: never the problem itself
+              for i, d in docs.items() if i != p["id"] and (rank is None or rank[i] < rank[p["id"]])]   # leave-one-out (stream: earlier only)
         if not sc:
             return None
         i = max(sc)[1]
@@ -72,16 +76,19 @@ if __name__ == "__main__":
     from llm import chat, last_block
     from sandbox import run_python
     m, mode, seed = sys.argv[1], sys.argv[2], int(sys.argv[3])
-    tag = f"{m}_mamo"
+    tag = f"{m}_mamo" if SET == "mamo" else m
     os.environ["NLOPT_EX_SHORTEST"] = "1"
     EX = _verified_examples(os.environ.get("NLOPT_EX_TAG", m))   # the mips example, kept in formh so only the sentence differs
-    SEL = selector() if mode == "formx" else selector((m,)) if mode == "forms" else None
+    if mode == "formo":
+        import random
+        ids = sorted(p["id"] for p in problems()); random.Random(0).shuffle(ids); RANK = {i: k for k, i in enumerate(ids)}
+    SEL = selector() if mode == "formx" else selector((m,)) if mode == "forms" else selector(rank=RANK) if mode == "formo" else None
     P = [p for p in problems() if mode != "formh" or kind(p["q"])]
     path = f"{RES}/opt_{tag}_{mode}_s{seed}.jsonl"
     done = {r["id"] for r in _rows(path)}
 
     def one(p):
-        q = P_MIP.format(q=p["q"]); src = None
+        q = (P_MIP if SET == "mamo" else P_MIP + SNIP).format(q=p["q"]); src = None
         if mode == "formh":
             ex = EX(p)
             if ex:
@@ -93,6 +100,8 @@ if __name__ == "__main__":
                 src = (s[0], s[1][0], s[1][3])
                 q += ("\n\nA program for a similar problem (two independent runs of it agree and its model is feasible):\n```python\n"
                       + s[1][1].strip() + "\n```")
+            elif mode == "formo" and EX(p):   # stream start: nothing earlier passed the check yet -> the mips prompt
+                q += "\n\nA program that runs with this library (written for a different problem):\n```python\n" + EX(p).strip() + "\n```"
         o = chat(q, max_tokens=8192, temperature=0.7, seed=seed * 1000 + zlib.crc32(p["id"].encode()) % 997)
         code = last_block(o["text"] or "", ("python", "py", "python3"))
         res = run_python(code, "", timeout=60, mem_bytes=4 << 30) if code else None
