@@ -1,4 +1,4 @@
-"""Illustration for slide 2 of PROPOSAL_slides.pptx and PROPOSAL_slides_full.pptx: one polygon, moved, turned and flipped (same area). Run: /opt/conda/bin/python poc/make_slide2_shapes.py"""
+"""Illustration for the talk deck Proposal_Team5.pptx and PROPOSAL_slides_full.pptx: one polygon, moved, turned and flipped (same area). Run: /opt/conda/bin/python poc/make_slide2_shapes.py"""
 import os
 import matplotlib
 matplotlib.use("Agg")

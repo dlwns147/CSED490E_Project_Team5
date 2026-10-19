@@ -8,7 +8,7 @@ try { ({ applyTheme } = require(process.env.PPTX_THEME_JS || "/root/.claude/skil
 const ROOT = process.env.PROJECT_ROOT || path.join(__dirname, "..");   // repository root (this file is poc/make_slides.js)
 const FIG = (f) => path.join(ROOT, "figs", f);
 const ICON = (name) => FIG(path.join("icons", name + ".png"));   // figs/icons/*.png, drawn by poc/make_icons.js
-const OUT = path.join(ROOT, "PROPOSAL_slides.pptx");
+const OUT = path.join(ROOT, "Proposal_Team5.pptx");
 
 const THEME = {
   name: "Office Theme", headFontFace: "Calibri", bodyFontFace: "Calibri",
@@ -686,7 +686,7 @@ slideLimits("Next", "Where the recipe stops, and what is next");
 const FULL = path.join(ROOT, "PROPOSAL_slides_full.pptx");
 pres.writeFile({ fileName: FULL }).then(async () => { await applyTheme(FULL, THEME); console.log("written", FULL); buildTalk(); });
 
-// ================= 5-minute talk + 5 minutes of questions (PROPOSAL_slides.pptx): 9 slides, then extra pages for expected questions =================
+// ================= 5-minute talk + 5 minutes of questions (Proposal_Team5.pptx): 9 slides, then extra pages for expected questions =================
 function buildTalk() {
   pres = newDeck();
   const addSlide = pres.addSlide.bind(pres);   // notes only on the 9 talk slides (Korean script, SCRIPT_KO); the extra pages drop the full deck's notes
