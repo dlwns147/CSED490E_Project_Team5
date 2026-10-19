@@ -261,3 +261,8 @@ FFR = thinking unless two fact programs run and agree)
 hand-written snippet; for the 8B model it falls 6 points short (it copies formulations, and its wrong programs run). Added now
 (pre-registered): the shortest-program fact for Qwen3-32B (GPU0) and both automatic facts for Qwen3-14B-AWQ (3090-class; GPU3),
 predicting Qwen3-14B lands between the 8B and 32B gaps (FFR within 4 points of its hand-written FFR).
+- Pre-registered (2026-10-19 00:36 UTC): automatic facts for gpt-oss-20b (3090-class; low effort without thinking, medium with): mipv ≥ mipf − 2 (70.1%) and FFR with the mined example within 2 points of FFR with the snippet; GPU2 (queue_s2_x6ver.sh with POC_REASONING_EFFORT per arm → queue_s2_x6ver_oss20.sh).
+- X6-AUTO, Qwen3.6 (2026-10-19 00:36 UTC): with the name list thinking drops to 47.2% (no fact 59.6%, snippet 79.1%); fact-first 73.2% @ 5.3k vs 78.2% @
+  3.0k with the snippet. Raw: 408 runtime errors, 294 of them wrong argument types in low-level calls the list exposes
+  (`solver.Constraint(lb, ub)`, `solver.Var(...)`, enum names passed as strings). Same mechanism in all three models: **a name list
+  without usage points the model to calls it cannot use** — AUTO refuted for every model.
