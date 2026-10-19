@@ -111,3 +111,10 @@ always-thinking's tokens); **OB-P3 holds** (the agreement check adds +0.9 over F
 linear with tables 51.2%, nonlinear 39.6%, nonlinear with tables 19.3%. Raw: crashes are mostly API / modelling-rule errors of the chosen
 library (cvxpy DCP violations 30, `pulp` not installed 27, CP-SAT integer-only coefficients 13); of 317 wrong-but-running programs 28 are within
 1% of the gold, and those read are genuinely different optima (3220 vs 3200; 240 vs 239), not grading tolerance.
+
+## Policy choice on the unseen benchmarks (2026-10-19 23:37 UTC; offline, utility = accuracy − 0.5 × ktokens, as in PREREG_MODEL.md)
+15 cells (OptMATH: 3 models × 3 seeds with the automatic fact, gpt-oss-20b × 3 seeds with solver choice; OptiBench: gpt-oss-20b × 3 seeds).
+The best policy is FF in 9 cells, FFR in 4, THINK in 2. **Always using FF costs at most 1.1 points of utility in any cell (0 in 9 of 15)**;
+always thinking costs up to 11.0, always FFR up to 10.8. A 30-problem labelled pilot picks with 0.3–1.3 points of regret — no better than
+simply using FF. So the in-distribution result (MODEL: FF the best fixed default, regret 1.4) holds on unseen benchmarks, where no labels are
+needed at all.
