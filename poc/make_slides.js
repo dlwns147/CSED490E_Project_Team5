@@ -716,7 +716,7 @@ function buildTalk() {
     "(20초) LLM은 말로 답할 수도 있고, 프로그램을 짤 수도 있습니다. Qwen3-8B에게 같은 도형의 넓이의 두 배를 물었습니다. 옮기고 돌리고 뒤집어도 답은 436입니다. 말로 답하면 매번 다른 답이 나오지만, 프로그램은 네 번 모두 436입니다. 계산에는 프로그램이 맞는 도구입니다.",
     "(35초) 하지만 두 가지 문제가 있습니다. 첫째, 프로그램은 조용히 틀립니다. 같은 문제인데 프롬프트에 보조 코드만 더하면 6 대신 0을 출력하고, 에러 메시지도 없습니다. 없는 라이브러리 함수를 불러서 죽기도 합니다. 둘째, 오래 생각하면 비쌉니다. 경시 문제 311개에서 gpt-oss-120b는 오래 생각하면 57%에서 66%로 오르지만, 토큰은 4.4배를 씁니다. 그래서 질문입니다. 추가 노력을 코드 힌트, 공짜 검사, 더 많은 생각 중 어디에 써야 할까요?",
     "(35초) 첫 번째 발견입니다. 매뉴얼이 아니라 짧은 힌트를 주세요. Qwen3-32B가 OR-Tools로 배송 경로 프로그램을 짭니다. 긴 참조 문서를 주면 존재하지 않는 함수를 불러서 죽고, 정확한 사용법 열한 줄을 주면 최적 경로를 찾습니다. 경로 문제 30개에서 최적해를 찾는 비율은 아무것도 안 주면 23%, 오래 생각하면 오히려 3%, 긴 참조 문서는 7%, 정확한 사용법은 77에서 90%입니다. 최적화 문장제와 기하에서도 같았습니다. 모르는 것은 생각한다고 생기지 않습니다.",
-    "(70초) 두 번째 발견입니다. 공짜 검사가 실패할 때만 생각하게 하세요. 공짜 검사는 정답을 몰라도, 모델 없이 컴퓨터에서 프로그램을 실행만 해서 틀렸는지 알아보는 방법입니다. 실행 순서는 이렇습니다. 먼저 모델이 보통 수준으로 프로그램을 씁니다. 그다음 컴퓨터에서 검사를 돌립니다. 통과하면 그대로 내고, 실패한 문제만 깊게 생각해서 다시 씁니다. 검사 A는 문제에 적힌 예제입니다. 'Make a triangle!' 문제에는 막대 3, 4, 5면 답이 0이라는 예제가 있고, 우리 프로그램에 3, 4, 5를 넣어 0이 나오면 통과입니다. 'Arrow'는 예제의 일곱 꼭짓점과 다른 답이 나와서 다시 생각했고, 맞혔습니다. 예제만 쓰면 65%, 작은 입력을 전부 따져 보는 느린 프로그램과도 비교하면 66%로, 항상 오래 생각할 때와 같고 토큰은 18% 적습니다. 검사 B는 같은 문제를 두 가지 프롬프트로 두 번 짜서 답을 비교합니다. 6과 0처럼 다르면 실패입니다. 기하 108문제에서 99% 대 98%, 토큰은 27% 적습니다.",
+    "(60초) 두 번째 발견입니다. 공짜 검사가 실패할 때만 생각하게 하세요. 공짜 검사는 이렇게 돌아갑니다. 문제에는 보통 예제가 적혀 있습니다. 'Make a triangle!'에는 막대 3, 4, 5면 답이 0이라는 예제가 있습니다. 모델이 짠 프로그램을 모델 없이 컴퓨터에서 3, 4, 5로 실행해 0이 나오면 그대로 내고, 다르면 그 문제만 더 생각해서 다시 짭니다. 예제가 없으면 프로그램을 두 가지로 짜서 답이 같은지 봅니다. 오른쪽이 결과입니다. 경시 문제 311개에서 항상 오래 생각하면 66.2%에 3만 토큰, 실패할 때만 생각하면 66.3%에 2만 5천 토큰입니다. 예제만으로는 65%이고, 작은 입력을 전부 따져 보는 짧은 프로그램과도 비교해서 66%가 됩니다. 기하에서는 98% 대 99%이고 토큰은 27% 적습니다. 정답 없이도 같은 정확도를 더 싸게 얻습니다.",
     "(60초, [생략 가능] 포함 80초) 두 발견을 합친 것이 저희 방법입니다. 실제 최적화 문제로 보면, 1단계에서 모델이 없는 메서드를 불러 죽습니다. 2단계 힌트는 모델이 다른 문제에서 짜서 검사를 통과한 자기 프로그램에서 자동으로 가져옵니다. 3단계, 두 버전의 답이 20000으로 같으니 4단계 생각은 건너뛰어, 생각만 했을 때의 5.3k 대신 0.6k 토큰을 씁니다. 5단계, 같은 종류의 새 데이터에는 이 프로그램을 재사용합니다. [생략 가능] 아이콘은 각 단계를 쓰는 문제 종류이고, 경시 문제는 라이브러리가 없어 힌트 없이 검사와 생각만 씁니다. 전체 비교는 이렇게 했습니다. 기존 방식은 각 문제에 세 번 빠르게 답하게 해서 답이 갈리는 문제를 어렵다고 보고 거기에 생각을 씁니다. 저희는 모든 문제에 사람이 쓴 힌트를 먼저 주고 검사에 실패한 문제만 생각하게 합니다. 기하와 최적화 208문제를 세 모델로 풀면 정답률이 74% 대 87%, 토큰은 4.1k 대 2.5k입니다. [생략 가능] 오른쪽 79%는 개발에 쓰지 않은 MAMO 문제 863개에서 gpt-oss-20b에 자동 힌트를 준 결과로, 사람이 쓴 힌트와 같고, 힌트가 없으면 73%입니다.",
     "(75초) 마지막으로 새로운 점과 다음 계획입니다. 왼쪽이 흔히 쓰는 방법, 오른쪽이 저희 방법입니다. 첫째, 기존에는 세 번 답해서 답이 갈리는 문제에 생각을 몰아주거나 언제 생각할지를 학습시키지만, 저희는 학습 없이 공짜 검사가 실패한 문제에만 생각을 씁니다. 둘째, 기존에는 매뉴얼이나 교사 모델이 짜서 정답으로 확인한 프로그램을 주지만, 저희는 모델 자신이 짜서 검사를 통과한 프로그램을 짧은 힌트로 주므로 사람도 정답도 필요 없습니다. 셋째, 비용입니다. 개발에 쓰지 않은 MAMO 863문제에서 최적화용으로 파인튜닝한 ORLM-8B를 저희 채점기로 돌리면 69.5%인데, 학습하지 않은 Qwen3-8B에 자기 힌트를 주면 24GB GPU 한 장으로 같은 69.5%를 더 적은 토큰에 냅니다. 다음으로는 더 많은 모델로 검증을 마치고, 실행은 되지만 문제를 잘못 수식으로 옮긴 오류를 힌트로 고칠 수 있는지 시험하고, 문제 종류마다 힌트를 찾겠습니다. 정리하면, 짧은 힌트를 먼저 주고, 공짜 검사가 실패한 곳에서만 생각하게 하자는 것입니다.\n\n[더 자세히: 질문이 나오거나 시간이 남을 때]\n첫째 줄, 생각을 어디에 쓸지. 기존 방법은 어려워 보이는 문제에 계산을 더 쓰는 Snell 등의 방식과, 언제 생각할지를 강화학습으로 가르치는 Thinkless, AdaptThink입니다. 저희는 정답 없이 돌리는 공짜 검사가 실패한 문제에만 생각을 씁니다. 기하와 최적화 208문제를 세 모델로 풀면 74%가 87%로 오르고, 토큰은 문제당 4.1k에서 2.5k로 줄었습니다. 87%는 사람이 쓴 힌트를 쓴 결과이고, 검색으로 찾은 힌트로도 84%입니다.\n둘째 줄, 모델에게 무엇을 주는지. 기존에는 매뉴얼 전체를 주거나, 더 큰 교사 모델이 짜서 정답으로 확인한 프로그램 모음을 줍니다. 저희 힌트는 모델이 다른 문제에서 짜서 공짜 검사를 통과한 자기 프로그램입니다. 끝까지 남겨 둔 MAMO 벤치마크에서 사람이 쓴 힌트와 같은 79%를 냈습니다.\n셋째 줄, 비용. ORLM-8B는 최적화 문장제용으로 파인튜닝한 공개 모델이고, 모델 카드의 형식과 솔버, 그리디 디코딩으로 저희 채점기에서 돌렸습니다: MAMO 69.5%, 문제당 1.1k 토큰(샘플링하면 64~66%). Qwen3-8B는 학습 없이 자기 힌트를 붙여 프로그램을 한 번 짜고 실행이 안 될 때만 생각하게 해서 69.5%, 1.0k 토큰입니다. 두 버전 검사까지 쓰면 71%(3.1k), gpt-oss-20b는 78.8%입니다.\n다음 계획. 하나, MAMO 검증을 Qwen3-32B와 Qwen3.6까지 세 시드로 마칩니다. 둘, 검사로 못 잡는 오류입니다. 지금 남은 오류의 절반쯤은 정답 라벨이 의심스러운 문제이고, 나머지는 같은 유형에서 같은 수식 실수가 반복됩니다. 예를 들어 순서 제약이나 공급 균형을 잘못 씁니다. 고치기 한 번이나 생각으로는 안 고쳐져서, 힌트 하나로 고쳐지는지 시험합니다. 셋, 지금은 같은 종류의 문제 안에서만 자동 힌트가 통하므로, 문제 종류마다 힌트를 찾고 최종 보고서와 코드를 냅니다.",
     "(5초) 감사합니다. 질문 받겠습니다.",
@@ -864,36 +864,27 @@ function buildTalk() {
   s.addText("Finding 2: think only when a free check fails", { placeholder: "title" });
   answerBadge([1]);
   holdsOn(["shapes", "trophy", "truck", "calc"]);
-  // how we run it: write a program, run the free check on the computer, think only if it fails
-  box(s, "① the model writes a program (normal effort)", 0.6, 1.5, 2.9, 0.6, "F2F2F2", { fontSize: 14, bold: true });
-  arrow(s, 3.5, 1.8, 3.75, 1.8);
-  box(s, "② run the free check on the computer: no model, no answer key", 3.75, 1.5, 3.55, 0.6, "DEEBF7", { fontSize: 14, bold: true, color: "1F3864" });
-  arrow(s, 7.3, 1.8, 7.7, 1.62); arrow(s, 7.3, 1.8, 7.7, 1.98);
-  box(s, "③ ✓ pass → submit it (no extra tokens)", 7.7, 1.44, 5.0, 0.34, "E2F0D9", { fontSize: 14, bold: true, color: "38761D" });
-  box(s, "③ ✗ fail → think harder, write it again (tokens only here)", 7.7, 1.82, 5.0, 0.34, "FADBD8", { fontSize: 14, bold: true, color: RED });
-  const mini = (t, x, y, w, h, fill, col) => box(s, t, x, y, w, h, fill, { fontSize: 14, color: col || C.text1 });
-  // check A: compare with the example printed in the problem
-  panel(s, 0.6, 2.25, 5.95, 3.8, "check A");
-  txt(s, "Check A: the examples printed in the problem", 0.85, 2.3, 5.45, 0.4, { fontSize: 17, bold: true, color: BLUE });
-  mini("Make a triangle! example: sticks 3 4 5 → 0", 0.85, 2.75, 2.35, 0.5, "FFFFFF"); arrow(s, 3.2, 3.0, 3.35, 3.0);
-  mini("our program on 3 4 5 prints 0", 3.35, 2.75, 1.85, 0.5, "FFFFFF"); arrow(s, 5.2, 3.0, 5.3, 3.0);
-  mini("✓ same: submit", 5.3, 2.75, 1.0, 0.5, "E2F0D9", "38761D");
-  mini("Arrow example: the 7 corners of the shape", 0.85, 3.32, 2.35, 0.5, "FFFFFF"); arrow(s, 3.2, 3.57, 3.35, 3.57);
-  mini("our program prints other corners", 3.35, 3.32, 1.85, 0.5, "FFFFFF"); arrow(s, 5.2, 3.57, 5.3, 3.57);
-  mini("✗ think again", 5.3, 3.32, 1.0, 0.5, "FADBD8", RED);
-  txt(s, "311 contest problems (gpt-oss-120b)", 0.85, 3.88, 5.45, 0.3, { fontSize: 14, bold: true });
-  costRows(0.85, 4.15, 5.45, 2.35, [["always think hard", "66.2%", 30.1, "30k", "7F7F7F"], ["think if an example fails", "65.0%", 20.2, "20k", "5B9BD5"], ["… or a brute-force run", "66.3%", 24.7, "25k", BLUE]], undefined, 0.45);
-  // check B: write it twice and compare
-  panel(s, 6.75, 2.25, 5.95, 3.8, "check B");
-  txt(s, "Check B: write it twice, compare the answers", 7.0, 2.3, 5.45, 0.4, { fontSize: 17, bold: true, color: BLUE });
-  mini("version A: the task only", 7.0, 2.75, 2.2, 0.5, "FFFFFF"); arrow(s, 9.2, 3.0, 9.35, 3.0);
-  mini("prints 6", 9.35, 2.75, 1.4, 0.5, "FFFFFF");
-  mini("version B: task + helper code", 7.0, 3.32, 2.2, 0.5, "FFFFFF"); arrow(s, 9.2, 3.57, 9.35, 3.57);
-  mini("prints 0", 9.35, 3.32, 1.4, 0.5, "FFFFFF");
-  arrow(s, 10.75, 3.0, 10.95, 3.25); arrow(s, 10.75, 3.57, 10.95, 3.35);
-  mini("6 ≠ 0: ✗ think again (same: submit)", 10.95, 2.75, 1.5, 1.07, "FADBD8", RED);
-  txt(s, "108 geometry problems (Qwen3-32B, 3 runs)", 7.0, 3.88, 5.45, 0.3, { fontSize: 14, bold: true });
-  costRows(7.0, 4.15, 5.45, 2.35, [["always think", "98%", 5.9, "5.9k", "7F7F7F"], ["think if they differ", "99%", 4.3, "4.3k", BLUE]], undefined, 0.45);
+  // left: how a free check runs, on one real example; right: what it buys
+  panel(s, 0.6, 1.5, 5.85, 4.55, "how a free check works");
+  txt(s, "How a free check works", 0.85, 1.58, 5.4, 0.42, { fontSize: 18, bold: true, color: BLUE });
+  box(s, "The problem shows an example: sticks 3 4 5 → answer 0", 0.85, 2.05, 5.35, 0.62, "FFFFFF", { fontSize: 15 });
+  arrow(s, 3.52, 2.67, 3.52, 2.9);
+  box(s, "Run our program on 3 4 5 (no model needed): it prints 0", 0.85, 2.9, 5.35, 0.62, "FFFFFF", { fontSize: 15 });
+  arrow(s, 2.3, 3.52, 2.1, 3.78); arrow(s, 4.75, 3.52, 4.95, 3.78);
+  box(s, "✓ same → submit (no extra tokens)", 0.85, 3.78, 2.6, 0.72, "E2F0D9", { fontSize: 15, bold: true, color: "38761D" });
+  box(s, "✗ different → think harder, write again", 3.6, 3.78, 2.6, 0.72, "FADBD8", { fontSize: 15, bold: true, color: RED });
+  txt(s, "No example? Write the program twice, compare:", 0.85, 4.68, 5.35, 0.4, { fontSize: 15, bold: true });
+  box(s, "version A prints 6", 0.85, 5.15, 1.6, 0.6, "FFFFFF", { fontSize: 14 });
+  box(s, "version B prints 0", 2.55, 5.15, 1.6, 0.6, "FFFFFF", { fontSize: 14 });
+  arrow(s, 4.15, 5.45, 4.4, 5.45);
+  box(s, "✗ different → think", 4.4, 5.15, 1.8, 0.6, "FADBD8", { fontSize: 14, bold: true, color: RED });
+  panel(s, 6.75, 1.5, 5.95, 4.55, "what it buys");
+  txt(s, "Result: the same accuracy, fewer tokens", 7.0, 1.58, 5.45, 0.42, { fontSize: 18, bold: true, color: BLUE });
+  txt(s, "311 contest problems (gpt-oss-120b)", 7.0, 2.02, 5.45, 0.32, { fontSize: 15, bold: true });
+  costRows(7.0, 2.3, 5.45, 2.45, [["always think hard", "66.2%", 30.1, "30k", "7F7F7F"], ["think only on failure", "66.3%", 24.7, "25k", BLUE]], undefined, 0.48);
+  txt(s, "examples alone give 65.0% at 20k; adding a brute-force program as a second check gives 66.3%", 7.0, 3.68, 5.45, 0.5, { fontSize: 14, color: C.text2, valign: "top" });
+  txt(s, "108 geometry problems (Qwen3-32B, 3 runs)", 7.0, 4.3, 5.45, 0.32, { fontSize: 15, bold: true });
+  costRows(7.0, 4.58, 5.45, 2.45, [["always think", "98%", 5.9, "5.9k", "7F7F7F"], ["think only on failure", "99%", 4.3, "4.3k", BLUE]], undefined, 0.48);
   caption(s, "Same accuracy as always thinking, 18–27% fewer tokens, and no answer key needed");
 
   // 7. the method on one problem, and what it gives overall
