@@ -938,14 +938,14 @@ function buildTalk() {
   s.addText("What is new, and what is next", { placeholder: "title" });
   txt(s, "The usual way", 2.3, 1.3, 4.6, 0.4, { fontSize: 16, bold: true, color: "7F7F7F", align: "center" });
   txt(s, "Ours", 7.6, 1.3, 5.1, 0.4, { fontSize: 16, bold: true, color: BLUE, align: "center" });
-  [["When to think", "brain", "think more on hard-looking problems", "check", "only when a free check fails: 87% vs 74%"],
-   ["What to give", "page", "the whole manual", "fact", "one short hint, picked with no human"],
-   ["What it costs", "robot", "fine-tune a specialist: 69.5% on MAMO", "gpu", "no training, one 24 GB GPU: the same 69.5%"]].forEach(([topic, li, lt, ri, rt], r) => {
+  [["When to think", "brain", "think more on hard-looking problems", "[1]", "check", "only when a free check fails: 87% vs 74%"],
+   ["What to give", "page", "the whole manual, or retrieved documentation", "[2]", "fact", "one short hint, picked with no human"],
+   ["What it costs", "robot", "fine-tune a specialist: 69.5% on MAMO", "[3, 4]", "gpu", "no training, one 24 GB GPU: the same 69.5%"]].forEach(([topic, li, lt, ref, ri, rt], r) => {
     const y = 1.7 + r * 0.74;
     txt(s, topic, 0.6, y, 1.6, 0.66, { fontSize: 16, bold: true });
     box(s, "", 2.3, y, 4.6, 0.66, "F2F2F2");
     s.addImage({ path: ICON(li), x: 2.42, y: y + 0.12, w: 0.42, h: 0.42, objectName: "usual icon " + r });
-    txt(s, lt, 3.0, y, 3.8, 0.66, { fontSize: 14, color: "404040" });
+    txt(s, [{ text: lt }, { text: " " + ref, options: { fontSize: 11, color: "7F7F7F" } }], 3.0, y, 3.8, 0.66, { fontSize: 14, color: "404040" });
     s.addShape(pres.shapes.RIGHT_ARROW, { x: 7.0, y: y + 0.15, w: 0.5, h: 0.36, fill: { color: BLUE }, line: { color: BLUE }, objectName: "arrow " + r });
     box(s, "", 7.6, y, 5.1, 0.66, "DEEBF7");
     s.addImage({ path: ICON(ri), x: 7.72, y: y + 0.12, w: 0.42, h: 0.42, objectName: "ours icon " + r });
@@ -953,15 +953,15 @@ function buildTalk() {
   });
   // next: three directions, as three equal cards (details on extra pages)
   txt(s, "Next", 0.6, 4.0, 12.1, 0.4, { fontSize: 18, bold: true });
-  [["fact", "Automatic hints", "picked per problem type, only the needed calls"], ["check", "Sharper free checks", "catch more mistakes, still with no extra tokens"], ["sqrt", "Math proofs", "Lean checks every step: find the hints that help"]].forEach(([icon, head, t], k) => {
+  [["fact", "Automatic hints", "picked per problem type, only the needed calls"], ["check", "Sharper free checks", "catch more mistakes, still with no extra tokens"], ["sqrt", "Math proofs", "Lean checks every step: find the hints that help", " [5]"]].forEach(([icon, head, t, ref], k) => {
     const x = 0.6 + k * 4.1;
     panel(s, x, 4.45, 3.9, 1.45, "next " + head);
     s.addImage({ path: ICON(icon), x: x + 0.22, y: 4.6, w: 0.55, h: 0.55, objectName: "next icon " + icon });
     txt(s, head, x + 0.92, 4.6, 2.85, 0.55, { fontSize: 20, bold: true, color: BLUE });
-    txt(s, t, x + 0.22, 5.2, 3.5, 0.62, { fontSize: 15 });
+    txt(s, ref ? [{ text: t }, { text: ref, options: { fontSize: 11, color: "7F7F7F" } }] : t, x + 0.22, 5.2, 3.5, 0.62, { fontSize: 15 });
   });
   caption(s, "Takeaway: give the missing fact first, and think only where a free check fails");
-  txt(s, "References: Snell et al., Scaling LLM Test-Time Compute Optimally, ICLR 2025 (think on hard problems) · DRoC, ICLR 2025 (documentation for solver code) · Huang et al., ORLM, arXiv 2405.17743, 2024 (fine-tuned specialist) · Huang et al., Mamo benchmark, 2024 · Zheng et al., miniF2F, ICLR 2022 (Lean proofs)",
+  txt(s, "[1] Snell et al., Scaling LLM Test-Time Compute Optimally, ICLR 2025  [2] DRoC: retrieved documentation for solver code, ICLR 2025  [3] Huang et al., ORLM, arXiv 2405.17743, 2024  [4] Huang et al., Mamo benchmark, 2024  [5] Zheng et al., miniF2F, ICLR 2022",
       0.6, 6.85, 11.4, 0.4, { fontSize: 10, color: "7F7F7F" });
 
   // ---- extra pages that answer expected questions (each title is the question)
