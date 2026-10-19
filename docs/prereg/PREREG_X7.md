@@ -179,3 +179,16 @@ the snippet, so the comparison is mipf vs mipf + mined program). 3090-class mode
 - F2-P1 (stream): formo keeps ≥ 80% of formx's cheap-program gain over mips on MAMO, per model (seed mean).
 - F2-P2 (other benchmarks): on NL4OPT + IndustryOR formx improves the cheap program by ≥ +1.5 points and the FFR pipeline by ≥ +1 point over
   mipf for each model (seed mean), less than on MAMO because problems repeat less.
+
+## FORM2 results (2026-10-19 15:23 UTC; 3 seeds × 3 models)
+| | MAMO cheap: mips / formx / **formo (stream)** | MAMO FFR: mips / formx / **formo** | NL4OPT + IndustryOR cheap: mipf / formx | FFR: mipf / formx |
+|---|---|---|---|---|
+| gpt-oss-20b | 74.6 / 78.3 / **77.4%** | 78.6% @ 1.87k / 80.2% @ 1.55k / **79.0% @ 1.59k** | 70.1 / 69.9% | 75.6% @ 2.07k / 75.1% @ 1.97k |
+| Qwen3-14B-AWQ | 69.1 / 73.8 / **72.7%** | 72.5% @ 2.75k / 77.2% @ 2.01k / **76.4% @ 2.06k** | 66.0 / 67.8% | 76.0% @ 3.20k / 74.9% @ 2.72k |
+| Qwen3-8B | 67.6 / 74.3 / **71.6%** | 72.1% @ 3.15k / 77.8% @ 2.13k / **75.9% @ 2.34k** | 51.7 / 66.2% | 72.9% @ 5.41k / 71.5% @ 3.50k |
+(seed means; per seed in the analysis output.) **F2-P1 narrowly refuted:** as a stream (only earlier problems' programs) the library keeps 60–77%
+of its cheap-program gain (not ≥ 80%); the pipeline still gains +0.4 (gpt-oss-20b) to +3.9 points at 15–26% fewer tokens. **F2-P2 refuted:**
+on NL4OPT + IndustryOR the library raises the Qwen3 models' cheap program (+1.8, +14.5 for Qwen3-8B whose plain program crashes often) but
+the pipeline LOSES 0.5–1.4 points (at 6–35% fewer tokens): a similar problem's program also makes more wrong programs agree (the X6-VER
+pattern), and these problems repeat less than MAMO's templates. **Reading:** the checked-program library pays where problem types recur
+(MAMO: TSPs, redistributions, diets), also online; on diverse problems it only saves tokens.

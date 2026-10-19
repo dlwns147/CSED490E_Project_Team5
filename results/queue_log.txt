@@ -451,3 +451,9 @@ S2_FORMS q14a done (2589/2589) Mon Oct 19 14:56:52 UTC 2026
 S2_FORMS done Mon Oct 19 14:56:52 UTC 2026
 S2_FORM2 queued (stream MAMO + NL4OPT/IndustryOR mined-program library; GPU0 + GPU2; PREREG_X7.md) Mon Oct 19 14:56:57 UTC 2026
 S2_FORM2 started Mon Oct 19 14:56:57 UTC 2026
+S2_FORM2 oss20 done (3624/3624) Mon Oct 19 15:03:26 UTC 2026
+S2_FORM2 q8b done (3624/3624) Mon Oct 19 15:05:19 UTC 2026
+S2_FORM2 q14a done (3624/3624) Mon Oct 19 15:18:39 UTC 2026
+S2_FORM2 done Mon Oct 19 15:18:52 UTC 2026
+S2_CH queued (approach hints TAG / PLAN, gpt-oss-120b GPU1 + gpt-oss-20b GPU2; PREREG_CH.md) Mon Oct 19 15:22:15 UTC 2026
+S2_CH started Mon Oct 19 15:23:11 UTC 2026
