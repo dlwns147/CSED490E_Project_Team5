@@ -423,3 +423,5 @@ S2_X7REP q14a_mamo done (5178/5178) Mon Oct 19 10:28:14 UTC 2026
 S2_ADAPT queued (AdaptThink-7B vs R1-Distill-7B + our gate on X1; GPU1; waits for downloads; PREREG_X1.md ADAPT) Mon Oct 19 10:42:34 UTC 2026
 S2_ADAPT started on GPU1 Mon Oct 19 10:43:39 UTC 2026
 S2_STORM deadline removed: queue shell + 6 h timeout killed by PID (results are only written at the end; first pass alone ~3.5 h); inference pid 4037001 continues; queue_s2_storm_cont.sh waits on it, then runs x3 (12 h limit) Mon Oct 19 10:44:44 UTC 2026
+S2_X7REP q8b_mamo done (5178/5178) Mon Oct 19 11:53:54 UTC 2026
+S2_X7REP q32b queued (Qwen3-32B-AWQ MAMO replication, GPU3; PREREG_X7.md) Mon Oct 19 12:37:07 UTC 2026

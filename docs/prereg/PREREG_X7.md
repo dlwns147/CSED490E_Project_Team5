@@ -60,3 +60,9 @@ Prediction: STORM ≥ our best training-free 3090-class result on MAMO (gpt-oss-
 - **Replication, Qwen3-14B-AWQ, 3 seeds (2026-10-19 10:44 UTC):** automatic minus hand-written FFR = +0.3 / +1.6 / +0.2 points (71.7 / 73.5 / 72.4% vs
   71.4 / 71.8 / 72.2%) at the same tokens (2.6–2.8k); the ±2 prediction holds on every seed. Plain automatic fact-first 70.7–71.8% @ 0.7–0.8k vs
   always thinking with the hand snippet 65.4–65.5% @ 6.5k. Qwen3-8B seeds 2–3 and Qwen3.6 still running.
+- **Replication, Qwen3-8B, 3 seeds (2026-10-19 12:37 UTC):** automatic minus hand-written FFR = −0.9 / +1.6 / +2.2 points (71.0 / 72.2 / 73.1% vs 72.0 / 70.6 / 70.9%),
+  and cheaper (3.1–3.2k vs 4.5–4.6k tokens: the hand snippet's `solver.Objective().Minimize()` crash appears 91 times in seeds 2–3 vs 39 with
+  the mined program, and each crash buys a thinking run). The ±2 prediction holds on seeds 1–2; seed 3 misses it by 0.2 in the automatic
+  fact's favour. Plain automatic fact-first 68.8–71.1% @ 0.9–1.0k vs always thinking with the hand snippet 67.3–69.2% @ 7.7–7.9k.
+**Replication, Qwen3-32B-AWQ (pre-registered now, 2026-10-19 12:37 UTC; queue_s2_x7rep_q32b.sh, GPU3):** cheap arms seed 3, thinking seeds 2–3.
+Predictions: (a) automatic minus hand FFR within ±2 points on each seed pair; (b) automatic FF ≥ hand FF on each seed (seed 1: 76.9 vs 74.0%).

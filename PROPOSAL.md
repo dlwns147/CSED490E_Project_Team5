@@ -80,7 +80,7 @@ The reused programs also work on 4× larger instances (60 of 60). When the rules
 
 ![Finding 6: the model's own checked program as the fact](figs/ex_finding6.png)
 
-We tested this on a benchmark we never used before: MAMO (863 optimization word problems) was held out until the end. The fact is mined automatically: the model's own shortest program that passed the free check on the other word-problem benchmarks. With it, writing the program twice and thinking only when the two disagree matches the hand-written fact: gpt-oss-20b 78.8% vs 78.9% (within 1.2 points on 3 seeds), Qwen3-14B 71.7% vs 71.4% (within 1.6 points on 3 seeds), Qwen3-8B 71.0% vs 72.0% (no fact: 73%, 60%, 46%). Giving this fact first beats always thinking at 12–22% of its tokens. This works within one kind of problem: a program borrowed from a different problem type misleads (14–21 points below the hand-written fact on the optimization suite), and a bare list of the library's names hurts (Qwen3-32B 66.2% → 56.1%).
+We tested this on a benchmark we never used before: MAMO (863 optimization word problems) was held out until the end. The fact is mined automatically: the model's own shortest program that passed the free check on the other word-problem benchmarks. With it, writing the program twice and thinking only when the two disagree matches the hand-written fact: gpt-oss-20b 78.8% vs 78.9% (within 1.2 points on 3 seeds), Qwen3-14B 71.7% vs 71.4% (within 1.6 points on 3 seeds), Qwen3-8B 71.0% vs 72.0% (−0.9 to +2.2 on 3 seeds, at a third fewer tokens; no fact: 73%, 60%, 46%). Giving this fact first beats always thinking at 12–22% of its tokens. This works within one kind of problem: a program borrowed from a different problem type misleads (14–21 points below the hand-written fact on the optimization suite), and a bare list of the library's names hurts (Qwen3-32B 66.2% → 56.1%).
 
 **Finding 7. Proofs need a specialized model, not a fact.**
 > *Example* (miniF2F). Prove: if x < 100 and 9x mod 100 = 1, then x = 89. Qwen3-32B's 8 attempts cite lemmas that do not exist (e.g. `Nat.ModEq_iff_modEq`) and all fail. Goedel-Prover-V2-8B writes `interval_cases x <;> norm_num at h₁ ⊢ <;> omega`, which simply checks all 100 values, and Lean accepts it.
@@ -193,7 +193,7 @@ All measured here, with the same problems, models and checks; accuracy @ output 
 
 Done since the last version: contest geometry and competition math on 24 GB GPUs; Qwen3.6 with the model card's settings (headline unchanged: 86.7–87.5%); automatic facts and the held-out MAMO test; choosing the policy from 30 labels; proofs (Lean, geometry).
 
-1. Finish the MAMO replication (Qwen3-8B, Qwen3.6 on 3 seeds; gpt-oss-20b and Qwen3-14B done). Baselines on our harness: ORLM done; STORM-Qwen3-4B (trained specialist) and AdaptThink-7B (trained when-to-think switch, against our check on the same base model) running.
+1. Finish the MAMO replication (Qwen3-32B, Qwen3.6 on 3 seeds; gpt-oss-20b, Qwen3-14B and Qwen3-8B done). Baselines on our harness: ORLM done; STORM-Qwen3-4B (trained specialist) and AdaptThink-7B (trained when-to-think switch, against our check on the same base model) running.
 2. Automatic facts across problem types: mine one fact per problem type instead of borrowing another type's program.
 3. Final report and slides; a closed API model, if access is available.
 
