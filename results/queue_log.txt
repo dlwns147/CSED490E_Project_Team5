@@ -416,3 +416,6 @@ S2_X7 runs done Mon Oct 19 08:00:08 UTC 2026
 S2_ORLM started on GPU0 Mon Oct 19 08:00:15 UTC 2026
 S2_ORLM done (3624/3624) Mon Oct 19 08:12:41 UTC 2026
 S2_STORM queued (official TIR inference, GPU0; waits for the weight download) Mon Oct 19 08:39:49 UTC 2026
+S2_STORM mamo_full done Mon Oct 19 08:40:56 UTC 2026
+S2_STORM x3 done Mon Oct 19 08:41:03 UTC 2026
+S2_STORM relaunched (first attempt: missing timeout_decorator in its venv; installed) Mon Oct 19 08:41:57 UTC 2026
