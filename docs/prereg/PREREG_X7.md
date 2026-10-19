@@ -43,3 +43,17 @@ the same tolerance as every other arm (poc/run_orlm.py; poc/queues/queue_s2_orlm
   (same model size, no training); with gpt-oss-20b it is ≥ 5 points above.
 - ORLM-P3 (cost): ORLM's single greedy program is cheaper per problem than our FFR (fewer output tokens), so per token ORLM wins; per accuracy
   at a 3090 budget gpt-oss-20b wins.
+
+## ORLM results (2026-10-19 08:39 UTC; results/x3/opt_orlm*_orlm_s*.jsonl; 17 programs that began with a 'pip install' line re-run without it — no change)
+ORLM-LLaMA-3-8B, greedy (seed 1) / sampled (2, 3): **MAMO Easy / Complex 80.5 / 35.5%** (77.8 / 22.3, 77.3 / 29.4); overall 69.5% (64.2, 65.6) at
+1.1k output tokens; NL4OPT / IndustryOR 78.8 / 27.0% (75.5 / 29.0, 75.1 / 29.0).
+- **ORLM-P1 holds** (greedy within ±4 of the reported 82.3 / 37.4%).
+- **ORLM-P2 holds:** our training-free recipe (automatic fact, two agreeing programs, else think) on MAMO overall — Qwen3-8B 71.0% @ 3.1k (+1.5
+  over ORLM greedy; plain fact-first 69.5% @ 1.0k = ORLM at the same tokens), Qwen3-14B-AWQ 71.7% @ 2.8k, gpt-oss-20b 78.8% @ 1.9k (+9.3),
+  Qwen3-32B 76.9% @ 0.5k (fact-first; its best policy).
+- **ORLM-P3 refuted:** ORLM is not cheaper than our plain fact-first at equal accuracy (Qwen3-8B 69.5% @ 1.0k vs ORLM 69.5% @ 1.1k).
+**Reading:** a fine-tuned 8B specialist is matched, with no training, by a general 8B model given its own mined example and a cheap check.
+**STORM-Qwen3-4B (pre-registered now):** the strongest public small specialist (SFT + RL, tool-integrated reasoning; reported MAMO 86.3 / 70.3% on
+its cleaned 100-problem subsets with a 5% tolerance after rounding). Run with its official inference code (cloned; vLLM 0.22; 3 samples,
+T 0.6) on our full MAMO and NL4OPT + IndustryOR, graded with our tolerance (and with theirs, for reference) (queue_s2_storm.sh, GPU0).
+Prediction: STORM ≥ our best training-free 3090-class result on MAMO (gpt-oss-20b 78.8%) under our grader, at ≥ 3 × the tokens.
