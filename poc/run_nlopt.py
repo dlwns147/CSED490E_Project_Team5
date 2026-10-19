@@ -64,6 +64,11 @@ P_FREE = ("{q}\n\nWrite a complete Python 3 program that formulates this problem
           "whichever fits the problem class: Google OR-Tools (`pywraplp` with SCIP for linear / mixed-integer models, CP-SAT), cvxpy "
           "(convex continuous models, including quadratic and second-order cone constraints) or scipy.optimize. Print ONLY the optimal "
           "objective value." + TAIL)   # HO-L (PREREG_HO.md, 2026-10-19): 27 of 100 OptMATH problems are not linear
+SNIP_TEXT = ("\n\nOR-Tools pywraplp usage, in words: create the solver with pywraplp.Solver.CreateSolver('SCIP'); make an integer "
+             "variable with s.IntVar(lower, upper, name) (a continuous one with s.NumVar(lower, upper, name)); add a constraint with "
+             "s.Add(linear expression); set the objective with s.Maximize(expression) or s.Minimize(expression); solve with st = s.Solve() "
+             "and compare st with pywraplp.Solver.OPTIMAL (or INFEASIBLE / UNBOUNDED); read the optimal value with s.Objective().Value().")
+# CD (PREREG_CD.md, 2026-10-19): the content of SNIP as a description instead of code (matched-content test)
 P_CPSAT = ("{q}\n\nWrite a complete Python 3 program that formulates this problem with Google OR-Tools CP-SAT (`from ortools.sat.python "
            "import cp_model`; scale any fractional coefficients to integers), solves it, and prints ONLY the optimal objective value." + TAIL)
 P_TEXT = "{q}\n\nSolve the problem. Put the optimal objective value in \\boxed{{}} (or \\boxed{{No Best Solution}} if there is none)."
@@ -143,7 +148,7 @@ def main():
         sd = seed * 1000 + zlib.crc32(p["id"].encode()) % 997
         tmpl = {"mip": P_MIP, "mipf": P_MIP + SNIP, "cpsat": P_CPSAT, "text": P_TEXT, "think": P_MIP, "thinkf": P_MIP + SNIP,
                 "mipa": P_MIP + AUTO.replace("{", "{{").replace("}", "}}"), "thinka": P_MIP + AUTO.replace("{", "{{").replace("}", "}}"),
-                "mipv": P_MIP, "thinkv": P_MIP, "mips": P_MIP, "thinks": P_MIP, "free": P_FREE, "thinkfree": P_FREE}[mode]
+                "mipv": P_MIP, "thinkv": P_MIP, "mips": P_MIP, "thinks": P_MIP, "free": P_FREE, "thinkfree": P_FREE, "mipt": P_MIP + SNIP_TEXT}[mode]
         q = tmpl.format(q=p["q"])
         if mode in ("mipv", "thinkv", "mips", "thinks"):   # automatic usage fact: a check-passing program of this model for a similar problem of the other benchmark
             ex = EX(p)

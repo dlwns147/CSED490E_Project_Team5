@@ -27,6 +27,17 @@ FACT = {"tsp": "Formulation note: with Miller-Tucker-Zemlin subtour elimination,
                           "otherwise any total surplus makes the model infeasible."}
 
 
+CODE = {"tsp": "Formulation note, as code (n cities, city 0 is the start, x[i][j] = 1 if the tour goes from i to j):\n```python\n"
+              "u = [None] + [solver.IntVar(1, n - 1, f'u{i}') for i in range(1, n)]\n"
+              "for i in range(1, n):\n    for j in range(1, n):\n        if i != j:\n"
+              "            solver.Add(u[i] - u[j] + n * x[i][j] <= n - 1)\n```",
+        "redistribution": "Formulation note, as code (f[i][j] = units moved from center i to center j):\n```python\n"
+                          "for i in range(n):\n    inflow = solver.Sum(f[j][i] for j in range(n) if j != i)\n"
+                          "    outflow = solver.Sum(f[i][j] for j in range(n) if j != i)\n"
+                          "    solver.Add(stock[i] + inflow - outflow >= need[i])   # may keep more than it needs\n```"}
+# CD (PREREG_CD.md): formc = the mips prompt + the same knowledge as FACT, written as code (matched content)
+
+
 def kind(q):   # problem type, used only to place the hand-written sentence (formh) and to report results by type
     q = q.lower()
     if "each city exactly once" in q or "salesperson" in q:
@@ -85,17 +96,17 @@ if __name__ == "__main__":
         import random
         ids = sorted(p["id"] for p in problems()); random.Random(0).shuffle(ids); RANK = {i: k for k, i in enumerate(ids)}
     SEL = selector() if mode == "formx" else selector((m,)) if mode == "forms" else selector(rank=RANK) if mode == "formo" else None
-    P = [p for p in problems() if mode != "formh" or kind(p["q"])]
+    P = [p for p in problems() if mode not in ("formh", "formc") or kind(p["q"])]
     path = f"{RES}/opt_{tag}_{mode}_s{seed}.jsonl"
     done = {r["id"] for r in _rows(path)}
 
     def one(p):
         q = (P_MIP + SNIP if SET == "x3" else P_MIP).format(q=p["q"]); src = None
-        if mode == "formh":
+        if mode in ("formh", "formc"):
             ex = EX(p)
             if ex:
                 q += "\n\nA program that runs with this library (written for a different problem):\n```python\n" + ex.strip() + "\n```"
-            q += "\n\n" + FACT[kind(p["q"])]
+            q += "\n\n" + (CODE if mode == "formc" else FACT)[kind(p["q"])]
         else:
             s = SEL(p)
             if s:
