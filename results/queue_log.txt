@@ -434,3 +434,7 @@ S2_STORMRECIPE queued (our recipe on STORM-Qwen3-4B: no-think programs + TIR esc
 S2_STORMRECIPE started on GPU1 Mon Oct 19 13:41:18 UTC 2026
 S2_INFEAS queued (repair turn for infeasible programs; GPU2; PREREG_X7.md) Mon Oct 19 13:44:33 UTC 2026
 S2_INFEAS started on GPU2 Mon Oct 19 13:44:37 UTC 2026
+S2_STORMRECIPE stopped by PID at 13:51 after 93 MAMO rows: STORM's no-think mode is broken (55% of programs hit the 8192-token cap, 37% no code, 20% correct; SR-P1 refuted); GPU1 released Mon Oct 19 13:51:11 UTC 2026
+S2_INFEAS done Mon Oct 19 13:53:22 UTC 2026
+S2_FORM queued (formulation facts: hand sentence vs label-free cross-model mined program; GPU1 + GPU2; PREREG_X7.md) Mon Oct 19 13:54:22 UTC 2026
+S2_FORM started Mon Oct 19 13:54:22 UTC 2026

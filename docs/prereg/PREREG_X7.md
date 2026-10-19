@@ -107,3 +107,25 @@ the repaired program still fails.
 - IF-P1: on MAMO the repair makes ≥ 40% of the infeasible programs correct, per model and seed (thinking: 17–45% of the agreeing ones).
 - IF-P2: policy (b) ≥ policy (a) + 0.5 points on MAMO at fewer tokens, each model and seed.
 - IF-P3: on NL4OPT + IndustryOR (14 true 'No Best Solution' labels) the gain of (b) over (a) is at most half of MAMO's.
+
+## STORM-RECIPE stopped; INFEAS partial; FORM pre-registration (2026-10-19 13:54 UTC, before running)
+**STORM-RECIPE stopped after 93 MAMO rows** (by PID; GPU1 released): STORM's no-think mode is broken — 55% of its programs hit the 8,192-token cap
+(all 35 replies without code are cap hits: it keeps reasoning in text), the rest crash often; 20% correct. **SR-P1 refuted**; a recipe on top of
+STORM would need its own cheap mode, which RL training removed.
+**INFEAS, gpt-oss-20b and Qwen3-14B-AWQ (3 seeds; Qwen3-8B running):** the generic repair turn makes 8–14% (gpt-oss-20b) and 24–33% (Qwen3-14B-AWQ)
+of the infeasible MAMO programs correct at 0.8–1.1k tokens; thinking makes 17–21% / 22–35% correct at 3.5–9.3k. Most repaired programs stay
+infeasible (gpt-oss-20b: 29–41 of 43–53). Policy (b) vs (a): MAMO +0.0 to +0.2 (gpt-oss-20b), +0.5 to +0.7 (Qwen3-14B-AWQ) at slightly fewer
+tokens; NL4OPT + IndustryOR −1.8 to +0.3 (the repair turns true 'No Best Solution' answers into numbers). IF-P1 refuted; IF-P2 holds for
+Qwen3-14B-AWQ only; IF-P3 holds. Raw reading: the programs that stay infeasible repeat the same formulation — a TSP with Miller-Tucker-Zemlin
+order constraints that include the start city (gpt-oss-20b: 29 of its 53 infeasible programs; 0% on the 34 MAMO TSPs vs 49–62% for the Qwen3
+models), and a supply redistribution written as an equality so the surplus cannot stay (16 problems; 0–38% for every model).
+**FORM (poc/run_form.py; queue_s2_form.sh, GPU1 then GPU2):** is a systematic formulation error missing knowledge that one fact fixes, when
+repair and thinking do not? (a) formh: the mips prompt + one hand-written formulation sentence, only on the 34 TSP and 16 redistribution
+problems (mechanism test); (b) formx, label-free: instead of the other benchmark's example, the program of the most similar OTHER MAMO
+problem (BM25), from all five models' programs that pass the strict check (two seeds run, agree, not 'No Best Solution'), preferring the
+answer most models share. (Checked with labels only for this note: the selected source programs are right on their own problems 81% of the
+time; TSP 24 / 34, redistribution 13 / 16.) gpt-oss-20b (low), Qwen3-14B-AWQ, Qwen3-8B; seeds 1–3.
+- FORM-P1 (mechanism): formh lifts gpt-oss-20b on the TSPs from 0% to ≥ 60%, and every model on the redistribution problems to ≥ 60%.
+- FORM-P2 (label-free): formx lifts gpt-oss-20b on the TSPs to ≥ 50%, and the cheap program's MAMO accuracy by ≥ +2 points (gpt-oss-20b)
+  and ≥ +1 (Qwen3 models) over mips, per seed, with no problem type losing more than 2 points.
+- FORM-P3: on these two types the fact beats the repair turn and thinking (from existing rows) in accuracy at ≤ 30% of thinking's tokens.
