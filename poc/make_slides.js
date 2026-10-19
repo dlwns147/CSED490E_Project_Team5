@@ -693,10 +693,29 @@ function buildTalk() {
   slideTitle("Talk", "POSTECH CSED490E (Graduate NLP) · Team 5 · 5-minute proposal talk",
     "(5 s) Hello, we are Team 5. Our project: how to solve computational math with LLMs accurately and cheaply. The question is where the extra effort should go: a fact, a check, or more thinking.");
 
-  // 2. one idea: let the computer do the arithmetic
+  // 2. what we solve, and how hard
+  s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
+  s.addText("What we solve, and how hard it is", { placeholder: "title" });
+  [["shapes", "Geometry", "corners of the rubber band around 10 points", "textbook algorithms, exact on every copy", BLUE],
+   ["trophy", "Contest problems", "311 Codeforces geometry problems", "Codeforces Master to Grandmaster level", RED],
+   ["truck", "Routing, scheduling", "routes for 100 customers with time windows", "a simple plan drives 48% farther", THEME.colors.accent2],
+   ["calc", "Word problems", "most coins from 500 gold and 300 wires?", "university operations-research exercises", "38761D"],
+   ["sqrt", "Math and proofs", "AIME answers; Lean proofs", "AIME: top ~5% of high-school contestants", "595959"]].forEach(([icon, head, ex, tag, col], k) => {
+    const x = 0.6 + k * 2.45;
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.4, w: 2.3, h: 4.45, rectRadius: 0.08, fill: { color: "F7F7F7" }, line: { color: "D9D9D9", width: 0.75 }, objectName: "kind " + head });
+    s.addImage({ path: ICON(icon), x: x + 0.75, y: 1.6, w: 0.8, h: 0.8, objectName: "icon " + icon });
+    txt(s, head, x + 0.1, 2.55, 2.1, 0.75, { fontSize: 18, bold: true, align: "center" });
+    txt(s, ex, x + 0.15, 3.35, 2.0, 1.2, { fontSize: 15, align: "center", valign: "top" });
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: x + 0.1, y: 4.7, w: 2.1, h: 0.95, rectRadius: 0.1, fill: { color: "FFFFFF" }, line: { color: col, width: 1.25 }, objectName: "tag " + head });
+    txt(s, tag, x + 0.15, 4.7, 2.0, 0.95, { fontSize: 15, bold: true, color: col, align: "center" });
+  });
+  caption(s, "Contest problems: median = Codeforces Master; 46% are at Grandmaster level");
+  s.addNotes("(25 s) We test five kinds of computational math, and here is how hard they are by well-known yardsticks. Exact geometry uses textbook algorithms, but must be right on moved and turned copies. Our contest problems are Codeforces problems at the level of Master to Grandmaster players; 18% are solved by none of our nine model setups. Routing is a classic operations-research benchmark where a simple greedy plan is 48% worse than the best known. Word problems are operations-research course exercises. And competition math goes up to AIME, taken by the top few percent of AMC students, and olympiad proofs, where an IMO gold medallist solves about 26 of 30 geometry problems.");
+
+  // 3. one idea: let the computer do the arithmetic
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
   s.addText("Let the computer do the math", { placeholder: "title" });
-  txt(s, "One shape, moved and turned: the right answer never changes (436)", 0.6, 1.35, 12.1, 0.45, { fontSize: 18, align: "center" });
+  txt(s, "One shape, moved, turned and flipped: the right answer never changes (436)", 0.6, 1.35, 12.1, 0.45, { fontSize: 18, align: "center" });
   s.addImage({ path: FIG("slide2_shapes.png"), x: 3.9, y: 1.95, w: 8.8, h: 1.9, objectName: "four copies of one polygon", altText: "one polygon: original, moved, turned, flipped" });
   [["Answer in words", [["436 ✓", 1], ["2944 ✗", 0], ["392 ✗", 0], ["728 ✗", 0]], 4.25], ["Write a program", [["436 ✓", 1], ["436 ✓", 1], ["436 ✓", 1], ["436 ✓", 1]], 5.1]].forEach(([head, ans, y]) => {
     txt(s, head, 0.6, y, 3.2, 0.6, { fontSize: 22, bold: true });
@@ -705,7 +724,7 @@ function buildTalk() {
   caption(s, "For computation, a program is the right tool");
   s.addNotes("(20 s) An LLM can answer a math problem in words, or write a program and let the computer do the arithmetic. Here Qwen3-8B is asked for twice the area of one shape, moved and turned. In words it says 436, 2944, 392 and 728; its program says 436 every time. So for computation, programs are the right tool. (Other ways, used later: call a solver library, or think longer first.)");
 
-  // 3. two problems, one example each, and the question
+  // 4. two problems, one example each, and the question
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
   s.addText("But two things go wrong", { placeholder: "title" });
   function pane3(x, head, col, fill) {
@@ -738,28 +757,19 @@ function buildTalk() {
   });
   s.addNotes("(30 s) But two things go wrong. First, programs can be silently wrong: two programs for the same question, how many corners the rubber band around these points has; one prints 6, the other prints 0, with no error message. The only difference: the second prompt had some extra helper code. Second, thinking longer is expensive: on contest problems, thinking hard uses 4.4 times the tokens, drawn here as pages, for 9 more points. So our question: where should the extra effort go? A missing fact, a free check, or more thinking?");
 
-  // 3. what we solve, and how hard
-  s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
-  s.addText("What we solve, and how hard it is", { placeholder: "title" });
-  [["shapes", "Geometry", "corners of the rubber band around 10 points", "textbook algorithms, exact on every copy", BLUE],
-   ["trophy", "Contest problems", "311 Codeforces geometry problems", "Codeforces Master to Grandmaster level", RED],
-   ["truck", "Routing, scheduling", "routes for 100 customers with time windows", "classic OR benchmark: greedy is 48% worse", THEME.colors.accent2],
-   ["calc", "Word problems", "most coins from 500 gold and 300 wires?", "OR-course exercises (NL4OPT)", "38761D"],
-   ["sqrt", "Math and proofs", "AIME answers; Lean proofs", "AIME: top ~5% of AMC; IMO gold: 25.9/30", "595959"]].forEach(([icon, head, ex, tag, col], k) => {
-    const x = 0.6 + k * 2.45;
-    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.4, w: 2.3, h: 4.45, rectRadius: 0.08, fill: { color: "F7F7F7" }, line: { color: "D9D9D9", width: 0.75 }, objectName: "kind " + head });
-    s.addImage({ path: ICON(icon), x: x + 0.75, y: 1.6, w: 0.8, h: 0.8, objectName: "icon " + icon });
-    txt(s, head, x + 0.1, 2.55, 2.1, 0.75, { fontSize: 18, bold: true, align: "center" });
-    txt(s, ex, x + 0.15, 3.35, 2.0, 1.2, { fontSize: 15, align: "center", valign: "top" });
-    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: x + 0.1, y: 4.7, w: 2.1, h: 0.95, rectRadius: 0.1, fill: { color: "FFFFFF" }, line: { color: col, width: 1.25 }, objectName: "tag " + head });
-    txt(s, tag, x + 0.15, 4.7, 2.0, 0.95, { fontSize: 15, bold: true, color: col, align: "center" });
-  });
-  caption(s, "Contest problems: median = Codeforces Master; 46% are at Grandmaster level");
-  s.addNotes("(25 s) We test five kinds of computational math, and here is how hard they are by well-known yardsticks. Exact geometry uses textbook algorithms, but must be right on moved and turned copies. Our contest problems are Codeforces problems at the level of Master to Grandmaster players; 18% are solved by none of our nine model setups. Routing is a classic operations-research benchmark where a simple greedy plan is 48% worse than the best known. Word problems are operations-research course exercises. And competition math goes up to AIME, taken by the top few percent of AMC students, and olympiad proofs, where an IMO gold medallist solves about 26 of 30 geometry problems.");
+  function answerBadge(items) {   // the matching choice(s) from "where should the extra effort go?", top right
+    items.forEach(([icon, t], k) => {
+      const x = 12.7 - (items.length - k) * 2.15;
+      s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 0.55, w: 2.05, h: 0.5, rectRadius: 0.2, fill: { color: "E2F0D9" }, line: { color: "38761D", width: 1 }, objectName: "answer " + t });
+      s.addImage({ path: ICON(icon), x: x + 0.1, y: 0.62, w: 0.36, h: 0.36, objectName: "answer icon " + icon });
+      txt(s, t, x + 0.5, 0.55, 1.5, 0.5, { fontSize: 14, bold: true, color: "38761D" });
+    });
+  }
 
-  // 4. finding 1
+  // 5. finding 1
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
   s.addText("Finding 1: give the fact, not the manual", { placeholder: "title" });
+  answerBadge([["fact", "a missing fact"]]);
   txt(s, "Qwen3-32B plans delivery routes with Google's OR-Tools library", 0.6, 1.3, 12.1, 0.45, { fontSize: 17 });
   [["with the whole manual", "RegisterUnaryLongLivingCallback()", "✗ does not exist: crash", "FCE4D6", RED, 1.95],
    ["with 5 exact lines", "RegisterUnaryTransitCallback()", "✓ runs: best route", "E2F0D9", "38761D", 2.75]].forEach(([lab, call, res, fill, col, y]) => {
@@ -773,9 +783,10 @@ function buildTalk() {
   caption(s, "Thinking cannot supply a fact the model does not have");
   s.addNotes("(35 s) Finding one. Qwen3-32B writes route-planning code with OR-Tools. Given the whole manual, it calls a function that sounds right but does not exist, and the program crashes. Given five lines with the exact call, it finds the best route. Out of 100 routing problems: 23 with nothing extra, only 3 when it thinks longer, 7 with the whole manual, and 77 to 90 with five exact lines. Thinking cannot supply a fact the model does not have.");
 
-  // 5. finding 2: free checks decide when to think
+  // 6. finding 2: free checks decide when to think
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
-  s.addText("Finding 2: think harder only when a free check fails", { placeholder: "title" });
+  s.addText("Finding 2: think only when a free check fails", { placeholder: "title" });
+  answerBadge([["check", "a free check"]]);
   function checkPane(x, head, rows, bars, sub) {
     panel(s, x, 1.35, 5.95, 4.6, head);
     txt(s, head, x + 0.25, 1.45, 5.45, 0.5, { fontSize: 18, bold: true, color: BLUE });
@@ -790,14 +801,15 @@ function buildTalk() {
   }
   checkPane(0.6, "Check A: the problem's own examples", [["\"Make a triangle!\": examples pass → submit", "38761D", "E2F0D9"], ["\"Arrow\": an example fails → think harder → right", RED, "FADBD8"]],
             [["always think hard", 1.0, "66.2% · 30k", "7F7F7F"], ["only on failure", 0.82, "66.3% · 25k", BLUE]], "311 contest problems (gpt-oss-120b), tokens per problem:");
-  checkPane(6.75, "Check B: two versions must agree", [["task only → program prints 6", "38761D", "E2F0D9"], ["+ 8 unneeded helpers → prints 0 → differ → think", RED, "FADBD8"]],
+  checkPane(6.75, "Check B: two versions must agree", [["program A (task only) → 6", "38761D", "E2F0D9"], ["program B (+ helper code) → 0: differ → think", RED, "FADBD8"]],
             [["always think", 1.0, "98% · 5.9k", "7F7F7F"], ["only if they differ", 0.73, "99% · 4.3k", BLUE]], "108 geometry problems (Qwen3-32B, 3 runs):");
   caption(s, "Same accuracy as always thinking, with 18–27% fewer tokens; no answers needed");
   s.addNotes("(40 s) Finding two: thinking should be paid only when a free check fails. Check A uses the examples printed in every contest problem: 'Make a triangle!' passes them and is submitted; 'Arrow' fails one, so only it gets high effort. Same 66% as always thinking hard, 18% fewer tokens. Check B writes the program twice, with and without extra tools: if the answers differ, think. 99% vs 98%, with 27% fewer tokens. Neither check needs the answer.");
 
-  // 6. the method on one problem, and what it gives overall
+  // 7. the method on one problem, and what it gives overall
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
   s.addText("Our method: cheap steps first", { placeholder: "title" });
+  answerBadge([["fact", "a missing fact"], ["check", "a free check"]]);
   txt(s, "One real problem (Qwen3-8B): products X, Y, Z at $10, $15, $20 under three limits; minimum cost? → 20000", 0.6, 1.28, 12.1, 0.4, { fontSize: 16 });
   [["1 Program", "Objective()\n.Minimize()", "✗ crash, no fact", RED, "FADBD8", 1.0],
    ["2 + Fact", "solver\n.Minimize(...)", "found automatically: its own checked program", "38761D", "E2F0D9", 1.0],
@@ -813,7 +825,7 @@ function buildTalk() {
   });
   txt(s, "All 624 geometry and optimization problems, 3 models:", 0.6, 3.95, 7.0, 0.4, { fontSize: 16, bold: true });
   hbars(s, 0.6, 4.4, 7.2, [["think on hardest", 74, "74% · 4.1k", "7F7F7F"], ["our method", 87, "87% · 2.5k", BLUE]], 0.6, 2.2, 1.6);
-  [["79% = 79%", "automatic fact vs hand-written, on a benchmark never used before"], ["0.6k vs 5.3k", "tokens on this problem vs thinking alone"]].forEach(([big, lab], r) => {
+  [["79% = 79%", "the fact found automatically (its own earlier checked program) = a hand-written fact, on new problems"], ["0.6k vs 5.3k", "tokens on this problem vs thinking alone"]].forEach(([big, lab], r) => {
     const y = 3.95 + r * 1.05;
     txt(s, big, 8.2, y, 4.5, 0.5, { fontSize: 24, bold: true, color: BLUE });
     txt(s, lab, 8.2, y + 0.48, 4.5, 0.5, { fontSize: 14, valign: "top" });
@@ -821,14 +833,14 @@ function buildTalk() {
   caption(s, "More accurate and cheaper than spending thinking on the hardest-looking problems");
   s.addNotes("(60 s) Together this gives our method, shown on one real word problem. Without a fact, the program calls a method that does not exist. The fact is found automatically: the model's own earlier program for another problem that passed the check, showing the right call. With it, two versions both print 20000, they agree, so we skip thinking and accept: 0.6 thousand tokens instead of 5.3 thousand. A problem of the same kind with new data reuses the checked program. Over 624 problems and 3 models: 87% at 2.5 thousand tokens, versus 74% at 4.1 thousand for the usual idea of thinking more on the hardest-looking problems. And the automatic fact matches a hand-written one on a benchmark we never used before: 79 versus 79%.");
 
-  // 7. what is new (the usual way vs ours, row by row), what is next (a timeline), and the takeaway
+  // 8. what is new (the usual way vs ours, row by row), what is next (a timeline), and the takeaway
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
   s.addText("What is new, and what is next", { placeholder: "title" });
   txt(s, "The usual way", 0.6, 1.3, 5.3, 0.4, { fontSize: 16, bold: true, color: "7F7F7F", align: "center" });
   txt(s, "Ours", 7.4, 1.3, 5.3, 0.4, { fontSize: 16, bold: true, color: BLUE, align: "center" });
   [["brain", "think more on hard-looking problems, or train when to think", "check", "think only when a free check fails; no training (87% vs 74%)"],
    ["page", "give the manual, or a teacher's programs checked against answers", "fact", "give one fact: the model's own checked program; no answers"],
-   ["robot", "fine-tune a specialist model (ORLM-8B)", "gpu", "no training, one 24 GB GPU: the same 69.5%"]].forEach(([li, lt, ri, rt], r) => {
+   ["robot", "fine-tune a specialist model (ORLM-8B)", "gpu", "no training, one 24 GB GPU: the same 69.5% on MAMO"]].forEach(([li, lt, ri, rt], r) => {
     const y = 1.75 + r * 0.9;
     box(s, "", 0.6, y, 5.3, 0.75, "F2F2F2");
     s.addImage({ path: ICON(li), x: 0.75, y: y + 0.15, w: 0.45, h: 0.45, objectName: "usual icon " + r });
