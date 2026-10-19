@@ -723,7 +723,7 @@ function buildTalk() {
   ];
   const QA_KO = {   // speaker notes of the extra pages: a short Korean answer to the page's question
     why: "(답변) 세 가지 이유입니다. 답이 정확히 하나라 코드로 채점할 수 있고, 정답 없이 쓸 수 있는 검사가 있으며, 실제 코딩 에이전트가 이미 경로 계획, 스케줄러, 기하 코드를 씁니다. 그리고 종류마다 필요한 것이 다릅니다. 기하와 경시는 맞는 알고리즘이 필요하고, 둘의 차이는 난이도입니다. 경로와 문장제는 솔버 라이브러리를 맞게 부르는 힌트가 필요하고, 문장제는 글을 수식으로 옮기는 단계가 더 있습니다. 그래서 추가 노력을 힌트, 검사, 생각 중 어디에 쓸지 비교하기 좋습니다.",
-    coverage: "(답변) 아니요, 모든 단계를 네 종류 전부에 쓰지는 않습니다. 경시 문제는 라이브러리 없이 알고리즘만 짜는 문제라 힌트로 채울 빈칸이 없습니다. 실패의 원인이 추론이라서, 예제와 짧은 완전 탐색 프로그램으로 검사하고 실패할 때만 더 생각하게 하면 항상 생각할 때와 같은 66%를 18% 적은 토큰에 얻습니다. 재사용은 같은 문제가 데이터만 바뀌어 반복될 때 쓰므로 매번 새 문제인 경시에는 맞지 않습니다. 전체 방법의 87% 대 74%는 기하와 최적화 208문제를 세 모델로 푼 결과입니다.",
+    coverage: "(답변) 아니요, 모든 단계를 네 종류 전부에 쓰지는 않습니다. 경시 문제는 라이브러리 없이 알고리즘만 짜는 문제라 힌트로 채울 빈칸이 없고, 실패 원인은 추론입니다. 가장 가까운 힌트로 관련 기하 함수 8개를 줘 봤는데, Qwen3-32B는 12.1%에서 13.7%로 차이가 없었고 gpt-oss-20b는 37.7%에서 33.4%로 오히려 떨어졌습니다. 함수를 받으면 덜 생각하고 다른 오답을 썼습니다. 문제마다 알고리즘을 알려 주는 힌트는 사실상 풀이의 일부라 싸지도 자동도 아닙니다. 그래서 경시에는 검사와 생각만 써서, 항상 생각할 때와 같은 66%를 18% 적은 토큰에 얻습니다. 재사용도 매번 새 문제라 맞지 않습니다.",
     kinds: "(답변) 사람 기준으로 보면, 경시 문제 311개의 Codeforces 레이팅 중앙값은 2200으로 Master 수준이고, 46%는 Grandmaster 수준인 2400 이상입니다. 그 구간에서는 gpt-oss-120b도 48%만 풉니다. 경로 문제는 단순한 탐욕 계획이 최선보다 48% 길고, 문장제는 대학 OR 수업 연습문제 수준입니다.",
     two: "(답변) 보조 코드를 주면 모델이 그 함수에 맞춰 방법을 짭니다. 이 예에서는 필요 없는 polar_sort로 각도 정렬을 하다가 0을 출력했습니다. 기하 108문제에서 보조 코드가 있으면 59%, 없으면 77%입니다. 두 버전을 모두 짜서 답이 다를 때만 생각하면 99%를 4.3k 토큰에 얻습니다.",
     fact: "(답변) 힌트는 라이브러리를 어떻게 부르는지, 즉 함수 이름과 인자를 보여 주는 11줄짜리 코드 조각입니다. 같은 종류의 30문제에 똑같이 붙이고, 경로나 숫자나 정답은 들어 있지 않습니다. 긴 참조 문서가 아무것도 안 준 것보다 나쁜 이유는, 경로 설명은 있지만 용량 규칙이 없어서 모델이 빈 곳을 없는 함수로 채우기 때문입니다. 10개 프로그램이 RegisterUnaryLongLivingCallback을 불렀습니다.",
@@ -1066,12 +1066,12 @@ function buildTalk() {
     const OK = "38761D", PART = "C55A11", NA = "8C8C8C";
     const c = (t, col) => ({ text: t, options: { color: col } }), row = t => ({ text: t, options: { bold: true } });
     table(s, [["", "Geometry", "Contest problems", "Routing, scheduling", "Word problems"].map(HDR),
-      [row("Give the fact"), c("✓ only the needed tools: 92% vs 75%", OK), c("– no library to hint: plain algorithms", NA), c("✓ 23% → 77–90%; 6% → 100% valid plans", OK), c("✓ 65% → 72%; small models +44 points", OK)],
+      [row("Give the fact"), c("✓ only the needed tools: 92% vs 75%", OK), c("✗ no library to hint; 8 geometry helpers hurt: 37.7% → 33.4% (gpt-oss-20b)", RED), c("✓ 23% → 77–90%; 6% → 100% valid plans", OK), c("✓ 65% → 72%; small models +44 points", OK)],
       [row("Free check, think on failure"), c("✓ 99% @ 4.3k vs 98% @ 5.9k", OK), c("✓ 66.3% @ 24.7k vs 66.2% @ 30.1k (examples + brute force)", OK), c("✓ part of the 87% below", OK), c("✓ beats always thinking at 12–22% of its tokens", OK)],
       [row("Whole recipe"), c("✓ 87% @ 2.5k vs 74% @ 4.1k, with routing", OK), c("~ steps 3–4 only (no library, so no hint): same 66% at 18% fewer tokens", PART), c("✓ 87% @ 2.5k vs 74% @ 4.1k, with geometry", OK), c("✓ held-out MAMO: automatic fact = hand-written", OK)],
       [row("Reuse a checked program"), c("– not tested", NA), c("– each problem is new", NA), c("✓ 94% vs 7% of days valid", OK), c("– not tested", NA)]],
       { x: 0.6, y: 1.85, w: 12.1, colW: [2.5, 2.4, 2.4, 2.4, 2.4], fontSize: 14, rowH: [0.45, 0.85, 0.85, 0.85, 0.6] });
-    txt(s, "✓ holds   ~ partly   – not tested.   The 87% pools 108 geometry and 100 optimization problems, each solved by 3 models.", 0.6, 5.75, 12.1, 0.4, { fontSize: 14, color: C.text2 });
+    txt(s, "✓ holds   ~ partly   ✗ does not help   – not tested.   The 87% pools 108 geometry and 100 optimization problems, each solved by 3 models.", 0.6, 5.75, 12.1, 0.4, { fontSize: 14, color: C.text2 });
     caption(s, "Contest problems need no library, so no hint: the check and thinking alone, at 18% fewer tokens");
   }
 
