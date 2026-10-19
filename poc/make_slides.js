@@ -693,7 +693,7 @@ function buildTalk() {
   pres.addSlide = (o) => { const sl = addSlide(o); sl.say = sl.addNotes.bind(sl); sl.addNotes = () => sl; return sl; };
   const SCRIPT_KO = [   // speaker notes of slides 1-9 (seconds at a calm pace in brackets)
     "(15초) 안녕하세요, 5조입니다. LLM으로 계산 수학 문제를 정확하고 싸게 푸는 방법을 제안합니다. 질문은 하나입니다. 추가 노력을 사실, 검사, 생각 중 어디에 써야 할까요?",
-    "(25초) 저희가 푸는 문제는 다섯 종류입니다. 기하 계산, Codeforces 기하 문제, 배송 경로, 최적화 문장제, 그리고 확장으로 경시 수학과 증명입니다. 쉽지 않습니다. 경시 문제의 중앙값은 Codeforces Master 수준이고, AIME는 고등학생 상위 5% 정도가 치는 시험입니다. 공개 모델인 Qwen3와 gpt-oss를 직접 돌리고, 맞힌 문제 수와 쓴 토큰 수를 함께 잽니다.",
+    "(35초) 저희가 푸는 문제는 다섯 종류입니다. 기하 계산, Codeforces 기하 문제, 배송 경로, 최적화 문장제, 그리고 확장으로 경시 수학과 증명입니다. 쉽지 않습니다. 경시 문제의 중앙값은 Codeforces Master 수준이고, AIME는 고등학생 상위 5% 정도가 치는 시험입니다. 이 문제들을 고른 이유는, 답이 정확히 하나라 코드로 채점할 수 있고, 종류마다 필요한 것이 달라서 추가 노력을 어디에 써야 할지 비교할 수 있기 때문입니다. 기하와 경시는 맞는 알고리즘이, 경로와 문장제는 솔버를 맞게 부르는 법이 필요합니다. 공개 모델 Qwen3와 gpt-oss로 맞힌 문제 수와 토큰 수를 함께 잽니다.",
     "(20초) LLM은 말로 답할 수도 있고, 프로그램을 짤 수도 있습니다. Qwen3-8B에게 같은 도형의 넓이의 두 배를 물었습니다. 옮기고 돌리고 뒤집어도 답은 436입니다. 말로 답하면 매번 다른 답이 나오지만, 프로그램은 네 번 모두 436입니다. 계산에는 프로그램이 맞는 도구입니다.",
     "(35초) 하지만 두 가지 문제가 있습니다. 첫째, 프로그램은 조용히 틀립니다. 같은 문제인데 프롬프트에 보조 코드만 더하면 6 대신 0을 출력하고, 에러 메시지도 없습니다. 없는 라이브러리 함수를 불러서 죽기도 합니다. 둘째, 오래 생각하면 비쌉니다. 경시 문제 311개에서 gpt-oss-120b는 오래 생각하면 57%에서 66%로 오르지만, 토큰은 4.4배를 씁니다. 그래서 질문입니다. 추가 노력을 빠진 사실, 공짜 검사, 더 많은 생각 중 어디에 써야 할까요?",
     "(35초) 첫 번째 발견입니다. 매뉴얼이 아니라 사실을 주세요. Qwen3-32B가 OR-Tools로 배송 경로 프로그램을 짭니다. 긴 참조 문서를 주면 존재하지 않는 함수를 불러서 죽고, 정확한 사용법 열한 줄을 주면 최적 경로를 찾습니다. 경로 문제 30개에서 최적해를 찾는 비율은 아무것도 안 주면 23%, 오래 생각하면 오히려 3%, 긴 참조 문서는 7%, 정확한 사용법은 77에서 90%입니다. 최적화 문장제와 기하에서도 같았습니다. 모르는 사실은 생각한다고 생기지 않습니다.",
@@ -703,6 +703,7 @@ function buildTalk() {
     "(10초) 감사합니다. 질문 받겠습니다. 예상 질문마다 보충 슬라이드를 준비했으니, 번호를 누르면 바로 넘어갑니다.",
   ];
   const QA_KO = {   // speaker notes of the extra pages: a short Korean answer to the page's question
+    why: "(답변) 세 가지 이유입니다. 답이 정확히 하나라 코드로 채점할 수 있고, 정답 없이 쓸 수 있는 검사가 있으며, 실제 코딩 에이전트가 이미 경로 계획, 스케줄러, 기하 코드를 씁니다. 그리고 종류마다 필요한 것이 다릅니다. 기하와 경시는 맞는 알고리즘이 필요하고, 둘의 차이는 난이도입니다. 경로와 문장제는 솔버 라이브러리를 맞게 부르는 사실이 필요하고, 문장제는 글을 수식으로 옮기는 단계가 더 있습니다. 그래서 추가 노력을 사실, 검사, 생각 중 어디에 쓸지 비교하기 좋습니다.",
     coverage: "(답변) 아니요, 모든 결과를 다섯 종류 전부에서 잰 것은 아닙니다. 사실 주기는 기하, 경로, 문장제에서, 공짜 검사는 기하, 경시, 경로, 문장제에서 확인했습니다. 전체 방법의 87% 대 74%는 기하 108문제와 최적화 100문제를 세 모델로 푼 결과입니다. 경시 수학은 말로 답해도 충분하고, 증명은 특화된 증명 모델이 필요해서 이 방법의 범위 밖입니다.",
     kinds: "(답변) 사람 기준으로 보면, 경시 문제 311개의 Codeforces 레이팅 중앙값은 2200으로 Master 수준이고, 46%는 Grandmaster 수준인 2400 이상입니다. 그 구간에서는 gpt-oss-120b도 48%만 풉니다. 경로 문제는 단순한 탐욕 계획이 최선보다 48% 길고, AIME는 AMC 응시자 중 상위 2.5에서 5%만 초대받는 시험입니다.",
     progwords: "(답변) 항상은 아닙니다. 답을 계산해야 하는 문제에서는 말로 답하면 8개 복사본 중 1개만 맞고, 프로그램은 8개 모두 맞습니다. 하지만 짧은 답의 경시 수학인 MATH-500에서는 말이 98.3%로 프로그램 86.8%보다 낫습니다. 거기서는 프로그램을 두 번째 의견으로 씁니다. 말과 프로그램이 일치하면 틀린 경우가 0.3%뿐이고, 말 두 개가 일치할 때는 1.5%입니다.",
@@ -754,7 +755,7 @@ function buildTalk() {
     s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: x + 0.1, y: 4.7, w: 2.1, h: 0.95, rectRadius: 0.1, fill: { color: "FFFFFF" }, line: { color: col, width: 1.25 }, objectName: "tag " + head });
     txt(s, tag, x + 0.15, 4.7, 2.0, 0.95, { fontSize: 15, bold: true, color: col, align: "center" });
   });
-  caption(s, "Open models (Qwen3, gpt-oss) on our own GPUs: we count exact answers and the tokens spent");
+  caption(s, "Why these: exact answers that code can grade, and each kind needs something different");
 
   // 3. one idea: let the computer do the arithmetic
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
@@ -1072,7 +1073,24 @@ function buildTalk() {
     caption(s, "The recipe is shown on geometry, routing and word problems; proofs need a different tool");
   }
 
+  function slideQWhy() {
+    qSlide("Q: why these problems, and how do they differ?", "Exact answers that code can grade, a free check for each, and code that agents already write");
+    const fam = (t, col) => ({ text: t, options: { colspan: 2, bold: true, color: "FFFFFF", fill: { color: col }, align: "center" } });
+    const lab = t => ({ text: t, options: { bold: true } });
+    table(s, [[{ text: "", options: { fill: { color: "FFFFFF" } } }, fam("needs the right algorithm", BLUE), fam("needs the right solver call", "38761D")],
+      ["", "Geometry", "Contest problems", "Routing, scheduling", "Word problems"].map(HDR),
+      [lab("Input"), "points, polygons", "a story with an input format", "data: customers, loads, time windows", "a paragraph of text"],
+      [lab("The program"), "a textbook algorithm in plain Python", "a harder algorithm (Codeforces Master level)", "a call to a solver library (OR-Tools)", "text → equations, then a solver call"],
+      [lab("Free check"), "move or turn the input; two versions", "the examples; a brute-force program", "code checks every rule of the plan", "two programs must agree"],
+      [lab("Typical failure"), "a wrong method, steered by offered tools", "wrong reasoning", "an invented library name", "an invented name, or a wrong model of the text"],
+      [lab("What helps most"), "a free check, then think", "think only when the check fails", "the exact usage; reuse", "the fact, then the check"],
+      [lab("Size"), "108 problems (9 tasks)", "311 problems", "100 (8 types) + 56 Solomon + 82 job-shop", "1,208 (NL4OPT, IndustryOR, MAMO)"]],
+      { x: 0.6, y: 1.85, w: 12.1, colW: [2.1, 2.5, 2.5, 2.5, 2.5], fontSize: 13, rowH: 0.48 });
+    caption(s, "Two needs, an algorithm or a library fact, so we can see where extra effort pays");
+  }
+
   const EXTRAS = [   // [key, index label, slide], in the order of the talk slides that raise the questions
+    ["why", "Why these problems", slideQWhy],
     ["coverage", "Which kinds each finding covers", slideQCoverage],
     ["kinds", "How hard: contest ranks, exams", () => slideKinds("Extra pages", "Extra: how hard, by contest ranks and exams")],
     ["progwords", "A program or words?", slideQWords],
@@ -1097,6 +1115,7 @@ function buildTalk() {
     ["setup", "Setup", () => slideSetup("Extra pages", "Extra: setup, scoring and hardware")],
   ];
   const QUESTIONS = [   // [talk slide that raises it, expected question, extra pages that answer it]
+    [2, "Why these problems? How do they differ?", ["why"]],
     [2, "Do the findings cover all five kinds?", ["coverage"]],
     [2, "How hard are the problems?", ["kinds"]],
     [2, "Proofs? Where does it stop?", ["proof", "limits"]],
