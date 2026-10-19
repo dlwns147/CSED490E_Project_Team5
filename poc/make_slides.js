@@ -418,6 +418,39 @@ s.addNotes(notes);
 }
 slideRecipe("Method", "Our method: a recipe built from the findings", true, "Each step is a measured result, shown on the finding slides with an example. Step 1: the polygon. Step 2: delivery routing with OR-Tools (Qwen3-32B). Step 3: free checks (the problem's examples; two versions that should agree). Step 4: contest geometry with gpt-oss-120b. Step 5: reuse on the Solomon routing benchmark. Together (3 models, 624 geometry and optimization problems, 3 seeds): fact first and thinking only on a failed check solves 87% at 2.5k tokens per problem.");
 
+// 4c. Method in detail: one problem through the recipe, and what the free check is for each kind of problem
+function slideWalkthrough(section, title, pre) {
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
+s.addText(title, { placeholder: "title" });
+txt(s, "Qwen3-8B on a MAMO word problem: products X, Y, Z cost $10, $15, $20 under three limits; minimum cost? (answer 20000)", 0.6, 1.3, 12.1, 0.4, { fontSize: 16 });
+function wstep(n, head, detail, cost, x, w, fill, costCol) {
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.85, w, h: 2.1, rectRadius: 0.08, fill: { color: fill }, line: { color: "BFBFBF", width: 0.75 }, objectName: "walk " + n });
+  s.addShape(pres.shapes.OVAL, { x: x + 0.1, y: 1.97, w: 0.45, h: 0.45, fill: { color: BLUE }, line: { color: BLUE }, objectName: "walk badge " + n });
+  s.addText(String(n), { isTextBox: true, x: x + 0.1, y: 1.97, w: 0.45, h: 0.45, fontSize: 15, bold: true, color: "FFFFFF", align: "center", valign: "middle", margin: 0 });
+  txt(s, head, x + 0.62, 1.95, w - 0.7, 0.5, { fontSize: 15, bold: true });
+  txt(s, detail, x + 0.14, 2.55, w - 0.28, 1.35, { fontSize: 13.5, valign: "top" });
+  txt(s, cost, x, 4.02, w, 0.35, { fontSize: 15, bold: true, color: costCol || C.text2, align: "center" });
+}
+wstep(0, "Mine the fact (once)", "for this kind of problem: the model's own program for another problem (vans and trucks) that passed the check; it shows solver.Minimize(...)", "paid once", 0.6, 2.75, "E2F0D9");
+arrow(s, 3.35, 2.7, 3.55, 2.7);
+wstep("1-2", "Program + fact", "writes solver.Minimize(10*x + 15*y + 20*z) and prints 20000 (without the fact it crashes)", "316 tokens", 3.55, 2.35, "DEEBF7", BLUE);
+arrow(s, 5.9, 2.7, 6.1, 2.7);
+wstep(3, "Free check", "a second version also runs and prints 20000: the two agree", "+312 tokens", 6.1, 2.2, "DEEBF7", BLUE);
+arrow(s, 8.3, 2.7, 8.5, 2.7);
+wstep(4, "Think? No", "think harder only if they disagree or crash; here accept 20000 (thinking alone: 5.3k tokens)", "total 0.6k", 8.5, 2.3, "FFFFFF", "38761D");
+arrow(s, 10.8, 2.7, 11.0, 2.7);
+wstep(5, "Reuse", "same kind of problem with new data: run the checked program again", "≈ 0 tokens", 11.0, 1.7, "F2F2F2");
+txt(s, "The free check depends on the kind of problem (no answers needed)", 0.6, 4.5, 12.1, 0.4, { fontSize: 16, bold: true });
+table(s, [
+  [HDR("Contest problems"), HDR("Geometry"), HDR("Routing and scheduling"), HDR("Word problems and math")],
+  ["run the sample tests printed in the statement", "same answer on moved, turned and mirrored copies; or two versions agree",
+   "the plan obeys every rule (capacity, time windows)", "the program runs and prints a value; two versions (or text and program) agree"],
+], { x: 0.6, y: 4.92, w: 12.1, colW: [3.0, 3.1, 3.0, 3.0], rowH: [0.42, 0.85], fontSize: 14 });
+caption(s, "Cheap steps first: this problem cost 0.6k tokens instead of 5.3k, and it is right");
+s.addNotes((pre || "") + "Real run (Qwen3-8B, MAMO easy-189). Step 0 happens once per kind of problem: the model's own shortest program for another benchmark problem that passed the label-free check becomes the fact. Steps 1-2: with it the program calls solver.Minimize(10*x + 15*y + 20*z) and prints 20000 (316 tokens); without it, it calls Objective().Minimize() and crashes. Step 3: a second program (312 tokens) also prints 20000, so they agree. Step 4: thinking is used only when the two disagree or a program crashes; here it is skipped (thinking alone took 5,323 tokens). Step 5: if the same kind of problem comes back with new data, the checked program is reused. Table: what the free check is in each domain; none needs the answer.");
+}
+slideWalkthrough("Method", "How the recipe runs on one problem");
+
 // 9. All together
 function slideTogether(section, title, pre) {   // pre: text put before the speaker notes
 s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
@@ -492,38 +525,26 @@ slideLimits("Next", "Where the recipe stops, and what is next");
 const FULL = path.join(ROOT, "PROPOSAL_slides_full.pptx");
 pres.writeFile({ fileName: FULL }).then(async () => { await applyTheme(FULL, THEME); console.log("written", FULL); buildTalk(); });
 
-// ================= 5-minute talk + 5 minutes of questions (PROPOSAL_slides.pptx): 8 slides, then extra pages =================
+// ================= 5-minute talk + 5 minutes of questions (PROPOSAL_slides.pptx): 9 slides, then extra pages =================
 function buildTalk() {
   pres = newDeck();
   pres.addSection({ title: "Talk" });
   slideTitle("Talk", "POSTECH CSED490E (Graduate NLP) · Team 5 · 5-minute proposal talk",
-    "(10 s) We study how to solve computational math with LLMs: answers that must be computed exactly, with the fewest tokens and the smallest GPU. Seven slides, then extra pages for questions.");
-  slideProblem("Talk", "(35 s) " + PROBLEM_NOTES);
-  slideFact("Talk", "Finding 1: give the fact, not the manual", "(45 s) ");
-  slideTwoVersions("Talk", "Finding 2: two versions catch each other's mistakes", "(45 s) ");
-  slideHard("Talk", "Finding 3: think harder only when a check fails", "(45 s) ");
-  slideAuto("Talk", "Finding 4: the fact can be found without a human", "(45 s) ");
+    "(10 s) We study how to solve computational math with LLMs: answers that must be computed exactly, with the fewest tokens and the smallest GPU. Nine slides, then extra pages for questions.");
+  slideProblem("Talk", "(30 s) " + PROBLEM_NOTES);
+  slideFact("Talk", "Finding 1: give the fact, not the manual", "(40 s) ");
+  slideTwoVersions("Talk", "Finding 2: two versions catch each other's mistakes", "(40 s) ");
+  slideHard("Talk", "Finding 3: think harder only when a check fails", "(40 s) ");
+  slideAuto("Talk", "Finding 4: the fact can be found without a human", "(40 s) ");
   slideRecipe("Talk", "Our method: a recipe from these findings", false,
-    "(45 s) The findings give a recipe, cheapest steps first: write a program, add the missing fact (by hand or mined automatically), run a free check, think harder only on a failure, reuse a checked program when the problem repeats. Together, on 624 geometry and optimization problems with 3 models: 87% at 2.5k tokens per problem, vs 74% at 4.1k for spending thinking on the hardest-looking problems. Takeaway: give the fact first, think only where a free check fails. Extra pages: small models, reuse, proofs, the full comparison with published methods, limits.");
+    "(35 s) The findings give a recipe, cheapest steps first: write a program, add the missing fact (by hand or mined automatically), run a free check, think harder only on a failure, reuse a checked program when the problem repeats. Together, on 624 geometry and optimization problems with 3 models: 87% at 2.5k tokens per problem, vs 74% at 4.1k for spending thinking on the hardest-looking problems. Takeaway: give the fact first, think only where a free check fails. Extra pages: small models, reuse, proofs, the full comparison with published methods, limits.");
+
+  slideWalkthrough("Talk", "How the recipe runs on one problem", "(40 s) ");
 
   // closing slide: the takeaway, then 5 minutes of questions with the extra pages as an index
-  s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
-  s.addText("Thank you: questions?", { placeholder: "title" });
-  panel(s, 0.6, 1.5, 12.1, 1.5, "takeaway");
-  txt(s, [{ text: "Takeaway: ", options: { bold: true } }, { text: "give the model the missing fact first, and spend thinking only where a free check fails. More accurate, fewer tokens, and it works on one 24 GB GPU." }],
-      0.9, 1.6, 11.5, 1.3, { fontSize: 20 });
-  txt(s, "Extra pages for questions", 0.6, 3.3, 12.1, 0.45, { fontSize: 18, bold: true, color: BLUE });
-  [["9", "It pays off: no human, small GPU, 30 labels"], ["10", "All policies, cost vs accuracy"], ["11", "One fact helps small models most"],
-   ["12", "Reuse a checked program"], ["13", "Proofs need a specialized model"], ["14", "Compared with published methods"],
-   ["15", "Where the recipe stops, and next"], ["16", "All findings at a glance"], ["17", "Words we use"]].forEach(([n, t], k) => {
-    const x = 0.6 + (k % 3) * 4.1, y = 3.85 + Math.floor(k / 3) * 0.75;
-    txt(s, [{ text: n + "  ", options: { bold: true, color: BLUE } }, { text: t }], x, y, 3.95, 0.6, { fontSize: 15 });
-  });
-  s.addNotes("End of the 5-minute talk; 5 minutes of questions follow. The extra pages after this slide answer the likely questions: does it pay off and how (9, 10), small models (11), reuse (12), proofs (13), published baselines (14), limits and next steps (15), all findings (16), terms (17).");
-
-  pres.addSection({ title: "Extra pages" });
-  s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Extra pages" });
-  s.addText("Extra: it pays off, even without a human or a big GPU", { placeholder: "title" });
+  function slidePays(section, title) {
+  s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
+  s.addText(title, { placeholder: "title" });
   txt(s, "624 geometry and optimization problems, 3 models: % solved · tokens per problem", 0.6, 1.35, 7.6, 0.45, { fontSize: 16 });
   hbars(s, 0.6, 1.95, 7.6, [["Think on hardest (Snell et al.)", 74, "74% · 4.1k", "7F7F7F"],
                             ["Think when the check fails", 77, "77% · 4.2k", "7F7F7F"],
@@ -538,15 +559,33 @@ function buildTalk() {
   });
   caption(s, "\"Spend more on hard problems\" loses to \"facts first, think where the check fails\"");
   s.addNotes("Left: four ways to spend compute on the same 624 problems (Qwen3-8B, Qwen3-32B, Qwen3.6; same order on 3 seeds). Thinking on the hardest-looking problems, the compute-optimal scaling idea, gets 74% at 4.1k tokens; fact first and thinking only when the check fails gets 87% at 2.5k. Right: the fact needs no human (the model's own checked program for a similar problem: gpt-oss-20b 78.8% vs 78.9% hand-written on held-out MAMO); models that fit one 24 GB GPU match Qwen3-32B with the fact; 30 labelled problems choose the best policy for a new task (0.6 points from the best on average).");
+  }
+  const EXTRAS = [   // [index label, slide]
+    ["It pays off: no human, small GPU, 30 labels", () => slidePays("Extra pages", "Extra: it pays off, even without a human or a big GPU")],
+    ["All policies, cost vs accuracy", () => slideTogether("Extra pages", "Extra: all policies, cost vs accuracy")],
+    ["One fact helps small models most", () => slideSmall("Extra pages", "Extra: one fact helps small models most")],
+    ["Reuse a checked program", () => slideReuse("Extra pages", "Extra: repeated problems need one checked program")],
+    ["Proofs need a specialized model", () => slideProof("Extra pages", "Extra: proofs need a specialized model, not a fact")],
+    ["Compared with published methods", () => slideBaselines("Extra pages", "Extra: compared with published methods")],
+    ["Where the recipe stops, and next", () => slideLimits("Extra pages", "Extra: where the recipe stops, and what is next")],
+    ["All findings at a glance", () => slideGlance("Extra pages", "Extra: all findings at a glance")],
+    ["Words we use", () => slideWords("Extra pages", "Extra: words we use")],
+  ];
+  s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
+  s.addText("Thank you: questions?", { placeholder: "title" });
+  panel(s, 0.6, 1.5, 12.1, 1.5, "takeaway");
+  txt(s, [{ text: "Takeaway: ", options: { bold: true } }, { text: "give the model the missing fact first, and spend thinking only where a free check fails. More accurate, fewer tokens, and it works on one 24 GB GPU." }],
+      0.9, 1.6, 11.5, 1.3, { fontSize: 20 });
+  txt(s, "Extra pages for questions", 0.6, 3.3, 12.1, 0.45, { fontSize: 18, bold: true, color: BLUE });
+  const first = pres.slides.length + 1;
+  EXTRAS.forEach(([t], k) => {
+    const x = 0.6 + (k % 3) * 4.1, y = 3.85 + Math.floor(k / 3) * 0.75;
+    txt(s, [{ text: (first + k) + "  ", options: { bold: true, color: BLUE } }, { text: t }], x, y, 3.95, 0.6, { fontSize: 15 });
+  });
+  s.addNotes(`End of the 5-minute talk; 5 minutes of questions follow. The extra pages (slides ${first}-${first + EXTRAS.length - 1}) answer the likely questions: ` + EXTRAS.map(([t], k) => `${first + k} ${t}`).join("; ") + ".");
 
-  slideTogether("Extra pages", "Extra: all policies, cost vs accuracy");
-  slideSmall("Extra pages", "Extra: one fact helps small models most");
-  slideReuse("Extra pages", "Extra: repeated problems need one checked program");
-  slideProof("Extra pages", "Extra: proofs need a specialized model, not a fact");
-  slideBaselines("Extra pages", "Extra: compared with published methods");
-  slideLimits("Extra pages", "Extra: where the recipe stops, and what is next");
-  slideGlance("Extra pages", "Extra: all findings at a glance");
-  slideWords("Extra pages", "Extra: words we use");
+  pres.addSection({ title: "Extra pages" });
+  EXTRAS.forEach(([, make]) => make());
 
   pres.writeFile({ fileName: OUT }).then(async () => { await applyTheme(OUT, THEME); console.log("written", OUT); });
 }

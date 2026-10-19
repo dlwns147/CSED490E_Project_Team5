@@ -97,6 +97,12 @@ In Lean (miniF2F, 244 statements, 8 attempts) a specialized prover that fits one
 
 **One problem through the recipe** (Qwen3-8B, the MAMO problem of finding 6): (1) it writes a program; (2) the prompt carries the mined fact, so the program calls `solver.Minimize(...)` instead of the non-existent `Objective().Minimize()`; (3) the free check: two such programs both run and print 20000; (4) they agree, so it stops there, at 0.6k tokens, instead of thinking for 5.3k. Had they disagreed or crashed, only this problem would get thinking.
 
+The free check needs no answers; what it is depends on the kind of problem:
+
+| Contest problems | Geometry | Routing and scheduling | Word problems and math |
+|---|---|---|---|
+| run the sample tests printed in the statement | same answer on moved, turned and mirrored copies; or two versions agree | the plan obeys every rule (capacity, time windows) | the program runs and prints a value; two versions (or text and program) agree |
+
 ## 5. Does the whole recipe pay off?
 
 We compared ways to spend the same budget on geometry and optimization suites (3 models, 624 problems, 3 seeds):
