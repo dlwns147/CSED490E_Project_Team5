@@ -3,22 +3,23 @@
 *Tools, Facts, and Checks.* POSTECH CSED490E (Graduate NLP) team project, Team 5.
 
 LLMs can solve geometry, optimization, contest and word problems by writing a program. Programs can be silently wrong,
-and thinking longer is expensive. We look for the cheapest way to get exactly right answers, and found a recipe:
-**write a program → add the missing fact → run a free check → think harder only when the check fails → reuse a checked
-program when the problem repeats.**
+and thinking longer is expensive. We look for the cheapest way to get exactly right answers.
 
-![Results at a glance](figs/fig21_results_glance.png)
+**What we found** (blue = the better way, grey = the usual way or a published method):
 
-With the fact first, models that fit one 24 GB GPU match Qwen3-32B. The fact can be found without a human (the model's own
-program that passed the check; on a held-out benchmark it matches the hand-written fact), and 30 labelled problems pick the
-policy for a new task. Proofs are where the recipe stops: a specialized 8B prover beats every general model.
+![Findings at a glance](figs/fig21_results_glance.png)
 
 ![New results](figs/fig22_new_results.png)
+
+**Our method, built from these findings:** write a program → add the missing fact (by hand, or mined from the model's own
+checked programs) → run a free check → think harder only when the check fails → reuse a checked program when the problem
+repeats. With it, models that fit one 24 GB GPU match Qwen3-32B, and 30 labelled problems pick the policy for a new task.
+Proofs are where it stops: a specialized 8B prover beats every general model.
 
 Details: `PROPOSAL.md` (Korean: `PROPOSAL_ko.md`),
 `PROPOSAL_slides.pptx` (15 slides), `docs/README.md` (all experiments). Published baselines (compute-optimal scaling by difficulty,
 CodeT, MBR-exec, DeepConf, DRoC, System 2 Attention, Self-Debugging, Dynamic Cheatsheet, ...) are measured on the same problems:
-`PROPOSAL.md` section 7.
+`PROPOSAL.md` section 6.
 
 ## Files
 

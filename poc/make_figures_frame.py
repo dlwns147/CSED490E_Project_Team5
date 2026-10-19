@@ -116,7 +116,7 @@ for k, (title, sub, rows) in enumerate(PANELS):
         ax.add_patch(plt.Rectangle((x0 + 19, y - 1.8), max(0.3, 0.21 * v), 3.6, color=col, lw=0))
         ax.text(x0 + 19.8 + 0.21 * v, y, shown, fontsize=11.5, weight="semibold", va="center", color=col if col != GREY else st.INK2)
 fig.text(0.006, 0.975, "Results at a glance: the same or better accuracy for fewer tokens", fontsize=17, weight="semibold", color=st.INK, va="top")
-fig.text(0.006, 0.93, "blue = our recipe step;  grey = the usual way or a published method;  red = makes it worse", fontsize=11.5, color=st.INK2, va="top")
+fig.text(0.006, 0.93, "blue = the better way;  grey = the usual way or a published method;  red = makes it worse", fontsize=11.5, color=st.INK2, va="top")
 fig.savefig(os.path.join(st.OUT, "fig21_results_glance.png"), dpi=200); plt.close(fig)
 print("wrote fig21_results_glance.png")
 

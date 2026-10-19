@@ -20,15 +20,15 @@
 
 An LLM can answer in text, **write a program** and run it, or **think longer** first (a reasoning mode that writes thousands of extra tokens). For computation, text is unreliable: asked for twice the area of one polygon in 8 equivalent copies (moved, rotated, mirrored), Qwen3-8B answers 436, 2944, 392 and 728; the program it writes is right on all 8.
 
+Programs are the right tool when the answer must be computed. On short-answer competition math, text is as good or better (Qwen3.6 on MATH-500: text 98.3%, program 86.8%); there the program is most useful as a *second opinion*: when gpt-oss-20b's text answer and program agree, only 0.3% are wrong (two text answers that agree: 1.5%).
+
 But programs fail **silently** (they still print an answer), and thinking is **expensive**: on 311 real contest problems, gpt-oss-120b solves 57% at medium effort (6.8k tokens per problem) and 66% at high effort (30k tokens), 4.4× the cost for 9 more points.
 
 **Goal.** Solve these problems **effectively** (exactly right under strict checks) and **efficiently** (the fewest tokens, the smallest GPU). The question is *where* extra effort should go.
 
-Programs are the right tool when the answer must be computed (the polygon above). On short-answer competition math, text is as good or better (Qwen3.6 on MATH-500: text 98.3%, program 86.8%); there the program is most useful as a *second opinion*: when gpt-oss-20b's text answer and program agree, only 0.3% are wrong (two text answers that agree: 1.5%).
-
 ## 2. Findings at a glance
 
-Seven findings, each measured against the usual way (blue: the better way; grey: the usual way or a published method). Section 3 gives an example and the numbers for each; Section 4 turns them into one method.
+Seven findings, each measured against the usual way (blue: the better way; grey: the usual way or a published method). Section 3 gives an example and the numbers for each; Section 4 turns them into one method, and Section 5 tests it (the "All together" and "Choosing the policy" panels).
 
 ![Findings at a glance](figs/fig21_results_glance.png)
 
@@ -48,7 +48,7 @@ Seven findings, each measured against the usual way (blue: the better way; grey:
 
 Thinking cannot supply a fact the model lacks, and it can make things worse: on word problems (NL4OPT, IndustryOR) thinking *lowers* Qwen3-32B from 65.4% to 52.0%, because while reasoning it invents `Objective().SetMaximize`; with a 6-line snippet thinking helps instead (72.0%). On the 56 Solomon routing benchmarks, three facts together (file layout, "OR-Tools needs integers", a start strategy) take gpt-oss-120b from at most 6% to 100% valid plans. **Less is also more for tools:** 8 helper functions the task does not need lower Qwen3-32B on geometry from 77% to 59%, because it builds its method on an offered helper.
 
-**Finding 2. One fact helps small models most.** The smaller the model, the bigger the gain:
+**Finding 2. One fact helps small models most.** The smaller the model, the bigger the gain (Qwen3-1.7B 0% → 45%, Qwen3-32B 65% → 66%):
 
 ![One fact helps small models most](figs/fig20_fact_by_size.png)
 
@@ -68,7 +68,7 @@ On all 311 contest problems this keeps the accuracy of always using high effort 
 
 The reused programs also work on 4× larger instances (60 of 60). When the rules change (job-shop scheduling gains release dates), asking the model to *edit* the working program with "change as few lines as possible" beats starting over (Qwen3-32B: 10% → 68% valid schedules).
 
-**Finding 6. The fact can be found without a human.** We tested this on a benchmark we never used before: MAMO (863 optimization word problems) was held out until the end. The fact is mined automatically: the model's own shortest program that passed the free check on the other word-problem benchmarks. With it, the recipe matches the hand-written fact: gpt-oss-20b 78.8% vs 78.9% (within 1.2 points on 3 seeds), Qwen3-14B 71.7% vs 71.4%, Qwen3-8B 71.0% vs 72.0% (no fact: 73%, 60%, 46%). Fact first beats always thinking at 12–22% of its tokens. This works within one kind of problem: a program borrowed from a different problem type misleads (14–21 points below the hand-written fact on the optimization suite), and a bare list of the library's names hurts (Qwen3-32B 66.2% → 56.1%).
+**Finding 6. The fact can be found without a human.** We tested this on a benchmark we never used before: MAMO (863 optimization word problems) was held out until the end. The fact is mined automatically: the model's own shortest program that passed the free check on the other word-problem benchmarks. With it, writing the program twice and thinking only when the two disagree matches the hand-written fact: gpt-oss-20b 78.8% vs 78.9% (within 1.2 points on 3 seeds), Qwen3-14B 71.7% vs 71.4%, Qwen3-8B 71.0% vs 72.0% (no fact: 73%, 60%, 46%). Giving this fact first beats always thinking at 12–22% of its tokens. This works within one kind of problem: a program borrowed from a different problem type misleads (14–21 points below the hand-written fact on the optimization suite), and a bare list of the library's names hurts (Qwen3-32B 66.2% → 56.1%).
 
 **Finding 7. Proofs need a specialized model, not a fact.** In Lean (miniF2F, 244 statements, 8 attempts) a specialized prover that fits one 24 GB GPU proves the most: Goedel-Prover-V2-8B 180 (74%), DeepSeek-Prover-V2-7B 165, vs general models Qwen3.6 133, gpt-oss-20b 66, Qwen3-32B 31. For general models none of our steps helps: a verified proof of a similar statement (133 vs 133), thinking (129), a 10-line inequality toolkit (21 vs 24 of 50 bounds). Even for the provers, repairing a failed proof from Lean's error messages proves half as many as a fresh attempt (Goedel: 11 vs 22 of 107). Geometry proofs: AlphaGeometry's symbolic engine alone proves 187 of 231 JGEX problems and 12 of 30 IMO problems; auxiliary points proposed by gpt-oss-20b add 13 JGEX problems, but only one IMO problem (2014 P4) is unlocked by any model.
 
