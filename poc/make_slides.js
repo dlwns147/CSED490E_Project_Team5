@@ -940,7 +940,7 @@ function buildTalk() {
   txt(s, "Ours", 7.6, 1.3, 5.1, 0.4, { fontSize: 16, bold: true, color: BLUE, align: "center" });
   [["When to think", "brain", "think more on hard-looking problems", "check", "only when a free check fails: 87% vs 74%"],
    ["What to give", "page", "the whole manual", "fact", "one short hint, picked with no human"],
-   ["What it costs", "robot", "fine-tune a specialist: 69.5%", "gpu", "no training, one 24 GB GPU: 69.5%"]].forEach(([topic, li, lt, ri, rt], r) => {
+   ["What it costs", "robot", "fine-tune a specialist: 69.5% on MAMO", "gpu", "no training, one 24 GB GPU: the same 69.5%"]].forEach(([topic, li, lt, ri, rt], r) => {
     const y = 1.7 + r * 0.74;
     txt(s, topic, 0.6, y, 1.6, 0.66, { fontSize: 16, bold: true });
     box(s, "", 2.3, y, 4.6, 0.66, "F2F2F2");
@@ -952,13 +952,13 @@ function buildTalk() {
     txt(s, rt, 8.3, y, 4.3, 0.66, { fontSize: 14, bold: true, color: "1F3864" });
   });
   // next: three directions, as three equal cards (details on extra pages)
-  txt(s, "Next", 0.6, 3.95, 12.1, 0.4, { fontSize: 18, bold: true });
+  txt(s, "Next", 0.6, 4.0, 12.1, 0.4, { fontSize: 18, bold: true });
   [["fact", "Automatic hints", "picked per problem type, only the needed calls"], ["check", "Sharper free checks", "catch more mistakes, still with no extra tokens"], ["sqrt", "Math proofs", "Lean checks every step: find the hints that help"]].forEach(([icon, head, t], k) => {
     const x = 0.6 + k * 4.1;
-    panel(s, x, 4.4, 3.9, 1.65, "next " + head);
-    s.addImage({ path: ICON(icon), x: x + 0.22, y: 4.55, w: 0.5, h: 0.5, objectName: "next icon " + icon });
-    txt(s, head, x + 0.85, 4.52, 2.9, 0.55, { fontSize: 19, bold: true, color: BLUE });
-    txt(s, t, x + 0.22, 5.15, 3.5, 0.8, { fontSize: 15, valign: "top" });
+    panel(s, x, 4.45, 3.9, 1.45, "next " + head);
+    s.addImage({ path: ICON(icon), x: x + 0.22, y: 4.6, w: 0.55, h: 0.55, objectName: "next icon " + icon });
+    txt(s, head, x + 0.92, 4.6, 2.85, 0.55, { fontSize: 20, bold: true, color: BLUE });
+    txt(s, t, x + 0.22, 5.2, 3.5, 0.62, { fontSize: 15 });
   });
   caption(s, "Takeaway: give the missing fact first, and think only where a free check fails");
 
