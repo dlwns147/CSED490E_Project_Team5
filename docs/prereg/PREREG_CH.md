@@ -88,3 +88,44 @@ unflagged problems, and at least 10 programs whose outcome the hint flipped (bot
 - PLAN: 31% of plans hit the 2,000-token cap (288 / 933) and 40 are empty — the plan step itself is expensive for 20b (1.4k tokens).
 - Hint followed (judge gpt-oss-120b low, 20b runs judged so far, validation pending): the program uses a named-algorithm tag in 75% of the
   runs whose tags name one (CH-P6 ≥ 70%: holds so far); it follows the plan in 75% (CH-P6 ≥ 85%: refuted so far).
+
+## Results, gpt-oss-120b, and verdicts (2026-10-19 17:46 UTC; results/h2/ch_analysis.log; 933 problem-seeds per model)
+| gpt-oss-120b | accuracy @ tokens per problem | vs reference (discordant +/−, exact sign p, per seed) |
+|---|---|---|
+| medium | 56.8% @ 6.8k | |
+| (a) medium + TAG | 58.5% @ 6.6k | vs medium +69 / −53, p = 0.17; +3.9 / +1.9 / −0.6 |
+| (a) medium + PLAN (plan tokens included) | **51.0% @ 6.8k** | vs medium +55 / −109, **p < 0.001; −1.6 / −10.3 / −5.5** |
+| N13b medium → high | 66.2% @ 24.8k | |
+| control: N13b + a plain second medium attempt | 66.8% @ 24.9k | vs N13b +18 / −13, p = 0.47 |
+| (b) N13b + TAG step | 67.5% @ 25.3k | vs N13b +19 / −7, p = 0.029 (+1.0 / +2.3 / +0.6); vs the plain step +22 / −15, p = 0.32 |
+| (b) N13b + PLAN step | 66.5% @ 26.0k | vs N13b +9 / −7, p = 0.80; vs the plain step +12 / −15, p = 0.70 |
+By rating (TAG, 120b): ≤ 1800 85.1 vs 84.2%, > 1800 45.7 vs 43.7%; unflagged problems 62.0 vs 59.6%. PLAN, 120b: ≤ 1800 79.2 vs 84.2%, > 1800
+37.5 vs 43.7%. Failure kinds (120b, 933 each): medium WA 318 / RE 42 / TLE 6 / no code 37; PLAN WA 400 / RE 32 / TLE 2 / no code 23; TAG (765
+runs on tagged problems) WA 247 / RE 36 / TLE 5 / no code 24. Tokens: TAG mean 6.5k (p90 11.9k, 24 cap hits / 765); PLAN 6.8k in total = plan
+1.4k (247 of 933 plans hit the 2,000-token cap, 10 empty) + a SHORTER code call (5.2–5.5k vs medium 6.7–6.8k).
+
+**Verdicts against the decision rule.**
+- **(a) first attempt: no hint earns its place for either model.** TAG +1.7 (120b, p = 0.17) and +2.1 (20b, p = 0.09) — below +3 and not
+  significant (one seed negative for 120b). PLAN *hurts* gpt-oss-120b by 5.8 points (p < 0.001, all three seeds negative) and does nothing for 20b.
+- **(b) escalation step: no hint earns its place.** 120b TAG reaches 67.5% but at 25.3k (> 24.7k) and below 68.3%; 120b PLAN 66.5% @ 26.0k;
+  20b TAG / PLAN 55.3 / 55.0% at 38.8 / 39.1k (> 37.7k). Against a plain second medium attempt (the control added after the 20b results)
+  neither hint is significantly better for either model (p = 0.32–0.70).
+- **Tags help a little, the model's own plan does not (it hurts the stronger model): what gain there is depends on human labels, not on the
+  method.**
+- Predictions: CH-P1 holds for TAG (+1.7 within +0.5…+3.5, 0.97× tokens), **refuted for PLAN** (−5.8, outside −1.5…+2.0). CH-P2 holds. CH-P3:
+  TAG step 67.5% @ 25.3k is above the predicted range in accuracy and above it in tokens; PLAN step holds (fails the rule). CH-P4: accuracy holds,
+  tokens refuted (see the 20b section). CH-P5 holds: TAG gains are larger above 1800 (+2.0 vs +0.9 for 120b; +2.9 vs +0.7 for 20b), and the
+  net gain comes from named-algorithm tags (120b: net +18 named vs −2 for math / implementation / brute force / greedy / constructive;
+  20b: +17 vs +3). CH-P6: TAG followed 72% (120b) / 75% (20b) of runs whose tags name an algorithm (holds, ≥ 70%); PLAN followed 75% / 75%
+  (refuted, ≥ 85%). Followed hints pass more often (120b PLAN: 59% followed vs 33% deviated; TAG 58% vs 46%).
+- Judge validation: I read 20 verdicts (12 from 20b, 8 from 120b, stratified yes / no); 18 agree with my reading, 2 are borderline
+  ('brute force' for a 6-face loop; bisect used for coordinate compression under a 'binary search' tag), none clearly wrong.
+
+**Why PLAN hurts gpt-oss-120b (raw programs).** The medium coder trusts the low-effort plan: its own reasoning shortens by about 1.4k tokens,
+WA rises from 318 to 400, and a wrong plan is implemented faithfully — 1156_A (Inscribed Figures): the plan counts "n + 1 basic points" and a
+wrong special case; the program follows it and fails where plain medium passed. Truncated plans explain only 6–15 of each seed's 29–44 losses.
+Gains are real but fewer: 1158_D / 1359_F, where the plan fixed the greedy direction or the meeting-time model.
+**What TAG flips (120b, read 3 + 3).** Gains: 1159_F (greedy) — the tagged greedy picks the extreme point correctly where medium's did not;
+933_C (graphs) — the tag points to Euler's formula on the planar graph of circle intersections; 535_E (math, uninformative tag) — both build
+the same hull, only the tagged run's integer comparison is right (sampling luck). Losses: 23_D a syntax error (`dot(p,p])`), 820_B a different
+index formula, 136_D a wrong rectangle test — none caused by the tag.

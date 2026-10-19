@@ -460,3 +460,5 @@ S2_CH started Mon Oct 19 15:23:11 UTC 2026
 S2_CHJUDGE queued (hint-followed judge, gpt-oss-120b low, GPU0) Mon Oct 19 15:37:59 UTC 2026
 S2_CHJUDGE started on GPU0 Mon Oct 19 15:40:58 UTC 2026
 S2_CH oss20 done (1698/1698) Mon Oct 19 16:36:08 UTC 2026
+S2_CH oss120 done (1698/1698) Mon Oct 19 17:41:57 UTC 2026
+S2_CH done (analysis: results/h2/ch_analysis.log) Mon Oct 19 17:44:38 UTC 2026
