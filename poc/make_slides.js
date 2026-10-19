@@ -719,7 +719,7 @@ function buildTalk() {
     "(40초) 두 번째 발견입니다. 공짜 검사가 실패할 때만 생각하게 하세요. 검사 A는 문제에 적힌 예제입니다. 예제를 통과하면 바로 제출하고, 틀리면 그 문제만 더 생각합니다. 예제만 쓰면 65%로 조금 낮고, 모든 경우를 다 따져 보는 짧은 프로그램과도 답을 맞춰 보면 66%가 됩니다. 검사 B는 프로그램을 두 버전으로 짜서, 답이 다를 때만 생각합니다. 두 경우 모두 항상 생각할 때와 정확도는 같고, 토큰은 18에서 27% 적습니다. 두 검사 모두 정답이 필요 없고, 기하, 경시, 경로, 문장제에서 모두 통했습니다.",
     "(55초) 두 발견을 합친 것이 저희 방법입니다. 실제 최적화 문제로 보겠습니다. 1단계, 모델이 없는 메서드를 불러서 죽습니다. 2단계, 힌트를 줍니다. 이 힌트는 사람이 쓴 것이 아니라, 모델이 다른 문제에서 짜서 검사를 통과한 자기 프로그램에서 자동으로 가져옵니다. 3단계, 두 버전의 답이 20000으로 같으니, 4단계 생각은 건너뜁니다. 생각만 했다면 5.3k 토큰이 들었을 문제를 0.6k로 풉니다. 5단계, 같은 종류의 새 데이터에는 검사된 프로그램을 재사용합니다. 기하와 최적화 208문제를 세 모델로 풀면, 어려워 보이는 문제에 생각을 몰아주면 74%, 저희 방법은 87%이고 토큰도 더 적습니다. 단계 아래 아이콘은 그 단계를 어디에 쓰는지입니다. 경시 문제는 라이브러리 없이 알고리즘만 짜서 힌트가 필요 없고, 검사와 생각만 씁니다. 재사용은 같은 문제가 반복되는 경로 문제에만 씁니다.",
     "(35초) 새로운 점은 세 가지입니다. 학습 없이, 공짜 검사가 실패할 때만 생각합니다. 정답 없이, 모델 자신의 검사된 프로그램을 힌트로 줍니다. 그리고 특화 모델을 파인튜닝하지 않고도, 24GB GPU 한 장으로 같은 정확도를 냅니다. 다음으로는 더 많은 모델로 검증을 마치고, 검사로 못 잡는 오류, 즉 실행은 되지만 문제를 잘못 모델링한 프로그램을 다루겠습니다. 정리하면, 짧은 힌트를 먼저 주고, 공짜 검사가 실패한 곳에서만 생각하게 하자는 것입니다.",
-    "(10초) 감사합니다. 질문 받겠습니다. 예상 질문마다 보충 슬라이드를 준비했으니, 번호를 누르면 바로 넘어갑니다.",
+    "(5초) 감사합니다. 질문 받겠습니다.",
   ];
   const QA_KO = {   // speaker notes of the extra pages: a short Korean answer to the page's question
     why: "(답변) 세 가지 이유입니다. 답이 정확히 하나라 코드로 채점할 수 있고, 정답 없이 쓸 수 있는 검사가 있으며, 실제 코딩 에이전트가 이미 경로 계획, 스케줄러, 기하 코드를 씁니다. 그리고 종류마다 필요한 것이 다릅니다. 기하와 경시는 맞는 알고리즘이 필요하고, 둘의 차이는 난이도입니다. 경로와 문장제는 솔버 라이브러리를 맞게 부르는 힌트가 필요하고, 문장제는 글을 수식으로 옮기는 단계가 더 있습니다. 그래서 추가 노력을 힌트, 검사, 생각 중 어디에 쓸지 비교하기 좋습니다.",
@@ -1134,26 +1134,13 @@ function buildTalk() {
     [8, "Is the comparison fair?", ["fair", "setup"]],
     [8, "Does it hold for smaller models?", ["small"]],
   ];
-  s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
-  s.addText("Thank you: questions?", { placeholder: "title" });
-  txt(s, "Expected questions, by the talk slide that raises them → extra page (type the number and press Enter)", 0.6, 1.3, 12.1, 0.45, { fontSize: 16, bold: true, color: BLUE });
+  s = pres.addSlide({ masterName: "Title Slide", sectionTitle: "Talk" });
+  s.addText("Thank you", { placeholder: "title" });
+  s.addText([{ text: "Questions?", options: { breakLine: true } }, { text: "Team 5: Sangjun Lee, Seongbin Park", options: { fontSize: 16, color: THEME.colors.dk2 } }], { placeholder: "body" });
+  // the expected questions and their extra pages go to this slide's notes, for the presenters
   const first = pres.slides.length + 1, page = key => first + EXTRAS.findIndex(e => e[0] === key);
-  QUESTIONS.forEach(([from, q, keys], k) => {
-    const x = 0.6 + Math.floor(k / 9) * 6.15, y = 1.8 + (k % 9) * 0.5;
-    box(s, "", x, y, 5.95, 0.44, "F2F2F2");
-    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: x + 0.08, y: y + 0.06, w: 0.85, h: 0.32, rectRadius: 0.06, fill: { color: "D9D9D9" }, line: { color: "D9D9D9" }, objectName: "from slide " + from });
-    txt(s, "slide " + from, x + 0.08, y + 0.06, 0.85, 0.32, { fontSize: 14, color: "404040", align: "center" });
-    txt(s, q, x + 1.05, y, 4.8 - keys.length * 0.55, 0.44, { fontSize: 14 });
-    keys.sort((a, b) => page(a) - page(b)).forEach((key, j) => {
-      const cx = x + 5.95 - 0.08 - (keys.length - j) * 0.55;
-      s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: cx + 0.04, y: y + 0.05, w: 0.48, h: 0.34, rectRadius: 0.08, fill: { color: BLUE }, line: { color: BLUE }, objectName: "page " + key });
-      txt(s, String(page(key)), cx + 0.04, y + 0.05, 0.48, 0.34, { fontSize: 14, bold: true, color: "FFFFFF", align: "center" });
-    });
-  });
-  txt(s, "Also: " + ["policies"].map(key => `${page(key)} ${EXTRAS.find(e => e[0] === key)[1].toLowerCase()}`).join(" · "),
-      0.6, 6.35, 12.1, 0.4, { fontSize: 15, color: C.text2 });
-
-  SCRIPT_KO.forEach((t, i) => pres.slides[i].say(t));
+  const qaIndex = QUESTIONS.map(([from, q, keys]) => `${keys.map(page).sort((x, y) => x - y).join(", ")}: ${term(q)} (slide ${from})`).join("\n");
+  SCRIPT_KO.forEach((t, i) => pres.slides[i].say(i === 8 ? t + "\n\n[발표자용] 예상 질문 → 보충 슬라이드 번호 (슬라이드 쇼에서 번호를 누르고 Enter):\n" + qaIndex : t));
 
   pres.addSection({ title: "Extra pages" });
   EXTRAS.forEach(([key, , make]) => { make(); s.say(QA_KO[key]); });
