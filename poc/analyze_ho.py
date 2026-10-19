@@ -1,7 +1,7 @@
 """HO (docs/prereg/PREREG_HO.md): held-out OptMATH-Bench. Per model: single arms (accuracy @ tokens, run / crash / 'No Best Solution' shares)
 and policies with the automatic-fact program (mips), the library program (formx) or the solver-choice program (free, with thinkfree) as the cheap arm: CHEAP, FF (think if the program
 does not run, prints nothing or prints 'No Best Solution'), FFR-strict (two programs run, agree and are feasible, else think), THINK.
-usage: python analyze_ho.py [model ...]"""
+usage: [HO_SET=optibench] python analyze_ho.py [model ...]"""
 import os, sys
 from collections import Counter
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -15,7 +15,7 @@ def ag(a, b):
 
 
 for m in sys.argv[1:] or ["oss20", "q14a", "q8b"]:
-    tag = f"{m}_optmath"
+    tag = f"{m}_{os.environ.get('HO_SET', 'optmath')}"   # HO_SET=optibench for the second held-out benchmark (OB)
     print(f"=== {m}")
     for a in ("mip", "mipf", "mips", "formx", "thinks", "free", "thinkfree"):
         R = [r for s in (1, 2, 3) for r in (X.rows(tag, a, s) or {}).values()]

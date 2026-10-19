@@ -103,3 +103,11 @@ poc/queues/queue_s2_ob.sh (GPU0: gpt-oss-20b then Qwen3-8B; GPU1: Qwen3-14B-AWQ)
   tokens, for each model (seed means) — as on OptMATH (62–90%).
 - OB-P2: the trained STORM-4B is within ±4 points of gpt-oss-20b's FF at ≥ 3 × its tokens (OptMATH: +2.0 at 3.8 ×).
 - OB-P3: as on OptMATH, the two-agreeing-programs check costs more tokens than FF without beating it by ≥ 2 points.
+
+## OB interim, gpt-oss-20b (2026-10-19 22:36 UTC; HO_SET=optibench poc/analyze_ho.py; 605 × 3 seeds; Qwen models and STORM running)
+Cheap program (solver choice) 58.8% @ 0.49k; always thinking 68.9% @ 2.09k. Policies, seeds 1 / 2 / 3: **FF 71.9 / 70.2 / 69.9% @ 1.12–1.23k**
+vs always thinking 70.6 / 67.1 / 68.9% @ 1.99–2.15k; FFR 73.2 / 70.4 / 71.2% @ 2.13–2.20k. **OB-P1 holds for gpt-oss-20b** (FF +1.8 points at 56% of
+always-thinking's tokens); **OB-P3 holds** (the agreement check adds +0.9 over FF at 1.8 × its tokens). By type (cheap program): linear 73.8%,
+linear with tables 51.2%, nonlinear 39.6%, nonlinear with tables 19.3%. Raw: crashes are mostly API / modelling-rule errors of the chosen
+library (cvxpy DCP violations 30, `pulp` not installed 27, CP-SAT integer-only coefficients 13); of 317 wrong-but-running programs 28 are within
+1% of the gold, and those read are genuinely different optima (3220 vs 3200; 240 vs 239), not grading tolerance.

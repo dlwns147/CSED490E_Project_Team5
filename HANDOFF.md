@@ -3,6 +3,10 @@
 State as of 2026-10-13 08:00 UTC. All GPU work on the old servers has been stopped and the hourly loop cancelled.
 
 ## 0. Server 2 status (2026-10-13 14:00 UTC)
+STATUS 22:40 (10-19): HO verdict done (OptMATH: think-on-failure generalises; PROPOSAL updated). CD done (form is not the mechanism;
+complete checked programs work). RUNNING OB (second held-out, OptiBench 605; queue_s2_ob.sh GPU0 q8b / GPU1 q14a thinkfree; STORM on GPU2,
+queue_s2_storm_ob.sh -> /SSD/lean_postech/storm/out_optibench; regrade with analyze_storm.py optibench). gpt-oss-20b OB: FF 70.7% @ 1.2k vs
+always-think 68.9% @ 2.1k. Then: HO_SET=optibench python poc/analyze_ho.py oss20 q14a q8b; record OB-P1..P3; PROPOSAL held-out sentence.
 STATUS 18:45 (10-19): MAIN LINE (user: 'do important things') = HO, the whole label-free recipe on unseen OptMATH-Bench (PREREG_HO.md;
 NLOPT_SET=optmath; analyze_ho.py). Raw finding: pywraplp-only prompts make the ~27 nonlinear problems unsolvable -> HO-L arms
 free/thinkfree (solver choice; cvxpy+scipy installed in the venv) queued for GPU1/2 (queue_s2_hol.sh). GPU0 queue_s2_ho.sh (q14a, q8b,

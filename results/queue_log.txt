@@ -493,3 +493,7 @@ S2_CD q8b done Mon Oct 19 20:50:22 UTC 2026
 S2_CD done Mon Oct 19 20:50:23 UTC 2026
 S2_OB / S2_STORM_OB queued (OptiBench second held-out; PREREG_HO.md OB) Mon Oct 19 21:38:49 UTC 2026
 S2_OB started Mon Oct 19 21:38:49 UTC 2026
+S2_HOL q8b done Mon Oct 19 21:47:48 UTC 2026
+S2_HOL done Mon Oct 19 21:47:49 UTC 2026
+S2_STORM_OB started on GPU2 Mon Oct 19 21:47:54 UTC 2026
+S2_OB oss20 done Mon Oct 19 21:51:20 UTC 2026
