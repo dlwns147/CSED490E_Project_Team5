@@ -468,3 +468,7 @@ S2_CHJUDGE done Mon Oct 19 17:50:20 UTC 2026
 S2_HO queued (held-out OptMATH, whole recipe, GPU0; PREREG_HO.md) Mon Oct 19 18:25:02 UTC 2026
 S2_HO started on GPU0 Mon Oct 19 18:25:03 UTC 2026
 S2_STORM_HO queued (waits for GPU1/2 after CH-R) Mon Oct 19 18:25:12 UTC 2026
+S2_HO oss20 arms done Mon Oct 19 18:33:22 UTC 2026
+S2_CHR lane GPU2 done (seeds 7 8) Mon Oct 19 18:37:06 UTC 2026
+S2_HOL queued (OptMATH with solver choice; first free GPU of 1-2; PREREG_HO.md HO-L) Mon Oct 19 18:37:19 UTC 2026
+S2_HOL started on GPU2 Mon Oct 19 18:37:19 UTC 2026
