@@ -15,36 +15,40 @@ const THEME = {
             accent4: "FFC000", accent5: "5B9BD5", accent6: "70AD47", hlink: "0563C1", folHlink: "954F72" },
 };
 
-const pres = new pptxgen();
-pres.layout = "LAYOUT_WIDE"; // 13.333 x 7.5, the PowerPoint default
-pres.theme = { headFontFace: THEME.headFontFace, bodyFontFace: THEME.bodyFontFace };
-pres.title = "Solving Computational Math with LLMs, Accurately and Cheaply";
-pres.author = "POSTECH graduate NLP course project";
+function newDeck() {   // one pptxgen instance per output file
+  const p = new pptxgen();
+  p.layout = "LAYOUT_WIDE"; // 13.333 x 7.5, the PowerPoint default
+  p.theme = { headFontFace: THEME.headFontFace, bodyFontFace: THEME.bodyFontFace };
+  p.title = "Solving Computational Math with LLMs, Accurately and Cheaply";
+  p.author = "POSTECH graduate NLP course project";
+  const K = p.SchemeColor;
+  // ---- layouts modelled on the default template ----
+  p.defineSlideMaster({
+    title: "Title Slide", background: { color: "FFFFFF" },
+    objects: [
+      { placeholder: { options: { name: "title", type: "title", x: 1.67, y: 1.4, w: 10.0, h: 2.4, fontSize: 54, align: "center", valign: "bottom", color: K.text1 }, text: "" } },
+      { placeholder: { options: { name: "body", type: "body", x: 1.67, y: 4.0, w: 10.0, h: 1.7, fontSize: 22, align: "center", valign: "top", color: K.text1 }, text: "" } },
+    ],
+  });
+  p.defineSlideMaster({
+    title: "Title Only", background: { color: "FFFFFF" },
+    slideNumber: { x: 12.2, y: 6.95, w: 0.8, h: 0.35, fontSize: 12, color: "8C8C8C", align: "right" },
+    objects: [
+      { placeholder: { options: { name: "title", type: "title", x: 0.6, y: 0.3, w: 12.1, h: 1.0, fontSize: 36, align: "left", valign: "middle", color: K.text1 }, text: "" } },
+    ],
+  });
+  p.defineSlideMaster({
+    title: "Title and Content", background: { color: "FFFFFF" },
+    slideNumber: { x: 12.2, y: 6.95, w: 0.8, h: 0.35, fontSize: 12, color: "8C8C8C", align: "right" },
+    objects: [
+      { placeholder: { options: { name: "title", type: "title", x: 0.6, y: 0.3, w: 12.1, h: 1.0, fontSize: 36, align: "left", valign: "middle", color: K.text1 }, text: "" } },
+      { placeholder: { options: { name: "body", type: "body", x: 0.6, y: 1.5, w: 12.1, h: 5.3, fontSize: 18, valign: "top", color: K.text1 }, text: "" } },
+    ],
+  });
+  return p;
+}
+let pres = newDeck();
 const C = pres.SchemeColor;
-
-// ---- layouts modelled on the default template ----
-pres.defineSlideMaster({
-  title: "Title Slide", background: { color: "FFFFFF" },
-  objects: [
-    { placeholder: { options: { name: "title", type: "title", x: 1.67, y: 1.4, w: 10.0, h: 2.4, fontSize: 54, align: "center", valign: "bottom", color: C.text1 }, text: "" } },
-    { placeholder: { options: { name: "body", type: "body", x: 1.67, y: 4.0, w: 10.0, h: 1.7, fontSize: 22, align: "center", valign: "top", color: C.text1 }, text: "" } },
-  ],
-});
-pres.defineSlideMaster({
-  title: "Title Only", background: { color: "FFFFFF" },
-  slideNumber: { x: 12.2, y: 6.95, w: 0.8, h: 0.35, fontSize: 12, color: "8C8C8C", align: "right" },
-  objects: [
-    { placeholder: { options: { name: "title", type: "title", x: 0.6, y: 0.3, w: 12.1, h: 1.0, fontSize: 36, align: "left", valign: "middle", color: C.text1 }, text: "" } },
-  ],
-});
-pres.defineSlideMaster({
-  title: "Title and Content", background: { color: "FFFFFF" },
-  slideNumber: { x: 12.2, y: 6.95, w: 0.8, h: 0.35, fontSize: 12, color: "8C8C8C", align: "right" },
-  objects: [
-    { placeholder: { options: { name: "title", type: "title", x: 0.6, y: 0.3, w: 12.1, h: 1.0, fontSize: 36, align: "left", valign: "middle", color: C.text1 }, text: "" } },
-    { placeholder: { options: { name: "body", type: "body", x: 0.6, y: 1.5, w: 12.1, h: 5.3, fontSize: 18, valign: "top", color: C.text1 }, text: "" } },
-  ],
-});
 
 // ---- helpers ----
 const IMG = { fig0: 1.778, fig10: 1.792, fig12: 1.654, fig13: 1.872, fig14: 1.75, fig15: 2.089, fig16: 1.909, fig17: 1.909 };
@@ -123,18 +127,24 @@ function prompt(s, title, lines, x, y, w, h, fill) {
 }
 
 // 1. Title
-pres.addSection({ title: "Problem" });
-let s = pres.addSlide({ masterName: "Title Slide", sectionTitle: "Problem" });
+let s;
+function slideTitle(section, sub, notes) {
+s = pres.addSlide({ masterName: "Title Slide", sectionTitle: section });
 s.addText([{ text: "Solving Computational Math", options: { fontSize: 44, breakLine: true } },
             { text: "with LLMs, Accurately and Cheaply", options: { fontSize: 40 } }], { placeholder: "title" });
 s.addText([
   { text: "Tools, Facts, and Checks", options: { breakLine: true } },
-  { text: "POSTECH CSED490E (Graduate NLP) · Team 5 · October 2026", options: { fontSize: 16, color: THEME.colors.dk2 } },
+  { text: sub, options: { fontSize: 16, color: THEME.colors.dk2 } },
 ], { placeholder: "body" });
-s.addNotes("Computational math: geometry, optimization, contest problems, word problems whose answer must be computed exactly. We ask how to get them right with the fewest tokens and the smallest GPU.");
+s.addNotes(notes);
+}
+pres.addSection({ title: "Problem" });
+slideTitle("Problem", "POSTECH CSED490E (Graduate NLP) · Team 5 · October 2026",
+  "Computational math: geometry, optimization, contest problems, word problems whose answer must be computed exactly. We ask how to get them right with the fewest tokens and the smallest GPU.");
 
 // 2. Problem
-s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Problem" });
+function slideProblem(section, notes) {
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
 s.addText("Let the computer do the math", { placeholder: "title" });
 s.addText("Same shape moved, turned or flipped, so the right answer never changes: 436 (twice its area)",
   { isTextBox: true, x: 3.9, y: 1.35, w: 8.8, h: 0.45, fontSize: 16, color: C.text1, align: "center", margin: 0 });
@@ -149,7 +159,10 @@ s.addImage({ path: FIG("slide2_shapes.png"), x: 3.9, y: 1.85, w: 8.8, h: 1.9, ob
   ans.forEach(([t, ok], k) => chip(s, t, ok, 3.9 + k * 2.2, y));
 });
 caption(s, "But programs can be silently wrong, and thinking is expensive. Goal: right answers, lowest cost.");
-s.addNotes("Qwen3-8B, real outputs. Asked to answer directly, it gives a different area for each copy of the same polygon (only the original is right). Asked for a program, it writes the shoelace formula and the computer gets all copies right. Programs still fail silently, and thinking longer is expensive: on 311 contest problems gpt-oss-120b goes from 57% to 66% for 4.4 times the tokens. Goal: effective (exactly right) and efficient (fewest tokens, smallest GPU).");
+s.addNotes(notes);
+}
+const PROBLEM_NOTES = "Qwen3-8B, real outputs. Asked to answer directly, it gives a different area for each copy of the same polygon (only the original is right). Asked for a program, it writes the shoelace formula and the computer gets all copies right. Programs still fail silently, and thinking longer is expensive: on 311 contest problems gpt-oss-120b goes from 57% to 66% for 4.4 times the tokens. Goal: effective (exactly right) and efficient (fewest tokens, smallest GPU).";
+slideProblem("Problem", PROBLEM_NOTES);
 
 // 3. Words
 s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Problem" });
@@ -352,8 +365,10 @@ s.addNotes("Real outputs. miniF2F mathd_numbertheory_34 (9^-1 mod 100 = 89). Qwe
 
 pres.addSection({ title: "Method" });
 // 4. Recipe
-s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Method" });
-s.addText("Our method: a recipe built from the findings", { placeholder: "title" });
+function slideRecipe(section, title, refs, notes) {   // refs: point each step to its finding slide
+const R = (t, r) => refs ? `${t} (${r})` : t;
+s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
+s.addText(title, { placeholder: "title" });
 function step(s, n, head, res, x, y, w) {
   s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w, h: 1.35, rectRadius: 0.08, fill: { color: "DEEBF7" }, line: { color: "BDD7EE", width: 0.75 }, objectName: "step " + n });
   s.addShape(pres.shapes.OVAL, { x: x + 0.15, y: y + 0.3, w: 0.7, h: 0.7, fill: { color: BLUE }, line: { color: BLUE }, objectName: "badge " + n });
@@ -361,18 +376,20 @@ function step(s, n, head, res, x, y, w) {
   txt(s, head, x + 0.95, y + 0.1, w - 1.05, 1.15, { fontSize: 18, bold: true });
   txt(s, res, x, y + 1.42, w, 0.75, { fontSize: 14, color: C.text2, align: "center", valign: "top" });
 }
-step(s, 1, "Write a program", "right on 8 of 8 copies (slide 2)", 0.6, 1.7, 2.9);
+step(s, 1, "Write a program", R("right on 8 of 8 copies", "slide 2"), 0.6, 1.7, 2.9);
 arrow(s, 3.5, 2.37, 3.9, 2.37);
-step(s, 2, "Add the missing fact", "23% → 77–90%; can be automatic (findings 1, 2, 6)", 3.9, 1.7, 3.0);
+step(s, 2, "Add the missing fact", R("23% → 77–90%; can be automatic", "findings 1, 2, 6"), 3.9, 1.7, 3.0);
 arrow(s, 6.9, 2.37, 7.3, 2.37);
-step(s, 3, "Run a free check", "examples, or two versions agree (finding 3)", 7.3, 1.7, 2.9);
+step(s, 3, "Run a free check", R("examples, or two versions agree", "finding 3"), 7.3, 1.7, 2.9);
 arrow(s, 10.2, 2.1, 10.6, 1.85); arrow(s, 10.2, 2.65, 10.6, 2.95);
 box(s, "pass → done", 10.6, 1.55, 2.1, 0.6, "E2F0D9", { fontSize: 16, bold: true });
 box(s, "fail → 4. think harder", 10.6, 2.65, 2.1, 0.75, "FADBD8", { fontSize: 16, bold: true });
-txt(s, "same 66%, 18% fewer tokens (finding 4)", 10.4, 3.45, 2.5, 0.6, { fontSize: 14, color: C.text2, align: "center", valign: "top" });
-step(s, 5, "Same problem again? Reuse the checked program", "valid plans 7% → 94% (finding 5)", 3.9, 4.3, 6.3);
+txt(s, R("same 66%, 18% fewer tokens", "finding 4"), 10.4, 3.45, 2.5, 0.6, { fontSize: 14, color: C.text2, align: "center", valign: "top" });
+step(s, 5, "Same problem again? Reuse the checked program", R("valid plans 7% → 94%", "finding 5"), 3.9, 4.3, 6.3);
 caption(s, "Together: 87% solved at 2.5k tokens, vs 74% at 4.1k for \"think longer on hard problems\"");
-s.addNotes("Each step is a measured result, shown on the next slides with an example. Step 1: the polygon. Step 2: delivery routing with OR-Tools (Qwen3-32B). Step 3: free checks (the problem's examples; two versions that should agree). Step 4: contest geometry with gpt-oss-120b. Step 5: reuse on the Solomon routing benchmark. Together (3 models, 624 geometry and optimization problems, 3 seeds): fact first and thinking only on a failed check solves 87% at 2.5k tokens per problem.");
+s.addNotes(notes);
+}
+slideRecipe("Method", "Our method: a recipe built from the findings", true, "Each step is a measured result, shown on the finding slides with an example. Step 1: the polygon. Step 2: delivery routing with OR-Tools (Qwen3-32B). Step 3: free checks (the problem's examples; two versions that should agree). Step 4: contest geometry with gpt-oss-120b. Step 5: reuse on the Solomon routing benchmark. Together (3 models, 624 geometry and optimization problems, 3 seeds): fact first and thinking only on a failed check solves 87% at 2.5k tokens per problem.");
 
 // 9. All together
 s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Method" });
@@ -436,4 +453,94 @@ s.addText("Where the recipe stops, and what is next", { placeholder: "title" });
 caption(s, "Every claim pre-registered and checked on 3 seeds; accuracy always reported with its token cost");
 s.addNotes("Updated 2026-10-19. Done since the last version: contest geometry and competition math on 24 GB GPUs, Qwen3.6 with the model card settings (headline unchanged), automatic facts and the held-out MAMO test, the policy model, proofs. Older notes: for Lean proofs an invented lemma stands for a missing proof step (similar-name feedback fixes 2.7%, a fresh try 3.2%); for PopQA thinking adds 1.8-5 points at 70-200 times the tokens, only for well-known facts. Checks leak, which caps every policy. Facts were hand-written; BM25 retrieval recovers most of the gain. Next: SIZE-CC (gpt-oss-20b on contest geometry with check-gated escalation), X1-SIZE (competition math for Qwen3-4B/8B/14B), automatic facts, a closed API model, final report.");
 
-pres.writeFile({ fileName: OUT }).then(async () => { await applyTheme(OUT, THEME); console.log("written", OUT); });
+const FULL = path.join(ROOT, "PROPOSAL_slides_full.pptx");
+pres.writeFile({ fileName: FULL }).then(async () => { await applyTheme(FULL, THEME); console.log("written", FULL); buildTalk(); });
+
+// ================= 5-minute talk (PROPOSAL_slides.pptx, 7 slides, about 45 s each) =================
+function buildTalk() {
+  pres = newDeck();
+  pres.addSection({ title: "Problem" });
+  slideTitle("Problem", "POSTECH CSED490E (Graduate NLP) · Team 5 · 5-minute proposal talk",
+    "(10 s) We study how to solve computational math with LLMs: answers that must be computed exactly, with the fewest tokens and the smallest GPU.");
+  slideProblem("Problem", "(45 s) " + PROBLEM_NOTES);
+
+  // What we found: four findings, each an example and its number
+  pres.addSection({ title: "Findings" });
+  s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Findings" });
+  s.addText("What we found, each against the usual way", { placeholder: "title" });
+  [["1. Give the fact, not the manual", [["whole manual → RegisterUnaryLongLivingCallback ✗", RED],
+                                          ["5 exact lines → RegisterUnaryTransitCallback ✓", "38761D"]],
+    "Routing solved: 23% → 77–90% (thinking longer: 3%)"],
+   ["2. Two versions catch mistakes", [["task only: the program prints 6 corners ✓", "38761D"],
+                                        ["+ 8 unneeded helpers: prints 0 ✗ → differ → think", RED]],
+    "99% at 4.3k tokens (always thinking: 98% at 5.9k)"],
+   ["3. Think harder only when a check fails", [["\"Make a triangle!\": examples pass → submit", "38761D"],
+                                                 ["\"Arrow\": an example fails → think harder", RED]],
+    "Contest geometry: same 66%, 18% fewer tokens"],
+   ["4. Reuse a checked program", [["a new program every day: valid on 7% of 48 days", RED],
+                                    ["one program checked on 8 past days: 94%", "38761D"]],
+    "Better and 3× cheaper (28k vs 86k tokens in total)"]].forEach(([title, lines, result], k) => {
+    const x = 0.6 + (k % 2) * 6.15, y = 1.45 + Math.floor(k / 2) * 2.4;
+    panel(s, x, y, 5.95, 2.2, title);
+    txt(s, title, x + 0.25, y + 0.12, 5.45, 0.45, { fontSize: 19, bold: true, color: BLUE });
+    lines.forEach(([t, col], r) => txt(s, t, x + 0.25, y + 0.62 + r * 0.45, 5.45, 0.42, { fontSize: 16, color: col }));
+    txt(s, result, x + 0.25, y + 1.58, 5.45, 0.5, { fontSize: 17, bold: true });
+  });
+  caption(s, "Facts and cheap checks beat thinking longer");
+  s.addNotes("(70 s) Four findings, each a real example. (1) Qwen3-32B with the whole OR-Tools manual invents a method and crashes; five exact lines fix it: optimal plans 23% to 77-90%, while thinking longer gives 3%. (2) Extra helper functions mislead it (a convex hull built on polar_sort prints 0 instead of 6); writing the program with and without them and thinking only when they disagree gives 99% at 4.3k tokens vs 98% at 5.9k for always thinking. (3) Contest problems show sample tests: an easy problem passes and is submitted, a hard one fails and only then gets high effort; same 66% with 18% fewer tokens (gpt-oss-120b, 311 problems). (4) Daily routing: one program checked on 8 past days stays valid on 94% of 48 new days vs 7% with a new program per day.");
+
+  // Method + results
+  pres.addSection({ title: "Method" });
+  slideRecipe("Method", "Our method: a recipe from these findings", false,
+    "(45 s) The findings give a recipe, cheapest steps first: write a program, add the missing fact, run a free check, think harder only on a failure, reuse a checked program when the problem repeats.");
+
+  s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Method" });
+  s.addText("It pays off: more accurate, cheaper, small GPUs", { placeholder: "title" });
+  txt(s, "624 geometry and optimization problems, 3 models: % solved · tokens per problem", 0.6, 1.35, 7.6, 0.45, { fontSize: 16 });
+  hbars(s, 0.6, 1.95, 7.6, [["Think on hardest (Snell et al.)", 74, "74% · 4.1k", "7F7F7F"],
+                            ["Think when the check fails", 77, "77% · 4.2k", "7F7F7F"],
+                            ["Fix by failure type", 83, "83% · 4.2k", "7F7F7F"],
+                            ["Fact first, think on failure", 87, "87% · 2.5k", BLUE]], 0.7, 3.3, 1.5);
+  [["79% = 79%", "fact found automatically = hand-written, on a benchmark never used before (MAMO)"],
+   ["24 GB", "one RTX 3090-class GPU: gpt-oss-20b and Qwen3-14B match Qwen3-32B"],
+   ["30", "labelled problems pick the best policy for a new task"]].forEach(([big, label], r) => {
+    const y = 1.45 + r * 1.55;
+    txt(s, big, 8.6, y, 4.1, 0.6, { fontSize: 30, bold: true, color: BLUE });
+    txt(s, label, 8.6, y + 0.6, 4.1, 0.75, { fontSize: 14, valign: "top" });
+  });
+  caption(s, "\"Spend more on hard problems\" loses to \"facts first, think where the check fails\"");
+  s.addNotes("(50 s) Left: four ways to spend compute on the same 624 problems (Qwen3-8B, Qwen3-32B, Qwen3.6; same order on 3 seeds). Thinking on the hardest-looking problems, the compute-optimal scaling idea, gets 74% at 4.1k tokens; fact first and thinking only when the check fails gets 87% at 2.5k. Right: the fact needs no human (the model's own checked program for a similar problem: gpt-oss-20b 78.8% vs 78.9% hand-written on held-out MAMO); models that fit one 24 GB GPU match Qwen3-32B with the fact; 30 labelled problems choose the best policy for a new task (0.6 points from the best on average).");
+
+  s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Method" });
+  s.addText("Compared with published methods", { placeholder: "title" });
+  {
+    const OURS = (t) => ({ text: t, options: { bold: true, color: "38761D" } });
+    table(s, [
+      [HDR("Task"), HDR("Published method"), HDR("Its result"), HDR("Ours (same problems)")],
+      ["Spending thinking", "by difficulty (Snell et al. 2025)", "74% · 4.1k", OURS("87% · 2.5k")],
+      ["Contest geometry", "always high effort", "66.2% · 30.1k", OURS("66.3% · 24.7k")],
+      ["Picking a program", "CodeT: the model writes tests", "96.0% (+340 tokens)", OURS("99.7% (symmetry check)")],
+      ["Library documentation", "DRoC (ICLR 2025)", "72% · 2.1k", OURS("77% · 1.7k (5 exact lines)")],
+      ["Daily routing", "Dynamic Cheatsheet (own notes)", "31–40%", OURS("94% (reuse)")],
+    ], { x: 0.6, y: 1.5, w: 12.1, colW: [2.6, 3.9, 2.4, 3.2], rowH: 0.7, fontSize: 16 });
+  }
+  caption(s, "All measured by us on the same problems and models");
+  s.addNotes("(35 s) Published methods run on our benchmarks: difficulty-based compute allocation, the reasoning-model default of always thinking hard, CodeT selection, DRoC retrieval and Dynamic Cheatsheet memory. The recipe is more accurate, cheaper, or both in each row.");
+
+  pres.addSection({ title: "Next" });
+  s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Next" });
+  s.addText("Where it stops, and what is next", { placeholder: "title" });
+  [["Where it stops", RED, ["Proofs: a specialized 8B prover proves 74%, Qwen3-32B 13%; facts and thinking do not help",
+                            "Automatic facts work only within one kind of problem",
+                            "Checks leak: 24–37% of wrong programs pass the examples"]],
+   ["Next", BLUE, ["Repeat the held-out test for 3 more models", "Facts for each problem type", "Final report"]]].forEach(([head, col, items], i) => {
+    const x = 0.6 + i * 6.15;
+    panel(s, x, 1.55, 5.95, 4.1, head);
+    txt(s, head, x + 0.3, 1.7, 5.35, 0.6, { fontSize: 26, bold: true, color: col });
+    bullets(s, items, { x: x + 0.3, y: 2.4, w: 5.35, h: 3.1, fontSize: 18 });
+  });
+  caption(s, "Takeaway: give the fact first, and think only where a free check fails");
+  s.addNotes("(45 s) Limits: formal proofs need a specialized prover (Goedel-Prover-V2-8B 180 of 244 miniF2F statements vs Qwen3-32B 31; a similar proof, thinking or an inequality sheet does not help general models); a mined fact from a different problem type misleads; checks let some wrong programs through. Next: replicate the held-out MAMO test, mine facts per problem type, final report. Full deck with every finding: PROPOSAL_slides_full.pptx.");
+
+  pres.writeFile({ fileName: OUT }).then(async () => { await applyTheme(OUT, THEME); console.log("written", OUT); });
+}
