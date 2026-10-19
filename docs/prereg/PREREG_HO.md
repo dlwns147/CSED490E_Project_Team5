@@ -92,3 +92,14 @@ visible failure"; the parts tuned on easy textbook problems (the mined usage exa
 Cheap program: gpt-oss-20b 24.7% (mips 26.0), Qwen3-14B-AWQ 10.0% (8.7), Qwen3-8B 14.3% (8.7). FF with formx: 36.7% @ 3.9k (gpt-oss-20b; mips 38.3% @ 3.7k),
 24.0% @ 7.2k (Qwen3-14B-AWQ; 26.3% @ 8.7k), 28.7% @ 7.6k (Qwen3-8B; 28.0% @ 10.3k). **HO-P3: as on NL4OPT + IndustryOR, not MAMO** — the library
 saves 17–26% of the Qwen models' tokens (fewer crashes, fewer escalations) at −2.3 to +0.7 points, and helps only Qwen3-8B's first program.
+
+## OB pre-registration (2026-10-19 21:38 UTC, before running): does the OptMATH result replicate on a second unseen benchmark?
+OptiBench (Yang et al., ICLR 2025; 605 problems: linear 422 / nonlinear 183, 130 with data tables; never used here). The gold is the last listed
+result (the objective; checked on a random 12, and 552 / 605 last keys name a total / min / max / profit / cost). Prompt with solver choice
+(the problems are 30% nonlinear): free (cheap, gpt-oss-20b low) and thinkfree (thinking; gpt-oss-20b medium), seeds 1–3; Qwen3-14B-AWQ,
+Qwen3-8B (thinking 16k). STORM with its official inference on the same problems (data/test.tir_prompt.optibench.jsonl) when a GPU frees.
+poc/queues/queue_s2_ob.sh (GPU0: gpt-oss-20b then Qwen3-8B; GPU1: Qwen3-14B-AWQ).
+- OB-P1 (the core rule): FF (think only if the cheap program fails / prints nothing / 'No Best Solution') ≥ always thinking at ≤ 80% of its
+  tokens, for each model (seed means) — as on OptMATH (62–90%).
+- OB-P2: the trained STORM-4B is within ±4 points of gpt-oss-20b's FF at ≥ 3 × its tokens (OptMATH: +2.0 at 3.8 ×).
+- OB-P3: as on OptMATH, the two-agreeing-programs check costs more tokens than FF without beating it by ≥ 2 points.

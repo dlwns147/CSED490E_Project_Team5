@@ -89,6 +89,7 @@ MAMO = "/SSD/huggingface/datasets/MAMO"   # X7 (2026-10-19): held-out benchmark,
 
 
 OPTMATH = "/SSD/lean_postech/storm/STORM/data/test.tir_prompt.OptMath.jsonl"
+OPTIBENCH = "/SSD/lean_postech/optibench/ReSocratic/data/OptiBench.json"   # github.com/yangzhch6/ReSocratic
 
 
 def problems(which=None):
@@ -104,6 +105,10 @@ def problems(which=None):
             r = json.loads(l)
             out.append({"id": f"optmath-{k}", "src": "optmath", "q": r["prompt"].split("### Problem:\n", 1)[1].strip(),
                         "gold": str(r["gt_answer"]).strip(), "difficulty": "optmath"})
+    if which == "optibench":   # second held-out (PREREG_HO.md, OB): OptiBench (ICLR 2025, 605); gold = the last listed result (the objective)
+        for r in json.load(open(OPTIBENCH)):
+            out.append({"id": f"optibench-{r['index']}", "src": f"optibench_{r['type']}", "q": r["question"].strip(),
+                        "gold": str(list(r["results"].values())[-1]).strip(), "difficulty": r["type"]})
     if which in ("mamo", "all"):
         for name, fn in (("mamo_easy", "MAMO_EasyLP"), ("mamo_complex", "MAMO_ComplexLP")):
             for k, l in enumerate(l for l in open(f"{MAMO}/{fn}.json") if l.strip()):
