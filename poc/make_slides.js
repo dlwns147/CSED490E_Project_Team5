@@ -961,8 +961,8 @@ function buildTalk() {
     txt(s, t, x + 0.22, 5.2, 3.5, 0.62, { fontSize: 15 });
   });
   caption(s, "Takeaway: give the missing fact first, and think only where a free check fails");
-  txt(s, "References: Snell et al., Scaling LLM Test-Time Compute Optimally, ICLR 2025 (think on hard problems) · DRoC, ICLR 2025 (documentation for solver code) · Huang et al., ORLM, arXiv 2405.17743, 2024 (fine-tuned specialist) · Huang et al., Mamo benchmark, 2024 · Zheng et al., miniF2F, ICLR 2022 (Lean proofs)",
-      0.6, 6.85, 11.4, 0.4, { fontSize: 10, color: "7F7F7F" });
+  txt(s, "References: Snell et al., Scaling LLM Test-Time Compute Optimally, ICLR 2025 (think on hard problems) · DRoC, ICLR 2025 (documentation for solver code) · Huang et al., ORLM, arXiv 2405.17743, 2024 (fine-tuned specialist) · Huang et al., Mamo benchmark, 2024 · Zheng et al., miniF2F, ICLR 2022 (Lean proofs). Note: 24 GB = Qwen3-8B fits one RTX 3090-class GPU (weights + a 16k-token cache); our runs used 96 GB GPUs",
+      0.6, 6.82, 11.4, 0.55, { fontSize: 10, color: "7F7F7F", valign: "top" });
 
   // ---- extra pages that answer expected questions (each title is the question)
   function qSlide(title, sub) {
