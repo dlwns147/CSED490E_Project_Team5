@@ -44,7 +44,8 @@ if __name__ == "__main__":
     tok = AutoTokenizer.from_pretrained("/SSD/huggingface/tangzhy/STORM-Qwen3-4B")
     R = [json.loads(l) for l in open(f"/SSD/lean_postech/storm/out_{st}/data_with_correctness.jsonl")]
     by = defaultdict(lambda: [0, 0, 0, 0]); rows = []
-    for r in R:
+    for j, r in enumerate(R):
+        r.setdefault("id", f"{st}-{j}")   # OptMATH as shipped with STORM has no ids: line order = our optmath-<k>
         for k, g in enumerate(r["gen"]):
             b = boxed(g); pred = value_of(b) if b is not None else None
             ok = correct(pred, str(r["gt_answer"])); n = len(tok(g)["input_ids"])

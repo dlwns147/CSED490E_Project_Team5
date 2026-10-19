@@ -66,3 +66,24 @@ Policies, seeds 1 / 2 / 3: **FF (mips, think on failure or 'No Best Solution') 3
 - Solver choice (HO-L-P1 refuted: 25.3% vs 32.0%) helps the nonlinear problems (+12 points over mips; cvxpy in 64 of 81) and hurts the
   linear ones (−5.5: more CP-SAT, more API errors). Raw cvxpy failures: array shape mismatches from transcribing large coefficient tables, and
   `solver=cp.ECOS`, which is not installed (SolverError → 'No Best Solution') — the same missing-knowledge error the fact was built for.
+
+## Results, all three models and STORM (2026-10-19 20:37 UTC; library arm still running)
+| OptMATH (100), seed means | cheap program (automatic fact) | always thinking | **FF: think only if the program fails / prints nothing / 'No Best Solution'** | FFR (two agree) |
+|---|---|---|---|---|
+| gpt-oss-20b | 26.0% @ 1.1k | 32.7% @ 5.4k | **38.3% @ 3.7k** | 34.7% @ 6.7k |
+| gpt-oss-20b, solver choice | 25.3% @ 1.0k | 36.6% @ 4.4k | **39.3% @ 3.1k** | 37.3% @ 5.5k |
+| Qwen3-14B-AWQ | 8.7% @ 1.3k | 26.3% @ 10.5k | 26.3% @ 8.7k | 27.0% @ 12.2k |
+| Qwen3-8B | 8.7% @ 1.6k | 26.3% @ 11.7k | 28.0% @ 10.3k | 28.0% @ 14.1k |
+| STORM-Qwen3-4B (official TIR, 3 samples; its own grader 47.0%) | | 40.3% @ 14.1k | | |
+| gpt-oss-20b cheap program, STORM on failure (offline, same seed) | | | **43.3% @ 7.0k** (40 / 41 / 49%) | |
+- **HO-P1 refuted** (the automatic fact mined from NL4OPT does not help: gpt-oss-20b 26.0 vs 32.0% without a fact; Qwen 8.7 vs 6.0 / 9.0%).
+- **HO-P2 refuted** (the agreement check costs more than always thinking here: two cheap programs rarely agree on hard problems). But the
+  recipe's core rule holds: **thinking only when the cheap program fails is at least as accurate as always thinking at 62–90% of its tokens
+  for every model** (gpt-oss-20b +5.6 points at 69%; Qwen3-14B-AWQ ±0 at 83%; Qwen3-8B +1.7 at 88%).
+- **HO-P4 refuted on accuracy, holds on cost:** STORM leads gpt-oss-20b's recipe by only 1.0–2.0 points (not ≥ 5) at 3.8–4.5 × the tokens;
+  and the two compose: gpt-oss-20b's cheap program with STORM only on failure beats STORM alone (43.3% vs 40.3%) at half its tokens.
+- HO-P5 (failure kinds, raw): Qwen's cheap programs crash on 58% of problems — mostly formulation, not API: products of two variables
+  passed to the linear solver (`x[i] * x[j]` → TypeError; the dispersion problems need a linearisation), index errors in large data tables;
+  gpt-oss-20b's wrong-but-running programs misread data (an asymmetric weight table read as symmetric) or face texts that omit data.
+**Reading:** on an unseen, harder benchmark the part of the recipe that generalises is "cheap program first, pay for reasoning only on a
+visible failure"; the parts tuned on easy textbook problems (the mined usage example, two agreeing programs) do not.
