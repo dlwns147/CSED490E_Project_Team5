@@ -733,7 +733,7 @@ function buildTalk() {
     coverage: "(답변) 아니요, 모든 단계를 네 종류 전부에 쓰지는 않습니다. 경시 문제는 라이브러리 없이 알고리즘만 짜는 문제라 힌트로 채울 빈칸이 없고, 실패 원인은 추론입니다. 가장 가까운 힌트로 관련 기하 함수 8개를 줘 봤는데, Qwen3-32B는 12.1%에서 13.7%로 차이가 없었고 gpt-oss-20b는 37.7%에서 33.4%로 오히려 떨어졌습니다. 함수를 받으면 덜 생각하고 다른 오답을 썼습니다. 문제마다 알고리즘을 알려 주는 힌트는 사실상 풀이의 일부라 싸지도 자동도 아닙니다. 그래서 경시에는 검사와 생각만 써서, 항상 생각할 때와 같은 66%를 18% 적은 토큰에 얻습니다. 재사용도 매번 새 문제라 맞지 않습니다.",
     kinds: "(답변) 사람 기준으로 보면, 경시 문제 311개의 Codeforces 레이팅 중앙값은 2200으로 Master 수준이고, 46%는 Grandmaster 수준인 2400 이상입니다. 그 구간에서는 gpt-oss-120b도 48%만 풉니다. 경로 문제는 단순한 탐욕 계획이 최선보다 48% 길고, 문장제는 대학 OR 수업 연습문제 수준입니다.",
     two: "(답변) 보조 코드를 주면 모델이 그 함수에 맞춰 방법을 짭니다. 이 예에서는 필요 없는 polar_sort로 각도 정렬을 하다가 0을 출력했습니다. 기하 108문제에서 보조 코드가 있으면 59%, 없으면 77%입니다. 두 버전을 모두 짜서 답이 다를 때만 생각하면 99%를 4.3k 토큰에 얻습니다.",
-    fact: "(답변) 힌트는 라이브러리를 어떻게 부르는지, 즉 함수 이름과 인자를 보여 주는 11줄짜리 코드 조각입니다. 같은 종류의 30문제에 똑같이 붙이고, 경로나 숫자나 정답은 들어 있지 않습니다. 긴 참조 문서가 아무것도 안 준 것보다 나쁜 이유는, 경로 설명은 있지만 용량 규칙이 없어서 모델이 빈 곳을 없는 함수로 채우기 때문입니다. 10개 프로그램이 RegisterUnaryLongLivingCallback을 불렀습니다.",
+    fact: "(답변) 힌트는 문제마다가 아니라 문제 종류마다 하나이고, 라이브러리를 어떻게 부르는지 보여 줍니다. 사람이 쓴 힌트는 경로 문제에서 OR-Tools 사용법 11줄로, 이 문제의 숫자도 답도 없고 30문제에 똑같이 붙습니다. 자동 힌트는 같은 종류의 다른 문제, 예를 들어 밴과 트럭 문제에서 모델이 짜서 검사를 통과한 가장 짧은 프로그램입니다. 그 문제의 숫자와 제약이 들어 있지만, 가장 짧은 것을 고르면 거의 함수 호출만 남습니다. 힌트가 하는 일은 없는 함수 이름을 지어내지 않게 하는 것입니다. Qwen3-1.7B는 힌트 없이 존재하지 않는 Solver.SUCCESS, solver.INFINITY를 써서 0.1%였고, 힌트를 주면 45%입니다. 하지만 문제를 수식으로 옮기는 일은 여전히 모델의 몫이라 남은 오류는 대부분 잘못된 수식입니다. 참고로 가장 짧은 것 대신 가장 비슷한 문제의 프로그램을 주면 수식 패턴까지 따라 들어가서, 그 프로그램이 맞으면 반복되는 수식 실수를 고치고, 틀리면 같이 틀립니다.",
     rag: "(답변) 네. 제목이 붙은 코드 조각 라이브러리에서 BM25로 찾으면, 최적화 6문제에서 손으로 쓴 힌트와 같은 수준입니다. 97% 대 96%입니다. 다만 비슷하지만 다른 문서가 섞이면 손해가 큽니다. 경로 문제에서 TSP 문서가 함께 들어오면 83%에서 57%로 떨어집니다. 문서가 아예 없으면 모델 자신의 검사된 프로그램을 힌트로 씁니다.",
     think: "(답변) 모르는 함수를 생각하는 동안 지어내기 때문입니다. Qwen3-32B는 문장제에서 생각을 켜면 65.4%에서 52.0%로 떨어지는데, 존재하지 않는 Objective().SetMaximize를 부릅니다. 정확한 사용법을 먼저 주면 생각이 도움이 되어 72%가 되고, 실패할 때만 생각하면 같은 정확도를 1.3k 토큰에 냅니다.",
     leak: "(답변) 생깁니다. 경시 문제에서는 틀린 프로그램의 24에서 37%가 예제를 통과하고, 문장제에서는 12에서 16%가 두 프로그램이 같은 오답을 냅니다. 하지만 이런 문제를 완벽한 검사로 모두 생각에 보내도 생각이 7에서 16%만 고치기 때문에, 14B 이상 모델에서는 1에서 3점밖에 오르지 않습니다. 일부는 정답 레이블 자체가 틀렸습니다. 그래서 다음 목표는 실행은 되지만 문제를 잘못 모델링한 프로그램입니다.",
@@ -1050,23 +1050,24 @@ function buildTalk() {
   }
 
   function slideQFact() {
-    qSlide("Q: what exactly is the fact? Isn't it the answer?", "The fact for the routing problems of Finding 1: how to call OR-Tools (excerpt of the 11-line snippet)");
-    s.addShape(pres.shapes.RECTANGLE, { x: 0.6, y: 1.95, w: 7.3, h: 3.95, fill: { color: "F7F7F7" }, line: { color: "BFBFBF", width: 0.75 }, objectName: "the fact, excerpt" });
-    const L = (t, hot) => ({ text: t, options: { breakLine: true, bold: !!hot, color: hot ? "38761D" : C.text1 } });
-    s.addText([L("mgr = pywrapcp.RoutingIndexManager(n + 1, K, 0)"), L("r = pywrapcp.RoutingModel(mgr)"), L("cb = r.RegisterTransitCallback(cost)"),
-               L("r.SetArcCostEvaluatorOfAllVehicles(cb)"), L("dcb = r.RegisterUnaryTransitCallback(demand)", 1),
-               L("r.AddDimensionWithVehicleCapacity(dcb, 0, [Q] * K,", 1), L("                 True, \"Load\")", 1),
-               L("p.first_solution_strategy = ...PATH_CHEAPEST_ARC"), L("sol = r.SolveWithParameters(p)"), { text: "...  (11 lines in all)", options: { color: "7F7F7F" } }],
-      { isTextBox: true, x: 0.8, y: 2.05, w: 7.0, h: 3.75, fontFace: "Courier New", fontSize: 14, valign: "middle", margin: 0 });
-    [["✓", "how to call the library: names and arguments", "38761D"], ["✓", "the same text for all 30 problems of this kind", "38761D"], ["✗", "no route, no numbers, no answer", RED]].forEach(([m, t, col], r) => {
-      txt(s, m, 8.2, 1.95 + r * 0.55, 0.35, 0.5, { fontSize: 18, bold: true, color: col });
-      txt(s, t, 8.55, 1.95 + r * 0.55, 4.15, 0.5, { fontSize: 15 });
+    qSlide("Q: what exactly is the fact, and what does it do?");
+    const code = (lines, x, y, w, h) => s.addText(lines.map((t, i) => ({ text: t, options: { breakLine: i < lines.length - 1, color: t.startsWith("…") ? "7F7F7F" : C.text1 } })),
+      { isTextBox: true, x, y, w, h, fontFace: "Courier New", fontSize: 13, valign: "top", margin: 0 });
+    panel(s, 0.6, 1.4, 5.95, 2.4, "hand-written fact");
+    txt(s, "Written by hand (routing): library usage only", 0.85, 1.48, 5.45, 0.42, { fontSize: 16, bold: true, color: BLUE });
+    code(["mgr = pywrapcp.RoutingIndexManager(n + 1, K, 0)", "r = pywrapcp.RoutingModel(mgr)", "dcb = r.RegisterUnaryTransitCallback(demand)", "r.AddDimensionWithVehicleCapacity(dcb, ...)", "sol = r.SolveWithParameters(p)", "… 11 lines, the same for all 30 problems"], 0.85, 2.0, 5.5, 1.75);
+    panel(s, 6.75, 1.4, 5.95, 2.4, "automatic fact");
+    txt(s, "Automatic (word problems): another problem's program", 7.0, 1.48, 5.45, 0.42, { fontSize: 16, bold: true, color: BLUE });
+    code(["solver = pywraplp.Solver.CreateSolver('SCIP')", "v = solver.IntVar(0, solver.infinity(), 'v')", "…  (that problem's own limits)", "solver.Minimize(v)", "status = solver.Solve()", "… a vans-and-trucks problem, not this one"], 7.0, 2.0, 5.5, 1.75);
+    panel(s, 0.6, 4.0, 12.1, 1.75, "what the fact does");
+    txt(s, "What it does", 0.85, 4.06, 5.0, 0.4, { fontSize: 16, bold: true, color: BLUE });
+    [["✓", "It stops invented function names: Qwen3-1.7B wrote Solver.SUCCESS and solver.INFINITY (do not exist); with the fact 0.1% → 45% solved", "38761D"],
+     ["✗", "It does not write the equations: modelling the problem is still the model's job (most errors left are wrong equations)", RED],
+     ["✗", "It never holds this problem's numbers or answer: one fact per problem type", RED]].forEach(([m, t, col], r) => {
+      txt(s, m, 0.85, 4.48 + r * 0.42, 0.3, 0.4, { fontSize: 17, bold: true, color: col });
+      txt(s, t, 1.2, 4.48 + r * 0.42, 11.3, 0.4, { fontSize: 14 });
     });
-    panel(s, 8.2, 3.75, 4.5, 2.15, "why the sheet hurts");
-    txt(s, [{ text: "Why is a long reference sheet worse than nothing (7% vs 23%)?", options: { bold: true, breakLine: true } },
-            { text: "It shows routing, but not the capacity rule. The model fills the gap with a call that does not exist (10 programs: RegisterUnaryLongLivingCallback)." }],
-        8.4, 3.85, 4.1, 1.95, { fontSize: 14, valign: "top" });
-    caption(s, "The fact says how to call the library, not how to solve the problem");
+    caption(s, "The fact shows how to call the library; the model still has to solve the problem");
   }
   function slideQRag() {
     qSlide("Q: can retrieval (RAG) find the fact?", "BM25 search over a library of titled snippets, Qwen3-32B, % solved optimally (seed 1)");
@@ -1251,7 +1252,7 @@ function buildTalk() {
     ["coverage", "Which kinds each finding covers", slideQCoverage],
     ["kinds", "How hard: contest ranks, exams", () => slideKinds("Extra pages", "Extra: how hard, by contest ranks and exams")],
     ["two", "Two versions, in detail", () => slideTwoVersions("Extra pages", "Extra: two versions catch each other's mistakes")],
-    ["fact", "What the fact is", slideQFact],
+    ["fact", "What the fact is and does", slideQFact],
     ["howhint", "How we get the hint", slideQHowHint],
     ["hintwork", "A hint that works", slideQHintWork],
     ["hintcost", "What a hint costs and saves", slideQHintCost],
@@ -1280,7 +1281,7 @@ function buildTalk() {
     [2, "Do the findings cover every kind?", ["coverage"]],
     [2, "How hard are the problems?", ["kinds"]],
     [4, "Why does helper code change the answer?", ["two"]],
-    [5, "What exactly is the fact? Isn't it the answer?", ["fact"]],
+    [5, "What exactly is the fact, and what does it do?", ["fact"]],
     [5, "How do we get the exact hint?", ["howhint", "auto"]],
     [5, "How do we get a hint that works, cheaply?", ["hintwork", "hintcost"]],
     [5, "Can retrieval (RAG) find the fact?", ["rag"]],
