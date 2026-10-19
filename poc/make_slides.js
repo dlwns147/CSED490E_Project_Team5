@@ -717,7 +717,7 @@ function buildTalk() {
     "(15초) LLM은 말로 답할 수도, 프로그램을 짤 수도 있습니다. 같은 도형을 옮기고 돌리면 말로 한 답은 매번 바뀌지만, 프로그램은 항상 436입니다. 그래서 계산은 프로그램에 맡깁니다.",
     "(25초) 하지만 두 가지가 문제입니다. 첫째, 프로그램은 조용히 틀립니다. 같은 문제에 보조 코드만 더하면 6 대신 0을 내고 에러도 없습니다. 없는 함수를 불러 죽기도 합니다. 둘째, 오래 생각하면 비쌉니다. gpt-oss-120b는 토큰을 4.4배 써서 9점을 더 얻습니다. 그래서 추가 노력을 힌트, 공짜 검사, 생각 중 어디에 쓸지가 저희 질문입니다.",
     "(30초) 첫 번째 발견입니다. 매뉴얼이 아니라 짧은 힌트를 주세요. 트럭 경로를 짜는 과제에 OR-Tools 사용법 열한 줄을 붙이면, Qwen3-32B가 맞는 함수를 불러 최적 경로를 찾습니다. 긴 참조 문서를 주면 없는 함수를 지어내 죽습니다. 30문제에서 아무것도 안 주면 23%, 오래 생각하면 3%, 짧은 힌트는 83%입니다. 이 힌트를 사람 없이 고르는 방법은 뒤의 방법 슬라이드에서 보여 드립니다.\n\n[참고, 읽지 않음] 모델은 답을 무작위로 뽑기 때문에 같은 실험도 돌릴 때마다 조금씩 다릅니다. 짧은 힌트 막대는 같은 실험을 세 번 돌린 평균입니다(77, 83, 90%). 나머지 막대는 한 번씩 돌린 결과입니다.",
-    "(35초) 두 번째 발견입니다. 공짜 검사가 실패할 때만 생각하게 하세요. 문제에 '막대 3, 4, 5면 답 0'이라는 예제가 있으면, 모델 없이 우리 프로그램을 3, 4, 5로 돌려 봅니다. 0이 나오면 그대로 내고, 다르면 그 문제만 더 생각합니다. 예제가 없으면 프로그램을 두 번 짜서 비교합니다. 그러면 경시 문제에서 66%, 기하에서 99%로, 항상 생각할 때와 같은 정확도를 18에서 27% 적은 토큰에 얻습니다.",
+    "(40초) 두 번째 발견입니다. 공짜 검사가 실패할 때만 생각하게 하세요. 공짜 검사란 프로그램을 실행해서 이미 아는 것과 비교해 보는 것으로, 정답도 추가 생각도 필요 없습니다. 문제에 '막대 3, 4, 5면 답 0'이라는 예제가 있으면, 모델 없이 우리 프로그램을 3, 4, 5로 돌려 봅니다. 0이 나오면 그대로 내고, 다르면 그 문제만 더 생각합니다. 예제가 없으면 프로그램을 두 번 짜서 비교합니다. 그러면 경시 문제에서 66%, 기하에서 99%로, 항상 생각할 때와 같은 정확도를 18에서 27% 적은 토큰에 얻습니다.",
     "(40초) 둘을 합친 것이 저희 방법입니다. 힌트를 붙여 쓰고, 검사하고, 실패할 때만 생각하고, 같은 종류가 다시 오면 재사용합니다. 힌트는 사람 없이 이렇게 고릅니다. 모델이 같은 종류의 문제에 짰던 프로그램 중 검사를 통과한 것을 모으고, 가장 짧은 것을 힌트로 씁니다. 실제 문제 하나에서는 힌트 없이 죽던 프로그램이 힌트로 바로 20000을 맞혀, 5.3k 대신 0.6k 토큰을 썼습니다. 기하와 최적화 208문제를 세 모델로 풀면, 답이 갈리는 문제에 생각을 몰아주는 기존 방식은 74%, 저희는 87%이고 토큰도 적습니다.",
     "(35초) 새로운 점은 세 가지입니다. 학습 없이 공짜 검사로 생각할 때를 정하고, 정답 없이 모델 자신의 프로그램을 힌트로 쓰며, 파인튜닝한 특화 모델 ORLM-8B와 같은 69.5%를 학습하지 않은 8B 모델로 냅니다. 다음으로는 더 많은 모델로 검증하고, 실행은 되지만 문제를 잘못 수식으로 옮긴 오류를 다루고, 문제 종류마다 힌트를 찾겠습니다. 정리하면, 짧은 힌트를 먼저 주고, 공짜 검사가 실패한 곳에서만 생각하게 하자는 것입니다.\n\n[더 자세히: 질문이 나오거나 시간이 남을 때]\n첫째 줄, 생각을 어디에 쓸지. 기존 방법은 어려워 보이는 문제에 계산을 더 쓰는 Snell 등의 방식과, 언제 생각할지를 강화학습으로 가르치는 Thinkless, AdaptThink입니다. 저희는 정답 없이 돌리는 공짜 검사가 실패한 문제에만 생각을 씁니다. 기하와 최적화 208문제를 세 모델로 풀면 74%가 87%로 오르고, 토큰은 문제당 4.1k에서 2.5k로 줄었습니다. 87%는 사람이 쓴 힌트를 쓴 결과이고, 검색으로 찾은 힌트로도 84%입니다.\n둘째 줄, 모델에게 무엇을 주는지. 기존에는 매뉴얼 전체를 주거나, 더 큰 교사 모델이 짜서 정답으로 확인한 프로그램 모음을 줍니다. 저희 힌트는 모델이 다른 문제에서 짜서 공짜 검사를 통과한 자기 프로그램입니다. 끝까지 남겨 둔 MAMO 벤치마크에서 사람이 쓴 힌트와 같은 79%를 냈습니다.\n셋째 줄, 비용. ORLM-8B는 최적화 문장제용으로 파인튜닝한 공개 모델이고, 모델 카드의 형식과 솔버, 그리디 디코딩으로 저희 채점기에서 돌렸습니다: MAMO 69.5%, 문제당 1.1k 토큰(샘플링하면 64~66%). Qwen3-8B는 학습 없이 자기 힌트를 붙여 프로그램을 한 번 짜고 실행이 안 될 때만 생각하게 해서 69.5%, 1.0k 토큰입니다. 두 버전 검사까지 쓰면 71%(3.1k), gpt-oss-20b는 78.8%입니다.\n다음 계획. 하나, MAMO 검증을 Qwen3-32B와 Qwen3.6까지 세 시드로 마칩니다. 둘, 검사로 못 잡는 오류입니다. 지금 남은 오류의 절반쯤은 정답 라벨이 의심스러운 문제이고, 나머지는 같은 유형에서 같은 수식 실수가 반복됩니다. 예를 들어 순서 제약이나 공급 균형을 잘못 씁니다. 고치기 한 번이나 생각으로는 안 고쳐져서, 힌트 하나로 고쳐지는지 시험합니다. 셋, 지금은 같은 종류의 문제 안에서만 자동 힌트가 통하므로, 문제 종류마다 힌트를 찾고 최종 보고서와 코드를 냅니다.",
     "(5초) 감사합니다. 질문 받겠습니다.",
@@ -877,18 +877,19 @@ function buildTalk() {
   holdsOn(["shapes", "trophy", "truck", "calc"]);
   // left: how a free check runs, on one real example; right: what it buys
   panel(s, 0.6, 1.5, 5.85, 4.55, "how a free check works");
-  txt(s, "How a free check works", 0.85, 1.58, 5.4, 0.42, { fontSize: 18, bold: true, color: BLUE });
-  box(s, "The problem shows an example: sticks 3 4 5 → answer 0", 0.85, 2.05, 5.35, 0.62, "FFFFFF", { fontSize: 15 });
-  arrow(s, 3.52, 2.67, 3.52, 2.9);
-  box(s, "Run our program on 3 4 5 (no model needed): it prints 0", 0.85, 2.9, 5.35, 0.62, "FFFFFF", { fontSize: 15 });
-  arrow(s, 2.3, 3.52, 2.1, 3.78); arrow(s, 4.75, 3.52, 4.95, 3.78);
-  box(s, "✓ same → submit (no extra tokens)", 0.85, 3.78, 2.6, 0.72, "E2F0D9", { fontSize: 15, bold: true, color: "38761D" });
-  box(s, "✗ different → think harder, write again", 3.6, 3.78, 2.6, 0.72, "FADBD8", { fontSize: 15, bold: true, color: RED });
-  txt(s, "No example? Write the program twice, compare:", 0.85, 4.68, 5.35, 0.4, { fontSize: 15, bold: true });
-  box(s, "version A prints 6", 0.85, 5.15, 1.6, 0.6, "FFFFFF", { fontSize: 14 });
-  box(s, "version B prints 0", 2.55, 5.15, 1.6, 0.6, "FFFFFF", { fontSize: 14 });
-  arrow(s, 4.15, 5.45, 4.4, 5.45);
-  box(s, "✗ different → think", 4.4, 5.15, 1.8, 0.6, "FADBD8", { fontSize: 14, bold: true, color: RED });
+  txt(s, [{ text: "Free check", options: { bold: true, color: BLUE } }, { text: ": run the program and compare with something we already know. No answer key, almost no cost.", options: { color: C.text1 } }],
+      0.85, 1.58, 5.4, 0.7, { fontSize: 16, valign: "top" });
+  box(s, "The problem shows an example: sticks 3 4 5 → answer 0", 0.85, 2.35, 5.35, 0.58, "FFFFFF", { fontSize: 15 });
+  arrow(s, 3.52, 2.93, 3.52, 3.13);
+  box(s, "Run our program on 3 4 5 (no model needed): it prints 0", 0.85, 3.13, 5.35, 0.58, "FFFFFF", { fontSize: 15 });
+  arrow(s, 2.3, 3.71, 2.1, 3.93); arrow(s, 4.75, 3.71, 4.95, 3.93);
+  box(s, "✓ same → submit (no extra tokens)", 0.85, 3.93, 2.6, 0.66, "E2F0D9", { fontSize: 15, bold: true, color: "38761D" });
+  box(s, "✗ different → think harder, write again", 3.6, 3.93, 2.6, 0.66, "FADBD8", { fontSize: 15, bold: true, color: RED });
+  txt(s, "No example? Write the program twice, compare:", 0.85, 4.72, 5.35, 0.38, { fontSize: 15, bold: true });
+  box(s, "version A prints 6", 0.85, 5.18, 1.6, 0.58, "FFFFFF", { fontSize: 14 });
+  box(s, "version B prints 0", 2.55, 5.18, 1.6, 0.58, "FFFFFF", { fontSize: 14 });
+  arrow(s, 4.15, 5.47, 4.4, 5.47);
+  box(s, "✗ different → think", 4.4, 5.18, 1.8, 0.58, "FADBD8", { fontSize: 14, bold: true, color: RED });
   panel(s, 6.75, 1.5, 5.95, 4.55, "what it buys");
   txt(s, "Result: the same accuracy, fewer tokens", 7.0, 1.58, 5.45, 0.42, { fontSize: 18, bold: true, color: BLUE });
   txt(s, "311 contest problems (gpt-oss-120b)", 7.0, 2.02, 5.45, 0.32, { fontSize: 15, bold: true });
