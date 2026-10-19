@@ -57,3 +57,6 @@ ORLM-LLaMA-3-8B, greedy (seed 1) / sampled (2, 3): **MAMO Easy / Complex 80.5 / 
 its cleaned 100-problem subsets with a 5% tolerance after rounding). Run with its official inference code (cloned; vLLM 0.22; 3 samples,
 T 0.6) on our full MAMO and NL4OPT + IndustryOR, graded with our tolerance (and with theirs, for reference) (queue_s2_storm.sh, GPU0).
 Prediction: STORM ≥ our best training-free 3090-class result on MAMO (gpt-oss-20b 78.8%) under our grader, at ≥ 3 × the tokens.
+- **Replication, Qwen3-14B-AWQ, 3 seeds (2026-10-19 10:44 UTC):** automatic minus hand-written FFR = +0.3 / +1.6 / +0.2 points (71.7 / 73.5 / 72.4% vs
+  71.4 / 71.8 / 72.2%) at the same tokens (2.6–2.8k); the ±2 prediction holds on every seed. Plain automatic fact-first 70.7–71.8% @ 0.7–0.8k vs
+  always thinking with the hand snippet 65.4–65.5% @ 6.5k. Qwen3-8B seeds 2–3 and Qwen3.6 still running.

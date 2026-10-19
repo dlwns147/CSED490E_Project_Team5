@@ -142,3 +142,24 @@ Qwen3-4B: text 84.1 / 19.4% @ 1.1k; program 63.4 / 20.6% @ 0.34k; thinking 96.6 
 - **P1 holds** (+47.3 on AIME). **P2 narrowly refuted** for 4B (−0.9 points but at 81% of the tokens, not ≤ 80%). **P3 holds.**
 Across the four Qwen3 sizes (4B / 8B / 14B-AWQ / 32B-AWQ) thinking reaches 96.6 / 97.0 / 97.3 / 97.4% on MATH-500 and 66.7 / 68.3 / 73.3 /
 77.2% on AIME at 5.2–6.6k tokens: competition math is solved by thinking at every size, and size buys AIME points, not MATH-500 points.
+
+## ADAPT pre-registration (2026-10-19 10:43 UTC, before running): a learned when-to-think switch vs our label-free gate, same backbone
+**Why.** Our recipe decides when to pay for thinking with a free check (two cheap answers agree → accept, else think). The closest
+related work *trains* that decision: AdaptThink (Zhang et al. 2025, arXiv 2505.13417) uses RL so that DeepSeek-R1-Distill-Qwen-7B
+skips thinking on easy problems (reported MATH-500 92.0% @ 1,875 tokens, 76.6% NoThinking, vs the base 90.2% @ 3,674; AIME 2024 55.6% vs
+53.5%; 16K context, T 0.6). Nobody has compared the trained switch with a training-free check on the same backbone, nor combined them.
+**Setup** (poc/run_adapt.py; poc/queues/queue_s2_adapt.sh, GPU1, both 7B servers): X1's 560 problems (MATH-500 + AIME 2024 + 2025),
+seeds 1–3, the paper's settings (T 0.6, top_p 0.95, 16K context, DeepScaleR's 'Let's think step by step ... \boxed{}' instruction).
+Base DeepSeek-R1-Distill-Qwen-7B (r1d7) and AdaptThink-7B-delta0.05 (adt7), each in three modes: think (the card template; r1d7 always
+thinks, adt7 chooses), text and program in the paper's NoThinking mode (response starts with '</think>'). Grader: math-verify (as X1).
+Costs: all output tokens. 3090: both are 7B (15 GB in bf16).
+**Predictions.**
+- ADAPT-P1 (replication): r1d7 think MATH-500 90.2 ± 3% at 3.7k ± 25% tokens; r1d7 NoThinking text 80.6 ± 4%; adt7 think 92.0 ± 3% at
+  ≤ 60% of r1d7's thinking tokens with a NoThinking share of 65–85% on MATH-500 (and ≤ 20% on AIME).
+- ADAPT-P2 (head-to-head, MATH-500): AdaptThink dominates our gate on the base model (gate = r1d7 NoThinking text == NoThinking program →
+  accept, else r1d7 thinking): AdaptThink accuracy ≥ gate accuracy − 1 at ≤ 75% of the gate's tokens. Reason: R1-distill's NoThinking
+  program is weak, so agreement is rarer than for Qwen3 and the gate pays two cheap answers on every problem.
+- ADAPT-P3 (combination, new): a free check on AdaptThink's skipped thinking — when adt7 answers without thinking, also run a NoThinking
+  program (adt7 prog); if they disagree, pay for r1d7 thinking — gains ≥ +1.0 point over AdaptThink alone on MATH-500 at ≤ +40% tokens.
+- ADAPT-P4 (3090 frontier): on MATH-500 Qwen3-8B with our gate (96.7% @ 4.3k, X1-SIZE) is ≥ 3 points above AdaptThink-7B at ≥ 1.5× its
+  tokens: neither dominates; on AIME Qwen3-8B thinking (68.3%) is ≥ 8 points above AdaptThink.

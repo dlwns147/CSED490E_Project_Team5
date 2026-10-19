@@ -419,3 +419,7 @@ S2_STORM queued (official TIR inference, GPU0; waits for the weight download) Mo
 S2_STORM mamo_full done Mon Oct 19 08:40:56 UTC 2026
 S2_STORM x3 done Mon Oct 19 08:41:03 UTC 2026
 S2_STORM relaunched (first attempt: missing timeout_decorator in its venv; installed) Mon Oct 19 08:41:57 UTC 2026
+S2_X7REP q14a_mamo done (5178/5178) Mon Oct 19 10:28:14 UTC 2026
+S2_ADAPT queued (AdaptThink-7B vs R1-Distill-7B + our gate on X1; GPU1; waits for downloads; PREREG_X1.md ADAPT) Mon Oct 19 10:42:34 UTC 2026
+S2_ADAPT started on GPU1 Mon Oct 19 10:43:39 UTC 2026
+S2_STORM deadline removed: queue shell + 6 h timeout killed by PID (results are only written at the end; first pass alone ~3.5 h); inference pid 4037001 continues; queue_s2_storm_cont.sh waits on it, then runs x3 (12 h limit) Mon Oct 19 10:44:44 UTC 2026
