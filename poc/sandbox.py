@@ -44,7 +44,10 @@ def run_python(code: str, stdin: str, timeout: float = 4.0, mem_bytes: int = 1 <
                 [PYTHON, "-I", path], input=stdin, capture_output=True, text=True,
                 timeout=timeout, cwd=d, preexec_fn=_limits(cpu_s or timeout, mem_bytes),
                 env={"PATH": "/usr/bin:/bin", "PYTHONHASHSEED": "0",
-                 "MALLOC_ARENA_MAX": "2"},  # multi-threaded solvers (CP-SAT: 64 workers) blew RLIMIT_AS via per-thread arenas
+                 "MALLOC_ARENA_MAX": "2",  # multi-threaded solvers (CP-SAT: 64 workers) blew RLIMIT_AS via per-thread arenas
+                 # 2026-10-19 (HO-L bug): under RLIMIT_AS, OpenBLAS starting one thread per core made `import scipy / cvxpy` take
+                 # > 60 s (all 22 cvxpy programs 'tle' with empty output); BLAS / OpenMP pools are single-threaded now
+                 "OPENBLAS_NUM_THREADS": "1", "OMP_NUM_THREADS": "1", "MKL_NUM_THREADS": "1"},
             )
         except subprocess.TimeoutExpired:
             return RunResult("tle", "", "")

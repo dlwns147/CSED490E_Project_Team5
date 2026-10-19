@@ -159,7 +159,8 @@ def main():
             row.update(text=text[-1500:], pred=pred, status="ok" if b else "no_answer")
         else:
             code = last_block(text, ("python", "py", "python3"))
-            r = run_python(code, "", timeout=60, mem_bytes=4 << 30) if code else None
+            r = run_python(code, "", timeout=60, mem_bytes=4 << 30,   # free modes may pick multi-threaded CP-SAT: CPU limit >> wall (H5 bug)
+                           cpu_s=(3600 if mode in ("free", "thinkfree") else None)) if code else None
             out = (r.stdout if r and r.status == "ok" else "") or ""
             lines = [l for l in out.strip().splitlines() if l.strip()]
             pred = value_of(lines[-1]) if lines else None

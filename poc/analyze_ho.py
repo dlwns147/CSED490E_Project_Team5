@@ -1,5 +1,5 @@
 """HO (docs/prereg/PREREG_HO.md): held-out OptMATH-Bench. Per model: single arms (accuracy @ tokens, run / crash / 'No Best Solution' shares)
-and policies with the automatic-fact program (mips) or the library program (formx) as the cheap arm: CHEAP, FF (think if the program
+and policies with the automatic-fact program (mips), the library program (formx) or the solver-choice program (free, with thinkfree) as the cheap arm: CHEAP, FF (think if the program
 does not run, prints nothing or prints 'No Best Solution'), FFR-strict (two programs run, agree and are feasible, else think), THINK.
 usage: python analyze_ho.py [model ...]"""
 import os, sys
@@ -17,16 +17,16 @@ def ag(a, b):
 for m in sys.argv[1:] or ["oss20", "q14a", "q8b"]:
     tag = f"{m}_optmath"
     print(f"=== {m}")
-    for a in ("mip", "mipf", "mips", "formx", "thinks"):
+    for a in ("mip", "mipf", "mips", "formx", "thinks", "free", "thinkfree"):
         R = [r for s in (1, 2, 3) for r in (X.rows(tag, a, s) or {}).values()]
         if not R:
             continue
         st = Counter("NBS" if r.get("pred") == "NBS" else r["status"] for r in R)
         print(f"  {a:6s} n={len(R):3d} {100 * sum(r['correct'] for r in R) / len(R):5.1f}% @ {sum(r['out_tokens'] or 0 for r in R) / len(R) / 1000:.2f}k | {dict(st)}"
               f" | caps {sum(r.get('finish') == 'length' for r in R)}")
-    for c in ("mips", "formx"):
+    for c, th in (("mips", "thinks"), ("formx", "thinks"), ("free", "thinkfree")):
         for s in (1, 2, 3):
-            F, F2, T = X.rows(tag, c, s), X.rows(tag, c, s % 3 + 1), X.rows(tag, "thinks", s)
+            F, F2, T = X.rows(tag, c, s), X.rows(tag, c, s % 3 + 1), X.rows(tag, th, s)
             if not (F and F2 and T):
                 continue
             acc = dict(CHEAP=[0, 0], FF=[0, 0], FFR=[0, 0], THINK=[0, 0]); n = 0
@@ -39,4 +39,4 @@ for m in sys.argv[1:] or ["oss20", "q14a", "q8b"]:
                 acc["FF"][0] += f["correct"] if ok_(f) else t["correct"]; acc["FF"][1] += tf + (0 if ok_(f) else tt)
                 g = ok_(f) and ok_(F2[i]) and ag(f["pred"], F2[i]["pred"])
                 acc["FFR"][0] += f["correct"] if g else t["correct"]; acc["FFR"][1] += tf + tf2 + (0 if g else tt)
-            print(f"  policies ({c}, s{s}, n={n}): " + " | ".join(f"{k} {100 * a / n:.1f}% @ {k_ / n / 1000:.2f}k" for k, (a, k_) in acc.items()))
+            print(f"  policies ({c} / {th}, s{s}, n={n}): " + " | ".join(f"{k} {100 * a / n:.1f}% @ {k_ / n / 1000:.2f}k" for k, (a, k_) in acc.items()))

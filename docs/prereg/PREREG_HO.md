@@ -38,3 +38,12 @@ fact cannot cover cvxpy (no checked cvxpy programs exist in NL4OPT / MAMO); the 
 - HO-L-P1: free beats mip by ≥ +8 points for gpt-oss-20b (most of the 22% 'No Best Solution' become numbers; about half of those right).
 - HO-L-P2: with free as the cheap arm, FF (think if the program fails or prints No Best Solution) is ≥ always-thinking at ≤ 70% of its
   tokens for each model (seed 1–3 means).
+
+## HO-L harness bug (2026-10-19 19:39 UTC): first HO-L numbers withdrawn, re-run
+The first HO-L run looked like a large negative (gpt-oss-20b free 16.3% vs pywraplp 32.0%; Qwen3-14B-AWQ thinkfree 7.6% vs thinks 26.3%). Raw:
+all 22 of gpt-oss-20b's cvxpy programs (seed 1) ended 'tle' with empty output. Cause: in the sandbox (RLIMIT_AS 4 GB, RLIMIT_CPU = 60 s),
+importing scipy starts one OpenBLAS thread per core and the import alone exceeds the CPU limit (`import scipy.optimize`: killed after 57 s;
+numpy and OR-Tools import in 0.1 s, so earlier runs — which had no scipy installed — are unaffected). A second cause: CP-SAT programs
+chosen under the free prompt run many worker threads and hit RLIMIT_CPU (the H5 bug). Fixes: BLAS / OpenMP single-threaded in the sandbox
+(cvxpy import + a cone solve: 0.6 s), and a CPU limit of 3,600 s for the free modes (wall clock still 60 s). The buggy outputs are kept as
+results/x3/opt_*_optmath_{free,thinkfree}_s*_sandboxbug.jsonl; HO-L re-runs with the same prompts, seeds and predictions.

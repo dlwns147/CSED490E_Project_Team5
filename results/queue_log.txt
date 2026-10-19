@@ -472,3 +472,11 @@ S2_HO oss20 arms done Mon Oct 19 18:33:22 UTC 2026
 S2_CHR lane GPU2 done (seeds 7 8) Mon Oct 19 18:37:06 UTC 2026
 S2_HOL queued (OptMATH with solver choice; first free GPU of 1-2; PREREG_HO.md HO-L) Mon Oct 19 18:37:19 UTC 2026
 S2_HOL started on GPU2 Mon Oct 19 18:37:19 UTC 2026
+S2_CHR lane GPU1 done (seeds 4 5 6) Mon Oct 19 18:40:56 UTC 2026
+S2_CHR done Mon Oct 19 18:40:56 UTC 2026
+S2_STORM_HO started on GPU1 Mon Oct 19 18:41:25 UTC 2026
+S2_HOL oss20 done Mon Oct 19 18:45:32 UTC 2026
+S2_HO q14a arms done Mon Oct 19 19:32:04 UTC 2026
+S2_HOL stopped by PID: sandbox bug (OpenBLAS threads under RLIMIT_AS made scipy/cvxpy imports exceed 60 s; all cvxpy programs 'tle'); outputs kept as *_sandboxbug.jsonl Mon Oct 19 19:38:34 UTC 2026
+S2_HOL relaunched after the sandbox fix Mon Oct 19 19:39:51 UTC 2026
+S2_HOL started on GPU2 Mon Oct 19 19:39:52 UTC 2026
