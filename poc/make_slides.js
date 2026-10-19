@@ -827,28 +827,34 @@ function buildTalk() {
   caption(s, "More accurate and cheaper than spending thinking on the hardest-looking problems");
   s.addNotes("(60 s) Together this gives our method, shown on one real word problem. Without a fact, the program calls a method that does not exist. The fact is found automatically: the model's own earlier program for another problem that passed the check, showing the right call. With it, two versions both print 20000, they agree, so we skip thinking and accept: 0.6 thousand tokens instead of 5.3 thousand. A problem of the same kind with new data reuses the checked program. Over 624 problems and 3 models: 87% at 2.5 thousand tokens, versus 74% at 4.1 thousand for the usual idea of thinking more on the hardest-looking problems. And the automatic fact matches a hand-written one on a benchmark we never used before: 79 versus 79%.");
 
-  // 7. what is new, the plan, and the takeaway
+  // 7. what is new (the usual way vs ours, row by row), what is next (a timeline), and the takeaway
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
-  s.addText("What is new, and our plan", { placeholder: "title" });
-  panel(s, 0.6, 1.35, 5.95, 3.55, "new");
-  txt(s, "New compared with prior work", 0.85, 1.45, 5.45, 0.5, { fontSize: 18, bold: true, color: BLUE });
-  bullets(s, ["Prior work spends compute by difficulty or trains a switch; we decide with a free check after a fact, no training (87% vs 74%)",
-              "Prior work retrieves manuals or distils teacher programs checked against answers; our facts are the model's own checked programs",
-              "No training: Qwen3-8B on one GPU matches the fine-tuned ORLM-8B (69.5% vs 69.5%)"], { x: 0.85, y: 2.0, w: 5.5, h: 2.85, fontSize: 15 });
-  panel(s, 6.75, 1.35, 5.95, 3.55, "plan");
-  txt(s, "Plan until the final report", 7.0, 1.45, 5.45, 0.5, { fontSize: 18, bold: true, color: BLUE });
-  [["1", "Replicate on held-out data for 3 more models; run the closest baselines (STORM, AdaptThink)"],
-   ["2", "Find facts automatically for every problem type"],
-   ["3", "Final report, code and the recipe as a reusable tool"]].forEach(([n, t], r) => {
-    const y = 2.05 + r * 0.92;
-    s.addShape(pres.shapes.OVAL, { x: 7.0, y: y + 0.05, w: 0.5, h: 0.5, fill: { color: BLUE }, line: { color: BLUE }, objectName: "plan " + n });
-    txt(s, n, 7.0, y + 0.05, 0.5, 0.5, { fontSize: 17, bold: true, color: "FFFFFF", align: "center" });
-    txt(s, t, 7.65, y, 4.9, 0.8, { fontSize: 15, valign: "top" });
+  s.addText("What is new, and what is next", { placeholder: "title" });
+  txt(s, "The usual way", 0.6, 1.3, 5.3, 0.4, { fontSize: 16, bold: true, color: "7F7F7F", align: "center" });
+  txt(s, "Ours", 7.4, 1.3, 5.3, 0.4, { fontSize: 16, bold: true, color: BLUE, align: "center" });
+  [["brain", "think more on hard-looking problems, or train when to think", "check", "think only when a free check fails; no training (87% vs 74%)"],
+   ["page", "give the manual, or a teacher's programs checked against answers", "fact", "give one fact: the model's own checked program; no answers"],
+   ["robot", "fine-tune a specialist model (ORLM-8B)", "gpu", "no training, one 24 GB GPU: the same 69.5%"]].forEach(([li, lt, ri, rt], r) => {
+    const y = 1.75 + r * 0.9;
+    box(s, "", 0.6, y, 5.3, 0.75, "F2F2F2");
+    s.addImage({ path: ICON(li), x: 0.75, y: y + 0.15, w: 0.45, h: 0.45, objectName: "usual icon " + r });
+    txt(s, lt, 1.35, y, 4.45, 0.75, { fontSize: 15, color: "404040" });
+    s.addShape(pres.shapes.RIGHT_ARROW, { x: 6.1, y: y + 0.17, w: 1.1, h: 0.42, fill: { color: BLUE }, line: { color: BLUE }, objectName: "arrow " + r });
+    box(s, "", 7.4, y, 5.3, 0.75, "DEEBF7");
+    s.addImage({ path: ICON(ri), x: 7.55, y: y + 0.15, w: 0.45, h: 0.45, objectName: "ours icon " + r });
+    txt(s, rt, 8.15, y, 4.45, 0.75, { fontSize: 15, bold: true, color: "1F3864" });
   });
-  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 0.6, y: 5.15, w: 12.1, h: 0.95, rectRadius: 0.08, fill: { color: "DEEBF7" }, line: { color: "BDD7EE", width: 0.75 }, objectName: "takeaway" });
-  txt(s, [{ text: "Takeaway: ", options: { bold: true, color: BLUE } }, { text: "give the missing fact first, and think only where a free check fails: more accurate, fewer tokens, one 24 GB GPU." }],
-      0.85, 5.15, 11.6, 0.95, { fontSize: 18 });
-  s.addNotes("(30 s) What is new: prior work spends compute by difficulty or trains a model to decide when to think; we decide with a free execution check after giving a fact, with no training. Prior work retrieves manuals or distils a teacher's programs checked against answers; our facts are the model's own checked programs. And without training, an 8B model on one GPU matches a fine-tuned specialist. Next: replicate on held-out data and run the closest baselines, find facts for every problem type, and release the recipe. Takeaway: give the missing fact first, and think only where a free check fails. Thank you.");
+  // next steps as a timeline
+  txt(s, "Next, until the final report", 0.6, 4.5, 12.1, 0.4, { fontSize: 16, bold: true });
+  s.addShape(pres.shapes.LINE, { x: 2.4, y: 5.25, w: 8.5, h: 0, line: { color: "BFBFBF", width: 3 } });
+  [["check", "replicate on held-out data; run the closest baselines"], ["fact", "find facts for every problem type"], ["code", "final report, code, and the recipe as a tool"]].forEach(([icon, t], k) => {
+    const x = 2.4 + k * 4.25;
+    s.addShape(pres.shapes.OVAL, { x: x - 0.3, y: 4.95, w: 0.6, h: 0.6, fill: { color: "FFFFFF" }, line: { color: BLUE, width: 2 }, objectName: "milestone " + k });
+    s.addImage({ path: ICON(icon), x: x - 0.19, y: 5.06, w: 0.38, h: 0.38, objectName: "milestone icon " + k });
+    txt(s, t, x - 1.8, 5.58, 3.6, 0.55, { fontSize: 15, align: "center", valign: "top" });
+  });
+  caption(s, "Takeaway: give the missing fact first, and think only where a free check fails");
+  s.addNotes("(30 s) What is new, compared with the usual way. Usually more compute goes to hard-looking problems, or a model is trained to decide when to think; we think only when a free check fails, with no training: 87 versus 74%. Usually models get the manual, or a teacher's programs checked against answers; we give one fact, the model's own checked program, with no answers. And instead of fine-tuning a specialist, an untrained 8B model on one GPU gets the same 69.5%. Next: replicate on held-out data and run the closest baselines, find facts for every problem type, and release the report, code and recipe. Takeaway: give the missing fact first, and think only where a free check fails. Thank you.");
 
   function slidePays(section, title) {
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: section });
