@@ -24,3 +24,21 @@ compared the SAME content in the two forms: the name list and the plan carry les
   the start city only on one side, as seen in FORM); with code they copy the loop structure. Read ≥ 10 programs per form.
 If CD-P1 fails (the sentence is as good as code when the content is matched), the earlier contrasts were about information, not form, and
 the "give working code" lesson is withdrawn.
+
+## Results (2026-10-19 21:38 UTC; poc/analyze_cd.py; 3 seeds; seed means with per-seed values)
+| | gpt-oss-20b | Qwen3-14B-AWQ | Qwen3-8B |
+|---|---|---|---|
+| K1 API, NL4OPT + IndustryOR: no fact / **words** / code | 67.4 / **71.5** / 70.1% | 58.1 / **65.3** / 66.0% | 34.3 / **51.5** / 51.7% |
+| K2 TSP (34 × 3): base / sentence / code | 2.0 / 8.8 / 4.9% | 58.8 / 1.0 / 0.0% | 56.9 / 4.9 / 2.9% |
+| K3 redistribution (16 × 3): base / sentence / code | 35.4 / 77.1 / 79.2% | 10.4 / 41.7 / **85.4%** | 0.0 / 39.6 / **87.5%** |
+- **CD-P2 refuted:** for API usage the description works as well as the code snippet (within 0.7 points for every model; crashes fall as
+  much). **CD-P1 refuted on K2 and for gpt-oss-20b on K3; holds for the Qwen3 models on K3** (+44 / +48).
+- Raw (CD-P3). K2: both notes make things WORSE for the Qwen3 models (57–59% → 0–5%). With the code note, Qwen3-14B-AWQ declares x[i][j] for all
+  i, j including self-loops (the note's notation, without the i ≠ j exclusion and degree constraints the model's own programs had) and
+  prints 0 on 93 of 102 runs; it does not copy the note's loop ranges either (range(1, n) in 44 of 102). K3: with the sentence the Qwen3
+  models drop the starting stock (received − sent ≥ need) or require only inflow ≥ need; the code note spells out stock + inflow − outflow
+  ≥ need and is copied — so K3's gap is partly content (my sentence did not define 'final stock'), not form alone.
+**Verdict (as pre-registered: "if CD-P1 fails, the 'give working code' lesson is withdrawn").** Form is not the mechanism. API knowledge
+transfers equally in words or code. For formulation knowledge, a partial note — in words or code — can displace the model's own working
+formulation (TSP); it helps only when it pins down the whole constraint the model gets wrong (redistribution). What worked robustly in FORM
+was a complete checked program for a similar problem. The lesson becomes: give a complete worked instance, not a fragment.

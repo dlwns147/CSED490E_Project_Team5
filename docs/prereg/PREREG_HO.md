@@ -87,3 +87,8 @@ Policies, seeds 1 / 2 / 3: **FF (mips, think on failure or 'No Best Solution') 3
   gpt-oss-20b's wrong-but-running programs misread data (an asymmetric weight table read as symmetric) or face texts that omit data.
 **Reading:** on an unseen, harder benchmark the part of the recipe that generalises is "cheap program first, pay for reasoning only on a
 visible failure"; the parts tuned on easy textbook problems (the mined usage example, two agreeing programs) do not.
+
+## HO-P3 library on OptMATH (2026-10-19 21:38 UTC; formx = the program of the most similar other OptMATH problem from the three models' strict-check-passing programs)
+Cheap program: gpt-oss-20b 24.7% (mips 26.0), Qwen3-14B-AWQ 10.0% (8.7), Qwen3-8B 14.3% (8.7). FF with formx: 36.7% @ 3.9k (gpt-oss-20b; mips 38.3% @ 3.7k),
+24.0% @ 7.2k (Qwen3-14B-AWQ; 26.3% @ 8.7k), 28.7% @ 7.6k (Qwen3-8B; 28.0% @ 10.3k). **HO-P3: as on NL4OPT + IndustryOR, not MAMO** — the library
+saves 17–26% of the Qwen models' tokens (fewer crashes, fewer escalations) at −2.3 to +0.7 points, and helps only Qwen3-8B's first program.
