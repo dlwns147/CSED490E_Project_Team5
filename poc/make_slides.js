@@ -715,9 +715,9 @@ function buildTalk() {
     "(30초) 저희가 푸는 문제는 네 종류이고, 두 무리로 나뉩니다. 기하 계산과 Codeforces 경시 문제는 맞는 알고리즘이 필요하고, 경시 문제는 그중 어려운 쪽으로 중앙값이 Codeforces Master 수준입니다. 배송 경로와 최적화 문장제는 솔버를 맞게 부르는 법이 필요하고, 문장제는 글을 수식으로 옮기는 단계가 더 있습니다. 이 문제들을 고른 이유는 답이 정확히 하나라 코드로 채점할 수 있고, 필요한 것이 서로 달라서 추가 노력을 어디에 써야 할지 비교할 수 있기 때문입니다. 공개 모델 Qwen3와 gpt-oss로 맞힌 문제 수와 토큰 수를 함께 잽니다.",
     "(20초) LLM은 말로 답할 수도 있고, 프로그램을 짤 수도 있습니다. Qwen3-8B에게 같은 도형의 넓이의 두 배를 물었습니다. 옮기고 돌리고 뒤집어도 답은 436입니다. 말로 답하면 매번 다른 답이 나오지만, 프로그램은 네 번 모두 436입니다. 계산에는 프로그램이 맞는 도구입니다.",
     "(35초) 하지만 두 가지 문제가 있습니다. 첫째, 프로그램은 조용히 틀립니다. 같은 문제인데 프롬프트에 보조 코드만 더하면 6 대신 0을 출력하고, 에러 메시지도 없습니다. 없는 라이브러리 함수를 불러서 죽기도 합니다. 둘째, 오래 생각하면 비쌉니다. 경시 문제 311개에서 gpt-oss-120b는 오래 생각하면 57%에서 66%로 오르지만, 토큰은 4.4배를 씁니다. 그래서 질문입니다. 추가 노력을 코드 힌트, 공짜 검사, 더 많은 생각 중 어디에 써야 할까요?",
-    "(35초) 첫 번째 발견입니다. 매뉴얼이 아니라 짧은 힌트를 주세요. Qwen3-32B가 OR-Tools로 배송 경로 프로그램을 짭니다. 긴 참조 문서를 주면 존재하지 않는 함수를 불러서 죽고, 정확한 사용법 열한 줄을 주면 최적 경로를 찾습니다. 경로 문제 30개에서 최적해를 찾는 비율은 아무것도 안 주면 23%, 오래 생각하면 오히려 3%, 긴 참조 문서는 7%, 정확한 사용법은 77에서 90%입니다. 최적화 문장제와 기하에서도 같았습니다. 모르는 것은 생각한다고 생기지 않습니다.",
+    "(70초) 첫 번째 발견입니다. 매뉴얼이 아니라 짧은 힌트를 주세요. 힌트는 이렇게 줍니다. 과제는 무게 제한이 있는 트럭들의 배송 경로를 짜는 것이고, 프롬프트에 OR-Tools를 정확히 쓰는 법 열한 줄을 같이 붙입니다. 그러면 Qwen3-32B가 맞는 함수를 불러 최적 경로를 찾습니다. 대신 긴 참조 문서를 주면, 문서에 경로는 있지만 트럭 무게 규칙이 없어서 없는 함수를 지어내고 프로그램이 죽습니다. 오른쪽은 30문제에서 최적 경로를 찾은 비율입니다. 아무것도 안 주면 23%, 오래 생각하면 오히려 3%, 긴 문서는 7%, 짧은 힌트는 77에서 90%입니다. 모르는 함수 이름은 오래 생각한다고 생기지 않습니다. 힌트는 문제 종류마다 한 번만 만들면 됩니다. 라이브러리를 아는 사람이 쓰거나, 사용법 코드 조각 모음에서 검색하거나, 모델이 다른 문제에서 짜서 검사를 통과한 자기 프로그램을 그대로 씁니다. 세 번째 방법은 사람이 필요 없고, 사람이 쓴 힌트와 같은 정확도였습니다.",
     "(60초) 두 번째 발견입니다. 공짜 검사가 실패할 때만 생각하게 하세요. 공짜 검사는 이렇게 돌아갑니다. 문제에는 보통 예제가 적혀 있습니다. 'Make a triangle!'에는 막대 3, 4, 5면 답이 0이라는 예제가 있습니다. 모델이 짠 프로그램을 모델 없이 컴퓨터에서 3, 4, 5로 실행해 0이 나오면 그대로 내고, 다르면 그 문제만 더 생각해서 다시 짭니다. 예제가 없으면 프로그램을 두 가지로 짜서 답이 같은지 봅니다. 오른쪽이 결과입니다. 경시 문제 311개에서 항상 오래 생각하면 66.2%에 3만 토큰, 실패할 때만 생각하면 66.3%에 2만 5천 토큰입니다. 예제만으로는 65%이고, 작은 입력을 전부 따져 보는 짧은 프로그램과도 비교해서 66%가 됩니다. 기하에서는 98% 대 99%이고 토큰은 27% 적습니다. 정답 없이도 같은 정확도를 더 싸게 얻습니다.",
-    "(60초, [생략 가능] 포함 80초) 두 발견을 합친 것이 저희 방법입니다. 실제 최적화 문제로 보면, 1단계에서 모델이 없는 메서드를 불러 죽습니다. 2단계 힌트는 모델이 다른 문제에서 짜서 검사를 통과한 자기 프로그램에서 자동으로 가져옵니다. 3단계, 두 버전의 답이 20000으로 같으니 4단계 생각은 건너뛰어, 생각만 했을 때의 5.3k 대신 0.6k 토큰을 씁니다. 5단계, 같은 종류의 새 데이터에는 이 프로그램을 재사용합니다. [생략 가능] 아이콘은 각 단계를 쓰는 문제 종류이고, 경시 문제는 라이브러리가 없어 힌트 없이 검사와 생각만 씁니다. 전체 비교는 이렇게 했습니다. 기존 방식은 각 문제에 세 번 빠르게 답하게 해서 답이 갈리는 문제를 어렵다고 보고 거기에 생각을 씁니다. 저희는 모든 문제에 사람이 쓴 힌트를 먼저 주고 검사에 실패한 문제만 생각하게 합니다. 기하와 최적화 208문제를 세 모델로 풀면 정답률이 74% 대 87%, 토큰은 4.1k 대 2.5k입니다. [생략 가능] 오른쪽 79%는 개발에 쓰지 않은 MAMO 문제 863개에서 gpt-oss-20b에 자동 힌트를 준 결과로, 사람이 쓴 힌트와 같고, 힌트가 없으면 73%입니다.",
+    "(60초) 두 발견을 합친 것이 저희 방법입니다. 위의 네 단계입니다. 힌트를 붙여 프로그램을 쓰고, 공짜 검사를 돌려서, 통과하면 내고 실패하면 생각합니다. 같은 종류의 문제가 데이터만 바꿔 다시 오면 그 프로그램을 재사용합니다. 아이콘은 각 단계를 쓰는 문제 종류입니다. 왼쪽은 실제 문제 하나입니다. Qwen3-8B가 힌트 없이 짜면 없는 함수를 불러 죽습니다. 힌트로 다른 문제에서 검사를 통과한 자기 프로그램을 주면, 두 버전이 모두 20000을 내서 바로 냅니다. 생각만 했다면 5.3k 토큰, 이렇게 하면 0.6k입니다. 오른쪽은 전체 결과입니다. 세 번 답해서 답이 갈리는 문제에 생각을 몰아주는 기존 방식은 74%이고, 저희 방법은 검색으로 찾은 힌트로 84%, 사람이 쓴 힌트로 87%이며 토큰도 더 적습니다. 처음 써 본 MAMO에서는 자동 힌트가 사람이 쓴 힌트와 같은 79%였습니다.",
     "(75초) 마지막으로 새로운 점과 다음 계획입니다. 왼쪽이 흔히 쓰는 방법, 오른쪽이 저희 방법입니다. 첫째, 기존에는 세 번 답해서 답이 갈리는 문제에 생각을 몰아주거나 언제 생각할지를 학습시키지만, 저희는 학습 없이 공짜 검사가 실패한 문제에만 생각을 씁니다. 둘째, 기존에는 매뉴얼이나 교사 모델이 짜서 정답으로 확인한 프로그램을 주지만, 저희는 모델 자신이 짜서 검사를 통과한 프로그램을 짧은 힌트로 주므로 사람도 정답도 필요 없습니다. 셋째, 비용입니다. 개발에 쓰지 않은 MAMO 863문제에서 최적화용으로 파인튜닝한 ORLM-8B를 저희 채점기로 돌리면 69.5%인데, 학습하지 않은 Qwen3-8B에 자기 힌트를 주면 24GB GPU 한 장으로 같은 69.5%를 더 적은 토큰에 냅니다. 다음으로는 더 많은 모델로 검증을 마치고, 실행은 되지만 문제를 잘못 수식으로 옮긴 오류를 힌트로 고칠 수 있는지 시험하고, 문제 종류마다 힌트를 찾겠습니다. 정리하면, 짧은 힌트를 먼저 주고, 공짜 검사가 실패한 곳에서만 생각하게 하자는 것입니다.\n\n[더 자세히: 질문이 나오거나 시간이 남을 때]\n첫째 줄, 생각을 어디에 쓸지. 기존 방법은 어려워 보이는 문제에 계산을 더 쓰는 Snell 등의 방식과, 언제 생각할지를 강화학습으로 가르치는 Thinkless, AdaptThink입니다. 저희는 정답 없이 돌리는 공짜 검사가 실패한 문제에만 생각을 씁니다. 기하와 최적화 208문제를 세 모델로 풀면 74%가 87%로 오르고, 토큰은 문제당 4.1k에서 2.5k로 줄었습니다. 87%는 사람이 쓴 힌트를 쓴 결과이고, 검색으로 찾은 힌트로도 84%입니다.\n둘째 줄, 모델에게 무엇을 주는지. 기존에는 매뉴얼 전체를 주거나, 더 큰 교사 모델이 짜서 정답으로 확인한 프로그램 모음을 줍니다. 저희 힌트는 모델이 다른 문제에서 짜서 공짜 검사를 통과한 자기 프로그램입니다. 끝까지 남겨 둔 MAMO 벤치마크에서 사람이 쓴 힌트와 같은 79%를 냈습니다.\n셋째 줄, 비용. ORLM-8B는 최적화 문장제용으로 파인튜닝한 공개 모델이고, 모델 카드의 형식과 솔버, 그리디 디코딩으로 저희 채점기에서 돌렸습니다: MAMO 69.5%, 문제당 1.1k 토큰(샘플링하면 64~66%). Qwen3-8B는 학습 없이 자기 힌트를 붙여 프로그램을 한 번 짜고 실행이 안 될 때만 생각하게 해서 69.5%, 1.0k 토큰입니다. 두 버전 검사까지 쓰면 71%(3.1k), gpt-oss-20b는 78.8%입니다.\n다음 계획. 하나, MAMO 검증을 Qwen3-32B와 Qwen3.6까지 세 시드로 마칩니다. 둘, 검사로 못 잡는 오류입니다. 지금 남은 오류의 절반쯤은 정답 라벨이 의심스러운 문제이고, 나머지는 같은 유형에서 같은 수식 실수가 반복됩니다. 예를 들어 순서 제약이나 공급 균형을 잘못 씁니다. 고치기 한 번이나 생각으로는 안 고쳐져서, 힌트 하나로 고쳐지는지 시험합니다. 셋, 지금은 같은 종류의 문제 안에서만 자동 힌트가 통하므로, 문제 종류마다 힌트를 찾고 최종 보고서와 코드를 냅니다.",
     "(5초) 감사합니다. 질문 받겠습니다.",
   ];
@@ -847,17 +847,33 @@ function buildTalk() {
   s.addText("Finding 1: give the fact, not the manual", { placeholder: "title" });
   answerBadge([0]);
   holdsOn(["shapes", "truck", "calc"]);
-  txt(s, "Qwen3-32B plans delivery routes with Google's OR-Tools library", 0.6, 1.3, 12.1, 0.45, { fontSize: 17 });
-  [["a long reference sheet", "RegisterUnaryLongLivingCallback()", "✗ does not exist: crash", "FCE4D6", RED, 1.95],
-   ["the exact usage (11 lines)", "RegisterUnaryTransitCallback()", "✓ runs: best route", "E2F0D9", "38761D", 2.75]].forEach(([lab, call, res, fill, col, y]) => {
-    box(s, lab, 0.6, y, 2.7, 0.6, fill, { fontSize: 16, bold: true });
-    arrow(s, 3.3, y + 0.3, 3.65, y + 0.3);
-    code(s, call, 3.65, y, 4.9, 0.6, col, 15);
-    txt(s, res, 8.75, y, 3.9, 0.6, { fontSize: 17, bold: true, color: col });
+  // left: how the hint is given, on the real routing task; right: what it buys
+  panel(s, 0.6, 1.5, 5.85, 4.55, "how the hint is given");
+  txt(s, "How the hint is given (Qwen3-32B, OR-Tools)", 0.85, 1.58, 5.4, 0.42, { fontSize: 18, bold: true, color: BLUE });
+  box(s, "Task: plan routes for trucks with a weight limit", 0.85, 2.05, 5.35, 0.5, "FFFFFF", { fontSize: 15 });
+  txt(s, "+", 3.4, 2.55, 0.3, 0.25, { fontSize: 16, bold: true, align: "center" });
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 0.85, y: 2.8, w: 5.35, h: 1.05, rectRadius: 0.06, fill: { color: "E2F0D9" }, line: { color: "38761D", width: 1 }, objectName: "the hint" });
+  s.addText([{ text: "Hint: the exact usage, 11 lines, e.g.", options: { bold: true, color: "38761D", fontFace: THEME.bodyFontFace, breakLine: true } },
+             { text: "r.RegisterUnaryTransitCallback(demand)", options: { breakLine: true } },
+             { text: "r.AddDimensionWithVehicleCapacity(...)" }],
+    { isTextBox: true, x: 1.0, y: 2.82, w: 5.1, h: 1.0, fontFace: "Courier New", fontSize: 14, color: C.text1, valign: "middle", margin: 0 });
+  arrow(s, 3.52, 3.85, 3.52, 4.05);
+  box(s, "✓ the program runs: best route", 0.85, 4.05, 5.35, 0.45, "E2F0D9", { fontSize: 15, bold: true, color: "38761D" });
+  txt(s, "A long reference sheet instead (no weight rule in it):", 0.85, 4.62, 5.35, 0.35, { fontSize: 15, bold: true });
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 0.85, y: 5.0, w: 5.35, h: 0.85, rectRadius: 0.06, fill: { color: "FADBD8" }, line: { color: RED, width: 1 }, objectName: "invented call" });
+  s.addText([{ text: "RegisterUnaryLongLivingCallback()", options: { fontFace: "Courier New", breakLine: true } }, { text: "✗ invented, does not exist: crash", options: { bold: true } }],
+    { isTextBox: true, x: 1.0, y: 5.0, w: 5.1, h: 0.85, fontSize: 14, color: RED, valign: "middle", margin: 0 });
+  panel(s, 6.75, 1.5, 5.95, 4.55, "what it buys");
+  txt(s, "Result: 30 routing problems solved optimally", 7.0, 1.58, 5.45, 0.42, { fontSize: 18, bold: true, color: BLUE });
+  hbars(s, 7.0, 2.1, 5.45, [["task only", 23, "23%", "7F7F7F"], ["+ think longer", 3, "3%", RED], ["+ long sheet", 7, "7%", RED], ["+ short hint", 83, "77–90% (3 runs)", BLUE]], 0.55, 1.75, 1.9);
+  // where the hint comes from: made once per problem type, three ways (details on an extra page)
+  txt(s, "Where the hint comes from (once per problem type):", 7.0, 4.42, 5.45, 0.38, { fontSize: 15, bold: true });
+  [["pen", "written by hand by someone who knows the library"], ["page", "found by search in a library of usage snippets"], ["check", "the model's own program that passed the check (no human)"]].forEach(([icon, t], k) => {
+    const y = 4.85 + k * 0.38;
+    s.addImage({ path: ICON(icon), x: 7.05, y: y + 0.03, w: 0.28, h: 0.28, objectName: "hint source " + icon });
+    txt(s, t, 7.45, y, 5.0, 0.34, { fontSize: 14 });
   });
-  txt(s, "% of 30 routing problems solved optimally:", 0.6, 3.65, 12.1, 0.4, { fontSize: 17, bold: true });
-  hbars(s, 0.6, 4.1, 12.1, [["nothing extra", 23, "23%", "7F7F7F"], ["think longer", 3, "3%", RED], ["long reference sheet", 7, "7%", RED], ["exact usage", 83, "77–90% (3 seeds)", BLUE]], 0.5, 2.6, 2.6);
-  caption(s, "Thinking cannot supply a fact the model does not have");
+  caption(s, "Thinking cannot supply what the model does not know: give it the hint");
 
   // 6. finding 2: free checks decide when to think
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
@@ -891,46 +907,44 @@ function buildTalk() {
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
   s.addText("Our method: cheap steps first", { placeholder: "title" });
   answerBadge([0, 1]);
-  txt(s, "icons under each step: where it is used", 8.6, 1.08, 4.1, 0.3, { fontSize: 14, color: "7F7F7F", align: "right" });
-  txt(s, "One real problem (Qwen3-8B): minimum cost of X, Y, Z under three limits → 20000", 0.6, 1.28, 8.6, 0.4, { fontSize: 16 });
-  [["1 Program", "Objective()\n.Minimize()", "✗ crash, no fact", RED, "FADBD8", 1.0],
-   ["2 + Fact", "solver\n.Minimize(...)", "found automatically: its own checked program", "38761D", "E2F0D9", 1.0],
-   ["3 Free check", "20000 = 20000", "a second version agrees", "38761D", "E2F0D9", 1.0],
-   ["4 Think?", "skipped", "think only if the two differ", "7F7F7F", "F2F2F2", 1.0],
-   ["5 Reuse", "same program", "same kind, new data: no new tokens", BLUE, "DEEBF7", 1.0]].forEach(([head, big, small, col, fill], k) => {
-    const x = 0.6 + k * 2.45;
-    txt(s, head, x, 1.78, 2.3, 0.4, { fontSize: 17, bold: true, color: BLUE });
-    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 2.2, w: 2.3, h: 1.45, rectRadius: 0.08, fill: { color: fill }, line: { color: col, width: 1 }, objectName: "step " + head });
-    txt(s, big, x + 0.08, 2.25, 2.14, 0.62, { fontSize: k < 2 ? 14 : 18, bold: true, color: col, align: "center", fontFace: k < 2 ? "Courier New" : THEME.bodyFontFace });
-    txt(s, small, x + 0.1, 2.9, 2.1, 0.72, { fontSize: 14, align: "center", valign: "top" });
-    if (k < 4) arrow(s, x + 2.3, 2.92, x + 2.45, 2.92);
-    const used = [KINDS, ["shapes", "truck", "calc"], KINDS, KINDS, ["truck"]][k];   // contest problems use no library, so no hint; reuse needs a repeating problem
-    KINDS.forEach((icon, j) => s.addImage({ path: ICON(icon), x: x + 0.54 + j * 0.32, y: 3.72, w: 0.26, h: 0.26, transparency: used.includes(icon) ? 0 : 82,
-                                             objectName: `step ${k + 1} ${used.includes(icon) ? "used on" : "not needed on"} ${icon}` }));
+  txt(s, "icons: where each step is used", 9.0, 1.08, 3.7, 0.3, { fontSize: 14, color: "7F7F7F", align: "right" });
+  [["① program + hint", "F2F2F2", C.text1, ["shapes", "truck", "calc"]], ["② free check", "DEEBF7", "1F3864", KINDS],
+   ["③ pass: submit · fail: think", "E2F0D9", "38761D", KINDS], ["④ same type again: reuse it", "F2F2F2", C.text1, ["truck"]]].forEach(([t, fill, col, used], k) => {
+    const x = 0.6 + k * 3.07;
+    box(s, t, x, 1.45, 2.85, 0.55, fill, { fontSize: 15, bold: true, color: col });
+    if (k < 3) arrow(s, x + 2.85, 1.72, x + 3.07, 1.72);
+    KINDS.forEach((icon, j) => s.addImage({ path: ICON(icon), x: x + 0.86 + j * 0.3, y: 2.07, w: 0.24, h: 0.24, transparency: used.includes(icon) ? 0 : 82,
+                                            objectName: `step ${k + 1} ${used.includes(icon) ? "used on" : "not needed on"} ${icon}` }));
   });
-  txt(s, "108 geometry + 100 optimization problems × 3 models:", 0.6, 4.08, 7.0, 0.4, { fontSize: 16, bold: true });
-  costRows(0.6, 4.45, 7.0, 2.5, [["think on hardest-looking", "74%", 4.1, "4.1k", "7F7F7F"], ["ours, hand-written hint", "87%", 2.5, "2.5k", BLUE]]);
-  txt(s, "79% = 79%", 8.2, 4.08, 4.5, 0.5, { fontSize: 24, bold: true, color: BLUE });
-  txt(s, "gpt-oss-20b on 863 held-out MAMO problems: its own checked program as the fact = a hand-written fact (no fact: 73%)", 8.2, 4.56, 4.5, 0.8, { fontSize: 14, valign: "top" });
-  txt(s, [{ text: "This problem: ", options: {} }, { text: "0.6k tokens", options: { bold: true, color: BLUE } }, { text: " (thinking alone: 5.3k)" }], 8.2, 5.45, 4.5, 0.4, { fontSize: 14 });
+  panel(s, 0.6, 2.5, 5.85, 3.55, "one real problem");
+  txt(s, "One real problem (Qwen3-8B, a MAMO word problem)", 0.85, 2.56, 5.4, 0.4, { fontSize: 17, bold: true, color: BLUE });
+  box(s, "Task: the minimum cost of products X, Y, Z under three limits (answer 20000)", 0.85, 3.0, 5.35, 0.6, "FFFFFF", { fontSize: 15 });
+  box(s, "✗ no hint: it calls a function that does not exist → crash", 0.85, 3.7, 5.35, 0.55, "FADBD8", { fontSize: 15, color: RED });
+  box(s, "✓ hint = its own checked program from another problem: both versions print 20000 → submit", 0.85, 4.35, 5.35, 0.8, "E2F0D9", { fontSize: 15, color: "38761D" });
+  txt(s, [{ text: "0.6k tokens", options: { bold: true, color: BLUE } }, { text: "  (thinking alone: 5.3k)" }], 0.85, 5.3, 5.35, 0.45, { fontSize: 17 });
+  panel(s, 6.75, 2.5, 5.95, 3.55, "overall result");
+  txt(s, "208 geometry + optimization problems × 3 models", 7.0, 2.56, 5.45, 0.4, { fontSize: 17, bold: true, color: BLUE });
+  costRows(7.0, 2.98, 5.45, 2.5, [["think where answers differ", "74%", 4.1, "4.1k", "7F7F7F"], ["ours, hint found by search", "84%", 3.3, "3.3k", "5B9BD5"], ["ours, hand-written hint", "87%", 2.5, "2.5k", BLUE]], undefined, 0.5);
+  txt(s, "Held-out MAMO (863): the model's own program as the hint = a hand-written one (79% = 79%, gpt-oss-20b)", 7.0, 4.95, 5.45, 0.9, { fontSize: 14, color: C.text2, valign: "top" });
   caption(s, "More accurate and cheaper than spending thinking on the hardest-looking problems");
 
   // 8. what is new (the usual way vs ours, row by row), what is next (a timeline), and the takeaway
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
   s.addText("What is new, and what is next", { placeholder: "title" });
-  txt(s, "The usual way", 0.6, 1.3, 5.3, 0.4, { fontSize: 16, bold: true, color: "7F7F7F", align: "center" });
-  txt(s, "Ours", 7.4, 1.3, 5.3, 0.4, { fontSize: 16, bold: true, color: BLUE, align: "center" });
-  [["brain", "think more where 3 quick answers disagree, or train when to think", "check", "think only when a free check fails, no training: 87% vs 74% on the same 208 problems"],
-   ["page", "give the manual, or a teacher's programs checked against answers", "fact", "one short fact: the model's own program that passed the check; no answer key"],
-   ["robot", "fine-tune a specialist (ORLM-8B): 69.5% on MAMO, 1.1k tokens", "gpu", "untrained Qwen3-8B + that fact, one 24 GB GPU: 69.5% at 1.0k tokens"]].forEach(([li, lt, ri, rt], r) => {
+  txt(s, "The usual way", 2.3, 1.3, 4.6, 0.4, { fontSize: 16, bold: true, color: "7F7F7F", align: "center" });
+  txt(s, "Ours", 7.6, 1.3, 5.1, 0.4, { fontSize: 16, bold: true, color: BLUE, align: "center" });
+  [["When to think", "brain", "think more on hard-looking problems, or train the model when to think", "check", "think only when a free check fails; no training: 87% vs 74% (208 problems)"],
+   ["What to give", "page", "the whole manual, or programs from a bigger model checked with answers", "fact", "one short fact: the model's own program that passed the check; no answers"],
+   ["What it costs", "robot", "fine-tune a specialist (ORLM-8B): 69.5% on MAMO", "gpu", "untrained Qwen3-8B + that fact, one 24 GB GPU: the same 69.5%"]].forEach(([topic, li, lt, ri, rt], r) => {
     const y = 1.75 + r * 0.9;
-    box(s, "", 0.6, y, 5.3, 0.75, "F2F2F2");
-    s.addImage({ path: ICON(li), x: 0.75, y: y + 0.15, w: 0.45, h: 0.45, objectName: "usual icon " + r });
-    txt(s, lt, 1.35, y, 4.45, 0.75, { fontSize: 15, color: "404040" });
-    s.addShape(pres.shapes.RIGHT_ARROW, { x: 6.1, y: y + 0.17, w: 1.1, h: 0.42, fill: { color: BLUE }, line: { color: BLUE }, objectName: "arrow " + r });
-    box(s, "", 7.4, y, 5.3, 0.75, "DEEBF7");
-    s.addImage({ path: ICON(ri), x: 7.55, y: y + 0.15, w: 0.45, h: 0.45, objectName: "ours icon " + r });
-    txt(s, rt, 8.15, y, 4.45, 0.75, { fontSize: 15, bold: true, color: "1F3864" });
+    txt(s, topic, 0.6, y, 1.6, 0.75, { fontSize: 16, bold: true });
+    box(s, "", 2.3, y, 4.6, 0.75, "F2F2F2");
+    s.addImage({ path: ICON(li), x: 2.42, y: y + 0.15, w: 0.45, h: 0.45, objectName: "usual icon " + r });
+    txt(s, lt, 3.0, y, 3.8, 0.75, { fontSize: 15, color: "404040" });
+    s.addShape(pres.shapes.RIGHT_ARROW, { x: 7.0, y: y + 0.2, w: 0.5, h: 0.36, fill: { color: BLUE }, line: { color: BLUE }, objectName: "arrow " + r });
+    box(s, "", 7.6, y, 5.1, 0.75, "DEEBF7");
+    s.addImage({ path: ICON(ri), x: 7.72, y: y + 0.15, w: 0.45, h: 0.45, objectName: "ours icon " + r });
+    txt(s, rt, 8.3, y, 4.3, 0.75, { fontSize: 15, bold: true, color: "1F3864" });
   });
   // next steps as a timeline
   txt(s, "Next, until the final report", 0.6, 4.5, 12.1, 0.4, { fontSize: 16, bold: true });
