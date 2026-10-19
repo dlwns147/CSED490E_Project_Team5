@@ -6,7 +6,11 @@
             smallest tolerance at which one passes (≥ 1e-6 if an expected output has a decimal number), and flags problems where a reference
             that runs fails a test another reference passes (several valid answers, or a special judge); outputs go to cc_full_<tag>_s<seed>.jsonl.
 usage: [CC_SET=full] python run_cc.py validate
-       [CC_SET=full] POC_BASE_URL=... [POC_REASONING_EFFORT=low] python run_cc.py run <tag> <seed> [--think | --think_budget B | --k8]"""
+       [CC_SET=full] POC_BASE_URL=... [POC_REASONING_EFFORT=low] python run_cc.py run <tag> <seed> [--think | --think_budget B | --k8]
+CH (docs/prereg/PREREG_CH.md, 2026-10-19): --tags adds one line 'Approach tags: <Codeforces tags minus geometry>' after the statement and runs
+only problems that have such tags (the others have the plain prompt); --plan first asks for the approach and edge cases only (low effort,
+2,000 tokens incl. reasoning), then codes with the plan in the prompt; plan tokens are charged (total_tokens). New runs also record the
+first failing test's kind (fail: WA / RE / TLE / no_code)."""
 import json, os, random, re, subprocess, sys, tempfile
 from concurrent.futures import ThreadPoolExecutor
 
@@ -154,6 +158,14 @@ def exemplars(mode):
     return out
 
 
+PLAN_ASK = ("\n\nDo not write any code yet. In at most 200 words, describe the approach you would use to solve this problem (the key "
+            "idea, the algorithm and its running time) and the edge cases a correct solution must handle.")
+
+
+def approach_tags(p):
+    return [t for t in p.get("tags", []) if t not in ("geometry", "*special")]
+
+
 def run(tag, seed, mode):
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     from llm import chat, last_block
@@ -179,7 +191,10 @@ def run(tag, seed, mode):
             from geo_distractors import UNRELATED, render_names
             names = list(UNRELATED); random.Random(f"cc-{name}-tbu").shuffle(names)
             tb = "\n\n" + render_names(names)
-        prompt = (tb_ex + p["description"].strip() + "\n\nWrite a Python 3 program that reads the input from stdin and prints the answer to stdout. "
+        tagl = ""
+        if mode.get("tags"):   # CH: human-added Codeforces tags (an upper bound on what an approach hint can give)
+            tagl = "\n\nApproach tags: " + ", ".join(approach_tags(p))
+        prompt = (tb_ex + p["description"].strip() + tagl + "\n\nWrite a Python 3 program that reads the input from stdin and prints the answer to stdout. "
                   "Give the program in a single ```python code block." + tb
                   + (" Reply with the program only: no explanation before or after the code block." if mode.get("codeonly") else ""))
         if mode.get("para") == 1:   # P1 (CRITIQUE item 9): same content, reworded instruction after the statement
@@ -190,6 +205,11 @@ def run(tag, seed, mode):
                       "block.\n\nProblem:\n" + p["description"].strip())
         import zlib
         sd = seed * 1000 + zlib.crc32(name.encode()) % 997
+        plan = None
+        if mode.get("plan"):   # CH: approach and edge cases first (low effort), then the program at the run's effort with the plan
+            po = chat(p["description"].strip() + PLAN_ASK, max_tokens=2000, temperature=0.7, seed=sd + 500, effort="low")
+            plan = (po.get("text") or "").strip()
+            prompt += "\n\nA plan written before coding (approach and edge cases):\n" + (plan or "(none)") + "\nUse this plan unless you find it wrong."
         if mode.get("think_budget"):
             from run_geo_cross import budget_chat
             o = budget_chat(prompt, mode["think_budget"], max_tokens=6000, temperature=0.7, seed=sd)
@@ -197,20 +217,27 @@ def run(tag, seed, mode):
             o = chat(prompt, think=mode.get("think", False), max_tokens=mode.get("max_tokens", 6000), temperature=0.7, seed=sd,
                      logprobs=bool(mode.get("logprobs")))
         code = last_block(o["text"] or "", ("python", "py", "python3"))
-        passed = 0
+        passed = 0; fail = None if code else "no_code"
         if code:
             for t in T:
                 r = run_python(code, t["input"], timeout=10)
                 if r.status != "ok" or not tok_eq(r.stdout, t["output"], tol):
+                    fail = "WA" if r.status == "ok" else "TLE" if r.status == "tle" else "RE"
                     break
                 passed += 1
         return {"name": name, "rating": p["rating"], "passed_all": bool(code) and passed == len(T), "passed": passed, "n_tests": len(T),
                 "exemplar": EX[name][0] if name in EX else None,
                 "out_tokens": o.get("out_tokens"), "finish": o.get("finish"), "code": code, "text": (o.get("text") or "")[-4000:],
-                **({"lp": o.get("lp"), "lp_tok": o.get("lp_tok")} if mode.get("logprobs") else {})}   # N18
+                **({"lp": o.get("lp"), "lp_tok": o.get("lp_tok")} if mode.get("logprobs") else {}),   # N18
+                **({"fail": fail} if (mode.get("tags") or mode.get("plan")) else {}),
+                **({"tags": approach_tags(p)} if mode.get("tags") else {}),
+                **({"plan": plan, "plan_tokens": po.get("out_tokens"), "plan_finish": po.get("finish"),
+                    "total_tokens": (po.get("out_tokens") or 0) + (o.get("out_tokens") or 0)} if mode.get("plan") else {})}
 
     shard = os.environ.get("CC_SHARD")   # "i/n": this process handles problems with index % n == i (H2e)
     todo = sorted(keep)
+    if mode.get("tags"):
+        todo = [x for x in todo if approach_tags(P[x])]
     if shard:
         i, n = map(int, shard.split("/")); todo = [x for k, x in enumerate(todo) if k % n == i]
     path = f"{RES}/{OPRE}{tag}_s{seed}" + (f"_shard{shard.replace('/', 'of')}" if shard else "") + ".jsonl"
@@ -251,6 +278,10 @@ if __name__ == "__main__":
             mode["para"] = int(sys.argv[sys.argv.index("--para") + 1])
         if "--codeonly" in sys.argv:   # H6d
             mode["codeonly"] = True
+        if "--tags" in sys.argv:   # CH
+            mode["tags"] = True
+        if "--plan" in sys.argv:   # CH
+            mode["plan"] = True
         if "--exemplar" in sys.argv:   # N6: stmt | draft:<src_tag>
             mode["exemplar"] = sys.argv[sys.argv.index("--exemplar") + 1]
         run(sys.argv[2], int(sys.argv[3]), mode)

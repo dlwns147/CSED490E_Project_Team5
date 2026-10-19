@@ -18,7 +18,8 @@ _TS = {k: float(v) for k, v in (kv.split("=") for kv in os.environ["POC_THINK_SA
 
 def chat(prompt: str, model: str = "local", temperature: float = 0.7, max_tokens: int = 1024,
          system: str | None = None, think: bool = False, seed: int | None = None, prefill: str | None = None,
-         logprobs: bool = False, top_logprobs: int = 0) -> dict:
+         logprobs: bool = False, top_logprobs: int = 0, effort: str | None = None) -> dict:
+    """effort: gpt-oss reasoning_effort for this call only (default: POC_REASONING_EFFORT)"""
     msgs = ([{"role": "system", "content": system}] if system else []) + [{"role": "user", "content": prompt}]
     if prefill:  # assistant prefill (llama-server continues the message; vLLM: continue_final_message)
         msgs.append({"role": "assistant", "content": prefill})
@@ -28,7 +29,8 @@ def chat(prompt: str, model: str = "local", temperature: float = 0.7, max_tokens
         max_tokens=max_tokens, seed=seed, **({"logprobs": True} if logprobs or top_logprobs else {}),
         **({"top_logprobs": top_logprobs} if top_logprobs else {}),
         **({"presence_penalty": ts["presence_penalty"]} if "presence_penalty" in ts else {}),
-        extra_body={"chat_template_kwargs": {"enable_thinking": think, **_TK}, **_EFF, **({"top_k": int(ts["top_k"])} if "top_k" in ts else {}),
+        extra_body={"chat_template_kwargs": {"enable_thinking": think, **_TK}, **(_EFF if effort is None else {"reasoning_effort": effort}),
+                    **({"top_k": int(ts["top_k"])} if "top_k" in ts else {}),
                     # vLLM needs these to continue an assistant prefill; llama-server ignores them
                     **({"continue_final_message": True, "add_generation_prompt": False} if prefill else {})},
     )
