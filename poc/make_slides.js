@@ -141,7 +141,7 @@ s.addText([
 s.addNotes(notes);
 }
 pres.addSection({ title: "Problem" });
-slideTitle("Problem", "POSTECH CSED490E (Graduate NLP) · Team 5 · October 2026",
+slideTitle("Problem", "Team 5: Sangjun Lee, Seongbin Park · POSTECH CSED490E (Graduate NLP) · October 2026",
   "Computational math: geometry, optimization, contest problems, word problems whose answer must be computed exactly. We ask how to get them right with the fewest tokens and the smallest GPU.");
 
 // 2. Problem: the four ways an LLM can solve a math problem, and words vs a program on one example
@@ -717,13 +717,13 @@ function buildTalk() {
     "(35초) 하지만 두 가지 문제가 있습니다. 첫째, 프로그램은 조용히 틀립니다. 같은 문제인데 프롬프트에 보조 코드만 더하면 6 대신 0을 출력하고, 에러 메시지도 없습니다. 없는 라이브러리 함수를 불러서 죽기도 합니다. 둘째, 오래 생각하면 비쌉니다. 경시 문제 311개에서 gpt-oss-120b는 오래 생각하면 57%에서 66%로 오르지만, 토큰은 4.4배를 씁니다. 그래서 질문입니다. 추가 노력을 코드 힌트, 공짜 검사, 더 많은 생각 중 어디에 써야 할까요?",
     "(35초) 첫 번째 발견입니다. 매뉴얼이 아니라 짧은 힌트를 주세요. Qwen3-32B가 OR-Tools로 배송 경로 프로그램을 짭니다. 긴 참조 문서를 주면 존재하지 않는 함수를 불러서 죽고, 정확한 사용법 열한 줄을 주면 최적 경로를 찾습니다. 경로 문제 30개에서 최적해를 찾는 비율은 아무것도 안 주면 23%, 오래 생각하면 오히려 3%, 긴 참조 문서는 7%, 정확한 사용법은 77에서 90%입니다. 최적화 문장제와 기하에서도 같았습니다. 모르는 것은 생각한다고 생기지 않습니다.",
     "(40초) 두 번째 발견입니다. 공짜 검사가 실패할 때만 생각하게 하세요. 검사 A는 문제에 적힌 예제입니다. 예제를 통과하면 바로 제출하고, 틀리면 그 문제만 더 생각합니다. 예제만 쓰면 65%로 조금 낮고, 모든 경우를 다 따져 보는 짧은 프로그램과도 답을 맞춰 보면 66%가 됩니다. 검사 B는 프로그램을 두 버전으로 짜서, 답이 다를 때만 생각합니다. 두 경우 모두 항상 생각할 때와 정확도는 같고, 토큰은 18에서 27% 적습니다. 두 검사 모두 정답이 필요 없고, 기하, 경시, 경로, 문장제에서 모두 통했습니다.",
-    "(55초) 두 발견을 합친 것이 저희 방법입니다. 실제 최적화 문제로 보겠습니다. 1단계, 모델이 없는 메서드를 불러서 죽습니다. 2단계, 힌트를 줍니다. 이 힌트는 사람이 쓴 것이 아니라, 모델이 다른 문제에서 짜서 검사를 통과한 자기 프로그램에서 자동으로 가져옵니다. 3단계, 두 버전의 답이 20000으로 같으니, 4단계 생각은 건너뜁니다. 생각만 했다면 5.3k 토큰이 들었을 문제를 0.6k로 풉니다. 5단계, 같은 종류의 새 데이터에는 검사된 프로그램을 재사용합니다. 기하와 최적화 208문제를 세 모델로 풀면, 어려워 보이는 문제에 생각을 몰아주면 74%, 저희 방법은 87%이고 토큰도 더 적습니다. 처음 써 본 문장제 벤치마크에서도, 자동으로 찾은 힌트가 사람이 쓴 힌트와 같은 79%였습니다.",
+    "(55초) 두 발견을 합친 것이 저희 방법입니다. 실제 최적화 문제로 보겠습니다. 1단계, 모델이 없는 메서드를 불러서 죽습니다. 2단계, 힌트를 줍니다. 이 힌트는 사람이 쓴 것이 아니라, 모델이 다른 문제에서 짜서 검사를 통과한 자기 프로그램에서 자동으로 가져옵니다. 3단계, 두 버전의 답이 20000으로 같으니, 4단계 생각은 건너뜁니다. 생각만 했다면 5.3k 토큰이 들었을 문제를 0.6k로 풉니다. 5단계, 같은 종류의 새 데이터에는 검사된 프로그램을 재사용합니다. 기하와 최적화 208문제를 세 모델로 풀면, 어려워 보이는 문제에 생각을 몰아주면 74%, 저희 방법은 87%이고 토큰도 더 적습니다. 단계 아래 아이콘은 그 단계를 어디에 쓰는지입니다. 경시 문제는 라이브러리 없이 알고리즘만 짜서 힌트가 필요 없고, 검사와 생각만 씁니다. 재사용은 같은 문제가 반복되는 경로 문제에만 씁니다.",
     "(35초) 새로운 점은 세 가지입니다. 학습 없이, 공짜 검사가 실패할 때만 생각합니다. 정답 없이, 모델 자신의 검사된 프로그램을 힌트로 줍니다. 그리고 특화 모델을 파인튜닝하지 않고도, 24GB GPU 한 장으로 같은 정확도를 냅니다. 다음으로는 더 많은 모델로 검증을 마치고, 검사로 못 잡는 오류, 즉 실행은 되지만 문제를 잘못 모델링한 프로그램을 다루겠습니다. 정리하면, 짧은 힌트를 먼저 주고, 공짜 검사가 실패한 곳에서만 생각하게 하자는 것입니다.",
     "(10초) 감사합니다. 질문 받겠습니다. 예상 질문마다 보충 슬라이드를 준비했으니, 번호를 누르면 바로 넘어갑니다.",
   ];
   const QA_KO = {   // speaker notes of the extra pages: a short Korean answer to the page's question
     why: "(답변) 세 가지 이유입니다. 답이 정확히 하나라 코드로 채점할 수 있고, 정답 없이 쓸 수 있는 검사가 있으며, 실제 코딩 에이전트가 이미 경로 계획, 스케줄러, 기하 코드를 씁니다. 그리고 종류마다 필요한 것이 다릅니다. 기하와 경시는 맞는 알고리즘이 필요하고, 둘의 차이는 난이도입니다. 경로와 문장제는 솔버 라이브러리를 맞게 부르는 힌트가 필요하고, 문장제는 글을 수식으로 옮기는 단계가 더 있습니다. 그래서 추가 노력을 힌트, 검사, 생각 중 어디에 쓸지 비교하기 좋습니다.",
-    coverage: "(답변) 아니요, 모든 결과를 네 종류 전부에서 잰 것은 아닙니다. 힌트 주기는 기하, 경로, 문장제에서, 공짜 검사는 네 종류 모두에서 확인했습니다. 전체 방법의 87% 대 74%는 기하 108문제와 최적화 100문제를 세 모델로 푼 결과이고, 경시 문제에는 검사와 생각만 썼습니다.",
+    coverage: "(답변) 아니요, 모든 단계를 네 종류 전부에 쓰지는 않습니다. 경시 문제는 라이브러리 없이 알고리즘만 짜는 문제라 힌트로 채울 빈칸이 없습니다. 실패의 원인이 추론이라서, 예제와 짧은 완전 탐색 프로그램으로 검사하고 실패할 때만 더 생각하게 하면 항상 생각할 때와 같은 66%를 18% 적은 토큰에 얻습니다. 재사용은 같은 문제가 데이터만 바뀌어 반복될 때 쓰므로 매번 새 문제인 경시에는 맞지 않습니다. 전체 방법의 87% 대 74%는 기하와 최적화 208문제를 세 모델로 푼 결과입니다.",
     kinds: "(답변) 사람 기준으로 보면, 경시 문제 311개의 Codeforces 레이팅 중앙값은 2200으로 Master 수준이고, 46%는 Grandmaster 수준인 2400 이상입니다. 그 구간에서는 gpt-oss-120b도 48%만 풉니다. 경로 문제는 단순한 탐욕 계획이 최선보다 48% 길고, 문장제는 대학 OR 수업 연습문제 수준입니다.",
     two: "(답변) 보조 코드를 주면 모델이 그 함수에 맞춰 방법을 짭니다. 이 예에서는 필요 없는 polar_sort로 각도 정렬을 하다가 0을 출력했습니다. 기하 108문제에서 보조 코드가 있으면 59%, 없으면 77%입니다. 두 버전을 모두 짜서 답이 다를 때만 생각하면 99%를 4.3k 토큰에 얻습니다.",
     fact: "(답변) 힌트는 라이브러리를 어떻게 부르는지, 즉 함수 이름과 인자를 보여 주는 11줄짜리 코드 조각입니다. 같은 종류의 30문제에 똑같이 붙이고, 경로나 숫자나 정답은 들어 있지 않습니다. 긴 참조 문서가 아무것도 안 준 것보다 나쁜 이유는, 경로 설명은 있지만 용량 규칙이 없어서 모델이 빈 곳을 없는 함수로 채우기 때문입니다. 10개 프로그램이 RegisterUnaryLongLivingCallback을 불렀습니다.",
@@ -752,7 +752,7 @@ function buildTalk() {
     txt(s, t, x + 0.55, y, 1.5, 0.55, { fontSize: fs, bold: true, color: col });
   }
   pres.addSection({ title: "Talk" });
-  slideTitle("Talk", "POSTECH CSED490E (Graduate NLP) · Team 5", "");
+  slideTitle("Talk", "Team 5: Sangjun Lee, Seongbin Park · POSTECH CSED490E (Graduate NLP)", "");
   [0, 1, 2].forEach(k => pill(3.44 + k * 2.2, 5.35, k));
 
   // 2. what we solve, and how hard
@@ -880,7 +880,7 @@ function buildTalk() {
   s = pres.addSlide({ masterName: "Title Only", sectionTitle: "Talk" });
   s.addText("Our method: cheap steps first", { placeholder: "title" });
   answerBadge([0, 1]);
-  holdsOn(["shapes", "truck", "calc"]);
+  txt(s, "icons under each step: where it is used", 8.6, 1.08, 4.1, 0.3, { fontSize: 14, color: "7F7F7F", align: "right" });
   txt(s, "One real problem (Qwen3-8B): minimum cost of X, Y, Z under three limits → 20000", 0.6, 1.28, 8.6, 0.4, { fontSize: 16 });
   [["1 Program", "Objective()\n.Minimize()", "✗ crash, no fact", RED, "FADBD8", 1.0],
    ["2 + Fact", "solver\n.Minimize(...)", "found automatically: its own checked program", "38761D", "E2F0D9", 1.0],
@@ -893,11 +893,14 @@ function buildTalk() {
     txt(s, big, x + 0.08, 2.25, 2.14, 0.62, { fontSize: k < 2 ? 14 : 18, bold: true, color: col, align: "center", fontFace: k < 2 ? "Courier New" : THEME.bodyFontFace });
     txt(s, small, x + 0.1, 2.9, 2.1, 0.72, { fontSize: 14, align: "center", valign: "top" });
     if (k < 4) arrow(s, x + 2.3, 2.92, x + 2.45, 2.92);
+    const used = [KINDS, ["shapes", "truck", "calc"], KINDS, KINDS, ["truck"]][k];   // contest problems use no library, so no hint; reuse needs a repeating problem
+    KINDS.forEach((icon, j) => s.addImage({ path: ICON(icon), x: x + 0.54 + j * 0.32, y: 3.72, w: 0.26, h: 0.26, transparency: used.includes(icon) ? 0 : 82,
+                                             objectName: `step ${k + 1} ${used.includes(icon) ? "used on" : "not needed on"} ${icon}` }));
   });
-  txt(s, "108 geometry + 100 optimization problems × 3 models:", 0.6, 3.95, 7.0, 0.4, { fontSize: 16, bold: true });
-  costRows(0.6, 4.35, 7.0, 2.2, [["think on hardest-looking", "74%", 4.1, "4.1k", "7F7F7F"], ["our method", "87%", 2.5, "2.5k", BLUE]]);
+  txt(s, "108 geometry + 100 optimization problems × 3 models:", 0.6, 4.08, 7.0, 0.4, { fontSize: 16, bold: true });
+  costRows(0.6, 4.45, 7.0, 2.2, [["think on hardest-looking", "74%", 4.1, "4.1k", "7F7F7F"], ["our method", "87%", 2.5, "2.5k", BLUE]]);
   [["79% = 79%", "the fact found automatically (its own earlier checked program) = a hand-written fact, on new problems"], ["0.6k vs 5.3k", "tokens on this problem vs thinking alone"]].forEach(([big, lab], r) => {
-    const y = 3.95 + r * 1.05;
+    const y = 4.08 + r * 1.0;
     txt(s, big, 8.2, y, 4.5, 0.5, { fontSize: 24, bold: true, color: BLUE });
     txt(s, lab, 8.2, y + 0.48, 4.5, 0.5, { fontSize: 14, valign: "top" });
   });
@@ -1063,13 +1066,13 @@ function buildTalk() {
     const OK = "38761D", PART = "C55A11", NA = "8C8C8C";
     const c = (t, col) => ({ text: t, options: { color: col } }), row = t => ({ text: t, options: { bold: true } });
     table(s, [["", "Geometry", "Contest problems", "Routing, scheduling", "Word problems"].map(HDR),
-      [row("Give the fact"), c("✓ only the needed tools: 92% vs 75%", OK), c("– not tested", NA), c("✓ 23% → 77–90%; 6% → 100% valid plans", OK), c("✓ 65% → 72%; small models +44 points", OK)],
+      [row("Give the fact"), c("✓ only the needed tools: 92% vs 75%", OK), c("– no library to hint: plain algorithms", NA), c("✓ 23% → 77–90%; 6% → 100% valid plans", OK), c("✓ 65% → 72%; small models +44 points", OK)],
       [row("Free check, think on failure"), c("✓ 99% @ 4.3k vs 98% @ 5.9k", OK), c("✓ 66.3% @ 24.7k vs 66.2% @ 30.1k (examples + brute force)", OK), c("✓ part of the 87% below", OK), c("✓ beats always thinking at 12–22% of its tokens", OK)],
-      [row("Whole recipe"), c("✓ 87% @ 2.5k vs 74% @ 4.1k, with routing", OK), c("~ check and think only (no fact)", PART), c("✓ 87% @ 2.5k vs 74% @ 4.1k, with geometry", OK), c("✓ held-out MAMO: automatic fact = hand-written", OK)],
-      [row("Reuse a checked program"), c("– not tested", NA), c("– not tested", NA), c("✓ 94% vs 7% of days valid", OK), c("– not tested", NA)]],
+      [row("Whole recipe"), c("✓ 87% @ 2.5k vs 74% @ 4.1k, with routing", OK), c("~ steps 3–4 only (no library, so no hint): same 66% at 18% fewer tokens", PART), c("✓ 87% @ 2.5k vs 74% @ 4.1k, with geometry", OK), c("✓ held-out MAMO: automatic fact = hand-written", OK)],
+      [row("Reuse a checked program"), c("– not tested", NA), c("– each problem is new", NA), c("✓ 94% vs 7% of days valid", OK), c("– not tested", NA)]],
       { x: 0.6, y: 1.85, w: 12.1, colW: [2.5, 2.4, 2.4, 2.4, 2.4], fontSize: 14, rowH: [0.45, 0.85, 0.85, 0.85, 0.6] });
     txt(s, "✓ holds   ~ partly   – not tested.   The 87% pools 108 geometry and 100 optimization problems, each solved by 3 models.", 0.6, 5.75, 12.1, 0.4, { fontSize: 14, color: C.text2 });
-    caption(s, "The whole recipe is shown on geometry, routing and word problems; contest problems use the check");
+    caption(s, "Contest problems need no library, so no hint: the check and thinking alone, at 18% fewer tokens");
   }
 
   function slideQWhy() {
@@ -1124,6 +1127,7 @@ function buildTalk() {
     [7, "Who writes the fact?", ["auto"]],
     [7, "Is 'think on the hardest' a weak baseline?", ["hard"]],
     [7, "What if the same problem repeats?", ["reuse"]],
+    [7, "Why no hint for contest problems?", ["coverage"]],
     [7, "Where does the recipe stop?", ["limits"]],
     [8, "What is new vs PAL and cascades?", ["published", "related", "reported"]],
     [8, "Why not majority voting?", ["vote"]],
