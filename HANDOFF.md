@@ -3,6 +3,11 @@
 State as of 2026-10-13 08:00 UTC. All GPU work on the old servers has been stopped and the hourly loop cancelled.
 
 ## 0. Server 2 status (2026-10-13 14:00 UTC)
+STATUS 10:55 (10-19): RUNNING GPU0 STORM-Qwen3-4B official TIR on MAMO (inference pid 4037001, orphaned on purpose: its 6 h timeout was
+killed because results are written only at the end; queue_s2_storm_cont.sh waits on it, then runs x3, then rmdir .gpu_claim_0) -> regrade
+out_mamo_full with run_nlopt.correct (PREREG_X7.md STORM prediction). GPU1 ADAPT (queue_s2_adapt.sh: r1d7 + adt7 servers, X1 text/prog/think
+x 3 seeds; auto-analysis -> results/x1/analysis_adapt.log via analyze_x1.py + analyze_adapt.py; PREREG_X1.md ADAPT-P1..P4). GPU2 X7 Qwen3.6
+MAMO (analyze_x7, tag q36_mamo). GPU3 X7 Qwen3-8B replication seeds 2-3. X7 replication: oss20 and q14a hold on 3 seeds.
 STATUS 17:45 (10-17): X1-Q36R DONE (PREREG_X1.md: Qwen3.6 thinking 99.6 / 94.4% with card sampling + 80k; old 28k cap was the main
 confound). RUNNING: GPU1 U1-Q36D (queue_s2_u1q36d.sh: Qwen3.6 U1 think arm, no presence penalty, 80k; auto-analysis -> u1_q36d_cure*.log);
 GPU0/3 X1-SIZE (q14a, q8b done-ish, then q4b on GPU3); GPU2 SIZE-CC (1214/1866). Then X6 Qwen3.6 think/thinkf with the same no-penalty
