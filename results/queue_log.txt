@@ -438,3 +438,9 @@ S2_STORMRECIPE stopped by PID at 13:51 after 93 MAMO rows: STORM's no-think mode
 S2_INFEAS done Mon Oct 19 13:53:22 UTC 2026
 S2_FORM queued (formulation facts: hand sentence vs label-free cross-model mined program; GPU1 + GPU2; PREREG_X7.md) Mon Oct 19 13:54:22 UTC 2026
 S2_FORM started Mon Oct 19 13:54:22 UTC 2026
+S2_FORM oss20 done (2739/2739) Mon Oct 19 13:58:48 UTC 2026
+S2_FORM q8b done (2739/2739) Mon Oct 19 13:59:42 UTC 2026
+S2_FORM q14a done (2739/2739) Mon Oct 19 14:05:18 UTC 2026
+S2_FORM done Mon Oct 19 14:05:18 UTC 2026
+S2_FORMS queued (same-model-only mined program control; GPU1 + GPU2; PREREG_X7.md) Mon Oct 19 14:41:55 UTC 2026
+S2_FORMS started Mon Oct 19 14:41:56 UTC 2026

@@ -5,6 +5,7 @@ modes: formh = the mips prompt (automatic API example) + ONE hand-written formul
        formx = label-free: P_MIP + a program for the most similar OTHER MAMO problem (BM25), taken from a pool of all five models' programs
                that pass the strict check (two seeds run, agree, and are not 'No Best Solution'); among that problem's programs the one
                whose answer most other models share, then the shortest. No labels anywhere.
+       forms = formx with the pool restricted to the SAME model's own programs (control: self-improvement, no other model).
 usage: NLOPT_SET=mamo POC_BASE_URL=... python run_form.py <model> <mode> <seed>   -> results/x3/opt_<model>_mamo_<mode>_s<seed>.jsonl"""
 import json, math, os, re, sys, zlib
 from collections import Counter
@@ -37,10 +38,10 @@ def same(a, b):
     return abs(float(a) - float(b)) <= 1e-6 * max(1.0, abs(float(b)))
 
 
-def pool():
+def pool(models=POOL_MODELS):
     """problem id -> list of (model, code, answer, n_models_sharing_the_answer) over strict-check-passing programs"""
     by = {}
-    for m in POOL_MODELS:
+    for m in models:
         A, B = ({r["id"]: r for r in _rows(f"{RES}/opt_{m}_mamo_mips_s{s}.jsonl")} for s in (1, 2))
         for i, a in A.items():
             b = B.get(i)
@@ -49,9 +50,9 @@ def pool():
     return {i: [(m, c, v, len({m2 for m2, _, v2 in L if same(v, v2)})) for m, c, v in L] for i, L in by.items()}
 
 
-def selector():
+def selector(models=POOL_MODELS):
     Q = {p["id"]: p for p in problems()}
-    PL = pool()
+    PL = pool(models)
     tok = lambda t: re.findall(r"[a-z]+", t.lower())
     docs = {i: Counter(tok(Q[i]["q"])) for i in PL if i in Q}
     df = Counter(w for d in docs.values() for w in d); N = max(1, len(docs)); avg = sum(sum(d.values()) for d in docs.values()) / N
@@ -74,8 +75,8 @@ if __name__ == "__main__":
     tag = f"{m}_mamo"
     os.environ["NLOPT_EX_SHORTEST"] = "1"
     EX = _verified_examples(os.environ.get("NLOPT_EX_TAG", m))   # the mips example, kept in formh so only the sentence differs
-    SEL = selector() if mode == "formx" else None
-    P = [p for p in problems() if mode == "formx" or kind(p["q"])]
+    SEL = selector() if mode == "formx" else selector((m,)) if mode == "forms" else None
+    P = [p for p in problems() if mode != "formh" or kind(p["q"])]
     path = f"{RES}/opt_{tag}_{mode}_s{seed}.jsonl"
     done = {r["id"] for r in _rows(path)}
 

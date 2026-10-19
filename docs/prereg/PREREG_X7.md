@@ -129,3 +129,30 @@ time; TSP 24 / 34, redistribution 13 / 16.) gpt-oss-20b (low), Qwen3-14B-AWQ, Qw
 - FORM-P2 (label-free): formx lifts gpt-oss-20b on the TSPs to ≥ 50%, and the cheap program's MAMO accuracy by ≥ +2 points (gpt-oss-20b)
   and ≥ +1 (Qwen3 models) over mips, per seed, with no problem type losing more than 2 points.
 - FORM-P3: on these two types the fact beats the repair turn and thinking (from existing rows) in accuracy at ≤ 30% of thinking's tokens.
+
+## FORM results (2026-10-19 14:41 UTC; poc/analyze_form.py; 3 seeds × 3 models)
+| | cheap program, MAMO (mips → formx) | pipeline FFR (two agree, not infeasible, else think): mips → formx |
+|---|---|---|
+| gpt-oss-20b | 74.4 / 75.7 / 73.7% → 78.0 / 78.3 / 78.7% | 78.8 / 78.6 / 78.4% @ 1.8–1.9k → **79.8 / 80.3 / 80.5% @ 1.5–1.6k** |
+| Qwen3-14B-AWQ | 68.4 / 69.4 / 69.5% → 74.4 / 73.5 / 73.5% | 71.7 / 73.5 / 72.4% @ 2.6–2.8k → **77.4 / 77.5 / 76.8% @ 2.0–2.1k** |
+| Qwen3-8B | 67.7 / 66.9 / 68.3% → 74.3 / 74.6 / 74.0% | 71.0 / 72.2 / 73.1% @ 3.1–3.2k → **77.6 / 77.9 / 78.0% @ 2.1–2.2k** |
+By type (3 seeds pooled), TSP / redistribution: thinking 4 / 56% (gpt-oss-20b), 1 / 21% (Qwen3-14B-AWQ), 18 / 42% (Qwen3-8B) at 3.6–12.8k tokens;
+repair turn 0 / 27, 35 / 23, 25 / 3%; **mined program (formx) 52 / 65, 70 / 40, 71 / 50% at 0.55–0.75k**. Raw: thinking writes the textbook
+Miller-Tucker-Zemlin constraints over all city pairs including the start (infeasible, 45–48 of 102 TSP runs per model) or allows self-loops
+(cost 0) — 10k tokens of thinking reproduce the same formulation. The hand-written sentence (formh) is misapplied: models exclude the start city
+as i but keep it as j (still infeasible), and Qwen3 TSP accuracy falls from 50–68% to 0–6%; it helps the redistribution problems (gpt-oss-20b
+62–94%, Qwen3 25–50%).
+- **FORM-P1 refuted for TSP** (the sentence hurts), holds for redistribution only for gpt-oss-20b. **FORM-P2 holds** except gpt-oss-20b TSP
+  seed 2 (47%, not ≥ 50%): cheap MAMO +2.6 to +5.0 (gpt-oss-20b), +4.0 to +7.7 (Qwen3), no type loses. **FORM-P3 holds** (the mined program
+  beats repair and thinking on both types at 5–20% of thinking's tokens).
+**Reading:** a formulation error that repeats across a problem type is missing knowledge: thinking and repair re-derive it; a description
+of the right formulation is misapplied; a working program for a similar problem fixes it — the same pattern as API facts (names fail,
+working code works). Prior art: COSP (Wan et al. 2023) selects the model's own consistent answers as demonstrations without labels;
+OptiSkill routes problems to answer-validated teacher programs. New here: execution-checked programs (strict check + cross-model agreement)
+mined from the test stream itself fix systematic formulation errors and cut pipeline tokens 17–33%.
+Caveats before claiming: the pool includes larger models' programs (Qwen3-32B, Qwen3.6) — a teacher effect; and it is transductive.
+**FORM-S pre-registration (now, before running; queue_s2_forms.sh, GPU1 + GPU2):** forms = the same selection with the pool restricted to the
+model's OWN strict-check-passing programs (no other model). Its sources are right on their own problems: gpt-oss-20b TSP 0 / 34,
+redistribution 16 / 16; Qwen3-14B-AWQ 28 / 34, 1 / 16; Qwen3-8B 34 / 34, 1 / 16 (labels used only for this note).
+- FS-P1: forms keeps ≥ half of formx's cheap-program gain over mips for each model (averaged over seeds).
+- FS-P2: on a type where the model's own sources are all wrong (gpt-oss-20b TSP; Qwen3 redistribution) forms gives ≤ mips + 10 points.
