@@ -3,6 +3,8 @@
 State as of 2026-10-13 08:00 UTC. All GPU work on the old servers has been stopped and the hourly loop cancelled.
 
 ## 0. Server 2 status (2026-10-13 14:00 UTC)
+STATUS 04:4x (10-20): MOVED TO SLURM. Hourly loop stopped (user). Read docs/SLURM_HANDOFF.md (state, evidence, next steps, porting) and
+docs/SLURM_PROMPT.md (first prompt for the Slurm session). No job runs on this server; GPUs 0-3 free; last commit before the move 7d0d055.
 STATUS 22:40 (10-19): HO verdict done (OptMATH: think-on-failure generalises; PROPOSAL updated). CD done (form is not the mechanism;
 complete checked programs work). RUNNING OB (second held-out, OptiBench 605; queue_s2_ob.sh GPU0 q8b / GPU1 q14a thinkfree; STORM on GPU2,
 queue_s2_storm_ob.sh -> /SSD/lean_postech/storm/out_optibench; regrade with analyze_storm.py optibench). gpt-oss-20b OB: FF 70.7% @ 1.2k vs

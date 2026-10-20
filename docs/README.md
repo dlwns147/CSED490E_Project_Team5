@@ -25,3 +25,5 @@ Commands are in `poc/queues/queue_*<id>*.sh`, analyses in `poc/analyze_<id>.py`.
 | Choosing the policy | MODEL: which policy wins where; 30 labelled problems pick it for a new task |
 | Facts without a human | X3 (X6-AUTO, X6-VER: the model's own checked program as the fact); X7 held-out MAMO with no hand-written component |
 | Proofs | PROOF: Lean 4 (miniF2F) with specialized provers vs general models; geometry proofs with AlphaGeometry's engine (IMO-AG-30, JGEX-AG-231) |
+
+- `docs/SLURM_HANDOFF.md` — state of the project and how to continue it on the Slurm server (2026-10-20); `docs/SLURM_PROMPT.md` — the first prompt for that session.
