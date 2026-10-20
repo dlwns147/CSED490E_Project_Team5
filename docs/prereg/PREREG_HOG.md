@@ -22,3 +22,18 @@ THINK, FF (fact first; think only if the check fails). Tokens = output tokens.
 BASE (8-helper toolbox) 81.2% @ 1.13k; FACT (needed helpers / hint) 95.5% @ 0.68k; THINK 93.1% @ 1.69k; **FF 99.0% @ 0.82k** (100 / 100 / 96.9%).
 HOG-P1 holds for gpt-oss-20b (FF above THINK at 49% of its tokens); HOG-P2 refuted in the good direction (FACT − BASE = +14.3, predicted ≤ +3:
 on these tasks the 8-helper toolbox hurts gpt-oss-20b, as in H4); HOG-P3 holds (FF best utility).
+
+## Results, all three models (2026-10-20 04:24 UTC; results/hog_analysis.log; 96 items × 3 seeds)
+| held-out geometry | BASE (8-helper toolbox) | FACT (needed helpers / hint) | THINK | **FF** (fact; think if the check fails) |
+|---|---|---|---|---|
+| gpt-oss-20b | 81.2% @ 1.13k | 95.5% @ 0.68k | 93.1% @ 1.69k | **99.0% @ 0.82k** |
+| Qwen3-14B-AWQ | 48.6% @ 0.96k | 80.6% @ 0.62k | 76.7% @ 8.58k | **84.4% @ 2.92k** |
+| Qwen3-8B | 42.4% @ 1.30k | 45.8% @ 0.56k | **74.0% @ 9.82k** | 59.7% @ 4.55k |
+- **HOG-P1 holds for gpt-oss-20b and Qwen3-14B-AWQ** (FF above THINK at 49% / 34% of its tokens) and is **refuted for Qwen3-8B** (FF 14.3 points
+  below THINK). **HOG-P2 holds for Qwen3-14B-AWQ** (+32.0) and gpt-oss-20b (+14.3, above the predicted ≤ 3), **refuted for Qwen3-8B** (+3.4).
+  **HOG-P3** (FF best utility) holds for gpt-oss-20b and Qwen3-14B-AWQ, not for Qwen3-8B (THINK 69.1 vs FF 57.4).
+- Why Qwen3-8B fails: its check leaks. 64 of its 216 fact programs pass the metamorphic check yet are wrong (convex 19, tri 27, clip 18) —
+  consistent but wrong logic that every transformed copy reproduces — and FF keeps them; for Qwen3-14B-AWQ 7, for gpt-oss-20b 1. Seeds checked:
+  thinking programs differ across seeds (5 / 96 identical code), so the equal per-seed counts (71 / 71 / 71) are a coincidence.
+**Reading:** on held-out geometry the recipe holds for the two stronger 24 GB models; for the weakest one the free check leaks
+(consistent wrong programs) and always thinking is better — the same limit as 'checks leak' on word problems, here decisive.
