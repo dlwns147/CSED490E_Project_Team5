@@ -519,3 +519,6 @@ S2_WF2 started Tue Oct 20 01:37:07 UTC 2026
 S2_WF2 oss120 done Tue Oct 20 01:55:55 UTC 2026
 S2_WF2 q36 done Tue Oct 20 02:43:45 UTC 2026
 S2_WF2 done Tue Oct 20 02:44:25 UTC 2026
+S2_HOG queued (held-out geometry: overlap, convex, tri, clip; GPUs 0/1/2; PREREG_HOG.md) Tue Oct 20 03:37:06 UTC 2026
+S2_HOG started Tue Oct 20 03:37:06 UTC 2026
+S2_HOG oss20 done Tue Oct 20 03:41:09 UTC 2026

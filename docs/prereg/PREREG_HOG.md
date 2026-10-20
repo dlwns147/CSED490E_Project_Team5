@@ -17,3 +17,8 @@ THINK, FF (fact first; think only if the check fails). Tokens = output tokens.
 - HOG-P1 (core rule): FF ≥ THINK − 1 point at ≤ 60% of THINK's tokens, for each model (seed means).
 - HOG-P2: FACT ≥ BASE + 5 points for both Qwen3 models; ≤ +3 for gpt-oss-20b (it rarely misuses helpers).
 - HOG-P3: FF is the best fixed policy (utility = accuracy − 0.5 × ktokens) for each model.
+
+## Interim, gpt-oss-20b (2026-10-20 03:45 UTC; poc/analyze_hog.py; 96 items × 3 seeds; Qwen3 thinking arms running)
+BASE (8-helper toolbox) 81.2% @ 1.13k; FACT (needed helpers / hint) 95.5% @ 0.68k; THINK 93.1% @ 1.69k; **FF 99.0% @ 0.82k** (100 / 100 / 96.9%).
+HOG-P1 holds for gpt-oss-20b (FF above THINK at 49% of its tokens); HOG-P2 refuted in the good direction (FACT − BASE = +14.3, predicted ≤ +3:
+on these tasks the 8-helper toolbox hurts gpt-oss-20b, as in H4); HOG-P3 holds (FF best utility).
