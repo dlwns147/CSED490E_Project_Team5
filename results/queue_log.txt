@@ -500,3 +500,10 @@ S2_OB oss20 done Mon Oct 19 21:51:20 UTC 2026
 S2_X7REP q32b_mamo done (5178/5178) Mon Oct 19 22:36:26 UTC 2026
 S2_OBF queued (usage card + library on OptiBench; GPU3; PREREG_HO.md OB-F) Mon Oct 19 23:37:58 UTC 2026
 S2_OBF started on GPU3 Mon Oct 19 23:37:58 UTC 2026
+S2_OBF q14a done Mon Oct 19 23:45:58 UTC 2026
+S2_OBF q8b done Mon Oct 19 23:52:53 UTC 2026
+S2_OBF oss20 done Mon Oct 19 23:57:01 UTC 2026
+S2_OBF done Mon Oct 19 23:57:01 UTC 2026
+S2_OB q14a done Tue Oct 20 00:01:06 UTC 2026
+S2_OB q8b done Tue Oct 20 00:31:33 UTC 2026
+S2_OB done Tue Oct 20 00:31:33 UTC 2026

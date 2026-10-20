@@ -17,14 +17,16 @@ def ag(a, b):
 for m in sys.argv[1:] or ["oss20", "q14a", "q8b"]:
     tag = f"{m}_{os.environ.get('HO_SET', 'optmath')}"   # HO_SET=optibench for the second held-out benchmark (OB)
     print(f"=== {m}")
-    for a in ("mip", "mipf", "mips", "formx", "thinks", "free", "thinkfree"):
+    for a in ("mip", "mipf", "mips", "formx", "thinks", "free", "freef", "thinkfree"):
         R = [r for s in (1, 2, 3) for r in (X.rows(tag, a, s) or {}).values()]
         if not R:
             continue
         st = Counter("NBS" if r.get("pred") == "NBS" else r["status"] for r in R)
         print(f"  {a:6s} n={len(R):3d} {100 * sum(r['correct'] for r in R) / len(R):5.1f}% @ {sum(r['out_tokens'] or 0 for r in R) / len(R) / 1000:.2f}k | {dict(st)}"
               f" | caps {sum(r.get('finish') == 'length' for r in R)}")
-    for c, th in (("mips", "thinks"), ("formx", "thinks"), ("free", "thinkfree")):
+    pairs = ((("free", "thinkfree"), ("freef", "thinkfree"), ("formx", "thinkfree")) if os.environ.get("HO_SET") == "optibench"
+             else (("mips", "thinks"), ("formx", "thinks"), ("free", "thinkfree")))
+    for c, th in pairs:
         for s in (1, 2, 3):
             F, F2, T = X.rows(tag, c, s), X.rows(tag, c, s % 3 + 1), X.rows(tag, th, s)
             if not (F and F2 and T):

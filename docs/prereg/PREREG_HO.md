@@ -128,3 +128,22 @@ prompt + the program of the most similar OTHER OptiBench problem from the three 
 - OB-F-P1: freef halves the usage-error crashes and raises the cheap program by ≥ +5 points for each Qwen3 model; ≤ +2 for gpt-oss-20b.
 - OB-F-P2: with freef as the cheap arm, FF gains ≥ +2 over FF with free, at fewer tokens (fewer failures go to thinking), for each Qwen3 model.
 - OB-F-P3: formx (no human) gets ≥ half of freef's cheap-program gain for the Qwen3 models.
+
+## OB and OB-F results (2026-10-20 00:36 UTC; results/x3/ob_analysis.log; 605 × 3 seeds; STORM still running)
+| OptiBench, seed means | cheap program | always thinking | FF | FF with the usage card | FF with the label-free library |
+|---|---|---|---|---|---|
+| gpt-oss-20b | 58.8% (card 62.7, library 66.1) | 68.9% @ 2.09k | 70.7% @ 1.18k | 72.7% @ 1.01k | **73.0% @ 0.96k** |
+| Qwen3-14B-AWQ | 41.7% (55.3, 58.8) | 48.3% @ 6.52k | 59.3% @ 3.39k | **65.2% @ 2.24k** | 63.9% @ 1.83k |
+| Qwen3-8B | 27.4% (34.0, 51.6) | 57.9% @ 7.65k | 57.5% @ 4.89k | 60.1% @ 4.28k | **63.1% @ 2.74k** |
+- **OB-P1 holds for gpt-oss-20b and Qwen3-14B-AWQ** (FF +1.8 at 56% and +11.0 at 52% of always-thinking's tokens) and **narrowly misses for
+  Qwen3-8B** (−0.4 at 64%). **OB-P3 holds** (FFR adds 0.6–1.5 points over FF at 1.5–1.8 × its tokens).
+- **OB-F-P1 holds for the Qwen3 models** (usage card +13.6 / +6.6 on the cheap program; crashes −43% / −15%, so not halved for Qwen3-8B) and is
+  exceeded for gpt-oss-20b (+3.9 > +2). **OB-F-P2 holds** (FF +5.9 / +2.6 at fewer tokens). **OB-F-P3 holds and is exceeded:** the label-free
+  library (the program of the most similar other OptiBench problem that passed the strict check) beats the hand-written card on the cheap
+  program for all three models (+7.3 / +17.1 / +24.2 over no fact).
+- Raw / leakage check (Qwen3-8B, seed 1): OptiBench has near-duplicate problems (131 of 605 selected sources share ≥ 60% of the target's words,
+  e.g. the same farm text with another question). The library helps most there (65% vs 34%) but also on dissimilar sources (word overlap
+  < 0.4: 44% vs 20%, n = 299): most of the gain is usage knowledge in working code, not copying a near-twin. No labels are used.
+**Reading:** on a second unseen benchmark the full label-free recipe — the checked program of a similar earlier problem as the fact, a cheap
+program first, thinking only on a visible failure — gives Qwen3-14B-AWQ 63.9% @ 1.8k vs 48.3% @ 6.5k for always thinking, and Qwen3-8B 63.1% @ 2.7k
+vs 57.9% @ 7.7k. Where failures are usage errors (OptiBench), facts pay; where they are formulation / data errors (OptMATH), they do not.
