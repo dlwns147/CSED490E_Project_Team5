@@ -166,3 +166,24 @@ Best 24 GB recipe: gpt-oss-20b with the label-free library, FF 73.0% @ 0.96k. **
 solver choice alone: by 8.0), not ±4; at 6.7–8.2 × the tokens. Composition (offline, same seed): gpt-oss-20b's library program, STORM only on a
 visible failure: **76.3% @ 2.3k** (Qwen3-8B 71.2% @ 3.0k, Qwen3-14B-AWQ 69.8% @ 2.4k) — 2.4 points below STORM alone at 29% of its tokens.
 Caveat: STORM's training data is not public in a form we could check for overlap with OptiBench's textbook problems.
+
+## WF results (2026-10-20 01:36 UTC; results/x3/wf_analysis.log; 12 new cells, all with census ≥ 5%)
+| new cell (usage-crash census of the first programs) | automatic / usage-card fact | label-free library (formx) |
+|---|---|---|
+| Qwen3-32B-AWQ, OptMATH (9.3%) | mips +0.3 ✗ | +6.0 ✓ |
+| Qwen3-32B-AWQ, OptiBench (14.2%) | card +17.2 ✓ | +13.2 ✓ |
+| Qwen3-4B, OptMATH (30.7%) | mips +2.3 ✗ | +8.0 ✓ |
+| Qwen3-4B, OptiBench (49.0%) | card +19.1 ✓ | +23.2 ✓ |
+| Qwen3-1.7B, OptMATH (37.7%) | mips +0.0 ✗ | +5.0 ✓ |
+| Qwen3-1.7B, OptiBench (68.7%) | card +12.5 ✓ | +33.8 ✓ |
+**WF-P1 refuted for one fact type, holds for the others:** where usage crashes are common, the label-free library and the usage card always
+pay (+5 to +34), but the example mined from NL4OPT does not on OptMATH (+0 to +2: a usage example from easy textbook problems does not fit
+large structured models — the same miss as for the first three models). **WF-P2 narrowly refuted** (9 of 12 calls right, not ≥ 10).
+All 37 points: Pearson r = 0.62; mean gain +13.2 where the census is ≥ 5% (n = 30), +0.9 where < 5% (n = 7). No new cell fell below 5%, so the
+"do not add a fact" side was not tested prospectively. Scope: this census concerns library-usage facts on word problems; on the generated
+geometry tasks the fact is an algorithm hint and fixes logic errors, not crashes (e.g. Qwen3-8B logic errors 19 → 5 of 108), so it is not
+covered by this rule.
+**WF2 pre-registration (2026-10-20 01:37 UTC, before running; queue_s2_wf2.sh, GPUs 0 / 1):** the other side of the rule, with strong models expected to make
+few usage errors — gpt-oss-120b (low effort) and Qwen3.6 (no thinking) — on OptiBench (free base, freef card, formx library) and OptMATH (mip
+base, formx library; mips for Qwen3.6), seeds 1–3. Rule applied per cell from the base arm's census: **WF2-P1: where the census is < 5%,
+each fact changes the cheap program by ≤ +2 points; where it is ≥ 5%, the card and the library add ≥ +3.**
