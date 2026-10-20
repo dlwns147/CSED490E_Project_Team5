@@ -159,3 +159,10 @@ Qwen3-1.7B, Qwen3-32B-AWQ — on OptiBench (free = census and base; freef usage 
 automatic fact; formx library), seeds 1–3. Rule: compute the census on the base arm first; **WF-P1: in every cell with census ≥ 5% each fact
 raises the cheap program by ≥ +3 points; in every cell with census < 5% each fact changes it by ≤ +2.** WF-P2: across the new cells the rule's
 call (add a fact or not) is right in ≥ 10 of 12 (benchmark, model, fact) points.
+
+## STORM on OptiBench (2026-10-20 00:54 UTC; its official TIR inference, 3 samples)
+**78.7% @ 7.9k tokens** under our grader (its own 82.4%; linear 88.9%, nonlinear 64.4%, linear with tables 71.7%, nonlinear with tables 58.0%).
+Best 24 GB recipe: gpt-oss-20b with the label-free library, FF 73.0% @ 0.96k. **OB-P2 refuted on accuracy:** STORM leads by 5.7 points (FF with
+solver choice alone: by 8.0), not ±4; at 6.7–8.2 × the tokens. Composition (offline, same seed): gpt-oss-20b's library program, STORM only on a
+visible failure: **76.3% @ 2.3k** (Qwen3-8B 71.2% @ 3.0k, Qwen3-14B-AWQ 69.8% @ 2.4k) — 2.4 points below STORM alone at 29% of its tokens.
+Caveat: STORM's training data is not public in a form we could check for overlap with OptiBench's textbook problems.

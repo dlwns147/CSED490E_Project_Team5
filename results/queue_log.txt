@@ -509,3 +509,5 @@ S2_OB q8b done Tue Oct 20 00:31:33 UTC 2026
 S2_OB done Tue Oct 20 00:31:33 UTC 2026
 S2_WF queued (census rule, prospective; GPUs 0/1/3; PREREG_HO.md WF) Tue Oct 20 00:38:53 UTC 2026
 S2_WF started Tue Oct 20 00:38:53 UTC 2026
+S2_WF q17 done Tue Oct 20 00:52:43 UTC 2026
+S2_STORM_OB done Tue Oct 20 00:53:05 UTC 2026
