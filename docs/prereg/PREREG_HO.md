@@ -187,3 +187,29 @@ covered by this rule.
 few usage errors — gpt-oss-120b (low effort) and Qwen3.6 (no thinking) — on OptiBench (free base, freef card, formx library) and OptMATH (mip
 base, formx library; mips for Qwen3.6), seeds 1–3. Rule applied per cell from the base arm's census: **WF2-P1: where the census is < 5%,
 each fact changes the cheap program by ≤ +2 points; where it is ≥ 5%, the card and the library add ≥ +3.**
+
+## WF2 results (2026-10-20 02:45 UTC; results/x3/wf_all_analysis.log)
+| cell (narrow census / share failing the free check) | usage card | library | rule's call |
+|---|---|---|---|
+| gpt-oss-120b, OptMATH (1.7% / 31.7%) | – | −3.3 | no fact: right |
+| gpt-oss-120b, OptiBench (0.4% / 11.7%) | +2.7 | +1.7 | no fact: right for the library, borderline wrong for the card |
+| Qwen3.6, OptiBench (2.3% / 18.2%) | **+8.7** | **+9.6** | no fact: **wrong** |
+| Qwen3.6, OptMATH (25.7% / 47.3%) | mips −2.0 | +4.3 | fact: right for the library, wrong for the mined example |
+**WF2-P1 refuted** (a low census does not rule out a gain). Raw (Qwen3.6, OptiBench): the strong model wraps its solver calls in try / except
+and prints 'No Best Solution' when they fail — 44 of the problems the card fixes were such hidden failures — and 97 were programs that ran but
+chose the wrong variable type or library (e.g. continuous where the problem counts trucks), which the card's pywraplp IntVar example fixes. A
+broader census (share failing the free check at all) predicts worse (r = 0.31 vs 0.62 over 46 points). **Revised reading:** the usage-crash
+census tells where facts pay most (+12.0 on average where ≥ 5%, n = 34) but not where they do not (+2.1 where < 5%, n = 12, range −7 to +10).
+The label-free library raised the first program in 17 of 19 model × benchmark cells (up to +34); it hurt only the gpt-oss models on OptMATH
+(−3.3, −7.3), whose failures there are formulation and data errors. Practical rule: use the library by default.
+
+## Self-consistency baselines (offline, the existing 3 seeds as 3 samples)
+| | majority of 3 cheap programs | FF (one cheap program, think on failure) | majority of 3 thinking runs | FF with majority-of-3 thinking as the fallback |
+|---|---|---|---|---|
+| OptiBench gpt-oss-20b (library) | 68.9% @ 1.4k | 73.0% @ 1.0k | 75.0% @ 6.3k | **74.6% @ 1.9k** |
+| OptiBench Qwen3-14B-AWQ (library) | 57.9% @ 1.1k | 63.9% @ 1.8k | 64.1% @ 19.5k | **65.6% @ 4.8k** |
+| OptiBench Qwen3-8B (library) | 56.7% @ 1.2k | 63.1% @ 2.7k | 65.6% @ 22.9k | **66.1% @ 7.5k** |
+| OptMATH gpt-oss-20b (mips) | 34.0% @ 3.2k | 38.3% @ 3.7k | 35.0% @ 16.2k | 36.3% @ 8.9k |
+Voting over cheap programs is below FF everywhere. Self-consistency over thinking runs (the standard test-time-scaling baseline) is the most
+accurate on OptiBench, and the recipe composes with it: thinking only on a visible failure, by majority of three, matches or beats it at
+24–33% of its tokens. On OptMATH more thinking samples do not help (thinking itself is weak there).
