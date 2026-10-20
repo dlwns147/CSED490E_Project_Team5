@@ -514,3 +514,5 @@ S2_STORM_OB done Tue Oct 20 00:53:05 UTC 2026
 S2_WF q4b done Tue Oct 20 00:59:39 UTC 2026
 S2_WF q32b done Tue Oct 20 01:20:56 UTC 2026
 S2_WF done Tue Oct 20 01:21:25 UTC 2026
+S2_WF2 queued (census rule, low-error side: gpt-oss-120b GPU0, Qwen3.6 GPU1; PREREG_HO.md WF2) Tue Oct 20 01:37:07 UTC 2026
+S2_WF2 started Tue Oct 20 01:37:07 UTC 2026
