@@ -147,3 +147,15 @@ prompt + the program of the most similar OTHER OptiBench problem from the three 
 **Reading:** on a second unseen benchmark the full label-free recipe — the checked program of a similar earlier problem as the fact, a cheap
 program first, thinking only on a visible failure — gives Qwen3-14B-AWQ 63.9% @ 1.8k vs 48.3% @ 6.5k for always thinking, and Qwen3-8B 63.1% @ 2.7k
 vs 57.9% @ 7.7k. Where failures are usage errors (OptiBench), facts pay; where they are formulation / data errors (OptMATH), they do not.
+
+## WF: which cheap fix — a label-free census of the first programs' failures (2026-10-20 00:38 UTC)
+Exploratory, on all 23 existing (benchmark, model, fact) cells (poc/analyze_which_fix.py): x = share of the no-fact programs that crash with a
+usage exception (AttributeError / ModuleNotFoundError / ImportError — Python's own exception class, no text rules), y = gain of the cheap
+program when a fact (hand snippet / usage card, or the label-free library) is added. Pearson r = 0.47; mean gain **+11.2 points where ≥ 5% of
+the first programs crash with usage exceptions (n = 16, every one ≥ −0.3)**, +0.9 where < 5% (n = 7, incl. OptMATH gpt-oss-20b −6 / −7).
+The 5% threshold was chosen after seeing these points, so it is tested prospectively now.
+**WF pre-registration (before running; queue_s2_wf.sh, GPUs 0 / 1 / 3):** three models with no fact runs on these benchmarks yet — Qwen3-4B,
+Qwen3-1.7B, Qwen3-32B-AWQ — on OptiBench (free = census and base; freef usage card; formx library) and OptMATH (mip = census and base; mips
+automatic fact; formx library), seeds 1–3. Rule: compute the census on the base arm first; **WF-P1: in every cell with census ≥ 5% each fact
+raises the cheap program by ≥ +3 points; in every cell with census < 5% each fact changes it by ≤ +2.** WF-P2: across the new cells the rule's
+call (add a fact or not) is right in ≥ 10 of 12 (benchmark, model, fact) points.
