@@ -17,6 +17,9 @@ State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Tea
   Lean / AlphaGeometry / STORM's venv are not installed here (proof track and STORM baselines only; their code now reads `$POC_DATA`).
 - **Models present:** gpt-oss-20b, gpt-oss-120b, Qwen3-14B-AWQ (added 10-22), Qwen3-8B, Qwen3-4B, Qwen3-1.7B, Qwen3-32B-AWQ, Qwen3-14B.
   On a 3090 all 24 GB models serve with frac 0.92 and `--max-model-len 20480` (Qwen3-8B: 37k-token KV cache, ≈ 1.8 full requests).
+  Also checked on a 3090 (10 OptiBench problems, solver-choice prompt, 10-21 21:4x UTC; setup only): Qwen3.5-9B (new to the project;
+  `--language-model-only --max-num-seqs 64`, hybrid attention, 73k-token KV) 4/10 @ 0.86k; granite-4.1-8b 1/10 @ 0.45k; both crash
+  mostly on library usage (invented attributes, gurobipy), so as new cells for step 3.2 they would sit on the census's high side.
 - **Smoke test** (`poc/slurm/smoke.sh`, first 10 OptiBench problems): Qwen3-8B 2/10 @ 0.41k, Qwen3-14B-AWQ 5/10 @ 0.35k, gpt-oss-20b
   3/10 @ 0.53k; raw programs show the old failure kinds; the harness reproduces (FINDINGS 2026-10-21 18:40).
 - **Raw results** of the old server (results/*.jsonl, ~2 GB) are being copied by the user (scp through the gs02 jump host); analyses of
