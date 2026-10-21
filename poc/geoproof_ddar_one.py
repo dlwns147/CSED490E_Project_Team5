@@ -1,12 +1,13 @@
 """Run AlphaGeometry's symbolic engine (DD+AR, no language model) on problems from a file; print solved / time.
 usage: python ddar_one.py <problems file> [name ...]"""
-import sys, time
+import os, sys, time
+_DATA = os.environ.get("POC_DATA", "/NAS/SJ/POSTECH/nlp_data")   # Slurm server (2026-10-22): external data; old server: /SSD/lean_postech
 import matplotlib
 matplotlib.use("Agg"); matplotlib.use = lambda *a, **k: None   # numericals.py forces TkAgg (no display here)
-sys.path.insert(0, "/SSD/lean_postech/ag/alphageometry")
+sys.path.insert(0, _DATA + "/ag/alphageometry")
 import graph as gh, problem as pr, ddar
-defs = pr.Definition.from_txt_file("/SSD/lean_postech/ag/alphageometry/defs.txt", to_dict=True)
-rules = pr.Theorem.from_txt_file("/SSD/lean_postech/ag/alphageometry/rules.txt", to_dict=True)
+defs = pr.Definition.from_txt_file(_DATA + "/ag/alphageometry/defs.txt", to_dict=True)
+rules = pr.Theorem.from_txt_file(_DATA + "/ag/alphageometry/rules.txt", to_dict=True)
 probs = pr.Problem.from_txt_file(sys.argv[1], to_dict=True, translate=False)
 names = sys.argv[2:] or list(probs)
 ok = 0

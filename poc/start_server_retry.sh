@@ -1,4 +1,5 @@
 #!/bin/bash
+# Old shared server only: on Slurm the job owns its GPU (index 0 inside the container); use poc/slurm/lane.sh instead.
 # start_server_retry.sh <model-dir> <port> <tag>: pick the freest GPU (>=30 GB free, >=20 GB headroom), start vLLM,
 # retry with a fresh pick up to 6 times. Starts are SERIALISED with a lock (pick + load until healthy), because a server
 # that is still loading does not show its memory yet and two concurrent starts would pick the same GPU.

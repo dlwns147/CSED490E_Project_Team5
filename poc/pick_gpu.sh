@@ -1,4 +1,5 @@
 #!/bin/bash
+# Old shared server only: on Slurm the job owns its GPU (index 0 inside the container); use poc/slurm/lane.sh instead.
 # prints "<gpu-id> <mem-fraction>": the GPU with the most free memory, and a vLLM fraction that leaves >=20 GB headroom
 # for the other containers' jobs (capped at 0.45 = 36 GB). Exits 1 if no GPU has >=30 GB free.
 nvidia-smi --query-gpu=index,memory.used,memory.total,utilization.gpu --format=csv,noheader,nounits |

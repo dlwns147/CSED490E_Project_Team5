@@ -6,8 +6,9 @@ from concurrent.futures import ThreadPoolExecutor
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import run_lean as L  # noqa: E402
 from llm import chat  # noqa: E402
+_DATA = os.environ.get("POC_DATA", "/NAS/SJ/POSTECH/nlp_data")   # Slurm server (2026-10-22): external data; old server: /SSD/lean_postech
 
-NAMES = open("/SSD/lean_postech/mathlib_names.txt").read().split("\n")
+NAMES = open(_DATA + "/mathlib_names.txt").read().split("\n")
 BY_PART = {}
 for n in NAMES:
     for p in set(re.split(r"[._]", n.split(".")[-1].lower())):
@@ -27,7 +28,7 @@ def types(names):
     if not names:
         return {}
     src = "import Mathlib\n" + "\n".join(f"#check @{n}" for n in names) + "\n"
-    with tempfile.NamedTemporaryFile("w", suffix=".lean", dir="/SSD/lean_postech/tmp", delete=False) as f:
+    with tempfile.NamedTemporaryFile("w", suffix=".lean", dir=_DATA + "/tmp", delete=False) as f:
         f.write(src); path = f.name
     try:
         r = subprocess.run(["lake", "env", "lean", path], cwd=L.PROJ, env=L.ENV, capture_output=True, text=True, timeout=180)
@@ -59,7 +60,7 @@ def main(tag, split):
         ca = L.check(p["header"], p["formal_statement"], L.proof_body(a["text"]))
         return {"name": r["name"], "sample": r["sample"], "unknown": r["unknown"], "suggestions": sugg, "types_found": len(ty),
                 "ok": ca["ok"], "still_unknown": ca["unknown"], "tokens": a.get("out_tokens"), "text": (a["text"] or "")[-3000:]}
-    os.makedirs("/SSD/lean_postech/tmp", exist_ok=True)
+    os.makedirs(_DATA + "/tmp", exist_ok=True)
     with ThreadPoolExecutor(16) as ex:
         out = list(ex.map(one, rows))
     with open(f"{L.OUT}/factfix_{tag}_{split}.jsonl", "w") as f:

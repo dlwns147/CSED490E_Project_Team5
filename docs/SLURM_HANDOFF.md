@@ -3,6 +3,28 @@
 State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Team5, public). The hourly loop on the old server
 (/NAS/SJ/POSTECH/nlp, 8 × RTX PRO 6000 Blackwell, GPUs 0–3) was stopped on 2026-10-20 04:2x UTC; no job is running there.
 
+## 0. Status on the Slurm cluster (updated 2026-10-21 19:4x UTC)
+- **Set up and tested.** Docker image `nlp_project:261021` (`/home1/leesangjun/nlp_project_261021.tar`; vLLM 0.22.0, torch 2.11 cu130,
+  client / sandbox venv `/root/venvs/llm_algo_poc`), loaded per node on first use (258 s). Partition **RTX3090** (24 GB = the project's
+  target GPU; RTX6000ADA / L40S / A100-80GB are used by the user's other sessions). 4 CPUs per GPU, no `--time`, no `-q` on this partition.
+- **How to run.** `poc/slurm/job.sh <lane.sh> [args]` = one job, one GPU, inside the image (paths below, `PORT`, `$P` = client python,
+  results chowned back). `poc/slurm/lane.sh <model dir> <tag> '<cmd>' ...` = one server + client commands (the Slurm form of a queue-script
+  lane); `python bench.py submit <bench> <arm> --model <alias> --seeds 1,2,3` writes that line for the standard arms. The old
+  `poc/queues/*.sh` are records only (they claim GPUs 0-3 of a shared machine; see `poc/queues/README.md`).
+- **Paths in the container** (same as the old server where possible): repo `/NAS/SJ/POSTECH/nlp` (= `/home1/leesangjun/SJ/POSTECH/nlp`),
+  models `/SSD/huggingface` (root-owned shared pool; the host uid has a 1 MB quota there, so only the container writes it), external data
+  `$POC_DATA` = `/NAS/SJ/POSTECH/nlp_data` (OptMATH via STORM's repo, OptiBench via ReSocratic, MAMO via CardinalOperations/MAMO).
+  Lean / AlphaGeometry / STORM's venv are not installed here (proof track and STORM baselines only; their code now reads `$POC_DATA`).
+- **Models present:** gpt-oss-20b, gpt-oss-120b, Qwen3-14B-AWQ (added 10-22), Qwen3-8B, Qwen3-4B, Qwen3-1.7B, Qwen3-32B-AWQ, Qwen3-14B.
+  On a 3090 all 24 GB models serve with frac 0.92 and `--max-model-len 20480` (Qwen3-8B: 37k-token KV cache, ≈ 1.8 full requests).
+- **Smoke test** (`poc/slurm/smoke.sh`, first 10 OptiBench problems): Qwen3-8B 2/10 @ 0.41k, Qwen3-14B-AWQ 5/10 @ 0.35k, gpt-oss-20b
+  3/10 @ 0.53k; raw programs show the old failure kinds; the harness reproduces (FINDINGS 2026-10-21 18:40).
+- **Raw results** of the old server (results/*.jsonl, ~2 GB) are being copied by the user (scp through the gs02 jump host); analyses of
+  old runs wait for them. `cpu_jobs/nlp/status_hourly.sh` (login node, nohup) logs jobs hourly to `out/nlp/status_hourly.log` and submits
+  the HO-G-C analysis once the 27 HO-G files are complete.
+- **Running now:** HO-G-C (`docs/prereg/PREREG_HOGC.md`, step 3.1 below): brute-force programs for the four held-out geometry tasks done
+  for all three models (3 seeds); the offline policy analysis (`poc/analyze_hogc.py`) needs the old HO-G rows.
+
 ## 1. The project in one paragraph
 POSTECH CSED490E team project "Tools, Facts, and Checks": computational geometry (CG) and combinatorial-optimization (CO) problems solved
 by LLM-written programs, accurately and cheaply, with models that fit one 24 GB GPU. Every result is accuracy *and* tokens. The recipe:
@@ -61,24 +83,21 @@ unless asked.
   sympy 1.14, math-verify 0.9.0, cvxpy 1.9.3, scipy 1.17.1. The sandbox runs programs with this interpreter (`POC_PYTHON` overrides).
 - STORM: its own venv with its official code (`/SSD/lean_postech/storm/venv`, plus pebble, math_verify, pulp, timeout_decorator, regex).
 
-## 6. Running on Slurm (what changes)
-Today a queue script (`poc/queues/queue_s2_*.sh`) claims a GPU (`mkdir results/.gpu_claim_<g>`), starts vLLM with
-`bash poc/start_server.sh <model> <port> <gpu> <mem-frac> <tag> [vllm args]` (port guard, health wait) and launches clients
-(`poc/run_*.py`) against `POC_BASE_URL`. On Slurm: one `sbatch` job per lane with `--gres=gpu:1`; inside, pass the allocated device
-(`CUDA_VISIBLE_DEVICES` is already set: call `poc/serve_gpu.sh` with that index or edit it to keep the variable), pick a free port from the job
-id, drop the `.gpu_claim` dirs, and keep the rest of the script. `serve_gpu.sh` puts caches in `/dev/shm` (HF_HOME, VLLM_CACHE_ROOT) — move them to
-node-local scratch if `/dev/shm` is small. Example skeleton:
+## 6. Running on Slurm (implemented 2026-10-21; see §0)
+On the old server a queue script (`poc/queues/queue_s2_*.sh`) claimed a GPU (`mkdir results/.gpu_claim_<g>`), started vLLM with
+`bash poc/start_server.sh <model> <port> <gpu> <mem-frac> <tag> [vllm args]` and launched clients (`poc/run_*.py`) against `POC_BASE_URL`.
+On Slurm one job is one lane: `poc/slurm/job.sh` (allocated GPU = index 0, port from the job id, caches inside the container, no claim
+dirs) runs `poc/slurm/lane.sh` (or an experiment's own lane script such as `poc/slurm/hogc_brute.sh`), which calls the same
+`start_server.sh` / `serve_gpu.sh` and the same clients. Example:
 ```bash
-#!/bin/bash
-#SBATCH --gres=gpu:1 --cpus-per-task=16 --mem=128G --time=12:00:00 --job-name=ho_q8b
-cd $HOME/CSED490E_Project_Team5
-PORT=$((20000 + SLURM_JOB_ID % 20000))
-S=$(bash poc/start_server.sh /path/to/Qwen3-8B $PORT ${CUDA_VISIBLE_DEVICES:-0} 0.88 ho_q8b) || exit 1
-export POC_BASE_URL=http://127.0.0.1:$PORT/v1 NLOPT_SET=optibench
-python poc/run_nlopt.py q8b_optibench free 1 --max_tokens 8192
-kill $S
+cd /home1/leesangjun/SJ/POSTECH/nlp
+sbatch -J ob_q8b poc/slurm/job.sh poc/slurm/lane.sh Qwen/Qwen3-8B ob_q8b \
+  'NLOPT_SET=optibench $P poc/run_nlopt.py q8b_optibench free 1 --max_tokens 8192'
+python bench.py submit geo fact --model q14a --seeds 1,2,3 --dry      # prints the sbatch line for a standard arm
 ```
-`bench.py` (repo root) wraps the common arms: `python bench.py list | serve | run`.
+CPU-only analyses that re-run stored programs use the same image (`sbatch ... -p cpu-max16,cpu-max10,cpu-max24 -q nogpu --gres=none
+poc/slurm/job.sh '$P poc/analyze_x.py'`); when the CPU partitions pend for long (days on 10-22), run them as a GPU job instead; light
+reading of result files runs on the login node.
 
 ## 7. Harness facts that cost us time (keep them)
 - Results are flushed row by row and runs resume (re-running the same command skips finished rows); a torn line is skipped.
@@ -97,4 +116,4 @@ kill $S
 Pre-register predictions (with numbers and a decision rule) in `docs/prereg/PREREG_*.md` before running; report accuracy *with* tokens; at
 least 3 seeds for a positive claim; read raw programs, not only scores; explain methods and results for a first-time reader; append dated
 entries to `docs/FINDINGS.md`; update `PROPOSAL.md` and `PROPOSAL_ko.md` together (short, in place); commit and push after each change (public
-repo: scan the staged diff for secrets, never add raw outputs); before any run ask "does this change the project's main claim?" — if not, skip it.
+repo: scan the staged diff for secrets, never add raw outputs; no Claude co-author line in commits, author dlwns147 only — user 10-22); before any run ask "does this change the project's main claim?" — if not, skip it.

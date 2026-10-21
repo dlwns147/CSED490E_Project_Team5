@@ -1,4 +1,5 @@
 #!/bin/bash
+# Old shared server only: on Slurm the job owns its GPU (index 0 inside the container); use poc/slurm/lane.sh instead.
 # start_vllm.sh <model-dir> <tag>: pick the freest GPU, start vLLM on :8000, retry on a fresh pick if startup fails
 # (e.g. a foreign job grew between the pick and vLLM's own free-memory check). Prints the server PID on success.
 for attempt in 1 2 3 4 5 6; do

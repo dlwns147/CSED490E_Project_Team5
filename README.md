@@ -57,17 +57,18 @@ python bench.py download all --dry          # only show what would be downloaded
 ## Models and GPUs
 
 One model runs on one GPU. Our setting is a 32k-token context and 88% of GPU memory; high-effort contest runs use a 64k
-context. We ran everything on NVIDIA RTX PRO 6000 Blackwell (96 GB). The other GPUs below are estimated from the
-weight size plus the memory one full-length request needs. For gpt-oss on GPUs older than Hopper, check that your
-vLLM version supports its MXFP4 format there.
+context. We ran everything up to 2026-10-20 on NVIDIA RTX PRO 6000 Blackwell (96 GB), and from 2026-10-22 on RTX 3090 (24 GB),
+where gpt-oss-20b (MXFP4), Qwen3-14B-AWQ and Qwen3-8B are tested with vLLM 0.22 at 92% of memory and a 20k context. The other GPUs
+below are estimated from the weight size plus the memory one full-length request needs.
 
 | Alias | Model | Download | Smallest GPU | Example GPUs |
 |---|---|---|---|---|
-| `q8b` | Qwen/Qwen3-8B (16-bit) | 16 GB | 32 GB | A100 40GB, L40S, RTX 6000 Ada |
+| `q8b` | Qwen/Qwen3-8B (16-bit) | 16 GB | 24 GB (20k context) | RTX 3090, RTX 4090, A100 40GB, L40S |
+| `q14a` | Qwen/Qwen3-14B-AWQ (4-bit) | 10 GB | 24 GB | RTX 3090, RTX 4090, A10G |
 | `q14b` | Qwen/Qwen3-14B (16-bit) | 30 GB | 48 GB | L40S, RTX 6000 Ada, A100 80GB |
 | `q32b` | Qwen/Qwen3-32B-AWQ (4-bit) | 19 GB | 40 GB | A100 40GB, L40S, RTX 6000 Ada |
 | `q36` | Qwen/Qwen3.6-35B-A3B-FP8 (8-bit) | 38 GB | 80 GB | H100, RTX PRO 6000 (FP8 needs Ada, Hopper or Blackwell) |
-| `oss20` | openai/gpt-oss-20b (4-bit MXFP4) | 14 GB | 24 GB | RTX 4090, L4, A10G |
+| `oss20` | openai/gpt-oss-20b (4-bit MXFP4) | 14 GB | 24 GB | RTX 3090, RTX 4090, L4, A10G |
 | `oss120` | openai/gpt-oss-120b (4-bit MXFP4) | 65 GB | 80 GB | H100 80GB, H200, RTX PRO 6000 |
 
 On a smaller GPU, shorten the context and use more of the memory, e.g. `python bench.py serve q8b --frac 0.95 --
@@ -87,12 +88,18 @@ Run everything from the repository root. One server at a time uses port 8041; to
 second one its own GPU and port (`serve oss120 --gpu 1 --port 8042`, then `run ... --port 8042`).
 
 **On a Slurm cluster** (from 2026-10-22): `poc/slurm/job.sh` runs one lane script on one allocated GPU inside the project's
-docker image (paths, port, caches and the client Python are set there; see its header):
+docker image (paths, port, caches and the client Python are set there; see its header). `poc/slurm/lane.sh` serves one model and runs
+any client commands against it; `bench.py submit` writes that job for the standard arms:
 
 ```bash
-sbatch -J smoke poc/slurm/job.sh poc/slurm/smoke.sh                                # 10 OptiBench problems per 24 GB model
-sbatch -J hogc_q8b poc/slurm/job.sh poc/slurm/hogc_brute.sh Qwen/Qwen3-8B q8b       # one experiment lane
+python bench.py submit geo fact --model q14a --seeds 1,2,3          # one job: Qwen3-14B-AWQ server + the three seeds (add --dry to only print)
+sbatch -J smoke poc/slurm/job.sh poc/slurm/smoke.sh                 # 10 OptiBench problems per 24 GB model (setup check)
+sbatch -J ob_q8b poc/slurm/job.sh poc/slurm/lane.sh Qwen/Qwen3-8B ob_q8b \
+  'NLOPT_SET=optibench $P poc/run_nlopt.py q8b_optibench free 1 --max_tokens 8192'
 ```
+
+The scripts in `poc/queues/` are the old servers' run records (they claim GPUs 0–3 of one machine); `poc/queues/README.md` shows how to
+turn one of their lanes into a Slurm job.
 
 On an RTX 3090 (24 GB) gpt-oss-20b, Qwen3-14B-AWQ and Qwen3-8B all serve with 92% of memory and `--max-model-len 20480`
 (Qwen3-8B: a 37k-token KV cache).

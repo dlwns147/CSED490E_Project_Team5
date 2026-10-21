@@ -1,4 +1,4 @@
-"""X4 (docs/prereg/PREREG_X3.md, X4 section): whole-proof generation for miniF2F (Lean 4 v4.15.0 + Mathlib v4.15.0 in /SSD/lean_postech/mf2f).
+"""X4 (docs/prereg/PREREG_X3.md, X4 section): whole-proof generation for miniF2F (Lean 4 v4.15.0 + Mathlib v4.15.0 in $POC_DATA/mf2f; old server /SSD/lean_postech/mf2f).
 The file checked is the dataset header + the dataset's formal statement (never the model's) + the model's proof body (the text after
 the first ':= by' of the model's Lean block). Accepted = compiles with no error, no `sorry` / `admit` / `axiom`.
 usage: POC_BASE_URL=... python run_lean.py gen <tag> <split> <k> [--logprobs] [--max_tokens N] [--think] [--card_prompt] [--exemplar <tag>]  -> results/x4/lean_<tag>_<split>.jsonl
@@ -6,12 +6,13 @@ usage: POC_BASE_URL=... python run_lean.py gen <tag> <split> <k> [--logprobs] [-
        POC_BASE_URL=... python run_lean.py fix <tag> <split>   (one feedback round for proofs whose errors name unknown identifiers)"""
 import json, os, re, subprocess, sys, tempfile, zlib
 from concurrent.futures import ThreadPoolExecutor
+_DATA = os.environ.get("POC_DATA", "/NAS/SJ/POSTECH/nlp_data")   # Slurm server (2026-10-22): external data; old server: /SSD/lean_postech
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 RES = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "results")
 OUT = f"{RES}/x4"
-PROJ = "/SSD/lean_postech/mf2f"
-ENV = {**os.environ, "ELAN_HOME": "/SSD/lean_postech/elan", "PATH": "/SSD/lean_postech/elan/bin:" + os.environ.get("PATH", "")}
+PROJ = _DATA + "/mf2f"
+ENV = {**os.environ, "ELAN_HOME": _DATA + "/elan", "PATH": _DATA + "/elan/bin:" + os.environ.get("PATH", "")}
 PROMPT = ("Complete the following Lean 4 theorem (Mathlib is imported). Think about the mathematics briefly, then give the complete theorem "
           "with its proof in a single ```lean4 code block. Do not use `sorry`.\n\n```lean4\n{header}\n{stmt}\n```")
 # the prompt both specialized provers' model cards use (Goedel-Prover-V2, DeepSeek-Prover-V2); used with --card_prompt (2026-10-17)
@@ -54,7 +55,7 @@ def check(header, stmt, body, timeout=180):
     if re.search(r"\b(sorry|admit)\b|^\s*axiom\b", body, re.M):
         return {"ok": False, "errors": ["sorry/admit"], "unknown": []}
     src = header + "\n" + stmt + body + "\n"
-    with tempfile.NamedTemporaryFile("w", suffix=".lean", dir="/SSD/lean_postech/tmp", delete=False) as f:
+    with tempfile.NamedTemporaryFile("w", suffix=".lean", dir=_DATA + "/tmp", delete=False) as f:
         f.write(src); path = f.name
     try:
         p = subprocess.Popen(["lake", "env", "lean", path], cwd=PROJ, env=ENV, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
@@ -133,7 +134,7 @@ def gen(tag, split, k, logprobs, mt, think=False, card=False, ex_tag=""):
 def check_file(path):
     M = {m["name"]: m for m in json.load(open(f"{RES}/x3/minif2f.json"))}
     rows = [json.loads(l) for l in open(path)]
-    os.makedirs("/SSD/lean_postech/tmp", exist_ok=True)
+    os.makedirs(_DATA + "/tmp", exist_ok=True)
     todo = [r for r in rows if "ok" not in r]   # rows checked before keep their result (2026-10-18: extra attempts appended later)
     with ThreadPoolExecutor(24) as ex:
         res = list(ex.map(lambda r: check(M[r["name"]]["header"], M[r["name"]]["formal_statement"], r.get("body")), todo))
@@ -154,7 +155,7 @@ def recheck_missing(path):
     todo = [r for r in rows if r.get("body") is None and proof_body(r["text"]) is not None]
     for r in todo:
         r["body"] = proof_body(r["text"])
-    os.makedirs("/SSD/lean_postech/tmp", exist_ok=True)
+    os.makedirs(_DATA + "/tmp", exist_ok=True)
     with ThreadPoolExecutor(24) as ex:
         res = list(ex.map(lambda r: check(M[r["name"]]["header"], M[r["name"]]["formal_statement"], r["body"]), todo))
     for r, c in zip(todo, res):
@@ -186,7 +187,7 @@ def fix(tag, split):
         return {"name": r["name"], "sample": r["sample"], "unknown": r["unknown"], "fix_ok": ca["ok"], "fix_unknown": ca["unknown"],
                 "fix_tokens": a.get("out_tokens"), "fresh_ok": cb["ok"], "fresh_unknown": cb["unknown"], "fresh_tokens": b.get("out_tokens"),
                 "fix_text": (a["text"] or "")[-3000:], "fresh_text": (b["text"] or "")[-3000:]}
-    os.makedirs("/SSD/lean_postech/tmp", exist_ok=True)
+    os.makedirs(_DATA + "/tmp", exist_ok=True)
     with ThreadPoolExecutor(24) as ex:
         out = list(ex.map(one, rows))
     with open(f"{OUT}/fix_{tag}_{split}.jsonl", "w") as f:
@@ -207,7 +208,7 @@ def revise(tag, split, mt=32000):
     first = {r["name"]: r for r in _rows(f"{OUT}/lean_{tag}_{split}.jsonl") if r["sample"] == 1 and "ok" in r and not r["ok"]}
     path = f"{OUT}/revise_{tag}_{split}.jsonl"
     done = {r["name"] for r in _rows(path)}
-    os.makedirs("/SSD/lean_postech/tmp", exist_ok=True)
+    os.makedirs(_DATA + "/tmp", exist_ok=True)
 
     def one(r):
         p = M[r["name"]]

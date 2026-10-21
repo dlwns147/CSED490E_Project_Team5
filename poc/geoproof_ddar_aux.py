@@ -1,13 +1,14 @@
 """Check auxiliary constructions proposed by an LLM: insert each before the goal, rebuild the problem, run DD+AR (time limit per
 proposal). usage: python ddar_aux.py <aux_<tag>.jsonl> [timeout_s]   -> adds valid / proved / seconds to each row (rewrites the file)."""
-import json, multiprocessing as mp, sys, time
+import json, multiprocessing as mp, os, sys, time
+_DATA = os.environ.get("POC_DATA", "/NAS/SJ/POSTECH/nlp_data")   # Slurm server (2026-10-22): external data; old server: /SSD/lean_postech
 import matplotlib
 matplotlib.use("Agg"); matplotlib.use = lambda *a, **k: None   # numericals.py forces TkAgg (no display here)
-sys.path.insert(0, "/SSD/lean_postech/ag/alphageometry")
+sys.path.insert(0, _DATA + "/ag/alphageometry")
 import graph as gh, problem as pr, ddar  # noqa: E402
 
-DEFS = pr.Definition.from_txt_file("/SSD/lean_postech/ag/alphageometry/defs.txt", to_dict=True)
-RULES = pr.Theorem.from_txt_file("/SSD/lean_postech/ag/alphageometry/rules.txt", to_dict=True)
+DEFS = pr.Definition.from_txt_file(_DATA + "/ag/alphageometry/defs.txt", to_dict=True)
+RULES = pr.Theorem.from_txt_file(_DATA + "/ag/alphageometry/rules.txt", to_dict=True)
 
 
 def attempt(args):

@@ -3,6 +3,8 @@
 # Server 2 (from 2026-10-13, RTX PRO 6000 Blackwell): vLLM 0.22 (torch 2.11 cu130) in the base conda python (/opt/conda).
 # Old server: vLLM 0.10.2 as a --target dir in /dev/shm/pylib_vllm (set POC_PYLIB to use such a dir again).
 # GPUs are SHARED with other containers: pin one GPU and cap the memory fraction to what is actually free.
+# Slurm cluster (from 2026-10-22, RTX 3090): same vLLM 0.22 in the nlp_project:261021 image; poc/slurm/job.sh exposes only the
+# allocated GPU (index 0) and sets HF_HOME / VLLM_CACHE_ROOT inside the container; use frac 0.92 and --max-model-len 20480.
 [ -n "$POC_PYLIB" ] && export PYTHONPATH=$POC_PYLIB
 export CUDA_VISIBLE_DEVICES=$3
 export HF_HOME=${HF_HOME:-/dev/shm/hf_home_poc} VLLM_CACHE_ROOT=${VLLM_CACHE_ROOT:-/dev/shm/vllm_cache_poc}   # Slurm: poc/slurm/job.sh sets both

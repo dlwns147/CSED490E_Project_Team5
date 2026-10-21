@@ -4,6 +4,7 @@ grade is shown for reference. Tokens: Qwen3 tokenizer over the generated text (t
 usage: /opt/conda/bin/python poc/analyze_storm.py [set]   (set = mamo_full | x3)"""
 import json, os, re, sys
 from collections import defaultdict
+_DATA = os.environ.get("POC_DATA", "/NAS/SJ/POSTECH/nlp_data")   # Slurm server (2026-10-22): external data; old server: /SSD/lean_postech
 
 
 
@@ -42,7 +43,7 @@ if __name__ == "__main__":
     st = sys.argv[1] if len(sys.argv) > 1 else "mamo_full"
     from transformers import AutoTokenizer
     tok = AutoTokenizer.from_pretrained("/SSD/huggingface/tangzhy/STORM-Qwen3-4B")
-    R = [json.loads(l) for l in open(f"/SSD/lean_postech/storm/out_{st}/data_with_correctness.jsonl")]
+    R = [json.loads(l) for l in open(f"{_DATA}/storm/out_{st}/data_with_correctness.jsonl")]
     by = defaultdict(lambda: [0, 0, 0, 0]); rows = []
     for j, r in enumerate(R):
         r.setdefault("id", f"{st}-{j}")   # OptMATH as shipped with STORM has no ids: line order = our optmath-<k>

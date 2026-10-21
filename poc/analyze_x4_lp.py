@@ -3,9 +3,10 @@ token confidence than names that exist? Names = dotted / underscored identifiers
 unknown identifier / constant; "existing" = in the dumped Mathlib name list (392,933). Score = min log-prob over the name's tokens at
 its first occurrence in the proof. usage: python analyze_x4_lp.py <tag>"""
 import bisect, itertools, json, os, re, sys, statistics as st
+_DATA = os.environ.get("POC_DATA", "/NAS/SJ/POSTECH/nlp_data")   # Slurm server (2026-10-22): external data; old server: /SSD/lean_postech
 
 RES = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "results", "x4")
-NAMES = set(open("/SSD/lean_postech/mathlib_names.txt").read().split("\n"))
+NAMES = set(open(_DATA + "/mathlib_names.txt").read().split("\n"))
 
 
 def auroc(neg, pos):

@@ -1,5 +1,7 @@
 # Handoff: continuing the project on new servers
 
+**2026-10-22: the project runs on the Slurm cluster — read docs/SLURM_HANDOFF.md §0 first. This file is the old servers' status log.**
+
 State as of 2026-10-13 08:00 UTC. All GPU work on the old servers has been stopped and the hourly loop cancelled.
 
 ## 0. Server 2 status (2026-10-13 14:00 UTC)

@@ -6,23 +6,27 @@
   python bench.py run geo k8 --model q32b --seed 1      run one arm of one benchmark against that server
   python bench.py run contest plain --model oss120 --effort medium
   python bench.py analyze u1 q32b q8b                   = python poc/analyze_u1.py q32b q8b
+  python bench.py submit geo fact --model q8b --seeds 1,2,3   Slurm: one job = a server + the three seeds (poc/slurm/lane.sh)
 
 Options of `run`: --port (default 8041; POC_BASE_URL overrides it), --effort low|medium|high (gpt-oss reasoning effort),
 --tag (output name; default the model alias), --dry (print the command only); anything after `--` is passed to the harness (e.g. `-- --max_tokens 28000 --logprobs`).
-Model folders are looked up under $MODELS_DIR (default /SSD/huggingface). Outputs go to results/ (file name printed by each harness)."""
+Model folders are looked up under $MODELS_DIR (default /SSD/huggingface). Outputs go to results/ (file name printed by each harness).
+`submit` (run it on the cluster's login node from the repository root) prints the sbatch line and submits it unless --dry; the job
+runs in the project's docker image (poc/slurm/job.sh), where the model pool is /SSD/huggingface."""
 import argparse, os, shlex, shutil, subprocess, sys
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 MODELS = {   # alias: (folder under MODELS_DIR, extra vLLM arguments)
     "q8b": ("Qwen/Qwen3-8B", ""),
     "q14b": ("Qwen/Qwen3-14B", ""),
+    "q14a": ("Qwen/Qwen3-14B-AWQ", ""),   # 4-bit: the 14B that fits one 24 GB GPU (RTX 3090), used in SIZE / HO / OB / HO-G
     "q32b": ("Qwen/Qwen3-32B-AWQ", ""),
     "q36": ("Qwen/Qwen3.6-35B-A3B-FP8", "--max-num-seqs 64 --language-model-only"),
     "oss20": ("openai/gpt-oss-20b", ""),
     "oss120": ("openai/gpt-oss-120b", ""),
 }
 # alias: (download size in GB, smallest single-GPU memory in GB for our setting: 32k context, --frac 0.88; see README)
-SIZES = {"q8b": (16, 32), "q14b": (30, 48), "q32b": (19, 40), "q36": (38, 80), "oss20": (14, 24), "oss120": (65, 80)}
+SIZES = {"q8b": (16, 24), "q14b": (30, 48), "q14a": (10, 24), "q32b": (19, 40), "q36": (38, 80), "oss20": (14, 24), "oss120": (65, 80)}
 GEO = ("poc/run_geo_cross.py --model_tag {tag}_geo_{arm}_s{seed} --seed {seed} --stdlib --n_inst 6 --temperature 0.7 --resume "
        "--tasks hull,area2,pip,segs,close,lattice,rectunion,delaunay,diameter")
 CO = ("poc/run_co.py --model_tag {tag}_co_{arm}_s{seed} --seed {seed} --arms solver --n_inst 4 --temperature 0.7 --fmt_fix --resume "
@@ -142,6 +146,24 @@ def cmd_run(a):
         sys.exit(subprocess.run(c, cwd=ROOT, env=env).returncode)
 
 
+def cmd_submit(a):
+    """Slurm: one job serves the model on one GPU (poc/slurm/lane.sh) and runs the arm for each seed against it, in parallel."""
+    about, tmpl, arms = BENCH[a.bench]
+    if a.arm not in arms:
+        sys.exit(f"unknown arm '{a.arm}' for {a.bench}; choose from {', '.join(arms)}")
+    tag = a.tag or a.model + (f"_{a.effort}" if a.effort else "")
+    env = (f"POC_REASONING_EFFORT={a.effort} " if a.effort else "") + ("CC_SET=full " if a.bench == "contest" else "")
+    cmds = [env + "$P " + tmpl.format(tag=tag, arm=a.arm, mode=a.arm, seed=sd) + " " + " ".join([arms[a.arm][1]] + [shlex.quote(x) for x in a.rest])
+            for sd in a.seeds.split(",")]
+    folder, extra = MODELS[a.model]
+    job = f"{a.bench}_{a.arm}_{tag}"
+    c = ["sbatch", "-J", job, "-p", a.partition, "poc/slurm/job.sh", "poc/slurm/lane.sh",
+         "--vllm", " ".join(["--max-model-len", str(a.max_model_len)] + extra.split()), folder, job] + [x.strip() for x in cmds]
+    print("$", shlex.join(c), flush=True)
+    if not a.dry:
+        sys.exit(subprocess.run(c, cwd=ROOT).returncode)
+
+
 def main():
     argv = sys.argv[1:]
     rest = argv[argv.index("--") + 1:] if "--" in argv else []
@@ -168,9 +190,20 @@ def main():
     r.add_argument("--port", type=int, default=8041)
     r.add_argument("--effort", choices=["low", "medium", "high"], help="gpt-oss reasoning effort")
     r.add_argument("--dry", action="store_true")
+    j = sub.add_parser("submit", help="Slurm: submit one job that serves the model and runs the arm for each seed")
+    j.add_argument("bench", choices=BENCH)
+    j.add_argument("arm")
+    j.add_argument("--model", required=True, choices=MODELS)
+    j.add_argument("--tag", default="")
+    j.add_argument("--seeds", default="1", help="comma list, e.g. 1,2,3 (run in parallel against one server)")
+    j.add_argument("--effort", choices=["low", "medium", "high"], help="gpt-oss reasoning effort")
+    j.add_argument("--partition", default="RTX3090")
+    j.add_argument("--max_model_len", type=int, default=20480, help="vLLM context (20480 fits every 24 GB model on a 3090)")
+    j.add_argument("--dry", action="store_true", help="only print the sbatch line")
     a = ap.parse_args(argv)
     a.rest = rest
-    {"list": lambda: cmd_list(), "download": lambda: cmd_download(a), "serve": lambda: cmd_serve(a), "run": lambda: cmd_run(a)}[a.cmd]()
+    {"list": lambda: cmd_list(), "download": lambda: cmd_download(a), "serve": lambda: cmd_serve(a), "run": lambda: cmd_run(a),
+     "submit": lambda: cmd_submit(a)}[a.cmd]()
 
 
 if __name__ == "__main__":

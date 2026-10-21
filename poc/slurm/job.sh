@@ -1,6 +1,7 @@
 #!/bin/bash
 # poc/slurm/job.sh: run one lane script on one GPU of the Slurm cluster, inside the project's docker image (2026-10-22).
 #   cd /home1/leesangjun/SJ/POSTECH/nlp && sbatch -J <name> poc/slurm/job.sh poc/slurm/<lane>.sh [args...]
+# Any model + client commands: poc/slurm/lane.sh (or `python bench.py submit ...`, which writes that sbatch line).
 # CPU-only work (analyses that re-run stored programs) uses the same image on a CPU partition, e.g.
 #   sbatch -J hogc_an -p cpu-max16,cpu-max10,cpu-max24 -q nogpu --gres=none poc/slurm/job.sh '$P poc/analyze_hogc.py'
 # Partition: RTX3090 (24 GB, the project's target GPU; the user reserves RTX6000ADA / L40S / A100-80GB for other sessions).
@@ -19,7 +20,7 @@
 #SBATCH -n 1
 
 [ -n "$1" ] || { echo "usage: sbatch poc/slurm/job.sh <lane script .sh> [args ...] | '<command>'"; exit 1; }
-case "$1" in *.sh) LANE="bash $*" ;; *) LANE="$*" ;; esac
+case "$1" in *.sh) LANE="bash $(printf '%q ' "$@")" ;; *) LANE="$*" ;; esac   # a lane script keeps each argument's quoting
 IMAGE_NAME="nlp_project:261021"
 IMAGE_FILE="/home1/leesangjun/nlp_project_261021.tar"
 DOCKER_NAME="leesangjun_nlp_${SLURM_JOB_ID:-x}_${RANDOM}"

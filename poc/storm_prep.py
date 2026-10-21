@@ -1,5 +1,5 @@
 """STORM baseline (docs/prereg/PREREG_X7.md): write our problem sets (full MAMO 863; NL4OPT + IndustryOR 345) in STORM's official
-tool-integrated-reasoning prompt format, for its own inference code (github.com/tangzhy/STORM, cloned to /SSD/lean_postech/storm/STORM)."""
+tool-integrated-reasoning prompt format, for its own inference code (github.com/tangzhy/STORM, cloned to $POC_DATA/storm/STORM)."""
 import json, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from run_nlopt import problems  # noqa: E402

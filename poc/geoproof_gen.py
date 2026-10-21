@@ -1,5 +1,5 @@
 """PROOF phase 3a (docs/prereg/PREREG_PROOF.md): an LLM proposes one auxiliary construction for an olympiad geometry problem written in
-AlphaGeometry's language; AlphaGeometry's symbolic engine (DD+AR) then tries to prove the goal (checked by /SSD/lean_postech/ag/ddar_aux.py).
+AlphaGeometry's language; AlphaGeometry's symbolic engine (DD+AR) then tries to prove the goal (checked by poc/geoproof_ddar_aux.py; AlphaGeometry in $POC_DATA/ag).
 usage: POC_BASE_URL=... python geoproof_gen.py <tag> <k> [--think] [--max_tokens N] [--defs]  -> results/geoproof/aux_<tag>.jsonl
 Only problems DD+AR cannot prove alone (results/geoproof/ddar_imo30.log) are attempted."""
 import json, os, re, sys, zlib
@@ -7,9 +7,10 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from llm import chat  # noqa: E402
+_DATA = os.environ.get("POC_DATA", "/NAS/SJ/POSTECH/nlp_data")   # Slurm server (2026-10-22): external data; old server: /SSD/lean_postech
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-AG = "/SSD/lean_postech/ag/alphageometry"
+AG = _DATA + "/ag/alphageometry"
 OUT = f"{ROOT}/results/geoproof"
 DEFS = [blk.split("\n")[0].strip() for blk in open(f"{AG}/defs.txt").read().split("\n\n") if blk.strip()]
 CONSTR = [d for d in DEFS if d.split()[1:2] == ["x"]]   # constructions that create one new point x
