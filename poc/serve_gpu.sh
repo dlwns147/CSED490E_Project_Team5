@@ -5,7 +5,7 @@
 # GPUs are SHARED with other containers: pin one GPU and cap the memory fraction to what is actually free.
 [ -n "$POC_PYLIB" ] && export PYTHONPATH=$POC_PYLIB
 export CUDA_VISIBLE_DEVICES=$3
-export HF_HOME=/dev/shm/hf_home_poc VLLM_CACHE_ROOT=/dev/shm/vllm_cache_poc
+export HF_HOME=${HF_HOME:-/dev/shm/hf_home_poc} VLLM_CACHE_ROOT=${VLLM_CACHE_ROOT:-/dev/shm/vllm_cache_poc}   # Slurm: poc/slurm/job.sh sets both
 export VLLM_USE_FLASHINFER_SAMPLER=0   # Blackwell + vLLM 0.22: engine init fails ("FlashInfer requires sm75") without it
 cd /dev/shm   # cwd on the NAS made every import probe CIFS first (python puts cwd on sys.path)
 exec ${POC_VLLM_PY:-/opt/conda/bin/python} -m vllm.entrypoints.openai.api_server --model $1 --served-model-name local \

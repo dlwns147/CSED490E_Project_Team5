@@ -4,7 +4,7 @@ import json, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from run_nlopt import problems  # noqa: E402
 
-D = "/SSD/lean_postech/storm/STORM/data"
+D = os.environ.get("POC_DATA", "/NAS/SJ/POSTECH/nlp_data") + "/storm/STORM/data"
 prefix = json.loads(open(f"{D}/test.tir_prompt.mamo_easy.jsonl").readline())["prompt"].split("### Problem:\n")[0] + "### Problem:\n"
 for name, which in (("mamo_full", "mamo"), ("x3", "x3")):
     with open(f"{D}/test.tir_prompt.{name}.jsonl", "w") as f:

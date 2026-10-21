@@ -86,6 +86,17 @@ python bench.py run geo k8 --model q32b --dry        # only print the underlying
 Run everything from the repository root. One server at a time uses port 8041; to run two models at once, give the
 second one its own GPU and port (`serve oss120 --gpu 1 --port 8042`, then `run ... --port 8042`).
 
+**On a Slurm cluster** (from 2026-10-22): `poc/slurm/job.sh` runs one lane script on one allocated GPU inside the project's
+docker image (paths, port, caches and the client Python are set there; see its header):
+
+```bash
+sbatch -J smoke poc/slurm/job.sh poc/slurm/smoke.sh                                # 10 OptiBench problems per 24 GB model
+sbatch -J hogc_q8b poc/slurm/job.sh poc/slurm/hogc_brute.sh Qwen/Qwen3-8B q8b       # one experiment lane
+```
+
+On an RTX 3090 (24 GB) gpt-oss-20b, Qwen3-14B-AWQ and Qwen3-8B all serve with 92% of memory and `--max-model-len 20480`
+(Qwen3-8B: a 37k-token KV cache).
+
 ## Examples
 
 **Quick test** on one 24 GB GPU with the smallest model:

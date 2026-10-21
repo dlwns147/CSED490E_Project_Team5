@@ -95,11 +95,13 @@ def _rows(path):
             pass
     return out
 
-MAMO = "/SSD/huggingface/datasets/MAMO"   # X7 (2026-10-19): held-out benchmark, MAMO EasyLP 652 + ComplexLP 211 (NLOPT_SET=mamo)
+# Slurm server (2026-10-22): external data under $POC_DATA (container path of /home1/leesangjun/SJ/POSTECH/nlp_data; old server: /SSD/...)
+DATA = os.environ.get("POC_DATA", "/NAS/SJ/POSTECH/nlp_data")
+MAMO = f"{DATA}/MAMO"   # X7 (2026-10-19): held-out benchmark, MAMO EasyLP 652 + ComplexLP 211 (NLOPT_SET=mamo; HF CardinalOperations/MAMO)
 
 
-OPTMATH = "/SSD/lean_postech/storm/STORM/data/test.tir_prompt.OptMath.jsonl"
-OPTIBENCH = "/SSD/lean_postech/optibench/ReSocratic/data/OptiBench.json"   # github.com/yangzhch6/ReSocratic
+OPTMATH = f"{DATA}/storm/STORM/data/test.tir_prompt.OptMath.jsonl"   # github.com/tangzhy/STORM
+OPTIBENCH = f"{DATA}/optibench/ReSocratic/data/OptiBench.json"   # github.com/yangzhch6/ReSocratic
 
 
 def problems(which=None):
@@ -191,7 +193,8 @@ def main():
     path = f"{RES}/opt_{tag}_{mode}_s{seed}.jsonl"   # rows are flushed as they finish; a re-run resumes (2026-10-17)
     done = {r["id"] for r in _rows(path)}
     with ThreadPoolExecutor(48) as ex, open(path, "a") as f:
-        for fu in as_completed([ex.submit(one, p) for p in problems() if p["id"] not in done]):
+        todo = problems()[:int(os.environ.get("NLOPT_LIMIT", 10**9))]   # NLOPT_LIMIT: the first N problems only (Slurm smoke test)
+        for fu in as_completed([ex.submit(one, p) for p in todo if p["id"] not in done]):
             f.write(json.dumps(fu.result()) + "\n"); f.flush()
     rows = [json.loads(l) for l in open(path)]
     by = {}
