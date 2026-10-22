@@ -3,7 +3,7 @@
 State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Team5, public). The hourly loop on the old server
 (/NAS/SJ/POSTECH/nlp, 8 × RTX PRO 6000 Blackwell, GPUs 0–3) was stopped on 2026-10-20 04:2x UTC; no job is running there.
 
-## 0. Status on the Slurm cluster (updated 2026-10-22 23:2x UTC)
+## 0. Status on the Slurm cluster (updated 2026-10-22 23:1x UTC)
 - **Done 10-22/23 (all recorded in the prereg files and FINDINGS):** HO3–HO5 solution checker (helps on BWOR / LogiOR only), HO6 / HO7 /
   HO-G-R one cheap repair before thinking (helps the stronger models on word problems, not on geometry), HO-X a second model's program
   as the check (catches Qwen3-8B's on-input leaks, none of its 37 edge-only leaks; using gpt-oss-20b directly dominates), HO-D gate (even
