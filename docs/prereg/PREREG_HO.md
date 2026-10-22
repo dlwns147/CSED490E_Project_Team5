@@ -491,10 +491,25 @@ with the measured saving; otherwise the repair step stays an option for the stro
   lower cost in 5 of 6 cells — because where the repair yields a running program it is right more often than thinking on the same items
   (in all six cells). With HO6: repair visible failures only; repairing running programs that a checker flagged made Qwen3-8B worse (HO6).
 
-## Addendum HO-B (2026-10-22 23:2x UTC, before computing; offline): is always thinking handicapped by its 16k-token budget?
+## Addendum HO-B (2026-10-22 23:0x UTC, before computing; offline): is always thinking handicapped by its 16k-token budget?
 Always thinking (THINK) ran with 16,000 output tokens (what fits beside the model on a 24 GB GPU); 0.3–7.6% of the stronger models' THINK
 rows hit it (Qwen3-8B 3–24%). **Worst case:** count every THINK row that hit the budget and is wrong as right — in THINK and wherever FF
 escalates to it — and recompute FF − THINK with its paired 95% interval in every held-out cell (OptMATH mined example, OptiBench free /
 library, BWOR, LogiOR free / library, geometry). **Prediction HOB-P1:** no cell where FF ties or beats THINK for gpt-oss-20b or
 Qwen3-14B-AWQ becomes a significant loss (upper bound < 0). **Decision:** if P1 holds, no longer-budget THINK run (it cannot change the
 claim) and the bound goes into the report's limitations; if not, re-run the budget-capped THINK rows of the flipping cells at 32k tokens.
+
+### Results HO-B (2026-10-22 23:1x UTC; `python poc/analyze_budget.py`, 3 seeds; FF − THINK, paired 95% interval)
+| cell | gpt-oss-20b as run → worst case | Qwen3-14B-AWQ as run → worst case | Qwen3-8B as run → worst case |
+|---|---|---|---|
+| OptMATH, mined example | +5.7 [+0.3, +11.3] → +2.7 [−3.0, +8.7] | 0.0 [−4.0, +4.0] → 0.0 | +1.7 [−1.3, +5.0] → 0.0 [−3.3, +3.7] |
+| OptiBench, no fact | +1.8 [+0.3, +3.4] → +1.7 [+0.1, +3.3] | +11.0 → +10.9 [+8.7, +13.2] | −0.4 → −1.2 [−3.1, +0.6] |
+| OptiBench, library | +4.1 [+2.1, +6.1] → +4.0 [+1.9, +6.0] | +15.6 → +15.1 [+12.5, +17.9] | +5.2 → +4.1 [+1.7, +6.7] |
+| BWOR, no fact | +1.2 [−4.5, +6.9] → −2.0 [−7.3, +3.7] | +1.2 [−4.9, +7.3] → −1.2 [−7.7, +5.7] | −8.1 → −14.2 [−20.7, −8.5] |
+| LogiOR, no fact | −1.1 [−6.9, +4.7] → −4.0 [−9.8, +1.4] | −2.2 [−5.4, +1.8] → −2.9 [−6.5, +1.1] | −2.9 → −5.4 [−9.8, −1.4] |
+| LogiOR, library | −1.1 [−6.9, +4.0] → −4.3 [−10.1, +0.7] | +10.1 → +9.1 [+2.9, +14.9] | −2.2 → −5.4 [−10.5, −0.4] |
+| geometry, helpers + hint | +5.9 [+3.5, +8.7] → +5.9 (no row capped) | +7.6 [+4.2, +11.5] → +4.2 [+2.1, +6.9] | −14.2 → −19.1 [−24.7, −13.9] |
+- **HOB-P1 holds:** in the worst case no tie or win of gpt-oss-20b or Qwen3-14B-AWQ becomes a significant loss (closest: gpt-oss-20b
+  LogiOR with the library, −4.3 [−10.1, +0.7]); one win becomes a tie (gpt-oss-20b OptMATH). Qwen3-8B's losses only deepen.
+- **Decision:** no 32k-budget THINK run; the report states the bound (a longer budget could cost the recipe at most ~3 points in a cell and
+  turn gpt-oss-20b's OptMATH win into a tie).
