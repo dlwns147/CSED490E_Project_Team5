@@ -357,3 +357,17 @@ The checker's false alarms are its own misreadings (HO3 raw). **FF-VA:** think o
 written only when the checker objects (its tokens are counted only there).
 - HO3C-P1: FF-VA halves the false alarms on right programs of FF-V and keeps ≥ 70% of its catches of running-but-wrong programs (pooled per model).
 - HO3C-P2: FF-VA accuracy ≥ FF-V − 0.5 points at fewer tokens, in ≥ 4 of 6 BWOR / LogiOR cells.
+
+### HO3-C results (2026-10-22 19:3x UTC; results/x3/ho3c_analysis.log)
+| cell | FF-V (checker) | **FF-VA (checker AND a disagreeing second program)** | THINK | false alarms on right programs V → VA | catches of wrong programs V → VA |
+|---|---|---|---|---|---|
+| BWOR gpt-oss-20b | 63.0% @ 109% | 61.4% @ 106% | 59.3% | 18 → 11 / 98 | 51 → 41 / 69 |
+| LogiOR gpt-oss-20b | 55.8% @ 107% | 56.5% @ 107% | 51.4% | 32 → 12 / 124 | 31 → 26 / 47 |
+| BWOR Qwen3-14B-AWQ | 33.3% @ 102% | **36.2% @ 98%** | 30.1% | 22 → 11 / 43 | 45 → 39 / 51 |
+| LogiOR Qwen3-14B-AWQ | 29.7% @ 106% | 30.1% @ 104% | 27.9% | 16 → 10 / 31 | 46 → 40 / 55 |
+| BWOR Qwen3-8B | 36.2% @ 106% | 37.0% @ 105% | 38.2% | 13 → 4 / 20 | 50 → 47 / 58 |
+| LogiOR Qwen3-8B | 35.1% @ 110% | 34.8% @ 110% | 34.8% | 12 → 7 / 19 | 33 → 30 / 34 |
+- **HO3C-P1 holds for gpt-oss-20b and Qwen3-8B** (false alarms −54% / −56%, catches kept 82% / 93%), narrowly misses for Qwen3-14B-AWQ (−45%,
+  87% kept). **HO3C-P2 holds** (4 of 6 cells: ≥ FF-V − 0.5 at fewer tokens; not gpt-oss-20b BWOR −1.6, LogiOR equal tokens).
+- Reading: two independent views (a checker of the solution, a second formulation) disagree with each other's errors; requiring both to
+  object removes about half the false alarms at almost no loss of catches. Still no token saving on these benchmarks (bound).
