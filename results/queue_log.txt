@@ -554,3 +554,9 @@ SL ho2t_q8b_bwor_s2 done Thu Oct 22 04:34:30 UTC 2026
 SL ho2t_q8b_bwor_s3 done Thu Oct 22 04:40:13 UTC 2026
 SL ho2t_q8b_logior_s1 done Thu Oct 22 04:43:25 UTC 2026
 SL ho2t_q8b_logior_s3 done Thu Oct 22 05:10:51 UTC 2026
+SL_HOGCM q8b done Thu Oct 22 18:32:34 UTC 2026
+SL_HOGCM q14a done Thu Oct 22 18:34:30 UTC 2026
+SL_HOGCM oss20 done Thu Oct 22 18:36:51 UTC 2026
+SL_HO3 oss20 done Thu Oct 22 18:45:25 UTC 2026
+SL_HO3 q14a done Thu Oct 22 18:51:09 UTC 2026
+SL_HO3 q8b done Thu Oct 22 18:56:39 UTC 2026

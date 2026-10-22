@@ -314,3 +314,23 @@ tokens) is infeasible in most cells by construction**; it was set without this c
 *raises* accuracy above always thinking (e.g. BWOR gpt-oss-20b library 69.5% vs 59.3%; LogiOR Qwen3-14B-AWQ library 41.3% vs 27.9%), because
 right cheap programs are kept where thinking fails. So for HO3 the informative outcome is accuracy: P1 (flag rates) and whether FF-V
 exceeds always thinking; P2 is reported as pre-registered.
+
+## HO3 results (2026-10-22 19:0x UTC; results/x3/ho3_analysis.log; 3 seeds; paired 95% intervals over problems)
+| cell | FF (freev) − THINK | **FF-V (+ solution checker) − THINK** | checker flags running-but-wrong / right programs |
+|---|---|---|---|
+| BWOR gpt-oss-20b | −2.0 [−7.7, +3.7] at 56% | **+3.7 [+0.8, +6.9]** at 109% | 51 / 69 (74%) · 18 / 98 (18%) |
+| LogiOR gpt-oss-20b | +1.4 [−4.3, +7.2] at 70% | **+4.3 [+0.4, +8.3]** at 107% | 31 / 47 (66%) · 32 / 124 (26%) |
+| BWOR Qwen3-14B-AWQ | +2.4 [−2.8, +7.7] at 72% | **+3.3 [+0.4, +6.1]** at 102% | 45 / 51 (88%) · 22 / 43 (51%) |
+| LogiOR Qwen3-14B-AWQ | +1.1 [−2.9, +5.4] at 81% | +1.8 [−0.4, +4.3] at 106% | 46 / 55 (84%) · 16 / 31 (52%) |
+| BWOR Qwen3-8B | −6.9 [−12.6, −1.6] at 80% | −2.0 [−4.5, +0.0] at 106% | 50 / 58 (86%) · 13 / 20 (65%) |
+| LogiOR Qwen3-8B | −3.3 [−7.2, +0.4] at 95% | +0.4 [−0.7, +1.4] at 110% | 33 / 34 (97%) · 12 / 19 (63%) |
+- **HO3-P1 half holds:** the checker flags 66–97% of the running-but-wrong programs (≥ 40%: holds in 6 / 6) but also 18–65% of the right
+  ones (≤ 15%: refuted in 6 / 6). **HO3-P2 refuted** in 6 / 6 on tokens (102–110%; infeasible by the bound recorded before the results);
+  on accuracy alone FF-V ≥ THINK − 1 in 5 / 6. **HO3-P3 holds** (Qwen3-8B BWOR: −6.9 → −2.0, 71% of the gap closed).
+- **Decision: a partial fix, reported with its cost.** On hard benchmarks the solution checker turns the recipe from a tie into a
+  significant accuracy gain over always thinking for the stronger models (+3.3 to +4.3 in 3 of 4 cells) at about always thinking's tokens,
+  and brings Qwen3-8B to within 2 points; it is as accurate as two agreeing programs (HO2 FFR) at 5–13 points fewer tokens. It saves no
+  tokens there — no check can (bound).
+- Raw (false alarms, BWOR seed 1): the checker misreads the text — an inverted comparison ("minerals 92.3 < 30.0"), an invented
+  constraint ("plan not available for its factory"); both models' checkers flag BWOR-056, whose text has almost no numbers. The check
+  repeats the model's comprehension errors in the other direction.
