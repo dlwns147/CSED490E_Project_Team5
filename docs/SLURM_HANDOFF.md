@@ -22,11 +22,12 @@ State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Tea
   mostly on library usage (invented attributes, gurobipy), so as new cells for step 3.2 they would sit on the census's high side.
 - **Smoke test** (`poc/slurm/smoke.sh`, first 10 OptiBench problems): Qwen3-8B 2/10 @ 0.41k, Qwen3-14B-AWQ 5/10 @ 0.35k, gpt-oss-20b
   3/10 @ 0.53k; raw programs show the old failure kinds; the harness reproduces (FINDINGS 2026-10-21 18:40).
-- **Raw results** of the old server (results/*.jsonl, ~2 GB) are being copied by the user (scp through the gs02 jump host); analyses of
-  old runs wait for them. `cpu_jobs/nlp/status_hourly.sh` (login node, nohup) logs jobs hourly to `out/nlp/status_hourly.log` and submits
-  the HO-G-C analysis once the 27 HO-G files are complete.
-- **Running now:** HO-G-C (`docs/prereg/PREREG_HOGC.md`, step 3.1 below): brute-force programs for the four held-out geometry tasks done
-  for all three models (3 seeds); the offline policy analysis (`poc/analyze_hogc.py`) needs the old HO-G rows.
+- **Raw results** of the old server (results/*.jsonl, 2.0 GB) are here (10-22 01:48 UTC), copied from the shared NFS `/NAS/SJ/POSTECH/nlp`
+  with `ssh -F /home1/leesangjun/cpu_jobs/ssh_origin.conf remote 'cd /NAS/SJ/POSTECH/nlp && tar czf - results' | tar xzf - --skip-old-files`
+  (remote = acp_user@141.223.181.76:22022, key ~/.ssh/sj_key_0; read-only there). `cpu_jobs/nlp/status_hourly.sh` (login node, nohup)
+  logs jobs hourly to `out/nlp/status_hourly.log`.
+- **Done on Slurm:** HO-G-C (`docs/prereg/PREREG_HOGC.md`, step 3.1): a second program by the same model does not close Qwen3-8B's leak;
+  most leaked programs fail only edge cases the given input never contains (decision (c), see §2).
 
 ## 1. The project in one paragraph
 POSTECH CSED490E team project "Tools, Facts, and Checks": computational geometry (CG) and combinatorial-optimization (CO) problems solved
@@ -53,13 +54,14 @@ unless asked.
 | Trained baselines on our harness | ORLM-8B MAMO 69.5% @ 1.1k (Qwen3-8B recipe equal); STORM-4B MAMO 81.8% @ 8.4k, OptiBench 78.7% @ 7.9k (leads our best 24 GB recipe by 3–6 at 4–8 × tokens); cheap program + STORM on failure 76.3% @ 2.3k | PREREG_X7.md, PREREG_HO.md |
 | Self-consistency baseline | majority of 3 thinking runs 75.0% @ 6.3k (OptiBench, gpt-oss-20b); recipe with that vote as fallback 74.6% @ 1.9k | PREREG_HO.md |
 | Contest geometry (311 Codeforces, gpt-oss-120b / 20b) | examples + brute-force-oracle gate to high 66.3% @ 24.7k ≈ always-high 66.2% @ 30.1k; approach hints (tags / own plan) do not earn their place | PREREG_N.md, PREREG_CH.md |
+| … a second program by the same model does not rescue Qwen3-8B there | brute-force agreement 64.2% @ 6.6k, resample 65.6% @ 6.5k vs always-thinking 74.0% @ 9.8k; 37 / 64 leaked programs are right on the given input, wrong only on edge cases (collinear vertex, point on an edge) | PREREG_HOGC.md |
 | Limits | checks leak (consistent wrong programs); about half of MAMO's leaked problems are wrong labels (66 disputed); proofs need a trained prover | PREREG_X7.md, PREREG_PROOF.md |
 
 ## 3. Most important next steps (in this order; each pre-registered before running)
-1. **Close the check leak for weak models** — the one place the recipe fails on held-out data (HO-G, Qwen3-8B: consistent-but-wrong
-   programs pass the metamorphic check). Candidate: a label-free differential check (a brute-force program on small random inputs, as the N13
-   oracle for contests) as the second check on geometry; test on the four held-out tasks with Qwen3-8B / Qwen3-14B-AWQ, 3 seeds. Decision:
-   FF with the stronger check ≥ always-thinking at ≤ 60% of its tokens for Qwen3-8B.
+1. **Close the check leak for weak models** — the one place the recipe fails on held-out data (HO-G, Qwen3-8B). Done 10-22 (HO-G-C): a
+   brute-force or resampled second program by the same model catches 41–45% of the leaks and does not reach always-thinking; most leaks are
+   edge-case bugs the given input never contains. Open: a check that exercises the edge cases the statement names (e.g. model-written
+   edge-case inputs with the relation the statement implies), pre-registered against the same decision rule.
 2. **Where facts do not pay** — the census rule predicts only the high side; a label-free signal for the low side (e.g. 'No Best Solution'
    rate, wrong-variable-type rate read from programs) needs a prospective test on a new model × benchmark.
 3. Write-up: fold HO / OB / HOG / CD / WF into the final report (proposal already updated in place). No new replications or baselines unless a

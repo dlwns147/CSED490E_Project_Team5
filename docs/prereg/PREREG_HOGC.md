@@ -47,3 +47,30 @@ models (PROPOSAL finding 6, §7 'Checks leak', both languages). (b) If only accu
 the limit is restated with the measured saving. (c) Otherwise the limit stays: for Qwen3-8B on geometry, always think.
 Also reported (labels used only for these notes): brute-force correctness per task, its tokens / finish reasons / crashes / timeouts, and
 ≥ 10 flagged leaked programs and ≥ 5 false alarms read in full.
+
+## Results (2026-10-22 01:5x UTC; results/hogc_analysis.log, poc/analyze_hogc.py; 96 items × 3 seeds; brute-force rows on RTX 3090)
+Harness check: FF and THINK reproduce PREREG_HOG.md exactly for all three models.
+| held-out geometry, seed means | FF | STRICT (MR + agree with brute force) | TWO-VIEW | RESAMPLE (second fact sample) | THINK |
+|---|---|---|---|---|---|
+| gpt-oss-20b | **99.0% @ 0.82k** | 96.2% @ 1.93k | 99.0% @ 1.41k | 98.3% @ 1.64k | 93.1% @ 1.69k |
+| Qwen3-14B-AWQ | **84.4% @ 2.92k** | 77.1% @ 6.44k | 83.0% @ 3.58k | 79.2% @ 4.93k | 76.7% @ 8.58k |
+| Qwen3-8B | 59.7% @ 4.55k | 64.2% @ 6.63k | 55.9% @ 3.14k | 65.6% @ 6.54k | **74.0% @ 9.82k** |
+- **HOGC-P1 refuted** on the main part: STRICT flags 26 of Qwen3-8B's 64 leaked programs (41%, not ≥ 60%). False alarms on overlap / convex /
+  tri 17 / 132 (12.9%, ≤ 15%: holds); clip false alarms ≥ 30% hold for gpt-oss-20b (42 / 59) and Qwen3-14B-AWQ (22 / 23) (Qwen3-8B has no
+  correct clip program that passes MR).
+- **HOGC-P2 refuted** (STRICT 64.2% < 71.0%); **P3 fails** as predicted, and on accuracy too; **P4 refuted** (TWO-VIEW 55.9%: where the fact
+  program visibly fails, the brute-force program it takes instead is right on 16 of 60); **P5 refuted for STRICT** (−2.8 / −7.3 points for
+  gpt-oss-20b / Qwen3-14B-AWQ: wrong brute-force programs flag correct ones, e.g. 54 of Qwen3-14B-AWQ's 69 correct tri programs), holds for
+  TWO-VIEW (0.0 / −1.4; HOG-P1 still holds for Qwen3-14B-AWQ, not for gpt-oss-20b at 83% of THINK's tokens); **P6 refuted** (RESAMPLE flags
+  29 / 64 = 45%, as many as the brute force, at the same cost).
+- **Decision (c): the limit stays** — for Qwen3-8B on held-out geometry always thinking is best (74.0% @ 9.8k vs the best label-free check,
+  RESAMPLE, 65.6% @ 6.5k); for the two stronger models plain FF remains best and a second view only adds tokens and false alarms.
+- **Why (raw programs; labels used only here):** 37 of the 64 leaked programs (all 19 convex, 18 tri) answer the given instance and all its
+  rigid copies correctly and fail only the degenerate copy, which no check on the given instance exercises: convex sets its turn direction
+  at the first vertex triple and crashes when that triple is collinear; tri uses the textbook `not (has_neg and has_pos)` test, which
+  counts points on an edge as inside (the statement says strictly inside), and the brute force repeats the same snippet. Of the 27 programs
+  wrong on the given instance itself (clip 18, tri 9), the brute force flags 19 (70%). Every false alarm comes from a wrong brute-force
+  program (logic errors, float errors on transformed copies, crashes), not from the fact program.
+**Reading:** the check leak that breaks the recipe for the weakest model is mostly edge-case bugs that never show on the given input; a
+second program written by the same model catches most wrong answers on the given input but shares its edge-case habits. A check would have to
+exercise the edge cases the statement names (collinear vertices allowed, points on an edge do not count) to see them.
