@@ -350,3 +350,10 @@ with the solution-printing instruction of freev; `verify` (run_verify.py, source
 **Decision.** P1 + P2 → the free check for word problems becomes "runs + solution checker", and the held-out claim on OptiBench is stated as
 more accurate and cheaper by the measured amounts; P1 only → the checker is a knob that trades the saving for accuracy (report the curve);
 neither → the checker is not worth its cost where savings are possible.
+
+### HO3-C pre-registration (2026-10-22 19:2x UTC, before computing; offline on the HO3 rows, and on HO4's when they exist)
+The checker's false alarms are its own misreadings (HO3 raw). **FF-VA:** think only if the checker does not pass **and** a second cheap program
+(the same arm, next seed: s1↔s2, s2↔s3, s3↔s1) fails or prints a different value; otherwise keep the first program. The second program is
+written only when the checker objects (its tokens are counted only there).
+- HO3C-P1: FF-VA halves the false alarms on right programs of FF-V and keeps ≥ 70% of its catches of running-but-wrong programs (pooled per model).
+- HO3C-P2: FF-VA accuracy ≥ FF-V − 0.5 points at fewer tokens, in ≥ 4 of 6 BWOR / LogiOR cells.
