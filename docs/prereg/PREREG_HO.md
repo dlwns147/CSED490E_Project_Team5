@@ -421,3 +421,21 @@ OptMATH, freev, 3 seeds: two-program agreement among programs that run and print
 **Reading:** a solution checker helps where the problem's constraints can be checked on the decision variables alone (textbook-style
 BWOR / LogiOR) and thinking can fix what it flags; it does not where checking needs the formulation itself (OptMATH) or where cheap programs
 are mostly right (OptiBench). No label-free rule for this was found; the default stays the plain recipe with the library.
+
+## HO6 pre-registration (2026-10-22 20:0x UTC, before running): a cheap repair before thinking, on a visible failure (BWOR / LogiOR)
+**Why.** The perfect-check bound (no token saving on BWOR / LogiOR) assumes every visible failure pays for full thinking (≈ 4–12k tokens).
+The failure evidence is specific — Python's error for a crash, the checker's violated constraint (HO3), 'No Best Solution' — so one short
+repair turn without thinking (≈ 1k tokens) may fix many programs; thinking is then paid only when the repair also fails. Prior evidence:
+repair from Lean errors was worse than a fresh attempt (PROOF-R), one repair round on contests helped little (N2); word-problem programs with
+a named violated constraint have not been tried.
+**Arm** (`poc/run_repair.py`; BWOR, LogiOR; 3 models; seeds 1–3; cheap-arm settings, no thinking): for each freev program that does not run,
+prints nothing / 'No Best Solution', or whose solution the HO3 checker does not pass, the same model gets the problem, its program and the
+evidence (the error's last lines, or the checker's VIOLATION line, or "the program printed No Best Solution") and writes a corrected program
+in the freev format. **Policy FF-R:** freev program if it passes the free check and the checker; else the repaired program if it runs and
+prints a value; else THINK. Tokens: freev + checker + repair (where written) + thinking where escalated.
+**Predictions** (seed means; vs the stored THINK rows; 95% intervals over problems):
+- HO6-P1: the repair turns ≥ 30% of the escalated items into programs that run and print a value, and ≥ 30% of those are right.
+- HO6-P2: FF-R ≥ FF-V − 1 point at ≤ 75% of always thinking's tokens for gpt-oss-20b and Qwen3-14B-AWQ on both benchmarks (FF-V: 102–110%).
+- HO6-P3 (uncertain): FF-R ≥ always thinking at ≤ 75% of its tokens in ≥ 3 of the 6 cells.
+**Decision.** P2 → the recipe's ladder becomes cheap program → free check (+ checker where it is an independent view) → one cheap repair
+with the evidence → thinking, and the hard benchmarks regain a token saving; otherwise repair is reported as not paying before thinking.
