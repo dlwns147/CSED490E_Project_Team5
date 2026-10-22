@@ -235,7 +235,7 @@ produced exactly them. **Policies** DIFF-F2 / DIFF-B / DIFF-ALL: accept F only i
 eight inputs; else THINK. **Gate:** if the best of these bounds is < THINK − 1 (73.0%) or needs > 75% of THINK's tokens, no generator run
 (the claim cannot change); otherwise pre-register the generator run (HO-D) with its predictions before it.
 
-### Result of the HO-D gate (2026-10-22 23:1x UTC; `python poc/analyze_hod_gate.py q8b q14a`, 3 seeds, 288 rows each)
+### Result of the HO-D gate (2026-10-22 23:0x UTC; `python poc/analyze_hod_gate.py q8b q14a`, 3 seeds, 288 rows each)
 | Qwen3-8B | accuracy @ tokens (share of THINK) | leaks flagged: wrong on input (27) · edge-only (37) | right programs flagged (132) |
 |---|---|---|---|
 | FF | 59.7% @ 4.55k (46%) | — | — |
