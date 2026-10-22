@@ -67,6 +67,9 @@ P_FREE = ("{q}\n\nWrite a complete Python 3 program that formulates this problem
           "whichever fits the problem class: Google OR-Tools (`pywraplp` with SCIP for linear / mixed-integer models, CP-SAT), cvxpy "
           "(convex continuous models, including quadratic and second-order cone constraints) or scipy.optimize. Print ONLY the optimal "
           "objective value." + TAIL)   # HO-L (PREREG_HO.md, 2026-10-19): 27 of 100 OptMATH problems are not linear
+P_FREEV = P_FREE[:-len(TAIL)].replace("Print ONLY the optimal objective value.", "Print exactly two lines at the end: first the values of all "
+          "decision variables as ONE JSON object on one line (variable name -> value), then the optimal objective value alone on the last "
+          "line.") + TAIL   # HO3 (PREREG_HO.md, 2026-10-23): the solution, for a checker written from the text (poc/run_verify.py)
 SNIP_TEXT = ("\n\nOR-Tools pywraplp usage, in words: create the solver with pywraplp.Solver.CreateSolver('SCIP'); make an integer "
              "variable with s.IntVar(lower, upper, name) (a continuous one with s.NumVar(lower, upper, name)); add a constraint with "
              "s.Add(linear expression); set the objective with s.Maximize(expression) or s.Minimize(expression); solve with st = s.Solve() "
@@ -176,7 +179,7 @@ def main():
         sd = seed * 1000 + zlib.crc32(p["id"].encode()) % 997
         tmpl = {"mip": P_MIP, "mipf": P_MIP + SNIP, "cpsat": P_CPSAT, "text": P_TEXT, "think": P_MIP, "thinkf": P_MIP + SNIP,
                 "mipa": P_MIP + AUTO.replace("{", "{{").replace("}", "}}"), "thinka": P_MIP + AUTO.replace("{", "{{").replace("}", "}}"),
-                "mipv": P_MIP, "thinkv": P_MIP, "mips": P_MIP, "thinks": P_MIP, "free": P_FREE, "thinkfree": P_FREE, "mipt": P_MIP + SNIP_TEXT, "freef": P_FREE + LIBCARD}[mode]
+                "mipv": P_MIP, "thinkv": P_MIP, "mips": P_MIP, "thinks": P_MIP, "free": P_FREE, "thinkfree": P_FREE, "mipt": P_MIP + SNIP_TEXT, "freef": P_FREE + LIBCARD, "freev": P_FREEV}[mode]
         q = tmpl.format(q=p["q"])
         if mode in ("mipv", "thinkv", "mips", "thinks"):   # automatic usage fact: a check-passing program of this model for a similar problem of the other benchmark
             ex = EX(p)
@@ -193,11 +196,13 @@ def main():
         else:
             code = last_block(text, ("python", "py", "python3"))
             r = run_python(code, "", timeout=60, mem_bytes=4 << 30,   # free modes may pick multi-threaded CP-SAT: CPU limit >> wall (H5 bug)
-                           cpu_s=(3600 if mode in ("free", "thinkfree", "freef") else None)) if code else None
+                           cpu_s=(3600 if mode in ("free", "thinkfree", "freef", "freev") else None)) if code else None
             out = (r.stdout if r and r.status == "ok" else "") or ""
             lines = [l for l in out.strip().splitlines() if l.strip()]
             pred = value_of(lines[-1]) if lines else None
             row.update(code=code, status=(r.status if r else "no_code"), stdout=out[-300:], err=((r.stderr or "")[-300:] if r else ""), pred=pred)
+            if mode == "freev":   # HO3: the printed solution (the line before the objective), kept whole for the checker
+                row["solution"] = next((l.strip()[:6000] for l in reversed(lines[:-1]) if l.strip().startswith("{")), None)
         row["correct"] = correct(row["pred"], p["gold"])
         return row
 
