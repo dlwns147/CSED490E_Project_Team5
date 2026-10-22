@@ -3,7 +3,7 @@
 State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Team5, public). The hourly loop on the old server
 (/NAS/SJ/POSTECH/nlp, 8 × RTX PRO 6000 Blackwell, GPUs 0–3) was stopped on 2026-10-20 04:2x UTC; no job is running there.
 
-## 0. Status on the Slurm cluster (updated 2026-10-21 19:4x UTC)
+## 0. Status on the Slurm cluster (updated 2026-10-22 06:3x UTC)
 - **Set up and tested.** Docker image `nlp_project:261021` (`/home1/leesangjun/nlp_project_261021.tar`; vLLM 0.22.0, torch 2.11 cu130,
   client / sandbox venv `/root/venvs/llm_algo_poc`), loaded per node on first use (258 s). Partition **RTX3090** (24 GB = the project's
   target GPU; RTX6000ADA / L40S / A100-80GB are used by the user's other sessions). 4 CPUs per GPU, no `--time`, no `-q` on this partition.
@@ -67,10 +67,16 @@ unless asked.
    edge-case bugs the given input never contains. HO-G-E (10-22): model-written edge-case tests (once per task) see the leaks but get the
    same boundary cases wrong (67% false alarms) → no self-written check rescues Qwen3-8B; the limit stands (closed unless a check that
    does not rely on the model's own edge-case knowledge is proposed).
-2. **Where facts do not pay** — the census rule predicts only the high side; a label-free signal for the low side (e.g. 'No Best Solution'
-   rate, wrong-variable-type rate read from programs) needs a prospective test on a new model × benchmark.
-3. Write-up: fold HO / OB / HOG / CD / WF into the final report (proposal already updated in place). No new replications or baselines unless a
-   claim in the report needs them (user, 2026-10-19: "do important things, not superficial").
+2. **Where facts do not pay** — WF3 (10-22, BWOR / LogiOR): the rule "add a fact unless usage crashes < 5% and non-usage failures ≥ 25%"
+   (fixed from the 46 old points) was right in 10 / 12 new points, but every new cell had ≥ 5% usage crashes, so only its "add" side was
+   tested; the label-free library paid in 6 / 6 (23 / 25 cells overall). The "do not add" side needs a strong, rarely-crashing model on a new
+   benchmark (in 24 GB only gpt-oss-20b comes close; gpt-oss-120b would need an A100 / H200 the user keeps for other sessions — ask first).
+   Practical rule meanwhile: use the library by default.
+3. **Write-up** (open; format, length and deadline asked of the user 10-22): fold HO / OB / HOG / HOGC / HO2 / CD / WF into the final report
+   around one claim, every number with tokens and a 95% interval (draft outline: docs/notes/REPORT_OUTLINE.md). Held-out tally for the report:
+   the recipe ties or beats always thinking for gpt-oss-20b and Qwen3-14B-AWQ on every unseen benchmark at 28–88% of its output tokens
+   (37–97% with input tokens); for Qwen3-8B it holds only on OptiBench with the library; the limit is the free check's leak. No new
+   replications or baselines unless a claim in the report needs them (user, 2026-10-19).
 
 ## 4. What to bring to the Slurm server
 - **Code + docs + small data:** `git clone git@github.com:dlwns147/CSED490E_Project_Team5.git` (problem sets in `results/x1/problems.json`,
