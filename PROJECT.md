@@ -23,7 +23,7 @@ Held-out benchmarks, 3 seeds, 95% intervals over problems (full table: `docs/not
   four held-out geometry tasks) at 28–88% of its output tokens (37–97% counting input tokens).
 - For Qwen3-8B it wins only on OptiBench with the label-free library, and loses where its free check leaks most (geometry edge cases,
   BWOR). The check's leak, not problem difficulty, decides where thinking should go — and 30 labelled problems of a new cell detect
-  it: the pilot picks thinking in exactly those cells (held-out regret 0.87 points; 0.74 instead of 7.8 in Qwen3-8B's losing cells).
+  it: a 30-label pilot loses 0.87 points on average over 45 held-out cells, and 0.74 instead of 7.8 in Qwen3-8B's losing cells.
 - The label-free library of checked programs raises the first program in 23 of 25 model × benchmark cells (up to +34 points).
 - Where it stops: short-answer competition math (text + thinking is better; a program is useful as a second opinion) and formal proofs
   (a specialized 8B prover, not a fact).
