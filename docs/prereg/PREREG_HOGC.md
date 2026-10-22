@@ -185,3 +185,17 @@ program if it passes the same free check; else THINK (stored rows). Tokens: fact
   +0.7 and Qwen3-14B-AWQ +1.7, not Qwen3-8B −1.0; tokens 90–95% of FF's, not ≤ 85%); **HOGR-P3 holds** (Qwen3-8B 15.3 points below THINK).
 - **Decision: the repair step stays word-problem-only.** On geometry a disagreement between copies is less actionable than a Python error or a
   named constraint; it helps Qwen3-14B-AWQ a little, and Qwen3-8B's few repairs that pass the check are mostly wrong (the leak again).
+
+## Addendum HO-X (2026-10-22 22:4x UTC, before computing; offline on stored rows): a check from a different model
+**Why.** Every self-written second view (brute force, resample, edge tests, relations, repair) failed for Qwen3-8B because it repeats the
+model's own mistakes. If the limit is this self-correlation, a view from a *different* model should catch the leaks. gpt-oss-20b also fits
+one 24 GB GPU; its stored HO-G fact programs cover the same items (and its freev programs BWOR / LogiOR).
+**Policy XV:** accept Qwen3-8B's (or Qwen3-14B-AWQ's) fact program only if it passes its own free check **and** agrees with gpt-oss-20b's
+fact program for the same item and seed (geometry: equal outputs on the six inputs, as STRICT; word problems: equal printed values within
+the grader's tolerance, the other program running); else the model's own THINK. Tokens: both cheap programs + thinking where escalated.
+**Predictions** (seed means):
+- HOX-P1: on held-out geometry XV flags ≥ 80% of Qwen3-8B's 64 leaked programs with ≤ 15% false alarms (gpt-oss-20b is right on 99%).
+- HOX-P2: XV for Qwen3-8B on geometry ≥ THINK − 1 (≥ 73.0%) at ≤ 75% of THINK's tokens — the self-written checks reached at most 67.7%.
+- HOX-P3: on BWOR / LogiOR XV for Qwen3-8B ≥ its FF-V (HO3) in both cells.
+**Reading planned:** P1 + P2 → the weakest model's limit is self-correlation, and a second small model's program is the check that removes
+it (at the price of running two models); otherwise the limit is also in what the stronger model gets wrong or in the cost.
