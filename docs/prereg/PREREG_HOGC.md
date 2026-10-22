@@ -225,3 +225,12 @@ OSS (note, not pre-registered) = gpt-oss-20b's own plain recipe, for "the second
   dominated in every cell by simply using gpt-oss-20b (OSS − XV −16 to −36 points at 8–32% of THINK's tokens): **a check from a stronger
   model is not a recipe step, it is a reason to use the stronger model.** The weakest model's limit stands; the report states it with this
   split (on-input vs edge-only).
+
+## Addendum HO-D gate (2026-10-22 23:3x UTC, before computing; offline): is a differential test on edge inputs worth a run?
+37 of Qwen3-8B's 64 leaks are wrong only on the degenerate copy (convex: a collinear vertex; tri: a point on an edge / a duplicate), where a
+second program of its own is right in 19 (resample F2) / 14 (brute force B) of 37. A differential test needs no expected answers: run two of
+the model's own programs on edge inputs and escalate when they disagree. Before writing a generator of edge inputs (one GPU call per task),
+its best case is bounded offline by using the benchmark's own extra inputs (`big`, `degen`; inputs only, no labels) as if the generator had
+produced exactly them. **Policies** DIFF-F2 / DIFF-B / DIFF-ALL: accept F only if it passes MR and agrees with F2 / with B / with both on all
+eight inputs; else THINK. **Gate:** if the best of these bounds is < THINK − 1 (73.0%) or needs > 75% of THINK's tokens, no generator run
+(the claim cannot change); otherwise pre-register the generator run (HO-D) with its predictions before it.
