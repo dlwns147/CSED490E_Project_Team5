@@ -474,3 +474,19 @@ value, else think), THINK (stored thinkfree rows). Paired 95% intervals; tokens 
 - HO7-P3: for Qwen3-8B, FF-R0 < FF − 1.5 in at least one cell (its repairs leak, as in HO6).
 **Decision.** P1 + P2 → the recipe's ladder becomes cheap program → visible failure → one cheap repair with the evidence → thinking, stated
 with the measured saving; otherwise the repair step stays an option for the stronger models only.
+
+## HO7 results (2026-10-22 20:5x UTC; results/x3/ho7_analysis.log; 3 seeds; paired 95% intervals)
+| cell | FF − THINK | **FF-R0 (repair on a visible failure) − THINK** | FF-R0 − FF | FF-R0 tokens / FF's | repaired runs · right (thinking right on those items) |
+|---|---|---|---|---|---|
+| OptiBench gpt-oss-20b (library) | +4.1 [+2.1, +6.1] | +4.8 [+2.7, +6.9] | +0.7 | 93% | 118 / 286 · 60 (48) |
+| OptMATH gpt-oss-20b | +3.0 [−3.0, +9.3] | +6.3 [−1.0, +13.7] | +3.3 | 86% | 48 / 130 · 26 (16) |
+| OptiBench Qwen3-14B-AWQ | +15.6 [+13.1, +18.3] | +16.3 [+13.5, +19.1] | +0.7 | 90% | 74 / 314 · 35 (23) |
+| OptMATH Qwen3-14B-AWQ | +4.7 [+1.7, +8.0] | **+8.7 [+4.3, +13.0]** | +4.0 | 100% | 28 / 233 · 16 (4) |
+| OptiBench Qwen3-8B | +5.2 [+2.6, +7.7] | +6.2 [+3.6, +8.8] | +1.0 | 84% | 140 / 481 · 103 (85) |
+| OptMATH Qwen3-8B | +2.0 [−0.7, +4.7] | **+3.0 [+0.3, +6.0]** | +1.0 | 101% | 24 / 247 · 4 (1) |
+- **HO7-P1 refuted** (FF-R0 uses 84–101% of FF's tokens, not ≤ 75%: only 10–41% of the repairs produce a running program, so most escalated
+  items still think). **HO7-P2 holds** (≥ FF − 1.5 in 6 / 6; in fact more accurate than FF in every cell, +0.7 to +4.0). **HO7-P3 refuted**
+  (Qwen3-8B does not get worse: +1.0 / +1.0).
+- Per the decision rule the repair step is not adopted as a token saver. What it is: a free accuracy gain — never worse than FF, at equal or
+  lower cost in 5 of 6 cells — because where the repair yields a running program it is right more often than thinking on the same items
+  (in all six cells). With HO6: repair visible failures only; repairing running programs that a checker flagged made Qwen3-8B worse (HO6).
