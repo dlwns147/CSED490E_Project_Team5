@@ -159,3 +159,18 @@ correct ones), FF reaches gpt-oss-20b 99.0% @ 49% of THINK's tokens, Qwen3-14B-A
 pre-registered rule (≥ THINK − 1 at ≤ 60% of its tokens) is unreachable by any check: its fact programs are wrong on so many items that
 each must pay for thinking. The attainable target is "same accuracy at about 70% of the tokens"; the self-written checks get 64–68% at
 67–73%. **Reading:** for the weakest model the limit is the fact program's error rate first and the check's leak second.
+
+## Addendum HO-G-R (2026-10-22 21:4x UTC, before running): one cheap repair on a visible failure, before thinking, on held-out geometry
+**Why.** On word problems one short repair turn shown the failure, before thinking, was never worse than the plain recipe (HO7). On held-out
+geometry FF sends 41% of Qwen3-8B's items to thinking at ≈ 9.8k tokens each, so a ≈ 1k repair that succeeds saves most of that. The repair
+cannot touch the leak (wrong programs that pass the check), only the visible failures.
+**Arm** (`poc/run_geo_repair.py`; the stored HO-G fact rows; 3 models; seeds 1–3; cheap-arm settings, no thinking): for each fact program that
+fails the free check (crash, timeout, no output, or outputs that disagree across the moved / rotated / mirrored / permuted / scaled /
+shifted copies of its own input), the same model gets the task statement, its program and the evidence (the error, or "on the given input
+it printed X; on the copy <kind> it printed Y; they must agree") and writes a corrected program. **Policy FF-RG:** accept the repaired
+program if it passes the same free check; else THINK (stored rows). Tokens: fact + repair (where written) + thinking where escalated.
+**Predictions** (seed means):
+- HOGR-P1: for Qwen3-14B-AWQ and Qwen3-8B, ≥ 30% of the escalated items get a repaired program that passes the check.
+- HOGR-P2: FF-RG ≥ FF for every model, at ≤ 85% of FF's tokens for Qwen3-14B-AWQ and Qwen3-8B.
+- HOGR-P3: for Qwen3-8B, FF-RG stays below always thinking by more than 1 point (the leak is untouched).
+**Decision.** P1 + P2 → the repair step joins the recipe's ladder on geometry as on word problems; otherwise it stays word-problem-only.
