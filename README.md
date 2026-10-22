@@ -72,20 +72,99 @@ Run everything from the repository root. One server uses port 8041; for a second
 
 ## 4. Running on the Slurm cluster (current setup)
 
-`poc/slurm/job.sh` runs one job on one allocated GPU inside the project's docker image (paths, port, caches and the client Python are set
-there; see its header). `poc/slurm/lane.sh` serves one model and runs client commands against it. `bench.py submit` writes such a job for
-the standard arms. Use the RTX3090 partition; keep thinking budgets ≤ 16k tokens there (the lane serves a 20k context).
+Every model run is a Slurm job inside the project's docker image. The login node is for editing, submitting, and reading results.
+Run all commands from the repository root. The current state of the work on the cluster is in `docs/SLURM_HANDOFF.md`.
+
+### 4.1 What is where
+
+| on the cluster (host) | inside a job's container | what |
+|---|---|---|
+| `/home1/leesangjun/SJ/POSTECH/nlp` | `/NAS/SJ/POSTECH/nlp` | this repository; every job runs from here |
+| `/home1/leesangjun/nlp_project_261021.tar` | image `nlp_project:261021` | vLLM 0.22.0 + torch 2.11 cu130 (`/opt/conda`); client and sandbox Python `/root/venvs/llm_algo_poc` (= `$P`) |
+| `/home/leesangjun/SSD/huggingface` | `/SSD/huggingface` | shared model pool (root-owned) |
+| `/home1/leesangjun/SJ/POSTECH/nlp_data` | `$POC_DATA` = `/NAS/SJ/POSTECH/nlp_data` | external benchmark data (MAMO, OptMATH, OptiBench, BWOR, LogiOR) |
+| `/home1/leesangjun/out/nlp/<jobid>.out` | | job log: node, image load time, `lane exit <code>` |
+
+These are the paths of the account that runs the jobs. For another account, change them in `poc/slurm/job.sh`: the log path, the image
+file, and the `-v` mounts.
+
+### 4.2 Partition and rules
+
+- **Partition `RTX3090`** (24 GB, the GPU the project targets). The team's other projects use RTX6000ADA, L40S and A100-80GB; use those
+  only when really needed, and agree first.
+- One GPU and 4 CPUs per job. Never set `--time`, and add no `-q` on this partition. Stop jobs with `scancel <jobid>`, never by killing
+  their processes.
+- A node loads the image on its first job, which takes 2.5–4.5 minutes; later jobs on that node start at once. `--nodelist=<node>` reuses
+  a warm node, and the first line of each job log names its node.
+- On a 3090 every 24 GB model serves at 92% of memory with a 20k context (`--max-model-len 20480`), so keep thinking budgets at
+  `--max_tokens 16000` or less. Runs with larger budgets (contest high effort, Qwen3.6 with 80k) need a larger GPU.
+
+### 4.3 Submitting
 
 ```bash
-python bench.py submit geo fact --model q14a --seeds 1,2,3          # one job: server + three seeds (--dry to only print)
-sbatch -J smoke poc/slurm/job.sh poc/slurm/smoke.sh                 # setup check: 10 OptiBench problems per 24 GB model
+# a standard arm of bench.py: one job = one server + all seeds (--effort low|medium|high for gpt-oss; --dry only prints the sbatch line)
+python bench.py submit geo fact --model q14a --seeds 1,2,3
+
+# any model + any client commands: one job, commands run in parallel against the job's server (--seq: one after another)
 sbatch -J ob_q8b poc/slurm/job.sh poc/slurm/lane.sh Qwen/Qwen3-8B ob_q8b \
-  'NLOPT_SET=optibench $P poc/run_nlopt.py q8b_optibench free 1 --max_tokens 8192'
+  'NLOPT_SET=optibench $P poc/run_nlopt.py q8b_optibench free 1 --max_tokens 8192' \
+  'NLOPT_SET=optibench $P poc/run_nlopt.py q8b_optibench freef 1 --max_tokens 8192'
+
+# an experiment's own lane script, e.g. the setup check (10 OptiBench problems per 24 GB model)
+sbatch -J smoke poc/slurm/job.sh poc/slurm/smoke.sh
 ```
 
-CPU-only analyses that re-run stored programs use the same image (`sbatch -p cpu-max16,cpu-max10,cpu-max24 -q nogpu --gres=none
-poc/slurm/job.sh '$P poc/analyze_x.py'`; when CPU partitions are crowded, submit them as a GPU job). Cluster state, data locations and
-environment notes: `docs/SLURM_HANDOFF.md`.
+`lane.sh` arguments are `[--vllm '<vLLM args>'] [--frac F] [--seq] <model dir under /SSD/huggingface> <tag> '<command>' ...`. The
+defaults are `--max-model-len 20480` and 0.92. Inside a command, `$P` is the client Python and `POC_BASE_URL` points at the job's server.
+Put `POC_REASONING_EFFORT=low` (or medium / high) before `$P` for gpt-oss, and quote each command in single quotes so `$P` reaches the
+job unexpanded. The scripts in `poc/queues/` are records of the old servers' runs, not jobs; `poc/queues/README.md` shows how to turn
+one of their lanes into a job.
+
+**Sizing jobs** (measured on RTX 3090, 2026-10-22):
+- **Cheap arms** (no thinking) are fast: one model's free + usage-card arms on BWOR and LogiOR, 3 seeds, took 10–35 minutes in one job.
+- **Qwen3 thinking arms** (10–12k tokens per problem) are slow, so give each seed its own job. One job per seed finished about 3× sooner
+  than three seeds sharing one server, and free RTX3090 slots are usually available.
+- **Dependent steps** chain with `sbatch --dependency=afterok:<id>[:<id>...]`. For example, the label-free library arm (`run_form.py
+  formx`) needs every model's cheap programs first.
+
+### 4.4 Watching, resuming, stopping
+
+```bash
+squeue -u $USER                                   # state and node of your jobs
+tail -f /home1/leesangjun/out/nlp/<jobid>.out     # node, image load, "lane exit <code>"
+tail results/run_<tag>.log                        # each client's own output (lane.sh)
+tail results/server_vllm_<tag>.log                # vLLM: model load, KV cache size, throughput, errors
+wc -l results/x3/opt_<tag>_<arm>_s<seed>.jsonl    # rows written so far (one per problem)
+scancel <jobid>
+```
+
+- **Nothing written is lost.** Rows are written as each problem finishes and every harness resumes, so a cancelled or crashed job can be
+  resubmitted with the same command and it continues.
+- **`lane exit 0` only means the lane finished,** not that every client succeeded: check the row counts.
+- **If the server does not start,** the reason is in `results/server_vllm_<tag>.log` and `results/gpu_choice.log`.
+- **File ownership:** files a job writes are root-owned until the job ends, when it hands `results/` back to you.
+
+### 4.5 Analyses and other CPU work
+
+- **Login node:** analyses that only read stored rows run there with the system Python, for example `poc/analyze_ho.py`,
+  `analyze_which_fix.py` and `analyze_input_tokens.py` (the last needs `pip install --user tokenizers`).
+- **A job in the image:** analyses that run stored programs again (geometry checks: `analyze_hogc.py`, `analyze_n10.py`, `analyze_hog.py`)
+  run as a job. An argument that is not a `.sh` file runs as a command:
+  `sbatch -J an poc/slurm/job.sh '$P poc/analyze_hogc.py > results/hogc_analysis.log 2>&1'`.
+- **CPU partitions** (`-p cpu-max16,cpu-max10,cpu-max24 -q nogpu --gres=none`) are often booked for days. When they are, submit the same
+  command as an ordinary RTX3090 job.
+
+### 4.6 Adding a model or a dataset
+
+- **Models:** your own user cannot write the model pool, which has a 1 MB user quota; only root inside the container writes there.
+  1. Download the model on the login node, which has internet, into `nlp_data/stage/<name>` with `huggingface_hub.snapshot_download`.
+  2. Compare the file sizes with the Hub.
+  3. Copy it into `/SSD/huggingface/<org>/` from inside a job, as `poc/slurm/smoke.sh` did for Qwen3-14B-AWQ.
+- **Datasets:** put the files under `nlp_data/<name>/` and add a loader to `problems()` in `poc/run_nlopt.py` that reads `$POC_DATA`;
+  the BWOR and LogiOR loaders are examples. Name the source in the loader's comment.
+
+The raw outputs of the old servers (up to 2026-10-20, 2.0 GB, not in git) have been copied into `results/`. How to reach the old storage
+is in the team's local notes, not in this public repository.
 
 ## 5. Analyses
 
@@ -112,7 +191,6 @@ The predictions and results of each experiment are in `docs/prereg/PREREG_<id>.m
   is (Qwen3.6: AIME 48% → 94% with the card's settings and an 80k budget): report cap hits.
 - Grading: word problems `run_nlopt.correct` (abs 1e-2 or rel 1e-3; 'No Best Solution' is a value); geometry = right on all 8 copies
   (moved, rotated, mirrored, permuted, scaled, 10^9-shifted, degenerate); contests = all official + generated tests; math = math-verify.
-- On the Slurm cluster the host user may not write the shared model pool (`/SSD`); the container does (see `docs/SLURM_HANDOFF.md`).
 
 ## 7. Reproducing the talk's examples
 

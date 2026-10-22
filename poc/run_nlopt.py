@@ -29,7 +29,10 @@ def _auto_card():
                       for c in ("Solver", "Variable", "Constraint", "Objective")))
 
 
-AUTO = _auto_card()
+try:
+    AUTO = _auto_card()
+except ImportError:   # Slurm login node (no OR-Tools): analyses import this module only for problems() / RES; modes mipa / thinka need OR-Tools anyway
+    AUTO = None
 
 
 def _verified_examples(src_tag):
