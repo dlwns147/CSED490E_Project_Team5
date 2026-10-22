@@ -18,8 +18,9 @@ from run_nlopt import RES, P_MIP, P_FREE, SNIP, problems, value_of, correct, _ro
 
 POOL_MODELS = ("oss20", "q14a", "q8b", "q32b", "q36")
 SET = os.environ.get("NLOPT_SET", "mamo")
-SRC = {"mamo": "{m}_mamo_mips", "optmath": "{m}_optmath_mips", "optibench": "{m}_optibench_free"}.get(SET, "{m}_mipf")   # the cheap arm whose programs form the pool
-if SET in ("optmath", "optibench"):   # held-out (PREREG_HO.md): only the models run there
+SRC = {"mamo": "{m}_mamo_mips", "optmath": "{m}_optmath_mips", "optibench": "{m}_optibench_free", "bwor": "{m}_bwor_free",
+       "logior": "{m}_logior_free"}.get(SET, "{m}_mipf")   # the cheap arm whose programs form the pool
+if SET in ("optmath", "optibench", "bwor", "logior"):   # held-out (PREREG_HO.md): only the models run there
     POOL_MODELS = ("oss20", "q14a", "q8b")
 FACT = {"tsp": "Formulation note: with Miller-Tucker-Zemlin subtour elimination, write the order constraints u[i] - u[j] + n*x[i][j] <= n - 1 "
                "only for cities i, j other than the start city, with 1 <= u[i] <= n - 1; constraining the start city too makes the model infeasible.",
@@ -89,7 +90,8 @@ if __name__ == "__main__":
     from llm import chat, last_block
     from sandbox import run_python
     m, mode, seed = sys.argv[1], sys.argv[2], int(sys.argv[3])
-    tag = {"mamo": f"{m}_mamo", "optmath": f"{m}_optmath", "optibench": f"{m}_optibench"}.get(SET, m)
+    tag = {"mamo": f"{m}_mamo", "optmath": f"{m}_optmath", "optibench": f"{m}_optibench", "bwor": f"{m}_bwor", "logior": f"{m}_logior"}.get(SET, m)
+    FREE = SET in ("optibench", "bwor", "logior")   # solver-choice prompt (P_FREE), as the cheap arm `free` of these sets
     os.environ["NLOPT_EX_SHORTEST"] = "1"
     EX = _verified_examples(os.environ.get("NLOPT_EX_TAG", m))   # the mips example, kept in formh so only the sentence differs
     if mode == "formo":
@@ -101,7 +103,7 @@ if __name__ == "__main__":
     done = {r["id"] for r in _rows(path)}
 
     def one(p):
-        q = (P_MIP + SNIP if SET == "x3" else P_FREE if SET == "optibench" else P_MIP).format(q=p["q"]); src = None
+        q = (P_MIP + SNIP if SET == "x3" else P_FREE if FREE else P_MIP).format(q=p["q"]); src = None
         if mode in ("formh", "formc"):
             ex = EX(p)
             if ex:
@@ -117,7 +119,7 @@ if __name__ == "__main__":
                 q += "\n\nA program that runs with this library (written for a different problem):\n```python\n" + EX(p).strip() + "\n```"
         o = chat(q, max_tokens=8192, temperature=0.7, seed=seed * 1000 + zlib.crc32(p["id"].encode()) % 997)
         code = last_block(o["text"] or "", ("python", "py", "python3"))
-        res = run_python(code, "", timeout=60, mem_bytes=4 << 30) if code else None
+        res = run_python(code, "", timeout=60, mem_bytes=4 << 30, cpu_s=3600 if FREE else None) if code else None   # as run_nlopt's free modes (H5: multi-threaded CP-SAT); OptiBench formx had 3 / 14,520 timeouts, none CP-SAT
         out = (res.stdout if res and res.status == "ok" else "") or ""
         lines = [l for l in out.strip().splitlines() if l.strip()]
         pred = value_of(lines[-1]) if lines else None

@@ -213,3 +213,24 @@ The label-free library raised the first program in 17 of 19 model × benchmark c
 Voting over cheap programs is below FF everywhere. Self-consistency over thinking runs (the standard test-time-scaling baseline) is the most
 accurate on OptiBench, and the recipe composes with it: thinking only on a visible failure, by majority of three, matches or beats it at
 24–33% of its tokens. On OptMATH more thinking samples do not help (thinking itself is weak there).
+
+## HO2 + WF3 pre-registration (2026-10-22 02:3x UTC, Slurm / RTX 3090, before any run on these data)
+**Data (never used here):** BWOR (SJTU/BWOR, 82 textbook OR problems: IP 34, LP 30, MIP 11, NLP 5, goal programming 2; 2 without an optimum
+→ gold 'No Best Solution') and LogiOR (LabMem012/LogiOR, 92 logistics problems: ILP 43, LP 22, NLP 16, MILP 11; only the description is
+shown, never its model or gurobipy code). Loaded by `run_nlopt.problems('bwor' | 'logior')` from `$POC_DATA`; grader `run_nlopt.correct`.
+**Arms** (as OB; seeds 1–3; gpt-oss-20b low for cheap arms, medium for thinking; Qwen3 thinking 16k): free (solver-choice prompt), freef
+(+ the usage card), formx (the label-free library: the program of the most similar OTHER problem of the same benchmark from the three
+models' strict-check-passing free programs; run after all free runs), thinkfree. Lanes `poc/slurm/lane.sh`, one job per model and arm group.
+**HO2 (the core rule on a third and fourth unseen benchmark):**
+- HO2-P1: FF (free; think if the program fails, prints nothing or prints 'No Best Solution') ≥ always thinkfree at ≤ 80% of its tokens, in
+  ≥ 5 of the 6 model × benchmark cells (seed means), as OB-P1.
+- HO2-P2: FF with the library program as the cheap arm is ≥ FF with free in ≥ 4 of 6 cells.
+**WF3 (a label-free signal for when a fact does NOT pay; fixed from the 46 existing points, analyze_which_fix.py):** for each new cell,
+compute on the free arm (3 seeds, no labels) u = share of programs crashing with a usage exception and n = share failing the free check
+(crash, no value, 'No Best Solution') minus u. **Rule: add the fact unless u < 5% and n ≥ 25%.** (On the 46 old points this separates the
+three negative library / mined-example cells of the gpt-oss models on OptMATH from all other low-u cells; the thresholds were chosen after
+seeing those points, so this is their first prospective test.)
+- WF3-P1: where the rule says add, the card and the library each raise the free program by ≥ +2 points; where it says don't, each changes
+  it by ≤ 0.
+- WF3-P2: the rule's call is right in ≥ 10 of the 12 (cell, fact) points. If every new cell has u ≥ 5%, only the "add" side is tested
+  (stated as such).

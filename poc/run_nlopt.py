@@ -121,6 +121,14 @@ def problems(which=None):
         for r in json.load(open(OPTIBENCH)):
             out.append({"id": f"optibench-{r['index']}", "src": f"optibench_{r['type']}", "q": r["question"].strip(),
                         "gold": str(list(r["results"].values())[-1]).strip(), "difficulty": r["type"]})
+    if which == "bwor":   # HO2 / WF3 (PREREG_HO.md, 2026-10-22): SJTU/BWOR, 82 textbook OR problems; 2 without an optimum -> 'No Best Solution'
+        for r in map(json.loads, open(f"{DATA}/bwor/test.jsonl")):
+            out.append({"id": f"bwor-{r['id']}", "src": f"bwor_{r['problem_type']}", "q": r["en_question"].strip(),
+                        "gold": "No Best Solution" if r["answer"] is None else str(r["answer"]), "difficulty": r["problem_type"]})
+    if which == "logior":   # HO2 / WF3: LabMem012/LogiOR, 92 logistics problems (the description only; its model and gurobipy code are not shown)
+        for r in map(json.loads, open(f"{DATA}/logior/logior.jsonl")):
+            out.append({"id": f"logior-{r['prob_id']}", "src": f"logior_{r['problem_type']}", "q": r["description"].strip(),
+                        "gold": str(r["ground_truth"]), "difficulty": r["problem_size"]})
     if which in ("mamo", "all"):
         for name, fn in (("mamo_easy", "MAMO_EasyLP"), ("mamo_complex", "MAMO_ComplexLP")):
             for k, l in enumerate(l for l in open(f"{MAMO}/{fn}.json") if l.strip()):

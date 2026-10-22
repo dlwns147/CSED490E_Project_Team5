@@ -26,7 +26,8 @@ fails = lambda R: 100 * sum(not (r["status"] == "ok" and r.get("pred") not in (N
 rows = []
 for m in ("oss20", "q14a", "q8b", "q32b", "q4b", "q17", "oss120", "q36"):
     for bench, tag, base, facts in (("NL4OPT+IndustryOR", m, "mip", ("mipf",)), ("MAMO", f"{m}_mamo", "mip", ("mips", "formx")),
-                                    ("OptMATH", f"{m}_optmath", "mip", ("mips", "formx")), ("OptiBench", f"{m}_optibench", "free", ("freef", "formx"))):
+                                    ("OptMATH", f"{m}_optmath", "mip", ("mips", "formx")), ("OptiBench", f"{m}_optibench", "free", ("freef", "formx")),
+                                    ("BWOR", f"{m}_bwor", "free", ("freef", "formx")), ("LogiOR", f"{m}_logior", "free", ("freef", "formx"))):
         B = load(tag, base)
         if not B:
             continue

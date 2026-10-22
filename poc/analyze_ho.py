@@ -24,7 +24,7 @@ for m in sys.argv[1:] or ["oss20", "q14a", "q8b"]:
         st = Counter("NBS" if r.get("pred") == "NBS" else r["status"] for r in R)
         print(f"  {a:6s} n={len(R):3d} {100 * sum(r['correct'] for r in R) / len(R):5.1f}% @ {sum(r['out_tokens'] or 0 for r in R) / len(R) / 1000:.2f}k | {dict(st)}"
               f" | caps {sum(r.get('finish') == 'length' for r in R)}")
-    pairs = ((("free", "thinkfree"), ("freef", "thinkfree"), ("formx", "thinkfree")) if os.environ.get("HO_SET") == "optibench"
+    pairs = ((("free", "thinkfree"), ("freef", "thinkfree"), ("formx", "thinkfree")) if os.environ.get("HO_SET") in ("optibench", "bwor", "logior")
              else (("mips", "thinks"), ("formx", "thinks"), ("free", "thinkfree")))
     for c, th in pairs:
         for s in (1, 2, 3):
