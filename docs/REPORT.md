@@ -118,6 +118,10 @@ thinking's, then input + output:
 | LogiOR, label-free library | −1.1 [−6.9, +4.0], 59% / 80% | +10.1 [+4.3, +15.9], 74% / 85% | −2.2 [−6.9, +2.5], 80% / 90% |
 | held-out geometry (96), needed helpers + hint | +5.9 [+3.5, +8.7], 48% | +7.6 [+4.5, +11.5], 34% | −14.2 [−19.8, −9.4], 46% |
 
+![Held-out benchmarks: the recipe vs always thinking](../figs/fig23_heldout.png)
+
+*Each pair: always thinking (orange) and the recipe (blue) on one held-out benchmark, seed means; a pair pointing up-left means more accurate and cheaper. Facts: OptMATH the mined usage example, OptiBench / BWOR / LogiOR the label-free library, geometry the needed helpers + hint (`poc/make_figure_heldout.py`).*
+
 For the two stronger models the recipe never loses to always thinking (wins on OptiBench and geometry, ties elsewhere) at 28–88% of its
 output tokens. For Qwen3-8B it wins only with the library on OptiBench and loses on geometry and BWOR. Counting input tokens shrinks the
 savings (the library adds 0.3–0.7k tokens per cheap prompt) but reverses none.
