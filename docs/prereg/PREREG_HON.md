@@ -40,3 +40,13 @@ restated as development-only. P3 decides whether the census is a two-sided rule 
 
 **Analyses:** `poc/analyze_ho.py` (HO_SET per benchmark), `poc/analyze_hogc.py` / `poc/analyze_hox.py`-style geometry rows,
 `poc/analyze_hop.py q35`, `poc/analyze_which_fix.py --census`, `poc/analyze_budget.py q35`.
+
+## Amendment (2026-10-22 23:3x UTC, after the smoke test, before any main run)
+Smoke test (job 1229994, first 8 BWOR problems, seed 1, harness sampling, 16k budget; tag `q35smoke`, not part of the results): the cheap
+programs are long (0.9–8.2k tokens: whole data tables written into the code) and crash mostly on `gurobipy` imports and invented solver
+attributes; **5 of 8 thinking runs hit the 16k budget with the reasoning still open** (no program). Always thinking would be crippled by
+the setting, not by the model, and any recipe win would be an artifact. Changed for every thinking arm of this model, before any main run:
+the model card's thinking sampling (temperature 1.0, top-p 0.95, top-k 20, presence penalty 1.5, as used for Qwen3.6 in this project) and
+a **32k budget** (`--max-model-len 36864`; the hybrid-attention KV cache holds 73k tokens on a 3090, so it still fits one 24 GB GPU).
+Cheap arms unchanged. A second smoke (`q35smoke2`: 8 BWOR + 16 OptiBench problems, thinking only) checks the truncation share; if more
+than 25% of its runs still hit 32k, the share is reported and the HO-B worst case decides how to read P1. Predictions unchanged.
