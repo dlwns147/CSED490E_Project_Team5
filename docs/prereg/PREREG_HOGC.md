@@ -74,3 +74,25 @@ Harness check: FF and THINK reproduce PREREG_HOG.md exactly for all three models
 **Reading:** the check leak that breaks the recipe for the weakest model is mostly edge-case bugs that never show on the given input; a
 second program written by the same model catches most wrong answers on the given input but shares its edge-case habits. A check would have to
 exercise the edge cases the statement names (collinear vertices allowed, points on an edge do not count) to see them.
+
+## Addendum HO-G-E (2026-10-22 02:0x UTC, before any test is written): edge-case tests from the statement, written once per task
+**Why.** HO-G-C showed that 37 of Qwen3-8B's 64 leaked programs fail only edge cases that the statement names but the given input does not
+contain (collinear vertices allowed; points on an edge do not count; duplicates count; touching counts), so no check on the given input
+sees them, and a second program by the same model copies the same textbook snippet. Closest work: CodeT (model-written tests), AlphaCodium
+(AI-written edge-case tests). Difference here: the tests depend only on the statement, so the model writes them **once per task type** (not
+per problem), and they only gate thinking.
+**New arm (GPU, cheap):** `poc/run_edge_tests.py`: for each task (overlap, convex, tri, clip) and seed 1–3, the same model (cheap-arm
+settings: Qwen3 thinking off, gpt-oss-20b low) gets the statement of one instance and is asked for 3–6 SMALL test cases, each a stdin plus the
+expected output, that exercise the special cases the statement names or implies, small enough to compute by hand (JSON list). Tests are
+used as written (no answers, no filtering by other programs); a malformed test counts against every program. Tag
+`SL_HOGCE_<model>_s<seed>`, lane `poc/slurm/hogce_tests.sh`.
+**Policy EDGE** (offline, `poc/analyze_hogc.py --edge`): accept the fact program only if it passes MR **and** prints the expected output on
+every test of its task (numbers compared as fractions); else THINK. Test-writing tokens are spread over the task's 24 items of that seed.
+**Predictions** (seed means; same decision rule as above):
+- HOGE-P1: for Qwen3-8B, EDGE flags ≥ 60% of the 37 edge-case-only leaks and ≥ 40% of the 27 wrong-on-input leaks; false alarms (correct
+  MR-passing fact programs flagged) ≤ 15% for each model.
+- HOGE-P2: EDGE for Qwen3-8B ≥ THINK − 3 (≥ 71.0%) at ≤ 70% of THINK's tokens; HOG-P1 itself (≥ THINK − 1 at ≤ 60%) is uncertain.
+- HOGE-P3: for gpt-oss-20b and Qwen3-14B-AWQ, EDGE is within 1.5 points of FF and HOG-P1 still holds.
+**Decision.** As HO-G-C: (a) if EDGE meets HOG-P1 for Qwen3-8B (seed means, ≥ 2 of 3 seeds) and HOGE-P3 holds, the recipe's geometry check
+becomes "metamorphic copies + edge-case tests written once per task" and the held-out claim extends to all three 24 GB models; (b) accuracy
+≥ THINK − 3 at > 60% of THINK's tokens → the limit is restated with the saving; (c) otherwise the limit stays.
