@@ -399,3 +399,8 @@ thinking = the stored thinkfree rows. The agreement rate is computed first and i
   tokens there).
 - HO5-P2: FF-V ≥ FF + 2 points for gpt-oss-20b and Qwen3-8B, ≥ FF for Qwen3-14B-AWQ (as on BWOR / LogiOR).
 - HO5-P3: FF-V ≥ always thinking (seed means) for at least 2 of 3 models.
+
+### HO5 regime call, recorded before any accuracy was read (2026-10-22 19:4x UTC; results/x3/ho5_regime_call.log)
+OptMATH, freev, 3 seeds: two-program agreement among programs that run and print a value — gpt-oss-20b 59% (109 pairs), Qwen3-14B-AWQ 36%
+(22 pairs), Qwen3-8B 20% (5 pairs) → **hard regime for all three models: add the solution checker** (HO5-P1 holds). Few Qwen pairs: only
+11–19% of their programs run and print a value.
