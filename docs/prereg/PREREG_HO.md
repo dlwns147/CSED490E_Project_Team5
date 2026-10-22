@@ -234,3 +234,15 @@ seeing those points, so this is their first prospective test.)
   it by ≤ 0.
 - WF3-P2: the rule's call is right in ≥ 10 of the 12 (cell, fact) points. If every new cell has u ≥ 5%, only the "add" side is tested
   (stated as such).
+
+### WF3 calls, recorded before any gain was read (2026-10-22 02:55 UTC; `analyze_which_fix.py --census`, free arm, 3 seeds, no labels)
+| cell | u (usage crashes) | fail the check | n (non-usage failures) | call |
+|---|---|---|---|---|
+| BWOR gpt-oss-20b | 6.1% | 32.9% | 26.8% | add |
+| LogiOR gpt-oss-20b | 7.2% | 39.5% | 32.2% | add |
+| BWOR Qwen3-14B-AWQ | 37.4% | 66.3% | 28.9% | add |
+| LogiOR Qwen3-14B-AWQ | 42.0% | 76.8% | 34.8% | add |
+| BWOR Qwen3-8B | 16.3% | 62.2% | 45.9% | add |
+| LogiOR Qwen3-8B | 22.1% | 77.2% | 55.1% | add |
+Every new cell has u ≥ 5%, so only the "add" side of the rule is tested here (as stated in WF3-P2); gpt-oss-20b is near the boundary
+(u 6–7%, n ≥ 25%).
