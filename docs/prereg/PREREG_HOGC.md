@@ -174,3 +174,14 @@ program if it passes the same free check; else THINK (stored rows). Tokens: fact
 - HOGR-P2: FF-RG ≥ FF for every model, at ≤ 85% of FF's tokens for Qwen3-14B-AWQ and Qwen3-8B.
 - HOGR-P3: for Qwen3-8B, FF-RG stays below always thinking by more than 1 point (the leak is untouched).
 **Decision.** P1 + P2 → the repair step joins the recipe's ladder on geometry as on word problems; otherwise it stays word-problem-only.
+
+## HO-G-R results (2026-10-22 22:0x UTC; results/hogr_analysis.log; repairs: results/georepair_*; 3 seeds)
+| model | FF − THINK | FF-RG (repair on a visible failure) − THINK | FF-RG tokens / FF's | repairs passing the check · right (thinking right on those) |
+|---|---|---|---|---|
+| gpt-oss-20b | +5.9 [+3.5, +8.7] | +6.6 [+4.2, +9.4] | 99% | 6 / 12 · 6 (4) |
+| Qwen3-14B-AWQ | +7.6 [+4.2, +11.5] | **+9.4 [+5.6, +13.9]** | 90% | 10 / 49 (20%) · 7 (2) |
+| Qwen3-8B | −14.2 [−19.4, −9.4] | −15.3 [−20.8, −10.4] | 95% | 12 / 92 (13%) · 3 (6) |
+- **HOGR-P1 refuted** (repairs pass the check on 20% / 13% of the escalated items, not ≥ 30%); **HOGR-P2 refuted** (FF-RG ≥ FF for gpt-oss-20b
+  +0.7 and Qwen3-14B-AWQ +1.7, not Qwen3-8B −1.0; tokens 90–95% of FF's, not ≤ 85%); **HOGR-P3 holds** (Qwen3-8B 15.3 points below THINK).
+- **Decision: the repair step stays word-problem-only.** On geometry a disagreement between copies is less actionable than a Python error or a
+  named constraint; it helps Qwen3-14B-AWQ a little, and Qwen3-8B's few repairs that pass the check are mostly wrong (the leak again).
