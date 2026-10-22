@@ -66,7 +66,8 @@ unless asked.
    brute-force or resampled second program by the same model catches 41–45% of the leaks and does not reach always-thinking; most leaks are
    edge-case bugs the given input never contains. HO-G-E (10-22): model-written edge-case tests (once per task) see the leaks but get the
    same boundary cases wrong (67% false alarms) → no self-written check rescues Qwen3-8B; the limit stands (closed unless a check that
-   does not rely on the model's own edge-case knowledge is proposed).
+   does not rely on the model's own edge-case knowledge is proposed). Reopened 10-23 as the main line: HO-G-M (model-written metamorphic
+   relations, no expected answers) for geometry and HO3 (a solution checker from the text) for BWOR / LogiOR — running.
 2. **Where facts do not pay** — WF3 (10-22, BWOR / LogiOR): the rule "add a fact unless usage crashes < 5% and non-usage failures ≥ 25%"
    (fixed from the 46 old points) was right in 10 / 12 new points, but every new cell had ≥ 5% usage crashes, so only its "add" side was
    tested; the label-free library paid in 6 / 6 (23 / 25 cells overall). The "do not add" side needs a strong, rarely-crashing model on a new
