@@ -3,7 +3,8 @@ For every freev row (run_nlopt.py mode freev: the program also prints its soluti
 solution, the same model gets the problem text, that solution and the printed objective, and writes a program that tests every constraint
 of the text on the solution and recomputes the objective. Passes = it prints `OK <objective>` and that objective matches the printed one
 (run_nlopt tolerance). No labels anywhere.
-usage: NLOPT_SET=bwor POC_BASE_URL=... python run_verify.py <model> <seed>   -> results/x3/verify_<model>_<set>_s<seed>.jsonl (resumes)"""
+usage: NLOPT_SET=bwor POC_BASE_URL=... python run_verify.py <model> <seed> [source arm, default freev]
+       -> results/x3/verify_<model>_<set>[_<arm> if not freev]_s<seed>.jsonl (resumes)"""
 import json, os, re, sys, zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -29,8 +30,9 @@ def main():
     m, seed = sys.argv[1], int(sys.argv[2])
     SET = os.environ.get("NLOPT_SET", "bwor")
     Q = {p["id"]: p for p in problems(SET)}
-    src = {r["id"]: r for r in _rows(f"{RES}/opt_{m}_{SET}_freev_s{seed}.jsonl")}
-    path = f"{RES}/verify_{m}_{SET}_s{seed}.jsonl"
+    arm = sys.argv[3] if len(sys.argv) > 3 else "freev"   # HO4: formxv (the library arm with the solution printed)
+    src = {r["id"]: r for r in _rows(f"{RES}/opt_{m}_{SET}_{arm}_s{seed}.jsonl")}
+    path = f"{RES}/verify_{m}_{SET}{'' if arm == 'freev' else '_' + arm}_s{seed}.jsonl"
     done = {r["id"] for r in _rows(path)}
     todo = [r for i, r in src.items() if i not in done and r.get("status") == "ok" and r.get("pred") not in (None, "NBS") and r.get("solution")]
 

@@ -14,7 +14,7 @@ from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from run_nlopt import RES, P_MIP, P_FREE, SNIP, problems, value_of, correct, _rows, _verified_examples  # noqa: E402
+from run_nlopt import RES, P_MIP, P_FREE, P_FREEV, SNIP, problems, value_of, correct, _rows, _verified_examples  # noqa: E402
 
 POOL_MODELS = ("oss20", "q14a", "q8b", "q32b", "q36")
 SET = os.environ.get("NLOPT_SET", "mamo")
@@ -97,13 +97,13 @@ if __name__ == "__main__":
     if mode == "formo":
         import random
         ids = sorted(p["id"] for p in problems()); random.Random(0).shuffle(ids); RANK = {i: k for k, i in enumerate(ids)}
-    SEL = selector() if mode == "formx" else selector((m,)) if mode == "forms" else selector(rank=RANK) if mode == "formo" else None
+    SEL = selector() if mode in ("formx", "formxv") else selector((m,)) if mode == "forms" else selector(rank=RANK) if mode == "formo" else None
     P = [p for p in problems() if mode not in ("formh", "formc") or kind(p["q"])]
     path = f"{RES}/opt_{tag}_{mode}_s{seed}.jsonl"
     done = {r["id"] for r in _rows(path)}
 
     def one(p):
-        q = (P_MIP + SNIP if SET == "x3" else P_FREE if FREE else P_MIP).format(q=p["q"]); src = None
+        q = (P_MIP + SNIP if SET == "x3" else (P_FREEV if mode == "formxv" else P_FREE) if FREE else P_MIP).format(q=p["q"]); src = None   # formxv (HO4): formx + print the solution
         if mode in ("formh", "formc"):
             ex = EX(p)
             if ex:
@@ -119,13 +119,15 @@ if __name__ == "__main__":
                 q += "\n\nA program that runs with this library (written for a different problem):\n```python\n" + EX(p).strip() + "\n```"
         o = chat(q, max_tokens=8192, temperature=0.7, seed=seed * 1000 + zlib.crc32(p["id"].encode()) % 997)
         code = last_block(o["text"] or "", ("python", "py", "python3"))
-        res = run_python(code, "", timeout=60, mem_bytes=4 << 30, cpu_s=3600 if FREE else None) if code else None   # as run_nlopt's free modes (H5: multi-threaded CP-SAT); OptiBench formx had 3 / 14,520 timeouts, none CP-SAT
+        res = run_python(code, "", timeout=60, mem_bytes=4 << 30, cpu_s=3600 if FREE else None) if code else None
+        sol_lines = [l for l in ((res.stdout if res and res.status == "ok" else "") or "").strip().splitlines() if l.strip()]   # as run_nlopt's free modes (H5: multi-threaded CP-SAT); OptiBench formx had 3 / 14,520 timeouts, none CP-SAT
         out = (res.stdout if res and res.status == "ok" else "") or ""
         lines = [l for l in out.strip().splitlines() if l.strip()]
         pred = value_of(lines[-1]) if lines else None
         return {"id": p["id"], "src": p["src"], "kind": kind(p["q"]), "gold": p["gold"], "mode": mode, "out_tokens": o.get("out_tokens"),
                 "finish": o.get("finish"), "code": code, "status": (res.status if res else "no_code"), "stdout": out[-300:],
-                "err": ((res.stderr or "")[-300:] if res else ""), "pred": pred, "correct": correct(pred, p["gold"]), "fact_from": src}
+                "err": ((res.stderr or "")[-300:] if res else ""), "pred": pred, "correct": correct(pred, p["gold"]), "fact_from": src,
+                **({"solution": next((l.strip()[:6000] for l in reversed(sol_lines[:-1]) if l.strip().startswith("{")), None)} if mode == "formxv" else {})}
     with ThreadPoolExecutor(48) as ex, open(path, "a") as f:
         for fu in as_completed([ex.submit(one, p) for p in P if p["id"] not in done]):
             f.write(json.dumps(fu.result()) + "\n"); f.flush()

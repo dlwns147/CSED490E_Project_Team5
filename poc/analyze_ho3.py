@@ -3,7 +3,7 @@ FF (freev program; think if it fails, prints nothing or 'No Best Solution'), FF-
 passes the printed solution; a program that prints a value but no solution gets no checker and is escalated), THINK (stored thinkfree
 rows). Paired bootstrap 95% intervals over problems vs THINK; tokens = cheap program + checker (where written) + thinking where escalated.
 P1 note (labels used only here): share of running-but-wrong freev programs the checker flags, and of right ones it flags.
-usage: python analyze_ho3.py [model ...]"""
+usage: python analyze_ho3.py [model ...]   (HO4: HO3_ARM=formxv HO3_SETS=optibench)"""
 import json, os, random, sys
 from collections import Counter
 
@@ -21,11 +21,12 @@ def ci(d, B=2000):
 
 def main():
     for m in sys.argv[1:] or ["oss20", "q14a", "q8b"]:
-        for bench in ("bwor", "logior"):
+        ARM = os.environ.get("HO3_ARM", "freev")
+        for bench in os.environ.get("HO3_SETS", "bwor,logior").split(","):
             per, tok, flag = {}, Counter(), Counter()
             for s in (1, 2, 3):
-                F = {r["id"]: r for r in _rows(f"{RES}/opt_{m}_{bench}_freev_s{s}.jsonl")}
-                V = {r["id"]: r for r in _rows(f"{RES}/verify_{m}_{bench}_s{s}.jsonl")}
+                F = {r["id"]: r for r in _rows(f"{RES}/opt_{m}_{bench}_{ARM}_s{s}.jsonl")}
+                V = {r["id"]: r for r in _rows(f"{RES}/verify_{m}_{bench}{'' if ARM == 'freev' else '_' + ARM}_s{s}.jsonl")}
                 T = {r["id"]: r for r in _rows(f"{RES}/opt_{m}_{bench}_thinkfree_s{s}.jsonl")}
                 for i, f in F.items():
                     if i not in T:

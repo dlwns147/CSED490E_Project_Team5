@@ -334,3 +334,19 @@ exceeds always thinking; P2 is reported as pre-registered.
 - Raw (false alarms, BWOR seed 1): the checker misreads the text — an inverted comparison ("minerals 92.3 < 30.0"), an invented
   constraint ("plan not available for its factory"); both models' checkers flag BWOR-056, whose text has almost no numbers. The check
   repeats the model's comprehension errors in the other direction.
+
+## HO4 pre-registration (2026-10-22 19:1x UTC, before running): the solution checker where savings are possible (OptiBench, library)
+**Why.** HO3 showed a solution checker buys accuracy but no tokens on BWOR / LogiOR, where no check can save tokens. The cost model says
+savings remain possible where cheap programs are often right: on OptiBench with the label-free library, FF already beats always thinking at
+28–46% of its tokens, and a *perfect* check would add +4.4 to +5.8 points while staying at 54–69% of its tokens (bound from the stored rows).
+The question: does the imperfect, model-written checker convert part of that headroom into accuracy without giving up the saving?
+**Arms** (OptiBench 605; 3 models; seeds 1–3; cheap-arm settings): `formxv` = the library arm (run_form.py formx: same selected program)
+with the solution-printing instruction of freev; `verify` (run_verify.py, source arm formxv); thinking: the stored thinkfree rows.
+**Policies:** FF(formxv), FF-V(formxv) (also think unless the checker passes), THINK; paired 95% intervals over problems.
+**Predictions** (seed means):
+- HO4-P1: FF-V ≥ FF + 2 points for each model.
+- HO4-P2: FF-V ≥ THINK + 3 points at ≤ 70% of THINK's tokens for each model.
+- HO4-P3: the checker flags ≥ 50% of the running-but-wrong library programs and ≤ 30% of the right ones.
+**Decision.** P1 + P2 → the free check for word problems becomes "runs + solution checker", and the held-out claim on OptiBench is stated as
+more accurate and cheaper by the measured amounts; P1 only → the checker is a knob that trades the saving for accuracy (report the curve);
+neither → the checker is not worth its cost where savings are possible.
