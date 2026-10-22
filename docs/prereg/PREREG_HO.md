@@ -371,3 +371,18 @@ written only when the checker objects (its tokens are counted only there).
   87% kept). **HO3C-P2 holds** (4 of 6 cells: ≥ FF-V − 0.5 at fewer tokens; not gpt-oss-20b BWOR −1.6, LogiOR equal tokens).
 - Reading: two independent views (a checker of the solution, a second formulation) disagree with each other's errors; requiring both to
   object removes about half the false alarms at almost no loss of catches. Still no token saving on these benchmarks (bound).
+
+## HO4 results (2026-10-22 19:4x UTC; results/x3/ho4_analysis.log; OptiBench 605 × 3 seeds; library arm with the solution printed)
+| model | FF (formxv) − THINK | FF-V (checker) − THINK | FF-VA (checker AND second program) | checker flags wrong / right |
+|---|---|---|---|---|
+| gpt-oss-20b | **+5.0 [+3.2, +6.8] at 55%** | +5.5 [+4.0, +7.1] at 86% | 74.7% @ 84% (FF 73.9% @ 55%) | 86 / 283 (30%) · 86 / 1,159 (7%) |
+| Qwen3-14B-AWQ | **+15.0 [+12.4, +17.5] at 36%** | +14.1 [+12.0, +16.3] at 65% | 64.3% @ 51% (FF 63.3% @ 36%) | 218 / 385 (57%) · 181 / 956 (19%) |
+| Qwen3-8B | **+7.2 [+5.1, +9.5] at 45%** | +5.4 [+4.1, +6.8] at 79% | 65.8% @ 61% (FF 65.1% @ 45%) | 216 / 321 (67%) · 311 / 854 (36%) |
+- **HO4-P1 refuted** (FF-V − FF: +0.5 / −0.9 / −1.8, not ≥ +2); **HO4-P2 refuted** (≥ THINK + 3 at ≤ 70% of its tokens only for Qwen3-14B-AWQ);
+  **HO4-P3 mixed** (flags ≥ 50% of wrong programs for the Qwen models, not gpt-oss-20b at 30%; false alarms ≤ 30% except Qwen3-8B at 36%).
+- **Decision: the checker is not worth its cost where savings are possible.** With the library the plain recipe already beats always thinking
+  by +5.0 / +15.0 / +7.2 points at 36–55% of its tokens; the checker's false alarms and the thinking they trigger cost about what its catches
+  gain (checker AND a second program: +0.7 to +1.0 points for 16–29 points more of always thinking's tokens).
+**Reading (HO3 + HO4 + the bounds):** a stronger check pays where cheap programs are usually wrong (BWOR / LogiOR: from a tie to +3 to +6 points
+over always thinking, no saving possible) and not where they are usually right (OptiBench: plain FF is the best trade-off). Which regime a
+new benchmark is in can be read without labels from how often the cheap programs fail the free check or disagree — the next thing to test.
