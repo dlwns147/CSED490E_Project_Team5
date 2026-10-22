@@ -54,8 +54,8 @@ unless asked.
 | Trained baselines on our harness | ORLM-8B MAMO 69.5% @ 1.1k (Qwen3-8B recipe equal); STORM-4B MAMO 81.8% @ 8.4k, OptiBench 78.7% @ 7.9k (leads our best 24 GB recipe by 3–6 at 4–8 × tokens); cheap program + STORM on failure 76.3% @ 2.3k | PREREG_X7.md, PREREG_HO.md |
 | Self-consistency baseline | majority of 3 thinking runs 75.0% @ 6.3k (OptiBench, gpt-oss-20b); recipe with that vote as fallback 74.6% @ 1.9k | PREREG_HO.md |
 | Contest geometry (311 Codeforces, gpt-oss-120b / 20b) | examples + brute-force-oracle gate to high 66.3% @ 24.7k ≈ always-high 66.2% @ 30.1k; approach hints (tags / own plan) do not earn their place | PREREG_N.md, PREREG_CH.md |
-| … nor do edge-case tests the model writes (they see the leaks, but 67% false alarms: wrong boundary answers) | 72.9% @ 9.1k vs 74.0% @ 9.8k | PREREG_HOGC.md (HO-G-E) |
 | … a second program by the same model does not rescue Qwen3-8B there | brute-force agreement 64.2% @ 6.6k, resample 65.6% @ 6.5k vs always-thinking 74.0% @ 9.8k; 37 / 64 leaked programs are right on the given input, wrong only on edge cases (collinear vertex, point on an edge) | PREREG_HOGC.md |
+| … nor do edge-case tests the model writes (they see the leaks, but 67% false alarms: wrong boundary answers) | 72.9% @ 9.1k vs 74.0% @ 9.8k | PREREG_HOGC.md (HO-G-E) |
 | Limits | checks leak (consistent wrong programs); about half of MAMO's leaked problems are wrong labels (66 disputed); proofs need a trained prover | PREREG_X7.md, PREREG_PROOF.md |
 
 ## 3. Most important next steps (in this order; each pre-registered before running)
