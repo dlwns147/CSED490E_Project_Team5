@@ -136,9 +136,11 @@ cases the statement names but the given input does not contain, so no check on t
 We tried three label-free second views against this leak (pre-registered, 3 seeds): a brute-force program by the same model, a second
 sample, and edge-case tests the model writes once per task from the statement. The first two catch 41–45% of the leaked programs (the
 brute force copies the same textbook snippet); the tests see the leaks (59 of 64) but compute the same boundary cases wrong, flagging 67% of
-correct programs. None lets FF reach always-thinking for Qwen3-8B (best 65.6% at 6.5k vs 74.0% at 9.8k). On BWOR / LogiOR, requiring two
+correct programs. A fourth view — invariances the model states from the statement without computing any answer ("a point added exactly on an edge does not change the count") — catches the right failures (23 of the 37 edge-case leaks) but its relations are often wrong too (54% false alarms), reaching 67.7% at 7.2k. None lets FF reach always-thinking for Qwen3-8B (74.0% at 9.8k). On BWOR / LogiOR, requiring two
 cheap programs to agree recovers always-thinking's accuracy in every cell but costs 91–120% of its tokens. **The saving of the recipe is
 bounded by its check's leak.**
+
+**A cost model.** A perfect check bounds what any check can do: on held-out geometry it lifts Qwen3-8B only to 75.0% at 70% of always-thinking's tokens (its fact programs are wrong too often), while gpt-oss-20b and Qwen3-14B-AWQ reach 99.0% at 49% and 84.4% at 38%; on BWOR / LogiOR a perfect check saves no tokens (83–103%) but raises accuracy above always thinking (e.g. gpt-oss-20b BWOR 69.5% vs 59.3%). The recipe's token saving is capped by how often the cheap program is right; the check's leak decides how much of the possible accuracy it keeps.
 
 ### 5.3 Facts without a human
 The label-free library — for each problem, the program for the most similar other problem of the same benchmark that passed a strict check
