@@ -1,5 +1,7 @@
 # Documents
 
+Goal, scope and working rules: `PROJECT.md`; how to set up and run: `README.md` (the manual). This page indexes the documents.
+
 | File | Contents |
 |---|---|
 | `FINDINGS.md` | Chronological lab log (newest at the end) |

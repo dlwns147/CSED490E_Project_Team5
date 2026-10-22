@@ -24,7 +24,7 @@ State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Tea
   3/10 @ 0.53k; raw programs show the old failure kinds; the harness reproduces (FINDINGS 2026-10-21 18:40).
 - **Raw results** of the old server (results/*.jsonl, 2.0 GB) are here (10-22 01:48 UTC), copied from the shared NFS `/NAS/SJ/POSTECH/nlp`
   with `ssh -F /home1/leesangjun/cpu_jobs/ssh_origin.conf remote 'cd /NAS/SJ/POSTECH/nlp && tar czf - results' | tar xzf - --skip-old-files`
-  (remote = acp_user@141.223.181.76:22022, key ~/.ssh/sj_key_0; read-only there). `cpu_jobs/nlp/status_hourly.sh` (login node, nohup)
+  (`remote` = the old-server host in the team's local ssh config, not kept in this public repo; read-only there). `cpu_jobs/nlp/status_hourly.sh` (login node, nohup)
   logs jobs hourly to `out/nlp/status_hourly.log`.
 - **Done on Slurm (10-22):** HO2 + WF3 on BWOR / LogiOR (PREREG_HO.md): think-on-failure ties always thinking for the two stronger models,
   loses for Qwen3-8B (leaky check on hard problems); library pays 6 / 6; WF3 rule right 10 / 12 (only its 'add' side tested).
@@ -128,8 +128,5 @@ reading of result files runs on the login node.
 - Old-server traps that may not apply on Slurm: the NAS was CIFS (no exec bits → `bash poc/x.sh`; never `sed -i`; no symlinks); kill by PID,
   never PID 1; detach long jobs (`setsid nohup`).
 
-## 8. Working rules (user's standing instructions)
-Pre-register predictions (with numbers and a decision rule) in `docs/prereg/PREREG_*.md` before running; report accuracy *with* tokens; at
-least 3 seeds for a positive claim; read raw programs, not only scores; explain methods and results for a first-time reader; append dated
-entries to `docs/FINDINGS.md`; update `PROPOSAL.md` and `PROPOSAL_ko.md` together (short, in place); commit and push after each change (public
-repo: scan the staged diff for secrets, never add raw outputs; no Claude co-author line in commits, author dlwns147 only — user 10-22); before any run ask "does this change the project's main claim?" — if not, skip it.
+## 8. Working rules
+The team's goal, scope and standing rules are kept in one place: `PROJECT.md` (§4 Working rules); how to run things: `README.md`.

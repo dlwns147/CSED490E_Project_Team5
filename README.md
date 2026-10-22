@@ -2,41 +2,32 @@
 
 *Tools, Facts, and Checks.* POSTECH CSED490E (Graduate NLP) team project, Team 5.
 
-LLMs can solve geometry, optimization, contest and word problems by writing a program. Programs can be silently wrong,
-and thinking longer is expensive. We look for the cheapest way to get exactly right answers.
+This is the manual: how to set up, run and analyze everything in this repository. **What the project is for, its claim, scope and
+working rules: `PROJECT.md`.** The argument with all numbers: `PROPOSAL.md` (Korean: `PROPOSAL_ko.md`).
 
-**What we found** (blue = the better way, grey = the usual way or a published method):
+LLMs can solve geometry, optimization, contest and word problems by writing a program. Programs can be silently wrong, and thinking longer
+is expensive. We look for the cheapest way to get exactly right answers: a program, the missing fact, a free check, and thinking only
+when the check fails.
 
 ![Findings at a glance](figs/fig21_results_glance.png)
 
-![New results](figs/fig22_new_results.png)
-
-**Our method, built from these findings:** write a program → add the missing fact (by hand, or mined from the model's own
-checked programs) → run a free check → think harder only when the check fails → reuse a checked program when the problem
-repeats. With it, models that fit one 24 GB GPU match Qwen3-32B, and 30 labelled problems pick the policy for a new task.
-Proofs are where it stops: a specialized 8B prover beats every general model.
-
-Details: `PROPOSAL.md` (Korean: `PROPOSAL_ko.md`),
-`Proposal_Team5.pptx` (5-minute talk in 9 slides with a Korean script in the speaker notes, + 27 extra pages that answer expected questions in the 5-minute Q&A; `Proposal_Team5_v2.pptx` has the same slides with the script rewritten along a review of the talk's flow; all findings in `PROPOSAL_slides_full.pptx`), `docs/README.md` (all experiments). Published baselines (compute-optimal scaling by difficulty,
-CodeT, MBR-exec, DeepConf, DRoC, System 2 Attention, Self-Debugging, Dynamic Cheatsheet, ...) are measured on the same problems,
-and related research is mapped with reported numbers: `PROPOSAL.md` section 6 (and the talk's extra pages).
-
-## Files
+## 1. Files
 
 ```
-bench.py                              one entry point: list / serve / run / analyze
-PROPOSAL.md, PROPOSAL_ko.md           proposal (English, Korean)
-Proposal_Team5.pptx                   5-minute talk (9 slides, Korean script in the notes) + 27 extra pages for questions
-Proposal_Team5_v2.pptx                the same slides, Korean script rewritten along the flow review
-PROPOSAL_slides_full.pptx             all findings with examples (21 slides)
-HANDOFF.md                            server notes for continuing the work
-docs/                                 lab log, one pre-registration + results file per experiment, notes (index: docs/README.md)
-poc/                                  code: run_*.py benchmarks, analyze_*.py analyses, queues/ the exact commands we ran
-results/                              benchmark inputs and reference solutions (model outputs *.jsonl and logs are not in git)
-figs/                                 figures
+PROJECT.md                     goal, claim, scope, working rules, status
+README.md                      this manual
+PROPOSAL.md, PROPOSAL_ko.md    the argument with every number (English, Korean)
+bench.py                       one entry point: list / download / serve / run / submit (Slurm) / analyze
+poc/run_*.py                   benchmark harnesses (each explains its options at the top)
+poc/analyze_*.py               analyses of the stored rows
+poc/slurm/                     Slurm job template (job.sh), generic lane (lane.sh), experiment lanes
+poc/queues/                    the exact commands of the old servers' runs (records; see poc/queues/README.md)
+docs/                          lab log (FINDINGS.md), pre-registrations (prereg/), notes, cluster state (SLURM_HANDOFF.md); index docs/README.md
+results/                       problem sets and reference data (model outputs *.jsonl and logs are not in git)
+figs/, *.pptx                  figures; the talk (Proposal_Team5*.pptx) and the full findings deck
 ```
 
-## Setup
+## 2. Setup
 
 ```bash
 pip install -r poc/requirements.txt sympy math-verify pandas   # generated programs run with this Python, so it needs OR-Tools
@@ -44,137 +35,95 @@ pip install vllm                                               # model server (w
 python poc/sanity_check.py                                     # harness check without a model (CPU)
 ```
 
-**Download models** from Hugging Face (no login needed). They go to `$MODELS_DIR/<model id>`
-(default `/SSD/huggingface`). The command checks free disk space first, resumes an interrupted download, and skips
-the duplicate weight formats in the gpt-oss repositories (65 GB instead of 196 GB for gpt-oss-120b).
+**Models** come from Hugging Face into `$MODELS_DIR/<model id>` (default `/SSD/huggingface`); the command checks free space first,
+resumes interrupted downloads and skips duplicate weight formats. **External benchmark data** (OptMATH, OptiBench, MAMO, BWOR, LogiOR)
+is read from `$POC_DATA` (the loaders in `poc/run_nlopt.py` name the source of each).
 
 ```bash
 export MODELS_DIR=/path/to/a/large/disk
-python bench.py download q32b oss120        # or: python bench.py download all   (about 180 GB)
-python bench.py download all --dry          # only show what would be downloaded
+python bench.py download q14a oss20 q8b      # the three 24 GB models (--dry only shows what would be downloaded)
 ```
-
-## Models and GPUs
-
-One model runs on one GPU. Our setting is a 32k-token context and 88% of GPU memory; high-effort contest runs use a 64k
-context. We ran everything up to 2026-10-20 on NVIDIA RTX PRO 6000 Blackwell (96 GB), and from 2026-10-22 on RTX 3090 (24 GB),
-where gpt-oss-20b (MXFP4), Qwen3-14B-AWQ and Qwen3-8B are tested with vLLM 0.22 at 92% of memory and a 20k context. The other GPUs
-below are estimated from the weight size plus the memory one full-length request needs.
 
 | Alias | Model | Download | Smallest GPU | Example GPUs |
 |---|---|---|---|---|
 | `q8b` | Qwen/Qwen3-8B (16-bit) | 16 GB | 24 GB (20k context) | RTX 3090, RTX 4090, A100 40GB, L40S |
 | `q14a` | Qwen/Qwen3-14B-AWQ (4-bit) | 10 GB | 24 GB | RTX 3090, RTX 4090, A10G |
+| `oss20` | openai/gpt-oss-20b (4-bit MXFP4) | 14 GB | 24 GB | RTX 3090, RTX 4090, L4, A10G |
 | `q14b` | Qwen/Qwen3-14B (16-bit) | 30 GB | 48 GB | L40S, RTX 6000 Ada, A100 80GB |
 | `q32b` | Qwen/Qwen3-32B-AWQ (4-bit) | 19 GB | 40 GB | A100 40GB, L40S, RTX 6000 Ada |
-| `q36` | Qwen/Qwen3.6-35B-A3B-FP8 (8-bit) | 38 GB | 80 GB | H100, RTX PRO 6000 (FP8 needs Ada, Hopper or Blackwell) |
-| `oss20` | openai/gpt-oss-20b (4-bit MXFP4) | 14 GB | 24 GB | RTX 3090, RTX 4090, L4, A10G |
+| `q36` | Qwen/Qwen3.6-35B-A3B-FP8 (8-bit) | 38 GB | 80 GB | H100, RTX PRO 6000 |
 | `oss120` | openai/gpt-oss-120b (4-bit MXFP4) | 65 GB | 80 GB | H100 80GB, H200, RTX PRO 6000 |
 
-On a smaller GPU, shorten the context and use more of the memory, e.g. `python bench.py serve q8b --frac 0.95 --
---max-model-len 16384`; this lowers the request limit to 16k tokens. On Blackwell GPUs `poc/serve_gpu.sh` sets
-`VLLM_USE_FLASHINFER_SAMPLER=0`, which vLLM 0.22 needs there.
+Results up to 2026-10-20 come from NVIDIA RTX PRO 6000 Blackwell (96 GB; 32k context, 88% of memory), from 2026-10-22 from RTX 3090
+(24 GB; 20k context, 92% of memory). On a smaller GPU shorten the context, e.g. `python bench.py serve q8b --frac 0.95 -- --max-model-len 16384`.
+On Blackwell, `poc/serve_gpu.sh` sets `VLLM_USE_FLASHINFER_SAMPLER=0`, which vLLM 0.22 needs there.
 
-## Run
+## 3. Running on one machine
 
 ```bash
-python bench.py list                                 # benchmarks, arms (prompt conditions), model aliases
-python bench.py serve q32b --gpu 0                   # vLLM server on port 8041 (prints the PID; stop with kill <PID>)
-python bench.py run geo k8 --model q32b --seed 1     # one arm of one benchmark -> results/
-python bench.py run geo k8 --model q32b --dry        # only print the underlying command
+python bench.py list                                              # benchmarks, arms (prompt conditions), model aliases
+python bench.py serve oss20 --gpu 0                               # vLLM server on port 8041 (prints the PID; stop with kill <PID>)
+python bench.py run geo none --model oss20 --effort low --seed 1  # one arm of one benchmark -> results/
+python bench.py run geo none --model oss20 --dry                  # only print the underlying command
 ```
 
-Run everything from the repository root. One server at a time uses port 8041; to run two models at once, give the
-second one its own GPU and port (`serve oss120 --gpu 1 --port 8042`, then `run ... --port 8042`).
+Run everything from the repository root. One server uses port 8041; for a second model give it its own GPU and port
+(`serve oss120 --gpu 1 --port 8042`, then `run ... --port 8042`). Anything after `--` in `bench.py run` is passed to the harness.
 
-**On a Slurm cluster** (from 2026-10-22): `poc/slurm/job.sh` runs one lane script on one allocated GPU inside the project's
-docker image (paths, port, caches and the client Python are set there; see its header). `poc/slurm/lane.sh` serves one model and runs
-any client commands against it; `bench.py submit` writes that job for the standard arms:
+## 4. Running on the Slurm cluster (current setup)
+
+`poc/slurm/job.sh` runs one job on one allocated GPU inside the project's docker image (paths, port, caches and the client Python are set
+there; see its header). `poc/slurm/lane.sh` serves one model and runs client commands against it. `bench.py submit` writes such a job for
+the standard arms. Use the RTX3090 partition; keep thinking budgets ≤ 16k tokens there (the lane serves a 20k context).
 
 ```bash
-python bench.py submit geo fact --model q14a --seeds 1,2,3          # one job: Qwen3-14B-AWQ server + the three seeds (add --dry to only print)
-sbatch -J smoke poc/slurm/job.sh poc/slurm/smoke.sh                 # 10 OptiBench problems per 24 GB model (setup check)
+python bench.py submit geo fact --model q14a --seeds 1,2,3          # one job: server + three seeds (--dry to only print)
+sbatch -J smoke poc/slurm/job.sh poc/slurm/smoke.sh                 # setup check: 10 OptiBench problems per 24 GB model
 sbatch -J ob_q8b poc/slurm/job.sh poc/slurm/lane.sh Qwen/Qwen3-8B ob_q8b \
   'NLOPT_SET=optibench $P poc/run_nlopt.py q8b_optibench free 1 --max_tokens 8192'
 ```
 
-The scripts in `poc/queues/` are the old servers' run records (they claim GPUs 0–3 of one machine); `poc/queues/README.md` shows how to
-turn one of their lanes into a Slurm job.
+CPU-only analyses that re-run stored programs use the same image (`sbatch -p cpu-max16,cpu-max10,cpu-max24 -q nogpu --gres=none
+poc/slurm/job.sh '$P poc/analyze_x.py'`; when CPU partitions are crowded, submit them as a GPU job). Cluster state, data locations and
+environment notes: `docs/SLURM_HANDOFF.md`.
 
-On an RTX 3090 (24 GB) gpt-oss-20b, Qwen3-14B-AWQ and Qwen3-8B all serve with 92% of memory and `--max-model-len 20480`
-(Qwen3-8B: a 37k-token KV cache).
+## 5. Analyses
 
-## Examples
-
-**Quick test** on one 24 GB GPU with the smallest model:
+Every output row stores its tokens (`out_tokens`), so accuracy always comes with its cost.
 
 ```bash
-python bench.py download oss20
-python bench.py serve oss20 --gpu 0
-python bench.py run geo none --model oss20 --effort low   # prints, per task, how many programs were right on all 8 copies
+python bench.py analyze <id> ...                                   # = python poc/analyze_<id>.py ...
+HO_SET=optibench python poc/analyze_ho.py oss20 q14a q8b           # held-out policies with 95% intervals and token ratios
+python poc/analyze_which_fix.py [--census]                         # when a fact pays (usage-crash census)
+python poc/analyze_input_tokens.py                                 # input tokens of the held-out policies
+python poc/analyze_hogc.py [--edge]                                # held-out geometry: second views against the check leak
 ```
 
-**Slide 6: library facts** (Qwen3-32B-AWQ, optimization with OR-Tools):
+The predictions and results of each experiment are in `docs/prereg/PREREG_<id>.md`; the commands behind each number in
+`poc/queues/queue_s2_<id>.sh` (old servers) and `poc/slurm/` (Slurm).
+
+## 6. Harness facts that cost us time
+
+- Rows are flushed as they finish and runs resume: re-running the same command skips finished rows; a torn line is skipped.
+- The sandbox runs BLAS / OpenMP single-threaded (else `import scipy` exceeds the CPU limit); multi-threaded CP-SAT needs a CPU-time limit far
+  above the wall time (the free-solver modes use 3,600 s).
+- gpt-oss with a small `max_tokens` returns empty content (reasoning eats the budget): use ≥ 2,000 and count empty replies. Effort via
+  `POC_REASONING_EFFORT`; Qwen3 thinking via `--think`. Budgets that are too small or non-card sampling make thinking look worse than it
+  is (Qwen3.6: AIME 48% → 94% with the card's settings and an 80k budget): report cap hits.
+- Grading: word problems `run_nlopt.correct` (abs 1e-2 or rel 1e-3; 'No Best Solution' is a value); geometry = right on all 8 copies
+  (moved, rotated, mirrored, permuted, scaled, 10^9-shifted, degenerate); contests = all official + generated tests; math = math-verify.
+- On the Slurm cluster the host user may not write the shared model pool (`/SSD`); the container does (see `docs/SLURM_HANDOFF.md`).
+
+## 7. Reproducing the talk's examples
 
 ```bash
-python bench.py download q32b
 python bench.py serve q32b --gpu 0
-for arm in nodoc doc snippet; do                          # nothing extra / long reference sheet / exact snippet
-  python bench.py run co $arm --model q32b --seed 1
-  python bench.py analyze co q32b_co_${arm}_s1            # feasible and optimal per problem
-done
+for arm in nodoc doc snippet; do python bench.py run co $arm --model q32b --seed 1; done   # slide 6: library facts
+for arm in none k8 think; do python bench.py run geo $arm --model q32b --seed 1; done     # slide 7: distracting tools
+N10_PREFIX=q32b python bench.py analyze n12 1 geo                                         # think only when the two programs differ
 ```
 
-**Slide 7: distracting tools** (same server):
-
-```bash
-for arm in none k8 think; do                              # task only / task + 8 helpers / helpers + thinking
-  python bench.py run geo $arm --model q32b --seed 1
-done
-N10_PREFIX=q32b python bench.py analyze n12 1 geo         # compare the two programs, think only when they differ
-```
-
-**Slide 8: hard contest problems** (gpt-oss-120b). The analysis reads the run names `oss120_low`, `oss120_medium`
-and `oss120_high64k` for seeds 1–3, so these call the harness directly:
-
-```bash
-python bench.py download oss120
-python bench.py serve oss120 --gpu 0 -- --max-model-len 65536    # stop the previous server first: kill <PID>
-export CC_SET=full POC_BASE_URL=http://127.0.0.1:8041/v1
-for s in 1 2 3; do
-  POC_REASONING_EFFORT=low    python poc/run_cc.py run oss120_low     $s --max_tokens 16000
-  POC_REASONING_EFFORT=medium python poc/run_cc.py run oss120_medium  $s --max_tokens 16000
-  POC_REASONING_EFFORT=high   python poc/run_cc.py run oss120_high64k $s --max_tokens 62000
-done
-python bench.py analyze n8                                # row "medium->high": think harder only when the examples fail
-```
-
-`analyze n13` adds the brute-force cross-check behind the 66% result; it also needs the N5 oracle run
-(`docs/prereg/PREREG_N.md`).
-
-**Slide 9: reusing one checked program** (gpt-oss-120b, Solomon VRPTW):
-
-```bash
-for s in 1 2; do python bench.py run vrptw plain --model oss120 --effort low --seed $s; done
-REUSE_SEEDS=1,2 python bench.py analyze reuse_curve oss120_low_plain   # pick on 8 instances, reuse on the other 48
-```
-
-**Other benchmarks:**
-
-```bash
-python bench.py run math prog --model q32b                  # MATH-500 + AIME, answer by a program
-python bench.py run jssp plain --model oss120 --effort low  # job-shop scheduling
-python bench.py run nlopt mipf --model q32b                 # word problem -> optimization model, with the solver snippet
-python bench.py run popqa recall --model q8b                # factual QA: recall related facts, then answer
-```
-
-Each harness (`poc/run_*.py`) explains its options at the top of the file; anything after `--` in `bench.py run` is
-passed to it. The exact commands behind every reported number are in `poc/queues/queue_s2_<id>.sh`, and the
-predictions and results in `docs/prereg/PREREG_<id>.md`.
-
-Figures and slides: `python poc/make_figures_frame.py` (figs 18–22), `node poc/make_slides.js` (needs `npm install pptxgenjs`),
-then `python poc/export_slide_figs.py` (the example pictures `figs/ex_*.png` used in the proposal).
-The slide icons (`figs/icons/`) come from `node poc/make_icons.js` (needs react, react-dom, react-icons and sharp).
-
-**Notes:** GPUs are shared: check `nvidia-smi` for a free GPU and port first. We claim a result only if it holds on
-3 seeds. Every output row stores its tokens (`out_tokens`), so accuracy can always be read with its cost.
+Contest problems (gpt-oss-120b; `CC_SET=full poc/run_cc.py`, analyses `bench.py analyze n8` / `n13`) and Solomon reuse
+(`bench.py run vrptw plain --model oss120 --effort low`, then `REUSE_SEEDS=1,2 python bench.py analyze reuse_curve oss120_low_plain`) need
+an 80 GB GPU. Figures and slides: `python poc/make_figures_frame.py`, `node poc/make_slides.js` (needs `npm install pptxgenjs`),
+`python poc/export_slide_figs.py`.
