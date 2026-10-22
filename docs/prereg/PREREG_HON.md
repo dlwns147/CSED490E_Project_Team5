@@ -35,5 +35,8 @@ thinking arms with thinking on and a 16,000-token budget (as for the Qwen3 model
 generation; a P1 failure with P2 holding → the deployable claim is the pilot, not the recipe alone; P2 failing → the pilot claim is
 restated as development-only. P3 decides whether the census is a two-sided rule or only an "add" signal.
 
+*Note (2026-10-22 23:2x UTC, before any run): the 10-21 setup check (SLURM_HANDOFF §0) saw Qwen3.5-9B crash mostly on library usage on
+10 OptiBench problems, so P3 will most likely test only the "add" side again; P1 and P2 are the main tests.*
+
 **Analyses:** `poc/analyze_ho.py` (HO_SET per benchmark), `poc/analyze_hogc.py` / `poc/analyze_hox.py`-style geometry rows,
 `poc/analyze_hop.py q35`, `poc/analyze_which_fix.py --census`, `poc/analyze_budget.py q35`.

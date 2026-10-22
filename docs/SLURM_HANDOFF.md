@@ -3,7 +3,14 @@
 State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Team5, public). The hourly loop on the old server
 (/NAS/SJ/POSTECH/nlp, 8 × RTX PRO 6000 Blackwell, GPUs 0–3) was stopped on 2026-10-20 04:2x UTC; no job is running there.
 
-## 0. Status on the Slurm cluster (updated 2026-10-22 06:3x UTC)
+## 0. Status on the Slurm cluster (updated 2026-10-22 23:2x UTC)
+- **Done 10-22/23 (all recorded in the prereg files and FINDINGS):** HO3–HO5 solution checker (helps on BWOR / LogiOR only), HO6 / HO7 /
+  HO-G-R one cheap repair before thinking (helps the stronger models on word problems, not on geometry), HO-X a second model's program
+  as the check (catches Qwen3-8B's on-input leaks, none of its 37 edge-only leaks; using gpt-oss-20b directly dominates), HO-D gate (even
+  perfect edge inputs leave a differential test below always thinking), HO-B (the 16k thinking budget cannot flip a held-out tie or win),
+  HO-P (30 labelled problems pick the policy within 0.87 points on 45 held-out cells; 0.74 instead of 7.8 where the recipe loses).
+- **Running:** HO-N (`docs/prereg/PREREG_HON.md`, `poc/slurm/hon_lane.sh`): the recipe, the pilot and the census rule on Qwen3.5-9B, a
+  model the project never used; smoke job first, then one RTX 3090 job per benchmark group.
 - **Set up and tested.** Docker image `nlp_project:261021` (`/home1/leesangjun/nlp_project_261021.tar`; vLLM 0.22.0, torch 2.11 cu130,
   client / sandbox venv `/root/venvs/llm_algo_poc`), loaded per node on first use (258 s). Partition **RTX3090** (24 GB = the project's
   target GPU; RTX6000ADA / L40S / A100-80GB are used by the user's other sessions). 4 CPUs per GPU, no `--time`, no `-q` on this partition.
@@ -59,6 +66,7 @@ unless asked.
 | … and on two more unseen benchmarks (BWOR 82, LogiOR 92): ties for gpt-oss-20b / Qwen3-14B-AWQ, loses for Qwen3-8B | FF − always-thinking −2.2 to +1.2 (CIs include 0) at 53–88% of its tokens; Qwen3-8B BWOR −8.1 [−13.4, −3.3]; 38–75% of check-passing programs wrong; two-agree check recovers accuracy at 91–120% of the tokens; library +10.1 for Qwen3-14B-AWQ on LogiOR | PREREG_HO.md (HO2) |
 | … a second program by the same model does not rescue Qwen3-8B there | brute-force agreement 64.2% @ 6.6k, resample 65.6% @ 6.5k vs always-thinking 74.0% @ 9.8k; 37 / 64 leaked programs are right on the given input, wrong only on edge cases (collinear vertex, point on an edge) | PREREG_HOGC.md |
 | … nor do edge-case tests the model writes (they see the leaks, but 67% false alarms: wrong boundary answers) | 72.9% @ 9.1k vs 74.0% @ 9.8k | PREREG_HOGC.md (HO-G-E) |
+| … nor a check from a different model, nor even perfect edge inputs; but a 30-label pilot detects these cells | gpt-oss-20b agreement 63.2% @ 6.5k (26 / 27 on-input leaks, 0 / 37 edge-only); differential test with the benchmark's edge inputs ≤ 71.9% @ 78%; pilot regret 0.87 over 45 held-out cells, 0.74 vs 7.83 in Qwen3-8B's losing cells | PREREG_HOGC.md (HO-X, HO-D), PREREG_MODEL.md (HO-P) |
 | Limits | checks leak (consistent wrong programs); about half of MAMO's leaked problems are wrong labels (66 disputed); proofs need a trained prover | PREREG_X7.md, PREREG_PROOF.md |
 
 ## 3. Most important next steps (in this order; each pre-registered before running)
@@ -67,7 +75,9 @@ unless asked.
    edge-case bugs the given input never contains. HO-G-E (10-22): model-written edge-case tests (once per task) see the leaks but get the
    same boundary cases wrong (67% false alarms) → no self-written check rescues Qwen3-8B; the limit stands (closed unless a check that
    does not rely on the model's own edge-case knowledge is proposed). Reopened 10-23 as the main line: HO-G-M (model-written metamorphic
-   relations, no expected answers) for geometry and HO3 (a solution checker from the text) for BWOR / LogiOR — running.
+   relations, no expected answers) for geometry and HO3 (a solution checker from the text) for BWOR / LogiOR. Closed 10-23: HO-G-M, HO-G-R,
+   HO-X and the HO-D gate leave the limit in place (27 on-input leaks a different model can catch, 37 edge-only leaks only edge inputs
+   reveal, too costly even then); HO-P shows a 30-label pilot detects these cells. The limit is final for this project.
 2. **Where facts do not pay** — WF3 (10-22, BWOR / LogiOR): the rule "add a fact unless usage crashes < 5% and non-usage failures ≥ 25%"
    (fixed from the 46 old points) was right in 10 / 12 new points, but every new cell had ≥ 5% usage crashes, so only its "add" side was
    tested; the label-free library paid in 6 / 6 (23 / 25 cells overall). The "do not add" side needs a strong, rarely-crashing model on a new
