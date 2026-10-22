@@ -141,3 +141,21 @@ relation on the given instance (its output on the transformed input equals `expe
 **Decision** as HO-G-C: (a) MR+ meets HOG-P1 for Qwen3-8B (≥ THINK − 1 at ≤ 60% of its tokens, ≥ 2 of 3 seeds) and P3 holds → the geometry
 check becomes "rigid copies + statement-derived relations" and the held-out geometry claim extends to all three models; (b) accuracy only →
 restated limit with the saving; (c) the limit stays.
+
+## HO-G-M results (2026-10-22 18:4x UTC; results/hogcm_analysis.log; relations: results/edgemr_SL_HOGCM_*; 36 relation sets, 29 run)
+| seed means | FF | MR+ (MR + own relations) | THINK |
+|---|---|---|---|
+| gpt-oss-20b | **99.0% @ 0.82k** | 95.8% @ 1.89k (111% of THINK's tokens) | 93.1% @ 1.69k |
+| Qwen3-14B-AWQ | **84.4% @ 2.92k** | 79.2% @ 4.98k | 76.7% @ 8.58k |
+| Qwen3-8B | 59.7% @ 4.55k | 67.7% @ 7.19k (73%) | **74.0% @ 9.82k** |
+- **HOGM-P1 half holds:** the relations flag 23 of Qwen3-8B's 37 edge-case-only leaks (62%; but only 3 of the 27 wrong-on-input ones);
+  false alarms are not ≤ 15% (Qwen3-8B 71 / 132; correct programs break the models' own relations: gpt-oss-20b tri 144 / 144, Qwen3-8B
+  convex 100 / 118 — malformed transforms that also shift the count line, wrong expectations such as "a duplicated vertex flips convexity").
+- **HOGM-P2 refuted** (67.7% < 71.0%; 73% of THINK's tokens); **HOGM-P3 refuted** (−3.2 / −5.2 points for the stronger models).
+- **Decision (c).** MR+ is the best of the four self-written checks for Qwen3-8B (brute force 64.2%, resample 65.6%, edge tests 72.9% at 93%
+  of the tokens) but none reaches always thinking.
+**Bound (computed after these results; labels used only for the bound):** with a *perfect* check on the fact program (accept exactly the
+correct ones), FF reaches gpt-oss-20b 99.0% @ 49% of THINK's tokens, Qwen3-14B-AWQ 84.4% @ 38%, **Qwen3-8B 75.0% @ 70%**. For Qwen3-8B the
+pre-registered rule (≥ THINK − 1 at ≤ 60% of its tokens) is unreachable by any check: its fact programs are wrong on so many items that
+each must pay for thinking. The attainable target is "same accuracy at about 70% of the tokens"; the self-written checks get 64–68% at
+67–73%. **Reading:** for the weakest model the limit is the fact program's error rate first and the check's leak second.

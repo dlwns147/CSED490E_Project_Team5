@@ -306,3 +306,11 @@ objective matches the printed one (run_nlopt tolerance). Thinking arm: the store
 - HO3-P3: for Qwen3-8B on BWOR, FF-V closes at least half of FF's gap to always thinking (FF −8.1 in HO2).
 **Decision.** If P2 holds, the recipe's free check for word problems becomes "runs + a solution checker", and the held-out claim extends to
 the hard benchmarks; if only P1 holds, the checker is reported as a partial fix with its cost; otherwise the limit stands as in HO2.
+
+### HO3 bound, recorded before any HO3 result (2026-10-22 18:5x UTC; offline on the HO2 rows, labels used only for the bound)
+A *perfect* check on the cheap program (accept exactly the right ones, think on the rest) would use 83–103% of always thinking's tokens on
+BWOR / LogiOR (free: 89–103%; library: 83–98%), because the cheap programs are right on only 7–42% of these problems — so **HO3-P2 (≤ 80% of the
+tokens) is infeasible in most cells by construction**; it was set without this cost model (CRITIQUE item 7). The same perfect check
+*raises* accuracy above always thinking (e.g. BWOR gpt-oss-20b library 69.5% vs 59.3%; LogiOR Qwen3-14B-AWQ library 41.3% vs 27.9%), because
+right cheap programs are kept where thinking fails. So for HO3 the informative outcome is accuracy: P1 (flag rates) and whether FF-V
+exceeds always thinking; P2 is reported as pre-registered.
