@@ -386,3 +386,16 @@ written only when the checker objects (its tokens are counted only there).
 **Reading (HO3 + HO4 + the bounds):** a stronger check pays where cheap programs are usually wrong (BWOR / LogiOR: from a tie to +3 to +6 points
 over always thinking, no saving possible) and not where they are usually right (OptiBench: plain FF is the best trade-off). Which regime a
 new benchmark is in can be read without labels from how often the cheap programs fail the free check or disagree — the next thing to test.
+
+## HO5 pre-registration (2026-10-22 19:5x UTC, before running): which regime is a new benchmark in? A prospective test on OptMATH
+**Rule (fixed from the 9 HO3 / HO4 cells, exploratory; label-free):** among the cheap programs that run and print a value, the share whose
+value agrees with a second cheap program of the next seed. Agreement ≥ 85% (OptiBench 89–92%) → "easy" regime: keep the plain recipe;
+< 85% (BWOR / LogiOR 49–77%) → "hard" regime: add the solution checker (it raised accuracy over the plain recipe there by +0.7 to +5.7 and
+over always thinking in 5 of 6 cells; tokens cannot be saved in that regime).
+**Test:** OptMATH (100; never used with the checker), 3 models, seeds 1–3: freev + verify (lane poc/slurm/ho3_lane.sh with NLOPT_SET=optmath);
+thinking = the stored thinkfree rows. The agreement rate is computed first and its call recorded before any accuracy is read.
+**Predictions:**
+- HO5-P1: OptMATH falls in the hard regime for all three models (agreement < 85%; a perfect check would need 96–105% of always thinking's
+  tokens there).
+- HO5-P2: FF-V ≥ FF + 2 points for gpt-oss-20b and Qwen3-8B, ≥ FF for Qwen3-14B-AWQ (as on BWOR / LogiOR).
+- HO5-P3: FF-V ≥ always thinking (seed means) for at least 2 of 3 models.
