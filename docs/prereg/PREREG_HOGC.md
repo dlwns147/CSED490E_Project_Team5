@@ -200,7 +200,7 @@ the grader's tolerance, the other program running); else the model's own THINK. 
 **Reading planned:** P1 + P2 → the weakest model's limit is self-correlation, and a second small model's program is the check that removes
 it (at the price of running two models); otherwise the limit is also in what the stronger model gets wrong or in the cost.
 
-### Results HO-X (2026-10-22 23:1x UTC; `python poc/analyze_hox.py`, offline on stored rows, 3 seeds)
+### Results HO-X (2026-10-22 23:0x UTC; `python poc/analyze_hox.py`, offline on stored rows, 3 seeds)
 XV = accept the model's fact program only if it passes its own free check and agrees with gpt-oss-20b's; else the model's THINK.
 OSS (note, not pre-registered) = gpt-oss-20b's own plain recipe, for "the second model is run anyway".
 
@@ -226,7 +226,7 @@ OSS (note, not pre-registered) = gpt-oss-20b's own plain recipe, for "the second
   model is not a recipe step, it is a reason to use the stronger model.** The weakest model's limit stands; the report states it with this
   split (on-input vs edge-only).
 
-## Addendum HO-D gate (2026-10-22 23:3x UTC, before computing; offline): is a differential test on edge inputs worth a run?
+## Addendum HO-D gate (2026-10-22 23:0x UTC, before computing; offline): is a differential test on edge inputs worth a run?
 37 of Qwen3-8B's 64 leaks are wrong only on the degenerate copy (convex: a collinear vertex; tri: a point on an edge / a duplicate), where a
 second program of its own is right in 19 (resample F2) / 14 (brute force B) of 37. A differential test needs no expected answers: run two of
 the model's own programs on edge inputs and escalate when they disagree. Before writing a generator of edge inputs (one GPU call per task),
