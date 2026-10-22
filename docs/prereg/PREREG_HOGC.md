@@ -199,3 +199,29 @@ the grader's tolerance, the other program running); else the model's own THINK. 
 - HOX-P3: on BWOR / LogiOR XV for Qwen3-8B ≥ its FF-V (HO3) in both cells.
 **Reading planned:** P1 + P2 → the weakest model's limit is self-correlation, and a second small model's program is the check that removes
 it (at the price of running two models); otherwise the limit is also in what the stronger model gets wrong or in the cost.
+
+### Results HO-X (2026-10-22 23:1x UTC; `python poc/analyze_hox.py`, offline on stored rows, 3 seeds)
+XV = accept the model's fact program only if it passes its own free check and agrees with gpt-oss-20b's; else the model's THINK.
+OSS (note, not pre-registered) = gpt-oss-20b's own plain recipe, for "the second model is run anyway".
+
+| model · set | own policy | XV | THINK | OSS | XV − own | XV − THINK |
+|---|---|---|---|---|---|---|
+| Qwen3-8B · geometry | FF 59.7% @ 4.55k | 63.2% @ 6.45k (66%) | 74.0% @ 9.82k | 99.0% @ 0.82k | +3.5 [+1.0, +6.6] | −10.8 [−15.3, −6.6] |
+| Qwen3-8B · BWOR | FF-V 36.2% @ 12.22k | 39.4% @ 13.03k (113%) | 38.2% @ 11.58k | 57.3% @ 2.39k | +3.3 [+0.8, +6.5] | +1.2 [+0.0, +3.3] |
+| Qwen3-8B · LogiOR | FF-V 35.1% @ 12.49k | 36.6% @ 13.04k (115%) | 34.8% @ 11.38k | 52.9% @ 3.11k | +1.4 [+0.4, +2.9] | +1.8 [+0.4, +3.6] |
+| Qwen3-14B-AWQ · geometry | FF 84.4% @ 2.92k | 83.7% @ 4.05k (47%) | 76.7% @ 8.58k | 99.0% @ 0.82k | −0.7 [−1.7, +0.0] | +6.9 [+3.8, +10.4] |
+| Qwen3-14B-AWQ · BWOR | FF-V 33.3% @ 10.09k | 35.4% @ 10.67k (108%) | 30.1% @ 9.89k | 57.3% @ 2.39k | +2.0 [−0.4, +4.9] | +5.3 [+2.4, +8.9] |
+| Qwen3-14B-AWQ · LogiOR | FF-V 29.7% @ 10.44k | 32.6% @ 11.01k (112%) | 27.9% @ 9.82k | 52.9% @ 3.11k | +2.9 [+0.7, +5.1] | +4.7 [+2.5, +7.6] |
+
+- Geometry leaks (Qwen3-8B fact programs that pass MR and are wrong): XV flags **26 / 64**, all on the 27 that are wrong on the given
+  input and **0 of the 37 that are wrong only on edge cases**; false alarms 0 / 132. Word problems: XV flags as many wrong programs as the
+  model's own checker (55 / 58 vs 50 / 58; 33 / 34 vs 33 / 34) with half or fewer false alarms (6 / 20 vs 13 / 20; 2 / 19 vs 12 / 19).
+- **HOX-P1 refuted** (26 / 64 = 41% flagged, not ≥ 80%; false alarms 0%). **HOX-P2 refuted** (63.2%, not ≥ 73.0%). **HOX-P3 holds**
+  (XV ≥ FF-V on BWOR +3.3 [+0.8, +6.5] and LogiOR +1.4 [+0.4, +2.9]).
+- **Reading.** Qwen3-8B's geometry leak has two parts. Errors on the given input are self-correlated, and a different model's program
+  removes them (26 / 27). Errors only on edge cases cannot be seen by any check that runs on the given input and its transformed copies,
+  however independent the second view; they need inputs the model does not generate well (its own edge tests failed, HO-G-E). On word
+  problems a second model's answer is a better check than a self-written checker (same catches, fewer false alarms). But the check is
+  dominated in every cell by simply using gpt-oss-20b (OSS − XV −16 to −36 points at 8–32% of THINK's tokens): **a check from a stronger
+  model is not a recipe step, it is a reason to use the stronger model.** The weakest model's limit stands; the report states it with this
+  split (on-input vs edge-only).
