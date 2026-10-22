@@ -490,3 +490,11 @@ with the measured saving; otherwise the repair step stays an option for the stro
 - Per the decision rule the repair step is not adopted as a token saver. What it is: a free accuracy gain — never worse than FF, at equal or
   lower cost in 5 of 6 cells — because where the repair yields a running program it is right more often than thinking on the same items
   (in all six cells). With HO6: repair visible failures only; repairing running programs that a checker flagged made Qwen3-8B worse (HO6).
+
+## Addendum HO-B (2026-10-22 23:2x UTC, before computing; offline): is always thinking handicapped by its 16k-token budget?
+Always thinking (THINK) ran with 16,000 output tokens (what fits beside the model on a 24 GB GPU); 0.3–7.6% of the stronger models' THINK
+rows hit it (Qwen3-8B 3–24%). **Worst case:** count every THINK row that hit the budget and is wrong as right — in THINK and wherever FF
+escalates to it — and recompute FF − THINK with its paired 95% interval in every held-out cell (OptMATH mined example, OptiBench free /
+library, BWOR, LogiOR free / library, geometry). **Prediction HOB-P1:** no cell where FF ties or beats THINK for gpt-oss-20b or
+Qwen3-14B-AWQ becomes a significant loss (upper bound < 0). **Decision:** if P1 holds, no longer-budget THINK run (it cannot change the
+claim) and the bound goes into the report's limitations; if not, re-run the budget-capped THINK rows of the flipping cells at 32k tokens.
