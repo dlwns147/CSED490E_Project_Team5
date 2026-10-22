@@ -187,7 +187,7 @@ All measured here, with the same problems, models and checks; accuracy @ output 
 ## 8. Setup
 
 - **Strict scoring.** Geometry: right on all 8 copies of each input. Routing and scheduling: every rule satisfied, length compared with the best known. Contest problems: all official tests. Math and word problems: the exact answer.
-- **Fair comparisons.** One change at a time, predictions written before each run, 3 seeds per claim, and accuracy always reported with its token cost.
+- **Fair comparisons.** One change at a time, predictions written before each run, 3 seeds per claim, and accuracy always reported with its token cost (output tokens; counting the prompt too, the held-out savings shrink — e.g. the library recipe on OptiBench from 46% to 67% of always thinking's tokens for gpt-oss-20b — but never reverse: 37–97% across all held-out cells). Held-out comparisons carry 95% intervals over problems.
 - **Models** (open, run locally): Qwen3 1.7B–32B, Qwen3.6-35B-A3B, gpt-oss-20b and 120b; for proofs Goedel-Prover-V2-8B and DeepSeek-Prover-V2-7B.
 - **Benchmarks:** 13 generated geometry tasks; 8 generated optimization problems; 311 Codeforces geometry problems (CodeContests); 56 Solomon routing instances; 82 job-shop instances (OR-Library and larger); NL4OPT + IndustryOR (345 word problems); MAMO (863 word problems, held out); MATH-500 + AIME 2024/2025 (560); miniF2F (244 Lean proofs); IMO-AG-30 and JGEX-AG-231 (geometry proofs); PopQA (1,500 questions).
 

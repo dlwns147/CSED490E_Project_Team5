@@ -81,3 +81,12 @@ across instances of one problem, so output tokens stay the main cost axis; table
 12. **Edit discipline is an unmeasured confound in every repair / adapt result (medium).** Models rewrite verified lines (7 / 24 VRPTW,
     50 / 80 job-shop crashes). Repair results (N2, N9) may hide the same damage. **Fix:** N14d tests a minimal-edit instruction; a diff
     statistic (verified lines changed) should be reported for repair and adaptation runs.
+
+## Update 2026-10-22 (Slurm side, review): items 4 and 5 on the held-out benchmarks
+- Item 4 (input tokens) measured on all held-out cells (OptMATH, OptiBench, BWOR, LogiOR): counting input tokens, fact-first-then-think costs
+  37–97% of always thinking's tokens (output only 28–91%); no comparison reverses (FINDINGS 2026-10-22 06:2x).
+- Item 5 (uncertainty): analyze_ho.py prints paired bootstrap 95% CIs; several held-out "wins" are ties (OptMATH Qwen3 models, OptiBench
+  Qwen3-8B without the library, BWOR / LogiOR for the two stronger models); significant: OptiBench gpt-oss-20b / Qwen3-14B-AWQ, the library
+  recipe on OptiBench for all three models, Qwen3-14B-AWQ on LogiOR with the library; significantly worse: Qwen3-8B on BWOR and held-out geometry.
+- Thinking baseline: Qwen3-14B-AWQ's weak thinking on OptiBench is invented API calls (real), not a harness artifact; cap hits handicap
+  always-thinking only where it already wins (Qwen3-8B).
