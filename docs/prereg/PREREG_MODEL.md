@@ -28,3 +28,17 @@ the regret = best full-cell utility − full-cell utility of the pick, averaged 
 **Reading:** "fact first, think only where the check fails" is the best single default across models, tasks and seeds (regret 1.4
 points, vs 8.4 for always thinking); the decomposition says when it loses (on items the check passes, if thinking is right there more
 often than the cheap program), and 30 labelled problems of a new task are enough to choose the right variant with 0.6 points of regret.
+
+## Addendum HO-P (2026-10-22 23:1x UTC, before computing; offline): does the 30-label pilot hold on the held-out benchmarks?
+**Why.** The recipe loses for Qwen3-8B on held-out geometry and BWOR. The claim a practitioner can use is "run the recipe, unless a small
+labelled pilot says otherwise"; MODEL-P2 (regret 0.61 points with k = 30) was measured on development cells only (MAMO: 0.8–1.4).
+**Cells** (45): gpt-oss-20b, Qwen3-14B-AWQ, Qwen3-8B × seeds 1–3 × the recipe's arm per held-out benchmark — OptMATH (mined example
+`mips`, THINK `thinks`), OptiBench / BWOR / LogiOR (label-free library `formx`, THINK `thinkfree`), geometry (helpers + hint, MR check,
+THINK `think`). Same policies (CHEAP, FF, FFR with the next seed's cheap program as the second sample; geometry FFR = both pass MR and
+agree on the six inputs), same pilot rule and λ ∈ {0, 0.5, 2}. `poc/analyze_hop.py`.
+- **HOP-P1:** mean regret of the k = 30 pilot ≤ 1.0 point at λ = 0.5 (k = 10: ≤ 3).
+- **HOP-P2:** in Qwen3-8B's geometry and BWOR cells the k = 30 pilot avoids the recipe's loss: its mean regret there ≤ 2 points, while
+  always using FF loses ≥ 5.
+- **HOP-P3:** FF stays the best single fixed policy at λ = 0.5 (lowest mean regret of the four).
+**Decision:** P1 + P2 → the claim becomes "the recipe by default; 30 labelled problems of a new task tell when to think instead", with the
+held-out regret; otherwise the losing cells stay a stated limit without a remedy.
