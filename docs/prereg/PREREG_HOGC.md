@@ -119,3 +119,25 @@ Writing the tests costs 0.2–1.2k tokens per task, i.e. 10–50 per problem.
 model-written edge-case tests — lets "fact first, think only on a visible failure" beat always thinking on held-out geometry. The views that
 see the edge-case bugs (the tests) are themselves wrong on those edge cases; the views that are mostly right (a second program) share the
 bugs. The recipe's limit is the model's own edge-case knowledge, which a self-written check cannot supply.
+
+## Addendum HO-G-M (2026-10-23 0x:xx UTC, before any relation is written): model-written metamorphic relations from the statement
+**Why.** HO-G-E's model-written edge-case tests saw Qwen3-8B's leaked programs (59 / 64) but were useless because the models computed the
+expected answers of the boundary cases wrong (every tri test set). A metamorphic relation needs no expected answer: only an invariance the
+statement implies ("a vertex added at the midpoint of an edge does not change convexity"; "a point added exactly on an edge does not change
+the count of points strictly inside"; "touching counts as intersecting"). The program's own answer on the given instance is compared with its
+answer on the transformed instance. Closest work: LLM-generated metamorphic relations for testing (e.g. Zhang et al. 2023, "Can LLMs
+generate metamorphic relations?"; MR-Scout 2024); here they are written once per task type from the statement and gate thinking.
+**New arm (GPU, cheap):** `poc/run_edge_mr.py`: per task (overlap, convex, tri, clip) and seed 1–3, the same model (cheap-arm settings)
+writes a Python function `transform(stdin_text) -> stdin_text` for 2–4 transformations that the statement says must keep the answer the
+same (or change it in a stated way it encodes as `expect(old_answer) -> new_answer` using only the old answer), aimed at the special cases
+the statement names. Tag `SL_HOGCM_<model>_s<seed>`. Used as written; a transform that crashes on an input is skipped for that input.
+**Policy MR+** (offline, `poc/analyze_hogc.py --mr`): accept the fact program only if it passes the original MR check **and** every model-written
+relation on the given instance (its output on the transformed input equals `expect(output on the given input)`); else THINK.
+**Predictions** (seed means; decision rule as HO-G-C):
+- HOGM-P1: MR+ flags ≥ 60% of Qwen3-8B's 37 edge-case-only leaks (the target of this check) with false alarms ≤ 15% of correct MR-passing
+  programs for each model (no hand-computed answers, so far fewer wrong expectations than HO-G-E).
+- HOGM-P2: MR+ for Qwen3-8B ≥ THINK − 3 (≥ 71.0%) at ≤ 70% of THINK's tokens.
+- HOGM-P3: for gpt-oss-20b and Qwen3-14B-AWQ, MR+ is within 1.5 points of FF and HOG-P1 still holds.
+**Decision** as HO-G-C: (a) MR+ meets HOG-P1 for Qwen3-8B (≥ THINK − 1 at ≤ 60% of its tokens, ≥ 2 of 3 seeds) and P3 holds → the geometry
+check becomes "rigid copies + statement-derived relations" and the held-out geometry claim extends to all three models; (b) accuracy only →
+restated limit with the saving; (c) the limit stays.
