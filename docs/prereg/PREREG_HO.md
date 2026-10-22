@@ -264,3 +264,25 @@ Every new cell has u ≥ 5%, so only the "add" side of the rule is tested here (
   such gap (+6.2): working code of a similar problem transfers where a generic card does not (as in CD / FORM).
 - All 58 points: r = 0.60; mean gain +10.9 where u ≥ 5% (n = 46), +2.1 where u < 5% (n = 12). **The label-free library now raises the
   first program in 23 of 25 model × benchmark cells** (it hurt only the gpt-oss models on OptMATH).
+
+## HO2 results (2026-10-22 05:2x UTC; results/x3/ho2_{bwor,logior}_analysis.log; 3 seeds; paired bootstrap 95% CIs over problems)
+| cell | free / always thinking | FF (free) − THINK | FF (library) − THINK | FFR (library, two agree) − THINK | free-check passers that are wrong |
+|---|---|---|---|---|---|
+| BWOR gpt-oss-20b | 41.9% / 59.3% @ 4.3k | +1.2 [−4.5, +6.9] at 53% | +0.8 [−6.1, +7.3] at 48% | +3.7 [+1.2, +6.5] at 112% | 41% |
+| BWOR Qwen3-14B-AWQ | 13.4% / 30.1% @ 9.9k | +1.2 [−4.9, +7.3] at 75% | +4.1 [−4.1, +12.2] at 55% | +5.3 [−1.2, +11.4] at 91% | 61% |
+| BWOR Qwen3-8B | 9.8% / 38.2% @ 11.6k | **−8.1 [−13.4, −3.3]** at 74% | −4.9 [−11.4, +1.2] at 65% | +0.8 [−3.3, +4.9] at 100% | 75% |
+| LogiOR gpt-oss-20b | 37.3% / 51.4% @ 4.5k | −1.1 [−6.9, +4.7] at 63% | −1.1 [−6.9, +4.0] at 59% | +2.5 [−0.0, +5.4] at 118% | 38% |
+| LogiOR Qwen3-14B-AWQ | 7.2% / 27.9% @ 9.8k | −2.2 [−5.4, +1.8] at 88% | **+10.1 [+4.3, +15.9]** at 74% | +8.7 [+4.3, +13.8] at 102% | 69% |
+| LogiOR Qwen3-8B | 9.4% / 34.8% @ 11.4k | −2.9 [−6.5, +0.4] at 91% | −2.2 [−6.9, +2.5] at 80% | +1.8 [−0.7, +5.1] at 108% | 59% |
+(token shares = the policy's output tokens as a share of always thinking's.)
+- **HO2-P1 refuted:** FF with the plain cheap program is ≥ always thinking at ≤ 80% of its tokens in 2 of 6 cells (BWOR gpt-oss-20b and
+  Qwen3-14B-AWQ), not ≥ 5. For the two stronger models it ties always thinking (all CIs include 0) at 53–88% of its tokens; for Qwen3-8B it
+  loses (BWOR −8.1, significant).
+- **HO2-P2 holds:** FF with the library is ≥ FF with free in 5 of 6 cells (it lifts Qwen3-14B-AWQ on LogiOR to +10.1 over always thinking).
+- **Why (labels used only here):** these benchmarks are hard for the cheap programs (7–42% right), and the free check leaks: 38–75% of the
+  programs that run and print a number are wrong, so FF keeps them. Qwen3-8B's thinking is the strongest relative to its cheap program
+  (+28 points) even though 19–24% of its thinking runs stop at the 16k cap (counted wrong). Requiring two cheap programs to agree (FFR)
+  recovers always-thinking's accuracy in every cell (library: +0.8 to +8.7) but costs 91–120% of its tokens.
+**Reading:** on harder unseen problems the recipe's saving depends on how much its check leaks: with a cheap single-program check it saves
+12–47% of the tokens at equal accuracy for the stronger models and loses for the weakest; with a strict two-program check it keeps or beats
+always-thinking's accuracy but saves nothing. The label-free library is the one part that pays everywhere.
