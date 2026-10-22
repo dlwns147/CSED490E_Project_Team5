@@ -56,8 +56,8 @@ Held-out benchmarks, 3 seeds, 95% intervals over problems (full table: `docs/not
 - Done: held-out tests on OptMATH, OptiBench, BWOR, LogiOR and four geometry tasks; the weakest model's check leak is a stated limit
   (a brute-force program, a second sample and model-written edge-case tests all failed to close it); the rule for when to add a fact was
   tested prospectively on its "add" side (right in 10 of 12 points).
-- Open: the "do not add a fact" side (needs a strong, rarely-crashing model on a new benchmark); **the final report** (outline:
-  `docs/notes/REPORT_OUTLINE.md`; format, length and deadline to be decided by the team).
+- Open: the "do not add a fact" side (needs a strong, rarely-crashing model on a new benchmark); **the final report** — full draft in
+  `docs/REPORT.md` (English; to be fitted to the course format, length and deadline the team decides).
 - Day-to-day state (running jobs, environment, evidence table): `docs/SLURM_HANDOFF.md`.
 
 ## 6. Documents

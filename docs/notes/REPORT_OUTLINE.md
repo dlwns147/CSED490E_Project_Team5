@@ -1,4 +1,4 @@
-# Final report: draft outline (2026-10-22, Slurm side; format, length and deadline still to be decided by the team)
+# Final report: draft outline (2026-10-22, Slurm side; the full draft is docs/REPORT.md since 2026-10-23)
 
 Purpose: one argument for the course report, built from the held-out evidence, with every number given with its tokens and, for the
 held-out comparisons, a 95% interval over problems. Details stay in PROPOSAL.md, FINDINGS.md and docs/prereg/.
