@@ -1,7 +1,8 @@
 """Which cheap fix (docs/FINDINGS.md 2026-10-20): does a label-free census of the FIRST programs' failures predict whether a fact pays?
 x = share of the no-fact programs that crash with a usage exception (AttributeError / ModuleNotFoundError / ImportError: the runtime's own
 class, no text rules); y = accuracy gain of the cheap program when the fact is added (hand snippet / usage card or the label-free library).
-One point per (benchmark, model, fact); all available seeds pooled. usage: python analyze_which_fix.py"""
+One point per (benchmark, model, fact); all available seeds pooled. usage: python analyze_which_fix.py [--census]
+--census: only the label-free census of the BWOR / LogiOR first programs and the WF3 rule's call (no accuracy)."""
 import json, os, re, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from run_nlopt import RES  # noqa: E402
@@ -23,6 +24,16 @@ usage = lambda R: 100 * sum(r["status"] == "re" and bool(USAGE.search(r.get("err
 # broad census (added 2026-10-20 after the Qwen3.6 raw programs: strong models catch their own exceptions and print 'No Best Solution'):
 # share of first programs that fail the free check at all (crash, no value, or 'No Best Solution')
 fails = lambda R: 100 * sum(not (r["status"] == "ok" and r.get("pred") not in (None, "NBS")) for r in R) / len(R)
+CENSUS_ONLY = "--census" in sys.argv   # WF3 (PREREG_HO.md): record the rule's label-free call from the first programs before any gain is read
+if CENSUS_ONLY:
+    for m in ("oss20", "q14a", "q8b"):
+        for bench in ("bwor", "logior"):
+            B = load(f"{m}_{bench}", "free")
+            if B:
+                u, f = usage(B), fails(B)
+                print(f"{bench:7s} {m:5s} n={len(B):3d} usage crashes u = {u:5.1f}% | fail the check {f:5.1f}% | non-usage failures n = {f - u:5.1f}% "
+                      f"-> {'DO NOT add a fact' if u < 5 and f - u >= 25 else 'add the fact'}")
+    sys.exit()
 rows = []
 for m in ("oss20", "q14a", "q8b", "q32b", "q4b", "q17", "oss120", "q36"):
     for bench, tag, base, facts in (("NL4OPT+IndustryOR", m, "mip", ("mipf",)), ("MAMO", f"{m}_mamo", "mip", ("mips", "formx")),

@@ -534,3 +534,5 @@ SL slurm_smoke_q35_9b done Wed Oct 21 21:41:13 UTC 2026
 SL_HOGCE q8b done Thu Oct 22 02:05:40 UTC 2026
 SL_HOGCE q14a done Thu Oct 22 02:07:42 UTC 2026
 SL_HOGCE oss20 done Thu Oct 22 02:10:08 UTC 2026
+SL ho2c_oss20 done Thu Oct 22 02:26:42 UTC 2026
+SL ho2t_oss20_bwor done Thu Oct 22 02:34:52 UTC 2026
