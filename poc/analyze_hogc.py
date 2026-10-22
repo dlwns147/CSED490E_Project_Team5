@@ -4,7 +4,9 @@ Rows: fact F and THINK from HO-G (geocross_S2_HOG_<m>_geo_{fact,think}_s<seed>),
 Agreement (no answers): equal outputs (as fractions where both parse) on the given instance and its translate / rot90 / mirror /
 permute / scale copies; a crash, timeout or empty output = disagreement. Policies per seed: FF, STRICT, TWO-VIEW, RESAMPLE, THINK.
 Correct = right on all 8 variants (labels used for scoring and for the leak / false-alarm notes only). utility = accuracy - 0.5 x ktokens.
-usage: python analyze_hogc.py [model ...]"""
+--edge (addendum HO-G-E): also policy EDGE = accept the fact program only if it passes MR and the model's own edge-case tests for the task
+(results/edgetests_SL_HOGCE_<m>_s<seed>.jsonl, written once per task; their tokens are spread over the task's items).
+usage: python analyze_hogc.py [--edge] [model ...]"""
 import hashlib, json, os, random, sys
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
@@ -14,6 +16,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import analyze_n10 as N  # noqa: E402
 from run_geo import base_instance, variants  # noqa: E402
 from run_geo_mr import run_out  # noqa: E402
+from sandbox import run_python  # noqa: E402
 
 RES = N.RES
 SIX = ["identity", "translate", "rot90", "mirror", "permute", "scale"]
@@ -48,28 +51,52 @@ def agree(a, b):
     return bool(oa and ob and None not in oa and None not in ob and all(same(x, y) for x, y in zip(oa, ob)))
 
 
+def edge_pass(r, tests):
+    """True if the program prints the expected output on every edge-case test of its task (cached)"""
+    if not r.get("code"):
+        return False
+    k = "edge|" + hashlib.md5(f"{r['task']}-{r['n']}-{r['inst']}|{r['code']}|{json.dumps(tests)}".encode()).hexdigest()
+    if k not in N.CACHE:
+        res = []
+        for t in tests:
+            x = run_python(r["code"], t["stdin"] if t["stdin"].endswith("\n") else t["stdin"] + "\n", timeout=10)
+            out = (x.stdout.strip().split() or [""])[-1].lower() if x.status == "ok" else None
+            res.append(out is not None and same(out, t["expected"].strip().split()[-1].lower() if t["expected"].strip() else ""))
+        N.CACHE[k] = res
+    return all(N.CACHE[k])
+
+
+def load_edge(m, s):
+    f = f"{RES}/edgetests_SL_HOGCE_{m}_s{s}.jsonl"
+    return {r["task"]: r for r in map(json.loads, open(f))} if os.path.exists(f) else None
+
+
 ok = lambda r: r["class"] == "correct_all"
 tok = lambda r: (r.get("out_tokens") or 0) + (r.get("think_tokens") or 0)   # as analyze_hog (think_tokens is set only by budget forcing)
 
 
 def main():
-    for m in sys.argv[1:] or ["oss20", "q14a", "q8b"]:
+    EDGE = "--edge" in sys.argv
+    for m in [x for x in sys.argv[1:] if not x.startswith("--")] or ["oss20", "q14a", "q8b"]:
         F = {s: load(f"S2_HOG_{m}_geo_fact_s{s}") for s in (1, 2, 3)}
         T = {s: load(f"S2_HOG_{m}_geo_think_s{s}") for s in (1, 2, 3)}
         B = {s: load(f"SL_HOGC_{m}_geo_brute_s{s}") for s in (1, 2, 3)}
-        if any(v is None for v in [*F.values(), *T.values(), *B.values()]):
+        E = {s: load_edge(m, s) for s in (1, 2, 3)} if EDGE else {}
+        if any(v is None for v in [*F.values(), *T.values(), *B.values(), *E.values()]):
             print(m, "incomplete (missing seeds):", {n: [s for s in (1, 2, 3) if X[s] is None] for n, X in (("fact", F), ("think", T), ("brute", B))})
             continue
         rows = [r for X in (F, B) for s in X for r in X[s].values()]
         with ThreadPoolExecutor(int(os.environ.get("HOGC_THREADS", 8))) as ex:
             list(ex.map(N.geo_check, rows)); list(ex.map(outs, rows))
+            if EDGE:   # fact programs and (for the test-validity note) thinking programs against their task's tests
+                list(ex.map(lambda r: edge_pass(r[0], r[1]), [(r, E[s][r["task"]]["tests"]) for X in (F, T) for s in X for r in X[s].values()]))
         json.dump(N.CACHE, open(N.CACHE_F, "w"))
         print(f"=== {m}")
-        per, leak, fa, bstat = {}, Counter(), Counter(), Counter()
+        per, leak, fa, bstat, est = {}, Counter(), Counter(), Counter(), Counter()
         for s in (1, 2, 3):
             s2 = s % 3 + 1
             keys = [k for k in F[s] if k in T[s] and k in B[s] and k in F[s2]]; n = len(keys)
-            P = {p: [0, 0] for p in ("FF", "STRICT", "TWO-VIEW", "RESAMPLE", "THINK")}
+            P = {p: [0, 0] for p in ("FF", "STRICT", "TWO-VIEW", "RESAMPLE", "THINK") + (("EDGE",) if EDGE else ())}
             for k in keys:
                 f, t, b, f2 = F[s][k], T[s][k], B[s][k], F[s2][k]
                 fm, bm, ag = N.geo_check(f)[0], N.geo_check(b)[0], agree(f, b)
@@ -83,6 +110,18 @@ def main():
                 acc_r = fm and agree(f, f2)
                 P["RESAMPLE"][0] += ok(f) if acc_r else ok(t); P["RESAMPLE"][1] += tf + tok(f2) + (0 if acc_r else tt)
                 task = k[0]
+                if EDGE:
+                    et = E[s][task]; ep = edge_pass(f, et["tests"])
+                    acc_e = fm and ep; share = (et.get("out_tokens") or 0) / sum(1 for kk in keys if kk[0] == task)
+                    P["EDGE"][0] += ok(f) if acc_e else ok(t); P["EDGE"][1] += tf + share + (0 if acc_e else tt)
+                    kind = "on_input" if not f["per_variant"].get("identity") else "edge_only"
+                    if fm and not ok(f):
+                        est[(kind, "n")] += 1; est[(kind, "flag")] += not ep
+                    if fm and ok(f):
+                        est[("fa", task, "n")] += 1; est[("fa", task, "flag")] += not ep
+                    for r_ in (f, t):   # validity note: correct programs (fact or thinking) that fail the tests
+                        if ok(r_):
+                            est[("valid", task, "n")] += 1; est[("valid", task, "fail")] += not edge_pass(r_, et["tests"])
                 if fm and not ok(f):   # leaked: passes MR, wrong
                     leak[(task, "n")] += 1; leak[(task, "strict")] += not ag; leak[(task, "resample")] += not agree(f, f2)
                 if fm and ok(f):       # correct MR-passers: false alarms
@@ -107,6 +146,13 @@ def main():
             f"{t} {fa[(t, 'strict')]}/{fa[(t, 'n')]} / {fa[(t, 'resample')]}" for t in tasks))
         print("  brute force by task (correct / passes MR / crash / at cap / mean tokens): " + ", ".join(
             f"{t} {bstat[(t, 'ok')]}/{bstat[(t, 'mr')]}/{bstat[(t, 'crash')]}/{bstat[(t, 'len')]} of {bstat[(t, 'n')]} @ {bstat[(t, 'tok')] / bstat[(t, 'n')]:.0f}" for t in tasks))
+        if EDGE:
+            print(f"  EDGE flags leaked fact programs: edge-case-only {est[('edge_only', 'flag')]}/{est[('edge_only', 'n')]}, "
+                  f"wrong on the given input {est[('on_input', 'flag')]}/{est[('on_input', 'n')]}")
+            print("  EDGE false alarms on correct MR-passing fact programs: " + ", ".join(f"{t} {est[('fa', t, 'flag')]}/{est[('fa', t, 'n')]}" for t in tasks))
+            print("  test validity (correct fact / thinking programs that fail the task's tests): " + ", ".join(
+                f"{t} {est[('valid', t, 'fail')]}/{est[('valid', t, 'n')]}" for t in tasks)
+                  + "; tests per task (s1 / s2 / s3): " + ", ".join(f"{t} " + "/".join(str(E[s][t]["n_tests"]) for s in (1, 2, 3)) for t in tasks))
         print("  F fails MR, B passes (TWO-VIEW takes B): " + ", ".join(
             f"{t} {bstat[(t, 'f_fail_b_pass')]} (B right {bstat[(t, 'f_fail_b_pass_ok')]}, THINK right {bstat[(t, 'f_fail_b_pass_think_ok')]})" for t in tasks))
 

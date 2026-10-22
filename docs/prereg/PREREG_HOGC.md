@@ -96,3 +96,26 @@ every test of its task (numbers compared as fractions); else THINK. Test-writing
 **Decision.** As HO-G-C: (a) if EDGE meets HOG-P1 for Qwen3-8B (seed means, ≥ 2 of 3 seeds) and HOGE-P3 holds, the recipe's geometry check
 becomes "metamorphic copies + edge-case tests written once per task" and the held-out claim extends to all three 24 GB models; (b) accuracy
 ≥ THINK − 3 at > 60% of THINK's tokens → the limit is restated with the saving; (c) otherwise the limit stays.
+
+## HO-G-E results (2026-10-22 02:15 UTC; results/hogce_analysis.log; tests: results/edgetests_SL_HOGCE_*; 36 test sets, 5–7 tests each)
+| seed means | FF | EDGE (MR + own edge-case tests) | THINK |
+|---|---|---|---|
+| gpt-oss-20b | **99.0% @ 0.82k** | 97.6% @ 1.54k (91% of THINK's tokens) | 93.1% @ 1.69k |
+| Qwen3-14B-AWQ | **84.4% @ 2.92k** | 76.7% @ 6.70k | 76.7% @ 8.58k |
+| Qwen3-8B | 59.7% @ 4.55k | 72.9% @ 9.14k (93%) | **74.0% @ 9.82k** |
+Writing the tests costs 0.2–1.2k tokens per task, i.e. 10–50 per problem.
+- **HOGE-P1 half holds:** the tests flag 32 of Qwen3-8B's 37 edge-case-only leaks and all 27 wrong-on-input ones — they do exercise the
+  cases the given input lacks — but **false alarms are not ≤ 15%**: 89 of 132 correct MR-passing Qwen3-8B programs (67%); gpt-oss-20b
+  convex 72 / 72 and tri 72 / 72; Qwen3-14B-AWQ tri 69 / 69, clip 23 / 23.
+- **HOGE-P2 refuted:** accuracy ≥ THINK − 3 holds (72.9%), but at 93% of THINK's tokens (not ≤ 70%): the gate escalates almost everything.
+  **HOGE-P3 refuted:** gpt-oss-20b stays within 1.5 points (−1.4) but HOG-P1 no longer holds (91% of THINK's tokens); Qwen3-14B-AWQ −7.7.
+- **Decision (c): the limit stays.**
+- **Why (raw tests):** the models state the rule correctly but compute the boundary cases wrong by hand, exactly where the rule matters.
+  Every tri test set of every model contains a wrong expected count (all correct tri programs fail them: Qwen3-8B 80 / 80, gpt-oss-20b
+  144 / 144, Qwen3-14B-AWQ 139 / 139) — e.g. gpt-oss-20b counts (2, 3) inside the triangle (0,0) (5,0) (0,5) though it lies on the edge
+  x + y = 5; Qwen3-14B-AWQ expects (1, 1) inside (0,0) (2,0) (0,2). Tests also break the input contract (fractional coordinates where the
+  format says integers, degenerate triangles, non-simple polygons), and Qwen3-8B marks the unit square as not convex.
+**Reading (HO-G-C + HO-G-E):** for the weakest model none of three label-free second views — a brute-force program, a second sample,
+model-written edge-case tests — lets "fact first, think only on a visible failure" beat always thinking on held-out geometry. The views that
+see the edge-case bugs (the tests) are themselves wrong on those edge cases; the views that are mostly right (a second program) share the
+bugs. The recipe's limit is the model's own edge-case knowledge, which a self-written check cannot supply.
