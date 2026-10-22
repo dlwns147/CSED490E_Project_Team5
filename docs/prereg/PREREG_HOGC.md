@@ -234,3 +234,20 @@ its best case is bounded offline by using the benchmark's own extra inputs (`big
 produced exactly them. **Policies** DIFF-F2 / DIFF-B / DIFF-ALL: accept F only if it passes MR and agrees with F2 / with B / with both on all
 eight inputs; else THINK. **Gate:** if the best of these bounds is < THINK − 1 (73.0%) or needs > 75% of THINK's tokens, no generator run
 (the claim cannot change); otherwise pre-register the generator run (HO-D) with its predictions before it.
+
+### Result of the HO-D gate (2026-10-22 23:1x UTC; `python poc/analyze_hod_gate.py q8b q14a`, 3 seeds, 288 rows each)
+| Qwen3-8B | accuracy @ tokens (share of THINK) | leaks flagged: wrong on input (27) · edge-only (37) | right programs flagged (132) |
+|---|---|---|---|
+| FF | 59.7% @ 4.55k (46%) | — | — |
+| DIFF-F2 (agree with a second sample on 8 inputs) | 71.9% @ 7.61k (78%) | 19 · 32 | 27 |
+| DIFF-B (agree with the brute force) | 69.8% @ 7.71k (79%) | 20 · 25 | 37 |
+| DIFF-ALL (both) | 73.3% @ 9.22k (94%) | 26 · 34 | 49 |
+| THINK | 74.0% @ 9.82k | | |
+- With the edge inputs given, a differential test does see the edge-case leaks (32 / 37 with a second sample) — the first check in this
+  file that does. But its best case misses the gate: 71.9% < 73.0% at 78% of THINK's tokens, or 73.3% at 94%. **Gate fails: no generator
+  run** — even a perfect edge-input generator cannot make the recipe pay for Qwen3-8B on these tasks (the perfect-check bound is 75.0% at
+  70%; the second program and its false alarms eat the rest). For Qwen3-14B-AWQ the same test lowers accuracy (84.4% → 79.2%): its few
+  leaks are not worth the false alarms, which send right programs to a worse THINK (76.7%).
+- **Decision:** Qwen3-8B's held-out geometry limit is final for this project and is reported with its full split: 27 leaks wrong on the
+  given input (a different model's program catches 26), 37 wrong only on edge cases (only a test on edge inputs sees them, and even with
+  perfect inputs the saving is gone).
