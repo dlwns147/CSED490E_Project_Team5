@@ -458,3 +458,19 @@ with the evidence → thinking, and the hard benchmarks regain a token saving; o
   free check alone and 67–70% of them are wrong.
 - Next (to be pre-registered separately, not inferred from this run): the repair step without the checker on other benchmarks, and
   re-checking the repaired program before accepting it.
+
+## HO7 pre-registration (2026-10-22 20:2x UTC, before running): one cheap repair on a visible failure, no checker (OptiBench, OptMATH)
+**Why.** HO6 suggested that a short repair turn with the failure evidence is a better first escalation than thinking (stronger models:
++4.3 to +7.3 over always thinking at 70–90% of its tokens on BWOR / LogiOR). This tests the step alone — the recipe's own visible-failure
+check, no checker — on two benchmarks HO6 did not use: OptiBench with the label-free library (arm formx; savings possible) and OptMATH (arm
+free; the checker did not help there).
+**Arm** (`run_repair.py <model> <seed> <arm>`; 3 models; seeds 1–3; no thinking): for each cheap program that does not run, prints nothing or
+prints 'No Best Solution', the same model gets the task, its program and the evidence and writes a corrected program (same output format).
+**Policies:** FF (think on a visible failure; the existing rows), **FF-R0** (on a visible failure, the repaired program if it runs and prints a
+value, else think), THINK (stored thinkfree rows). Paired 95% intervals; tokens = cheap + repair (where written) + thinking where escalated.
+**Predictions** (seed means):
+- HO7-P1: FF-R0 uses ≤ 75% of FF's tokens for every model × benchmark (thinking on 40–60% fewer escalated items).
+- HO7-P2: FF-R0 accuracy ≥ FF − 1.5 points in ≥ 5 of the 6 cells (repairs right about as often as thinking on these items).
+- HO7-P3: for Qwen3-8B, FF-R0 < FF − 1.5 in at least one cell (its repairs leak, as in HO6).
+**Decision.** P1 + P2 → the recipe's ladder becomes cheap program → visible failure → one cheap repair with the evidence → thinking, stated
+with the measured saving; otherwise the repair step stays an option for the stronger models only.
