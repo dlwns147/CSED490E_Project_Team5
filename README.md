@@ -49,6 +49,7 @@ python bench.py download q14a oss20 q8b      # the three 24 GB models (--dry onl
 | `q8b` | Qwen/Qwen3-8B (16-bit) | 16 GB | 24 GB (20k context) | RTX 3090, RTX 4090, A100 40GB, L40S |
 | `q14a` | Qwen/Qwen3-14B-AWQ (4-bit) | 10 GB | 24 GB | RTX 3090, RTX 4090, A10G |
 | `oss20` | openai/gpt-oss-20b (4-bit MXFP4) | 14 GB | 24 GB | RTX 3090, RTX 4090, L4, A10G |
+| `q35` | Qwen/Qwen3.5-9B (16-bit; text only: `--language-model-only`) | 19 GB | 24 GB (37k context; hybrid attention, 73k-token KV) | RTX 3090 (HO-N, the unseen-model test) |
 | `q14b` | Qwen/Qwen3-14B (16-bit) | 30 GB | 48 GB | L40S, RTX 6000 Ada, A100 80GB |
 | `q32b` | Qwen/Qwen3-32B-AWQ (4-bit) | 19 GB | 40 GB | A100 40GB, L40S, RTX 6000 Ada |
 | `q36` | Qwen/Qwen3.6-35B-A3B-FP8 (8-bit) | 38 GB | 80 GB | H100, RTX PRO 6000 |
