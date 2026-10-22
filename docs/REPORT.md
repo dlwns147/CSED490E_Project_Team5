@@ -157,6 +157,13 @@ hand-written snippet (gpt-oss-20b 78.8% vs 78.9%; Qwen3-32B 75.3% vs 70.7%).
 a fact remains untested. A hand-written usage card fails where it misses the library the model reaches for (Qwen3-8B on routing problems
 writes `from ortools.constraint_solver import pywraplp`), while working code of a similar problem transfers.
 
+### 5.4 Knowing when not to use it
+The recipe's losses are detectable before deployment. Label 30 random problems of a new model × benchmark cell, run the four policies on
+them (the cheap program alone, fact first, fact first with two agreeing programs, always thinking) and keep the best by accuracy − 0.5 ×
+ktokens. Over the 45 held-out cells (3 models × 3 seeds × five benchmarks, each with the recipe's fact) the pick is 0.87 points from the
+cell's best on average (10 labels: 2.81; always using fact-first: 1.80; always thinking: 5.86). In Qwen3-8B's geometry and BWOR cells, where
+the recipe loses, the 30 labels pick thinking: 0.74 points of regret instead of 7.83 (pre-registered, `PREREG_MODEL.md`, addendum HO-P).
+
 ## 6. Baselines on the same harness
 
 | task | baseline | its result | ours |

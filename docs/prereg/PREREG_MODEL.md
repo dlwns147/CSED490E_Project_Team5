@@ -42,3 +42,15 @@ agree on the six inputs), same pilot rule and λ ∈ {0, 0.5, 2}. `poc/analyze_h
 - **HOP-P3:** FF stays the best single fixed policy at λ = 0.5 (lowest mean regret of the four).
 **Decision:** P1 + P2 → the claim becomes "the recipe by default; 30 labelled problems of a new task tell when to think instead", with the
 held-out regret; otherwise the losing cells stay a stated limit without a remedy.
+
+### Results HO-P (2026-10-22 23:1x UTC; `python poc/analyze_hop.py`, 45 held-out cells, 1,000 pilots per cell)
+| λ | best policy per cell (FF / FFR / THINK / CHEAP) | pilot regret k = 10 / 30 / 100 | always FF / FFR / THINK / CHEAP | Qwen3-8B geometry + BWOR: k = 30 pilot vs always FF |
+|---|---|---|---|---|
+| 0 | 20 / 20 / 5 / 0 | 3.16 / 0.88 / 0.08 | 2.55 / 1.56 / 5.11 / 14.07 | 0.94 vs 10.17 |
+| **0.5** | 25 / 13 / 7 / 0 | 2.81 / **0.87** / 0.05 | **1.80** / 2.09 / 5.86 / 11.38 | **0.74 vs 7.83** |
+| 2 | 34 / 3 / 4 / 4 | 2.35 / 1.11 / 0.07 | 0.60 / 4.72 / 9.14 / 4.33 | 1.32 vs 1.86 |
+- **HOP-P1 holds** (k = 30: 0.87 ≤ 1.0; k = 10: 2.81 ≤ 3). **HOP-P2 holds** (Qwen3-8B's losing cells: 0.74 ≤ 2 with the pilot, 7.83 ≥ 5
+  always using FF). **HOP-P3 holds** (FF has the lowest fixed regret at λ = 0.5: 1.80; at λ = 0 the two-program check FFR is lower, 1.56).
+- THINK is the best policy in 7 of 45 cells at λ = 0.5 — all six Qwen3-8B geometry / BWOR cells and one more (Qwen3-8B LogiOR seed 3).
+- **Decision:** the claim becomes "the recipe by default; 30 labelled problems of a new task tell when to think instead" — on the
+  held-out benchmarks this choice costs 0.87 points of utility on average and removes Qwen3-8B's losses (0.74 vs 7.83).
