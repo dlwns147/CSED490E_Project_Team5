@@ -24,9 +24,10 @@ MODELS = {   # alias: (folder under MODELS_DIR, extra vLLM arguments)
     "q36": ("Qwen/Qwen3.6-35B-A3B-FP8", "--max-num-seqs 64 --language-model-only"),
     "oss20": ("openai/gpt-oss-20b", ""),
     "oss120": ("openai/gpt-oss-120b", ""),
+    "q35": ("Qwen/Qwen3.5-9B", "--language-model-only --max-num-seqs 32"),   # HO-N: an unseen newer model (bf16, fits a 3090)
 }
 # alias: (download size in GB, smallest single-GPU memory in GB for our setting: 32k context, --frac 0.88; see README)
-SIZES = {"q8b": (16, 24), "q14b": (30, 48), "q14a": (10, 24), "q32b": (19, 40), "q36": (38, 80), "oss20": (14, 24), "oss120": (65, 80)}
+SIZES = {"q8b": (16, 24), "q14b": (30, 48), "q14a": (10, 24), "q32b": (19, 40), "q36": (38, 80), "oss20": (14, 24), "oss120": (65, 80), "q35": (19, 24)}
 GEO = ("poc/run_geo_cross.py --model_tag {tag}_geo_{arm}_s{seed} --seed {seed} --stdlib --n_inst 6 --temperature 0.7 --resume "
        "--tasks hull,area2,pip,segs,close,lattice,rectunion,delaunay,diameter")
 CO = ("poc/run_co.py --model_tag {tag}_co_{arm}_s{seed} --seed {seed} --arms solver --n_inst 4 --temperature 0.7 --fmt_fix --resume "
