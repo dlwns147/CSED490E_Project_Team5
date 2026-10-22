@@ -439,3 +439,22 @@ prints a value; else THINK. Tokens: freev + checker + repair (where written) + t
 - HO6-P3 (uncertain): FF-R ≥ always thinking at ≤ 75% of its tokens in ≥ 3 of the 6 cells.
 **Decision.** P2 → the recipe's ladder becomes cheap program → free check (+ checker where it is an independent view) → one cheap repair
 with the evidence → thinking, and the hard benchmarks regain a token saving; otherwise repair is reported as not paying before thinking.
+
+## HO6 results (2026-10-22 20:1x UTC; results/x3/ho6_analysis.log; 3 seeds; paired 95% intervals)
+| cell | FF-V (HO3) − THINK | **FF-R (checker → one cheap repair → think) − THINK** | repairs that run / are right |
+|---|---|---|---|
+| BWOR gpt-oss-20b | +3.7 at 109% | **+5.7 [+1.2, +11.0] at 82%** | 86 / 148 (58%) · 45 (52%) |
+| LogiOR gpt-oss-20b | +4.3 at 107% | **+6.5 [+0.7, +12.3] at 90%** | 90 / 168 (54%) · 51 (57%) |
+| BWOR Qwen3-14B-AWQ | +3.3 at 102% | **+7.3 [+0.8, +13.8] at 70%** | 94 / 219 (43%) · 39 (41%) |
+| LogiOR Qwen3-14B-AWQ | +1.8 at 106% | +4.3 [−1.4, +10.5] at 81% | 100 / 252 (40%) · 41 (41%) |
+| BWOR Qwen3-8B | −2.0 at 106% | −7.3 [−13.8, −1.2] at 80% | 90 / 231 (39%) · 27 (30%) |
+| LogiOR Qwen3-8B | +0.4 at 110% | −5.8 [−10.5, −1.4] at 96% | 76 / 268 (28%) · 25 (33%) |
+- **HO6-P1 mostly holds** (repairs run in 28–58% of escalated items, ≥ 30% in 5 / 6; of those 30–57% right). **HO6-P2 refuted on tokens**
+  (≥ FF-V − 1: 4 / 4 — FF-R is more accurate than FF-V in every stronger-model cell — but ≤ 75% of THINK's tokens only for Qwen3-14B-AWQ
+  BWOR; 70–90%). **HO6-P3 refuted** (1 / 6).
+- Per the decision rule the ladder is not adopted from this test. What the numbers do show: for gpt-oss-20b and Qwen3-14B-AWQ, one cheap
+  repair with the evidence dominates the checker alone (more accurate and 15–31 points of THINK's tokens cheaper) and beats always thinking
+  by +4.3 to +7.3 points at 70–90% of its tokens (3 of 4 intervals above 0). For Qwen3-8B it hurts: its repaired programs are accepted on the
+  free check alone and 67–70% of them are wrong.
+- Next (to be pre-registered separately, not inferred from this run): the repair step without the checker on other benchmarks, and
+  re-checking the repaired program before accepting it.
