@@ -6,7 +6,10 @@ permute / scale copies; a crash, timeout or empty output = disagreement. Policie
 Correct = right on all 8 variants (labels used for scoring and for the leak / false-alarm notes only). utility = accuracy - 0.5 x ktokens.
 --edge (addendum HO-G-E): also policy EDGE = accept the fact program only if it passes MR and the model's own edge-case tests for the task
 (results/edgetests_SL_HOGCE_<m>_s<seed>.jsonl, written once per task; their tokens are spread over the task's items).
-usage: python analyze_hogc.py [--edge] [model ...]"""
+--mr (addendum HO-G-M): also policy MR+ = accept the fact program only if it passes MR and the model's own metamorphic relations for the task
+(results/edgemr_SL_HOGCM_<m>_s<seed>.jsonl: transform(stdin) and expect(old answer), written once per task; a transform that crashes or
+returns nothing is skipped for that input; the program crashing on a transformed input counts as a violation).
+usage: python analyze_hogc.py [--edge] [--mr] [model ...]"""
 import hashlib, json, os, random, sys
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
@@ -14,7 +17,7 @@ from fractions import Fraction
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import analyze_n10 as N  # noqa: E402
-from run_geo import base_instance, variants  # noqa: E402
+from run_geo import base_instance, render, variants  # noqa: E402
 from run_geo_mr import run_out  # noqa: E402
 from sandbox import run_python  # noqa: E402
 
@@ -66,6 +69,49 @@ def edge_pass(r, tests):
     return all(N.CACHE[k])
 
 
+MR_T = "\n\nimport sys as _s, json as _j\n_x = _s.stdin.read()\n_o = []\nfor _t, _e in RELATIONS:\n    try:\n        _o.append(_t(_x))\n    except Exception:\n        _o.append(None)\nprint(_j.dumps(_o))\n"
+MR_E = "\n\nimport sys as _s, json as _j\n_a = _s.stdin.read().strip()\n_o = []\nfor _t, _e in RELATIONS:\n    try:\n        _o.append(str(_e(_a)))\n    except Exception:\n        _o.append(None)\nprint(_j.dumps(_o))\n"
+
+
+def _json_list(code, stdin, key):
+    if key not in N.CACHE:
+        x = run_python(code, stdin, timeout=10)
+        try:
+            v = json.loads(x.stdout.strip().splitlines()[-1]) if x.status == "ok" and x.stdout.strip() else []
+        except ValueError:
+            v = []
+        N.CACHE[key] = v if isinstance(v, list) else []
+    return N.CACHE[key]
+
+
+def mr_pass(r, code):
+    """True if the program keeps every model-written relation on its given instance (no relations that run = no extra check)"""
+    if not r.get("code") or not code:
+        return bool(r.get("code"))
+    k = "mrP|" + hashlib.md5(f"{r['task']}-{r['n']}-{r['inst']}|{r['code']}|{code}".encode()).hexdigest()
+    if k not in N.CACHE:
+        rng = random.Random(f"{r['task']}-{r['n']}-{r['inst']}")
+        x = render(r["task"], variants(r["task"], base_instance(r["task"], r["n"], rng), rng)["identity"])[1]
+        base = (outs(r) or [None])[0]
+        ys = _json_list(code + MR_T, x, "mrT|" + hashlib.md5((code + "|" + x).encode()).hexdigest())
+        es = _json_list(code + MR_E, base or "", "mrE|" + hashlib.md5((code + "|" + str(base)).encode()).hexdigest())
+        ok = True
+        for y, e in zip(ys, es):
+            if not (isinstance(y, str) and y.strip() and isinstance(e, str) and e.strip()):
+                continue
+            z = run_python(r["code"], y if y.endswith("\n") else y + "\n", timeout=10)
+            out = (z.stdout.strip().split() or [None])[-1] if z.status == "ok" else None
+            if out is None or not same(out.lower(), e.strip().split()[-1].lower()):
+                ok = False; break
+        N.CACHE[k] = ok
+    return N.CACHE[k]
+
+
+def load_mr(m, s):
+    f = f"{RES}/edgemr_SL_HOGCM_{m}_s{s}.jsonl"
+    return {r["task"]: r for r in map(json.loads, open(f))} if os.path.exists(f) else None
+
+
 def load_edge(m, s):
     f = f"{RES}/edgetests_SL_HOGCE_{m}_s{s}.jsonl"
     return {r["task"]: r for r in map(json.loads, open(f))} if os.path.exists(f) else None
@@ -76,27 +122,30 @@ tok = lambda r: (r.get("out_tokens") or 0) + (r.get("think_tokens") or 0)   # as
 
 
 def main():
-    EDGE = "--edge" in sys.argv
+    EDGE, MRX = "--edge" in sys.argv, "--mr" in sys.argv
     for m in [x for x in sys.argv[1:] if not x.startswith("--")] or ["oss20", "q14a", "q8b"]:
         F = {s: load(f"S2_HOG_{m}_geo_fact_s{s}") for s in (1, 2, 3)}
         T = {s: load(f"S2_HOG_{m}_geo_think_s{s}") for s in (1, 2, 3)}
         B = {s: load(f"SL_HOGC_{m}_geo_brute_s{s}") for s in (1, 2, 3)}
         E = {s: load_edge(m, s) for s in (1, 2, 3)} if EDGE else {}
-        if any(v is None for v in [*F.values(), *T.values(), *B.values(), *E.values()]):
+        M = {s: load_mr(m, s) for s in (1, 2, 3)} if MRX else {}
+        if any(v is None for v in [*F.values(), *T.values(), *B.values(), *E.values(), *M.values()]):
             print(m, "incomplete (missing seeds):", {n: [s for s in (1, 2, 3) if X[s] is None] for n, X in (("fact", F), ("think", T), ("brute", B))})
             continue
         rows = [r for X in (F, B) for s in X for r in X[s].values()]
         with ThreadPoolExecutor(int(os.environ.get("HOGC_THREADS", 8))) as ex:
             list(ex.map(N.geo_check, rows)); list(ex.map(outs, rows))
+            if MRX:
+                list(ex.map(lambda r: mr_pass(r[0], r[1]), [(r, M[s][r["task"]]["code"]) for X in (F, T) for s in X for r in X[s].values()]))
             if EDGE:   # fact programs and (for the test-validity note) thinking programs against their task's tests
                 list(ex.map(lambda r: edge_pass(r[0], r[1]), [(r, E[s][r["task"]]["tests"]) for X in (F, T) for s in X for r in X[s].values()]))
         json.dump(N.CACHE, open(N.CACHE_F, "w"))
         print(f"=== {m}")
-        per, leak, fa, bstat, est = {}, Counter(), Counter(), Counter(), Counter()
+        per, leak, fa, bstat, est, mst = {}, Counter(), Counter(), Counter(), Counter(), Counter()
         for s in (1, 2, 3):
             s2 = s % 3 + 1
             keys = [k for k in F[s] if k in T[s] and k in B[s] and k in F[s2]]; n = len(keys)
-            P = {p: [0, 0] for p in ("FF", "STRICT", "TWO-VIEW", "RESAMPLE", "THINK") + (("EDGE",) if EDGE else ())}
+            P = {p: [0, 0] for p in ("FF", "STRICT", "TWO-VIEW", "RESAMPLE", "THINK") + (("EDGE",) if EDGE else ()) + (("MR+",) if MRX else ())}
             for k in keys:
                 f, t, b, f2 = F[s][k], T[s][k], B[s][k], F[s2][k]
                 fm, bm, ag = N.geo_check(f)[0], N.geo_check(b)[0], agree(f, b)
@@ -110,6 +159,18 @@ def main():
                 acc_r = fm and agree(f, f2)
                 P["RESAMPLE"][0] += ok(f) if acc_r else ok(t); P["RESAMPLE"][1] += tf + tok(f2) + (0 if acc_r else tt)
                 task = k[0]
+                if MRX:
+                    mt = M[s][task]; mp = mr_pass(f, mt["code"])
+                    acc_m = fm and mp; share = (mt.get("out_tokens") or 0) / sum(1 for kk in keys if kk[0] == task)
+                    P["MR+"][0] += ok(f) if acc_m else ok(t); P["MR+"][1] += tf + share + (0 if acc_m else tt)
+                    kind = "on_input" if not f["per_variant"].get("identity") else "edge_only"
+                    if fm and not ok(f):
+                        mst[(kind, "n")] += 1; mst[(kind, "flag")] += not mp
+                    if fm and ok(f):
+                        mst[("fa", task, "n")] += 1; mst[("fa", task, "flag")] += not mp
+                    for r_ in (f, t):
+                        if ok(r_):
+                            mst[("valid", task, "n")] += 1; mst[("valid", task, "fail")] += not mr_pass(r_, mt["code"])
                 if EDGE:
                     et = E[s][task]; ep = edge_pass(f, et["tests"])
                     acc_e = fm and ep; share = (et.get("out_tokens") or 0) / sum(1 for kk in keys if kk[0] == task)
@@ -146,6 +207,13 @@ def main():
             f"{t} {fa[(t, 'strict')]}/{fa[(t, 'n')]} / {fa[(t, 'resample')]}" for t in tasks))
         print("  brute force by task (correct / passes MR / crash / at cap / mean tokens): " + ", ".join(
             f"{t} {bstat[(t, 'ok')]}/{bstat[(t, 'mr')]}/{bstat[(t, 'crash')]}/{bstat[(t, 'len')]} of {bstat[(t, 'n')]} @ {bstat[(t, 'tok')] / bstat[(t, 'n')]:.0f}" for t in tasks))
+        if MRX:
+            print(f"  MR+ flags leaked fact programs: edge-case-only {mst[('edge_only', 'flag')]}/{mst[('edge_only', 'n')]}, "
+                  f"wrong on the given input {mst[('on_input', 'flag')]}/{mst[('on_input', 'n')]}")
+            print("  MR+ false alarms on correct MR-passing fact programs: " + ", ".join(f"{t} {mst[('fa', t, 'flag')]}/{mst[('fa', t, 'n')]}" for t in tasks))
+            print("  relation validity (correct fact / thinking programs that break a relation): " + ", ".join(
+                f"{t} {mst[('valid', t, 'fail')]}/{mst[('valid', t, 'n')]}" for t in tasks)
+                  + "; relations per task that run (s1 / s2 / s3): " + ", ".join(f"{t} " + "/".join(str(M[s][t]["n_relations"] if M[s][t]["runs"] else 0) for s in (1, 2, 3)) for t in tasks))
         if EDGE:
             print(f"  EDGE flags leaked fact programs: edge-case-only {est[('edge_only', 'flag')]}/{est[('edge_only', 'n')]}, "
                   f"wrong on the given input {est[('on_input', 'flag')]}/{est[('on_input', 'n')]}")

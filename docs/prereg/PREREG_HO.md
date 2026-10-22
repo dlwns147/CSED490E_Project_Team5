@@ -286,3 +286,23 @@ Every new cell has u ≥ 5%, so only the "add" side of the rule is tested here (
 **Reading:** on harder unseen problems the recipe's saving depends on how much its check leaks: with a cheap single-program check it saves
 12–47% of the tokens at equal accuracy for the stronger models and loses for the weakest; with a strict two-program check it keeps or beats
 always-thinking's accuracy but saves nothing. The label-free library is the one part that pays everywhere.
+
+## HO3 pre-registration (2026-10-23 0x:xx UTC, before running): a solution checker as the free check on hard word problems
+**Why.** HO2 located the recipe's limit on BWOR / LogiOR: 38–75% of the cheap programs that run and print a number are wrong (formulation and
+data errors), so "think only when the program visibly fails" keeps them; two agreeing programs recover accuracy but cost 91–120% of always
+thinking. Checking a given solution is easier than formulating the model: each constraint stated in the text can be tested on it, and the
+objective recomputed. Closest work: self-verification of answers (Weng et al. 2023), verifier / debugging agents for optimization models
+(OptiMUS); here an *execution-based* checker of one solution, written from the text by the same model, gates thinking.
+**Arms** (BWOR, LogiOR; 3 models; seeds 1–3; cheap-arm settings): `freev` = the solver-choice prompt + "also print, on the line before the
+objective, the values of all decision variables as one JSON object" (`run_nlopt.py`); `verify` (`poc/run_verify.py`) = for each freev row that
+runs and prints a value, the same model gets the problem text and that JSON solution and writes a program that checks every constraint
+of the text on it and recomputes the objective, printing `OK <objective>` or `VIOLATION <which>`; the check passes if it prints OK and its
+objective matches the printed one (run_nlopt tolerance). Thinking arm: the stored thinkfree rows.
+**Policies:** FF(freev) — think if the program fails, prints nothing or 'No Best Solution'; **FF-V** — also think if the checker does not pass
+(a checker that crashes counts as not passing); THINK. Tokens: freev + checker (only where it runs) + thinking where escalated.
+**Predictions** (seed means, 95% intervals over problems):
+- HO3-P1: the checker flags ≥ 40% of the freev programs that run and print a value but are wrong, and ≤ 15% of the right ones (each model).
+- HO3-P2: FF-V ≥ THINK − 1 at ≤ 80% of its tokens in ≥ 4 of the 6 cells (FF without the checker: 2 of 6 in HO2).
+- HO3-P3: for Qwen3-8B on BWOR, FF-V closes at least half of FF's gap to always thinking (FF −8.1 in HO2).
+**Decision.** If P2 holds, the recipe's free check for word problems becomes "runs + a solution checker", and the held-out claim extends to
+the hard benchmarks; if only P1 holds, the checker is reported as a partial fix with its cost; otherwise the limit stands as in HO2.
