@@ -536,3 +536,9 @@ SL_HOGCE q14a done Thu Oct 22 02:07:42 UTC 2026
 SL_HOGCE oss20 done Thu Oct 22 02:10:08 UTC 2026
 SL ho2c_oss20 done Thu Oct 22 02:26:42 UTC 2026
 SL ho2t_oss20_bwor done Thu Oct 22 02:34:52 UTC 2026
+SL ho2t_oss20_logior done Thu Oct 22 02:38:32 UTC 2026
+SL ho2c_q14a done Thu Oct 22 02:40:10 UTC 2026
+SL ho2c_q8b done Thu Oct 22 02:53:52 UTC 2026
+SL ho2l_oss20 done Thu Oct 22 03:05:33 UTC 2026
+SL ho2l_q14a done Thu Oct 22 03:12:34 UTC 2026
+SL ho2l_q8b done Thu Oct 22 03:16:39 UTC 2026

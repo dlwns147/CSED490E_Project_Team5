@@ -246,3 +246,21 @@ seeing those points, so this is their first prospective test.)
 | LogiOR Qwen3-8B | 22.1% | 77.2% | 55.1% | add |
 Every new cell has u ≥ 5%, so only the "add" side of the rule is tested here (as stated in WF3-P2); gpt-oss-20b is near the boundary
 (u 6–7%, n ≥ 25%).
+
+### WF3 results (2026-10-22 03:2x UTC; results/x3/wf3_analysis.log; 3 seeds; cheap program accuracy, gain = with fact − free)
+| cell (call: add) | free | + usage card | + label-free library |
+|---|---|---|---|
+| BWOR gpt-oss-20b | 41.9% | +7.7 ✓ | +7.3 ✓ |
+| LogiOR gpt-oss-20b | 37.3% | +10.1 ✓ | +5.8 ✓ |
+| BWOR Qwen3-14B-AWQ | 13.4% | +10.6 ✓ | +11.0 ✓ |
+| LogiOR Qwen3-14B-AWQ | 7.2% | +13.0 ✓ | +14.9 ✓ |
+| BWOR Qwen3-8B | 9.8% | +0.0 ✗ | +5.7 ✓ |
+| LogiOR Qwen3-8B | 9.4% | +0.7 ✗ | +6.2 ✓ |
+- **WF3-P2 holds** (10 of 12 calls right); **WF3-P1 holds for the library in all six cells and for the card except Qwen3-8B.** Only the "add"
+  side was tested (every new cell had u ≥ 5%), so the "do not add" side of the rule is still untested prospectively.
+- Raw (Qwen3-8B, card): usage crashes do not fall (BWOR 16.3 → 15.9%, LogiOR 22.1 → 31.5%): on the routing-heavy LogiOR it writes
+  `from ortools.constraint_solver import pywraplp` (38 programs) — the card shows pywraplp under `ortools.linear_solver` but not the routing
+  library the model reaches for, and it attaches the name to the wrong module. The library (checked programs of similar problems) has no
+  such gap (+6.2): working code of a similar problem transfers where a generic card does not (as in CD / FORM).
+- All 58 points: r = 0.60; mean gain +10.9 where u ≥ 5% (n = 46), +2.1 where u < 5% (n = 12). **The label-free library now raises the
+  first program in 23 of 25 model × benchmark cells** (it hurt only the gpt-oss models on OptMATH).
