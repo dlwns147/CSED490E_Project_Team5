@@ -13,7 +13,8 @@ think only when the check visibly fails. On our development suites the recipe so
 at 4.1k for spending thinking on the hardest-looking problems. On five benchmarks never used in development, for gpt-oss-20b and
 Qwen3-14B-AWQ the recipe ties or beats always thinking at 28–88% of its output tokens; for Qwen3-8B it wins only with the label-free
 library and loses where its free check lets many wrong programs through. The library of checked programs raises the first program in 23 of
-25 model × benchmark cells. The deciding quantity is the check's leak, not problem difficulty.
+25 model × benchmark cells. The deciding quantity is the check's leak, not problem difficulty, and it is detectable: labelling 30
+problems of a new cell picks a policy within 0.87 points of the best on 45 held-out cells, choosing thinking exactly where the recipe loses.
 
 ## 1. Introduction
 
