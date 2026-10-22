@@ -58,9 +58,10 @@ Held-out benchmarks, 3 seeds, 95% intervals over problems (full table: `docs/not
   tested prospectively on its "add" side (right in 10 of 12 points).
 - Open: the "do not add a fact" side (needs a strong, rarely-crashing model on a new benchmark); **the final report** — full draft in
   `docs/REPORT.md` (English; to be fitted to the course format, length and deadline the team decides).
-- **In progress (2026-10-23): checks that see what the leaky free check misses** — the main open problem. HO-G-M: metamorphic relations
-  the model writes once per task from the statement (no expected answers) against the geometry edge-case leak; HO3: a solution checker
-  written from the problem text against running-but-wrong programs on BWOR / LogiOR (pre-registrations in PREREG_HOGC.md / PREREG_HO.md).
+- Done (2026-10-23): checks that see what the leaky free check misses. A solution checker written from the text helps on BWOR / LogiOR
+  (HO3) but not on OptiBench / OptMATH (HO4, HO5); one cheap repair turn before thinking helps on all word-problem benchmarks for the
+  stronger models (HO6, HO7) but not on geometry (HO-G-R); model-written relations, edge tests and a second model's program (HO-G-M/E,
+  HO-X) do not close Qwen3-8B's geometry leak — 37 of its 64 leaks are wrong only on edge cases the given input does not contain.
 - Day-to-day state (running jobs, environment, evidence table): `docs/SLURM_HANDOFF.md`.
 
 ## 6. Documents
