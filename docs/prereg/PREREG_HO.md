@@ -404,3 +404,20 @@ thinking = the stored thinkfree rows. The agreement rate is computed first and i
 OptMATH, freev, 3 seeds: two-program agreement among programs that run and print a value — gpt-oss-20b 59% (109 pairs), Qwen3-14B-AWQ 36%
 (22 pairs), Qwen3-8B 20% (5 pairs) → **hard regime for all three models: add the solution checker** (HO5-P1 holds). Few Qwen pairs: only
 11–19% of their programs run and print a value.
+
+## HO5 results (2026-10-22 19:5x UTC; results/x3/ho5_analysis.log; OptMATH 100 × 3 seeds)
+| model | FF (freev) − THINK | FF-V (checker) − THINK | FF-V − FF | checker flags wrong / right |
+|---|---|---|---|---|
+| gpt-oss-20b | +0.7 [−5.0, +6.7] at 75% | −1.7 [−6.0, +2.0] at 114% | **−2.3** | 37 / 100 (37%) · 28 / 60 (47%) |
+| Qwen3-14B-AWQ | +2.7 [−0.0, +5.7] at 96% | +1.3 [+0.0, +3.0] at 112% | **−1.4** | 32 / 42 · 10 / 15 |
+| Qwen3-8B | +1.0 [−1.0, +3.0] at 102% | −0.3 [−1.0, +0.0] at 113% | **−1.4** | 19 / 24 · 10 / 10 |
+- **HO5-P1 holds** (hard regime called for all three, before the accuracies were read) but **HO5-P2 and P3 are refuted**: the checker lowers
+  accuracy on OptMATH for every model (−1.4 to −2.3) and FF-V ≥ THINK only for Qwen3-14B-AWQ. **The agreement rule does not transfer:**
+  low agreement is necessary for a checker to help (no help on OptiBench) but not sufficient.
+- Raw (gpt-oss-20b, false alarms): OptMATH solutions carry auxiliary formulation variables (routing order variables, linearizations); the
+  checker must re-interpret them and misjudges correct tours ("Subtour constraint for (0,5): lhs=6"), and 3 checkers were never written
+  (no code). Checking these solutions needs the same formulation knowledge as writing them, so the check is not an independent view.
+  On BWOR / LogiOR the constraints are stated directly on the decision variables, which is where the checker helped.
+**Reading:** a solution checker helps where the problem's constraints can be checked on the decision variables alone (textbook-style
+BWOR / LogiOR) and thinking can fix what it flags; it does not where checking needs the formulation itself (OptMATH) or where cheap programs
+are mostly right (OptiBench). No label-free rule for this was found; the default stays the plain recipe with the library.
