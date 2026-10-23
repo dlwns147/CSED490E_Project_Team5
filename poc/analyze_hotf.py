@@ -22,6 +22,10 @@ def report(name, per, tok, cap):
     for a, c in (("THINK+F", "THINK"), ("FF+F", "THINK+F"), ("FF+F", "FF")):
         mu, lo, hi = ci({i: sum(x[a] - x[c] for x in v) / len(v) for i, v in per.items()})
         print(f"  {a} - {c} {mu:+.1f} [{lo:+.1f}, {hi:+.1f}]")
+    P = [x for v in per.values() for x in v if x["pass"]]   # FF+F - THINK+F = P(pass) x [P(cheap right | pass) - P(THINK+F right | pass)]
+    if P:
+        print(f"  decomposition: check passes {100 * len(P) / n:.0f}%; on those the cheap program is right {100 * sum(x['cheap'] for x in P) / len(P):.0f}%, "
+              f"thinking with the fact {100 * sum(x['THINK+F'] for x in P) / len(P):.0f}% (leak: {100 * sum(not x['cheap'] for x in P) / len(P):.0f}% of passing programs wrong)")
 
 
 def geometry(m):
@@ -34,7 +38,8 @@ def geometry(m):
             if k not in F or k not in T:
                 continue
             f, t = F[k], T[k]; vis = not N.geo_check(f)[0]; cap += tf.get("finish") == "length"
-            per.setdefault(k, []).append({"THINK": ok(t), "THINK+F": ok(tf), "FF+F": ok(tf) if vis else ok(f), "FF": ok(t) if vis else ok(f)})
+            per.setdefault(k, []).append({"THINK": ok(t), "THINK+F": ok(tf), "FF+F": ok(tf) if vis else ok(f), "FF": ok(t) if vis else ok(f),
+                                          "pass": not vis, "cheap": ok(f)})
             tok["THINK"] += gt(t); tok["THINK+F"] += gt(tf); tok["FF+F"] += gt(f) + (gt(tf) if vis else 0); tok["FF"] += gt(f) + (gt(t) if vis else 0)
     report(f"{m} geometry", per, tok, cap)
 
@@ -54,7 +59,7 @@ def main():
                         continue
                     f, t = A["formx"][i], A["thinkfree"][i]; vis = not ok_(f); cap += tf.get("finish") == "length"
                     acc = {"THINK": t["correct"], "THINK+F": tf["correct"], "FF+F": tf["correct"] if vis else f["correct"],
-                           "FF": t["correct"] if vis else f["correct"]}
+                           "FF": t["correct"] if vis else f["correct"], "pass": not vis, "cheap": f["correct"]}
                     per.setdefault(i, []).append({k: bool(v) for k, v in acc.items()})
                     g = lambda r: r.get("out_tokens") or 0
                     tok["THINK"] += g(t); tok["THINK+F"] += g(tf); tok["FF+F"] += g(f) + (g(tf) if vis else 0); tok["FF"] += g(f) + (g(t) if vis else 0)

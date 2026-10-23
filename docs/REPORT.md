@@ -134,6 +134,13 @@ Without any fact on either side the earlier comparison holds (OptiBench +1.8 / +
 *Each pair: always thinking with the same fact (orange) and the recipe (blue) on one held-out benchmark, seed means; a pair pointing up-left means more accurate and cheaper. Facts: OptMATH the mined usage example, OptiBench / BWOR / LogiOR the label-free library, geometry the needed helpers + hint. Right panel: Qwen3.5-9B, never used in development (§5.4; OptMATH with the library, thinking at a 32k budget); OptiBench on its fixed third (`poc/make_figure_heldout.py`).*
 
 ### 5.2 Why it fails: the check leaks
+Exactly, FF − always thinking = P(check passes) × [P(cheap program right | passes) − P(thinking with the fact right | passes)]: the recipe
+can lose only on problems its check lets through. Against the fact-matched arm the second factor decides every cell: where FF wins or
+ties, the passing cheap programs are about as often right as thinking with the fact would be on them (gpt-oss-20b OptiBench 80% vs 77%;
+Qwen3.5-9B LogiOR 74% vs 52%; geometry 95–100% vs 94–96% for the three stronger models); where it loses, thinking with the fact solves far
+more of them (Qwen3-14B-AWQ BWOR 42% vs 64%, Qwen3-8B BWOR 31% vs 55%, Qwen3-8B geometry 67% vs 92%). The leak alone does not decide it:
+62% of Qwen3.5-9B's passing OptMATH programs are wrong, but thinking with the fact is no better on them (34%), so FF ties.
+
 Where FF loses, its free check lets wrong programs through. On BWOR and LogiOR the cheap programs are right on only 7–42% of problems and
 38–75% of the programs that run and print a number are wrong (Qwen3-8B on BWOR: 75%). On held-out geometry 64 of Qwen3-8B's 216 fact
 programs pass the metamorphic check yet are wrong; reading them, 37 answer the given instance correctly and fail only the degenerate copy —
