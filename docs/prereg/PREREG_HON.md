@@ -78,3 +78,6 @@ side is tested; the "do not add" side stays untested.
   WF3 the rule has now been right in 18 of 20 prospective points, all on the "add" side; the "do not add" side remains untested (no 24 GB
   model so far makes fewer than 5% usage crashes on these benchmarks). On a new model the hand-written card helps as much as the library
   or more on BWOR / LogiOR — unlike Qwen3-8B, whose card missed the routing library it reaches for (WF3).
+Operations (2026-10-23 03:3x UTC; no setting changed): OptiBench thinking ran at ~50 problems per hour per seed (ETA 9 h); those three
+tasks were cancelled and the remaining problems split over 9 jobs (`NLOPT_SHARD=i/3` per seed, own shard files, `poc/merge_shards.py`
+appends them to the seed's file afterwards; ids already present are skipped).
