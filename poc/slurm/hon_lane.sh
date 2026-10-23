@@ -54,6 +54,7 @@ for think in (False, True):
            $P poc/run_geo_cross.py --model_tag S2_HOG_${m}_geo_fact_s$sd $GX --seed $sd --distract 0 --algo_hint --max_tokens 4096 >> $L 2>&1 &
          done ;;
   geothink) $P poc/run_geo_cross.py --model_tag S2_HOG_${m}_geo_think_s$set $GX --seed $set --distract 8 --think --max_tokens $TK >> $L 2>&1 & ;;
+  repair) for sd in $seeds; do NLOPT_SET=$set $P poc/run_repair.py $m $sd formx >> $L 2>&1 & done ;;   # HO-N3
   thinkshard) NLOPT_SHARD=$4 NLOPT_SET=$set $P poc/run_nlopt.py ${m}_$set thinkfree $seeds --think --max_tokens $TK >> $L 2>&1 & ;;
   think) NLOPT_SET=$set $P poc/run_nlopt.py ${m}_$set thinkfree $seeds --think --max_tokens $TK >> $L 2>&1 & ;;
   geo)   for sd in 1 2 3; do

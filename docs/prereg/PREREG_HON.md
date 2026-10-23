@@ -120,3 +120,15 @@ does not know model type `gemma4` (the checkpoint was written with Transformers 
 environment (vLLM 0.22 / Transformers of `nlp_project:261021`) for one model, which changes the harness, so the test is not run. No other
 locally available model outside Qwen / gpt-oss has a thinking mode and fits a 24 GB GPU (granite-4.1-8b, Llama-3.1-8B, Mistral-7B have
 none), so the report keeps the family limitation, now with Qwen3.5-9B as a second Qwen generation.
+
+## Addendum HO-N3 (2026-10-23 07:4x UTC, before any run): the repair step on the unseen model
+**Why.** The report adds one cheap repair turn on a visible failure (crash, no value, 'No Best Solution'; the error shown, no thinking)
+before thinking (HO7: +0.7 to +4.0 points over the plain recipe for all three development models on OptiBench / OptMATH, at 84–101% of
+its tokens). Qwen3.5-9B's visible failures are mostly library misuse with an explicit Python error, and its thinking is very expensive
+(13–23k tokens), so the step should pay more here — or the HO7 result is specific to the development models.
+**Run:** `run_repair.py q35 <seed> formx` on OptiBench, BWOR, LogiOR, OptMATH (seeds 1–3, no thinking, 8,192 tokens), one RTX 3090 job
+per benchmark; `HO7_CELLS=optibench:formx,bwor:formx,logior:formx,optmath:formx python poc/analyze_ho7.py q35`.
+- **N3-P1:** FF-R0 ≥ FF in all 4 cells (seed means) and ≥ FF + 1 point in ≥ 3.
+- **N3-P2:** FF-R0 uses ≤ 85% of FF's tokens in ≥ 3 of 4 cells (a repair that runs replaces a 13–23k-token thinking run).
+**Decision.** P1 → the repair step joins the recipe as its default first escalation on word problems (with the HO7 evidence); P1 failing →
+it stays a development-model observation.

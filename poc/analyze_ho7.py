@@ -1,6 +1,7 @@
 """HO7 (docs/prereg/PREREG_HO.md): one cheap repair on a visible failure, no checker. Per model: OptiBench (cheap arm formx, the label-free
 library) and OptMATH (cheap arm free). FF (think on a visible failure), FF-R0 (on a visible failure, the repaired program if it runs and
 prints a value, else think), THINK (thinkfree rows); seed means, paired bootstrap 95% intervals over problems, token shares.
+HO-N3 (PREREG_HON.md): HO7_CELLS=optibench:formx,bwor:formx,logior:formx,optmath:formx python analyze_ho7.py q35 (+ FF-R0 - FF).
 usage: python analyze_ho7.py [model ...]"""
 import os, random, sys
 from collections import Counter
@@ -19,7 +20,8 @@ def ci(d, B=2000):
 
 def main():
     for m in sys.argv[1:] or ["oss20", "q14a", "q8b"]:
-        for bench, arm in (("optibench", "formx"), ("optmath", "free")):
+        cells = [tuple(c.split(":")) for c in os.environ.get("HO7_CELLS", "optibench:formx,optmath:free").split(",")]
+        for bench, arm in cells:
             per, tok, st = {}, Counter(), Counter()
             for s in (1, 2, 3):
                 F = {r["id"]: r for r in _rows(f"{RES}/opt_{m}_{bench}_{arm}_s{s}.jsonl")}
@@ -45,6 +47,8 @@ def main():
             for j, k in ((0, "FF"), (1, "FF-R0")):
                 mu, lo, hi = ci({i: sum(x[j] for x in v) / len(v) for i, v in per.items()})
                 print(f"  {k} - THINK {mu:+.1f} [{lo:+.1f}, {hi:+.1f}]")
+            mu, lo, hi = ci({i: sum(x[1] - x[0] for x in v) / len(v) for i, v in per.items()})
+            print(f"  FF-R0 - FF {mu:+.1f} [{lo:+.1f}, {hi:+.1f}]")
             print(f"  visible failures {st['vis']}, repaired program runs {st['runs']} ({100 * st['runs'] / max(1, st['vis']):.0f}%), right {st['right']} "
                   f"(thinking right on the same items {st['think_right']})")
 
