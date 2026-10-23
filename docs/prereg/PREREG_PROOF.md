@@ -213,3 +213,6 @@ and 8 at medium effort (32k cap, as gpt-oss-20b's). Policies and frontier as in 
 thinking is for (statements cheap sampling never reaches).
 *PL1 settings (fixed before any attempt was generated): cheap = low effort with a 16,000-token cap (as the stored gpt-oss-20b X4 rows),
 thinking = medium effort with a 32,000-token cap; a first submission with an 8,192 cap was cancelled before generating anything.*
+*Batched checker validated (2026-10-23 23:5x UTC, job 1237592; `run_lean.py bvalidate`): 800 / 800 random stored attempts (400 Qwen3.6, 400
+gpt-oss-20b; 222 of them proofs) get the same verdict as the original one-file-per-attempt check. PL1 attempts are checked with
+`run_lean.py bcheck` (16 attempts per Lean process).*
