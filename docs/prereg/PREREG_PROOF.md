@@ -199,3 +199,15 @@ that does thinking enter, as FF(8, j).
   then think": at every budget up to 16k tokens per statement more cheap attempts beat thinking, and thinking adds statements only after
   the cheap attempts are exhausted (+4 / +7 at the same tokens as always thinking). The open question for the Lean phase is the fact
   (lemma names) and when to stop sampling cheap attempts.
+
+## Addendum PL1 (2026-10-23 22:5x UTC, before any run): how far does cheap sampling pay before thinking, with a perfect check?
+PF found the best policy up to 16k tokens per statement is always more cheap attempts, with only 8 available. **Run** (miniF2F test, 244,
+X4 prompt, `run_lean.py gen`, checked with the batched checker once it agrees with the stored per-attempt results): gpt-oss-20b at low
+effort extended from 8 to 32 attempts (samples 9–32; medium effort keeps its 8); gpt-oss-120b on 4 × RTX 3090, 32 attempts at low effort
+and 8 at medium effort (32k cap, as gpt-oss-20b's). Policies and frontier as in PF.
+- **PL1-P1:** cheap sampling keeps paying: CHEAP×32 − CHEAP×8 ≥ +8 statements for both models.
+- **PL1-P2:** at THINK×8's token budget, the best policy is cheap-only or FF(k, j ≤ 2): thinking adds ≤ 3 statements over the best
+  cheap-only policy at that budget.
+- **PL1-P3:** FF(32, 8) solves ≥ CHEAP×32 + 3: thinking still finds statements that 32 cheap attempts miss.
+**Decision.** P1 + P2 → with a sound check the escalation rule is "sample cheaply up to the budget, think only after"; P3 says what
+thinking is for (statements cheap sampling never reaches).
