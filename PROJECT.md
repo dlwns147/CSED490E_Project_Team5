@@ -19,7 +19,10 @@ reuse a checked program when the problem repeats.
 
 ## 2. Main claim and where it stands
 
-Held-out benchmarks, 3 seeds, 95% intervals over problems (full table: `docs/notes/REPORT_OUTLINE.md`):
+Held-out benchmarks, 3 seeds, 95% intervals over problems (full table: `docs/notes/REPORT_OUTLINE.md`).
+**Correction in progress (2026-10-23, HO-TF):** the library rows compared the recipe with the fact against thinking without it; against
+thinking with the same fact the recipe ties or wins for gpt-oss-20b and on geometry, but is a token-for-accuracy trade (−4 to −12 points)
+for the Qwen models on word problems. The bullets below are being restated once HO-TF2 finishes.
 - For gpt-oss-20b and Qwen3-14B-AWQ the recipe ties or beats always thinking on every unseen benchmark (OptMATH, OptiBench, BWOR, LogiOR,
   four held-out geometry tasks) at 28–88% of its output tokens (37–97% counting input tokens).
 - For Qwen3-8B it wins only on OptiBench with the label-free library, and loses where its free check leaks most (geometry edge cases,

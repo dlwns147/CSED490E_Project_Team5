@@ -108,6 +108,11 @@ on average; using fact-first as a fixed default loses 1.4.
 ## 5. Held-out tests
 
 ### 5.1 The core rule on unseen benchmarks
+> **Correction (2026-10-23, HO-TF).** In the library rows below, always thinking was run *without* the library program. Against thinking
+> given the same fact, fact-first-then-think ties or wins only for gpt-oss-20b (OptiBench +2.5 [+0.5, +4.8]; BWOR / LogiOR ties at 46–63%
+> of the tokens) and on geometry; for the Qwen models it loses 4–12 points on OptiBench / BWOR at 33–65% of the tokens. This section is
+> being rebuilt against the fact-matched thinking arm (HO-TF2 for Qwen3.5-9B and geometry is running).
+
 Fact-first-then-think (FF: cheap program; think only if it crashes, prints nothing or prints 'No Best Solution'; on geometry: if the
 metamorphic check fails) minus always thinking, seed means, paired 95% interval over problems; FF's output tokens as a share of always
 thinking's, then input + output:
