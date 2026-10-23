@@ -25,9 +25,9 @@ usage = lambda R: 100 * sum(r["status"] == "re" and bool(USAGE.search(r.get("err
 # share of first programs that fail the free check at all (crash, no value, or 'No Best Solution')
 fails = lambda R: 100 * sum(not (r["status"] == "ok" and r.get("pred") not in (None, "NBS")) for r in R) / len(R)
 CENSUS_ONLY = "--census" in sys.argv   # WF3 (PREREG_HO.md): record the rule's label-free call from the first programs before any gain is read
-if CENSUS_ONLY:
-    for m in ("oss20", "q14a", "q8b"):
-        for bench in ("bwor", "logior"):
+if CENSUS_ONLY:   # HO-N: python analyze_which_fix.py --census q35  (CENSUS_SETS=optibench,bwor,logior,optmath)
+    for m in [a for a in sys.argv[1:] if not a.startswith("--")] or ("oss20", "q14a", "q8b"):
+        for bench in os.environ.get("CENSUS_SETS", "bwor,logior").split(","):
             B = load(f"{m}_{bench}", "free")
             if B:
                 u, f = usage(B), fails(B)
@@ -35,7 +35,7 @@ if CENSUS_ONLY:
                       f"-> {'DO NOT add a fact' if u < 5 and f - u >= 25 else 'add the fact'}")
     sys.exit()
 rows = []
-for m in ("oss20", "q14a", "q8b", "q32b", "q4b", "q17", "oss120", "q36"):
+for m in ("oss20", "q14a", "q8b", "q32b", "q4b", "q17", "oss120", "q36", "q35"):
     for bench, tag, base, facts in (("NL4OPT+IndustryOR", m, "mip", ("mipf",)), ("MAMO", f"{m}_mamo", "mip", ("mips", "formx")),
                                     ("OptMATH", f"{m}_optmath", "mip", ("mips", "formx")), ("OptiBench", f"{m}_optibench", "free", ("freef", "formx")),
                                     ("BWOR", f"{m}_bwor", "free", ("freef", "formx")), ("LogiOR", f"{m}_logior", "free", ("freef", "formx"))):

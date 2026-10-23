@@ -1,7 +1,9 @@
 """HO-P (docs/prereg/PREREG_MODEL.md, addendum): the k-label pilot of analyze_policy_model.py on the held-out cells. Per model x seed x
 held-out benchmark (the recipe's arm: OptMATH mips / thinks, OptiBench / BWOR / LogiOR formx / thinkfree, geometry fact / think):
 CHEAP, FF, FFR (the next seed's cheap program as the second sample), THINK; pilot = pick the best policy on k random labelled items.
-usage: python analyze_hop.py"""
+HO-N (PREREG_HON.md): `python analyze_hop.py q35` runs the same pilot on that model's cells (OptMATH with the library arm formx /
+thinkfree: the mined-example arm needs the model's own runs on NL4OPT / IndustryOR, which it does not have).
+usage: python analyze_hop.py [model ...]"""
 import os, random, sys, types
 from collections import defaultdict
 
@@ -12,13 +14,14 @@ from analyze_ho import ag, ok_  # noqa: E402
 from run_nlopt import RES as XRES, _rows  # noqa: E402
 
 WORDS = [("optmath", "mips", "thinks"), ("optibench", "formx", "thinkfree"), ("bwor", "formx", "thinkfree"), ("logior", "formx", "thinkfree")]
+WORDS_NEW = [("optmath", "formx", "thinkfree")] + WORDS[1:]   # a model never run on the development word problems (HO-N)
 
 
-def cells():
+def cells(models=("oss20", "q14a", "q8b")):
     import analyze_n10 as N
     from analyze_hogc import agree, load, ok, tok
-    for m in ("oss20", "q14a", "q8b"):
-        for b, a, th in WORDS:
+    for m in models:
+        for b, a, th in (WORDS if m in ("oss20", "q14a", "q8b") else WORDS_NEW):
             for s in (1, 2, 3):
                 F, F2, T = ({r["id"]: r for r in _rows(f"{XRES}/opt_{m}_{b}_{x}_s{y}.jsonl")} for x, y in ((a, s), (a, s % 3 + 1), (th, s)))
                 yield (m, b, s), [dict(f_ok=bool(f["correct"]), f_pass=ok_(f), f_tok=f["out_tokens"] or 0,
@@ -32,7 +35,7 @@ def cells():
 
 
 def main():
-    C = list(cells()); rng = random.Random(0)
+    C = list(cells(sys.argv[1:] or ("oss20", "q14a", "q8b"))); rng = random.Random(0)
     print(f"{len(C)} cells")
     for lam in (0.0, 0.5, 2.0):
         util = lambda P: {p: a - lam * t for p, (a, t) in P.items()}
@@ -50,7 +53,7 @@ def main():
         print(f"lambda {lam}: best policy counts {dict(best_count)} | mean regret of a pilot pick: "
               + ", ".join(f"k={k} {sum(v) / len(v):.2f}" for k, v in reg.items())
               + " | regret of always using one policy: " + ", ".join(f"{p} {v:.2f}" for p, v in fixed.items())
-              + f" | Qwen3-8B geometry + BWOR (6 cells): k=30 pilot {sum(sub['pilot']) / 6:.2f}, always FF {sum(sub['FF']) / 6:.2f}")
+              + (f" | Qwen3-8B geometry + BWOR (6 cells): k=30 pilot {sum(sub['pilot']) / 6:.2f}, always FF {sum(sub['FF']) / 6:.2f}" if sub else ""))
     print("\nper cell (lambda 0.5): CHEAP / FF / FFR / THINK accuracy @ tokens(k)")
     for name, items in C:
         P = policies(items)
