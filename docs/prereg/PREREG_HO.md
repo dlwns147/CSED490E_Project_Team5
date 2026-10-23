@@ -622,3 +622,12 @@ same library, medium effort, 16k), on the OptiBench third, BWOR, LogiOR, seeds 1
 - **LG-P1:** FF+F ties or beats THINK+F (interval upper bound ≥ 0) in all 3 cells, at ≤ 60% of its tokens (a strong model's passing cheap
   programs should be as often right as its thinking).
 **Decision.** WF4 decides whether the census rule is two-sided; LG-P1 extends (or limits) the rebuilt claim to a 120B model.
+
+### WF4 calls, recorded before any gain was read (2026-10-23 21:2x UTC; `CENSUS_SETS=bwor,logior python poc/analyze_which_fix.py --census oss120`)
+| cell | u (usage crashes) | fail the check | n (non-usage failures) | call |
+|---|---|---|---|---|
+| BWOR gpt-oss-120b | 2.0% | 19.5% | 17.5% | add (u < 5% but n < 25%) |
+| LogiOR gpt-oss-120b | 1.1% | 23.2% | 22.1% | add (u < 5% but n < 25%) |
+The first cells with u < 5% since the rule was fixed, but both fall on its "add" side through the second condition (few failures of any
+kind), so WF4-P1 tests the rule's claim that a fact still pays where usage crashes are rare and failures are few; the "do not add" region
+(u < 5%, n ≥ 25%) is again not reached.
