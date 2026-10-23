@@ -640,3 +640,22 @@ kind), so WF4-P1 tests the rule's claim that a fact still pays where usage crash
 - **WF4-P1 refuted narrowly** (3 / 4 calls right; only BWOR's card gain is significant). Tally of prospective calls: 21 / 24 right, all
   on the "add" side. Where usage crashes are rare (< 5%) the gains are small and of either sign (here −3.3 to +6.5; WF2: −3.3 to +9.6),
   so the census marks where facts pay a lot (≥ 5%: +12 on average) but cannot call the low-crash cells; there the pilot decides.
+
+### Results HO-VF (2026-10-23 22:5x UTC; `python poc/analyze_hovf.py q14a q8b`, 3 seeds; vs thinking given the same fact)
+| cell | FF+F − THINK+F | **FF-V+F − THINK+F** | FF-V+F tokens / THINK+F's |
+|---|---|---|---|
+| Qwen3-14B-AWQ OptiBench (third) | −4.3 [−7.8, −0.8] | **+0.7 [−1.7, +3.0]** | 71% |
+| Qwen3-14B-AWQ BWOR | −12.2 [−20.3, −4.5] | −1.6 [−4.9, +1.6] | 101% |
+| Qwen3-8B OptiBench (third) | −4.5 [−8.1, −1.0] | **+1.0 [+0.2, +2.0]** | 79% |
+| Qwen3-8B BWOR | −11.0 [−16.7, −5.7] | −1.2 [−3.7, +0.4] | 108% |
+| Qwen3-8B LogiOR | −7.6 [−11.6, −3.6] | 0.0 (the checker passes almost nothing) | 111% |
+- **VF-P2 holds** (FF-V+F ties or beats THINK+F in 5 / 5 losing cells). **VF-P1 refuted** (the gap is closed in all 5, but at ≤ 80% of
+  THINK+F's tokens only on OptiBench, 2 / 5): on BWOR / LogiOR the checker sends almost everything to thinking anyway.
+- **Decision:** the solution checker is the word-problem check for models whose plain check leaks *on easier benchmarks* (OptiBench:
+  matches thinking with the fact at 71–79% of its tokens); on the hardest benchmarks thinking with the fact is the answer for these models.
+  It joins the pilot as a sixth policy.
+
+### Results HO-LG (2026-10-23 22:5x UTC; gpt-oss-120b on 4 × RTX 3090, 3 seeds)
+FF+F − THINK+F: OptiBench (third) −1.0 [−2.8, +0.8] at 50% of the tokens, BWOR +3.7 [−1.6, +8.9] at 52%, LogiOR 0.0 [−3.6, +3.3] at 63%
+(THINK+F 75.6% / 70.7% / 62.7% at 1.7–3.1k tokens). **LG-P1 refuted narrowly** (ties in all 3 cells, but LogiOR at 63% > 60% of the
+tokens): for a 120B model fact-first-then-think keeps the accuracy of thinking with the fact at half to two-thirds of its tokens.
