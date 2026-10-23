@@ -50,3 +50,6 @@ the model card's thinking sampling (temperature 1.0, top-p 0.95, top-k 20, prese
 a **32k budget** (`--max-model-len 36864`; the hybrid-attention KV cache holds 73k tokens on a 3090, so it still fits one 24 GB GPU).
 Cheap arms unchanged. A second smoke (`q35smoke2`: 8 BWOR + 16 OptiBench problems, thinking only) checks the truncation share; if more
 than 25% of its runs still hit 32k, the share is reported and the HO-B worst case decides how to read P1. Predictions unchanged.
+Smoke 2 (job 1230037, 2026-10-23 00:1x UTC; tag `q35smoke2`, not part of the results): 1 of 24 thinking runs hits 32k (4%; BWOR 1 / 8,
+OptiBench 0 / 16), mean 24.3k tokens on BWOR and 11.8k on OptiBench. Settings kept; main runs submitted (7 jobs: OptiBench one per seed,
+BWOR, LogiOR, OptMATH, geometry).
