@@ -184,3 +184,18 @@ CHEAP×k (k ≤ 8), THINK×j (j ≤ 8), FF(a, j) = up to a cheap attempts, then 
 - **PF-P3:** FF(1, 8) costs ≤ 60% of THINK×8's tokens for gpt-oss-20b (whose thinking is ~9× its cheap attempt).
 **Reading.** P1–P3 → with a perfect check the recipe is a pure saving and the remaining question is the fact (premise / lemma names) and
 the budget split; that is the plan for the Lean phase on the cluster (`poc/slurm/lean_setup.sh`).
+
+### Results PF (2026-10-23 21:2x UTC; `python poc/analyze_pf.py`, 200 random attempt orders; solved statements of 244, tokens per statement)
+| | CHEAP×8 | THINK×8 | FF(1, 8) | FF(8, 8) | best FF within THINK×8's budget |
+|---|---|---|---|---|---|
+| gpt-oss-20b (low / medium effort) | 66.0 @ 11.5k | 72.0 @ 108.9k | 72.7 @ 109.6k (101%) | **77.0** @ 117.0k | FF(8, 7) 76.2 (+4.2) @ 104.0k |
+| Qwen3.6-35B-A3B (no thinking / thinking) | 133.0 @ 12.5k | 129.0 @ 50.4k | 131.9 @ 49.0k (97%) | **140.0** @ 55.8k | FF(8, 6) 138.9 (+9.9) @ 45.1k |
+Best policy per budget (tokens per statement): ≤ 2k CHEAP×1, ≤ 4k CHEAP×2, ≤ 8k CHEAP×4–5, ≤ 16k CHEAP×8 (both models); only above
+that does thinking enter, as FF(8, j).
+- **PF-P1 half holds** (Qwen3.6 +9.9; gpt-oss-20b +4.2 < +5). **PF-P2 holds** (FF(8, 8) 77.0 vs 72.0; 140.0 vs 133.0: the modes solve
+  different statements). **PF-P3 refuted** (FF(1, 8) costs 101% / 97% of THINK×8): one cheap attempt solves few statements, and every
+  unsolved statement still burns 8 thinking attempts.
+- **Reading.** With a sound check the right escalation is not "one cheap try, then think" but "cheap attempts until they stop paying,
+  then think": at every budget up to 16k tokens per statement more cheap attempts beat thinking, and thinking adds statements only after
+  the cheap attempts are exhausted (+4 / +7 at the same tokens as always thinking). The open question for the Lean phase is the fact
+  (lemma names) and when to stop sampling cheap attempts.
