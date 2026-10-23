@@ -176,8 +176,17 @@ python bench.py analyze <id> ...                                   # = python po
 HO_SET=optibench python poc/analyze_ho.py oss20 q14a q8b           # held-out policies with 95% intervals and token ratios
 python poc/analyze_which_fix.py [--census]                         # when a fact pays (usage-crash census)
 python poc/analyze_input_tokens.py                                 # input tokens of the held-out policies
-python poc/analyze_hogc.py [--edge]                                # held-out geometry: second views against the check leak
+python poc/analyze_hogc.py [--edge] [--mr]                         # held-out geometry: second views against the check leak
+python poc/analyze_hox.py; python poc/analyze_hod_gate.py q8b      # a second model's program as the check; differential test on edge inputs
+python poc/analyze_budget.py                                       # worst case of the 16k thinking budget for every held-out cell
+python poc/analyze_hop.py [--repair] [model ...]                   # 30-label pilot over the held-out cells (FF-R0 as a fifth policy)
+python poc/analyze_hol.py                                          # label-free pilot from agreement (negative result)
+python poc/analyze_hon.py q35                                      # the unseen model: FF vs THINK, budget worst case, fact gains
+HO7_CELLS=optibench:formx,bwor:formx python poc/analyze_ho7.py q35 # one cheap repair before thinking
+python poc/merge_shards.py results/x3/opt_<tag>_<mode>_s<seed>.jsonl  # after a run split with NLOPT_SHARD=i/k
 ```
+Geometry analyses import the client (`llm.py`): on a login node without the container use Python ≥ 3.10 and a stub `openai` module on
+`PYTHONPATH` (the analyses never call a model).
 
 The predictions and results of each experiment are in `docs/prereg/PREREG_<id>.md`; the commands behind each number in
 `poc/queues/queue_s2_<id>.sh` (old servers) and `poc/slurm/` (Slurm).
