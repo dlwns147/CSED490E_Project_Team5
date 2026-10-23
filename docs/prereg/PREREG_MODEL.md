@@ -54,3 +54,20 @@ held-out regret; otherwise the losing cells stay a stated limit without a remedy
 - THINK is the best policy in 7 of 45 cells at λ = 0.5 — all six Qwen3-8B geometry / BWOR cells and one more (Qwen3-8B LogiOR seed 3).
 - **Decision:** the claim becomes "the recipe by default; 30 labelled problems of a new task tell when to think instead" — on the
   held-out benchmarks this choice costs 0.87 points of utility on average and removes Qwen3-8B's losses (0.74 vs 7.83).
+
+## Addendum HO-L (2026-10-23 00:2x UTC, before computing; offline): can the pilot choose without labels?
+**Why.** HO-P needs 30 labelled problems. The user's open question is a *label-free* signal for when the recipe or a fact does not pay.
+The pilot already runs thinking on its 30 items; the answers of three runs (cheap program F, a second cheap sample F2, thinking T) can
+estimate each run's accuracy from agreement alone (triplet method: if wrong answers rarely coincide, P(X = Y) ≈ a_X·a_Y, so
+a_F = √(A_FF2·A_FT / A_F2T), a_T = √(A_FT·A_F2T / A_FF2); Platanios et al. 2014, Fu et al. 2020).
+**Rule (label-free pilot, choice FF vs THINK).** On k = 30 random items of a cell, on the items whose cheap program passes its free check
+(share p), compute the three agreement rates (answers equal within the grader's tolerance; geometry: equal outputs on the six inputs; a
+missing answer agrees with nothing), estimate a_F and a_T (clipped to [0, 1]; any agreement rate 0 → FF), and pick FF iff
+100·p·(a_F − a_T) + λ·(mean THINK tokens − mean FF tokens)/1000 ≥ 0 (tokens observed on the pilot, no labels). λ = 0.5.
+Compared with the labelled pilot restricted to {FF, THINK}, always FF and always THINK; regret against the better of FF and THINK on the
+full cell; 1,000 pilots per cell; the 45 HO-P cells. `poc/analyze_hol.py`.
+- **HOL-P1:** mean regret of the label-free pilot ≤ the labelled pilot's + 0.5 points.
+- **HOL-P2 (expected failure):** in Qwen3-8B's geometry cells it mostly keeps FF (regret ≥ 5): its leaked programs are right on the given
+  input, so they agree with thinking there; in Qwen3-8B's BWOR cells (wrong numbers rarely coincide) it picks THINK (regret ≤ 2).
+**Reading.** P1 + P2 → a label-free pilot works where wrong answers disagree (word problems) and fails exactly where the free check
+leaks by construction (edge cases absent from the input), so labels are needed only there; P1 failing → keep the 30 labels.
