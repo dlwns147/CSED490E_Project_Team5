@@ -1,5 +1,6 @@
 """Report figure (docs/REPORT.md §5): on each held-out benchmark, accuracy vs output tokens per problem of always thinking and of the
-recipe (fact first, think only when the free check fails), one panel per 24 GB model, computed from the stored rows (seed means).
+recipe (fact first, think only when the free check fails), one panel per 24 GB model, computed from the stored rows (seed means);
+the fourth panel is Qwen3.5-9B, a model the recipe was never developed with (HO-N; OptMATH with the library, thinking at 32k).
 Fact per benchmark: OptMATH the mined usage example (mips), OptiBench / BWOR / LogiOR the label-free library (formx), geometry the needed
 helpers + hint. usage: python make_figure_heldout.py   -> figs/fig23_heldout.png (+ prints the numbers)"""
 import hashlib, json, os
@@ -9,13 +10,15 @@ import matplotlib.pyplot as plt  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 X3, RES = f"{ROOT}/results/x3", f"{ROOT}/results"
-MODELS = (("oss20", "gpt-oss-20b"), ("q14a", "Qwen3-14B-AWQ"), ("q8b", "Qwen3-8B"))
+MODELS = (("oss20", "gpt-oss-20b"), ("q14a", "Qwen3-14B-AWQ"), ("q8b", "Qwen3-8B"), ("q35", "Qwen3.5-9B (never used in development)"))
 OPT = (("optmath", "OptMATH", "mips", "thinks"), ("optibench", "OptiBench", "formx", "thinkfree"), ("bwor", "BWOR", "formx", "thinkfree"),
        ("logior", "LogiOR", "formx", "thinkfree"))
+OPT_NEW = (("optmath", "OptMATH", "formx", "thinkfree"),) + OPT[1:]   # no mined example: the model has no development runs
 BLUE, ORANGE, INK, MUTED, SURFACE = "#2a78d6", "#eb6834", "#0b0b0b", "#52514e", "#fcfcfb"
 # label placement where pairs crowd: (anchor point, dx, dy, ha); default = above-left of the recipe's point
 LABEL = {("q14a", "OptMATH"): ("ff", -6, -12, "right"), ("q8b", "geometry"): ("ff", -6, -12, "right"),
-         ("q8b", "BWOR"): ("think", 7, -3, "left"), ("q8b", "LogiOR"): ("think", 7, -3, "left"), ("q8b", "OptMATH"): ("think", 7, -3, "left")}
+         ("q8b", "BWOR"): ("think", 7, -3, "left"), ("q8b", "LogiOR"): ("think", 7, -3, "left"), ("q8b", "OptMATH"): ("think", 7, -3, "left"),
+         ("q35", "BWOR"): ("ff", -7, -7, "right"), ("q35", "LogiOR"): ("ff", 2, 7, "left")}
 
 
 def rows(path):
@@ -51,9 +54,9 @@ def geo_cell(m):
 
 def main():
     plt.rcParams.update({"font.size": 9, "axes.edgecolor": MUTED, "axes.labelcolor": INK, "xtick.color": MUTED, "ytick.color": MUTED})
-    fig, axes = plt.subplots(1, 3, figsize=(12, 4.8), sharey=True, facecolor=SURFACE)
+    fig, axes = plt.subplots(1, 4, figsize=(16, 4.8), sharey=True, facecolor=SURFACE)
     for ax, (m, name) in zip(axes, MODELS):
-        cells = [(label, *opt_cell(m, b, c, t)) for b, label, c, t in OPT] + [("geometry", *geo_cell(m))]
+        cells = [(label, *opt_cell(m, b, c, t)) for b, label, c, t in (OPT if m != "q35" else OPT_NEW)] + [("geometry", *geo_cell(m))]
         ax.set_facecolor(SURFACE)
         for label, aff, tff, at, tt in cells:
             print(f"{name:14s} {label:10s} recipe {aff:5.1f}% @ {tff:5.2f}k | always think {at:5.1f}% @ {tt:5.2f}k")
@@ -62,8 +65,8 @@ def main():
             ax.scatter([tff], [aff], s=46, color=BLUE, edgecolor=SURFACE, linewidth=2, zorder=3)
             where, dx, dy, ha = LABEL.get((m, label), ("ff", -6, 5, "right"))
             ax.annotate(label, (tff, aff) if where == "ff" else (tt, at), xytext=(dx, dy), textcoords="offset points", ha=ha, fontsize=8, color=MUTED)
-        ax.set_xscale("log"); ax.set_xlim(0.6, 16); ax.set_ylim(0, 105)
-        ax.set_xticks([1, 2, 4, 8, 16]); ax.set_xticklabels(["1k", "2k", "4k", "8k", "16k"])
+        ax.set_xscale("log"); ax.set_xlim(0.6, 32); ax.set_ylim(0, 105)
+        ax.set_xticks([1, 2, 4, 8, 16, 32]); ax.set_xticklabels(["1k", "2k", "4k", "8k", "16k", "32k"])
         ax.set_title(name, color=INK, fontsize=10, loc="left")
         ax.set_xlabel("output tokens per problem (log scale)")
         ax.grid(axis="y", color="#e4e3df", lw=.6); ax.set_axisbelow(True)
