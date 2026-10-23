@@ -4,7 +4,7 @@
 #   think <set> <seed>    thinkfree only (to split OptiBench's thinking over jobs)
 #   cheap <set> [seeds]   free / freef / formx only
 #   geo                   held-out geometry: fact and think, seeds 1-3 (geofact: fact only; geothink <seed>: think only)
-# 10-23 01:3x UTC: thinking runs of this model are long and its KV cache holds ~73k tokens, so a job with all arms decodes ~200 tokens/s;
+# 10-23 01:2x UTC: thinking runs of this model are long and its KV cache holds ~73k tokens, so a job with all arms decodes ~200 tokens/s;
 # the work is now split into one job per arm group and seed (poc/slurm/hon_array.sh + hon_specs.txt; runs resume from their rows).
 #   sbatch -J hon_bwor poc/slurm/job.sh poc/slurm/hon_lane.sh words bwor
 #   smoke: sbatch -J hon_smoke poc/slurm/job.sh poc/slurm/hon_lane.sh smoke   (smoke2: thinking only, at the amended settings)
