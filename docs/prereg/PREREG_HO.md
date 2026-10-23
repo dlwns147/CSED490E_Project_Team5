@@ -543,3 +543,26 @@ fails, then thinkfact).
   the prompt may not fix that while thinking).
 **Decision.** With HO-TF, the held-out table is rebuilt against the fact-matched thinking arm everywhere, and the claim is restated from
 whatever survives: where FF+F ties THINK+F the recipe is a pure saving; where it loses it is a token-for-accuracy trade-off.
+
+### Results HO-TF (2026-10-23 13:5x UTC; `python poc/analyze_hotf.py`, 3 seeds; OptiBench = problems 0, 3, …, 603; all rows complete after
+re-running 52 Qwen3-8B rows whose requests had timed out at the client's 1-hour limit)
+| model · benchmark | THINK (no fact) | THINK+F | FF+F | THINK+F − THINK | **FF+F − THINK+F** | FF+F tokens / THINK+F's |
+|---|---|---|---|---|---|---|
+| gpt-oss-20b · OptiBench | 66.7% | 71.6% | 74.1% | +5.0 [+1.2, +9.1] | **+2.5 [+0.5, +4.8]** | 48% |
+| gpt-oss-20b · BWOR | 59.3% | 60.2% | 58.9% | +0.8 [−6.9, +8.9] | −1.2 [−6.9, +4.5] | 46% |
+| gpt-oss-20b · LogiOR | 51.4% | 50.7% | 50.0% | −0.7 [−7.2, +5.4] | −0.7 [−5.1, +3.3] | 63% |
+| Qwen3-14B-AWQ · OptiBench | 44.1% | 66.7% | 62.4% | +22.6 [+17.7, +27.7] | **−4.3 [−7.8, −0.8]** | 33% |
+| Qwen3-14B-AWQ · BWOR | 30.1% | 52.4% | 40.2% | +22.4 [+13.8, +30.9] | **−12.2 [−20.3, −4.5]** | 56% |
+| Qwen3-14B-AWQ · LogiOR | 27.9% | 42.8% | 40.9% | +14.9 [+7.6, +22.1] | −1.8 [−6.2, +2.5] | 75% |
+| Qwen3-8B · OptiBench | 55.3% | 67.5% | 63.0% | +12.2 [+8.6, +15.7] | **−4.5 [−8.1, −1.0]** | 39% |
+| Qwen3-8B · BWOR | 38.2% | 46.7% | 35.8% | +8.5 [+1.6, +15.4] | **−11.0 [−16.7, −5.7]** | 65% |
+| Qwen3-8B · LogiOR | 34.8% | 44.6% | 37.0% | +9.8 [+4.3, +15.6] | **−7.6 [−11.6, −3.6]** | 82% |
+- **TF-P1 holds** (THINK+F ≥ THINK in 8 / 9; the library raises the Qwen models' thinking by +8.5 to +22.6 points). **TF-P2 refuted**
+  (2 / 6: gpt-oss-20b OptiBench and BWOR; gpt-oss-20b LogiOR ties at 63% of the tokens, Qwen3-14B-AWQ LogiOR ties at 75%, Qwen3-14B-AWQ
+  loses on OptiBench and BWOR). **TF-P3 holds** (Qwen3-8B BWOR −11.0).
+- Geometry (TF2, same rows): FF+F − THINK+F gpt-oss-20b +3.1 [+1.0, +5.6] at 59%, Qwen3-14B-AWQ +2.4 [−0.3, +5.6] at 39%, Qwen3-8B −16.7
+  [−21.9, −11.5]; THINK+F − THINK +3.5 / +11.1 / +4.2. (TF2 is decided with Qwen3.5-9B, still running.)
+- **Decision (as pre-registered):** the library rows of the held-out table are restated against the fact-matched thinking arm. The fact is
+  the main lever — it raises the cheap program *and* thinking. Spending thinking only on visible failures is a pure saving for gpt-oss-20b
+  (ties or wins at 46–63% of the tokens) and on geometry for the two stronger models; for the Qwen models on word problems it is a trade:
+  33–82% of the tokens for 2–12 points less than always thinking with the fact.
