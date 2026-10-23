@@ -170,3 +170,17 @@ squares, positivity, clearing denominators, sqrt / abs lemma names, omega / inte
 - PROOF-P6 (2026-10-18 18:36 UTC): 24 more Goedel attempts on its 64 unsolved statements prove 7 more (180 → 183 at 16, 187 at 32 attempts) for 24.1M
   tokens — 3.4M tokens per extra proof vs 51k per proof in the first 8 attempts (67 ×). P6's "≥ 10 more" narrowly refuted; the cost part holds.
 - PROOF-P7 refuted (2026-10-18 20:36 UTC): 24 more DeepSeek-Prover-V2 attempts on its 79 unsolved statements prove 4 more (165 → 167 at 16, 169 at 32) for 14.4M tokens (3.6M per extra proof); both provers' extra attempts cost ≈ 3.5M tokens per additional proof.
+
+## Addendum PF (2026-10-23 21:1x UTC, before computing; offline on the stored phase-1 attempts): the recipe where the check is perfect
+**Why (new direction 1, user 10-23).** On word problems and geometry the recipe's limit is the check's leak. In Lean the compiler is a
+sound check (a compiled proof is right), so "cheap attempt → check → think only on failure" cannot lose accuracy to a leak; the question is
+only how to spend tokens. Stored: miniF2F test (244), 8 attempts per statement for gpt-oss-20b at low effort (cheap) and medium effort
+(thinking), and for Qwen3.6-35B-A3B without and with thinking.
+**Policies** (attempts taken in a random order, stop at the first that compiles; 200 random orders; tokens = all attempts made):
+CHEAP×k (k ≤ 8), THINK×j (j ≤ 8), FF(a, j) = up to a cheap attempts, then up to j thinking attempts.
+- **PF-P1:** at the token budget of THINK×8, the best FF(a, j) solves ≥ THINK×8 + 5 statements, for both models.
+- **PF-P2:** FF(8, 8) solves more statements than either mode alone (≥ max(CHEAP×8, THINK×8) + 3): the two modes solve different
+  statements, so with a sound check they compose.
+- **PF-P3:** FF(1, 8) costs ≤ 60% of THINK×8's tokens for gpt-oss-20b (whose thinking is ~9× its cheap attempt).
+**Reading.** P1–P3 → with a perfect check the recipe is a pure saving and the remaining question is the fact (premise / lemma names) and
+the budget split; that is the plan for the Lean phase on the cluster (`poc/slurm/lean_setup.sh`).
