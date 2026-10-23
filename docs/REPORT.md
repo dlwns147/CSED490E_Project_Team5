@@ -9,14 +9,15 @@ Language models can solve computational problems — geometry, scheduling, routi
 programs fail silently and "thinking longer" (long reasoning before answering) is expensive. We ask where a fixed budget of tokens should go
 for models that fit one 24 GB GPU (gpt-oss-20b, Qwen3-14B-AWQ, Qwen3-8B). We test a training-free recipe: write a cheap program, add the
 missing fact (a few lines of exact library usage, or a checked program for a similar problem found without labels), run a free check, and
-think only when the check visibly fails. On our development suites the recipe solves 87% of 208 problems at 2.5k output tokens, against 74%
+only when it visibly fails, try one cheap repair from the error and then think. On our development suites the recipe solves 87% of 208 problems at 2.5k output tokens, against 74%
 at 4.1k for spending thinking on the hardest-looking problems. On five benchmarks never used in development, for gpt-oss-20b and
 Qwen3-14B-AWQ the recipe ties or beats always thinking at 28–88% of its output tokens, and for Qwen3.5-9B — a model it was never
 developed with — it beats it on all five (+3.8 to +23.5 points at 28–79% of the tokens); for Qwen3-8B it wins only with the label-free
 library and loses where its free check lets many wrong programs through. The library of checked programs raises the first program in 23 of
 25 model × benchmark cells. The deciding quantity is the check's leak, not problem difficulty, and it is detectable: labelling 30
-problems of a new cell picks a policy within 0.87 points of the best on 45 held-out cells, and where the recipe loses it costs 0.74
-points instead of 7.8.
+problems of a new cell picks a policy within 0.87–0.94 points of the best on the held-out cells, and where the recipe loses it costs 0.74
+points instead of 7.8. No check we built — a second program, model-written tests or relations, another model's program — removes the
+weakest model's leak, because most of it is edge-case errors that the given input does not exercise.
 
 ## 1. Introduction
 
@@ -33,7 +34,7 @@ experiments, then tested on held-out benchmarks:
 2. **Add the missing fact**: the few lines of exact usage the model lacks, or the model's own checked program for a similar problem
    (no human, no labels) — not a long manual, not extra tools.
 3. **Run a free check**: the program runs and prints a value; its outputs on transformed copies agree; the statement's examples pass.
-4. **Think harder only when the check fails.**
+4. **Think harder only when the check fails** — on word problems after one cheap repair turn shown the error.
 5. **Reuse** a checked program when the same problem returns with new data.
 
 Contributions: (i) every method is compared in one harness with accuracy *and* tokens, on models that fit one RTX 3090; (ii) facts before
@@ -51,8 +52,8 @@ bin packing, vertex cover, CVRP, VRPTW); NL4OPT + IndustryOR word problems (345)
 Solomon routing instances; job-shop instances. Held out (never used to design the recipe): MAMO (863), OptMATH (100), OptiBench (605),
 BWOR (82), LogiOR (92), and four geometry tasks (polygon overlap, convexity, points in a triangle, convex clipping; 96 instances).
 
-**Models.** gpt-oss-20b (MXFP4), Qwen3-14B-AWQ (4-bit), Qwen3-8B — all fit one 24 GB GPU; Qwen3-32B-AWQ, Qwen3.6-35B-A3B and gpt-oss-120b
-as references; trained baselines STORM-Qwen3-4B and ORLM-LLaMA-3-8B. Served with vLLM 0.22; cheap programs without thinking (gpt-oss at
+**Models.** gpt-oss-20b (MXFP4), Qwen3-14B-AWQ (4-bit), Qwen3-8B — all fit one 24 GB GPU; Qwen3.5-9B (bf16, one RTX 3090) as a model
+never used in development (§5.4); Qwen3-32B-AWQ, Qwen3.6-35B-A3B and gpt-oss-120b as references; trained baselines STORM-Qwen3-4B and ORLM-LLaMA-3-8B. Served with vLLM 0.22; cheap programs without thinking (gpt-oss at
 low effort), thinking with a 16k-token budget (gpt-oss at medium effort).
 
 **Grading.** Geometry: right on all eight copies of each input (moved, rotated, mirrored, permuted, scaled, shifted by 10^9, degenerate).
@@ -139,11 +140,18 @@ cases the statement names but the given input does not contain, so no check on t
 We tried three label-free second views against this leak (pre-registered, 3 seeds): a brute-force program by the same model, a second
 sample, and edge-case tests the model writes once per task from the statement. The first two catch 41–45% of the leaked programs (the
 brute force copies the same textbook snippet); the tests see the leaks (59 of 64) but compute the same boundary cases wrong, flagging 67% of
-correct programs. A fourth view — invariances the model states from the statement without computing any answer ("a point added exactly on an edge does not change the count") — catches the right failures (23 of the 37 edge-case leaks) but its relations are often wrong too (54% false alarms), reaching 67.7% at 7.2k. None lets FF reach always-thinking for Qwen3-8B (74.0% at 9.8k). Nor does one repair turn on the flagged programs (only 13% of its repairs pass the check), nor a program from a different model: requiring gpt-oss-20b's fact program to agree catches 26 of the 27 leaks that are wrong on the given input and none of the 37 edge-case-only ones (63.2% at 6.5k) — the self-correlated part of the leak is removable, the edge-case part is invisible to any check on the given input; and gpt-oss-20b alone solves 99.0% at 0.8k, so a stronger second model is a reason to switch, not a check. On BWOR / LogiOR, requiring two
-cheap programs to agree recovers always-thinking's accuracy in every cell but costs 91–120% of its tokens. **The saving of the recipe is
+correct programs. A fourth view — invariances the model states from the statement without computing any answer ("a point added exactly on an edge does not change the count") — catches the right failures (23 of the 37 edge-case leaks) but its relations are often wrong too (54% false alarms), reaching 67.7% at 7.2k. None lets FF reach always-thinking for Qwen3-8B (74.0% at 9.8k).
+
+Nor does one repair turn on the flagged programs (only 13% of its repairs pass the check), nor a program from a different model: requiring gpt-oss-20b's fact program to agree catches 26 of the 27 leaks that are wrong on the given input and none of the 37 edge-case-only ones (63.2% at 6.5k) — the self-correlated part of the leak is removable, the edge-case part is invisible to any check on the given input; and gpt-oss-20b alone solves 99.0% at 0.8k, so a stronger second model is a reason to switch, not a check. Even handing a differential test the benchmark's own edge inputs (agreement
+with a second sample there) catches 32 of the 37 edge-case leaks but reaches only 71.9% at 78% of always-thinking's tokens. On BWOR / LogiOR,
+requiring two cheap programs to agree recovers always-thinking's accuracy in every cell but costs 91–120% of its tokens. **The saving of the recipe is
 bounded by its check's leak.**
 
-On BWOR / LogiOR a stronger check helps accuracy: a solution checker the model writes from the text (it tests every stated constraint on the printed solution and recomputes the objective) catches 66–97% of running-but-wrong programs (but flags 18–65% of right ones) and turns the recipe into a significant gain over always thinking for gpt-oss-20b (+3.7, +4.3) and Qwen3-14B-AWQ on BWOR (+3.3), at 102–110% of its tokens. On OptiBench, where cheap programs are usually right, the same checker does not pay: the plain recipe with the library already beats always thinking by +5.0 / +15.0 / +7.2 points at 36–55% of its tokens, and the checker's false alarms cost what its catches gain. Nor does it carry over to OptMATH (−1.4 to −2.3 points), whose solutions contain auxiliary formulation variables that the checker must re-interpret: a check helps only where it is a genuinely independent view. A cheaper first escalation helps where checks cannot save tokens: one short repair turn shown the error (no thinking) before thinking is never worse than the plain recipe and adds +0.7 to +4.0 points on OptiBench and OptMATH for all three models at equal or lower cost — where a repair runs, it is right more often than thinking on the same items. On the unseen Qwen3.5-9B it adds +2.0 to +6.2 points on all four word benchmarks at 73–88% of the plain recipe's tokens (pre-registered, HO-N3), so it is the recipe's first escalation on word problems. On BWOR / LogiOR it again helps the stronger development models but not Qwen3-8B, whose repaired programs run but are mostly wrong there (exploratory); on held-out geometry it adds little (+0.7 / +1.7 for the stronger models), because "these copies disagree" is less actionable evidence than a Python error. Agreement with gpt-oss-20b's program is a better check on BWOR / LogiOR than a self-written checker (+1.4 to +3.3 points over it for both Qwen models, half the false alarms), but again dominated by using gpt-oss-20b.
+On BWOR / LogiOR a stronger check helps accuracy: a solution checker the model writes from the text (it tests every stated constraint on the printed solution and recomputes the objective) catches 66–97% of running-but-wrong programs (but flags 18–65% of right ones) and turns the recipe into a significant gain over always thinking for gpt-oss-20b (+3.7, +4.3) and Qwen3-14B-AWQ on BWOR (+3.3), at 102–110% of its tokens. On OptiBench, where cheap programs are usually right, the same checker does not pay: the plain recipe with the library already beats always thinking by +5.0 / +15.0 / +7.2 points at 36–55% of its tokens, and the checker's false alarms cost what its catches gain. Nor does it carry over to OptMATH (−1.4 to −2.3 points), whose solutions contain auxiliary formulation variables that the checker must re-interpret: a check helps only where it is a genuinely independent view.
+
+**One cheap repair before thinking.** A cheaper first escalation helps where checks cannot save tokens: one short repair turn shown the error (no thinking) before thinking is never worse than the plain recipe and adds +0.7 to +4.0 points on OptiBench and OptMATH for all three models at equal or lower cost — where a repair runs, it is right more often than thinking on the same items. On the unseen Qwen3.5-9B it adds +2.0 to +6.2 points on all four word benchmarks at 73–88% of the plain recipe's tokens (pre-registered, HO-N3), so it is the recipe's first escalation on word problems. On BWOR / LogiOR it again helps the stronger development models but not Qwen3-8B, whose repaired programs run but are mostly wrong there (exploratory); on held-out geometry it adds little (+0.7 / +1.7 for the stronger models), because "these copies disagree" is less actionable evidence than a Python error.
+
+Agreement with gpt-oss-20b's program is a better check on BWOR / LogiOR than a self-written checker (+1.4 to +3.3 points over it for both Qwen models, half the false alarms), but again dominated by using gpt-oss-20b.
 
 **A cost model.** A perfect check bounds what any check can do: on held-out geometry it lifts Qwen3-8B only to 75.0% at 70% of always-thinking's tokens (its fact programs are wrong too often), while gpt-oss-20b and Qwen3-14B-AWQ reach 99.0% at 49% and 84.4% at 38%; on BWOR / LogiOR a perfect check saves no tokens (83–103%) but raises accuracy above always thinking (e.g. gpt-oss-20b BWOR 69.5% vs 59.3%). The recipe's token saving is capped by how often the cheap program is right; the check's leak decides how much of the possible accuracy it keeps.
 
@@ -156,7 +164,8 @@ hand-written snippet (gpt-oss-20b 78.8% vs 78.9%; Qwen3-32B 75.3% vs 70.7%).
 
 **When does a fact pay?** The share of first programs that crash with a usage exception predicts the gain (r = 0.60 over 58 points; mean
 +10.9 points where ≥ 5% crash this way, +2.1 below). A rule fixed from 46 points ("add a fact unless usage crashes < 5% and other failures
-≥ 25%") was right in 10 of 12 new points on BWOR / LogiOR, but all new cells were on its "add" side; whether it predicts when *not* to add
+≥ 25%") was right in 18 of 20 new points (BWOR / LogiOR for the three development models; four benchmarks for Qwen3.5-9B), but all new
+cells were on its "add" side; whether it predicts when *not* to add
 a fact remains untested. A hand-written usage card fails where it misses the library the model reaches for (Qwen3-8B on routing problems
 writes `from ortools.constraint_solver import pywraplp`), while working code of a similar problem transfers.
 
@@ -209,8 +218,10 @@ wall-clock time or CPU time of the checks.
 
 For computational problems on a single 24 GB GPU, the cheapest reliable way to exact answers is to give the model the missing fact first
 and pay for thinking only where a free check visibly fails — not where problems look hard. The recipe holds on unseen benchmarks for the
-stronger small models; its limit is the check: where a model's wrong programs look right, thinking only on visible failures saves tokens
-by losing accuracy. Making checks see what the given input does not contain is the open problem.
+stronger small models and for a model it was never developed with; on word problems one cheap repair from the error should come before
+thinking. Its limit is the check: where a model's wrong programs look right, thinking only on visible failures saves tokens by losing
+accuracy, and 30 labelled problems of a new task are enough to see that and think instead. Making checks see what the given input does not
+contain is the open problem.
 
 *Sources: `PROPOSAL.md`; held-out numbers `results/x3/ho*_analysis.log`, `results/x3/ho2_*_analysis.log`,
-`results/x3/input_tokens_analysis.log`, `results/hogc_analysis.log`; predictions and verdicts `docs/prereg/PREREG_{U1,HO,HOG,HOGC,X7,N,X1,PROOF}.md`.*
+`results/x3/input_tokens_analysis.log`, `results/hogc_analysis.log`; predictions and verdicts `docs/prereg/PREREG_{U1,HO,HOG,HOGC,HON,MODEL,X7,N,X1,PROOF}.md`; analyses `poc/analyze_{ho,ho3,ho7,hogc,hox,hod_gate,budget,hop,hol,hon}.py`.*
