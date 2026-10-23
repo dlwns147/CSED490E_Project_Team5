@@ -14,7 +14,8 @@ one 24 GB GPU (RTX 3090).** Every result is accuracy *and* tokens.
 
 **The recipe we test:** write a program → add the missing fact (a few lines of exact library usage, or the model's own checked program for
 a similar problem, found with no labels) → run a free check (the program runs; its outputs on moved / rotated / mirrored copies agree; the
-statement's examples pass) → think harder only when the check visibly fails → reuse a checked program when the problem repeats.
+statement's examples pass) → when the check visibly fails, one cheap repair turn with the error (word problems), then think harder →
+reuse a checked program when the problem repeats.
 
 ## 2. Main claim and where it stands
 

@@ -132,3 +132,17 @@ per benchmark; `HO7_CELLS=optibench:formx,bwor:formx,logior:formx,optmath:formx 
 - **N3-P2:** FF-R0 uses ≤ 85% of FF's tokens in ≥ 3 of 4 cells (a repair that runs replaces a 13–23k-token thinking run).
 **Decision.** P1 → the repair step joins the recipe as its default first escalation on word problems (with the HO7 evidence); P1 failing →
 it stays a development-model observation.
+
+### Results HO-N3 (2026-10-23 08:1x UTC; `HO7_CELLS=... python poc/analyze_ho7.py q35`, 3 seeds)
+| benchmark | FF | FF-R0 (one repair on a visible failure, then think) | FF-R0 − FF [95%] | FF-R0 tokens / FF's | repairs that run · right (thinking right on those) |
+|---|---|---|---|---|---|
+| OptiBench | 68.3% @ 3.94k | 70.5% @ 2.87k | **+2.2 [+1.4, +3.0]** | 73% | 156 / 372 (42%) · 102 (62) |
+| BWOR | 41.5% @ 13.25k | 43.5% @ 10.64k | +2.0 [−0.4, +4.5] | 80% | 37 / 124 (30%) · 20 (15) |
+| LogiOR | 40.6% @ 18.48k | 46.7% @ 16.25k | **+6.2 [+2.2, +9.8]** | 88% | 44 / 180 (24%) · 32 (15) |
+| OptMATH | 27.7% @ 12.97k | 33.7% @ 11.22k | **+6.0 [+3.0, +9.3]** | 87% | 40 / 130 (31%) · 28 (10) |
+- **N3-P1 holds** (FF-R0 ≥ FF + 1 in 4 / 4 cells; three intervals above 0). **N3-P2 refuted narrowly** (≤ 85% of FF's tokens in 2 / 4:
+  73%, 80%, 88%, 87%) — only 24–42% of repairs run, so most visible failures still go to thinking.
+- Where a repair runs it is right far more often than thinking on the same problems (182 vs 102 of 277).
+- **Decision:** the repair step joins the recipe as its first escalation on word problems: on a visible failure, one cheap repair turn
+  with the error, then thinking. Evidence: HO7 (3 development models, 6 / 6 cells ≥ FF) and HO-N3 (unseen model, 4 / 4 cells ≥ FF + 1).
+  On geometry it stays out (HO-G-R).
