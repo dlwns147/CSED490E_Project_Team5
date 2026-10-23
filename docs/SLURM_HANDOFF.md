@@ -9,8 +9,10 @@ State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Tea
   as the check (catches Qwen3-8B's on-input leaks, none of its 37 edge-only leaks; using gpt-oss-20b directly dominates), HO-D gate (even
   perfect edge inputs leave a differential test below always thinking), HO-B (the 16k thinking budget cannot flip a held-out tie or win),
   HO-P (30 labelled problems pick the policy within 0.87 points on 45 held-out cells; 0.74 instead of 7.8 where the recipe loses).
-- **Running:** HO-N (`docs/prereg/PREREG_HON.md`, `poc/slurm/hon_lane.sh`): the recipe, the pilot and the census rule on Qwen3.5-9B, a
-  model the project never used; smoke job first, then one RTX 3090 job per benchmark group.
+- **Done 10-23:** HO-L (an agreement-based, label-free pilot fails where the choice matters; the 30 labels stay) and HO-N
+  (`docs/prereg/PREREG_HON.md`, `poc/slurm/hon_lane.sh` / `hon_array.sh`): on Qwen3.5-9B, never used before, fact first beats always
+  thinking on all five held-out benchmarks (+3.8 to +23.5 at 28–79% of its tokens), pilot regret 0.81, census "add" calls 8 / 8.
+  Nothing is running.
 - **Set up and tested.** Docker image `nlp_project:261021` (`/home1/leesangjun/nlp_project_261021.tar`; vLLM 0.22.0, torch 2.11 cu130,
   client / sandbox venv `/root/venvs/llm_algo_poc`), loaded per node on first use (258 s). Partition **RTX3090** (24 GB = the project's
   target GPU; RTX6000ADA / L40S / A100-80GB are used by the user's other sessions). 4 CPUs per GPU, no `--time`, no `-q` on this partition.

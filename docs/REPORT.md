@@ -11,7 +11,8 @@ for models that fit one 24 GB GPU (gpt-oss-20b, Qwen3-14B-AWQ, Qwen3-8B). We tes
 missing fact (a few lines of exact library usage, or a checked program for a similar problem found without labels), run a free check, and
 think only when the check visibly fails. On our development suites the recipe solves 87% of 208 problems at 2.5k output tokens, against 74%
 at 4.1k for spending thinking on the hardest-looking problems. On five benchmarks never used in development, for gpt-oss-20b and
-Qwen3-14B-AWQ the recipe ties or beats always thinking at 28–88% of its output tokens; for Qwen3-8B it wins only with the label-free
+Qwen3-14B-AWQ the recipe ties or beats always thinking at 28–88% of its output tokens, and for Qwen3.5-9B — a model it was never
+developed with — it beats it on all five (+3.8 to +23.5 points at 28–79% of the tokens); for Qwen3-8B it wins only with the label-free
 library and loses where its free check lets many wrong programs through. The library of checked programs raises the first program in 23 of
 25 model × benchmark cells. The deciding quantity is the check's leak, not problem difficulty, and it is detectable: labelling 30
 problems of a new cell picks a policy within 0.87 points of the best on 45 held-out cells, and where the recipe loses it costs 0.74
@@ -159,11 +160,19 @@ hand-written snippet (gpt-oss-20b 78.8% vs 78.9%; Qwen3-32B 75.3% vs 70.7%).
 a fact remains untested. A hand-written usage card fails where it misses the library the model reaches for (Qwen3-8B on routing problems
 writes `from ortools.constraint_solver import pywraplp`), while working code of a similar problem transfers.
 
-### 5.4 Knowing when not to use it
+### 5.4 A model the recipe was never developed with
+All rules above were fixed on gpt-oss-20b and the Qwen3 models. On Qwen3.5-9B (a newer generation, bf16 on one RTX 3090; thinking with the
+model card's sampling and a 32k budget), pre-registered before any run: fact first, think on a visible failure beats always thinking on all
+five held-out benchmarks — OptiBench 68.3% vs 44.7% (+23.5 [+20.8, +26.3]) at 30% of its tokens, BWOR +11.0, LogiOR +11.6, OptMATH +14.3,
+geometry +3.8 [+0.3, +6.9] at 28% — and still ties or beats if every budget-capped wrong thinking run is counted right. Its thinking fails
+by library misuse (14–25% of programs) and unfinished reasoning (6–32% at 32k): the fact, not the effort, is what it lacks. The census
+called "add a fact" on all four word benchmarks and both facts paid (+3.7 to +19.7; 8 / 8 calls right).
+
+### 5.5 Knowing when not to use it
 The recipe's losses are detectable before deployment. Label 30 random problems of a new model × benchmark cell, run the four policies on
 them (the cheap program alone, fact first, fact first with two agreeing programs, always thinking) and keep the best by accuracy − 0.5 ×
 ktokens. Over the 45 held-out cells (3 models × 3 seeds × five benchmarks, each with the recipe's fact) the pick is 0.87 points from the
-cell's best on average (10 labels: 2.81; always using fact-first: 1.80; always thinking: 5.86). In Qwen3-8B's geometry and BWOR cells, where
+cell's best on average (10 labels: 2.81; always using fact-first: 1.80; always thinking: 5.86); on the unseen Qwen3.5-9B, 0.81 over 15 cells. In Qwen3-8B's geometry and BWOR cells, where
 the recipe loses, the 30 labels pick thinking: 0.74 points of regret instead of 7.83 (pre-registered, `PREREG_MODEL.md`, addendum HO-P). The labels are needed: estimating accuracies from how often the cheap program, a second sample and thinking agree (no labels) keeps fact-first in exactly those cells (regret 1.71 overall, 11.2 on Qwen3-8B geometry), because a model's cheap programs share their mistakes and vouch for each other (HO-L).
 
 ## 6. Baselines on the same harness

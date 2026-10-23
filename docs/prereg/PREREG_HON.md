@@ -81,3 +81,21 @@ side is tested; the "do not add" side stays untested.
 Operations (2026-10-23 03:2x UTC; no setting changed): OptiBench thinking ran at ~50 problems per hour per seed (ETA 9 h); those three
 tasks were cancelled and the remaining problems split over 9 jobs (`NLOPT_SHARD=i/3` per seed, own shard files, `poc/merge_shards.py`
 appends them to the seed's file afterwards; ids already present are skipped).
+
+### Results HON-P1 / P2 and the budget note (2026-10-23 07:3x UTC; `python poc/analyze_hon.py q35`, `python poc/analyze_hop.py q35`; 3 seeds, all rows complete)
+| benchmark | FF (library / fact, think on a visible failure) | always thinking (32k) | FF − THINK [95%] | FF's tokens | thinking at the cap · worst case |
+|---|---|---|---|---|---|
+| OptiBench (605) | 68.3% @ 3.94k | 44.7% @ 13.28k | **+23.5 [+20.8, +26.3]** | 30% | 6.5% · +20.1 [+17.2, +23.0] |
+| BWOR (82) | 41.5% @ 13.25k | 30.5% @ 21.46k | **+11.0 [+4.5, +17.1]** | 62% | 20.3% · +3.7 [−3.3, +10.2] |
+| LogiOR (92) | 40.6% @ 18.48k | 29.0% @ 23.40k | **+11.6 [+6.2, +17.0]** | 79% | 31.9% · +5.8 [+1.1, +10.9] |
+| OptMATH (100) | 27.7% @ 12.97k | 13.3% @ 21.56k | **+14.3 [+7.7, +21.3]** | 60% | 21.0% · +3.0 [−4.3, +10.3] |
+| geometry (96) | 88.9% @ 6.34k | 85.1% @ 22.27k | **+3.8 [+0.3, +6.9]** | 28% | 8.0% · −0.7 [−3.1, +1.7] |
+- **HON-P1 holds: FF beats always thinking on 5 / 5 benchmarks** (every interval above 0) at 28–79% of its tokens; in the worst case for
+  the budget (every capped wrong thinking run counted right) it still ties or beats everywhere.
+- **HON-P2 holds:** k = 30 pilot regret 0.81 at λ = 0.5 over the 15 cells (k = 10: 2.65); FF is the best policy in 14 / 15 cells (always
+  FF: regret 0.05; always THINK: 17.6).
+- Raw (thinking arm): 14–25% of thinking programs crash on library misuse (`'CpModel' object has no attribute 'Solve'`,
+  `pywraplp ... has no attribute 'OPTIMAL'`) and 6–32% exhaust 32k tokens before any code — thinking does not supply the missing usage
+  knowledge, the fact does (development finding 1, now on a new model).
+- **Decision:** the main claim holds on a model and model generation the recipe was never developed with: fact first, think on a visible
+  failure beats always thinking on all five held-out benchmarks for Qwen3.5-9B, and the 30-label pilot keeps its regret below one point.
