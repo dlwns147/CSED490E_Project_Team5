@@ -146,3 +146,15 @@ it stays a development-model observation.
 - **Decision:** the repair step joins the recipe as its first escalation on word problems: on a visible failure, one cheap repair turn
   with the error, then thinking. Evidence: HO7 (3 development models, 6 / 6 cells ≥ FF) and HO-N3 (unseen model, 4 / 4 cells ≥ FF + 1).
   On geometry it stays out (HO-G-R).
+
+## Addendum HO-R (2026-10-23 08:1x UTC, before any run): should the default policy repair first, on every held-out word cell?
+**Why.** HO-N3 makes one cheap repair the first escalation on word problems, but the HO-P cells of the development models (BWOR / LogiOR
+with the library `formx`, OptMATH with the mined example `mips`) have no repair rows (HO6 / HO7 repaired other arms), and on BWOR / LogiOR
+repair hurt Qwen3-8B in the exploratory HO6 rows. **Run:** `run_repair.py <m> <seed> formx` on BWOR / LogiOR and `... mips` on OptMATH for
+gpt-oss-20b (low effort, as its cheap arms), Qwen3-14B-AWQ, Qwen3-8B, seeds 1–3 (no thinking; RTX 3090, one job per model). Then the
+pilot of `analyze_hop.py` with FF-R0 as a fifth policy over all 60 held-out cells (45 HO-P + 15 HO-N).
+- **R-P1:** FF-R0 ≥ FF − 0.5 in ≥ 7 of the 9 new cells (exceptions expected only for Qwen3-8B on BWOR / LogiOR).
+- **R-P2:** at λ = 0.5, always FF-R0 has a lower fixed regret than always FF over the 48 word-problem cells.
+- **R-P3:** the 30-label pilot over the five policies keeps mean regret ≤ 1.0 over all 60 cells.
+**Decision.** R-P2 → the default policy on word problems is FF-R0 (the pilot still guards the losing cells); otherwise FF stays the default
+and repair is a pilot option.
