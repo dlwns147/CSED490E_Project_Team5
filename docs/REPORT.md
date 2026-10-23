@@ -14,7 +14,8 @@ at 4.1k for spending thinking on the hardest-looking problems. On five benchmark
 on all five for gpt-oss-20b and for Qwen3.5-9B — a model it was never developed with — at 30–78% of the output tokens, and on three of
 five for Qwen3-14B-AWQ; elsewhere for the Qwen3 models thinking with the fact is 4–17 points more accurate. The fact is the main lever:
 the label-free library of checked programs raises the first program in 23 of 25 model × benchmark cells, and thinking too. Whether
-thinking only on visible failures pays is decided by how often the check lets wrong programs through, and it is detectable: labelling 30
+thinking only on visible failures pays is decided by whether thinking with the fact would solve the wrong programs the check lets
+through, and it is detectable: labelling 30
 problems of a new cell picks a policy within 0.85 points of the best over 60 held-out cells, where no fixed policy comes within 3.3. No check we built — a second program, model-written tests or relations, another model's program — removes the
 weakest model's leak, because most of it is edge-case errors that the given input does not exercise.
 
