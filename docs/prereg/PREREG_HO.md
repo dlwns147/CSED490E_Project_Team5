@@ -528,3 +528,18 @@ Policies: THINK (thinkfree, no fact), THINK+F (formxt), FF+F (formx; on a visibl
 - **TF-P3:** for Qwen3-8B, FF+F is significantly below THINK+F on BWOR (its leak), as against THINK.
 **Decision.** TF-P2 holds → the held-out claim stands against the strongest thinking baseline and the table's library rows are replaced
 by the fair comparison; fails → the library rows are restated as a token-for-accuracy trade-off against thinking with the fact.
+
+## Addendum HO-TF2 (2026-10-23 12:0x UTC, before any run; written after reading HO-TF for gpt-oss-20b, Qwen3-14B-AWQ and Qwen3-8B OptiBench)
+**Why.** HO-TF shows the fact helps thinking a lot (THINK+F − THINK up to +22.6 points) and FF+F loses to THINK+F for the Qwen models
+on OptiBench / BWOR. Two more comparisons in the report are not fact-matched either: held-out geometry (FF with the needed helpers + the
+algorithm hint vs thinking with helpers + 8 distractors and no hint) and every Qwen3.5-9B word cell (thinking without the library).
+**Run:** geometry thinking with the fact prompt (`run_geo_cross.py --think --distract 0 --algo_hint`, tag `S2_HOG_<m>_geo_thinkfact_s<seed>`;
+16k, gpt-oss-20b medium; Qwen3.5-9B 32k with its card sampling) for all four models, seeds 1–3; Qwen3.5-9B `formxt` (32k, card sampling) on
+OptiBench (the same fixed third), BWOR, LogiOR, OptMATH. Same policies as HO-TF (geometry: FF+F = fact program unless the MR check
+fails, then thinkfact).
+- **TF2-P1:** THINK+F ≥ THINK on geometry for ≥ 3 of the 4 models.
+- **TF2-P2:** FF+F ties or beats THINK+F on geometry for gpt-oss-20b, Qwen3-14B-AWQ and Qwen3.5-9B (upper bound ≥ 0) at ≤ 60% of its tokens.
+- **TF2-P3:** for Qwen3.5-9B, FF+F ties or beats THINK+F on ≥ 3 of its 4 word benchmarks (its thinking misuses the libraries; the fact in
+  the prompt may not fix that while thinking).
+**Decision.** With HO-TF, the held-out table is rebuilt against the fact-matched thinking arm everywhere, and the claim is restated from
+whatever survives: where FF+F ties THINK+F the recipe is a pure saving; where it loses it is a token-for-accuracy trade-off.
