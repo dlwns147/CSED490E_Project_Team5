@@ -182,6 +182,8 @@ python poc/analyze_budget.py                                       # worst case 
 python poc/analyze_hop.py [--repair] [model ...]                   # 30-label pilot over the held-out cells (FF-R0 as a fifth policy)
 python poc/analyze_hol.py                                          # label-free pilot from agreement (negative result)
 python poc/analyze_hon.py q35                                      # the unseen model: FF vs THINK, budget worst case, fact gains
+python poc/analyze_hotf.py [--geo] [model ...]                     # the fair baseline: always thinking given the same fact
+python poc/analyze_hop.py --repair --fair                          # 30-label pilot against the fact-matched thinking arm
 HO7_CELLS=optibench:formx,bwor:formx python poc/analyze_ho7.py q35 # one cheap repair before thinking
 python poc/merge_shards.py results/x3/opt_<tag>_<mode>_s<seed>.jsonl  # after a run split with NLOPT_SHARD=i/k
 ```

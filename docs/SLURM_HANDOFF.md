@@ -12,7 +12,10 @@ State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Tea
 - **Done 10-23:** HO-L (an agreement-based, label-free pilot fails where the choice matters; the 30 labels stay) and HO-N
   (`docs/prereg/PREREG_HON.md`, `poc/slurm/hon_lane.sh` / `hon_array.sh`): on Qwen3.5-9B, never used before, fact first beats always
   thinking on all five held-out benchmarks (+3.8 to +23.5 at 28–79% of its tokens), pilot regret 0.81, census "add" calls 8 / 8.
-  Nothing is running.
+- **Done 10-23 (the fair baseline):** HO-N3 / HO-R (one cheap repair before thinking is the default first escalation on word problems),
+  HO-TF / HO-TF2 / HO-P2 (always thinking given the same fact: the recipe ties or wins everywhere for gpt-oss-20b and Qwen3.5-9B, on 3 / 5
+  for Qwen3-14B-AWQ, loses for Qwen3-8B on 4 / 5; 30-label pilot regret 0.85 vs ≥ 3.3 for any fixed policy). Claim rebuilt in
+  REPORT §5.1, PROJECT §2, PROPOSAL(_ko). Nothing is running.
 - **Set up and tested.** Docker image `nlp_project:261021` (`/home1/leesangjun/nlp_project_261021.tar`; vLLM 0.22.0, torch 2.11 cu130,
   client / sandbox venv `/root/venvs/llm_algo_poc`), loaded per node on first use (258 s). Partition **RTX3090** (24 GB = the project's
   target GPU; RTX6000ADA / L40S / A100-80GB are used by the user's other sessions). 4 CPUs per GPU, no `--time`, no `-q` on this partition.
