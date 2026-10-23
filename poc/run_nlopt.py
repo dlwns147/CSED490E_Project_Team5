@@ -208,11 +208,14 @@ def main():
 
     path = f"{RES}/opt_{tag}_{mode}_s{seed}.jsonl"   # rows are flushed as they finish; a re-run resumes (2026-10-17)
     done = {r["id"] for r in _rows(path)}
+    todo = problems()[:int(os.environ.get("NLOPT_LIMIT", 10**9))]   # NLOPT_LIMIT: the first N problems only (Slurm smoke test)
+    if os.environ.get("NLOPT_SHARD"):   # "i/k": problems i, i+k, ... in <path>.shard<i>of<k> (one job each; merge_shards.py after; 2026-10-23)
+        i, k = map(int, os.environ["NLOPT_SHARD"].split("/"))
+        todo = todo[i::k]; path = path[:-len(".jsonl")] + f".shard{i}of{k}.jsonl"; done |= {r["id"] for r in _rows(path)}
     with ThreadPoolExecutor(48) as ex, open(path, "a") as f:
-        todo = problems()[:int(os.environ.get("NLOPT_LIMIT", 10**9))]   # NLOPT_LIMIT: the first N problems only (Slurm smoke test)
         for fu in as_completed([ex.submit(one, p) for p in todo if p["id"] not in done]):
             f.write(json.dumps(fu.result()) + "\n"); f.flush()
-    rows = [json.loads(l) for l in open(path)]
+    rows = _rows(path)
     by = {}
     for r in rows:
         by.setdefault(r["src"], []).append(r["correct"])

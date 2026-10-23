@@ -2,6 +2,7 @@
 # HO-N (docs/prereg/PREREG_HON.md): Qwen3.5-9B (tag q35) on the held-out benchmarks, one RTX 3090 per job. Groups:
 #   words <set> [seeds]   free / freef / formx / thinkfree on one word-problem benchmark (optibench, bwor, logior, optmath)
 #   think <set> <seed>    thinkfree only (to split OptiBench's thinking over jobs)
+#   thinkshard <set> <seed> <i/k>   thinkfree on problems i, i+k, ... only (NLOPT_SHARD; poc/merge_shards.py merges after)
 #   cheap <set> [seeds]   free / freef / formx only
 #   geo                   held-out geometry: fact and think, seeds 1-3 (geofact: fact only; geothink <seed>: think only)
 # 10-23 01:2x UTC: thinking runs of this model are long and its KV cache holds ~73k tokens, so a job with all arms decodes ~200 tokens/s;
@@ -15,7 +16,7 @@ S=$(bash poc/start_server.sh /SSD/huggingface/$dir $PORT 0 0.92 hon_${grp}_$set 
 export POC_BASE_URL=http://127.0.0.1:$PORT/v1 POC_TIMEOUT=7200
 export POC_THINK_SAMPLING=temperature=1.0,top_p=0.95,top_k=20,presence_penalty=1.5   # applied to thinking calls only (llm.chat)
 TK=32000
-L=results/x3/run_hon_${grp}_${set}${3:+_$3}.log
+L=results/x3/run_hon_${grp}_${set}${3:+_$3}${4:+_${4/\//of}}.log
 GX="--stdlib --n_inst 12 --temperature 0.7 --tasks overlap,convex,tri,clip --resume"
 case $grp in
   smoke) export POC_THINK_SAMPLING=   # the first smoke ran the harness sampling
@@ -38,6 +39,7 @@ case $grp in
            $P poc/run_geo_cross.py --model_tag S2_HOG_${m}_geo_fact_s$sd $GX --seed $sd --distract 0 --algo_hint --max_tokens 4096 >> $L 2>&1 &
          done ;;
   geothink) $P poc/run_geo_cross.py --model_tag S2_HOG_${m}_geo_think_s$set $GX --seed $set --distract 8 --think --max_tokens $TK >> $L 2>&1 & ;;
+  thinkshard) NLOPT_SHARD=$4 NLOPT_SET=$set $P poc/run_nlopt.py ${m}_$set thinkfree $seeds --think --max_tokens $TK >> $L 2>&1 & ;;
   think) NLOPT_SET=$set $P poc/run_nlopt.py ${m}_$set thinkfree $seeds --think --max_tokens $TK >> $L 2>&1 & ;;
   geo)   for sd in 1 2 3; do
            $P poc/run_geo_cross.py --model_tag S2_HOG_${m}_geo_fact_s$sd $GX --seed $sd --distract 0 --algo_hint --max_tokens 4096 >> $L 2>&1 &
