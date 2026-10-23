@@ -631,3 +631,12 @@ same library, medium effort, 16k), on the OptiBench third, BWOR, LogiOR, seeds 1
 The first cells with u < 5% since the rule was fixed, but both fall on its "add" side through the second condition (few failures of any
 kind), so WF4-P1 tests the rule's claim that a fact still pays where usage crashes are rare and failures are few; the "do not add" region
 (u < 5%, n ≥ 25%) is again not reached.
+
+### Results WF4 (2026-10-23 21:3x UTC; gpt-oss-120b, 3 seeds, paired 95% intervals; gain = with fact − free)
+| cell (call: add) | free | + usage card | + label-free library |
+|---|---|---|---|
+| BWOR gpt-oss-120b (u 2.0%) | 61.8% @ 1.08k | +6.5 [+0.8, +12.6] ✓ | +3.3 [−2.8, +9.3] ✓ |
+| LogiOR gpt-oss-120b (u 1.1%) | 57.2% @ 1.04k | +2.5 [−3.3, +8.0] ✓ | −3.3 [−9.1, +2.5] ✗ |
+- **WF4-P1 refuted narrowly** (3 / 4 calls right; only BWOR's card gain is significant). Tally of prospective calls: 21 / 24 right, all
+  on the "add" side. Where usage crashes are rare (< 5%) the gains are small and of either sign (here −3.3 to +6.5; WF2: −3.3 to +9.6),
+  so the census marks where facts pay a lot (≥ 5%: +12 on average) but cannot call the low-crash cells; there the pilot decides.
