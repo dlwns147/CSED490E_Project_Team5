@@ -72,7 +72,7 @@ full cell; 1,000 pilots per cell; the 45 HO-P cells. `poc/analyze_hol.py`.
 **Reading.** P1 + P2 → a label-free pilot works where wrong answers disagree (word problems) and fails exactly where the free check
 leaks by construction (edge cases absent from the input), so labels are needed only there; P1 failing → keep the 30 labels.
 
-### Results HO-L (2026-10-23 00:2x UTC; `python poc/analyze_hol.py`, 45 cells, k = 30, 1,000 pilots per cell, λ = 0.5)
+### Results HO-L (2026-10-23 00:1x UTC; `python poc/analyze_hol.py`, 45 cells, k = 30, 1,000 pilots per cell, λ = 0.5)
 | choice of FF vs THINK | mean regret | Qwen3-8B geometry (3 cells) | Qwen3-8B BWOR (3 cells) |
 |---|---|---|---|
 | label-free pilot (agreement of F, F2, T) | 1.71 | keeps FF in 97% of pilots, 11.23 | keeps FF in 93%, 2.58 |
