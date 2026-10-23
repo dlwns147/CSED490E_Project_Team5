@@ -211,3 +211,5 @@ and 8 at medium effort (32k cap, as gpt-oss-20b's). Policies and frontier as in 
 - **PL1-P3:** FF(32, 8) solves ≥ CHEAP×32 + 3: thinking still finds statements that 32 cheap attempts miss.
 **Decision.** P1 + P2 → with a sound check the escalation rule is "sample cheaply up to the budget, think only after"; P3 says what
 thinking is for (statements cheap sampling never reaches).
+*PL1 settings (fixed before any attempt was generated): cheap = low effort with a 16,000-token cap (as the stored gpt-oss-20b X4 rows),
+thinking = medium effort with a 32,000-token cap; a first submission with an 8,192 cap was cancelled before generating anything.*
