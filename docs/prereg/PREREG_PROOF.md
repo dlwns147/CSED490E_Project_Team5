@@ -185,7 +185,7 @@ CHEAP×k (k ≤ 8), THINK×j (j ≤ 8), FF(a, j) = up to a cheap attempts, then 
 **Reading.** P1–P3 → with a perfect check the recipe is a pure saving and the remaining question is the fact (premise / lemma names) and
 the budget split; that is the plan for the Lean phase on the cluster (`poc/slurm/lean_setup.sh`).
 
-### Results PF (2026-10-23 21:2x UTC; `python poc/analyze_pf.py`, 200 random attempt orders; solved statements of 244, tokens per statement)
+### Results PF (2026-10-23 21:1x UTC; `python poc/analyze_pf.py`, 200 random attempt orders; solved statements of 244, tokens per statement)
 | | CHEAP×8 | THINK×8 | FF(1, 8) | FF(8, 8) | best FF within THINK×8's budget |
 |---|---|---|---|---|---|
 | gpt-oss-20b (low / medium effort) | 66.0 @ 11.5k | 72.0 @ 108.9k | 72.7 @ 109.6k (101%) | **77.0** @ 117.0k | FF(8, 7) 76.2 (+4.2) @ 104.0k |
