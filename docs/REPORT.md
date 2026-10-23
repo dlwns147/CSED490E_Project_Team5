@@ -164,7 +164,7 @@ The recipe's losses are detectable before deployment. Label 30 random problems o
 them (the cheap program alone, fact first, fact first with two agreeing programs, always thinking) and keep the best by accuracy − 0.5 ×
 ktokens. Over the 45 held-out cells (3 models × 3 seeds × five benchmarks, each with the recipe's fact) the pick is 0.87 points from the
 cell's best on average (10 labels: 2.81; always using fact-first: 1.80; always thinking: 5.86). In Qwen3-8B's geometry and BWOR cells, where
-the recipe loses, the 30 labels pick thinking: 0.74 points of regret instead of 7.83 (pre-registered, `PREREG_MODEL.md`, addendum HO-P).
+the recipe loses, the 30 labels pick thinking: 0.74 points of regret instead of 7.83 (pre-registered, `PREREG_MODEL.md`, addendum HO-P). The labels are needed: estimating accuracies from how often the cheap program, a second sample and thinking agree (no labels) keeps fact-first in exactly those cells (regret 1.71 overall, 11.2 on Qwen3-8B geometry), because a model's cheap programs share their mistakes and vouch for each other (HO-L).
 
 ## 6. Baselines on the same harness
 

@@ -71,3 +71,18 @@ full cell; 1,000 pilots per cell; the 45 HO-P cells. `poc/analyze_hol.py`.
   input, so they agree with thinking there; in Qwen3-8B's BWOR cells (wrong numbers rarely coincide) it picks THINK (regret ≤ 2).
 **Reading.** P1 + P2 → a label-free pilot works where wrong answers disagree (word problems) and fails exactly where the free check
 leaks by construction (edge cases absent from the input), so labels are needed only there; P1 failing → keep the 30 labels.
+
+### Results HO-L (2026-10-23 00:2x UTC; `python poc/analyze_hol.py`, 45 cells, k = 30, 1,000 pilots per cell, λ = 0.5)
+| choice of FF vs THINK | mean regret | Qwen3-8B geometry (3 cells) | Qwen3-8B BWOR (3 cells) |
+|---|---|---|---|
+| label-free pilot (agreement of F, F2, T) | 1.71 | keeps FF in 97% of pilots, 11.23 | keeps FF in 93%, 2.58 |
+| labelled pilot (30 labels) | **0.57** | 0.12 | 0.63 |
+| always FF / always THINK | 1.41 / 5.46 | | |
+- **HOL-P1 refuted** (1.71 > 0.57 + 0.5; worse even than always using FF). **HOL-P2 half holds:** on Qwen3-8B geometry it keeps FF, as
+  predicted (regret 11.2); but on BWOR it also keeps FF (93%, regret 2.58 > 2), against the prediction.
+- Why: the triplet estimate assumes independent errors, but the cheap program and its second sample come from the same model and prompt
+  and fail the same way, so their agreement inflates the cheap program's estimated accuracy — the same self-correlation that makes the
+  free check leak. Where the recipe clearly wins (Qwen3-14B-AWQ, Qwen3-8B on OptiBench) it is near-perfect (regret ≈ 0, below the noisy
+  labelled pilot), so it fails exactly where the choice matters.
+- **Decision:** no label-free pilot; the recipe's held-out claim keeps the 30 labelled problems (HO-P). Answer to "is there a label-free
+  signal for when the recipe does not pay?": not from agreement between the model's own runs.
