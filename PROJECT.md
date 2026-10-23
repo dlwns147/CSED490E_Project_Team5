@@ -9,8 +9,10 @@ all numbers: `PROPOSAL.md` (Korean: `PROPOSAL_ko.md`). The lab log: `docs/FINDIN
 ## 1. Goal
 
 LLMs can solve computational problems — geometry, combinatorial optimization, contest and word problems — by writing a program.
-Programs can be silently wrong, and thinking longer is expensive. **Goal: exactly right answers with the fewest tokens, on models that fit
-one 24 GB GPU (RTX 3090).** Every result is accuracy *and* tokens.
+Programs can be silently wrong, and thinking longer is expensive. **Goal: exactly right answers with the fewest tokens, with open models
+from 8B to 120B.** Every result is accuracy *and* tokens. Compute: primarily the RTX 3090 partition (24 GB each; models larger than one GPU
+run tensor-parallel over several 3090s in one job), so as not to compete with other users (user, 2026-10-23: no longer limited to 24 GB
+models).
 
 **The recipe we test:** write a program → add the missing fact (a few lines of exact library usage, or the model's own checked program for
 a similar problem, found with no labels) → run a free check (the program runs; its outputs on moved / rotated / mirrored copies agree; the
@@ -37,8 +39,8 @@ table: `docs/REPORT.md` §5.1):
 - **In:** computational geometry (CG) and combinatorial optimization (CO) solved by LLM-written programs: generated geometry and
   optimization suites, OR word-problem benchmarks (NL4OPT, IndustryOR, MAMO, OptMATH, OptiBench, BWOR, LogiOR), Codeforces geometry,
   Solomon routing, job-shop scheduling.
-- **Models:** gpt-oss-20b, Qwen3-14B-AWQ, Qwen3-8B (fit one RTX 3090). Larger models (Qwen3-32B-AWQ, Qwen3.6-35B-A3B, gpt-oss-120b) only
-  as references; trained baselines (STORM-Qwen3-4B, ORLM-8B) run on the same harness.
+- **Models:** gpt-oss-20b, Qwen3-14B-AWQ, Qwen3-8B (one RTX 3090 each), Qwen3.5-9B (unseen-model test), and larger models on several
+  3090s (gpt-oss-120b, Qwen3-32B-AWQ, Qwen3.6-35B-A3B; earlier only references); trained baselines (STORM-Qwen3-4B, ORLM-8B) run on the same harness.
 - **Side tracks** (kept short in the report): competition math (MATH-500, AIME), Lean and geometry proofs, factual QA (PopQA).
 
 ## 4. Working rules
