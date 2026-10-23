@@ -100,7 +100,9 @@ On the geometry (108) and optimization (100) suites, three models (Qwen3-32B-AWQ
 
 Difficulty is the wrong signal: thinking where a cheap check fails beats thinking where problems look hard, and adding the fact first
 makes it both more accurate and cheaper. Choosing among four policies from 30 labelled problems of a new task loses 0.6 points of utility
-on average; using fact-first as a fixed default loses 1.4.
+on average; using fact-first as a fixed default loses 1.4. The thinking arms of this table think without the fact (on the optimization
+suite; the geometry thinking arm has the helpers); the held-out tests (§5.1) compare against thinking given the same fact, which is the
+harder baseline.
 
 ![Cost vs accuracy](../figs/fig19_cost_accuracy.png)
 
