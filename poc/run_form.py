@@ -107,6 +107,9 @@ if __name__ == "__main__":
     MT = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else (16000 if TARM else 8192)
     path = f"{RES}/opt_{tag}_{mode}{'t' if TARM else ''}_s{seed}.jsonl"
     done = {r["id"] for r in _rows(path)}
+    if os.environ.get("NLOPT_SHARD"):   # as run_nlopt: problems i, i+k, ... into <path>.shard<i>of<k> (poc/merge_shards.py merges after)
+        i, k = map(int, os.environ["NLOPT_SHARD"].split("/"))
+        P = P[i::k]; path = path[:-len(".jsonl")] + f".shard{i}of{k}.jsonl"; done |= {r["id"] for r in _rows(path)}
 
     def one(p):
         q = (P_MIP + SNIP if SET == "x3" else (P_FREEV if mode == "formxv" else P_FREE) if FREE else P_MIP).format(q=p["q"]); src = None   # formxv (HO4): formx + print the solution

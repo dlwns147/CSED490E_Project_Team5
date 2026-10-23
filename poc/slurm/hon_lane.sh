@@ -58,7 +58,7 @@ for think in (False, True):
          done ;;
   geothink) $P poc/run_geo_cross.py --model_tag S2_HOG_${m}_geo_think_s$set $GX --seed $set --distract 8 --think --max_tokens $TK >> $L 2>&1 & ;;
   thinkfact) sub=""; [ "$set" = optibench ] && sub="FORM_SUBSET=0/3"   # HO-TF2: thinking with the library program in the prompt
-         env $sub NLOPT_SET=$set $P poc/run_form.py $m formx $seeds --tarm --think --max_tokens $TK >> $L 2>&1 & ;;
+         env $sub ${4:+NLOPT_SHARD=$4} NLOPT_SET=$set $P poc/run_form.py $m formx $seeds --tarm --think --max_tokens $TK >> $L 2>&1 & ;;
   geothinkfact) $P poc/run_geo_cross.py --model_tag S2_HOG_${m}_geo_thinkfact_s$set $GX --seed $set --distract 0 --algo_hint --think --max_tokens $TK >> $L 2>&1 & ;;
   repair) for sd in $seeds; do NLOPT_SET=$set $P poc/run_repair.py $m $sd formx >> $L 2>&1 & done ;;   # HO-N3
   thinkshard) NLOPT_SHARD=$4 NLOPT_SET=$set $P poc/run_nlopt.py ${m}_$set thinkfree $seeds --think --max_tokens $TK >> $L 2>&1 & ;;
