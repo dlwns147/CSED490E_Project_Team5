@@ -159,7 +159,7 @@ pilot of `analyze_hop.py` with FF-R0 as a fifth policy over all 60 held-out cell
 **Decision.** R-P2 → the default policy on word problems is FF-R0 (the pilot still guards the losing cells); otherwise FF stays the default
 and repair is a pilot option.
 
-### Results HO-R (2026-10-23 09:0x UTC; 1,284 repairs, every visible failure with code repaired; `python poc/analyze_hop.py --repair oss20 q14a q8b q35`)
+### Results HO-R (2026-10-23 08:5x UTC; 1,284 repairs, every visible failure with code repaired; `python poc/analyze_hop.py --repair oss20 q14a q8b q35`)
 FF-R0 − FF (seed means) in the 9 new cells: gpt-oss-20b BWOR −0.8, LogiOR +1.4, OptMATH +3.0; Qwen3-14B-AWQ BWOR −0.8, LogiOR +2.5,
 OptMATH +0.3; Qwen3-8B BWOR −3.6, LogiOR −1.1, OptMATH +0.3 (FF-R0 at 80–104% of FF's tokens).
 | λ = 0.5 | always FF | always FF-R0 | 30-label pilot (5 policies) |
