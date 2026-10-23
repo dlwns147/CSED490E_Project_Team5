@@ -566,3 +566,7 @@ re-running 52 Qwen3-8B rows whose requests had timed out at the client's 1-hour 
   the main lever — it raises the cheap program *and* thinking. Spending thinking only on visible failures is a pure saving for gpt-oss-20b
   (ties or wins at 46–63% of the tokens) and on geometry for the two stronger models; for the Qwen models on word problems it is a trade:
   33–82% of the tokens for 2–12 points less than always thinking with the fact.
+*HO-TF2 operations (2026-10-23 14:5x UTC; no setting of the comparison changed):* Qwen3.5-9B's OptMATH thinking-with-the-library tasks
+wrote no rows in 2–3 hours: some library prompts of long OptMATH problems plus the 32k thinking budget exceed the server's 36,864-token
+context, vLLM rejects those requests (HTTP 400), and the client stops writing rows at the first failed request. The three tasks were
+cancelled and rerun with a 45,056-token context (still at most 32k new tokens), which every thinking-with-the-fact server now uses.
