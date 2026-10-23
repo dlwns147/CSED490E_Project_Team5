@@ -56,3 +56,13 @@ BWOR, LogiOR, OptMATH, geometry).
 Operations (2026-10-23 01:2x UTC; no setting changed): the seven combined jobs decoded only ~200 tokens/s each (long thinking runs fill
 the ~73k-token KV cache, so few requests run at once); they were cancelled after 70 minutes and the work resubmitted as a 22-task array,
 one task per arm group and seed (`poc/slurm/hon_array.sh`, `hon_specs.txt`, at most 14 GPUs at once); every arm resumes from its rows.
+
+### HON-P3 calls, recorded before any gain was read (2026-10-23 02:4x UTC; `CENSUS_SETS=optibench,bwor,logior,optmath python poc/analyze_which_fix.py --census q35`, free arm, 3 seeds, no labels)
+| cell | u (usage crashes) | fail the check | n (non-usage failures) | call |
+|---|---|---|---|---|
+| OptiBench Qwen3.5-9B | 19.3% | 42.5% | 23.2% | add |
+| BWOR Qwen3.5-9B | 32.1% | 58.1% | 26.0% | add |
+| LogiOR Qwen3.5-9B | 31.9% | 69.2% | 37.3% | add |
+| OptMATH Qwen3.5-9B | 23.7% | 75.3% | 51.7% | add |
+Every cell has u ≥ 5% (the model reaches for `gurobipy` and invents solver attributes, as in the setup check), so again only the "add"
+side is tested; the "do not add" side stays untested.
