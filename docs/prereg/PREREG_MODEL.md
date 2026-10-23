@@ -86,3 +86,12 @@ leaks by construction (edge cases absent from the input), so labels are needed o
   labelled pilot), so it fails exactly where the choice matters.
 - **Decision:** no label-free pilot; the recipe's held-out claim keeps the 30 labelled problems (HO-P). Answer to "is there a label-free
   signal for when the recipe does not pay?": not from agreement between the model's own runs.
+
+## Addendum HO-P2 (2026-10-23 16:5x UTC, before computing; offline): the pilot against the fact-matched thinking arm
+HO-TF / HO-TF2 show that HO-P's word-problem cells used a thinking arm without the library. **Re-run of HO-P / HO-R** with THINK :=
+thinking with the same fact (formxt; geometry thinkfact; OptMATH unchanged: thinks for the development models, formxt for Qwen3.5-9B) and
+every escalation going to that arm; OptiBench on the HO-TF third. Five policies (CHEAP, FF, FFR, THINK, FF-R0), 60 cells, λ = 0.5.
+- **P2-1:** the 30-label pilot keeps mean regret ≤ 1.0.
+- **P2-2:** THINK becomes the best policy in more cells than in HO-R (5 of 60), concentrated in the Qwen3 models' OptiBench / BWOR cells.
+**Reading.** P2-1 → the deployable claim ("recipe by default, 30 labels to see where thinking with the fact is worth its tokens") survives
+the fair baseline; otherwise the pilot needs more labels.
