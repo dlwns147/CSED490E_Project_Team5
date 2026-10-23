@@ -1,6 +1,7 @@
 """Report figure (docs/REPORT.md §5): on each held-out benchmark, accuracy vs output tokens per problem of always thinking and of the
 recipe (fact first, think only when the free check fails), one panel per 24 GB model, computed from the stored rows (seed means);
 the fourth panel is Qwen3.5-9B, a model the recipe was never developed with (HO-N; OptMATH with the library, thinking at 32k).
+Always thinking is given the same fact as the recipe (HO-TF / HO-TF2: formxt, thinkfact; OptiBench on the HO-TF third).
 Fact per benchmark: OptMATH the mined usage example (mips), OptiBench / BWOR / LogiOR the label-free library (formx), geometry the needed
 helpers + hint. usage: python make_figure_heldout.py   -> figs/fig23_heldout.png (+ prints the numbers)"""
 import hashlib, json, os
@@ -11,9 +12,9 @@ import matplotlib.pyplot as plt  # noqa: E402
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 X3, RES = f"{ROOT}/results/x3", f"{ROOT}/results"
 MODELS = (("oss20", "gpt-oss-20b"), ("q14a", "Qwen3-14B-AWQ"), ("q8b", "Qwen3-8B"), ("q35", "Qwen3.5-9B (never used in development)"))
-OPT = (("optmath", "OptMATH", "mips", "thinks"), ("optibench", "OptiBench", "formx", "thinkfree"), ("bwor", "BWOR", "formx", "thinkfree"),
-       ("logior", "LogiOR", "formx", "thinkfree"))
-OPT_NEW = (("optmath", "OptMATH", "formx", "thinkfree"),) + OPT[1:]   # no mined example: the model has no development runs
+OPT = (("optmath", "OptMATH", "mips", "thinks"), ("optibench", "OptiBench", "formx", "formxt"), ("bwor", "BWOR", "formx", "formxt"),
+       ("logior", "LogiOR", "formx", "formxt"))
+OPT_NEW = (("optmath", "OptMATH", "formx", "formxt"),) + OPT[1:]   # no mined example: the model has no development runs
 BLUE, ORANGE, INK, MUTED, SURFACE = "#2a78d6", "#eb6834", "#0b0b0b", "#52514e", "#fcfcfb"
 # label placement where pairs crowd: (anchor point, dx, dy, ha); default = above-left of the recipe's point
 LABEL = {("q14a", "OptMATH"): ("ff", -6, -12, "right"), ("q8b", "geometry"): ("ff", -6, -12, "right"),
@@ -45,7 +46,7 @@ def geo_cell(m):
     acc_ff = acc_t = tok_ff = tok_t = n = 0
     for s in (1, 2, 3):
         load = lambda a: {(r["task"], r["n"], r["inst"]): r for r in map(json.loads, open(f"{RES}/geocross_S2_HOG_{m}_geo_{a}_s{s}.jsonl"))}
-        F, T = load("fact"), load("think")
+        F, T = load("fact"), load("thinkfact")
         for k, f in F.items():
             t = T[k]; n += 1; p = mr(f)
             acc_ff += ok(f) if p else ok(t); acc_t += ok(t); tok_ff += tok(f) + (0 if p else tok(t)); tok_t += tok(t)
@@ -76,7 +77,7 @@ def main():
     handles = [plt.Line2D([], [], marker="o", ls="", color=BLUE, label="fact first, think only when the free check fails"),
                plt.Line2D([], [], marker="o", ls="", color=ORANGE, label="always think")]
     fig.legend(handles=handles, loc="upper left", bbox_to_anchor=(0.005, 0.955), frameon=False, ncol=2, fontsize=9)
-    fig.suptitle("Held-out benchmarks: the recipe vs always thinking (3 seeds; left of its pair = cheaper, above = more accurate)",
+    fig.suptitle("Held-out benchmarks: the recipe vs always thinking with the same fact (3 seeds; left of its pair = cheaper, above = more accurate)",
                  x=0.01, ha="left", fontsize=10, color=INK)
     fig.tight_layout(rect=(0, 0, 1, 0.88))
     out = f"{ROOT}/figs/fig23_heldout.png"

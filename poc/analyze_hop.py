@@ -5,7 +5,9 @@ HO-N (PREREG_HON.md): `python analyze_hop.py q35` runs the same pilot on that mo
 thinkfree: the mined-example arm needs the model's own runs on NL4OPT / IndustryOR, which it does not have).
 HO-R (PREREG_HON.md): --repair adds FF-R0 (on a visible failure one cheap repair, results/x3/repair_<m>_<set>_<arm>_s<seed>.jsonl; if it
 runs and prints a value it is the answer, else think); on geometry FF-R0 = FF (repair stays out there, HO-G-R).
-usage: python analyze_hop.py [--repair] [model ...]"""
+HO-P2 (PREREG_MODEL.md): --fair uses the thinking arm given the same fact (formxt on OptiBench's HO-TF third / BWOR / LogiOR, thinkfact
+on geometry; OptMATH unchanged for the development models, formxt for Qwen3.5-9B) as THINK and as every escalation.
+usage: python analyze_hop.py [--repair] [--fair] [model ...]"""
 import os, random, sys, types
 from collections import defaultdict
 
@@ -18,6 +20,10 @@ from run_nlopt import RES as XRES, _rows  # noqa: E402
 WORDS = [("optmath", "mips", "thinks"), ("optibench", "formx", "thinkfree"), ("bwor", "formx", "thinkfree"), ("logior", "formx", "thinkfree")]
 WORDS_NEW = [("optmath", "formx", "thinkfree")] + WORDS[1:]   # a model never run on the development word problems (HO-N)
 REPAIR = "--repair" in sys.argv
+if "--fair" in sys.argv:
+    WORDS = [("optmath", "mips", "thinks")] + [(b, "formx", "formxt") for b in ("optibench", "bwor", "logior")]
+    WORDS_NEW = [("optmath", "formx", "formxt")] + WORDS[1:]
+GEO_THINK = "thinkfact" if "--fair" in sys.argv else "think"
 
 
 def policies(items):
@@ -48,7 +54,7 @@ def cells(models=("oss20", "q14a", "q8b")):
                                        agree=ok_(f) and ok_(F2[i]) and ag(f["pred"], F2[i]["pred"]), f2_tok=F2[i]["out_tokens"] or 0,
                                        t_ok=bool(T[i]["correct"]), t_tok=T[i]["out_tokens"] or 0, r=R.get(i)) for i, f in F.items() if i in T and i in F2]
         for s in (1, 2, 3):
-            F, F2, T = load(f"S2_HOG_{m}_geo_fact_s{s}"), load(f"S2_HOG_{m}_geo_fact_s{s % 3 + 1}"), load(f"S2_HOG_{m}_geo_think_s{s}")
+            F, F2, T = load(f"S2_HOG_{m}_geo_fact_s{s}"), load(f"S2_HOG_{m}_geo_fact_s{s % 3 + 1}"), load(f"S2_HOG_{m}_geo_{GEO_THINK}_s{s}")
             yield (m, "geometry", s), [dict(f_ok=ok(f), f_pass=N.geo_check(f)[0], f_tok=tok(f),
                                             agree=N.geo_check(f)[0] and N.geo_check(F2[k])[0] and agree(f, F2[k]), f2_tok=tok(F2[k]),
                                             t_ok=ok(T[k]), t_tok=tok(T[k])) for k, f in F.items() if k in T and k in F2]
