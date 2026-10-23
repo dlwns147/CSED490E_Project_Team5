@@ -10,18 +10,33 @@
 #   sbatch -J hon_bwor poc/slurm/job.sh poc/slurm/hon_lane.sh words bwor
 #   smoke: sbatch -J hon_smoke poc/slurm/job.sh poc/slurm/hon_lane.sh smoke   (smoke2: thinking only, at the amended settings)
 # Thinking (amended before the main runs, PREREG_HON.md): the model card's thinking sampling and a 32k budget; cheap arms as all models.
+# Another unseen model (HO-N2): a leading `--model g4e` (Gemma-4-E4B-it, PREREG_HON.md addendum) selects it; default q35.
+m=q35; dir=Qwen/Qwen3.5-9B; TS=temperature=1.0,top_p=0.95,top_k=20,presence_penalty=1.5   # model card thinking sampling
+if [ "$1" = --model ]; then
+  case $2 in g4e) m=g4e; dir=google/gemma-4-E4B-it; TS=temperature=1.0,top_p=0.95,top_k=64 ;; esac; shift 2
+fi
 grp=$1 set=$2 seeds=${3:-"1 2 3"}
-m=q35; dir=Qwen/Qwen3.5-9B
-S=$(bash poc/start_server.sh /SSD/huggingface/$dir $PORT 0 0.92 hon_${grp}_$set --max-model-len 36864 --language-model-only --max-num-seqs 32) || exit 1
+S=$(bash poc/start_server.sh /SSD/huggingface/$dir $PORT 0 0.92 hon_${m}_${grp}_$set --max-model-len 36864 --language-model-only --max-num-seqs 32) || exit 1
 export POC_BASE_URL=http://127.0.0.1:$PORT/v1 POC_TIMEOUT=7200
-export POC_THINK_SAMPLING=temperature=1.0,top_p=0.95,top_k=20,presence_penalty=1.5   # applied to thinking calls only (llm.chat)
+export POC_THINK_SAMPLING=$TS   # applied to thinking calls only (llm.chat)
 TK=32000
-L=results/x3/run_hon_${grp}_${set}${3:+_$3}${4:+_${4/\//of}}.log
+L=results/x3/run_hon_${m}_${grp}_${set}${3:+_$3}${4:+_${4/\//of}}.log
 GX="--stdlib --n_inst 12 --temperature 0.7 --tasks overlap,convex,tri,clip --resume"
 case $grp in
   smoke) export POC_THINK_SAMPLING=   # the first smoke ran the harness sampling
          NLOPT_LIMIT=8 NLOPT_SET=bwor $P poc/run_nlopt.py q35smoke_bwor free 1 --max_tokens 8192 >> $L 2>&1 &
          NLOPT_LIMIT=8 NLOPT_SET=bwor $P poc/run_nlopt.py q35smoke_bwor thinkfree 1 --think --max_tokens 16000 >> $L 2>&1 & ;;
+  probe) PYTHONPATH=poc $P -c "
+from llm import client
+for think in (False, True):
+    r = client.chat.completions.create(model='local', messages=[{'role': 'user', 'content': 'Write a Python program that prints the area of a 3-4-5 triangle.'}],
+        max_tokens=4000, temperature=1.0, extra_body={'chat_template_kwargs': {'enable_thinking': think}, 'skip_special_tokens': False})
+    t = r.choices[0].message.content or ''
+    print('THINK' if think else 'PLAIN', r.choices[0].finish_reason, r.usage.completion_tokens, repr(t[:300]), '...', repr(t[-300:]))
+" >> $L 2>&1
+         NLOPT_LIMIT=8 NLOPT_SET=bwor $P poc/run_nlopt.py ${m}smoke_bwor free 1 --max_tokens 8192 >> $L 2>&1 &
+         NLOPT_LIMIT=8 NLOPT_SET=bwor $P poc/run_nlopt.py ${m}smoke_bwor thinkfree 1 --think --max_tokens $TK >> $L 2>&1 &
+         NLOPT_LIMIT=16 NLOPT_SET=optibench $P poc/run_nlopt.py ${m}smoke_optibench thinkfree 1 --think --max_tokens $TK >> $L 2>&1 & ;;
   smoke2) NLOPT_LIMIT=8 NLOPT_SET=bwor $P poc/run_nlopt.py q35smoke2_bwor thinkfree 1 --think --max_tokens $TK >> $L 2>&1 &
           NLOPT_LIMIT=16 NLOPT_SET=optibench $P poc/run_nlopt.py q35smoke2_optibench thinkfree 1 --think --max_tokens $TK >> $L 2>&1 & ;;
   words) for sd in $seeds; do

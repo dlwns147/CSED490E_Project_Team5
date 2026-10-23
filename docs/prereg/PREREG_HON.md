@@ -99,3 +99,19 @@ appends them to the seed's file afterwards; ids already present are skipped).
   knowledge, the fact does (development finding 1, now on a new model).
 - **Decision:** the main claim holds on a model and model generation the recipe was never developed with: fact first, think on a visible
   failure beats always thinking on all five held-out benchmarks for Qwen3.5-9B, and the 30-label pilot keeps its regret below one point.
+
+## Addendum HO-N2 (2026-10-23 07:4x UTC, before any run of this model): a second unseen model, from another family
+**Why.** Qwen3.5-9B is still a Qwen model; the report's limitation is "one open family plus gpt-oss". Gemma-4-E4B-it (Google; 4B
+effective parameters, bf16, a thinking switch in its chat template; tag `g4e`) fits one RTX 3090 and has never been used here. It is much
+smaller than the other models, so it also tests whether the pilot catches cells where the recipe loses on an unseen family.
+**Protocol:** exactly HO-N as amended (same arms, seeds, data, analyses; cheap arms at the harness sampling, thinking with the model card's
+sampling — temperature 1.0, top-p 0.95, top-k 64 — and a 32k budget; `poc/slurm/hon_lane.sh --model g4e ...`). A probe + smoke job first
+checks that vLLM serves it and how its thinking is delimited (tags `g4esmoke_*`, not part of the results); a harness fix found there is
+recorded here before the main runs.
+**Predictions.**
+- **N2-P1:** FF ties or beats always thinking (interval upper bound ≥ 0) on ≥ 3 of the 5 benchmarks at ≤ 80% of its tokens (a 4B model's
+  cheap programs are right less often, so fewer than for Qwen3.5-9B).
+- **N2-P2 (the main test):** the k = 30 pilot's mean regret over its 15 cells is ≤ 1.0 point at λ = 0.5, including any cell where FF loses.
+- **N2-P3:** the census calls (recorded before any gain) are right in ≥ 6 of the 8 (cell, fact) points; a "do not add" call, if any, is
+  the first prospective test of that side.
+**Decision.** P2 holding → the deployable claim (recipe by default, 30 labels to catch its losses) holds across a third model family.
