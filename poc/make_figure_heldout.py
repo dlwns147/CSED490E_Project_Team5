@@ -75,7 +75,7 @@ def main():
             ax.spines[sp].set_visible(False)
     axes[0].set_ylabel("solved (%)")
     handles = [plt.Line2D([], [], marker="o", ls="", color=BLUE, label="fact first, think only when the free check fails"),
-               plt.Line2D([], [], marker="o", ls="", color=ORANGE, label="always think")]
+               plt.Line2D([], [], marker="o", ls="", color=ORANGE, label="always think, with the same fact")]
     fig.legend(handles=handles, loc="upper left", bbox_to_anchor=(0.005, 0.955), frameon=False, ncol=2, fontsize=9)
     fig.suptitle("Held-out benchmarks: the recipe vs always thinking with the same fact (3 seeds; left of its pair = cheaper, above = more accurate)",
                  x=0.01, ha="left", fontsize=10, color=INK)
