@@ -1,0 +1,22 @@
+cheap optibench 1
+cheap optibench 2
+cheap optibench 3
+cheap bwor
+cheap logior
+cheap optmath
+geofact
+think optibench 1
+think optibench 2
+think optibench 3
+think bwor 1
+think bwor 2
+think bwor 3
+think logior 1
+think logior 2
+think logior 3
+think optmath 1
+think optmath 2
+think optmath 3
+geothink 1
+geothink 2
+geothink 3

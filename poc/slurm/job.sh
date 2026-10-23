@@ -9,7 +9,7 @@
 # `--nodelist=<node>` (`docker load` of the 26 GB tar is per node: 258 s on n19; the first line of the log names the node).
 # Inside the container (root): repo at /NAS/SJ/POSTECH/nlp (= /home1/leesangjun/SJ/POSTECH/nlp), models /SSD/huggingface
 # (= /home/leesangjun/SSD/huggingface, root-owned shared pool), data $POC_DATA (= /home1/leesangjun/SJ/POSTECH/nlp_data).
-# The lane gets: the allocated GPU as index 0, PORT (free, from the job id), P (client / sandbox python). Files the container
+# The lane gets: the allocated GPU as index 0, PORT (free, from the job id), P (client / sandbox python), SLURM_ARRAY_TASK_ID (arrays). Files the container
 # writes under results/ are chowned back to the submitting user at the end.
 #SBATCH -J nlp
 #SBATCH -o /home1/leesangjun/out/nlp/%j.out
@@ -49,6 +49,6 @@ docker run -itd "${GPUS[@]}" --cpuset-cpus ${CPULIST} --name ${DOCKER_NAME} --ip
 # Caches stay inside the container (the host /dev/shm is shared by every job on the node through --ipc=host).
 docker exec -e PORT=$((20000 + ${SLURM_JOB_ID:-0} % 20000)) -e P=/root/venvs/llm_algo_poc/bin/python \
 	-e POC_DATA=/NAS/SJ/POSTECH/nlp_data -e HF_HOME=/root/.cache/hf_home_poc -e VLLM_CACHE_ROOT=/root/.cache/vllm_cache_poc \
-	-e VLLM_WORKER_MULTIPROC_METHOD=spawn -e SLURM_JOB_ID=${SLURM_JOB_ID} \
+	-e VLLM_WORKER_MULTIPROC_METHOD=spawn -e SLURM_JOB_ID=${SLURM_JOB_ID} -e SLURM_ARRAY_TASK_ID=${SLURM_ARRAY_TASK_ID:-} \
 	${DOCKER_NAME} bash -c "cd /NAS/SJ/POSTECH/nlp && ${LANE}"
 echo "lane exit $? end $(date -u '+%F %T') UTC"
