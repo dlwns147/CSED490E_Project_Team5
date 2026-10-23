@@ -80,8 +80,9 @@ def check(header, stmt, body, timeout=180):
 
 def check_batch(items, timeout=1800):
     """Many attempts in one Lean file (the shared miniF2F header once, each attempt's theorem renamed attempt_<i>, followed by
-    `#print axioms attempt_<i>`). An attempt is ok iff no error is reported inside its lines AND its #print axioms line reports the
-    theorem without sorryAx (a theorem swallowed by an earlier attempt's broken syntax never reaches that line, so it fails). On a
+    `#print axioms attempt_<i>`). An attempt is ok iff no error is reported inside its lines AND #print axioms reports the theorem
+    without sorryAx (a theorem swallowed by an earlier attempt's broken syntax is never declared, so it fails). Lean prints info
+    messages without a position, so the axioms line is found by the theorem's name (2026-10-23 validation fix). On a
     timeout the batch falls back to one `check` per attempt. items: (header, stmt, body)."""
     header = items[0][0]
     if any(h != header for h, _, _ in items):
@@ -117,11 +118,11 @@ def check_batch(items, timeout=1800):
                 msgs.append([int(m.group(1)), m.group(2), m.group(3)])
             elif msgs:
                 msgs[-1][2] += "\n" + l
+        full = so + "\n" + se
         for i, (a, b, ax) in spans.items():
             errs = [t for ln, k, t in msgs if a <= ln <= b and k == "error"]
-            axio = [t for ln, k, t in msgs if ln == ax]
-            proved = any(f"'attempt_{i}'" in t and ("depends on axioms" in t or "does not depend on any axioms" in t) and "sorryAx" not in t
-                         for t in axio)
+            m_ax = re.search(rf"'attempt_{i}' (depends on axioms: \[([^\]]*)\]|does not depend on any axioms)", full, re.S)
+            proved = bool(m_ax) and "sorryAx" not in (m_ax.group(2) or "")
             unknown = sorted(set(re.findall(r"unknown (?:identifier|constant) '([^']+)'", "\n".join(errs))))
             out[i] = {"ok": proved and not errs, "errors": [e.split("\n")[0] for e in errs][:5] or ([] if proved else ["not elaborated"]),
                       "unknown": unknown}
