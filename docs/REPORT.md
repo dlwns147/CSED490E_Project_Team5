@@ -172,7 +172,7 @@ called "add a fact" on all four word benchmarks and both facts paid (+3.7 to +19
 The recipe's losses are detectable before deployment. Label 30 random problems of a new model × benchmark cell, run the four policies on
 them (the cheap program alone, fact first, fact first with two agreeing programs, always thinking) and keep the best by accuracy − 0.5 ×
 ktokens. Over the 45 held-out cells (3 models × 3 seeds × five benchmarks, each with the recipe's fact) the pick is 0.87 points from the
-cell's best on average (10 labels: 2.81; always using fact-first: 1.80; always thinking: 5.86); on the unseen Qwen3.5-9B, 0.81 over 15 cells. In Qwen3-8B's geometry and BWOR cells, where
+cell's best on average (10 labels: 2.81; always using fact-first: 1.80; always thinking: 5.86); on the unseen Qwen3.5-9B, 0.81 over 15 cells. With repair-first as a fifth policy over all 60 held-out cells the pilot's regret is 0.94, and always repairing first (1.22 on the 48 word cells) beats always using the plain recipe (2.85), though it loses accuracy on BWOR for all three development models (HO-R). In Qwen3-8B's geometry and BWOR cells, where
 the recipe loses, the 30 labels pick thinking: 0.74 points of regret instead of 7.83 (pre-registered, `PREREG_MODEL.md`, addendum HO-P). The labels are needed: estimating accuracies from how often the cheap program, a second sample and thinking agree (no labels) keeps fact-first in exactly those cells (regret 1.71 overall, 11.2 on Qwen3-8B geometry), because a model's cheap programs share their mistakes and vouch for each other (HO-L).
 
 ## 6. Baselines on the same harness

@@ -158,3 +158,17 @@ pilot of `analyze_hop.py` with FF-R0 as a fifth policy over all 60 held-out cell
 - **R-P3:** the 30-label pilot over the five policies keeps mean regret ≤ 1.0 over all 60 cells.
 **Decision.** R-P2 → the default policy on word problems is FF-R0 (the pilot still guards the losing cells); otherwise FF stays the default
 and repair is a pilot option.
+
+### Results HO-R (2026-10-23 09:0x UTC; 1,284 repairs, every visible failure with code repaired; `python poc/analyze_hop.py --repair oss20 q14a q8b q35`)
+FF-R0 − FF (seed means) in the 9 new cells: gpt-oss-20b BWOR −0.8, LogiOR +1.4, OptMATH +3.0; Qwen3-14B-AWQ BWOR −0.8, LogiOR +2.5,
+OptMATH +0.3; Qwen3-8B BWOR −3.6, LogiOR −1.1, OptMATH +0.3 (FF-R0 at 80–104% of FF's tokens).
+| λ = 0.5 | always FF | always FF-R0 | 30-label pilot (5 policies) |
+|---|---|---|---|
+| 48 word cells | 2.85 | **1.22** | |
+| of which the 36 development-model cells | 2.10 | **1.62** | |
+| all 60 cells (geometry: FF-R0 = FF) | 2.86 | 1.56 | **0.94** (k = 10: 3.03) |
+- **R-P1 refuted** (5 / 9 cells ≥ FF − 0.5): on BWOR the repair costs all three development models accuracy (−0.8, −0.8, −3.6), and
+  Qwen3-8B also on LogiOR. **R-P2 holds** (always FF-R0 1.22 < always FF 2.85; also on the development models alone, 1.62 < 2.10).
+  **R-P3 holds** (0.94 ≤ 1.0). FF-R0 is the best policy in 34 of 60 cells.
+- **Decision (as pre-registered):** the default policy on word problems is FF-R0 — one cheap repair on a visible failure, then think —
+  with the 30-label pilot to catch the cells where it loses (BWOR; Qwen3-8B). Geometry keeps FF.
