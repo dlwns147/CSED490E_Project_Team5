@@ -3,7 +3,9 @@ The file checked is the dataset header + the dataset's formal statement (never t
 the first ':= by' of the model's Lean block). Accepted = compiles with no error, no `sorry` / `admit` / `axiom`.
 usage: POC_BASE_URL=... python run_lean.py gen <tag> <split> <k> [--logprobs] [--max_tokens N] [--think] [--card_prompt] [--exemplar <tag>]  -> results/x4/lean_<tag>_<split>.jsonl
        python run_lean.py check <file.jsonl>          (compile every attempt; adds ok / errors / unknown identifiers)
-       POC_BASE_URL=... python run_lean.py fix <tag> <split>   (one feedback round for proofs whose errors name unknown identifiers)"""
+       POC_BASE_URL=... python run_lean.py fix <tag> <split>   (one feedback round for proofs whose errors name unknown identifiers)
+       python run_lean.py bcheck <file.jsonl> [batch]   (as check, many attempts per Lean process: Mathlib is loaded once per batch)
+       python run_lean.py bvalidate <file.jsonl> <n>    (re-check n random already-checked attempts in batches; agreement with `check`)"""
 import json, os, re, subprocess, sys, tempfile, zlib
 from concurrent.futures import ThreadPoolExecutor
 _DATA = os.environ.get("POC_DATA", "/NAS/SJ/POSTECH/nlp_data")   # Slurm server (2026-10-22): external data; old server: /SSD/lean_postech
@@ -74,6 +76,69 @@ def check(header, stmt, body, timeout=180):
         return {"ok": False, "errors": ["timeout"], "unknown": []}
     finally:
         os.unlink(path)
+
+
+def check_batch(items, timeout=1800):
+    """Many attempts in one Lean file (the shared miniF2F header once, each attempt's theorem renamed attempt_<i>, followed by
+    `#print axioms attempt_<i>`). An attempt is ok iff no error is reported inside its lines AND its #print axioms line reports the
+    theorem without sorryAx (a theorem swallowed by an earlier attempt's broken syntax never reaches that line, so it fails). On a
+    timeout the batch falls back to one `check` per attempt. items: (header, stmt, body)."""
+    header = items[0][0]
+    if any(h != header for h, _, _ in items):
+        return [check(*it) for it in items]
+    out, lines, spans = [None] * len(items), header.rstrip("\n").split("\n") + [""], {}
+    for i, (_, stmt, body) in enumerate(items):
+        if body is None:
+            out[i] = {"ok": False, "errors": ["no proof"], "unknown": []}; continue
+        if re.search(r"\b(sorry|admit)\b|^\s*axiom\b", body, re.M):
+            out[i] = {"ok": False, "errors": ["sorry/admit"], "unknown": []}; continue
+        src = re.sub(r"^(\s*)theorem\s+\S+", lambda m_: f"{m_.group(1)}theorem attempt_{i}", stmt, count=1) + body
+        a = len(lines) + 1; lines += src.rstrip("\n").split("\n") + [""]; b = len(lines)
+        lines += [f"#print axioms attempt_{i}", ""]
+        spans[i] = (a, b, b + 1)
+    if not spans:
+        return out
+    with tempfile.NamedTemporaryFile("w", suffix=".lean", dir=_DATA + "/tmp", delete=False) as f:
+        f.write("\n".join(lines) + "\n"); path = f.name
+    try:
+        p = subprocess.Popen(["lake", "env", "lean", path], cwd=PROJ, env=ENV, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                             start_new_session=True)
+        try:
+            so, se = p.communicate(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            os.killpg(p.pid, 9); p.communicate()
+            for i in spans:
+                out[i] = check(*items[i])
+            return out
+        msgs = []   # (line, kind, text) for every message; a message's text runs until the next message header
+        for l in (so + "\n" + se).splitlines():
+            m = re.match(re.escape(path) + r":(\d+):\d+: (error|warning|info): ?(.*)", l)
+            if m:
+                msgs.append([int(m.group(1)), m.group(2), m.group(3)])
+            elif msgs:
+                msgs[-1][2] += "\n" + l
+        for i, (a, b, ax) in spans.items():
+            errs = [t for ln, k, t in msgs if a <= ln <= b and k == "error"]
+            axio = [t for ln, k, t in msgs if ln == ax]
+            proved = any(f"'attempt_{i}'" in t and ("depends on axioms" in t or "does not depend on any axioms" in t) and "sorryAx" not in t
+                         for t in axio)
+            unknown = sorted(set(re.findall(r"unknown (?:identifier|constant) '([^']+)'", "\n".join(errs))))
+            out[i] = {"ok": proved and not errs, "errors": [e.split("\n")[0] for e in errs][:5] or ([] if proved else ["not elaborated"]),
+                      "unknown": unknown}
+        return out
+    finally:
+        os.unlink(path)
+
+
+def bcheck_file(path, batch=16, only=None):
+    M = {m["name"]: m for m in json.load(open(f"{RES}/x3/minif2f.json"))}
+    rows = [json.loads(l) for l in open(path)]
+    os.makedirs(_DATA + "/tmp", exist_ok=True)
+    todo = [r for r in rows if "ok" not in r] if only is None else only
+    chunks = [todo[k:k + batch] for k in range(0, len(todo), batch)]
+    with ThreadPoolExecutor(int(os.environ.get("LEAN_PROCS", 4))) as ex:
+        res = list(ex.map(lambda c: check_batch([(M[r["name"]]["header"], M[r["name"]]["formal_statement"], r.get("body")) for r in c]), chunks))
+    return rows, todo, [x for c in res for x in c]
 
 
 def exemplars(src_tag, split):
@@ -244,3 +309,19 @@ if __name__ == "__main__":
         revise(a[2], a[3])
     elif a[1] == "fix":
         fix(a[2], a[3])
+    elif a[1] == "bcheck":
+        rows, todo, res = bcheck_file(a[2], int(a[3]) if len(a) > 3 else 16)
+        for r, c in zip(todo, res):
+            r.update(c)
+        with open(a[2], "w") as f:
+            for r in rows:
+                f.write(json.dumps(r) + "\n")
+        print(a[2], f"batch-checked {len(todo)}: ok {sum(c['ok'] for c in res)}; statements solved {len({r['name'] for r in rows if r.get('ok')})}", flush=True)
+    elif a[1] == "bvalidate":   # harness check of check_batch against the stored per-attempt results
+        import random
+        rows = [r for r in _rows(a[2]) if "ok" in r]
+        sample = random.Random(0).sample(rows, min(int(a[3]), len(rows)))
+        _, todo, res = bcheck_file(a[2], 16, only=[dict(r) for r in sample])
+        agree = sum(c["ok"] == r["ok"] for r, c in zip(todo, res))
+        print(a[2], f"bvalidate {len(todo)}: agree {agree}; stored ok {sum(r['ok'] for r in todo)}, batch ok {sum(c['ok'] for c in res)}; "
+              f"disagreements {[(r['name'], r['sample'], r['ok'], c['ok'], c['errors'][:1]) for r, c in zip(todo, res) if c['ok'] != r['ok']][:8]}", flush=True)
