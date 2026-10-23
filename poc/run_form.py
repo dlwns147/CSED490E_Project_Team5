@@ -8,7 +8,9 @@ modes: formh = the mips prompt (automatic API example) + ONE hand-written formul
        forms = formx with the pool restricted to the SAME model's own programs (control: self-improvement, no other model);
        formo = formx as a stream: problems arrive in a fixed random order and only EARLIER problems' programs can be shown (no fact yet:
                the mips example); NLOPT_SET=x3: formx on NL4OPT + IndustryOR (pool = the models' mipf programs; prompt keeps the snippet).
-usage: NLOPT_SET=mamo POC_BASE_URL=... python run_form.py <model> <mode> <seed>   -> results/x3/opt_<model>_mamo_<mode>_s<seed>.jsonl"""
+usage: NLOPT_SET=mamo POC_BASE_URL=... python run_form.py <model> <mode> <seed>   -> results/x3/opt_<model>_mamo_<mode>_s<seed>.jsonl
+HO-TF (PREREG_HO.md, 2026-10-23): --tarm = the same prompt answered by the thinking arm (16,000 tokens, or --max_tokens N; Qwen add
+--think, gpt-oss set POC_REASONING_EFFORT=medium) -> mode <mode>t; FORM_SUBSET=i/k keeps problems i, i+k, ... (a fixed subset)."""
 import json, math, os, re, sys, zlib
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -99,7 +101,11 @@ if __name__ == "__main__":
         ids = sorted(p["id"] for p in problems()); random.Random(0).shuffle(ids); RANK = {i: k for k, i in enumerate(ids)}
     SEL = selector() if mode in ("formx", "formxv") else selector((m,)) if mode == "forms" else selector(rank=RANK) if mode == "formo" else None
     P = [p for p in problems() if mode not in ("formh", "formc") or kind(p["q"])]
-    path = f"{RES}/opt_{tag}_{mode}_s{seed}.jsonl"
+    if os.environ.get("FORM_SUBSET"):
+        i, k = map(int, os.environ["FORM_SUBSET"].split("/")); P = P[i::k]
+    TARM, THINK = "--tarm" in sys.argv, "--think" in sys.argv
+    MT = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else (16000 if TARM else 8192)
+    path = f"{RES}/opt_{tag}_{mode}{'t' if TARM else ''}_s{seed}.jsonl"
     done = {r["id"] for r in _rows(path)}
 
     def one(p):
@@ -117,7 +123,7 @@ if __name__ == "__main__":
                       + s[1][1].strip() + "\n```")
             elif mode == "formo" and EX(p):   # stream start: nothing earlier passed the check yet -> the mips prompt
                 q += "\n\nA program that runs with this library (written for a different problem):\n```python\n" + EX(p).strip() + "\n```"
-        o = chat(q, max_tokens=8192, temperature=0.7, seed=seed * 1000 + zlib.crc32(p["id"].encode()) % 997)
+        o = chat(q, think=THINK, max_tokens=MT, temperature=0.7, seed=seed * 1000 + zlib.crc32(p["id"].encode()) % 997)
         code = last_block(o["text"] or "", ("python", "py", "python3"))
         res = run_python(code, "", timeout=60, mem_bytes=4 << 30, cpu_s=3600 if FREE else None) if code else None
         sol_lines = [l for l in ((res.stdout if res and res.status == "ok" else "") or "").strip().splitlines() if l.strip()]   # as run_nlopt's free modes (H5: multi-threaded CP-SAT); OptiBench formx had 3 / 14,520 timeouts, none CP-SAT
@@ -127,6 +133,7 @@ if __name__ == "__main__":
         return {"id": p["id"], "src": p["src"], "kind": kind(p["q"]), "gold": p["gold"], "mode": mode, "out_tokens": o.get("out_tokens"),
                 "finish": o.get("finish"), "code": code, "status": (res.status if res else "no_code"), "stdout": out[-300:],
                 "err": ((res.stderr or "")[-300:] if res else ""), "pred": pred, "correct": correct(pred, p["gold"]), "fact_from": src,
+                **({"mode": mode + "t"} if TARM else {}),
                 **({"solution": next((l.strip()[:6000] for l in reversed(sol_lines[:-1]) if l.strip().startswith("{")), None)} if mode == "formxv" else {})}
     with ThreadPoolExecutor(48) as ex, open(path, "a") as f:
         for fu in as_completed([ex.submit(one, p) for p in P if p["id"] not in done]):

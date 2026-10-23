@@ -513,3 +513,18 @@ claim) and the bound goes into the report's limitations; if not, re-run the budg
   LogiOR with the library, −4.3 [−10.1, +0.7]); one win becomes a tie (gpt-oss-20b OptMATH). Qwen3-8B's losses only deepen.
 - **Decision:** no 32k-budget THINK run; the report states the bound (a longer budget could cost the recipe at most ~3 points in a cell and
   turn gpt-oss-20b's OptMATH win into a tie).
+
+## Addendum HO-TF (2026-10-23 09:1x UTC, before any run): is always thinking *with the same fact* a stronger baseline?
+**Why.** In the held-out table the library rows compare FF with the label-free library against always thinking *without* it (OptiBench,
+BWOR, LogiOR); only OptMATH's thinking arm had the fact. That conflates the fact with where thinking goes. The fair baseline is the
+thinking arm given the same prompt, library program included (`formxt`), and FF should then escalate to that arm too.
+**Run:** `run_form.py <m> formx <seed> --tarm` (Qwen3: `--think`, 16k; gpt-oss-20b: medium effort, as its thinking arms), seeds 1–3, for
+gpt-oss-20b, Qwen3-14B-AWQ, Qwen3-8B on BWOR and LogiOR (all problems) and OptiBench (a fixed third: problems 0, 3, 6, …, 202 of 605,
+`FORM_SUBSET=0/3`, to keep the cost to ~40 GPU-hours of RTX 3090); every comparison on OptiBench uses the same 202 problems.
+Policies: THINK (thinkfree, no fact), THINK+F (formxt), FF+F (formx; on a visible failure formxt). Paired 95% intervals, token shares.
+- **TF-P1:** THINK+F ≥ THINK in ≥ 7 of the 9 cells (the fact helps thinking too).
+- **TF-P2 (the claim):** FF+F ties or beats THINK+F (interval upper bound ≥ 0) in ≥ 5 of the 6 cells of gpt-oss-20b and Qwen3-14B-AWQ, at
+  ≤ 60% of its tokens.
+- **TF-P3:** for Qwen3-8B, FF+F is significantly below THINK+F on BWOR (its leak), as against THINK.
+**Decision.** TF-P2 holds → the held-out claim stands against the strongest thinking baseline and the table's library rows are replaced
+by the fair comparison; fails → the library rows are restated as a token-for-accuracy trade-off against thinking with the fact.
