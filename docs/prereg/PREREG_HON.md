@@ -66,3 +66,15 @@ one task per arm group and seed (`poc/slurm/hon_array.sh`, `hon_specs.txt`, at m
 | OptMATH Qwen3.5-9B | 23.7% | 75.3% | 51.7% | add |
 Every cell has u ≥ 5% (the model reaches for `gurobipy` and invents solver attributes, as in the setup check), so again only the "add"
 side is tested; the "do not add" side stays untested.
+
+### Results HON-P3 (2026-10-23 02:5x UTC; free / freef / formx, 3 seeds; gain = with fact − free, paired 95% interval over problems)
+| cell (call: add) | free | + usage card | + label-free library |
+|---|---|---|---|
+| OptiBench | 41.8% | +19.1 [+16.6, +21.7] ✓ | +19.7 [+16.6, +22.8] ✓ |
+| BWOR | 24.4% | +8.9 [+2.0, +16.3] ✓ | +3.7 [−3.3, +11.0] ✓ |
+| LogiOR | 19.2% | +13.4 [+7.2, +19.6] ✓ | +6.5 [−0.4, +13.8] ✓ |
+| OptMATH | 8.7% | +8.3 [+3.3, +14.0] ✓ | +13.0 [+7.0, +19.3] ✓ |
+- **HON-P3 holds on its "add" side: 8 / 8 calls right** (each fact ≥ +2 points; two library gains have intervals reaching below 0). With
+  WF3 the rule has now been right in 18 of 20 prospective points, all on the "add" side; the "do not add" side remains untested (no 24 GB
+  model so far makes fewer than 5% usage crashes on these benchmarks). On a new model the hand-written card helps as much as the library
+  or more on BWOR / LogiOR — unlike Qwen3-8B, whose card missed the routing library it reaches for (WF3).

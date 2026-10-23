@@ -589,3 +589,4 @@ SL_HON cheap optibench done Fri Oct 23 02:05:12 UTC 2026
 SL_HON cheap bwor done Fri Oct 23 02:06:16 UTC 2026
 SL_HON cheap optibench done Fri Oct 23 02:06:23 UTC 2026
 SL_HON cheap logior done Fri Oct 23 02:28:29 UTC 2026
+SL_HON cheap optmath done Fri Oct 23 02:51:17 UTC 2026
