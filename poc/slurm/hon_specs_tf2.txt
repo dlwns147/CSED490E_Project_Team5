@@ -1,0 +1,15 @@
+thinkfact optibench 1
+thinkfact optibench 2
+thinkfact optibench 3
+thinkfact bwor 1
+thinkfact bwor 2
+thinkfact bwor 3
+thinkfact logior 1
+thinkfact logior 2
+thinkfact logior 3
+thinkfact optmath 1
+thinkfact optmath 2
+thinkfact optmath 3
+geothinkfact 1
+geothinkfact 2
+geothinkfact 3
