@@ -10,7 +10,8 @@ modes: formh = the mips prompt (automatic API example) + ONE hand-written formul
                the mips example); NLOPT_SET=x3: formx on NL4OPT + IndustryOR (pool = the models' mipf programs; prompt keeps the snippet).
 usage: NLOPT_SET=mamo POC_BASE_URL=... python run_form.py <model> <mode> <seed>   -> results/x3/opt_<model>_mamo_<mode>_s<seed>.jsonl
 HO-TF (PREREG_HO.md, 2026-10-23): --tarm = the same prompt answered by the thinking arm (16,000 tokens, or --max_tokens N; Qwen add
---think, gpt-oss set POC_REASONING_EFFORT=medium) -> mode <mode>t; FORM_SUBSET=i/k keeps problems i, i+k, ... (a fixed subset)."""
+--think, gpt-oss set POC_REASONING_EFFORT=medium) -> mode <mode>t; FORM_SUBSET=i/k keeps problems i, i+k, ... (a fixed subset).
+HO-TB: --think_budget B = Qwen3 thinking cut at B tokens (budget forcing, run_geo_cross.budget_chat), then the answer -> mode <mode>tb<B>."""
 import json, math, os, re, sys, zlib
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -104,8 +105,9 @@ if __name__ == "__main__":
     if os.environ.get("FORM_SUBSET"):
         i, k = map(int, os.environ["FORM_SUBSET"].split("/")); P = P[i::k]
     TARM, THINK = "--tarm" in sys.argv, "--think" in sys.argv
+    TB = int(sys.argv[sys.argv.index("--think_budget") + 1]) if "--think_budget" in sys.argv else None
     MT = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else (16000 if TARM else 8192)
-    path = f"{RES}/opt_{tag}_{mode}{'t' if TARM else ''}_s{seed}.jsonl"
+    path = f"{RES}/opt_{tag}_{mode}{f'tb{TB}' if TB else 't' if TARM else ''}_s{seed}.jsonl"
     done = {r["id"] for r in _rows(path)}
     if os.environ.get("NLOPT_SHARD"):   # as run_nlopt: problems i, i+k, ... into <path>.shard<i>of<k> (poc/merge_shards.py merges after)
         i, k = map(int, os.environ["NLOPT_SHARD"].split("/"))
@@ -126,7 +128,12 @@ if __name__ == "__main__":
                       + s[1][1].strip() + "\n```")
             elif mode == "formo" and EX(p):   # stream start: nothing earlier passed the check yet -> the mips prompt
                 q += "\n\nA program that runs with this library (written for a different problem):\n```python\n" + EX(p).strip() + "\n```"
-        o = chat(q, think=THINK, max_tokens=MT, temperature=0.7, seed=seed * 1000 + zlib.crc32(p["id"].encode()) % 997)
+        sd_ = seed * 1000 + zlib.crc32(p["id"].encode()) % 997
+        if TB:
+            from run_geo_cross import budget_chat
+            o = budget_chat(q, TB, max_tokens=8192, temperature=0.7, seed=sd_)
+        else:
+            o = chat(q, think=THINK, max_tokens=MT, temperature=0.7, seed=sd_)
         code = last_block(o["text"] or "", ("python", "py", "python3"))
         res = run_python(code, "", timeout=60, mem_bytes=4 << 30, cpu_s=3600 if FREE else None) if code else None
         sol_lines = [l for l in ((res.stdout if res and res.status == "ok" else "") or "").strip().splitlines() if l.strip()]   # as run_nlopt's free modes (H5: multi-threaded CP-SAT); OptiBench formx had 3 / 14,520 timeouts, none CP-SAT
@@ -136,7 +143,7 @@ if __name__ == "__main__":
         return {"id": p["id"], "src": p["src"], "kind": kind(p["q"]), "gold": p["gold"], "mode": mode, "out_tokens": o.get("out_tokens"),
                 "finish": o.get("finish"), "code": code, "status": (res.status if res else "no_code"), "stdout": out[-300:],
                 "err": ((res.stderr or "")[-300:] if res else ""), "pred": pred, "correct": correct(pred, p["gold"]), "fact_from": src,
-                **({"mode": mode + "t"} if TARM else {}),
+                **({"mode": mode + (f"tb{TB}" if TB else "t")} if TARM or TB else {}), **({"think_tokens": o.get("think_tokens")} if TB else {}),
                 **({"solution": next((l.strip()[:6000] for l in reversed(sol_lines[:-1]) if l.strip().startswith("{")), None)} if mode == "formxv" else {})}
     with ThreadPoolExecutor(48) as ex, open(path, "a") as f:
         for fu in as_completed([ex.submit(one, p) for p in P if p["id"] not in done]):

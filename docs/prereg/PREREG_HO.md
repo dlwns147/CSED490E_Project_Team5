@@ -598,3 +598,14 @@ solution) caught 66–97% of running-but-wrong programs on BWOR / LogiOR. **Poli
 - **VF-P2:** FF-V+F ties THINK+F (interval includes 0) in ≥ 3 of the 5 cells.
 **Decision.** P1 → the checker becomes the word-problem check for models whose plain check leaks (chosen by the 30-label pilot as a sixth
 policy); otherwise the loss stays a trade-off and thinking with the fact is the answer there.
+
+## Addendum HO-TB (2026-10-23 20:4x UTC, before any run): how much thinking with the fact is needed?
+**Why.** Where fact-first loses (Qwen3 models, OptiBench / BWOR / LogiOR), thinking with the fact costs 5.6–11k tokens per problem. If a
+short thinking budget keeps most of its accuracy, the right escalation (and the right always-on policy) is budgeted thinking with the fact.
+**Run:** `run_form.py <m> formx <seed> --think_budget B` (Qwen3 budget forcing: think at most B tokens, then answer within 8,192) for
+Qwen3-14B-AWQ and Qwen3-8B, B ∈ {2,000, 6,000}, seeds 1–3, on the OptiBench third, BWOR, LogiOR.
+- **TB-P1:** at B = 6,000, always thinking with the fact keeps ≥ THINK+F − 3 points in ≥ 4 of the 6 cells at ≤ 75% of its tokens.
+- **TB-P2:** at B = 2,000 it loses > 5 points in ≥ 3 of the 6 cells (a short budget is not enough on these word problems).
+- **TB-P3:** FF escalating to B = 6,000 thinking with the fact (FF+Fb) is within 3 points of THINK+F in ≥ 3 of the 6 cells at ≤ 60% of its
+  tokens.
+**Decision.** TB-P1 / P3 → the recipe's escalation for these models becomes budgeted thinking with the fact, and the pilot gets it as a policy.
