@@ -570,3 +570,18 @@ re-running 52 Qwen3-8B rows whose requests had timed out at the client's 1-hour 
 wrote no rows in 2–3 hours: some library prompts of long OptMATH problems plus the 32k thinking budget exceed the server's 36,864-token
 context, vLLM rejects those requests (HTTP 400), and the client stops writing rows at the first failed request. The three tasks were
 cancelled and rerun with a 45,056-token context (still at most 32k new tokens), which every thinking-with-the-fact server now uses.
+
+### Results HO-TF2 (2026-10-23 19:1x UTC; `python poc/analyze_hotf.py [--geo]`, 3 seeds, all rows complete)
+FF+F − THINK+F (fact-matched thinking), paired 95% interval, FF+F's tokens / THINK+F's:
+| | geometry (hint) | OptiBench (third) | BWOR | LogiOR | OptMATH |
+|---|---|---|---|---|---|
+| gpt-oss-20b | **+3.1 [+1.0, +5.6]** 59% | **+2.5 [+0.5, +4.8]** 48% | −1.2 [−6.9, +4.5] 46% | −0.7 [−5.1, +3.3] 63% | **+5.7 [+0.3, +11.3]** 68% (HO: thinks) |
+| Qwen3-14B-AWQ | +2.4 [−0.3, +5.6] 39% | **−4.3 [−7.8, −0.8]** 33% | **−12.2 [−20.3, −4.5]** 56% | −1.8 [−6.2, +2.5] 75% | 0.0 [−4.0, +4.0] 83% (thinks) |
+| Qwen3-8B | **−16.7 [−21.9, −11.5]** 53% | **−4.5 [−8.1, −1.0]** 39% | **−11.0 [−16.7, −5.7]** 65% | **−7.6 [−11.6, −3.6]** 82% | +1.7 [−1.3, +5.0] 88% (thinks) |
+| Qwen3.5-9B | −0.3 [−3.1, +2.4] 30% | **+4.0 [+1.0, +6.9]** 30% | 0.0 [−4.9, +4.9] 66% | **+7.6 [+3.6, +12.0]** 78% | +2.7 [−3.3, +8.7] 60% |
+THINK+F − THINK on geometry: +3.5 / +11.1 / +4.2 / +6.9; on Qwen3.5-9B's word benchmarks +9.8 to +21.9.
+- **TF2-P1 holds** (4 / 4). **TF2-P2 holds** (geometry: gpt-oss-20b wins, Qwen3-14B-AWQ and Qwen3.5-9B tie, at 30–59% of the tokens).
+  **TF2-P3 holds** (Qwen3.5-9B ties or wins on 4 / 4 word benchmarks; wins on OptiBench and LogiOR).
+- **The rebuilt held-out claim:** against thinking given the same fact, fact-first-then-think ties or wins on all five benchmarks for
+  gpt-oss-20b and Qwen3.5-9B (at 30–78% of the tokens) and for Qwen3-14B-AWQ on geometry, LogiOR and OptMATH; it loses for Qwen3-14B-AWQ
+  on OptiBench / BWOR and for Qwen3-8B everywhere but OptMATH — there thinking with the fact is worth its tokens.

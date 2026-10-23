@@ -95,3 +95,12 @@ every escalation going to that arm; OptiBench on the HO-TF third. Five policies 
 - **P2-2:** THINK becomes the best policy in more cells than in HO-R (5 of 60), concentrated in the Qwen3 models' OptiBench / BWOR cells.
 **Reading.** P2-1 → the deployable claim ("recipe by default, 30 labels to see where thinking with the fact is worth its tokens") survives
 the fair baseline; otherwise the pilot needs more labels.
+
+### Results HO-P2 (2026-10-23 19:1x UTC; `python poc/analyze_hop.py --repair --fair oss20 q14a q8b q35`, 60 cells, λ = 0.5)
+| | best policy in (of 60) | fixed regret | 30-label pilot |
+|---|---|---|---|
+| FF-R0 / FF / FFR / THINK (fact-matched) | 24 / 10 / 9 / 17 | 3.32 / 3.79 / 3.73 / 4.35 | **0.85** (k = 10: 3.00; k = 100: 0.04) |
+- **P2-1 holds** (0.85 ≤ 1.0). **P2-2 holds:** THINK (with the fact) is now best in 17 cells (5 in HO-R): Qwen3-8B 10 (BWOR 3, geometry
+  3, LogiOR 2, OptiBench 2), Qwen3-14B-AWQ 6 (BWOR 3, OptiBench 2, LogiOR 1), gpt-oss-20b 1, Qwen3.5-9B 0.
+- Against the fair baseline no fixed policy is good everywhere (best fixed: repair-first, 3.32), while 30 labels cut the regret to 0.85:
+  **the pilot, not a fixed default, is the deployable part of the claim.** In Qwen3-8B's geometry + BWOR cells it loses 0.39 vs 11.9 for FF.
