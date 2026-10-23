@@ -1,6 +1,6 @@
 # Pre-registration DT: putting the fact into the weights, with labels nowhere (direction 2)
 
-Written 2026-10-24 00:0x UTC, before any training. RTX 3090 (LoRA on 2 GPUs). Results go below.
+Written 2026-10-23 23:5x UTC, before any training. RTX 3090 (LoRA on 2 GPUs). Results go below.
 
 **Why.** The fact is the main lever (it raises the cheap program in 23 of 25 cells and thinking by up to +22.6), and the label-free library
 supplies it at test time. The next step is to train it in: the recipe already produces label-free training data — programs that pass the
