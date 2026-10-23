@@ -1,0 +1,4 @@
+repair optibench
+repair bwor
+repair logior
+repair optmath
