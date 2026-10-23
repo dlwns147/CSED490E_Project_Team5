@@ -571,7 +571,7 @@ wrote no rows in 2–3 hours: some library prompts of long OptMATH problems plus
 context, vLLM rejects those requests (HTTP 400), and the client stops writing rows at the first failed request. The three tasks were
 cancelled and rerun with a 45,056-token context (still at most 32k new tokens), which every thinking-with-the-fact server now uses.
 
-### Results HO-TF2 (2026-10-23 19:1x UTC; `python poc/analyze_hotf.py [--geo]`, 3 seeds, all rows complete)
+### Results HO-TF2 (2026-10-23 19:0x UTC; `python poc/analyze_hotf.py [--geo]`, 3 seeds, all rows complete)
 FF+F − THINK+F (fact-matched thinking), paired 95% interval, FF+F's tokens / THINK+F's:
 | | geometry (hint) | OptiBench (third) | BWOR | LogiOR | OptMATH |
 |---|---|---|---|---|---|

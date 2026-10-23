@@ -96,7 +96,7 @@ every escalation going to that arm; OptiBench on the HO-TF third. Five policies 
 **Reading.** P2-1 → the deployable claim ("recipe by default, 30 labels to see where thinking with the fact is worth its tokens") survives
 the fair baseline; otherwise the pilot needs more labels.
 
-### Results HO-P2 (2026-10-23 19:1x UTC; `python poc/analyze_hop.py --repair --fair oss20 q14a q8b q35`, 60 cells, λ = 0.5)
+### Results HO-P2 (2026-10-23 19:0x UTC; `python poc/analyze_hop.py --repair --fair oss20 q14a q8b q35`, 60 cells, λ = 0.5)
 | | best policy in (of 60) | fixed regret | 30-label pilot |
 |---|---|---|---|
 | FF-R0 / FF / FFR / THINK (fact-matched) | 24 / 10 / 9 / 17 | 3.32 / 3.79 / 3.73 / 4.35 | **0.85** (k = 10: 3.00; k = 100: 0.04) |
