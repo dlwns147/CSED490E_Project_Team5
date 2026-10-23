@@ -115,3 +115,8 @@ recorded here before the main runs.
 - **N2-P3:** the census calls (recorded before any gain) are right in ≥ 6 of the 8 (cell, fact) points; a "do not add" call, if any, is
   the first prospective test of that side.
 **Decision.** P2 holding → the deployable claim (recipe by default, 30 labels to catch its losses) holds across a third model family.
+**HO-N2 withdrawn (2026-10-23 07:4x UTC, before any result).** The probe (job 1233792) failed at server start: the image's Transformers
+does not know model type `gemma4` (the checkpoint was written with Transformers 5.5.0.dev0). Serving it would mean changing the project's
+environment (vLLM 0.22 / Transformers of `nlp_project:261021`) for one model, which changes the harness, so the test is not run. No other
+locally available model outside Qwen / gpt-oss has a thinking mode and fits a 24 GB GPU (granite-4.1-8b, Llama-3.1-8B, Mistral-7B have
+none), so the report keeps the family limitation, now with Qwen3.5-9B as a second Qwen generation.
