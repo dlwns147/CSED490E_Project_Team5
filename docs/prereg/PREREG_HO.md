@@ -514,7 +514,7 @@ claim) and the bound goes into the report's limitations; if not, re-run the budg
 - **Decision:** no 32k-budget THINK run; the report states the bound (a longer budget could cost the recipe at most ~3 points in a cell and
   turn gpt-oss-20b's OptMATH win into a tie).
 
-## Addendum HO-TF (2026-10-23 09:1x UTC, before any run): is always thinking *with the same fact* a stronger baseline?
+## Addendum HO-TF (2026-10-23 09:0x UTC, before any run): is always thinking *with the same fact* a stronger baseline?
 **Why.** In the held-out table the library rows compare FF with the label-free library against always thinking *without* it (OptiBench,
 BWOR, LogiOR); only OptMATH's thinking arm had the fact. That conflates the fact with where thinking goes. The fair baseline is the
 thinking arm given the same prompt, library program included (`formxt`), and FF should then escalate to that arm too.
