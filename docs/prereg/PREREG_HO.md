@@ -585,3 +585,16 @@ THINK+F − THINK on geometry: +3.5 / +11.1 / +4.2 / +6.9; on Qwen3.5-9B's word 
 - **The rebuilt held-out claim:** against thinking given the same fact, fact-first-then-think ties or wins on all five benchmarks for
   gpt-oss-20b and Qwen3.5-9B (at 30–78% of the tokens) and for Qwen3-14B-AWQ on geometry, LogiOR and OptMATH; it loses for Qwen3-14B-AWQ
   on OptiBench / BWOR and for Qwen3-8B everywhere but OptMATH — there thinking with the fact is worth its tokens.
+
+## Addendum HO-VF (2026-10-23 20:4x UTC, before any run): a stronger check *with the fact*, where the recipe loses
+**Why.** Against thinking given the same fact, fact-first loses for Qwen3-14B-AWQ on OptiBench / BWOR and for Qwen3-8B on OptiBench /
+BWOR / LogiOR, because its free check (the program runs and prints a value) lets through programs that thinking with the fact would get
+right (§5.2 decomposition). The solution checker (HO3: a program written from the text that tests every constraint on the printed
+solution) caught 66–97% of running-but-wrong programs on BWOR / LogiOR. **Policy FF-V+F:** the library program printing its solution
+(`formxv`) is accepted only if it runs, prints a value and the checker passes; otherwise thinking with the fact (`formxt`, HO-TF rows).
+**Run:** `run_form.py <m> formxv <seed>` then `run_verify.py <m> <seed> formxv` on BWOR and LogiOR for Qwen3-14B-AWQ and Qwen3-8B, seeds
+1–3 (no thinking; RTX 3090); OptiBench uses the existing HO4 `formxv` / checker rows on the HO-TF third.
+- **VF-P1:** FF-V+F closes at least half of the gap FF+F → THINK+F in ≥ 3 of the 5 losing cells, at ≤ 80% of THINK+F's tokens.
+- **VF-P2:** FF-V+F ties THINK+F (interval includes 0) in ≥ 3 of the 5 cells.
+**Decision.** P1 → the checker becomes the word-problem check for models whose plain check leaks (chosen by the 30-label pilot as a sixth
+policy); otherwise the loss stays a trade-off and thinking with the fact is the answer there.
