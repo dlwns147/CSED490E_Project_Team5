@@ -1,100 +1,61 @@
-"""E5: LoRA SFT of Qwen3-8B (no thinking) on oracle-verified programs written by Qwen3-8B WITH thinking on training instances.
-Each example: user = the exact harness prompt (saved by run_geo_cross --save_prompt), assistant = "```python\n<program>\n```", formatted with the
-Qwen3 chat template and enable_thinking=False (empty think block), loss on the assistant tokens only. The LoRA is merged into the base weights
-and saved as a full model directory that vLLM can serve.
-usage (old server: /opt/conda/bin/python with PYTHONPATH=/dev/shm/pylib_vllm; server 2: /opt/conda/bin/python as is):
-  sft_lora.py <out_dir> <arm: mixed|clean> [n_examples=600] [epochs=2]"""
-import json, os, random, sys, time
+"""DT (docs/prereg/PREREG_DT.md): LoRA fine-tuning of Qwen3-8B on the label-free checked programs (poc/build_sft_data.py), then a merged
+copy that vLLM serves like the base model. Loss on the target only; the prompt is rendered with the chat template, thinking off.
+usage: python sft_lora.py <base model dir> <data.jsonl> <adapter out dir> <merged out dir> [--epochs 2] [--max_len 3072] [--steps N]"""
+import json, os, sys
+
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
-from peft import LoraConfig, get_peft_model
-
-BASE = "/SSD/huggingface/Qwen/Qwen3-8B"
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
-RES = f"{ROOT}/results"
-out_dir, arm = sys.argv[1], sys.argv[2]
-N = int(sys.argv[3]) if len(sys.argv) > 3 else 600
-EPOCHS = int(sys.argv[4]) if len(sys.argv) > 4 else 2
-EXCLUDE = sys.argv[5] if len(sys.argv) > 5 else ""   # leave-one-task-out: drop this task from the training data
-SEED = int(os.environ.get("E4_SEED", "0"))   # training-seed replication: example sampling, data order and LoRA init
-rng = random.Random(SEED)
-torch.manual_seed(SEED) if SEED else None
+from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
 
 
-EXTRA_DATA = os.environ.get("E5_EXTRA", "")   # E5c: comma list of extra training-data tags per K (e.g. "T_geox8b_train2_k{k}_think")
+def arg(name, default):
+    return type(default)(sys.argv[sys.argv.index(name) + 1]) if name in sys.argv else default
 
 
-def load(k):
-    rows = [json.loads(l) for l in open(f"{RES}/geocross_T_geox8b_train_k{k}_think.jsonl")]
-    for tag in filter(None, EXTRA_DATA.split(",")):
-        rows += [json.loads(l) for l in open(f"{RES}/geocross_{tag.format(k=k)}.jsonl")]
-    return [r for r in rows if r["class"] == "correct_all" and r.get("code") and r.get("prompt") and r["task"] != EXCLUDE]
+def main():
+    from peft import LoraConfig, get_peft_model
+    base, data, ad_out, merged_out = sys.argv[1:5]
+    epochs, max_len, steps = arg("--epochs", 2), arg("--max_len", 3072), arg("--steps", -1)
+    tok = AutoTokenizer.from_pretrained(base)
+    rows = [json.loads(l) for l in open(data)]
+    feats = []
+    for r in rows:
+        prompt = tok.apply_chat_template([{"role": "user", "content": r["prompt"]}], tokenize=False, add_generation_prompt=True,
+                                         enable_thinking=False)
+        p_ids = tok(prompt, add_special_tokens=False)["input_ids"]
+        t_ids = tok(r["target"] + "<|im_end|>\n", add_special_tokens=False)["input_ids"]
+        ids = (p_ids + t_ids)[:max_len]
+        labels = ([-100] * len(p_ids) + t_ids)[:max_len]
+        feats.append({"input_ids": ids, "labels": labels})
+    print(f"{len(feats)} examples, mean {sum(len(f['input_ids']) for f in feats) / len(feats):.0f} tokens, "
+          f"{sum(len(f['input_ids']) >= max_len for f in feats)} truncated", flush=True)
+
+    def collate(batch):
+        n = max(len(b["input_ids"]) for b in batch)
+        pad = tok.pad_token_id if tok.pad_token_id is not None else tok.eos_token_id
+        return {"input_ids": torch.tensor([b["input_ids"] + [pad] * (n - len(b["input_ids"])) for b in batch]),
+                "labels": torch.tensor([b["labels"] + [-100] * (n - len(b["labels"])) for b in batch]),
+                "attention_mask": torch.tensor([[1] * len(b["input_ids"]) + [0] * (n - len(b["input_ids"])) for b in batch])}
+
+    model = AutoModelForCausalLM.from_pretrained(base, torch_dtype=torch.bfloat16, device_map="auto")
+    model.gradient_checkpointing_enable(); model.enable_input_require_grads(); model.config.use_cache = False
+    model = get_peft_model(model, LoraConfig(r=16, lora_alpha=32, lora_dropout=0.05, task_type="CAUSAL_LM",
+                                             target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]))
+    model.print_trainable_parameters()
+    args = TrainingArguments(output_dir=ad_out, per_device_train_batch_size=1, gradient_accumulation_steps=16, num_train_epochs=epochs,
+                             max_steps=steps, learning_rate=1e-4, lr_scheduler_type="cosine", warmup_ratio=0.03, bf16=True, logging_steps=5,
+                             save_strategy="no", report_to=[], remove_unused_columns=False, seed=0)
+    Trainer(model=model, args=args, train_dataset=feats, data_collator=collate).train()
+    model.save_pretrained(ad_out)
+    merged = model.merge_and_unload()
+    merged.config.use_cache = True
+    merged.save_pretrained(merged_out, safe_serialization=True)
+    tok.save_pretrained(merged_out)
+    for f in ("generation_config.json",):
+        src = os.path.join(base, f)
+        if os.path.exists(src):
+            open(os.path.join(merged_out, f), "w").write(open(src).read())
+    print("saved", ad_out, merged_out, flush=True)
 
 
-pools = {k: load(k) for k in (0, 4, 8)} if not os.environ.get("E4_DATA") else {0: [], 4: [], 8: []}
-print({k: len(v) for k, v in pools.items()}, "verified programs per K", flush=True)
-if arm == "clean":
-    data = rng.sample(pools[0], min(N, len(pools[0])))
-else:   # equal thirds from K0 / K4 / K8
-    per = N // 3
-    data = sum((rng.sample(pools[k], min(per, len(pools[k]))) for k in (0, 4, 8)), [])
-if os.environ.get("E4_DATA"):   # B2: train on a prepared (prompt, code) file instead of the teacher pools (SDFT rewrites, self-SFT)
-    data = [json.loads(l) for l in open(os.environ["E4_DATA"])]
-    print(f"B2 data: {len(data)} examples from {os.environ['E4_DATA']}", flush=True)
-REPLAY = os.environ.get("E4_REPLAY", "")   # E4: extra (prompt, code) examples appended AFTER the main sampling (main selection unchanged)
-if REPLAY:
-    rep = [json.loads(l) for l in open(REPLAY)]
-    print(f"E4 replay: +{len(rep)} examples from {REPLAY}", flush=True)
-    data += rep
-rng.shuffle(data)
-print(f"arm={arm}: {len(data)} examples; tasks", {t: sum(r['task'] == t for r in data) for t in sorted({r['task'] for r in data})}, flush=True)
-
-tok = AutoTokenizer.from_pretrained(BASE)
-def encode(r):
-    msgs = [{"role": "user", "content": r["prompt"]}]
-    prompt_ids = tok.apply_chat_template(msgs, tokenize=True, add_generation_prompt=True, enable_thinking=False)
-    ans = r["answer"] if r.get("answer") else "```python\n" + r["code"].strip() + "\n```"   # D1b: full answer text (explanation + code)
-    full = tok.apply_chat_template(msgs + [{"role": "assistant", "content": ans}],
-                                   tokenize=True, enable_thinking=False)
-    if hasattr(prompt_ids, "input_ids"):
-        prompt_ids, full = prompt_ids["input_ids"], full["input_ids"]
-    if full[:len(prompt_ids)] != prompt_ids:   # the template may render the assistant turn differently; align by prefix length anyway
-        print("warning: prompt/full prefix mismatch", flush=True)
-    labels = [-100] * len(prompt_ids) + full[len(prompt_ids):]
-    return full[:4096], labels[:4096]
-enc = [encode(r) for r in data]
-print("mean tokens", sum(len(a) for a, _ in enc) / len(enc), "max", max(len(a) for a, _ in enc), flush=True)
-# show one rendered example (sanity: empty think block, assistant code)
-print(tok.decode(enc[0][0])[-600:], flush=True)
-
-model = AutoModelForCausalLM.from_pretrained(BASE, torch_dtype=torch.bfloat16, device_map={"": 0}, attn_implementation="sdpa")
-model.gradient_checkpointing_enable()
-model.enable_input_require_grads()
-R_ = int(os.environ.get("E5_R", "16"))
-model = get_peft_model(model, LoraConfig(r=R_, lora_alpha=2 * R_, lora_dropout=0.05, task_type="CAUSAL_LM",
-                                         target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]))
-model.print_trainable_parameters()
-opt = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=float(os.environ.get("E5_LR", "1e-4")), weight_decay=0.0)
-ACC = 8   # effective batch 8 (one sequence per micro-step: no padding needed)
-total = EPOCHS * len(enc) // ACC
-sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: min(1.0, (s + 1) / 10) * max(0.0, 1 - s / max(1, total)))
-model.train(); step = 0; t0 = time.time()
-for ep in range(EPOCHS):
-    order = list(range(len(enc))); rng.shuffle(order); run = 0.0
-    for j, idx in enumerate(order):
-        ids, lab = enc[idx]
-        out = model(input_ids=torch.tensor([ids], device="cuda"), labels=torch.tensor([lab], device="cuda"))
-        (out.loss / ACC).backward(); run += out.loss.item()
-        if (j + 1) % ACC == 0:
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0); opt.step(); sched.step(); opt.zero_grad(); step += 1
-            if step % 10 == 0:
-                print(f"epoch {ep} step {step}/{total} loss {run / ACC:.4f} ({time.time() - t0:.0f}s)", flush=True)
-            run = 0.0
-model = model.merge_and_unload()
-model.save_pretrained(out_dir, safe_serialization=True)
-tok.save_pretrained(out_dir)
-for f in ("generation_config.json",):
-    src = os.path.join(BASE, f)
-    if os.path.exists(src):
-        open(os.path.join(out_dir, f), "w").write(open(src).read())
-print("saved", out_dir, f"{time.time() - t0:.0f}s", flush=True)
+if __name__ == "__main__":
+    main()
