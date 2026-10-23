@@ -609,3 +609,16 @@ Qwen3-14B-AWQ and Qwen3-8B, B ∈ {2,000, 6,000}, seeds 1–3, on the OptiBench 
 - **TB-P3:** FF escalating to B = 6,000 thinking with the fact (FF+Fb) is within 3 points of THINK+F in ≥ 3 of the 6 cells at ≤ 60% of its
   tokens.
 **Decision.** TB-P1 / P3 → the recipe's escalation for these models becomes budgeted thinking with the fact, and the pilot gets it as a policy.
+
+## Addendum WF4 + HO-LG (2026-10-23 20:5x UTC, before any run): larger models on RTX 3090s (user 10-23: the project is no longer limited to
+24 GB models, but stays on the RTX 3090 partition — large models run tensor-parallel over 4 × 3090 in one job)
+**WF4 — the "do not add a fact" side, prospectively.** gpt-oss-120b (low effort for the cheap arms, as in WF2) on BWOR and LogiOR (new
+cells for this model): `free`, `freef` (usage card), `formx` (label-free library), seeds 1–3. The WF3 rule ("add unless usage crashes
+u < 5% and non-usage failures n ≥ 25%") is applied to the `free` arm and its calls are recorded here before any gain is read.
+- **WF4-P1:** where the rule says "do not add", the card and the library each change the free program by ≤ +2 points; where it says
+  "add", each adds ≥ +2. If both cells say "add", the "do not add" side stays untested (stated).
+**HO-LG — the core rule on a large model, against the fair baseline.** gpt-oss-120b, `formx` (cheap, low) vs `formxt` (thinking with the
+same library, medium effort, 16k), on the OptiBench third, BWOR, LogiOR, seeds 1–3; FF+F = formx, on a visible failure formxt.
+- **LG-P1:** FF+F ties or beats THINK+F (interval upper bound ≥ 0) in all 3 cells, at ≤ 60% of its tokens (a strong model's passing cheap
+  programs should be as often right as its thinking).
+**Decision.** WF4 decides whether the census rule is two-sided; LG-P1 extends (or limits) the rebuilt claim to a 120B model.
