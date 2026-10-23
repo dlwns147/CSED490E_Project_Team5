@@ -55,7 +55,7 @@ held-out regret; otherwise the losing cells stay a stated limit without a remedy
 - **Decision:** the claim becomes "the recipe by default; 30 labelled problems of a new task tell when to think instead" — on the
   held-out benchmarks this choice costs 0.87 points of utility on average and removes Qwen3-8B's losses (0.74 vs 7.83).
 
-## Addendum HO-L (2026-10-23 00:2x UTC, before computing; offline): can the pilot choose without labels?
+## Addendum HO-L (2026-10-23 00:1x UTC, before computing; offline): can the pilot choose without labels?
 **Why.** HO-P needs 30 labelled problems. The user's open question is a *label-free* signal for when the recipe or a fact does not pay.
 The pilot already runs thinking on its 30 items; the answers of three runs (cheap program F, a second cheap sample F2, thinking T) can
 estimate each run's accuracy from agreement alone (triplet method: if wrong answers rarely coincide, P(X = Y) ≈ a_X·a_Y, so
