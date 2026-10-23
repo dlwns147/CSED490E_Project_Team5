@@ -19,17 +19,15 @@ reuse a checked program when the problem repeats.
 
 ## 2. Main claim and where it stands
 
-Held-out benchmarks, 3 seeds, 95% intervals over problems (full table: `docs/notes/REPORT_OUTLINE.md`).
-**Correction in progress (2026-10-23, HO-TF):** the library rows compared the recipe with the fact against thinking without it; against
-thinking with the same fact the recipe ties or wins for gpt-oss-20b and on geometry, but is a token-for-accuracy trade (−4 to −12 points)
-for the Qwen models on word problems. The bullets below are being restated once HO-TF2 finishes.
-- For gpt-oss-20b and Qwen3-14B-AWQ the recipe ties or beats always thinking on every unseen benchmark (OptMATH, OptiBench, BWOR, LogiOR,
-  four held-out geometry tasks) at 28–88% of its output tokens (37–97% counting input tokens).
-- For Qwen3-8B it wins only on OptiBench with the label-free library, and loses where its free check leaks most (geometry edge cases,
-  BWOR). The check's leak, not problem difficulty, decides where thinking should go — and 30 labelled problems of a new cell detect
-  it: a 30-label pilot loses 0.87 points on average over 45 held-out cells, and 0.74 instead of 7.8 in Qwen3-8B's losing cells.
-- On a model the recipe was never developed with (Qwen3.5-9B, pre-registered) it beats always thinking on all five held-out benchmarks
-  (+3.8 to +23.5 points at 28–79% of its tokens).
+Held-out benchmarks, 3 seeds, 95% intervals over problems; always thinking is given the same fact as the recipe (HO-TF, HO-TF2; full
+table: `docs/REPORT.md` §5.1):
+- **The fact is the main lever.** It raises the cheap program (the label-free library: 23 of 25 cells) and thinking too (+3.5 to +22.6).
+- **Thinking only on a visible failure** ties or beats always thinking with the fact on all five unseen benchmarks for gpt-oss-20b and for
+  Qwen3.5-9B — a model the recipe was never developed with — at 30–78% of the tokens, and for Qwen3-14B-AWQ on geometry, LogiOR and
+  OptMATH. For Qwen3-14B-AWQ on OptiBench / BWOR and for Qwen3-8B on four of five, thinking with the fact is 4–17 points more accurate:
+  there the recipe trades accuracy for tokens, because its free check lets wrong programs through.
+- **Which to use is detectable:** a 30-label pilot over five policies loses 0.85 points on average over 60 held-out cells, where no fixed
+  policy comes within 3.3; on word problems the first escalation is one cheap repair from the error (HO7, HO-N3, HO-R).
 - The label-free library of checked programs raises the first program in 23 of 25 model × benchmark cells (up to +34 points).
 - Where it stops: short-answer competition math (text + thinking is better; a program is useful as a second opinion) and formal proofs
   (a specialized 8B prover, not a fact).

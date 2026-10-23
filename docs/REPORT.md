@@ -10,13 +10,12 @@ programs fail silently and "thinking longer" (long reasoning before answering) i
 for models that fit one 24 GB GPU (gpt-oss-20b, Qwen3-14B-AWQ, Qwen3-8B). We test a training-free recipe: write a cheap program, add the
 missing fact (a few lines of exact library usage, or a checked program for a similar problem found without labels), run a free check, and
 only when it visibly fails, try one cheap repair from the error and then think. On our development suites the recipe solves 87% of 208 problems at 2.5k output tokens, against 74%
-at 4.1k for spending thinking on the hardest-looking problems. On five benchmarks never used in development, for gpt-oss-20b and
-Qwen3-14B-AWQ the recipe ties or beats always thinking at 28–88% of its output tokens, and for Qwen3.5-9B — a model it was never
-developed with — it beats it on all five (+3.8 to +23.5 points at 28–79% of the tokens); for Qwen3-8B it wins only with the label-free
-library and loses where its free check lets many wrong programs through. The library of checked programs raises the first program in 23 of
-25 model × benchmark cells. The deciding quantity is the check's leak, not problem difficulty, and it is detectable: labelling 30
-problems of a new cell picks a policy within 0.87–0.94 points of the best on the held-out cells, and where the recipe loses it costs 0.74
-points instead of 7.8. No check we built — a second program, model-written tests or relations, another model's program — removes the
+at 4.1k for spending thinking on the hardest-looking problems. On five benchmarks never used in development, against always thinking given the same fact, the recipe ties or wins
+on all five for gpt-oss-20b and for Qwen3.5-9B — a model it was never developed with — at 30–78% of the output tokens, and on three of
+five for Qwen3-14B-AWQ; elsewhere for the Qwen3 models thinking with the fact is 4–17 points more accurate. The fact is the main lever:
+the label-free library of checked programs raises the first program in 23 of 25 model × benchmark cells, and thinking too. Whether
+thinking only on visible failures pays is decided by how often the check lets wrong programs through, and it is detectable: labelling 30
+problems of a new cell picks a policy within 0.85 points of the best over 60 held-out cells, where no fixed policy comes within 3.3. No check we built — a second program, model-written tests or relations, another model's program — removes the
 weakest model's leak, because most of it is edge-case errors that the given input does not exercise.
 
 ## 1. Introduction
@@ -108,32 +107,29 @@ on average; using fact-first as a fixed default loses 1.4.
 ## 5. Held-out tests
 
 ### 5.1 The core rule on unseen benchmarks
-> **Correction (2026-10-23, HO-TF).** In the library rows below, always thinking was run *without* the library program. Against thinking
-> given the same fact, fact-first-then-think ties or wins only for gpt-oss-20b (OptiBench +2.5 [+0.5, +4.8]; BWOR / LogiOR ties at 46–63%
-> of the tokens) and on geometry; for the Qwen models it loses 4–12 points on OptiBench / BWOR at 33–65% of the tokens. This section is
-> being rebuilt against the fact-matched thinking arm (HO-TF2 for Qwen3.5-9B and geometry is running).
+Fact first, think only on a visible failure (FF: the cheap program with the fact; thinking — given the same fact — only if it crashes,
+prints nothing or prints 'No Best Solution'; on geometry, if the metamorphic check fails) minus **always thinking with the same fact**,
+seed means, paired 95% interval over problems, and FF's output tokens as a share of always thinking's. Facts: geometry the needed helpers
++ the algorithm hint; OptiBench (a fixed third, 202 problems), BWOR, LogiOR the label-free library; OptMATH the mined usage example
+(Qwen3.5-9B: the library).
 
-Fact-first-then-think (FF: cheap program; think only if it crashes, prints nothing or prints 'No Best Solution'; on geometry: if the
-metamorphic check fails) minus always thinking, seed means, paired 95% interval over problems; FF's output tokens as a share of always
-thinking's, then input + output:
+| model | geometry (96) | OptiBench (202) | BWOR (82) | LogiOR (92) | OptMATH (100) |
+|---|---|---|---|---|---|
+| gpt-oss-20b | **+3.1** [+1.0, +5.6], 59% | **+2.5** [+0.5, +4.8], 48% | −1.2 [−6.9, +4.5], 46% | −0.7 [−5.1, +3.3], 63% | **+5.7** [+0.3, +11.3], 68% |
+| Qwen3-14B-AWQ | +2.4 [−0.3, +5.6], 39% | **−4.3** [−7.8, −0.8], 33% | **−12.2** [−20.3, −4.5], 56% | −1.8 [−6.2, +2.5], 75% | 0.0 [−4.0, +4.0], 83% |
+| Qwen3-8B | **−16.7** [−21.9, −11.5], 53% | **−4.5** [−8.1, −1.0], 39% | **−11.0** [−16.7, −5.7], 65% | **−7.6** [−11.6, −3.6], 82% | +1.7 [−1.3, +5.0], 88% |
+| Qwen3.5-9B (§5.4) | −0.3 [−3.1, +2.4], 30% | **+4.0** [+1.0, +6.9], 30% | 0.0 [−4.9, +4.9], 66% | **+7.6** [+3.6, +12.0], 78% | +2.7 [−3.3, +8.7], 60% |
 
-| benchmark (problems) | gpt-oss-20b | Qwen3-14B-AWQ | Qwen3-8B |
-|---|---|---|---|
-| OptMATH (100), mined usage example | +5.7 [+0.3, +11.0], 68% / 81% | 0.0 [−3.7, +4.0], 83% / 93% | +1.7 [−1.3, +5.0], 88% / 97% |
-| OptiBench (605), no fact | +1.8 [+0.3, +3.4], 56% / 64% | +11.0 [+8.7, +13.3], 52% / 56% | −0.4 [−2.3, +1.4], 64% / 67% |
-| OptiBench, label-free library | +4.1 [+2.1, +6.1], 46% / 67% | +15.6 [+12.9, +18.3], 28% / 37% | +5.2 [+2.6, +7.6], 36% / 43% |
-| BWOR (82), no fact | +1.2 [−4.5, +6.9], 53% / 61% | +1.2 [−4.9, +7.3], 75% / 80% | −8.1 [−13.4, −3.3], 74% / 78% |
-| LogiOR (92), no fact | −1.1 [−6.9, +4.7], 63% / 71% | −2.2 [−5.4, +1.8], 88% / 92% | −2.9 [−6.5, +0.4], 91% / 94% |
-| LogiOR, label-free library | −1.1 [−6.9, +4.0], 59% / 80% | +10.1 [+4.3, +15.9], 74% / 85% | −2.2 [−6.9, +2.5], 80% / 90% |
-| held-out geometry (96), needed helpers + hint | +5.9 [+3.5, +8.7], 48% | +7.6 [+4.5, +11.5], 34% | −14.2 [−19.8, −9.4], 46% |
+The fact is the main lever: it raises thinking as well (+3.5 to +22.6 points over thinking without it; Qwen3-14B-AWQ on OptiBench 44.1% →
+66.7%). Given the fact, thinking only on a visible failure ties or beats always thinking on every benchmark for gpt-oss-20b and Qwen3.5-9B
+at 30–78% of its tokens, and for Qwen3-14B-AWQ on geometry, LogiOR and OptMATH. For Qwen3-14B-AWQ on OptiBench / BWOR and for Qwen3-8B on
+four of five, thinking with the fact is 4–17 points more accurate: there the recipe trades accuracy for tokens (§5.2 explains why).
+Without any fact on either side the earlier comparison holds (OptiBench +1.8 / +11.0 / −0.4, BWOR +1.2 / +1.2 / −8.1, LogiOR −1.1 /
+−2.2 / −2.9 for the three development models). Counting input tokens shrinks the savings but reverses none.
 
 ![Held-out benchmarks: the recipe vs always thinking](../figs/fig23_heldout.png)
 
-*Each pair: always thinking (orange) and the recipe (blue) on one held-out benchmark, seed means; a pair pointing up-left means more accurate and cheaper. Facts: OptMATH the mined usage example, OptiBench / BWOR / LogiOR the label-free library, geometry the needed helpers + hint. Right panel: Qwen3.5-9B, never used in development (§5.4; OptMATH with the library, thinking at a 32k budget) (`poc/make_figure_heldout.py`).*
-
-For the two stronger models the recipe never loses to always thinking (wins on OptiBench and geometry, ties elsewhere) at 28–88% of its
-output tokens. For Qwen3-8B it wins only with the library on OptiBench and loses on geometry and BWOR. Counting input tokens shrinks the
-savings (the library adds 0.3–0.7k tokens per cheap prompt) but reverses none.
+*Each pair: always thinking with the same fact (orange) and the recipe (blue) on one held-out benchmark, seed means; a pair pointing up-left means more accurate and cheaper. Facts: OptMATH the mined usage example, OptiBench / BWOR / LogiOR the label-free library, geometry the needed helpers + hint. Right panel: Qwen3.5-9B, never used in development (§5.4; OptMATH with the library, thinking at a 32k budget); OptiBench on its fixed third (`poc/make_figure_heldout.py`).*
 
 ### 5.2 Why it fails: the check leaks
 Where FF loses, its free check lets wrong programs through. On BWOR and LogiOR the cheap programs are right on only 7–42% of problems and
@@ -152,13 +148,13 @@ with a second sample there) catches 32 of the 37 edge-case leaks but reaches onl
 requiring two cheap programs to agree recovers always-thinking's accuracy in every cell but costs 91–120% of its tokens. **The saving of the recipe is
 bounded by its check's leak.**
 
-On BWOR / LogiOR a stronger check helps accuracy: a solution checker the model writes from the text (it tests every stated constraint on the printed solution and recomputes the objective) catches 66–97% of running-but-wrong programs (but flags 18–65% of right ones) and turns the recipe into a significant gain over always thinking for gpt-oss-20b (+3.7, +4.3) and Qwen3-14B-AWQ on BWOR (+3.3), at 102–110% of its tokens. On OptiBench, where cheap programs are usually right, the same checker does not pay: the plain recipe with the library already beats always thinking by +5.0 / +15.0 / +7.2 points at 36–55% of its tokens, and the checker's false alarms cost what its catches gain. Nor does it carry over to OptMATH (−1.4 to −2.3 points), whose solutions contain auxiliary formulation variables that the checker must re-interpret: a check helps only where it is a genuinely independent view.
+On BWOR / LogiOR a stronger check helps accuracy: a solution checker the model writes from the text (it tests every stated constraint on the printed solution and recomputes the objective) catches 66–97% of running-but-wrong programs (but flags 18–65% of right ones) and turns the recipe into a significant gain over always thinking (without the fact, as in HO3) for gpt-oss-20b (+3.7, +4.3) and Qwen3-14B-AWQ on BWOR (+3.3), at 102–110% of its tokens. On OptiBench, where cheap programs are usually right, the same checker does not pay: the plain recipe with the library already beats always thinking by +5.0 / +15.0 / +7.2 points at 36–55% of its tokens, and the checker's false alarms cost what its catches gain. Nor does it carry over to OptMATH (−1.4 to −2.3 points), whose solutions contain auxiliary formulation variables that the checker must re-interpret: a check helps only where it is a genuinely independent view.
 
 **One cheap repair before thinking.** A cheaper first escalation helps where checks cannot save tokens: one short repair turn shown the error (no thinking) before thinking is never worse than the plain recipe and adds +0.7 to +4.0 points on OptiBench and OptMATH for all three models at equal or lower cost — where a repair runs, it is right more often than thinking on the same items. On the unseen Qwen3.5-9B it adds +2.0 to +6.2 points on all four word benchmarks at 73–88% of the plain recipe's tokens (pre-registered, HO-N3), so it is the recipe's first escalation on word problems. On BWOR / LogiOR it again helps the stronger development models but not Qwen3-8B, whose repaired programs run but are mostly wrong there (exploratory); on held-out geometry it adds little (+0.7 / +1.7 for the stronger models), because "these copies disagree" is less actionable evidence than a Python error.
 
 Agreement with gpt-oss-20b's program is a better check on BWOR / LogiOR than a self-written checker (+1.4 to +3.3 points over it for both Qwen models, half the false alarms), but again dominated by using gpt-oss-20b.
 
-**A cost model.** A perfect check bounds what any check can do: on held-out geometry it lifts Qwen3-8B only to 75.0% at 70% of always-thinking's tokens (its fact programs are wrong too often), while gpt-oss-20b and Qwen3-14B-AWQ reach 99.0% at 49% and 84.4% at 38%; on BWOR / LogiOR a perfect check saves no tokens (83–103%) but raises accuracy above always thinking (e.g. gpt-oss-20b BWOR 69.5% vs 59.3%). The recipe's token saving is capped by how often the cheap program is right; the check's leak decides how much of the possible accuracy it keeps.
+**A cost model** (against thinking without the fact, as these analyses were run). A perfect check bounds what any check can do: on held-out geometry it lifts Qwen3-8B only to 75.0% at 70% of always-thinking's tokens (its fact programs are wrong too often), while gpt-oss-20b and Qwen3-14B-AWQ reach 99.0% at 49% and 84.4% at 38%; on BWOR / LogiOR a perfect check saves no tokens (83–103%) but raises accuracy above always thinking (e.g. gpt-oss-20b BWOR 69.5% vs 59.3%). The recipe's token saving is capped by how often the cheap program is right; the check's leak decides how much of the possible accuracy it keeps.
 
 ### 5.3 Facts without a human
 The label-free library — for each problem, the program for the most similar other problem of the same benchmark that passed a strict check
@@ -176,9 +172,10 @@ writes `from ortools.constraint_solver import pywraplp`), while working code of 
 
 ### 5.4 A model the recipe was never developed with
 All rules above were fixed on gpt-oss-20b and the Qwen3 models. On Qwen3.5-9B (a newer generation, bf16 on one RTX 3090; thinking with the
-model card's sampling and a 32k budget), pre-registered before any run: fact first, think on a visible failure beats always thinking on all
-five held-out benchmarks — OptiBench 68.3% vs 44.7% (+23.5 [+20.8, +26.3]) at 30% of its tokens, BWOR +11.0, LogiOR +11.6, OptMATH +14.3,
-geometry +3.8 [+0.3, +6.9] at 28% — and still ties or beats if every budget-capped wrong thinking run is counted right. Its thinking fails
+model card's sampling and a 32k budget), pre-registered before any run: fact first, think on a visible failure beats always thinking without the fact on all
+five held-out benchmarks (OptiBench 68.3% vs 44.7%, +23.5 [+20.8, +26.3] at 30% of its tokens; +3.8 to +14.3 elsewhere), and ties or
+beats always thinking *given the same fact* on all five (OptiBench +4.0 [+1.0, +6.9], LogiOR +7.6 [+3.6, +12.0], the others ties; 30–78%
+of its tokens; HO-TF2). Its thinking fails
 by library misuse (14–25% of programs) and unfinished reasoning (6–32% at 32k): the fact, not the effort, is what it lacks. The census
 called "add a fact" on all four word benchmarks and both facts paid (+3.7 to +19.7; 8 / 8 calls right).
 
@@ -186,7 +183,7 @@ called "add a fact" on all four word benchmarks and both facts paid (+3.7 to +19
 The recipe's losses are detectable before deployment. Label 30 random problems of a new model × benchmark cell, run the four policies on
 them (the cheap program alone, fact first, fact first with two agreeing programs, always thinking) and keep the best by accuracy − 0.5 ×
 ktokens. Over the 45 held-out cells (3 models × 3 seeds × five benchmarks, each with the recipe's fact) the pick is 0.87 points from the
-cell's best on average (10 labels: 2.81; always using fact-first: 1.80; always thinking: 5.86); on the unseen Qwen3.5-9B, 0.81 over 15 cells. With repair-first as a fifth policy over all 60 held-out cells the pilot's regret is 0.94, and always repairing first (1.22 on the 48 word cells) beats always using the plain recipe (2.85), though it loses accuracy on BWOR for all three development models (HO-R). In Qwen3-8B's geometry and BWOR cells, where
+cell's best on average (10 labels: 2.81; always using fact-first: 1.80; always thinking: 5.86); on the unseen Qwen3.5-9B, 0.81 over 15 cells. With repair-first as a fifth policy over all 60 held-out cells the pilot's regret is 0.94, and always repairing first (1.22 on the 48 word cells) beats always using the plain recipe (2.85), though it loses accuracy on BWOR for all three development models (HO-R). Against the fact-matched thinking arm no fixed policy is good everywhere (best fixed regret 3.32) and the pilot matters most: 30 labels keep the regret at 0.85, choosing thinking with the fact in the 17 of 60 cells where it is best (HO-P2). In Qwen3-8B's geometry and BWOR cells, where
 the recipe loses, the 30 labels pick thinking: 0.74 points of regret instead of 7.83 (pre-registered, `PREREG_MODEL.md`, addendum HO-P). The labels are needed: estimating accuracies from how often the cheap program, a second sample and thinking agree (no labels) keeps fact-first in exactly those cells (regret 1.71 overall, 11.2 on Qwen3-8B geometry), because a model's cheap programs share their mistakes and vouch for each other (HO-L).
 
 ## 6. Baselines on the same harness
@@ -221,11 +218,12 @@ wall-clock time or CPU time of the checks.
 
 ## 9. Conclusion
 
-For computational problems on a single 24 GB GPU, the cheapest reliable way to exact answers is to give the model the missing fact first
-and pay for thinking only where a free check visibly fails — not where problems look hard. The recipe holds on unseen benchmarks for the
-stronger small models and for a model it was never developed with; on word problems one cheap repair from the error should come before
-thinking. Its limit is the check: where a model's wrong programs look right, thinking only on visible failures saves tokens by losing
-accuracy, and 30 labelled problems of a new task are enough to see that and think instead. Making checks see what the given input does not
+For computational problems on a single 24 GB GPU, the missing fact is the cheapest lever: a few lines of exact usage or a checked program
+for a similar problem, found without labels, improve both cheap programs and thinking. Paying for thinking only where a free check visibly
+fails — not where problems look hard — keeps the accuracy of always thinking with the fact at 30–78% of its tokens for gpt-oss-20b and for
+a model the recipe was never developed with (Qwen3.5-9B); on word problems one cheap repair from the error should come before thinking. Its limit is the check: where a model's wrong programs look right (the Qwen3 models on the hardest word problems, Qwen3-8B on geometry),
+thinking only on visible failures saves tokens by losing accuracy, and 30 labelled problems of a new task are enough to see that and
+think instead. Making checks see what the given input does not
 contain is the open problem.
 
 *Sources: `PROPOSAL.md`; held-out numbers `results/x3/ho*_analysis.log`, `results/x3/ho2_*_analysis.log`,

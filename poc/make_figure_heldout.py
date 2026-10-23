@@ -17,7 +17,7 @@ OPT = (("optmath", "OptMATH", "mips", "thinks"), ("optibench", "OptiBench", "for
 OPT_NEW = (("optmath", "OptMATH", "formx", "formxt"),) + OPT[1:]   # no mined example: the model has no development runs
 BLUE, ORANGE, INK, MUTED, SURFACE = "#2a78d6", "#eb6834", "#0b0b0b", "#52514e", "#fcfcfb"
 # label placement where pairs crowd: (anchor point, dx, dy, ha); default = above-left of the recipe's point
-LABEL = {("q14a", "OptMATH"): ("ff", -6, -12, "right"), ("q8b", "geometry"): ("ff", -6, -12, "right"),
+LABEL = {("q14a", "OptMATH"): ("ff", -6, -12, "right"), ("q14a", "BWOR"): ("ff", -7, -3, "right"), ("q14a", "LogiOR"): ("ff", 3, -12, "left"), ("q8b", "geometry"): ("ff", -6, -12, "right"),
          ("q8b", "BWOR"): ("think", 7, -3, "left"), ("q8b", "LogiOR"): ("think", 7, -3, "left"), ("q8b", "OptMATH"): ("think", 7, -3, "left"),
          ("q35", "BWOR"): ("ff", -7, -7, "right"), ("q35", "LogiOR"): ("ff", 2, 7, "left")}
 
