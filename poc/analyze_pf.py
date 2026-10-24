@@ -1,8 +1,9 @@
 """PF (docs/prereg/PREREG_PROOF.md, addendum): the recipe on miniF2F where the check (the Lean compiler) is sound. From the stored phase-1
 attempts (8 per statement and mode), per model: CHEAP×k, THINK×j and FF(a, j) = up to a cheap attempts, then up to j thinking attempts,
 each stopping at the first attempt that compiles; attempts in a random order, averaged over 200 orders; tokens = all attempts made.
-usage: python analyze_pf.py"""
-import json, os, random
+PL1: `python analyze_pf.py oss20:oss20_medium oss120:oss120_medium` uses every stored attempt (e.g. 32 cheap, 8 thinking; 100 orders).
+usage: python analyze_pf.py [cheap_tag:think_tag ...]"""
+import json, os, random, sys
 from collections import defaultdict
 
 RES = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "results", "x4")
@@ -28,24 +29,29 @@ def run(seq):
 
 def main():
     rng = random.Random(0)
-    for name, c, th in PAIRS:
-        C, T = load(c), load(th); names = sorted(set(C) & set(T)); n_ord = 200
+    pairs = [(a.replace(":", " / "), *a.split(":")) for a in sys.argv[1:]] or PAIRS
+    for name, c, th in pairs:
+        C, T = load(c), load(th); names = sorted(set(C) & set(T)); n_ord = 200 if len(sys.argv) == 1 else 100
+        nC, nT = min(len(C[s]) for s in names), min(len(T[s]) for s in names)
         res = defaultdict(lambda: [0.0, 0.0])
         for _ in range(n_ord):
             for s in names:
-                cs, ts = rng.sample(C[s], len(C[s])), rng.sample(T[s], len(T[s]))
-                for a in range(9):
-                    for j in range(9):
+                cs, ts = rng.sample(C[s], nC), rng.sample(T[s], nT)
+                for a in range(nC + 1):
+                    for j in range(nT + 1):
                         if a == 0 and j == 0:
                             continue
                         ok, tk = run(cs[:a] + ts[:j])
                         res[(a, j)][0] += ok / n_ord; res[(a, j)][1] += tk / n_ord
-        th8 = res[(0, 8)]; ch8 = res[(8, 0)]
-        print(f"=== {name} ({len(names)} statements): CHEAP×8 {ch8[0]:.1f} solved @ {ch8[1] / len(names) / 1000:.2f}k | THINK×8 {th8[0]:.1f} @ "
-              f"{th8[1] / len(names) / 1000:.2f}k | FF(1,8) {res[(1, 8)][0]:.1f} @ {res[(1, 8)][1] / len(names) / 1000:.2f}k "
-              f"({100 * res[(1, 8)][1] / th8[1]:.0f}% of THINK×8) | FF(8,8) {res[(8, 8)][0]:.1f} @ {res[(8, 8)][1] / len(names) / 1000:.2f}k")
+        th8 = res[(0, nT)]; ch8 = res[(8, 0)]; chN = res[(nC, 0)]
+        print(f"=== {name} ({len(names)} statements, {nC} cheap / {nT} thinking attempts): CHEAP×8 {ch8[0]:.1f} @ {ch8[1] / len(names) / 1000:.2f}k | "
+              f"CHEAP×{nC} {chN[0]:.1f} @ {chN[1] / len(names) / 1000:.2f}k | THINK×{nT} {th8[0]:.1f} @ {th8[1] / len(names) / 1000:.2f}k | "
+              f"FF(1,{nT}) {res[(1, nT)][0]:.1f} @ {res[(1, nT)][1] / len(names) / 1000:.2f}k ({100 * res[(1, nT)][1] / th8[1]:.0f}% of THINK) | "
+              f"FF({nC},{nT}) {res[(nC, nT)][0]:.1f} @ {res[(nC, nT)][1] / len(names) / 1000:.2f}k")
+        cheap_best = max(v[0] for k, v in res.items() if k[1] == 0 and v[1] <= th8[1])
         best = max(((v[0], k) for k, v in res.items() if v[1] <= th8[1]), key=lambda x: x[0])
-        print(f"  best within THINK×8's budget: FF{best[1]} {best[0]:.1f} solved ({best[0] - th8[0]:+.1f}) @ {res[best[1]][1] / len(names) / 1000:.2f}k")
+        print(f"  best within THINK's budget: FF{best[1]} {best[0]:.1f} solved ({best[0] - th8[0]:+.1f} vs THINK; best cheap-only {cheap_best:.1f}) "
+              f"@ {res[best[1]][1] / len(names) / 1000:.2f}k")
         for budget in (2, 4, 8, 16, 32):   # the frontier: best solved at <= budget k tokens per statement
             cand = [(v[0], k, v[1]) for k, v in res.items() if v[1] / len(names) / 1000 <= budget]
             if cand:
