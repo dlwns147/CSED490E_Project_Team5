@@ -196,6 +196,31 @@ ktokens. Over the 45 held-out cells (3 models × 3 seeds × five benchmarks, eac
 cell's best on average (10 labels: 2.81; always using fact-first: 1.80; always thinking: 5.86); on the unseen Qwen3.5-9B, 0.81 over 15 cells. With repair-first as a fifth policy over all 60 held-out cells the pilot's regret is 0.94, and always repairing first (1.22 on the 48 word cells) beats always using the plain recipe (2.85), though it loses accuracy on BWOR for all three development models (HO-R). Against the fact-matched thinking arm no fixed policy is good everywhere (best fixed regret 3.32) and the pilot matters most: 30 labels keep the regret at 0.85, choosing thinking with the fact in the 17 of 60 cells where it is best (HO-P2). In Qwen3-8B's geometry and BWOR cells, where
 the recipe loses, the 30 labels pick thinking: 0.74 points of regret instead of 7.83 (pre-registered, `PREREG_MODEL.md`, addendum HO-P). The labels are needed: estimating accuracies from how often the cheap program, a second sample and thinking agree (no labels) keeps fact-first in exactly those cells (regret 1.71 overall, 11.2 on Qwen3-8B geometry), because a model's cheap programs share their mistakes and vouch for each other (HO-L).
 
+### 5.6 Larger models, stronger checks, shorter thinking
+- **gpt-oss-120b** (4 × RTX 3090, tensor parallel): fact-first ties thinking with the same fact on OptiBench, BWOR and LogiOR (−1.0, +3.7,
+  0.0) at 50–63% of its tokens (HO-LG).
+- **A stronger check where the plain one leaks**: accepting the library program only if a solution checker written from the text passes
+  its printed solution closes the Qwen3 models' gap to thinking with the fact in all five losing cells (−4 to −12 → −1.6 to +1.0), but saves
+  tokens only on OptiBench (71–79%); on BWOR / LogiOR it escalates almost everything (HO-VF).
+- **Shorter thinking with the fact** (budget forcing): 2k tokens keep all but 2–4 points on OptiBench at ~40% of the tokens but lose 11–17
+  on BWOR / LogiOR; escalating to a budgeted think does not rescue fact-first for the Qwen3 models (HO-TB).
+
+### 5.7 Putting the fact into the weights, with no labels
+Qwen3-8B and Qwen3-14B were LoRA-fine-tuned (36 / 53 minutes on 2–4 RTX 3090s) on 1,127 programs from the development sets that pass the
+strict check — no label anywhere. Without any fact in the prompt, the fine-tuned models write programs about as good as the base models
+*given* the label-free library on OptiBench (Qwen3-8B 54.2% vs 51.6%, base without a fact 27.4%; Qwen3-14B 58.0% vs 58.1%, base 36.3%) and
+BWOR (+2.8, +3.3), with usage crashes falling from 16–28% to 1–7%; the leak does not rise (OptiBench 32–39% → 23–30%). On LogiOR /
+OptMATH, whose problem types the development data lacks, the library's similar-problem programs still help (−1 to −6 for the fine-tuned
+models). Fine-tuning internalizes the usage fact; a self-training round on 3,996 unlabeled problems is the test for new problem types
+(DT3, running).
+
+### 5.8 Proofs: where the check is perfect
+In Lean 4 a compiled proof is correct, so the check cannot leak. On miniF2F (244 statements), 32 cheap (non-thinking) attempts solve more
+than 8 thinking attempts (gpt-oss-20b 74 vs 72; gpt-oss-120b 83 vs 81), thinking afterwards adds the statements cheap sampling never reaches
+(80, 91), and up to always-thinking's budget the best policy is mostly cheap attempts (PF, PL1). One cheap try before thinking saves
+nothing (97–103% of the tokens): with a perfect check the escalation rule is "sample cheaply until it stops paying, then think". With tokens
+priced, the best split is short (4–6 cheap attempts, at most one thinking attempt), and 30 labelled statements pick it within a point (PL2).
+
 ## 6. Baselines on the same harness
 
 | task | baseline | its result | ours |
@@ -234,7 +259,8 @@ fails — not where problems look hard — keeps the accuracy of always thinking
 a model the recipe was never developed with (Qwen3.5-9B); on word problems one cheap repair from the error should come before thinking. Its limit is the check: where a model's wrong programs look right (the Qwen3 models on the hardest word problems, Qwen3-8B on geometry),
 thinking only on visible failures saves tokens by losing accuracy, and 30 labelled problems of a new task are enough to see that and
 think instead. Making checks see what the given input does not
-contain is the open problem.
+contain is the open problem. Two extensions point past it: where the check is perfect (formal proofs) the rule becomes
+"sample cheaply, then think", and the fact itself can be trained into the model from the recipe's own checked programs, with no labels.
 
 *Sources: `PROPOSAL.md`; held-out numbers `results/x3/ho*_analysis.log`, `results/x3/ho2_*_analysis.log`,
 `results/x3/input_tokens_analysis.log`, `results/hogc_analysis.log`; predictions and verdicts `docs/prereg/PREREG_{U1,HO,HOG,HOGC,HON,MODEL,X7,N,X1,PROOF}.md`; analyses `poc/analyze_{ho,ho3,ho7,hogc,hox,hod_gate,budget,hop,hol,hon}.py`.*
