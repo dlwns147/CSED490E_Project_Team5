@@ -229,3 +229,10 @@ cheap (4.3k per attempt vs 14.5k), mixes in 1–2 thinking attempts from 8k on (
 - **Reading.** With a perfect check the budget goes mostly to cheap attempts; thinking is worth a few attempts when it is cheap relative to
   a cheap attempt, and its distinct value is the statements cheap sampling never reaches (+6 to +8). The escalation rule for proofs: sample
   cheaply until attempts stop adding statements, then think — the word-problem recipe with "one cheap try" replaced by "many".
+
+## Addendum PL2 (2026-10-24 04:0x UTC, before computing; offline on the PL1 attempts): can 30 labelled statements pick the budget split?
+Policies FF(a, j) (a ≤ 32 cheap, j ≤ 8 thinking, attempts in a random order, stop at the first that compiles); utility per statement =
+100 × solved − λ × ktokens, λ = 0.5 (as the word-problem pilot). Pilot: label 30 random statements, pick the FF(a, j) with the best pilot
+utility; regret = best full-set utility − the pick's full-set utility; 300 pilots per model.
+- **PL2-P1:** the 30-label pilot's mean regret is ≤ 2 points for both models (vs the best single (a, j) per model).
+- **PL2-P2:** the pilot's pick uses ≥ 8 cheap attempts in ≥ 80% of pilots for both models (cheap sampling first is the robust choice).
