@@ -27,3 +27,21 @@ fine-tuned model against thinking with the fact; P3 → the training data must b
 *Training done (2026-10-24 00:3x UTC, job 1237676, 2 × RTX 3090): 1,127 examples (NL4OPT + IndustryOR 309, MAMO 818), 2 epochs, 142
 steps, 36 minutes; train loss 0.137 (last steps ≈ 0.10). Merged model at /SSD/huggingface/derived/Qwen3-8B-sft-checked. Held-out
 evaluation (the `free` arm, 3 seeds, tag `q8bsft`) submitted as job 1237729.*
+
+### Results DT (2026-10-24 01:3x UTC; `python poc/analyze_dt.py`, 3 seeds, paired 95% intervals; usage crashes / leak = wrong among running programs)
+| held-out benchmark | base, no fact | base + label-free library | **fine-tuned, no fact** | fine-tuned − base + library |
+|---|---|---|---|---|
+| OptiBench third (202) | 27.4% (crashes 24.6%, leak 39%) | 50.5% (6.4%, 32%) | **51.7%** (0.7%, 30%) | +1.2 [−5.4, +7.9] |
+| OptiBench all (605) | 27.4% | 51.6% | **54.2%** (1.4%, 28%) | +2.6 [−1.2, +6.2] |
+| BWOR (82) | 9.8% (16.3%, 75%) | 15.4% (15.4%, 69%) | **18.3%** (4.1%, 69%) | +2.8 [−3.7, +10.2] |
+| LogiOR (92) | 9.4% (22.1%, 59%) | 15.6% (19.9%, 55%) | **16.7%** (12.3%, 61%) | +1.1 [−4.0, +6.2] |
+| OptMATH (100) | 5.3% (13.0%, 70%) | 14.3% (14.3%, 70%) | 8.3% (10.0%, 72%) | **−6.0 [−11.3, −0.7]** |
+Fine-tuned − base without a fact: +24.3 / +26.8 / +8.5 / +7.2 / +3.0 (the first four significant). Tokens unchanged (0.4–1.4k).
+- **DT-P1 holds** (≥ base + library on 3 / 4: OptiBench, BWOR, LogiOR; all ties within their intervals; below it on OptMATH, −6.0).
+- **DT-P2 refuted** (usage crashes < 5% on OptiBench and BWOR, not LogiOR 12.3% / OptMATH 10.0%: routing and large structured models need
+  usages the development data rarely shows).
+- **DT-P3 not observed** (the leak does not rise ≥ 5 points anywhere; it falls on OptiBench 39 → 30% and BWOR 75 → 69%): training on
+  the strict check's programs did not teach confident wrong programs here.
+- **Decision:** label-free fine-tuning on 1,127 of its own checked programs gives Qwen3-8B the library's gain without the library in the
+  prompt (≈ +25 points on OptiBench), except on OptMATH, whose problem types the development sets do not cover. Next: fact-first-then-
+  think with the fine-tuned model against thinking with the fact, and the fine-tuned model *with* the library (do they add?).
