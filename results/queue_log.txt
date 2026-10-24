@@ -666,3 +666,4 @@ SL dt3_gen_1_1of3 done Sat Oct 24 05:24:27 UTC 2026
 SL dt2_think_bwor done Sat Oct 24 05:39:08 UTC 2026
 SL dt2_think_logior done Sat Oct 24 06:10:56 UTC 2026
 SL dt3_eval done Sat Oct 24 08:57:51 UTC 2026
+SL dt4_oss20 done Sat Oct 24 09:30:33 UTC 2026

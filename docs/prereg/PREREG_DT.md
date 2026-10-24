@@ -130,3 +130,6 @@ from base on the development examples + these (`q8bsft3`), evaluate as DT.
 - **DT4-P2:** round 2b ≥ round 1 on OptMATH and LogiOR (point estimates), and ≥ round 2 (DT3) on BWOR / LogiOR / OptMATH.
 **Decision.** P1 + P2 → cross-model agreement is the filter that makes label-free self-training safe; otherwise self-training on unfamiliar
 problem types needs a perfect check (proofs).
+*DT4 data (2026-10-24 09:3x UTC): gpt-oss-20b's value agrees with the round-1 model's agreed value on 1,348 of the 3,996 unlabeled
+problems (DT3: 1,957; OR-Instruct 767, OptMATH-Train 581); with the development examples 2,475 training examples
+(`build_sft_data.py --round2 --cross`). Training submitted (tag `q8bsft3`).*
