@@ -80,3 +80,28 @@ Numbers quoted from papers came through a page reader: re-check before citing ex
 - **When to think**: Thinkless (2505.13379, NeurIPS 2025) and AdaptThink (2505.13417) *train* a mode switch (RL); "What if we allocate
   test-time compute adaptively?" (2602.01070, ICML 2026) allocates with a process reward model; none use an execution check after giving a
   fact, and none compare with difficulty-based allocation (Snell et al.) at matched tokens as we do.
+
+## Related-work check for the 2026-10-23/24 results (literature search, 2026-10-24)
+**1. Fact first, think on failure — known idea, new angle.** Cheap-first escalation on a failed check is established for *cascades
+between models*: answer consistency (LLM Cascades with Mixture of Thought Representations, ICLR 2024, 2310.03094), self-verification
+(AutoMix, NeurIPS 2024, 2310.12963), self-generated tests (Model Cascading for Code, 2405.15842). Deciding *when to think* inside one
+hybrid model is mostly learned (AdaptThink 2505.13417, Thinkless 2505.13379, AutoThink 2505.10832; OptimalThinkingBench, ICLR 2026,
+2508.13141: no model thinks the right amount). The accuracy ceiling from false positives of an imperfect check is predicted by The Limits
+of Inference Scaling Through Resampling (ICLR 2026, 2411.17501). Retrieval of facts / similar solved problems: DocPrompting (ICLR 2023);
+for OR modeling MIRROR (2602.03318), 2608.00015. Reasoning models sometimes below non-reasoning ones on NL4OPT / MAMO / IndustryOR:
+OR-LLM-Agent (2503.10009). **New here:** the fact-matched comparison (thinking given the same fact), the per-model split (pure saving vs
+trade) explained exactly by the false-pass decomposition, and the evidence on OR / geometry; the 30-label pilot is standard cascade tuning.
+**2. Proofs: cheap attempts before thinking — mostly established.** Reasoning Models Can Be Effective Without Thinking (2504.09858):
+no-thinking matches thinking on MiniF2F / ProofNet at every k with 3.3–3.7× fewer tokens; DeepSeek-Prover-V2 non-CoT vs CoT (2504.21801);
+repeated sampling with a perfect verifier: Large Language Monkeys (2407.21787). Only modestly new: "thinking adds statements only after
+cheap sampling saturates" on general hybrid models.
+**3. Label-free fine-tuning — mostly established.** Self-consistency-filtered self-training (LLMs Can Self-Improve, EMNLP 2023,
+2210.11610; STaR; ReST-EM); training on usage beats docs in context (CodeUpdateArena 2407.06249); context distillation (2209.15189).
+Collapse under self-agreement rewards: Can Large Reasoning Models Self-Train? (2505.21444), Co-rewarding (ICLR 2026, 2508.00410),
+sharpening / self-improvement gap (ICLR 2025, 2412.01951, 2412.02674); cross-model agreement: Co-rewarding, Multiagent Finetuning (ICLR
+2025, 2501.05707). Expert iteration on Lean Workbook: Polu et al. 2022, DeepSeek-Prover, Goedel-Prover (2502.07640), STP (ICML 2025,
+2502.00212; plain expert iteration plateaus). **New here:** program-level agreement on OR problems as the filter, and the negative data
+point that a cross-model filter removes harm but adds nothing. DT-P (Lean expert iteration) was withdrawn before results for this reason.
+**Open questions not answered by prior work:** (i) a few-label predictor of when escalation pays (false-pass rate, cheap pass rate,
+thinking's accuracy on failures); (ii) label-free checks for OR programs that turn the Qwen3 trade into a pure saving (problem-semantic
+metamorphic relations, thinking-mode review of the cheap program); (iii) thinking-vs-non-thinking mode agreement as a self-training filter.

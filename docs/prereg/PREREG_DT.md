@@ -159,3 +159,6 @@ on them exactly as DT (tag `q8bprf`) and evaluated on miniF2F test with 8 cheap 
 - **DTP-P2:** its per-attempt success rate is ≥ 1.3 × the base's.
 **Decision.** P1 → with a perfect check label-free self-training transfers to held-out statements, completing the contrast with DT3 / DT4:
 the check, not the training, bounds self-improvement.
+*DT-P withdrawn (2026-10-24 12:5x UTC, before any proof was checked): a related-work check showed Lean expert iteration with the compiler as
+filter is established (Polu et al. 2022; DeepSeek-Prover; Goedel-Prover; STP, which reports plain expert iteration plateauing); the run
+could not change our claim, so its 8 GPUs go to the open problem at the claim's weak point (docs/notes/RELATED_WORK.md).*
