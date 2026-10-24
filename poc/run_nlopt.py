@@ -135,6 +135,9 @@ def problems(which=None):
         for r in map(json.loads, open(f"{DATA}/logior/logior.jsonl")):
             out.append({"id": f"logior-{r['prob_id']}", "src": f"logior_{r['problem_type']}", "q": r["description"].strip(),
                         "gold": str(r["ground_truth"]), "difficulty": r["problem_size"]})
+    if which == "unlabeled":   # DT3 (PREREG_DT.md, 2026-10-24): problem texts with no answer (poc/build_unlabeled.py); graded nowhere
+        for r in map(json.loads, open(f"{DATA}/sft/unlabeled_4k.jsonl")):
+            out.append({"id": r["id"], "src": r["src"], "q": r["q"], "gold": "nan", "difficulty": r["src"]})
     if which in ("mamo", "all"):
         for name, fn in (("mamo_easy", "MAMO_EasyLP"), ("mamo_complex", "MAMO_ComplexLP")):
             for k, l in enumerate(l for l in open(f"{MAMO}/{fn}.json") if l.strip()):

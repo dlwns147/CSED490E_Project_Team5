@@ -76,3 +76,15 @@ BWOR, LogiOR, OptMATH, 3 seeds.
 - **Reading (both models).** Label-free fine-tuning moves the *usage* part of the fact into the weights (usage crashes 16–28% → 2–7%;
   OptiBench +22 to +27 points with no fact), but the library's programs for similar problems still add on LogiOR / OptMATH, whose
   problem types the development data does not show. The leak does not rise (OptiBench 32–39% → 23–30%).
+
+## Addendum DT3 (2026-10-24 03:5x UTC, before any run): label-free self-training on unlabeled problems
+**Why.** Fine-tuning moved the usage fact into the weights but not the formulations of problem types the development data lacks (LogiOR,
+OptMATH: −5 to −6 vs the library). Unlabeled problems of more types are available: 3,996 question texts (2,000 random from OptMATH-Train,
+2,000 from OR-Instruct-3K; answers, code and completions dropped; 4 removed for ≥ 30% 8-gram overlap with a held-out problem;
+`poc/build_unlabeled.py`). **Round 2:** the round-1 fine-tuned Qwen3-8B (`q8bsft`) writes a program for each, twice (`free`, seeds 1 and 2,
+no thinking); the strict check keeps a problem's program when both run, print a value that is not 'No Best Solution', and agree. Base
+Qwen3-8B is fine-tuned again from scratch on the development examples + these (same recipe) → `q8bsft2`, evaluated as DT (held-out `free`).
+- **DT3-P1:** round 2 ≥ round 1 + 3 points on OptMATH or LogiOR (the types the new problems cover), at least one significant.
+- **DT3-P2:** OptiBench and BWOR stay within ±3 of round 1.
+- **DT3-P3:** the leak does not rise by ≥ 5 points on any benchmark.
+**Decision.** P1 → label-free self-training on unlabeled problems extends the internalized fact to new problem types (no labels at any step).
