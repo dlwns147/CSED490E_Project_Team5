@@ -120,3 +120,13 @@ merged to /SSD/huggingface/derived/Qwen3-8B-sft-r2; held-out `free` evaluation (
   harder, unfamiliar problems. **The check's leak bounds label-free self-training as it bounds the recipe**; a stronger filter (the
   solution checker, or agreement across different models) is the next test, and where the check is perfect (proofs) self-training has no
   such limit.
+
+## Addendum DT4 (2026-10-24 09:0x UTC, before any run): a cross-model filter for self-training
+DT3's filter (two runs of the same model agree) passed consistent wrong programs. HO-X found that a *different* model's program catches
+the self-correlated errors. **Run:** gpt-oss-20b (low effort, `free`, one seed) on the same 3,996 unlabeled problems; keep a problem's
+round-1-model program only if it runs, prints a value, agrees with its own second run **and** with gpt-oss-20b's value; retrain Qwen3-8B
+from base on the development examples + these (`q8bsft3`), evaluate as DT.
+- **DT4-P1:** fewer problems pass than in DT3 (< 1,957), and the leak does not rise over round 1 on any benchmark (≤ +2 points).
+- **DT4-P2:** round 2b ≥ round 1 on OptMATH and LogiOR (point estimates), and ≥ round 2 (DT3) on BWOR / LogiOR / OptMATH.
+**Decision.** P1 + P2 → cross-model agreement is the filter that makes label-free self-training safe; otherwise self-training on unfamiliar
+problem types needs a perfect check (proofs).
