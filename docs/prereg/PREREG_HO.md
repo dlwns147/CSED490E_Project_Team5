@@ -674,3 +674,17 @@ tokens): for a 120B model fact-first-then-think keeps the accuracy of thinking w
 - **Reading.** A shorter think with the fact is a token-for-accuracy trade, not a free saving: about a third of the tokens for 2–3 points
   on OptiBench (2k) or for Qwen3-14B-AWQ on BWOR / LogiOR (6k); Qwen3-8B needs the full budget on the hard benchmarks. Escalating to a
   budgeted think does not rescue fact-first for these models: their loss is the leaky check (HO-VF), not the cost of the escalation.
+
+## Addendum HO-VR (2026-10-24 13:3x UTC, before any run): a short thinking-mode review as the gate
+**Why it could change the claim / what is new.** The claim's weak point is the Qwen3 cells where the free check passes wrong programs that
+thinking with the fact would solve (fact-first loses 4–15 points). The solution checker (HO-VF) closed the gap but escalated almost everything
+on BWOR / LogiOR (101–111% of the tokens). Prior cascades gate escalation *between models* by answer consistency or self-verification
+(AutoMix, LLM cascades; docs/notes/RELATED_WORK.md); here the gate is the *same model's thinking mode reviewing its own non-thinking
+program* under a small budget — a different reasoning path than the cheap mode, at a fraction of a full think — on the fact-matched setup.
+**Run** (`poc/run_review.py <m> <seed> 2000`): for every passing library program (formx) of Qwen3-14B-AWQ and Qwen3-8B on the OptiBench
+third, BWOR, LogiOR (seeds 1–3), thinking cut at 2,000 tokens, then `VERDICT: CORRECT | WRONG`. **Policy FF-R+F:** accept the program on
+CORRECT, else thinking with the fact (formxt, HO-TF rows). Tokens = program + review + thinking where escalated.
+- **VR-P1:** FF-R+F ties THINK+F (interval upper bound ≥ 0) in ≥ 3 of the 5 losing cells at ≤ 75% of THINK+F's tokens.
+- **VR-P2:** pooled, the review flags ≥ 60% of the wrong passing programs and ≤ 30% of the right ones.
+**Decision.** P1 → the recipe's check for these models becomes "free check + a short self-review", turning the trade into a saving;
+otherwise the Qwen3 cells stay a trade and the pilot decides.
