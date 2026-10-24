@@ -716,3 +716,18 @@ A review that reads the statement may see what checks on the given input cannot.
 **Run** (`run_review.py <m> <seed> 2000 mips` with NLOPT_SET=optmath; NLOPT_SET=geo for geometry): Qwen3-14B-AWQ and Qwen3-8B, seeds 1–3.
 - **VR2-P1:** FF-R+F ties or beats THINK+F (OptMATH: thinks; geometry: thinkfact) in ≥ 3 of the 4 cells.
 - **VR2-P2:** on Qwen3-8B geometry the review flags ≥ 40% of the leaked programs (pass MR, wrong) with ≤ 20% false alarms.
+
+### Results HO-VR2 (2026-10-24 14:3x UTC; `python poc/analyze_hovr.py --vr2`, 3 seeds; vs thinking with the fact)
+| cell | FF+F − THINK+F | **FF-R+F − THINK+F** | FF-R+F tokens |
+|---|---|---|---|
+| Qwen3-14B-AWQ OptMATH (mips / thinks) | 0.0 [−4.0, +4.0] | +1.0 [−0.7, +3.0] | 107% |
+| Qwen3-14B-AWQ geometry (fact / thinkfact) | +2.4 [−0.3, +5.6] | **+3.5 [+1.0, +6.2]** | 84% |
+| Qwen3-8B OptMATH | +1.7 [−1.3, +5.0] | **+2.7 [+0.3, +5.3]** | 109% |
+| Qwen3-8B geometry | −16.7 [−21.9, −11.5] | **−6.6 [−10.1, −3.5]** | 98% |
+Qwen3-8B geometry: the review flags 24 / 27 leaks wrong on the given input and **20 / 37 edge-case-only leaks** (false alarms 41 / 132,
+31%); Qwen3-14B-AWQ: 6 / 7 leaks, 57 / 232 false alarms.
+- **VR2-P1 holds** (ties or beats in 3 / 4; two significant wins). **VR2-P2 refuted narrowly** (69% of Qwen3-8B's leaks flagged, ≥ 40%,
+  but 31% false alarms, not ≤ 20%).
+- **Reading.** Reading the statement, the short review sees edge-case errors no check on the given input could (20 of the 37 that defeated
+  brute force, resampling, edge tests, relations, a second model and repair), cutting Qwen3-8B's geometry loss from 16.7 to 6.6 points;
+  it is still a loss, and the false alarms cost the saving. Across the eight Qwen3 cells the gate ties or beats thinking with the fact in 7.

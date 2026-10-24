@@ -29,7 +29,8 @@ table: `docs/REPORT.md` §5.1):
   OptMATH. For Qwen3-14B-AWQ on OptiBench / BWOR and for Qwen3-8B on four of five, thinking with the fact is 4–17 points more accurate:
   there the recipe trades accuracy for tokens, because its free check lets wrong programs through. A 2k-token self-review in
   thinking mode as the gate removes that loss: fact-first ties or beats thinking with the fact in all 6 Qwen3 cells, at 70–73% of the
-  tokens on OptiBench and the same cost on BWOR / LogiOR, where even a perfect check saves ≤ 12% (HO-VR).
+  tokens on OptiBench and the same cost on BWOR / LogiOR, where even a perfect check saves ≤ 12% (HO-VR); on OptMATH and geometry it ties or wins in 3 of 4 more cells and cuts Qwen3-8B's
+  geometry loss from −16.7 to −6.6 by catching 20 of its 37 edge-case-only leaks from the statement (HO-VR2).
 - **Which to use is detectable:** a 30-label pilot over five policies loses 0.85 points on average over 60 held-out cells, where no fixed
   policy comes within 3.3; on word problems the first escalation is one cheap repair from the error (HO7, HO-N3, HO-R).
 - The label-free library of checked programs raises the first program in 23 of 25 model × benchmark cells (up to +34 points).

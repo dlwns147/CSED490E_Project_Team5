@@ -207,7 +207,9 @@ the recipe loses, the 30 labels pick thinking: 0.74 points of regret instead of 
 - **A short self-review as the gate** (HO-VR): the same Qwen3 model, thinking for at most 2k tokens, reviews its passing program and
   answers CORRECT / WRONG; escalating on WRONG makes fact-first tie or beat thinking with the fact in all six Qwen3 cells (−1.1 to +2.9),
   at 70–73% of its tokens on OptiBench and ~100% on BWOR / LogiOR, where even a perfect check saves at most 12%. The review flags 65% of
-  wrong passing programs with 13% false alarms.
+  wrong passing programs with 13% false alarms. On OptMATH and geometry (HO-VR2) it ties or beats thinking with the fact in 3 of 4 more
+  cells and cuts Qwen3-8B's geometry loss from −16.7 to −6.6: reading the statement, it catches 20 of the 37 edge-case-only leaks that
+  every check on the given input missed (§5.2), at 31% false alarms.
 - **Shorter thinking with the fact** (budget forcing): 2k tokens keep all but 2–4 points on OptiBench at ~40% of the tokens but lose 11–17
   on BWOR / LogiOR; escalating to a budgeted think does not rescue fact-first for the Qwen3 models (HO-TB).
 
