@@ -236,3 +236,12 @@ Policies FF(a, j) (a ≤ 32 cheap, j ≤ 8 thinking, attempts in a random order,
 utility; regret = best full-set utility − the pick's full-set utility; 300 pilots per model.
 - **PL2-P1:** the 30-label pilot's mean regret is ≤ 2 points for both models (vs the best single (a, j) per model).
 - **PL2-P2:** the pilot's pick uses ≥ 8 cheap attempts in ≥ 80% of pilots for both models (cheap sampling first is the robust choice).
+
+### Results PL2 (2026-10-24 04:1x UTC; `python poc/analyze_pl2.py oss20:oss20_medium oss120:oss120_medium`, λ = 0.5)
+| | best fixed split (utility) | CHEAP×32 | THINK×8 | 30-label pilot regret (90th pct) | pilot picks with ≥ 8 cheap |
+|---|---|---|---|---|---|
+| gpt-oss-20b | FF(6, 0) 19.9 | 8.5 | −25.0 | **0.55** (1.25) | 29% |
+| gpt-oss-120b | FF(4, 1) 23.0 | 12.4 | 15.9 | **0.90** (2.05) | 21% |
+- **PL2-P1 holds** (regret ≤ 2). **PL2-P2 refuted:** with tokens priced at λ = 0.5 the best split is a few cheap attempts (4–6) and at
+  most one thinking attempt, not ≥ 8 cheap ones; the token penalty, not the check, now decides how far to sample. The 30-label pilot finds
+  it within a point — the same deployable rule as on word problems.
