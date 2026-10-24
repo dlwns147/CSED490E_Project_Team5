@@ -757,3 +757,26 @@ programs and 102 / 509 right ones.
 - **Decision:** the gate is not a free default. Where the plain check is already good (Qwen3.5-9B), it buys little accuracy for many tokens;
   where the check leaks (the Qwen3 models), it removes the loss. It is a policy the 30-label pilot switches on, and it depends on the model
   answering the review in the asked format.
+
+## Addendum WF5 (2026-10-24 21:1x UTC, before any run): the "do not add a fact" side, reached through fine-tuning
+**Why it could change the claim.** The census rule (add a fact unless usage crashes u < 5% and non-usage failures n ≥ 25%) is part of the
+claim, but all 24 prospective calls so far fell on its "add" side (WF3, WF4): no base model reaches the "do not add" region. Label-free
+fine-tuning (DT) moves the usage fact into the weights (u 16–28% → 1–7%) while formulation failures stay, so fine-tuned models are the
+first to land there. If the rule's second side holds, the census tells — with no labels — when the library has become unnecessary after
+fine-tuning (and its input tokens can be saved); if not, the rule is one-sided and the report says the pilot decides there.
+**Calls, recorded before any gain was read** (`CENSUS_SETS=optibench,bwor,logior,optmath python poc/analyze_which_fix.py --census
+q14sft q8bsft2 q8bsft`; `free` arm, 3 seeds; fine-tuned models from PREREG_DT.md):
+| cell | u | n | call | facts run (3 seeds) |
+|---|---|---|---|---|
+| Qwen3-14B fine-tuned (`q14sft`) OptiBench | 2.0% | 23.0% | add | card (`freef`), library (`formx`, all 605) |
+| `q14sft` BWOR | 4.9% | 31.7% | **do not add** | card, library |
+| `q14sft` LogiOR | 6.9% | 47.5% | add | card, library |
+| `q14sft` OptMATH | 11.7% | 55.0% | add | library |
+| Qwen3-8B self-trained round 2 (`q8bsft2`) BWOR | 3.7% | 37.0% | **do not add** | card, library |
+| Qwen3-8B fine-tuned (`q8bsft`) BWOR | 4.1% | 39.4% | **do not add** | card (its library arm was read in DT2: retrospective, not counted) |
+| `q8bsft` OptMATH | 10.0% | 60.3% | add | library |
+- **WF5-P1 (the new side):** in the 5 prospective "do not add" points, the fact changes the free program by ≤ +2 points in ≥ 4.
+- **WF5-P2 (the old side, on fine-tuned models):** in the 6 "add" points, the fact adds ≥ +2 points in ≥ 4.
+- Reported with each: the paired 95% interval, output tokens, and the library's extra input tokens.
+**Decision.** P1 → the census rule is two-sided: after label-free fine-tuning it says when to drop the fact; the claim's rule bullet
+becomes two-sided. P1 refuted → the rule only marks where facts pay a lot; below 5% usage crashes the pilot decides (stated as one-sided).
