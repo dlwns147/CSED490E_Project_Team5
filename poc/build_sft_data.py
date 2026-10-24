@@ -3,7 +3,8 @@ MAMO). For each problem, the programs of the stored cheap runs that pass the str
 not 'No Best Solution', and agree); keep the one whose answer most models share, then the shortest (as run_form.pool). No label is read.
 Prompt = the solver-choice prompt P_FREE (no fact); target = the program in a Python block.
 DT3: `--round2` also takes the unlabeled problems (poc/build_unlabeled.py) that the round-1 model solved twice in agreement
--> checked_programs_r2.jsonl.
+-> checked_programs_r2.jsonl. DT4: `--round2 --cross` keeps an unlabeled problem only if gpt-oss-20b's value (oss20_unlabeled free s1)
+agrees too -> checked_programs_r2x.jsonl.
 usage: python build_sft_data.py [--round2]  -> $POC_DATA/sft/checked_programs.jsonl"""
 import json, os, sys
 
@@ -14,6 +15,7 @@ SOURCES = {"x3": ("{m}_mipf", ("q17", "q4b", "q8b", "q14a", "oss20", "q32b", "q3
            "mamo": ("{m}_mamo_mips", ("oss20", "q14a", "q8b", "q32b", "q36"))}
 if "--round2" in sys.argv:
     SOURCES["unlabeled"] = ("{m}_unlabeled_free", ("q8bsft",))
+CROSS = {r["id"]: r for r in _rows(f"{RES}/opt_oss20_unlabeled_free_s1.jsonl")} if "--cross" in sys.argv else None
 
 
 def same(a, b):
@@ -34,11 +36,16 @@ def main():
         for i, L in by.items():
             if i not in Q:
                 continue
+            if which == "unlabeled" and CROSS is not None:   # DT4: a different model must agree with the kept value
+                c = CROSS.get(i)
+                L = [e for e in L if c and c.get("status") == "ok" and same(e[2], c.get("pred"))]
+                if not L:
+                    continue
             m, code, v = max(L, key=lambda e: (len({m2 for m2, _, v2 in L if same(e[2], v2)}), -len(e[1])))
             out.append({"id": i, "set": which, "from": m, "prompt": P_FREE.format(q=Q[i]["q"]), "target": "```python\n" + code.strip() + "\n```"})
         print(which, f"{len(Q)} problems, {sum(1 for o in out if o['set'] == which)} with a strict-check-passing program", flush=True)
     os.makedirs(f"{DATA}/sft", exist_ok=True)
-    with open(f"{DATA}/sft/checked_programs{'_r2' if '--round2' in sys.argv else ''}.jsonl", "w") as f:
+    with open(f"{DATA}/sft/checked_programs{'_r2' if '--round2' in sys.argv else ''}{'x' if '--cross' in sys.argv else ''}.jsonl", "w") as f:
         for o in out:
             f.write(json.dumps(o) + "\n")
     print("wrote", len(out))
