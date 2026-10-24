@@ -208,7 +208,7 @@ trade side and the report's model table gains it either way.
 | OptMATH `n3n` | 14.0% | 72.7% | 58.7% | add |
 All four "add" (u ≥ 5% everywhere): N4-P2 is scored on the 8 card / library points (OptMATH's card arm was run as well and is counted).
 
-### Results HO-N4, cheap arms: N4-P1 / P2 (2026-10-24 23:3x UTC; `n3n`, 3 seeds, all rows; gain = with fact − free, paired 95% interval)
+### Results HO-N4, cheap arms: N4-P1 / P2 (2026-10-24 23:2x UTC; `n3n`, 3 seeds, all rows; gain = with fact − free, paired 95% interval)
 | benchmark | free | + usage card | + label-free library |
 |---|---|---|---|
 | OptiBench (605) | 36.2% @ 512 | +6.1 [+3.6, +8.8] | **+16.3 [+13.1, +19.3]** |

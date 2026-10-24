@@ -3796,7 +3796,7 @@ fixed policy there. The six-policy pilot keeps regret at 0.96 (P3-1 holds) but b
 bar +0.5: P3-2 refuted; gate best in 9 of 39 cells), because the five-policy pilot already found a near-equal policy in the gate's cells
 and a sixth option adds pick noise. Decision as registered: the gate is the no-label default for a leaky model, outside the pilot.
 
-## 2026-10-24 23:30 UTC: HO-N4 cheap arms (PREREG_HON.md): on a new model family the fact pays on OptiBench only
+## 2026-10-24 23:25 UTC: HO-N4 cheap arms (PREREG_HON.md): on a new model family the fact pays on OptiBench only
 NVIDIA-Nemotron-3-Nano-30B-A3B (hybrid Mamba-Transformer mixture of experts, never used before; 4 × RTX 3090, tensor parallel), cheap
 non-thinking programs, 3 seeds. The label-free library raises the first program by +16.3 [+13.1, +19.3] on OptiBench (36.2 → 52.5%) and
 +3.7 [−1.3, +8.7] on OptMATH, but not on BWOR (−1.6) or LogiOR (−2.2); the usage card adds +6.1 on OptiBench and hurts LogiOR (−6.9
