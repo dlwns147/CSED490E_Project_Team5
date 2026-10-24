@@ -63,3 +63,16 @@ BWOR, LogiOR, OptMATH, 3 seeds.
 - **DT14-P2:** fine-tuned without a fact ≥ base without a fact + 10 points on OptiBench (the 8B gain was +26.8).
 *DT-14 training done (2026-10-24 03:0x UTC, job 1237995, 4 × RTX 3090): 142 steps, 53 minutes, train loss 0.122; merged to
 /SSD/huggingface/derived/Qwen3-14B-sft-checked; held-out `free` evaluation (tag `q14sft`, TP 2) submitted.*
+
+### Results DT-14 (2026-10-24 03:4x UTC; `python poc/analyze_dt.py q14sft q14b`; Qwen3-14B bf16, 3 seeds)
+| held-out | base, no fact | base + library | **fine-tuned, no fact** | fine-tuned − base + library |
+|---|---|---|---|---|
+| OptiBench third / all | 32.0% / 36.3% | 56.4% / 58.1% | **54.1% / 58.0%** (usage crashes 2.0%, leak 25 / 23%) | −2.3 [−8.9, +4.0] / −0.1 [−3.6, +3.2] |
+| BWOR | 17.1% | 20.7% | **24.0%** (4.9%) | +3.3 [−2.4, +8.9] |
+| LogiOR | 14.1% | 25.0% | 19.6% (6.9%) | −5.4 [−12.0, +1.1] |
+| OptMATH | 8.7% | 14.0% | 9.3% (11.7%) | −4.7 [−10.7, +0.7] |
+- **DT14-P1 refuted** (≥ base + library in 1 / 4 by point estimate; every difference is within its interval; on all 605 OptiBench
+  problems a tie, −0.1). **DT14-P2 holds** (+22.1 over the base without a fact on the OptiBench third, +21.8 on all).
+- **Reading (both models).** Label-free fine-tuning moves the *usage* part of the fact into the weights (usage crashes 16–28% → 2–7%;
+  OptiBench +22 to +27 points with no fact), but the library's programs for similar problems still add on LogiOR / OptMATH, whose
+  problem types the development data does not show. The leak does not rise (OptiBench 32–39% → 23–30%).

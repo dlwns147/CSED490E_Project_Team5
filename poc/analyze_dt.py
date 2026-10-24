@@ -1,7 +1,7 @@
 """DT (docs/prereg/PREREG_DT.md): the fine-tuned Qwen3-8B (q8bsft, no fact) vs base Qwen3-8B without a fact (free) and with the label-free
 library (formx), on the held-out benchmarks (OptiBench: the HO-TF third as pre-registered, and all 605), 3 seeds; paired 95% intervals.
 Also the usage-crash census and the leak (share of running, value-printing programs that are wrong).
-usage: python analyze_dt.py [tag]   (default q8bsft)"""
+usage: python analyze_dt.py [tag] [base tag]   (default q8bsft q8b; DT-14: q14sft q14b)"""
 import os, random, re, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -19,9 +19,10 @@ def ci(d, B=2000):
 
 def main():
     sft = sys.argv[1] if len(sys.argv) > 1 else "q8bsft"
+    base = sys.argv[2] if len(sys.argv) > 2 else "q8b"
     third = {p["id"] for p in problems("optibench")[0::3]}
     for b, sub in (("optibench", third), ("optibench", None), ("bwor", None), ("logior", None), ("optmath", None)):
-        arms = {"base free": f"q8b_{b}_free", "base + library": f"q8b_{b}_formx", "fine-tuned free": f"{sft}_{b}_free"}
+        arms = {"base free": f"{base}_{b}_free", "base + library": f"{base}_{b}_formx", "fine-tuned free": f"{sft}_{b}_free"}
         R = {k: {s: {r["id"]: r for r in _rows(f"{RES}/opt_{v}_s{s}.jsonl")} for s in (1, 2, 3)} for k, v in arms.items()}
         ids = [i for i in R["fine-tuned free"][1] if all(i in R[k][s] for k in R for s in (1, 2, 3)) and (sub is None or i in sub)]
         if not ids:
