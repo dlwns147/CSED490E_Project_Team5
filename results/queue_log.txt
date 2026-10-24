@@ -656,3 +656,10 @@ SL dt2_cheap done Sat Oct 24 02:11:49 UTC 2026
 SL pl1_oss120 done Sat Oct 24 02:48:57 UTC 2026
 SL dt14_base done Sat Oct 24 03:09:07 UTC 2026
 SL dt14_eval done Sat Oct 24 03:45:06 UTC 2026
+SL dt2_think_optibench done Sat Oct 24 05:20:27 UTC 2026
+SL dt3_gen_2_0of3 done Sat Oct 24 05:22:24 UTC 2026
+SL dt3_gen_2_2of3 done Sat Oct 24 05:22:37 UTC 2026
+SL dt3_gen_2_1of3 done Sat Oct 24 05:23:00 UTC 2026
+SL dt3_gen_1_2of3 done Sat Oct 24 05:23:09 UTC 2026
+SL dt3_gen_1_0of3 done Sat Oct 24 05:23:43 UTC 2026
+SL dt3_gen_1_1of3 done Sat Oct 24 05:24:27 UTC 2026

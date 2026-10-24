@@ -88,3 +88,5 @@ Qwen3-8B is fine-tuned again from scratch on the development examples + these (s
 - **DT3-P2:** OptiBench and BWOR stay within ±3 of round 1.
 - **DT3-P3:** the leak does not rise by ≥ 5 points on any benchmark.
 **Decision.** P1 → label-free self-training on unlabeled problems extends the internalized fact to new problem types (no labels at any step).
+*DT3 data (2026-10-24 05:2x UTC): the round-1 model solved 1,957 of the 3,996 unlabeled problems twice in agreement (OR-Instruct 1,129,
+OptMATH-Train 828); with the development examples, 3,084 training examples (`build_sft_data.py --round2`). Round-2 training submitted.*
