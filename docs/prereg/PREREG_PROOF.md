@@ -216,3 +216,16 @@ thinking = medium effort with a 32,000-token cap; a first submission with an 8,1
 *Batched checker validated (2026-10-23 23:5x UTC, job 1237592; `run_lean.py bvalidate`): 800 / 800 random stored attempts (400 Qwen3.6, 400
 gpt-oss-20b; 222 of them proofs) get the same verdict as the original one-file-per-attempt check. PL1 attempts are checked with
 `run_lean.py bcheck` (16 attempts per Lean process).*
+
+### Results PL1 (2026-10-24 04:0x UTC; `python poc/analyze_pf.py oss20:oss20_medium oss120:oss120_medium`, 100 random orders; statements of 244)
+| | CHEAP×8 | CHEAP×32 | THINK×8 | FF(32, 8) | best within THINK×8's budget (best cheap-only there) |
+|---|---|---|---|---|---|
+| gpt-oss-20b (low / medium) | 62.0 @ 11.5k | **74.0** @ 43.7k | 72.0 @ 109.0k | **80.0** @ 147.7k | FF(31, 5) 77.7 (74.0) @ 107.8k |
+| gpt-oss-120b (low / medium, 4 × RTX 3090) | 69.6 @ 11.5k | **83.0** @ 43.2k | 81.0 @ 34.7k | **91.0** @ 75.7k | FF(19, 2) 83.1 (81.1) @ 34.6k |
+Frontier: gpt-oss-20b is cheap-only at every budget up to 32k tokens per statement (CHEAP×1 … ×23); gpt-oss-120b, whose thinking is
+cheap (4.3k per attempt vs 14.5k), mixes in 1–2 thinking attempts from 8k on (FF(2, 1), FF(8, 1), FF(17, 2)).
+- **PL1-P1 holds** (+12.0 / +13.4 statements from 8 to 32 cheap attempts). **PL1-P2 half holds** (thinking adds +3.7 over cheap-only at
+  THINK×8's budget for gpt-oss-20b, +2.0 for gpt-oss-120b). **PL1-P3 holds** (+6 / +8 statements beyond 32 cheap attempts).
+- **Reading.** With a perfect check the budget goes mostly to cheap attempts; thinking is worth a few attempts when it is cheap relative to
+  a cheap attempt, and its distinct value is the statements cheap sampling never reaches (+6 to +8). The escalation rule for proofs: sample
+  cheaply until attempts stop adding statements, then think — the word-problem recipe with "one cheap try" replaced by "many".
