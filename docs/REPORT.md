@@ -34,7 +34,8 @@ experiments, then tested on held-out benchmarks:
 2. **Add the missing fact**: the few lines of exact usage the model lacks, or the model's own checked program for a similar problem
    (no human, no labels) — not a long manual, not extra tools.
 3. **Run a free check**: the program runs and prints a value; its outputs on transformed copies agree; the statement's examples pass.
-   For a model whose free check leaks, add a short self-review in thinking mode (≤ 2k tokens) of the passing program.
+   For a model whose free check leaks, add a short self-review in thinking mode (≤ 2k tokens) of the passing program (chosen by the
+   30-label pilot: on a model whose check is already good it costs 18–37% more tokens for little accuracy).
 4. **Think harder — given the same fact — only when the check fails**; on word problems after one cheap repair turn shown the error.
 5. **Reuse** a checked program when the same problem returns with new data.
 

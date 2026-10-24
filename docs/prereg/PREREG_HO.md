@@ -743,3 +743,17 @@ LogiOR, seeds 1–3.
 budget capped at 512 tokens (as for Qwen3), 70% of Qwen3.5-9B's reviews ended mid-explanation without a VERDICT line (its answers are
 long), which the policy counts as WRONG. The run is discarded and repeated with the answer capped at 2,048 tokens (REVIEW_ANSWER_MAX);
 predictions unchanged.*
+
+### Results HO-VR3 (2026-10-24 18:0x UTC; rerun with a 2,048-token answer cap; Qwen3.5-9B, 3 seeds; vs THINK+F)
+| cell | FF+F − THINK+F (tokens) | FF-R+F − THINK+F (tokens) |
+|---|---|---|
+| OptiBench (third) | +4.0 [+1.0, +6.9] (30%) | +5.1 [+3.5, +6.9] (67%) |
+| BWOR | 0.0 [−4.9, +4.9] (66%) | +3.3 [+0.4, +6.1] (96%) |
+| LogiOR | +7.6 [+3.6, +12.0] (78%) | +4.3 [+1.4, +7.2] (96%) |
+Even at 2,048 answer tokens 10–33% of the reviews end without a verdict (counted as WRONG); the review flags 117 / 199 wrong passing
+programs and 102 / 509 right ones.
+- **VR3-P1 refuted** (FF-R+F ≥ FF+F − 1 in 2 / 3: +1.1, +3.2, −3.3 on LogiOR). **VR3-P2 refuted** (the gate adds 18–37% of THINK+F's
+  tokens, not ≤ 15%: every false alarm or missing verdict sends a problem to a 32k-token think).
+- **Decision:** the gate is not a free default. Where the plain check is already good (Qwen3.5-9B), it buys little accuracy for many tokens;
+  where the check leaks (the Qwen3 models), it removes the loss. It is a policy the 30-label pilot switches on, and it depends on the model
+  answering the review in the asked format.
