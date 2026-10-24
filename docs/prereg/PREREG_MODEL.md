@@ -104,3 +104,34 @@ the fair baseline; otherwise the pilot needs more labels.
   3, LogiOR 2, OptiBench 2), Qwen3-14B-AWQ 6 (BWOR 3, OptiBench 2, LogiOR 1), gpt-oss-20b 1, Qwen3.5-9B 0.
 - Against the fair baseline no fixed policy is good everywhere (best fixed: repair-first, 3.32), while 30 labels cut the regret to 0.85:
   **the pilot, not a fixed default, is the deployable part of the claim.** In Qwen3-8B's geometry + BWOR cells it loses 0.39 vs 11.9 for FF.
+
+## Addendum HO-P3 (2026-10-24 21:1x UTC, before computing; offline): the self-review gate as a pilot policy
+**Why it could change the claim.** The claim's deployable part is the 30-label pilot over five policies (HO-P2); the self-review gate
+(HO-VR / VR2 / VR3) removes the Qwen3 models' loss but costs tokens where the check is already good (Qwen3.5-9B: +18–37%), so it was left
+as "a pilot option". Whether the pilot can actually use it — pick it where it pays, avoid it where it costs — decides whether the recipe's
+menu is {repair-first, fact-first, two-sample, think} or includes the gate. **Run:** `python poc/analyze_hop.py --repair --fair --gate
+q14a q8b q35`: HO-P2's cells restricted to those with review rows for all 3 seeds (Qwen3-14B-AWQ and Qwen3-8B: OptiBench third, BWOR,
+LogiOR, OptMATH, geometry; Qwen3.5-9B: OptiBench third, BWOR, LogiOR; 39 cells), sixth policy FF-R+F (a passing program is the answer only
+if the 2k-token review says CORRECT, else thinking with the fact; review tokens counted), λ = 0.5.
+- **P3-1:** the 30-label pilot over six policies keeps mean regret (vs the best of six) ≤ 1.0.
+- **P3-2:** adding the gate pays: the six-policy pilot's realized utility beats the five-policy pilot's by ≥ +0.5 points on average over
+  the 39 cells, and the gate is the best policy in ≥ 10 of them.
+- **P3-3:** always using the gate has regret ≥ 1.5 (it is not a universal default; the pilot is still needed).
+**Decision.** P3-2 → the recipe's escalation menu includes the gate and the claim's pilot bullet is restated over six policies;
+otherwise the gate stays a named option outside the pilot.
+
+### Results HO-P3 (2026-10-24 21:2x UTC; `python poc/analyze_hop.py --repair --fair --gate q14a q8b q35`, 39 cells)
+| λ | best policy in (of 39): gate / THINK / FF-R0 / FF / FFR | always the gate | best other fixed | 30-label pilot, 6 policies | 6-policy − 5-policy pilot | best of 6 − best of 5 |
+|---|---|---|---|---|---|---|
+| 0 (accuracy only) | 16 / 12 / 7 / 1 / 3 | 1.69 | THINK 2.79 | 1.24 | +0.44 | +0.66 |
+| **0.5** | **9 / 12 / 11 / 5 / 2** | **2.52** | THINK 3.99 | **0.96** | **+0.28** (worse in 22 cells) | +0.44 |
+| 2 | 2 / 11 / 8 / 10 / 3 | 6.38 | FF-R0 2.89 | 1.04 | +0.09 | +0.10 |
+(HO-P2 on its 60 cells reproduces unchanged: pilot 0.85.)
+- **P3-1 holds narrowly** (0.96 ≤ 1.0). **P3-2 refuted** (+0.28 < +0.5; the gate is best in 9 < 10 cells). **P3-3 holds** (always the
+  gate: 2.52 ≥ 1.5).
+- **Reading.** Where the gate exists it is the best *fixed* policy at λ ≤ 0.5 (2.52 vs 3.99 for always thinking with the fact), best in
+  Qwen3 OptiBench / LogiOR / geometry-14B cells and never for Qwen3-8B geometry (thinking with the fact stays 6–9 points ahead). But on
+  top of the five-policy pilot it adds only +0.28: the cells it wins are cells the pilot already handled with THINK or repair-first at a
+  similar utility, and a sixth option adds pick noise (the 6-policy pilot is worse in 22 of 39 cells, by little). Decision as registered:
+  **the gate stays a named option outside the pilot** — the default for a leaky model without labels (it beats every other fixed policy
+  there), not an addition to the 30-label pilot.

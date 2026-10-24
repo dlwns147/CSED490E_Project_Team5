@@ -3786,3 +3786,12 @@ RTX 3090). Held-out, no fact, 3 seeds, vs round 1: OptiBench 53.6% (−0.7 [−2
 P1 half (fewer kept, but the LogiOR leak rises 6 points). With self-consistency (DT3), cross-model agreement (DT4) and agreement plus
 review (DT5), label-free self-training goes from harmful to neutral, never useful: it stays bounded by what the model already solves.
 Raw LogiOR losses are ordinary formulation slips (undefined data table, a capacity used only as a variable bound).
+
+## 2026-10-24 21:25 UTC: HO-P3 (PREREG_MODEL.md): the self-review gate is the best fixed policy for leaky models, not a pilot addition
+Offline, on the 39 held-out cells with review rows (Qwen3-14B-AWQ and Qwen3-8B on five benchmarks, Qwen3.5-9B on three; 3 seeds), the
+self-review gate (a passing program is the answer only if a 2k-token thinking-mode review says CORRECT, else thinking with the fact) was
+added to HO-P2's 30-label pilot as a sixth policy (λ = 0.5 utility = accuracy − 0.5 × k-tokens). Always using the gate loses 2.52 points
+to the best policy per cell, against 3.99 for always thinking with the fact and 5.17 for repair-first: with no labels it is the best
+fixed policy there. The six-policy pilot keeps regret at 0.96 (P3-1 holds) but beats the five-policy pilot by only +0.28 (pre-registered
+bar +0.5: P3-2 refuted; gate best in 9 of 39 cells), because the five-policy pilot already found a near-equal policy in the gate's cells
+and a sixth option adds pick noise. Decision as registered: the gate is the no-label default for a leaky model, outside the pilot.
