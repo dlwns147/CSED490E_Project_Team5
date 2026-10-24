@@ -652,3 +652,5 @@ SL tb6_q8b_logior done Sat Oct 24 01:02:28 UTC 2026
 SL tb6_q14a_optibench done Sat Oct 24 01:21:25 UTC 2026
 SL dt_eval done Sat Oct 24 01:34:09 UTC 2026
 SL tb6_q8b_optibench done Sat Oct 24 02:00:56 UTC 2026
+SL dt2_cheap done Sat Oct 24 02:11:49 UTC 2026
+SL pl1_oss120 done Sat Oct 24 02:48:57 UTC 2026

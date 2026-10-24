@@ -61,3 +61,5 @@ the same server setup: base Qwen3-14B bf16 (tag `q14b`) `free` and `formx`. Held
 BWOR, LogiOR, OptMATH, 3 seeds.
 - **DT14-P1:** fine-tuned without a fact ≥ base with the library on ≥ 3 of the 4 (as DT-P1 for Qwen3-8B).
 - **DT14-P2:** fine-tuned without a fact ≥ base without a fact + 10 points on OptiBench (the 8B gain was +26.8).
+*DT-14 training done (2026-10-24 03:0x UTC, job 1237995, 4 × RTX 3090): 142 steps, 53 minutes, train loss 0.122; merged to
+/SSD/huggingface/derived/Qwen3-14B-sft-checked; held-out `free` evaluation (tag `q14sft`, TP 2) submitted.*
