@@ -104,3 +104,19 @@ OptMATH-Train 828); with the development examples, 3,084 training examples (`bui
   think are separate problems; the second still needs a stronger check (HO-VF) or the pilot.
 *DT3 round-2 training done (2026-10-24 07:5x UTC, job 1238635): 3,084 examples, 386 steps, 2 h 25 min on 2 × RTX 3090, train loss 0.075;
 merged to /SSD/huggingface/derived/Qwen3-8B-sft-r2; held-out `free` evaluation (tag `q8bsft2`) submitted.*
+
+### Results DT3 (2026-10-24 09:0x UTC; round 2 = `q8bsft2`, round 1 = `q8bsft`, both without a fact; 3 seeds, paired 95% intervals)
+| held-out | round 1 | round 2 | round 2 − round 1 | leak (wrong among running), round 1 → 2 |
+|---|---|---|---|---|
+| OptiBench third / all | 51.7% / 54.2% | 52.8% / 54.2% | +1.2 [−1.3, +3.6] / 0.0 [−1.4, +1.4] | 30 → 30% / 28 → 28% |
+| BWOR | 18.3% | 15.0% | −3.3 [−6.1, +0.0] | **69 → 76%** |
+| LogiOR | 16.7% | 14.5% | −2.2 [−6.5, +2.2] | 61 → 65% |
+| OptMATH | 8.3% | 5.7% | −2.7 [−6.3, +0.7] | **72 → 82%** |
+- **DT3-P1 refuted** (OptMATH −2.7, LogiOR −2.2; neither improves). **DT3-P2 refuted narrowly** (OptiBench unchanged; BWOR −3.3).
+  **DT3-P3 refuted — the risk materialized:** the leak rises by 7 points on BWOR and 10 on OptMATH.
+- **Reading.** Self-training on unlabeled problems of new types, filtered by the strict check (two runs agree), feeds the model its own
+  consistent-but-wrong formulations: 1,957 of 3,996 problems passed, but on hard types agreement is a weak signal (the same leak that
+  limits fact-first). Round 1 worked because its data came from seven models on the development sets; round 2's came from one model on
+  harder, unfamiliar problems. **The check's leak bounds label-free self-training as it bounds the recipe**; a stronger filter (the
+  solution checker, or agreement across different models) is the next test, and where the check is perfect (proofs) self-training has no
+  such limit.
