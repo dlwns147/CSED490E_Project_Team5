@@ -198,3 +198,12 @@ visibly failing ones on the same four; geometry: `fact`, `thinkfact`, reviews of
 **Decision.** P3 and P5 → the complete recipe (library, gate without labels, pilot with 30) transfers to a new family and the claim
 says so; P3 refuted → the gate as the no-label default is stated for the Qwen family only; P4 places the model on the saving or the
 trade side and the report's model table gains it either way.
+
+### HO-N4 census calls, recorded before any fact arm was read (2026-10-24 23:2x UTC; `CENSUS_SETS=optibench,bwor,logior,optmath python poc/analyze_which_fix.py --census n3n`)
+| cell | u (usage crashes) | fail the check | n (non-usage failures) | call |
+|---|---|---|---|---|
+| OptiBench `n3n` | 9.7% | 42.7% | 33.0% | add |
+| BWOR `n3n` | 10.2% | 57.3% | 47.2% | add |
+| LogiOR `n3n` | 10.9% | 62.3% | 51.4% | add |
+| OptMATH `n3n` | 14.0% | 72.7% | 58.7% | add |
+All four "add" (u ≥ 5% everywhere): N4-P2 is scored on the 8 card / library points (OptMATH's card arm was run as well and is counted).
