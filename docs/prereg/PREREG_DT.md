@@ -175,3 +175,5 @@ retrain from base on the development examples + these (`q8bsft4`); evaluate as D
 - **DT5-P2:** round 2c ≥ round 1 + 3 points on OptMATH or LogiOR, at least one significant (it learns from new problem types).
 **Decision.** P2 → a better label-free check turns self-training from harmful / neutral into useful; otherwise label-free self-training on
 these problems stays bounded at round 1 whatever the filter, and the report says so.
+*DT5 data (2026-10-24 17:3x UTC): base Qwen3-8B reviewed 3,106 runnable round-1 programs (accept 1,935, wrong 1,171, no verdict 0); 1,452
+unlabeled problems pass both filters (DT3: 1,957; DT4: 1,348); 2,579 training examples. Training submitted (tag `q8bsft4`).*
