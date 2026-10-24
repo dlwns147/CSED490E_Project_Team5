@@ -53,3 +53,11 @@ Fine-tuned − base without a fact: +24.3 / +26.8 / +8.5 / +7.2 / +3.0 (the firs
 - **DT2-P2:** FF with the fine-tuned model (its better cheap arm; its own thinking with the fact on a visible failure) ties or beats base
   THINK+F on ≥ 2 of the 3 (base FF+F lost on all three: −4.5 / −11.0 / −7.6).
 - **DT2-P3:** fine-tuning on non-thinking programs leaves thinking intact: its THINK+F ≥ base THINK+F − 2 on ≥ 2 of the 3.
+
+## Addendum DT-14 (2026-10-24 02:0x UTC, before any run): the same label-free fine-tuning on a second model
+**Run.** Qwen3-14B (bf16; the AWQ copy cannot take LoRA here) fine-tuned exactly as DT (same 1,127 examples, LoRA r 16, 2 epochs), on 4 ×
+RTX 3090; merged to /SSD/huggingface/derived/Qwen3-14B-sft-checked and served tensor-parallel on 2 × 3090 (tag `q14sft`). Baselines on
+the same server setup: base Qwen3-14B bf16 (tag `q14b`) `free` and `formx`. Held-out OptiBench (all 605; the third reported as in DT),
+BWOR, LogiOR, OptMATH, 3 seeds.
+- **DT14-P1:** fine-tuned without a fact ≥ base with the library on ≥ 3 of the 4 (as DT-P1 for Qwen3-8B).
+- **DT14-P2:** fine-tuned without a fact ≥ base without a fact + 10 points on OptiBench (the 8B gain was +26.8).
