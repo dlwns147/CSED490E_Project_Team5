@@ -731,3 +731,11 @@ Qwen3-8B geometry: the review flags 24 / 27 leaks wrong on the given input and *
 - **Reading.** Reading the statement, the short review sees edge-case errors no check on the given input could (20 of the 37 that defeated
   brute force, resampling, edge tests, relations, a second model and repair), cutting Qwen3-8B's geometry loss from 16.7 to 6.6 points;
   it is still a loss, and the false alarms cost the saving. Across the eight Qwen3 cells the gate ties or beats thinking with the fact in 7.
+
+## Addendum HO-VR3 (2026-10-24 15:3x UTC, before any run): is the self-review gate safe where the recipe already wins?
+**Why.** To state the recipe as one procedure, the gate must not hurt models whose plain check is already good (otherwise it is a pilot
+option, not a step). **Run:** Qwen3.5-9B (its HO-N / HO-TF2 rows: formx, formxt at 32k), review cut at 2,000 tokens, OptiBench third, BWOR,
+LogiOR, seeds 1–3.
+- **VR3-P1:** FF-R+F ≥ FF+F − 1 point in all 3 cells (the gate does not cost accuracy where the check is good).
+- **VR3-P2:** FF-R+F uses ≤ FF+F's tokens + 15% of THINK+F's in all 3 (false alarms are rare when the check is good).
+**Decision.** P1 + P2 → the gate is a default step of the recipe; otherwise it is a pilot option for models whose check leaks.
