@@ -708,7 +708,7 @@ Review flags 361 / 556 (65%) of the wrong passing programs and 113 / 851 (13%) o
   and at the same cost where it is not (BWOR / LogiOR). With it, the recipe's Qwen3 "trade" becomes a saving or a tie: the gate joins the
   recipe for models whose plain check leaks.
 
-## Addendum HO-VR2 (2026-10-24 14:1x UTC, before any run): does the self-review gate generalize, including the cell every check failed?
+## Addendum HO-VR2 (2026-10-24 14:0x UTC, before any run): does the self-review gate generalize, including the cell every check failed?
 **Why it could change the claim.** HO-VR made the Qwen3 trade a saving or a tie on three word benchmarks. Two cells remain: OptMATH (mined
 example `mips`, thinking `thinks`) and held-out geometry, where Qwen3-8B's fact-first loses 16.7 points to thinking with the hint and every
 self-written check failed (brute force, resampling, edge tests, relations, a second model, repair; 37 of its 64 leaks are edge-case-only).
