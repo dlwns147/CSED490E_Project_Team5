@@ -256,3 +256,11 @@ on a CPU node. Same frontier analysis (`analyze_pf.py q8b:q8b_think`).
 *PL3 operations (2026-10-24 07:0x UTC; no setting changed): one RTX 3090 generated ~9 cheap / ~0.8 thinking attempts per minute (Qwen3-8B's
 KV cache holds ~37k tokens, so long attempts run few at a time) → ~14 h. Re-split by statement into 4 cheap jobs (1 GPU each) and 4
 thinking jobs (tensor-parallel on 2 GPUs, for KV room); rows already written are kept (tags q8b_sh<k>, q8b_think_sh<k>; merged before checking).*
+
+### Results PL3 (2026-10-24 12:3x UTC; `python poc/analyze_pf.py q8b:q8b_think`, Qwen3-8B, 100 random orders; statements of 244)
+CHEAP×8 13.1 @ 21.7k | **CHEAP×32 23.0** @ 85.8k | THINK×8 20.0 @ 93.4k | **FF(32, 8) 29.0** @ 175.1k; best within THINK×8's budget FF(22, 3)
+25.2 (best cheap-only 23.0); frontier cheap-only up to 16k tokens per statement (CHEAP×1 / ×2 / ×5), FF(7, 1) at 32k.
+- **PL3-P1 holds** (23.0 ≥ 20.0). **PL3-P2 holds** (+6.0). **PL3-P3 holds** (cheap-only up to 16k per statement).
+- With PL1: for three models of two families the proof frontier is cheap sampling first, a little thinking once cheap attempts saturate,
+  and full thinking only for the statements sampling never reaches (+6 to +8). Qwen3-8B, a general model, solves far fewer statements
+  (29 vs 80–91), so its proofs are the test bed for DT-P (self-training with the perfect check).
