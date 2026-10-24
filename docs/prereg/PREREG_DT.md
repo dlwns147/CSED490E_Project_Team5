@@ -23,3 +23,7 @@ crash census and the leak (wrong among programs that run and print a value) from
   confident wrong programs).
 **Decision.** P1 → label-free fine-tuning replaces the test-time fact for this model, and the next step is fact-first-then-think with the
 fine-tuned model against thinking with the fact; P3 → the training data must be filtered by a stronger check (the solution checker).
+
+*Training done (2026-10-24 00:3x UTC, job 1237676, 2 × RTX 3090): 1,127 examples (NL4OPT + IndustryOR 309, MAMO 818), 2 epochs, 142
+steps, 36 minutes; train loss 0.137 (last steps ≈ 0.10). Merged model at /SSD/huggingface/derived/Qwen3-8B-sft-checked. Held-out
+evaluation (the `free` arm, 3 seeds, tag `q8bsft`) submitted as job 1237729.*

@@ -644,3 +644,6 @@ SL_HON thinkfact bwor done Fri Oct 23 16:38:43 UTC 2026
 SL lg_smoke done Fri Oct 23 20:56:19 UTC 2026
 SL lg_cheap done Fri Oct 23 21:31:39 UTC 2026
 SL lg_think done Fri Oct 23 22:04:51 UTC 2026
+SL pl1_oss20 done Sat Oct 24 00:22:11 UTC 2026
+SL tb6_q14a_bwor done Sat Oct 24 00:23:40 UTC 2026
+SL tb6_q14a_logior done Sat Oct 24 00:38:05 UTC 2026
