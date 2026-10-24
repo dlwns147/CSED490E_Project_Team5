@@ -163,7 +163,7 @@ the check, not the training, bounds self-improvement.
 filter is established (Polu et al. 2022; DeepSeek-Prover; Goedel-Prover; STP, which reports plain expert iteration plateauing); the run
 could not change our claim, so its 8 GPUs go to the open problem at the claim's weak point (docs/notes/RELATED_WORK.md).*
 
-## Addendum DT5 (2026-10-24 14:4x UTC, before any run): does a better label-free check make self-training learn?
+## Addendum DT5 (2026-10-24 14:3x UTC, before any run): does a better label-free check make self-training learn?
 **Why it could change the claim / what is new.** DT3 / DT4: with self-consistency as the filter self-training learned the check's mistakes;
 with cross-model agreement it learned nothing new. The 2k-token thinking-mode self-review (HO-VR) is a better label-free check (flags 65%
 of wrong passing programs at 13% false alarms on word problems). Prior self-training filters are self-consistency, majority vote, a

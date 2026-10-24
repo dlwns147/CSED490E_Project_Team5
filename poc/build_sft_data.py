@@ -16,6 +16,7 @@ SOURCES = {"x3": ("{m}_mipf", ("q17", "q4b", "q8b", "q14a", "oss20", "q32b", "q3
 if "--round2" in sys.argv:
     SOURCES["unlabeled"] = ("{m}_unlabeled_free", ("q8bsft",))
 CROSS = {r["id"]: r for r in _rows(f"{RES}/opt_oss20_unlabeled_free_s1.jsonl")} if "--cross" in sys.argv else None
+REVIEW = {r["id"]: r for r in _rows(f"{RES}/review_q8bsft_unlabeled_free_s1.jsonl")} if "--review" in sys.argv else None   # DT5
 
 
 def same(a, b):
@@ -36,6 +37,8 @@ def main():
         for i, L in by.items():
             if i not in Q:
                 continue
+            if which == "unlabeled" and REVIEW is not None and not (REVIEW.get(i) or {}).get("accept"):   # DT5: the review must say CORRECT
+                continue
             if which == "unlabeled" and CROSS is not None:   # DT4: a different model must agree with the kept value
                 c = CROSS.get(i)
                 L = [e for e in L if c and c.get("status") == "ok" and same(e[2], c.get("pred"))]
@@ -45,7 +48,7 @@ def main():
             out.append({"id": i, "set": which, "from": m, "prompt": P_FREE.format(q=Q[i]["q"]), "target": "```python\n" + code.strip() + "\n```"})
         print(which, f"{len(Q)} problems, {sum(1 for o in out if o['set'] == which)} with a strict-check-passing program", flush=True)
     os.makedirs(f"{DATA}/sft", exist_ok=True)
-    with open(f"{DATA}/sft/checked_programs{'_r2' if '--round2' in sys.argv else ''}{'x' if '--cross' in sys.argv else ''}.jsonl", "w") as f:
+    with open(f"{DATA}/sft/checked_programs{'_r2' if '--round2' in sys.argv else ''}{'x' if '--cross' in sys.argv else ''}{'v' if '--review' in sys.argv else ''}.jsonl", "w") as f:
         for o in out:
             f.write(json.dumps(o) + "\n")
     print("wrote", len(out))
