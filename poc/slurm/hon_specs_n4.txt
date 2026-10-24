@@ -1,0 +1,20 @@
+--model n3n cheap optibench
+--model n3n cheap bwor
+--model n3n cheap logior
+--model n3n cheap optmath
+--model n3n geofact
+--model n3n thinkfact optibench 1
+--model n3n thinkfact optibench 2
+--model n3n thinkfact optibench 3
+--model n3n thinkfact bwor 1
+--model n3n thinkfact bwor 2
+--model n3n thinkfact bwor 3
+--model n3n thinkfact logior 1
+--model n3n thinkfact logior 2
+--model n3n thinkfact logior 3
+--model n3n thinkfact optmath 1
+--model n3n thinkfact optmath 2
+--model n3n thinkfact optmath 3
+--model n3n geothinkfact 1
+--model n3n geothinkfact 2
+--model n3n geothinkfact 3

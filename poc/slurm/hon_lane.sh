@@ -11,15 +11,26 @@
 #   smoke: sbatch -J hon_smoke poc/slurm/job.sh poc/slurm/hon_lane.sh smoke   (smoke2: thinking only, at the amended settings)
 # Thinking (amended before the main runs, PREREG_HON.md): the model card's thinking sampling and a 32k budget; cheap arms as all models.
 # Another unseen model (HO-N2): a leading `--model g4e` (Gemma-4-E4B-it, PREREG_HON.md addendum) selects it; default q35.
+# HO-N4: `--model n3n` = NVIDIA-Nemotron-3-Nano-30B-A3B (hybrid Mamba-Transformer MoE, a new family) on 4 x RTX 3090, tensor parallel:
+#   sbatch --gres=gpu:4 --cpus-per-task=16 poc/slurm/job.sh poc/slurm/hon_lane.sh --model n3n <group> ...
 m=q35; dir=Qwen/Qwen3.5-9B; TS=temperature=1.0,top_p=0.95,top_k=20,presence_penalty=1.5   # model card thinking sampling
+GPUL=0; XV="--language-model-only"
 if [ "$1" = --model ]; then
-  case $2 in g4e) m=g4e; dir=google/gemma-4-E4B-it; TS=temperature=1.0,top_p=0.95,top_k=64 ;; esac; shift 2
+  case $2 in
+    g4e) m=g4e; dir=google/gemma-4-E4B-it; TS=temperature=1.0,top_p=0.95,top_k=64 ;;
+    n3n) m=n3n; dir=derived/Nemotron-3-Nano-30B-A3B; TS=temperature=1.0,top_p=1.0   # model card: reasoning sampling
+         # the shared copy lacks the config class its config.json names: a derived dir of links + that file (official repo, read first)
+         D=/SSD/huggingface/$dir; [ -f $D/configuration_nemotron_h.py ] || { mkdir -p $D && ln -sf /SSD/huggingface/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16/* $D/ \
+           && cp $POC_DATA/stage/n3n_code/configuration_nemotron_h.py $D/; }
+         export POC_RAW_SYSTEM=1   # budget forcing (reviews): its template opens with an empty system turn
+         GPUL=0,1,2,3; XV="--tensor-parallel-size 4 --trust-remote-code --mamba-ssm-cache-dtype float32" ;;
+  esac; shift 2
 fi
 grp=$1 set=$2 seeds=${3:-"1 2 3"}
 # 10-23: the library prompt of long OptMATH problems + 32k thinking exceeded 36,864 tokens (vLLM rejects such a request, and the client
 # then stops writing rows); thinking with the fact gets a 45,056-token context (generation is unchanged: still at most 32k new tokens).
 MML=36864; case $grp in thinkfact|geothinkfact) MML=45056 ;; esac
-S=$(bash poc/start_server.sh /SSD/huggingface/$dir $PORT 0 0.92 hon_${m}_${grp}_${set}${3:+_$3} --max-model-len $MML --language-model-only --max-num-seqs 32) || exit 1
+S=$(bash poc/start_server.sh /SSD/huggingface/$dir $PORT $GPUL 0.92 hon_${m}_${grp}_${set}${3:+_$3} --max-model-len $MML $XV --max-num-seqs 32) || exit 1
 export POC_BASE_URL=http://127.0.0.1:$PORT/v1 POC_TIMEOUT=7200
 export POC_THINK_SAMPLING=$TS   # applied to thinking calls only (llm.chat)
 TK=32000
@@ -61,6 +72,8 @@ for think in (False, True):
          env $sub ${4:+NLOPT_SHARD=$4} NLOPT_SET=$set $P poc/run_form.py $m formx $seeds --tarm --think --max_tokens $TK >> $L 2>&1 & ;;
   geothinkfact) $P poc/run_geo_cross.py --model_tag S2_HOG_${m}_geo_thinkfact_s$set $GX --seed $set --distract 0 --algo_hint --think --max_tokens $TK >> $L 2>&1 & ;;
   repair) for sd in $seeds; do NLOPT_SET=$set $P poc/run_repair.py $m $sd formx >> $L 2>&1 & done ;;   # HO-N3
+  review) sub=""; [ "$set" = optibench ] && sub="FORM_SUBSET=0/3"   # HO-N4: the 2k-token self-review gate (HO-VR), answer cap 2,048
+         for sd in $seeds; do env $sub REVIEW_ANSWER_MAX=2048 NLOPT_SET=$set $P poc/run_review.py $m $sd 2000 formx >> $L 2>&1 & done ;;
   thinkshard) NLOPT_SHARD=$4 NLOPT_SET=$set $P poc/run_nlopt.py ${m}_$set thinkfree $seeds --think --max_tokens $TK >> $L 2>&1 & ;;
   think) NLOPT_SET=$set $P poc/run_nlopt.py ${m}_$set thinkfree $seeds --think --max_tokens $TK >> $L 2>&1 & ;;
   geo)   for sd in 1 2 3; do

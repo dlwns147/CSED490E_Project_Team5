@@ -129,6 +129,8 @@ def budget_chat(prompt, budget, think=False, max_tokens=4096, temperature=0.7, s
     Uses the raw completions endpoint with the Qwen3 chat format; budget=0 means an empty think block (= thinking off)."""
     from llm import client
     head = f"<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n<think>\n"
+    if os.environ.get("POC_RAW_SYSTEM"):   # HO-N4: Nemotron-3-Nano's template always opens with an empty system turn
+        head = "<|im_start|>system\n<|im_end|>\n" + head
     think_txt, used = "", 0
     if budget > 0:
         r = client.completions.create(model="local", prompt=head, max_tokens=budget, temperature=temperature,

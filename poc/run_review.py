@@ -83,7 +83,7 @@ def review_geo(m, seed, B):
         k, f = kf
         rng = random.Random(f"{f['task']}-{f['n']}-{f['inst']}")
         q, _, fmt = render(f["task"], variants(f["task"], base_instance(f["task"], f["n"], rng), rng)["identity"])
-        o = budget_chat(ASK_GEO.format(q=q, fmt=fmt, code=f["code"].strip(), pred=(outs(f) or ["?"])[0]), B, max_tokens=512, temperature=0.7,
+        o = budget_chat(ASK_GEO.format(q=q, fmt=fmt, code=f["code"].strip(), pred=(outs(f) or ["?"])[0]), B, max_tokens=int(os.environ.get("REVIEW_ANSWER_MAX", 512)), temperature=0.7,
                         seed=seed * 1000 + zlib.crc32("|".join(map(str, k)).encode()) % 997 + 43)
         v = re.findall(r"VERDICT:\s*(CORRECT|WRONG)", o["text"] or "")
         return {"id": "|".join(map(str, k)), "verdict": v[-1] if v else None, "accept": bool(v and v[-1] == "CORRECT"),

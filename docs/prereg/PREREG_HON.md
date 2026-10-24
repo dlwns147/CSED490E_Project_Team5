@@ -172,3 +172,29 @@ OptMATH +0.3; Qwen3-8B BWOR −3.6, LogiOR −1.1, OptMATH +0.3 (FF-R0 at 80–1
   **R-P3 holds** (0.94 ≤ 1.0). FF-R0 is the best policy in 34 of 60 cells.
 - **Decision (as pre-registered):** the default policy on word problems is FF-R0 — one cheap repair on a visible failure, then think —
   with the 30-label pilot to catch the cells where it loses (BWOR; Qwen3-8B). Geometry keeps FF.
+
+## Addendum HO-N4 (2026-10-24 22:3x UTC, before any main run of this model): the complete recipe on a new family
+**Why it could change the claim.** Every part of the recipe we would hand a user for a new model — the label-free library, the census
+rule, the self-review gate as the no-label default for a leaky model (HO-P3), the 30-label pilot — was evaluated only on models used
+while developing it or on Qwen3.5-9B, the same family as the gate's development models. A model from another family and architecture
+tests whether the final recipe transfers, not one more point on a frontier. **Model:** NVIDIA-Nemotron-3-Nano-30B-A3B (BF16; hybrid
+Mamba-Transformer mixture of experts, 3B active; thinking switch in its chat template), on 4 × RTX 3090 (tensor parallel), tag `n3n`,
+never used in this project. A probe (8 BWOR + 16 OptiBench problems, harness check only: chat formats, code extraction, no syntax
+errors from non-ASCII text) ran before this addendum and is not part of the results.
+**Settings (fixed now).** Cheap arms as every model (T 0.7, top-p 0.95, 8,192 tokens); thinking with the model card's sampling (T 1.0,
+top-p 1.0) and a 32k budget, context 45,056 tokens for thinking with the library (as HO-N); the review as HO-VR (2k-token thinking cut,
+answer cap 2,048 as HO-VR3). **Arms, 3 seeds:** `free`, `freef`, `formx` on OptiBench (605), BWOR, LogiOR, OptMATH; `formxt` (thinking
+with the library) on OptiBench's HO-TF third, BWOR, LogiOR, OptMATH; reviews of the passing `formx` programs and one cheap repair of the
+visibly failing ones on the same four; geometry: `fact`, `thinkfact`, reviews of the passing fact programs.
+- **N4-P1 (the fact):** the library raises the cheap program (formx − free ≥ +2 points) in ≥ 3 of the 4 word benchmarks.
+- **N4-P2 (census):** the rule's calls from the `free` arms, recorded here before any fact arm is read, are right for ≥ 6 of the 8
+  (benchmark × card / library) points.
+- **N4-P3 (the no-label default):** the gate FF-R+F ties or beats thinking with the fact (paired 95% upper bound ≥ 0) in ≥ 4 of the
+  5 cells (four word benchmarks + geometry).
+- **N4-P4 (pure saving or trade):** FF+F ties or beats THINK+F in ≥ 3 of 5 cells at ≤ 80% of its tokens (the closest prior is the other
+  mixture-of-experts reasoning models, gpt-oss-20b / 120b, where it is a pure saving); reported with the decomposition
+  P(pass) × [P(cheap right | pass) − P(think right | pass)] per cell.
+- **N4-P5 (the pilot):** the 30-label pilot over the five HO-P2 policies keeps mean regret ≤ 1.0 over the 15 cells (λ = 0.5).
+**Decision.** P3 and P5 → the complete recipe (library, gate without labels, pilot with 30) transfers to a new family and the claim
+says so; P3 refuted → the gate as the no-label default is stated for the Qwen family only; P4 places the model on the saving or the
+trade side and the report's model table gains it either way.
