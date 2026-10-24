@@ -1,7 +1,8 @@
 """HO-VR (docs/prereg/PREREG_HO.md, addendum): a short thinking-mode review of a cheap program as the escalation gate. For every library
 program (formx) that passes the free check (runs, prints a value that is not 'No Best Solution'), the same Qwen3 model, in thinking mode cut
 at B tokens (budget forcing), reads the problem, the program and its printed value and answers VERDICT: CORRECT or VERDICT: WRONG.
-No labels. usage: NLOPT_SET=bwor POC_BASE_URL=... python run_review.py <model> <seed> [B=2000] [arm=formx]
+No labels. REVIEW_ANSWER_MAX (default 512) caps the answer after the thinking budget (HO-VR3: 2048 for Qwen3.5-9B, whose answers
+are long). usage: NLOPT_SET=bwor POC_BASE_URL=... python run_review.py <model> <seed> [B=2000] [arm=formx]
 -> results/x3/review_<model>_<set>_<arm>_s<seed>.jsonl (resumes; OptiBench: FORM_SUBSET=0/3 as HO-TF)
 HO-VR2: NLOPT_SET=geo reviews the held-out geometry fact programs that pass the metamorphic check (results/geocross_S2_HOG_<m>_geo_fact)
 -> results/x3/review_<model>_geo_fact_s<seed>.jsonl."""
@@ -54,7 +55,7 @@ def main():
     todo = [f for i, f in F.items() if i not in done and ok_(f) and f.get("code")]
 
     def one(f):
-        o = budget_chat(ASK.format(q=Q[f["id"]]["q"], code=f["code"].strip(), pred=f["pred"]), B, max_tokens=512, temperature=0.7,
+        o = budget_chat(ASK.format(q=Q[f["id"]]["q"], code=f["code"].strip(), pred=f["pred"]), B, max_tokens=int(os.environ.get("REVIEW_ANSWER_MAX", 512)), temperature=0.7,
                         seed=seed * 1000 + zlib.crc32(f["id"].encode()) % 997 + 41)
         v = re.findall(r"VERDICT:\s*(CORRECT|WRONG)", o["text"] or "")
         return {"id": f["id"], "verdict": v[-1] if v else None, "accept": bool(v and v[-1] == "CORRECT"), "out_tokens": o.get("out_tokens"),

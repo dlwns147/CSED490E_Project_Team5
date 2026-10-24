@@ -739,3 +739,7 @@ LogiOR, seeds 1–3.
 - **VR3-P1:** FF-R+F ≥ FF+F − 1 point in all 3 cells (the gate does not cost accuracy where the check is good).
 - **VR3-P2:** FF-R+F uses ≤ FF+F's tokens + 15% of THINK+F's in all 3 (false alarms are rare when the check is good).
 **Decision.** P1 + P2 → the gate is a default step of the recipe; otherwise it is a pilot option for models whose check leaks.
+*HO-VR3 harness fix (2026-10-24 16:4x UTC, before any result was read beyond the verdict counts): with the answer after the thinking
+budget capped at 512 tokens (as for Qwen3), 70% of Qwen3.5-9B's reviews ended mid-explanation without a VERDICT line (its answers are
+long), which the policy counts as WRONG. The run is discarded and repeated with the answer capped at 2,048 tokens (REVIEW_ANSWER_MAX);
+predictions unchanged.*
