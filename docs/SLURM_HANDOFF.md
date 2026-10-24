@@ -4,6 +4,12 @@ State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Tea
 (/NAS/SJ/POSTECH/nlp, 8 × RTX PRO 6000 Blackwell, GPUs 0–3) was stopped on 2026-10-20 04:2x UTC; no job is running there.
 
 ## 0. Status on the Slurm cluster (updated 2026-10-22 23:1x UTC)
+- **Done 10-24 (PREREG_HO / _PROOF / _DT / _MODEL):** HO-VR / VR2 / VR3 (a 2k-token thinking-mode self-review gate: Qwen3 cells tie or
+  beat thinking with the fact in 7 / 8; not free on Qwen3.5-9B → a pilot option); HO-LG / WF4 (gpt-oss-120b on 4 × 3090); PF / PL1–3 (Lean:
+  cheap sampling first, thinking after; 30-label pilot picks the split); DT / DT-14 / DT2–4 (label-free fine-tuning internalizes the usage
+  fact; self-training bounded by the check); related-work check (docs/notes/RELATED_WORK.md); DT-P withdrawn (established).
+  Multi-GPU 3090 jobs: `sbatch --gres=gpu:4 --cpus-per-task=16 ... lane.sh --gpus 0,1,2,3 --vllm '... --tensor-parallel-size 4'`;
+  Lean checks on CPU nodes (`run_lean.py bcheck`, `-p cpu-max16,cpu-max10,cpu-max24 -q nogpu`). Running: DT5 (review-filtered self-training).
 - **Done 10-22/23 (all recorded in the prereg files and FINDINGS):** HO3–HO5 solution checker (helps on BWOR / LogiOR only), HO6 / HO7 /
   HO-G-R one cheap repair before thinking (helps the stronger models on word problems, not on geometry), HO-X a second model's program
   as the check (catches Qwen3-8B's on-input leaks, none of its 37 edge-only leaks; using gpt-oss-20b directly dominates), HO-D gate (even
