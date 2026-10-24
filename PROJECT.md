@@ -32,7 +32,8 @@ table: `docs/REPORT.md` §5.1):
   tokens on OptiBench and the same cost on BWOR / LogiOR, where even a perfect check saves ≤ 12% (HO-VR); on OptMATH and geometry it ties or wins in 3 of 4 more cells and cuts Qwen3-8B's
   geometry loss from −16.7 to −6.6 by catching 20 of its 37 edge-case-only leaks from the statement (HO-VR2).
 - **Which to use is detectable:** a 30-label pilot over five policies loses 0.85 points on average over 60 held-out cells, where no fixed
-  policy comes within 3.3; on word problems the first escalation is one cheap repair from the error (HO7, HO-N3, HO-R).
+  policy comes within 3.3; on word problems the first escalation is one cheap repair from the error (HO7, HO-N3, HO-R). Without labels,
+  the self-review gate is the best fixed policy for the leaky Qwen models (regret 2.52 vs 3.99 for always thinking with the fact; HO-P3).
 - The label-free library of checked programs raises the first program in 23 of 25 model × benchmark cells (up to +34 points).
 - Where it stops: short-answer competition math (text + thinking is better; a program is useful as a second opinion) and formal proofs
   (a specialized 8B prover, not a fact).
