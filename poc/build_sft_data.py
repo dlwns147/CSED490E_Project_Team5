@@ -2,7 +2,9 @@
 MAMO). For each problem, the programs of the stored cheap runs that pass the strict check (seed 1 and seed 2 both run, print a value that is
 not 'No Best Solution', and agree); keep the one whose answer most models share, then the shortest (as run_form.pool). No label is read.
 Prompt = the solver-choice prompt P_FREE (no fact); target = the program in a Python block.
-usage: python build_sft_data.py  -> $POC_DATA/sft/checked_programs.jsonl"""
+DT3: `--round2` also takes the unlabeled problems (poc/build_unlabeled.py) that the round-1 model solved twice in agreement
+-> checked_programs_r2.jsonl.
+usage: python build_sft_data.py [--round2]  -> $POC_DATA/sft/checked_programs.jsonl"""
 import json, os, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -10,6 +12,8 @@ from run_nlopt import DATA, P_FREE, RES, _rows, problems  # noqa: E402
 
 SOURCES = {"x3": ("{m}_mipf", ("q17", "q4b", "q8b", "q14a", "oss20", "q32b", "q36")),
            "mamo": ("{m}_mamo_mips", ("oss20", "q14a", "q8b", "q32b", "q36"))}
+if "--round2" in sys.argv:
+    SOURCES["unlabeled"] = ("{m}_unlabeled_free", ("q8bsft",))
 
 
 def same(a, b):
@@ -34,7 +38,7 @@ def main():
             out.append({"id": i, "set": which, "from": m, "prompt": P_FREE.format(q=Q[i]["q"]), "target": "```python\n" + code.strip() + "\n```"})
         print(which, f"{len(Q)} problems, {sum(1 for o in out if o['set'] == which)} with a strict-check-passing program", flush=True)
     os.makedirs(f"{DATA}/sft", exist_ok=True)
-    with open(f"{DATA}/sft/checked_programs.jsonl", "w") as f:
+    with open(f"{DATA}/sft/checked_programs{'_r2' if '--round2' in sys.argv else ''}.jsonl", "w") as f:
         for o in out:
             f.write(json.dumps(o) + "\n")
     print("wrote", len(out))
