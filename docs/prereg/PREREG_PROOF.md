@@ -245,3 +245,11 @@ utility; regret = best full-set utility − the pick's full-set utility; 300 pil
 - **PL2-P1 holds** (regret ≤ 2). **PL2-P2 refuted:** with tokens priced at λ = 0.5 the best split is a few cheap attempts (4–6) and at
   most one thinking attempt, not ≥ 8 cheap ones; the token penalty, not the check, now decides how far to sample. The 30-label pilot finds
   it within a point — the same deployable rule as on word problems.
+
+## Addendum PL3 (2026-10-24 06:1x UTC, before any run): a Qwen model on the proof frontier
+PL1 used gpt-oss models only. **Run:** Qwen3-8B on miniF2F test (244), X4 prompt, 32 attempts without thinking (8,192 cap, as Qwen3.6's
+phase-1 cheap arm) and 8 with thinking (16,000 cap, as Qwen3-14B-AWQ's), RTX 3090 (thinking split over 4 jobs by statement), batch-checked
+on a CPU node. Same frontier analysis (`analyze_pf.py q8b:q8b_think`).
+- **PL3-P1:** CHEAP×32 solves ≥ THINK×8 statements.
+- **PL3-P2:** FF(32, 8) ≥ CHEAP×32 + 3.
+- **PL3-P3:** up to 16k tokens per statement the best policy is cheap-only (as for gpt-oss-20b).
