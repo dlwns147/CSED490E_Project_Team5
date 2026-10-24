@@ -688,3 +688,22 @@ CORRECT, else thinking with the fact (formxt, HO-TF rows). Tokens = program + re
 - **VR-P2:** pooled, the review flags ≥ 60% of the wrong passing programs and ≤ 30% of the right ones.
 **Decision.** P1 → the recipe's check for these models becomes "free check + a short self-review", turning the trade into a saving;
 otherwise the Qwen3 cells stay a trade and the pilot decides.
+
+### Results HO-VR (2026-10-24 14:0x UTC; `python poc/analyze_hovr.py`, 3 seeds; vs thinking with the fact, THINK+F)
+| cell | FF+F − THINK+F | **FF-R+F − THINK+F** | FF-R+F tokens | perfect check (labels): accuracy / tokens |
+|---|---|---|---|---|
+| Qwen3-14B-AWQ OptiBench (third) | −4.3 [−7.8, −0.8] | **−0.7 [−3.1, +1.7]** | 70% | 70.3% / 62% |
+| Qwen3-14B-AWQ BWOR | −12.2 [−20.3, −4.5] | **+0.4 [−2.8, +3.7]** | 103% | 56.9% / 88% |
+| Qwen3-14B-AWQ LogiOR | −1.8 [−6.2, +2.5] | **+2.9 [+0.7, +5.4]** | 99% | 47.8% / 93% |
+| Qwen3-8B OptiBench (third) | −4.5 [−8.1, −1.0] | **−1.0 [−3.5, +1.2]** | 73% | 70.8% / 64% |
+| Qwen3-8B BWOR | −11.0 [−16.7, −5.7] | **+0.4 [−0.8, +2.0]** | 102% | 49.2% / 96% |
+| Qwen3-8B LogiOR | −7.6 [−11.6, −3.6] | **−1.1 [−3.3, +0.7]** | 103% | 46.4% / 100% |
+Review flags 361 / 556 (65%) of the wrong passing programs and 113 / 851 (13%) of the right ones.
+- **VR-P1 refuted** (ties at ≤ 75% of the tokens in 2 / 5 losing cells, both OptiBench) — but the target was unreachable on BWOR / LogiOR:
+  even a *perfect* check saves only 0–12% of the tokens there (88–100%), because the cheap program is right on too few problems. I should
+  have checked this bound before setting the threshold. **VR-P2 holds** (65% of wrong programs flagged, 13% false alarms — far fewer false
+  alarms than the solution checker, which flagged 18–65% of right programs in HO3).
+- **Decision.** A short self-review in thinking mode (2k tokens) makes fact-first lose nothing to thinking with the fact in all six Qwen3
+  cells (−1.1 to +2.9, one significant win), at 70–73% of the tokens where saving is possible (OptiBench, near the perfect-check 62–64%)
+  and at the same cost where it is not (BWOR / LogiOR). With it, the recipe's Qwen3 "trade" becomes a saving or a tie: the gate joins the
+  recipe for models whose plain check leaks.
