@@ -659,3 +659,18 @@ kind), so WF4-P1 tests the rule's claim that a fact still pays where usage crash
 FF+F − THINK+F: OptiBench (third) −1.0 [−2.8, +0.8] at 50% of the tokens, BWOR +3.7 [−1.6, +8.9] at 52%, LogiOR 0.0 [−3.6, +3.3] at 63%
 (THINK+F 75.6% / 70.7% / 62.7% at 1.7–3.1k tokens). **LG-P1 refuted narrowly** (ties in all 3 cells, but LogiOR at 63% > 60% of the
 tokens): for a 120B model fact-first-then-think keeps the accuracy of thinking with the fact at half to two-thirds of its tokens.
+
+### Results HO-TB (2026-10-24 02:0x UTC; `python poc/analyze_hotb.py 2000|6000`, 3 seeds; vs thinking with the fact at 16k, THINK+F)
+| cell | THINK+Fb, B = 2,000 | THINK+Fb, B = 6,000 | FF+Fb, B = 6,000 |
+|---|---|---|---|
+| Qwen3-14B-AWQ OptiBench (third) | −2.3 [−5.1, +0.3] @ 41% | −2.3 [−4.6, −0.0] @ 83% | −5.6 @ 25% |
+| Qwen3-14B-AWQ BWOR | −11.4 @ 32% | −2.0 [−8.1, +3.7] @ 68% | −11.8 @ 39% |
+| Qwen3-14B-AWQ LogiOR | −13.0 @ 31% | −2.5 [−8.0, +2.9] @ 68% | −3.6 @ 52% |
+| Qwen3-8B OptiBench (third) | −3.6 [−6.6, −0.8] @ 36% | −1.7 [−3.8, +0.7] @ 79% | −5.1 @ 29% |
+| Qwen3-8B BWOR | −13.4 @ 30% | **−9.8 [−15.4, −4.1]** @ 62% | −15.4 @ 42% |
+| Qwen3-8B LogiOR | −17.0 @ 29% | **−5.8 [−10.5, −1.1]** @ 62% | −13.4 @ 52% |
+- **TB-P1 refuted** (within 3 points at ≤ 75% of the tokens in 2 / 6: Qwen3-14B-AWQ BWOR and LogiOR at 68%). **TB-P2 holds** (B = 2,000
+  loses > 5 points in 4 / 6; on OptiBench it keeps all but 2–4 points at 36–41% of the tokens). **TB-P3 refuted** (0 / 6).
+- **Reading.** A shorter think with the fact is a token-for-accuracy trade, not a free saving: about a third of the tokens for 2–3 points
+  on OptiBench (2k) or for Qwen3-14B-AWQ on BWOR / LogiOR (6k); Qwen3-8B needs the full budget on the hard benchmarks. Escalating to a
+  budgeted think does not rescue fact-first for these models: their loss is the leaky check (HO-VF), not the cost of the escalation.
