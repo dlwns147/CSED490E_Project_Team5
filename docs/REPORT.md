@@ -12,7 +12,9 @@ missing fact (a few lines of exact library usage, or a checked program for a sim
 only when it visibly fails, try one cheap repair from the error and then think. On our development suites the recipe solves 87% of 208 problems at 2.5k output tokens, against 74%
 at 4.1k for spending thinking on the hardest-looking problems. On five benchmarks never used in development, against always thinking given the same fact, the recipe ties or wins
 on all five for gpt-oss-20b and for Qwen3.5-9B — a model it was never developed with — at 30–78% of the output tokens, and on three of
-five for Qwen3-14B-AWQ; elsewhere for the Qwen3 models thinking with the fact is 4–17 points more accurate. The fact is the main lever:
+five for Qwen3-14B-AWQ; elsewhere for the Qwen3 models thinking with the fact is 4–17 points more accurate, unless a 2k-token self-review
+in thinking mode gates the cheap program: then the Qwen3 models tie or beat it in all six cells, saving 27–30% of the tokens where any
+check could save tokens. The fact is the main lever:
 the label-free library of checked programs raises the first program in 23 of 25 model × benchmark cells, and thinking too. Whether
 thinking only on visible failures pays is decided by whether thinking with the fact would solve the wrong programs the check lets
 through, and it is detectable: labelling 30
@@ -202,6 +204,10 @@ the recipe loses, the 30 labels pick thinking: 0.74 points of regret instead of 
 - **A stronger check where the plain one leaks**: accepting the library program only if a solution checker written from the text passes
   its printed solution closes the Qwen3 models' gap to thinking with the fact in all five losing cells (−4 to −12 → −1.6 to +1.0), but saves
   tokens only on OptiBench (71–79%); on BWOR / LogiOR it escalates almost everything (HO-VF).
+- **A short self-review as the gate** (HO-VR): the same Qwen3 model, thinking for at most 2k tokens, reviews its passing program and
+  answers CORRECT / WRONG; escalating on WRONG makes fact-first tie or beat thinking with the fact in all six Qwen3 cells (−1.1 to +2.9),
+  at 70–73% of its tokens on OptiBench and ~100% on BWOR / LogiOR, where even a perfect check saves at most 12%. The review flags 65% of
+  wrong passing programs with 13% false alarms.
 - **Shorter thinking with the fact** (budget forcing): 2k tokens keep all but 2–4 points on OptiBench at ~40% of the tokens but lose 11–17
   on BWOR / LogiOR; escalating to a budgeted think does not rescue fact-first for the Qwen3 models (HO-TB).
 
