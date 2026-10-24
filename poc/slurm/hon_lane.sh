@@ -74,6 +74,9 @@ for think in (False, True):
   repair) for sd in $seeds; do NLOPT_SET=$set $P poc/run_repair.py $m $sd formx >> $L 2>&1 & done ;;   # HO-N3
   review) sub=""; [ "$set" = optibench ] && sub="FORM_SUBSET=0/3"   # HO-N4: the 2k-token self-review gate (HO-VR), answer cap 2,048
          for sd in $seeds; do env $sub REVIEW_ANSWER_MAX=2048 NLOPT_SET=$set $P poc/run_review.py $m $sd 2000 formx >> $L 2>&1 & done ;;
+  gaterep) sub=""; [ "$set" = optibench ] && sub="FORM_SUBSET=0/3"   # HO-N4: review + one cheap repair of the formx programs, one job
+         for sd in $seeds; do env $sub REVIEW_ANSWER_MAX=2048 NLOPT_SET=$set $P poc/run_review.py $m $sd 2000 formx >> $L 2>&1 &
+           NLOPT_SET=$set $P poc/run_repair.py $m $sd formx >> $L 2>&1 & done ;;
   thinkshard) NLOPT_SHARD=$4 NLOPT_SET=$set $P poc/run_nlopt.py ${m}_$set thinkfree $seeds --think --max_tokens $TK >> $L 2>&1 & ;;
   think) NLOPT_SET=$set $P poc/run_nlopt.py ${m}_$set thinkfree $seeds --think --max_tokens $TK >> $L 2>&1 & ;;
   geo)   for sd in 1 2 3; do
