@@ -120,7 +120,7 @@ if the 2k-token review says CORRECT, else thinking with the fact; review tokens 
 **Decision.** P3-2 → the recipe's escalation menu includes the gate and the claim's pilot bullet is restated over six policies;
 otherwise the gate stays a named option outside the pilot.
 
-### Results HO-P3 (2026-10-24 21:2x UTC; `python poc/analyze_hop.py --repair --fair --gate q14a q8b q35`, 39 cells)
+### Results HO-P3 (2026-10-24 21:1x UTC; `python poc/analyze_hop.py --repair --fair --gate q14a q8b q35`, 39 cells)
 | λ | best policy in (of 39): gate / THINK / FF-R0 / FF / FFR | always the gate | best other fixed | 30-label pilot, 6 policies | 6-policy − 5-policy pilot | best of 6 − best of 5 |
 |---|---|---|---|---|---|---|
 | 0 (accuracy only) | 16 / 12 / 7 / 1 / 3 | 1.69 | THINK 2.79 | 1.24 | +0.44 | +0.66 |

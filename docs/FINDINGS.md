@@ -3787,7 +3787,7 @@ P1 half (fewer kept, but the LogiOR leak rises 6 points). With self-consistency 
 review (DT5), label-free self-training goes from harmful to neutral, never useful: it stays bounded by what the model already solves.
 Raw LogiOR losses are ordinary formulation slips (undefined data table, a capacity used only as a variable bound).
 
-## 2026-10-24 21:25 UTC: HO-P3 (PREREG_MODEL.md): the self-review gate is the best fixed policy for leaky models, not a pilot addition
+## 2026-10-24 21:10 UTC: HO-P3 (PREREG_MODEL.md): the self-review gate is the best fixed policy for leaky models, not a pilot addition
 Offline, on the 39 held-out cells with review rows (Qwen3-14B-AWQ and Qwen3-8B on five benchmarks, Qwen3.5-9B on three; 3 seeds), the
 self-review gate (a passing program is the answer only if a 2k-token thinking-mode review says CORRECT, else thinking with the fact) was
 added to HO-P2's 30-label pilot as a sixth policy (λ = 0.5 utility = accuracy − 0.5 × k-tokens). Always using the gate loses 2.52 points
