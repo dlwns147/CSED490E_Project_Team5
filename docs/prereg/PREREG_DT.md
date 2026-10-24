@@ -177,3 +177,20 @@ retrain from base on the development examples + these (`q8bsft4`); evaluate as D
 these problems stays bounded at round 1 whatever the filter, and the report says so.
 *DT5 data (2026-10-24 17:3x UTC): base Qwen3-8B reviewed 3,106 runnable round-1 programs (accept 1,935, wrong 1,171, no verdict 0); 1,452
 unlabeled problems pass both filters (DT3: 1,957; DT4: 1,348); 2,579 training examples. Training submitted (tag `q8bsft4`).*
+
+### Results DT5 (2026-10-24 21:0x UTC; round 2c = `q8bsft4`, review-filtered; no fact; 3 seeds, paired 95% intervals vs round 1)
+| held-out | round 1 (leak) | round 2 self-consistency | round 2b cross-model | **round 2c + review** | 2c − round 1 | tokens 1 → 2c |
+|---|---|---|---|---|---|---|
+| OptiBench all | 54.2% (28%) | 54.2% (28%) | 53.8% (27%) | 53.6% (28%) | −0.7 [−2.1, +0.7] | 371 → 494 |
+| BWOR | 18.3% (69%) | 15.0% (76%) | 20.7% (67%) | 20.7% (67%) | +2.4 [−0.8, +6.1] | 921 → 1,008 |
+| LogiOR | 16.7% (61%) | 14.5% (65%) | 16.7% (65%) | 14.9% (67%) | −1.8 [−5.8, +2.2] | 1,137 → 1,101 |
+| OptMATH | 8.3% (72%) | 5.7% (82%) | 7.7% (73%) | 8.7% (70%) | +0.3 [−3.0, +3.7] | 1,424 → 1,579 |
+- **DT5-P1 half holds** (1,452 kept < 1,957; the leak stays within +2 of round 1 on OptiBench, BWOR, OptMATH, not LogiOR: +6).
+  **DT5-P2 refuted** (OptMATH +0.3, LogiOR −1.8; neither significant; base + library stays far ahead on OptMATH: 14.3%).
+- **Raw.** The LogiOR programs that round 1 got right and 2c gets wrong (4 vs 1 the other way, seed 1) are ordinary formulation slips —
+  a capacity bound used as the variable bound only, a data table referenced but never defined, a cost dictionary with colliding keys —
+  not a harness effect.
+- **Reading (DT3–DT5).** Three label-free filters of increasing quality (self-consistency; agreement with another model; agreement plus
+  a thinking-mode review) take self-training from harmful to neutral, never to useful: round 2 stays at round 1 on every held-out
+  benchmark, and the unseen problem types (LogiOR, OptMATH) stay where only the library of similar problems helps. On these word problems
+  label-free self-training is bounded by what the model already solves; the review removes wrong programs but adds no new formulations.

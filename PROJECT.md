@@ -61,7 +61,7 @@ table: `docs/REPORT.md` §5.1):
    (`*.jsonl`, logs), server addresses or keys; no co-author lines — commits are by the team's account.
 8. **Explain for a first-time reader:** what ran, how, the result with its cost, what is next.
 
-## 5. Status and next steps (2026-10-24)
+## 5. Status and next steps (2026-10-24, 21 UTC)
 
 - **Held-out claim, against thinking given the same fact** (HO-TF, HO-TF2, HO-LG, HO-P2): the recipe is a pure saving for gpt-oss-20b,
   gpt-oss-120b and Qwen3.5-9B, a token-for-accuracy trade for the Qwen3 models on the hardest word problems; a 30-label pilot picks the
@@ -72,7 +72,8 @@ table: `docs/REPORT.md` §5.1):
   30-label pilot finds it. Running: PL3 (Qwen3-8B on the frontier).
 - **Direction 2 — the fact in the weights, no labels** (DT, DT-14, DT2): LoRA on 1,127 strict-check-passing programs gives Qwen3-8B /
   Qwen3-14B the library's gain without the library (OptiBench, BWOR), not on unseen problem types; it does not fix the check (fact-first
-  with the fine-tuned model still loses to thinking with the fact). Running: DT3 (self-training on 3,996 unlabeled problems).
+  with the fine-tuned model still loses to thinking with the fact). Self-training on 3,996 unlabeled problems stays at round 1 with every
+  label-free filter tried (self-consistency: harmful; cross-model agreement, agreement + thinking-mode review: neutral; DT3–DT5).
 - Open: the "do not add a fact" side; the final report (draft `docs/REPORT.md`, format / length / deadline from the team).
 - Day-to-day state (running jobs, environment, evidence table): `docs/SLURM_HANDOFF.md`.
 

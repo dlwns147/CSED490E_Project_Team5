@@ -222,8 +222,14 @@ strict check — no label anywhere. Without any fact in the prompt, the fine-tun
 *given* the label-free library on OptiBench (Qwen3-8B 54.2% vs 51.6%, base without a fact 27.4%; Qwen3-14B 58.0% vs 58.1%, base 36.3%) and
 BWOR (+2.8, +3.3), with usage crashes falling from 16–28% to 1–7%; the leak does not rise (OptiBench 32–39% → 23–30%). On LogiOR /
 OptMATH, whose problem types the development data lacks, the library's similar-problem programs still help (−1 to −6 for the fine-tuned
-models). Fine-tuning internalizes the usage fact; a self-training round on 3,996 unlabeled problems is the test for new problem types
-(DT3, running).
+models). Fine-tuning internalizes the usage fact, not the formulations of unseen problem types.
+
+Self-training on 3,996 unlabeled OR problems (the round-1 model writes programs; a label-free filter keeps some; retrain from base) never
+gets past round 1 (DT3–DT5, 3 seeds, held-out): with self-consistency as the filter it learns the check's mistakes (BWOR 18.3 → 15.0%,
+leak 69 → 76%; OptMATH 8.3 → 5.7%); with agreement across two models (DT4) or agreement plus the 2k-token thinking-mode review (DT5,
+1,452 problems kept) it is neutral (OptiBench −0.4 / −0.7, BWOR +2.4, LogiOR 0.0 / −1.8, OptMATH −0.7 / +0.3; no interval excludes 0).
+A better label-free check removes the harm but adds no new formulations; on the unseen types only the library of similar problems helps
+(base + library OptMATH 14.3%). Prior work reports the same plateau for self-training with imperfect filters (§6.5).
 
 ### 5.8 Proofs: where the check is perfect
 In Lean 4 a compiled proof is correct, so the check cannot leak. On miniF2F (244 statements), 32 cheap (non-thinking) attempts solve more
