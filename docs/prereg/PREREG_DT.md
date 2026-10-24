@@ -146,3 +146,16 @@ problems (DT3: 1,957; OR-Instruct 767, OptMATH-Train 581); with the development 
 - **Reading.** Agreement with a different model removes the harm of self-training (BWOR +5.7 over DT3, leaks back to round-1 levels) but
   does not add knowledge of the new problem types (round 2b ≈ round 1 everywhere). Label-free self-training on unfamiliar word problems is
   bounded by the check either way: a leaky filter teaches wrong formulations, a stricter one keeps only what the model already gets right.
+
+## Addendum DT-P (2026-10-24 12:1x UTC, before any run): self-training where the check is perfect (proofs)
+**Why.** DT3 / DT4: with a label-free but leaky check, self-training on unfamiliar problems learns the check's mistakes or nothing new.
+In Lean a compiled proof is right, so self-training cannot learn wrong proofs; if the check is what bounds self-training, it should help
+here. **Data (no label anywhere):** 2,000 random Lean Workbook statements (internlm/Lean-Workbook, its stored proofs dropped), minus any
+sharing ≥ 30% of its 8-gram set with a miniF2F test statement (informal or formal); Qwen3-8B writes 4 cheap (non-thinking) proofs per
+statement (X4 prompt, 8,192 cap); the Lean compiler keeps the compiled ones (one per statement, the shortest). Qwen3-8B is LoRA-fine-tuned
+on them exactly as DT (tag `q8bprf`) and evaluated on miniF2F test with 8 cheap attempts per statement, batch-checked.
+- **DTP-P1:** the fine-tuned model's cheap pass@8 on miniF2F test ≥ the base's + 5 statements (base: the expected pass@8 over its PL3
+  32 cheap attempts).
+- **DTP-P2:** its per-attempt success rate is ≥ 1.3 × the base's.
+**Decision.** P1 → with a perfect check label-free self-training transfers to held-out statements, completing the contrast with DT3 / DT4:
+the check, not the training, bounds self-improvement.
