@@ -102,3 +102,5 @@ OptMATH-Train 828); with the development examples, 3,084 training examples (`bui
 - **Reading.** Fine-tuning raises the cheap program to the level the library gave but does not fix the leaky check: on the hard benchmarks
   fact-first with the fine-tuned model still loses to thinking with the fact by 10–15 points. Training the fact in and choosing where to
   think are separate problems; the second still needs a stronger check (HO-VF) or the pilot.
+*DT3 round-2 training done (2026-10-24 07:5x UTC, job 1238635): 3,084 examples, 386 steps, 2 h 25 min on 2 × RTX 3090, train loss 0.075;
+merged to /SSD/huggingface/derived/Qwen3-8B-sft-r2; held-out `free` evaluation (tag `q8bsft2`) submitted.*
