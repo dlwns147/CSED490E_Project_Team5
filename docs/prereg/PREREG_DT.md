@@ -133,3 +133,16 @@ problem types needs a perfect check (proofs).
 *DT4 data (2026-10-24 09:3x UTC): gpt-oss-20b's value agrees with the round-1 model's agreed value on 1,348 of the 3,996 unlabeled
 problems (DT3: 1,957; OR-Instruct 767, OptMATH-Train 581); with the development examples 2,475 training examples
 (`build_sft_data.py --round2 --cross`). Training submitted (tag `q8bsft3`).*
+
+### Results DT4 (2026-10-24 12:1x UTC; round 2b = `q8bsft3` (cross-model filter); 3 seeds, paired 95% intervals; leak = wrong among running)
+| held-out | round 1 | round 2 (DT3) | **round 2b** | 2b − 1 | 2b − 2 |
+|---|---|---|---|---|---|
+| OptiBench all | 54.2% (28%) | 54.2% (28%) | 53.8% (27%) | −0.4 [−1.8, +1.0] | −0.4 |
+| BWOR | 18.3% (69%) | 15.0% (76%) | **20.7%** (67%) | +2.4 [−0.8, +6.1] | **+5.7 [+2.8, +8.9]** |
+| LogiOR | 16.7% (61%) | 14.5% (65%) | 16.7% (65%) | 0.0 [−3.6, +3.6] | +2.2 [−2.2, +6.5] |
+| OptMATH | 8.3% (72%) | 5.7% (82%) | 7.7% (73%) | −0.7 [−4.0, +2.3] | +2.0 [−1.7, +5.7] |
+- **DT4-P1 half holds** (fewer pass: 1,348 vs 1,957; the leak stays within +2 of round 1 except LogiOR +4). **DT4-P2 half holds** (≥ round 2
+  on BWOR / LogiOR / OptMATH; ≥ round 1 on LogiOR but not OptMATH, −0.7).
+- **Reading.** Agreement with a different model removes the harm of self-training (BWOR +5.7 over DT3, leaks back to round-1 levels) but
+  does not add knowledge of the new problem types (round 2b ≈ round 1 everywhere). Label-free self-training on unfamiliar word problems is
+  bounded by the check either way: a leaky filter teaches wrong formulations, a stricter one keeps only what the model already gets right.
