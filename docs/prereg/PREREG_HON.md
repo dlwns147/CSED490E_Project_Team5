@@ -207,3 +207,21 @@ trade side and the report's model table gains it either way.
 | LogiOR `n3n` | 10.9% | 62.3% | 51.4% | add |
 | OptMATH `n3n` | 14.0% | 72.7% | 58.7% | add |
 All four "add" (u ≥ 5% everywhere): N4-P2 is scored on the 8 card / library points (OptMATH's card arm was run as well and is counted).
+
+### Results HO-N4, cheap arms: N4-P1 / P2 (2026-10-24 23:3x UTC; `n3n`, 3 seeds, all rows; gain = with fact − free, paired 95% interval)
+| benchmark | free | + usage card | + label-free library |
+|---|---|---|---|
+| OptiBench (605) | 36.2% @ 512 | +6.1 [+3.6, +8.8] | **+16.3 [+13.1, +19.3]** |
+| BWOR | 17.5% @ 1,272 | −3.7 [−9.3, +2.4] | −1.6 [−7.3, +4.5] |
+| LogiOR | 18.1% @ 1,322 | **−6.9 [−13.0, −0.7]** | −2.2 [−8.0, +4.0] |
+| OptMATH | 6.0% @ 1,702 | −0.3 [−3.7, +3.0] | +3.7 [−1.3, +8.7] |
+- **N4-P1 refuted** (the library adds ≥ 2 points on 2 / 4: OptiBench, OptMATH). **N4-P2 refuted** (3 / 8 "add" calls right).
+- **Raw.** No harness effect (finish = stop in 96–99%; code extracted in all but 4 of 3,345 rows; no non-ASCII syntax errors). With the
+  card the model writes `pywraplp` in 97–99% of programs (free: 46%, with CP-SAT, CVXPY, SciPy and pulp otherwise) and carries CP-SAT
+  idioms into it (`OnlyEnforceIf` on a linear constraint, `AddAllDifferent` / `Value` on the linear solver): AttributeErrors on BWOR
+  18 → 40 and running-but-wrong programs 66 → 98 of 246. The library moves programs toward the similar problem's solver (CP-SAT on BWOR
+  57 → 75) without raising accuracy. Its usage crashes are ~10% in every cell (the census's "add" trigger), but on BWOR / LogiOR the
+  failures that matter are formulation errors, which neither fact touches.
+- **Reading.** The fact is the lever on OptiBench for this model too (+16.3, the largest library gain on any model there), but on the
+  hardest word problems a model from another family gains nothing from either fact; the census rule's "add" side, right 21 / 24 on the
+  development families, is right 3 / 8 here. Facts and the rule are stated for the families they were measured on.

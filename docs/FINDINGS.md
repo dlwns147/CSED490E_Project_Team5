@@ -3795,3 +3795,11 @@ to the best policy per cell, against 3.99 for always thinking with the fact and 
 fixed policy there. The six-policy pilot keeps regret at 0.96 (P3-1 holds) but beats the five-policy pilot by only +0.28 (pre-registered
 bar +0.5: P3-2 refuted; gate best in 9 of 39 cells), because the five-policy pilot already found a near-equal policy in the gate's cells
 and a sixth option adds pick noise. Decision as registered: the gate is the no-label default for a leaky model, outside the pilot.
+
+## 2026-10-24 23:30 UTC: HO-N4 cheap arms (PREREG_HON.md): on a new model family the fact pays on OptiBench only
+NVIDIA-Nemotron-3-Nano-30B-A3B (hybrid Mamba-Transformer mixture of experts, never used before; 4 × RTX 3090, tensor parallel), cheap
+non-thinking programs, 3 seeds. The label-free library raises the first program by +16.3 [+13.1, +19.3] on OptiBench (36.2 → 52.5%) and
++3.7 [−1.3, +8.7] on OptMATH, but not on BWOR (−1.6) or LogiOR (−2.2); the usage card adds +6.1 on OptiBench and hurts LogiOR (−6.9
+[−13.0, −0.7]). N4-P1 (library ≥ +2 on 3 of 4) and N4-P2 (census calls, all "add", right on ≥ 6 of 8: 3 / 8) refuted. Raw: with the card
+the model writes `pywraplp` in 97–99% of programs and mixes CP-SAT idioms into it (AttributeErrors 18 → 40 on BWOR); the failures that
+decide BWOR / LogiOR are formulations, which neither fact fixes. Thinking with the library, the gate and the pilot (N4-P3–P5) are running.
