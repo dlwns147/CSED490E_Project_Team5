@@ -6,20 +6,18 @@ pre-registrations in `docs/prereg/` and `docs/notes/REPORT_OUTLINE.md`; format a
 ## Abstract
 
 Language models can solve computational problems — geometry, scheduling, routing, optimization word problems — by writing a program, but
-programs fail silently and "thinking longer" (long reasoning before answering) is expensive. We ask where a fixed budget of tokens should go
-for models that fit one 24 GB GPU (gpt-oss-20b, Qwen3-14B-AWQ, Qwen3-8B). We test a training-free recipe: write a cheap program, add the
-missing fact (a few lines of exact library usage, or a checked program for a similar problem found without labels), run a free check, and
-only when it visibly fails, try one cheap repair from the error and then think. On our development suites the recipe solves 87% of 208 problems at 2.5k output tokens, against 74%
-at 4.1k for spending thinking on the hardest-looking problems. On five benchmarks never used in development, against always thinking given the same fact, the recipe ties or wins
-on all five for gpt-oss-20b and for Qwen3.5-9B — a model it was never developed with — at 30–78% of the output tokens, and on three of
-five for Qwen3-14B-AWQ; elsewhere for the Qwen3 models thinking with the fact is 4–17 points more accurate, unless a 2k-token self-review
-in thinking mode gates the cheap program: then the Qwen3 models tie or beat it in all six cells, saving 27–30% of the tokens where any
-check could save tokens. The fact is the main lever:
-the label-free library of checked programs raises the first program in 23 of 25 model × benchmark cells, and thinking too. Whether
-thinking only on visible failures pays is decided by whether thinking with the fact would solve the wrong programs the check lets
-through, and it is detectable: labelling 30
-problems of a new cell picks a policy within 0.85 points of the best over 60 held-out cells, where no fixed policy comes within 3.3. No check we built — a second program, model-written tests or relations, another model's program — removes the
-weakest model's leak, because most of it is edge-case errors that the given input does not exercise.
+programs fail silently and "thinking longer" (long reasoning before answering) is expensive. We ask where a fixed token budget should go,
+for open models from 8B to 120B on RTX 3090s. The recipe: write a cheap program, add the missing fact (a few lines of exact library usage,
+or a checked program for a similar problem found without labels), run a free check, and think — given the same fact — only where the check
+fails. Compared with always thinking *given the same fact* on five benchmarks never used in development, the recipe ties or wins on all
+five for gpt-oss-20b and for Qwen3.5-9B (a model it was never developed with) at 30–78% of the output tokens, and ties gpt-oss-120b at
+50–63%. For the Qwen3 models the free check lets through wrong programs that thinking would solve (exactly: the recipe loses where
+thinking with the fact solves the problems the check passes), and the recipe loses 4–17 points — unless a 2k-token self-review in thinking
+mode gates the cheap program: then it ties or beats always thinking in 7 of 8 Qwen3 cells, saving 27–30% of the tokens where any check
+could. The fact is the main lever: the label-free library raises the cheap program in 23 of 25 cells and raises thinking by up to 23
+points, and fine-tuning on the recipe's own checked programs moves it into the weights (no labels). Which policy to use is detectable: 30
+labelled problems of a new cell pick it within 0.85 points over 60 held-out cells. Where the check is perfect (Lean proofs) the rule
+becomes "sample cheaply, then think"; where it leaks, it bounds label-free self-training as it bounds the recipe.
 
 ## 1. Introduction
 
@@ -36,13 +34,17 @@ experiments, then tested on held-out benchmarks:
 2. **Add the missing fact**: the few lines of exact usage the model lacks, or the model's own checked program for a similar problem
    (no human, no labels) — not a long manual, not extra tools.
 3. **Run a free check**: the program runs and prints a value; its outputs on transformed copies agree; the statement's examples pass.
-4. **Think harder only when the check fails** — on word problems after one cheap repair turn shown the error.
+   For a model whose free check leaks, add a short self-review in thinking mode (≤ 2k tokens) of the passing program.
+4. **Think harder — given the same fact — only when the check fails**; on word problems after one cheap repair turn shown the error.
 5. **Reuse** a checked program when the same problem returns with new data.
 
-Contributions: (i) every method is compared in one harness with accuracy *and* tokens, on models that fit one RTX 3090; (ii) facts before
-compute — a short exact fact plus a free execution check beats spending thinking by difficulty; (iii) the fact can be found without a human
-or labels: other runs' checked programs for similar problems; (iv) a held-out evaluation on five unseen benchmarks with 95% intervals, which
-locates the recipe's limit: when the free check leaks, thinking only on visible failures stops paying.
+Contributions: (i) every method is compared in one harness with accuracy *and* tokens, against thinking given the same fact — the
+comparison most cascade and when-to-think evaluations leave confounded; (ii) an exact decomposition that predicts, per model and
+benchmark, whether thinking only on failure is a pure saving or a trade, and a 2k-token self-review gate that turns the trade into a saving
+or a tie for the Qwen3 models; (iii) facts without a human or labels: other runs' checked programs for similar problems, and the same
+programs as fine-tuning data; (iv) held-out evaluation on five unseen benchmarks and an unseen model, with 95% intervals and pre-registered
+predictions, including the refuted ones. What is established elsewhere (cascades between models, sampling with a verifier on proofs,
+self-training and its collapse) is marked as such (§6.5).
 
 ![The recipe](../figs/fig18_recipe.png)
 
