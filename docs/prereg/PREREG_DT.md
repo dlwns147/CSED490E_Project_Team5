@@ -90,3 +90,15 @@ Qwen3-8B is fine-tuned again from scratch on the development examples + these (s
 **Decision.** P1 → label-free self-training on unlabeled problems extends the internalized fact to new problem types (no labels at any step).
 *DT3 data (2026-10-24 05:2x UTC): the round-1 model solved 1,957 of the 3,996 unlabeled problems twice in agreement (OR-Instruct 1,129,
 OptMATH-Train 828); with the development examples, 3,084 training examples (`build_sft_data.py --round2`). Round-2 training submitted.*
+
+### Results DT2 (2026-10-24 06:1x UTC; `python poc/analyze_dt2.py` and the DT2-P1 table; 3 seeds; vs base Qwen3-8B thinking with the fact)
+| | OptiBench (third) | BWOR | LogiOR |
+|---|---|---|---|
+| fine-tuned + library − fine-tuned free (cheap) | +3.8 [−1.2, +8.9] | −1.2 [−6.9, +4.9] | **−5.8 [−10.9, −0.4]** |
+| fine-tuned THINK+F − base THINK+F | −3.3 [−6.9, +0.3] | +3.7 [−2.4, +9.8] | −4.0 [−10.1, +2.5] |
+| FF with the fine-tuned model (free; own THINK+F on failure) − base THINK+F | −5.1 [−10.2, −0.0] @ 35% | **−10.2 [−17.5, −2.8]** @ 54% | **−14.5 [−21.7, −7.2]** @ 74% |
+- **DT2-P1 refuted** (library adds ≥ 2 on 1 / 3; on LogiOR it now hurts). **DT2-P2 refuted** (FF ties base THINK+F on 0 / 3). **DT2-P3
+  refuted** (thinking within 2 points on 1 / 3; −3.3 / −4.0 elsewhere, intervals include 0).
+- **Reading.** Fine-tuning raises the cheap program to the level the library gave but does not fix the leaky check: on the hard benchmarks
+  fact-first with the fine-tuned model still loses to thinking with the fact by 10–15 points. Training the fact in and choosing where to
+  think are separate problems; the second still needs a stronger check (HO-VF) or the pilot.
