@@ -162,3 +162,16 @@ the check, not the training, bounds self-improvement.
 *DT-P withdrawn (2026-10-24 13:2x UTC, before any proof was checked): a related-work check showed Lean expert iteration with the compiler as
 filter is established (Polu et al. 2022; DeepSeek-Prover; Goedel-Prover; STP, which reports plain expert iteration plateauing); the run
 could not change our claim, so its 8 GPUs go to the open problem at the claim's weak point (docs/notes/RELATED_WORK.md).*
+
+## Addendum DT5 (2026-10-24 14:4x UTC, before any run): does a better label-free check make self-training learn?
+**Why it could change the claim / what is new.** DT3 / DT4: with self-consistency as the filter self-training learned the check's mistakes;
+with cross-model agreement it learned nothing new. The 2k-token thinking-mode self-review (HO-VR) is a better label-free check (flags 65%
+of wrong passing programs at 13% false alarms on word problems). Prior self-training filters are self-consistency, majority vote, a
+teacher, or cross-model agreement (docs/notes/RELATED_WORK.md); a thinking-mode review of non-thinking outputs as the filter is not.
+**Run.** Base Qwen3-8B, thinking cut at 2,000 tokens, reviews the round-1 model's seed-1 program for every unlabeled problem where it runs
+(`run_review.py q8bsft 1 2000 free`, NLOPT_SET=unlabeled); keep a problem when the two round-1 runs agree **and** the review says CORRECT;
+retrain from base on the development examples + these (`q8bsft4`); evaluate as DT.
+- **DT5-P1:** fewer problems kept than DT3 (< 1,957); the leak stays within +2 points of round 1 on every benchmark.
+- **DT5-P2:** round 2c ≥ round 1 + 3 points on OptMATH or LogiOR, at least one significant (it learns from new problem types).
+**Decision.** P2 → a better label-free check turns self-training from harmful / neutral into useful; otherwise label-free self-training on
+these problems stays bounded at round 1 whatever the filter, and the report says so.
