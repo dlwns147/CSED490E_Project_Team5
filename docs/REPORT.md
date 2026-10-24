@@ -235,6 +235,19 @@ priced, the best split is short (4–6 cheap attempts, at most one thinking atte
 A trained 4B specialist leads our best training-free 24 GB recipe on OptiBench by 5.7 points at 8× the tokens; the two compose (cheap
 program first, the specialist only on a visible failure).
 
+## 6.5 Relation to prior work (what is new here)
+Escalating from a cheap answer to a stronger one when a check fails is established for cascades *between models* (answer consistency,
+ICLR 2024; AutoMix's self-verification, NeurIPS 2024; self-generated tests for code), and learned "when to think" switches exist
+(AdaptThink, Thinkless, AutoThink); false positives of an imperfect verifier are known to cap resampling (Limits of Inference Scaling
+Through Resampling, ICLR 2026). What this work adds: (i) the comparison against thinking *given the same fact*, which removes the
+fact/policy confound present in most cascade and when-to-think evaluations; (ii) an exact decomposition that predicts, per model and
+benchmark, whether thinking only on failure is a pure saving or a trade; (iii) the evidence on OR word problems and geometry with open
+models on 24 GB GPUs. The proof results (cheap attempts before thinking under a perfect check) confirm Reasoning Models Can Be Effective
+Without Thinking (2504.09858) and repeated-sampling scaling (Large Language Monkeys) on general hybrid models. Label-free fine-tuning on
+self-consistent programs is self-improvement / context distillation (LLMs Can Self-Improve; STaR; ReST-EM); its collapse under self-
+agreement and the cross-model fix are known (Co-rewarding, Multiagent Finetuning) — our contribution there is the program-level version on
+OR problems and the observation that the cross-model filter removes the harm but adds no new knowledge. Full list: `docs/notes/RELATED_WORK.md`.
+
 ## 7. Where the recipe stops
 
 - **Short-answer competition math** (MATH-500, AIME): a program is 17–20 points below a text answer; thinking is needed for AIME (Qwen3-14B-AWQ:
