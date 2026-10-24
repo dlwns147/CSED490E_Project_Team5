@@ -58,17 +58,19 @@ table: `docs/REPORT.md` §5.1):
    (`*.jsonl`, logs), server addresses or keys; no co-author lines — commits are by the team's account.
 8. **Explain for a first-time reader:** what ran, how, the result with its cost, what is next.
 
-## 5. Status and next steps (2026-10-22)
+## 5. Status and next steps (2026-10-24)
 
-- Done: held-out tests on OptMATH, OptiBench, BWOR, LogiOR and four geometry tasks; the weakest model's check leak is a stated limit
-  (a brute-force program, a second sample and model-written edge-case tests all failed to close it); the rule for when to add a fact was
-  tested prospectively on its "add" side (right in 10 of 12 points).
-- Open: the "do not add a fact" side (needs a strong, rarely-crashing model on a new benchmark); **the final report** — full draft in
-  `docs/REPORT.md` (English; to be fitted to the course format, length and deadline the team decides).
-- Done (2026-10-23): checks that see what the leaky free check misses. A solution checker written from the text helps on BWOR / LogiOR
-  (HO3) but not on OptiBench / OptMATH (HO4, HO5); one cheap repair turn before thinking helps on all word-problem benchmarks for the
-  stronger models (HO6, HO7) but not on geometry (HO-G-R); model-written relations, edge tests and a second model's program (HO-G-M/E,
-  HO-X) do not close Qwen3-8B's geometry leak — 37 of its 64 leaks are wrong only on edge cases the given input does not contain.
+- **Held-out claim, against thinking given the same fact** (HO-TF, HO-TF2, HO-LG, HO-P2): the recipe is a pure saving for gpt-oss-20b,
+  gpt-oss-120b and Qwen3.5-9B, a token-for-accuracy trade for the Qwen3 models on the hardest word problems; a 30-label pilot picks the
+  policy within 0.85 points. Stronger check (solution checker, HO-VF) closes the Qwen3 gap but saves tokens only on OptiBench; budgeted
+  thinking (HO-TB) is a trade, not a fix. Rule for adding a fact: 21 / 24 prospective calls right, all on the "add" side (WF4).
+- **Direction 1 — proofs, where the check is perfect** (Lean 4 + Mathlib on the cluster; PF, PL1, PL2): cheap attempts dominate thinking
+  up to always-thinking's budget, thinking adds the statements sampling never reaches; with tokens priced the best split is short and a
+  30-label pilot finds it. Running: PL3 (Qwen3-8B on the frontier).
+- **Direction 2 — the fact in the weights, no labels** (DT, DT-14, DT2): LoRA on 1,127 strict-check-passing programs gives Qwen3-8B /
+  Qwen3-14B the library's gain without the library (OptiBench, BWOR), not on unseen problem types; it does not fix the check (fact-first
+  with the fine-tuned model still loses to thinking with the fact). Running: DT3 (self-training on 3,996 unlabeled problems).
+- Open: the "do not add a fact" side; the final report (draft `docs/REPORT.md`, format / length / deadline from the team).
 - Day-to-day state (running jobs, environment, evidence table): `docs/SLURM_HANDOFF.md`.
 
 ## 6. Documents
