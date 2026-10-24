@@ -184,6 +184,7 @@ python poc/analyze_hol.py                                          # label-free 
 python poc/analyze_hon.py q35                                      # the unseen model: FF vs THINK, budget worst case, fact gains
 python poc/analyze_hotf.py [--geo] [model ...]                     # the fair baseline: always thinking given the same fact
 python poc/analyze_hop.py --repair --fair                          # 30-label pilot against the fact-matched thinking arm
+python poc/analyze_hop.py --repair --fair --gate q14a q8b q35       # HO-P3: the self-review gate as a sixth pilot policy
 HO7_CELLS=optibench:formx,bwor:formx python poc/analyze_ho7.py q35 # one cheap repair before thinking
 python poc/merge_shards.py results/x3/opt_<tag>_<mode>_s<seed>.jsonl  # after a run split with NLOPT_SHARD=i/k
 ```
