@@ -34,9 +34,15 @@ def _rows(path):
             pass
     return out
 
-def problems(split):
+def all_statements():
+    """miniF2F (results/x3/minif2f.json) + the DT-P workbook statements ($POC_DATA/sft/workbook_2k.json, split 'workbook') if built"""
     M = json.load(open(f"{RES}/x3/minif2f.json"))
-    return [m for m in M if m["split"] == split]
+    w = _DATA + "/sft/workbook_2k.json"
+    return M + (json.load(open(w)) if os.path.exists(w) else [])
+
+
+def problems(split):
+    return [m for m in all_statements() if m["split"] == split]
 
 
 def proof_body(text):
@@ -132,7 +138,7 @@ def check_batch(items, timeout=1800):
 
 
 def bcheck_file(path, batch=16, only=None):
-    M = {m["name"]: m for m in json.load(open(f"{RES}/x3/minif2f.json"))}
+    M = {m["name"]: m for m in all_statements()}
     rows = [json.loads(l) for l in open(path)]
     os.makedirs(_DATA + "/tmp", exist_ok=True)
     todo = [r for r in rows if "ok" not in r] if only is None else only
@@ -198,7 +204,7 @@ def gen(tag, split, k, logprobs, mt, think=False, card=False, ex_tag=""):
 
 
 def check_file(path):
-    M = {m["name"]: m for m in json.load(open(f"{RES}/x3/minif2f.json"))}
+    M = {m["name"]: m for m in all_statements()}
     rows = [json.loads(l) for l in open(path)]
     os.makedirs(_DATA + "/tmp", exist_ok=True)
     todo = [r for r in rows if "ok" not in r]   # rows checked before keep their result (2026-10-18: extra attempts appended later)
@@ -216,7 +222,7 @@ def check_file(path):
 
 def recheck_missing(path):
     """re-extract the proof body where the first extractor found none, and check only those attempts"""
-    M = {m["name"]: m for m in json.load(open(f"{RES}/x3/minif2f.json"))}
+    M = {m["name"]: m for m in all_statements()}
     rows = [json.loads(l) for l in open(path)]
     todo = [r for r in rows if r.get("body") is None and proof_body(r["text"]) is not None]
     for r in todo:
@@ -237,7 +243,7 @@ def fix(tag, split):
     """X4-P2: for every attempt whose errors name unknown identifiers: (a) one feedback round naming them, (b) a fresh sample
     (new seed); both are then checked (results/x4/fix_<tag>_<split>.jsonl)"""
     from llm import chat
-    M = {m["name"]: m for m in json.load(open(f"{RES}/x3/minif2f.json"))}
+    M = {m["name"]: m for m in all_statements()}
     rows = [r for r in map(json.loads, open(f"{OUT}/lean_{tag}_{split}.jsonl")) if r.get("unknown") and not r["ok"]]
 
     def one(r):
