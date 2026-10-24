@@ -253,3 +253,6 @@ on a CPU node. Same frontier analysis (`analyze_pf.py q8b:q8b_think`).
 - **PL3-P1:** CHEAP×32 solves ≥ THINK×8 statements.
 - **PL3-P2:** FF(32, 8) ≥ CHEAP×32 + 3.
 - **PL3-P3:** up to 16k tokens per statement the best policy is cheap-only (as for gpt-oss-20b).
+*PL3 operations (2026-10-24 07:0x UTC; no setting changed): one RTX 3090 generated ~9 cheap / ~0.8 thinking attempts per minute (Qwen3-8B's
+KV cache holds ~37k tokens, so long attempts run few at a time) → ~14 h. Re-split by statement into 4 cheap jobs (1 GPU each) and 4
+thinking jobs (tensor-parallel on 2 GPUs, for KV room); rows already written are kept (tags q8b_sh<k>, q8b_think_sh<k>; merged before checking).*
