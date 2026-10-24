@@ -45,3 +45,11 @@ Fine-tuned − base without a fact: +24.3 / +26.8 / +8.5 / +7.2 / +3.0 (the firs
 - **Decision:** label-free fine-tuning on 1,127 of its own checked programs gives Qwen3-8B the library's gain without the library in the
   prompt (≈ +25 points on OptiBench), except on OptMATH, whose problem types the development sets do not cover. Next: fact-first-then-
   think with the fine-tuned model against thinking with the fact, and the fine-tuned model *with* the library (do they add?).
+
+## Addendum DT2 (2026-10-24 01:3x UTC, before any run): the fine-tuned model inside the recipe
+**Run** (tag `q8bsft`, 3 seeds): `formx` (cheap with the library) on the OptiBench third, BWOR, LogiOR; `formxt` (thinking with the library,
+16k) on the same. Compared with base Qwen3-8B's THINK+F (HO-TF rows).
+- **DT2-P1:** the library still adds on top of fine-tuning: fine-tuned + library ≥ fine-tuned free + 2 points on ≥ 2 of the 3.
+- **DT2-P2:** FF with the fine-tuned model (its better cheap arm; its own thinking with the fact on a visible failure) ties or beats base
+  THINK+F on ≥ 2 of the 3 (base FF+F lost on all three: −4.5 / −11.0 / −7.6).
+- **DT2-P3:** fine-tuning on non-thinking programs leaves thinking intact: its THINK+F ≥ base THINK+F − 2 on ≥ 2 of the 3.
