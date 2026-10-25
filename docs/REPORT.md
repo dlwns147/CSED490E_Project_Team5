@@ -15,7 +15,7 @@ five for gpt-oss-20b and for Qwen3.5-9B (a model it was never developed with) at
 thinking with the fact solves the problems the check passes), and the recipe loses 4–17 points. A 2k-token self-review in thinking mode
 as the gate removes the loss but saves nothing on hard problems; writing the first program after a short think instead (2,000 tokens
 with the fact, full thinking only on its visible failure) never loses to always thinking in 14 cells it was not chosen on (−0.3 to
-+10.1), saves 8–28% of the tokens on word problems, and closes the last losing cell (Qwen3-8B geometry: −16.7 → −0.3). The fact is the main lever: the label-free library raises the cheap program in 25 of 29 cells and raises thinking by up to 23
++10.1), saves 8–51% of the tokens on word problems, and closes the last losing cell (Qwen3-8B geometry: −16.7 → −0.3). The fact is the main lever: the label-free library raises the cheap program in 25 of 29 cells and raises thinking by up to 23
 points, and fine-tuning on the recipe's own checked programs moves it into the weights (no labels). Which policy to use is detectable: 30
 labelled problems of a new cell pick it within 0.85 points over 60 held-out cells; with short thinking in the menu, always using it
 loses only 1.47 points to each cell's best over 54 cells of four hybrid-thinking models (30 labels: 1.19). Where the check is perfect (Lean proofs) the rule
