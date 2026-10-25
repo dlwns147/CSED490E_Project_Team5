@@ -18,9 +18,18 @@ models).
 a similar problem, found with no labels) → run a free check (the program runs; its outputs on moved / rotated / mirrored copies agree; the
 statement's examples pass) → when the check visibly fails, one cheap repair turn with the error (word problems), then think harder →
 reuse a checked program when the problem repeats. For models whose free check leaks (their passing non-thinking programs are often
-wrong), the first program is written after a short think (2,000 tokens, budget forcing) instead of none (HO-SB).
+wrong), the first program is written after a short think (2,000 tokens, budget forcing) instead of none (HO-SB); the check applies to
+every step, so a visibly failed think is retried (HO-CM).
 
 ## 2. Main claim and where it stands
+
+**Restated 2026-10-25 (HO-CM):** the comparisons below were against *one* think given the same fact. Given the same free check too —
+think again when its program visibly fails (T→T) — thinking gains +2.5 to +12.3 points on the hard word problems at 105–164% of its
+tokens, and is more accurate than every cheap-first policy there for every model (e.g. gpt-oss-20b BWOR: fact-first −10.2 [−16.7,
+−4.1] at 37% of T→T's tokens). The claim is therefore a frontier: **apply the free check at every step, thinking included.** Over 54
+cells of four hybrid-thinking models the best fixed order without labels is short think → full think → retry on a visible failure
+(SB→T→T: 1.74 utility points below each cell's best at λ = 0.5; one think: 7.64; T→T: 3.40); the non-thinking program first is on the
+frontier where the check holds (Qwen3.5, geometry) and 2–4 points behind on the leaky models' hardest word problems.
 
 Held-out benchmarks, 3 seeds, 95% intervals over problems; always thinking is given the same fact as the recipe (HO-TF, HO-TF2; full
 table: `docs/REPORT.md` §5.1):

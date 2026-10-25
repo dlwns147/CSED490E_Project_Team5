@@ -951,3 +951,8 @@ and every table gains a T→T column.
   largest single gain on the hard word problems — and the best fixed policy is short thinking first with a retry on a visible failure
   (SB→T→T, regret 1.74). The recipe without thinking first (FF+F) is on the frontier only where the check holds (Qwen3.5, geometry);
   on the leaky models' hardest word problems the check-matched think is 2–4 utility points ahead of every cheap-first policy.
+*HO-CM supplement (2026-10-25 09:4x UTC, computed after the results above; stored runs): the gpt-oss models against the check-matched
+think (no budgeted runs exist for them; their cheap arm already reasons at low effort). FF+F − T→T: gpt-oss-20b OptiBench −0.8 [−3.0,
++1.5], BWOR **−10.2 [−16.7, −4.1]**, LogiOR **−8.0 [−12.3, −4.0]**, at 37–44% of T→T's tokens; gpt-oss-120b OptiBench −2.3 [−4.1,
+−0.7], BWOR −0.8, LogiOR −4.7 [−9.1, −0.7], at 47–51%. Against one think these cells were ties (−1.2 to +3.7). So on the hard word
+problems the check-matched think is more accurate for every model; the recipe is the cheap end of the frontier, not a free saving.*
