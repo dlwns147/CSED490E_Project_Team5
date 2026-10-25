@@ -3871,3 +3871,13 @@ it the best policy in 16 cells and short thinking first followed by that check-m
 cheap-first policies stay within 1.0 of T→T in 37 / 54 cells (CM-P1, ≥ 40, refuted): ahead on Qwen3.5-9B and wherever the check holds,
 2–4 points behind on the leaky models' hardest word problems. The claim is restated: the free check is worth applying to every step,
 thinking included, and the step order that wins without labels is short think first, full think on a visible failure, a retry on its failure.
+
+## 2026-10-25 11:51 UTC: exploratory — agreement between the non-thinking and the short-think program flags wrong passing programs
+Stored runs, 16 word cells (Qwen3-14B-AWQ, Qwen3-8B, Nemotron-3-Nano, Qwen3.5-9B × OptiBench / BWOR / LogiOR / OptMATH, 3 seeds): a
+non-thinking program that passes the free check is right 78% of the time when the same model's 2k-token-think program also passes and
+prints the same value (2,029 cases; 80–94% on OptiBench / BWOR / LogiOR), 16% when it prints a different value (759), 36% when the short
+think fails visibly (617). No label is used for the signal. Same-mode agreement had failed as a label-free check because a model's cheap
+programs share their mistakes (HO-L); across modes they do not, except on OptMATH, where both modes share wrong formulations (agree 26–38%
+right vs disagree 12–30%). As a gate it does not pay (accepting only agreeing programs costs both runs: utility below short think → think
+→ retry in 13 of 16 cells), so its use is as a label-free estimate of the leak per cell; the pre-registered test is HO-CC's CC-P2 on
+contest problems (running).
