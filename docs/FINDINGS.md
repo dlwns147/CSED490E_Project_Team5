@@ -3902,3 +3902,13 @@ Qwen3-8B fine-tuned (no labels) on the programs its own 2k-token think wrote for
 (+0.4), LogiOR 14.9% (−1.8; leak 61 → 71%), OptMATH 9.7% (+1.3). Both predictions refuted. The short think helps at inference, not as
 training data for the non-thinking mode (consistent with System-2 distillation failing on reasoning-heavy tasks). Direction 2 is closed:
 label-free training moves the usage fact into the weights, not formulations and not the check.
+
+## 2026-10-26 23:27 UTC: exploratory — why no label-free check works on OptMATH: a third of its problems are underspecified or misread by every model
+Cross-family agreement does not flag OptMATH errors either (passing programs that agree with another family's are right 16–38%, vs 68–96%
+on BWOR / LogiOR). Reading the problems: on 35 of its 97 problems (with stored programs) at least four of six models (gpt-oss-20b /
+120b, Qwen3-14B-AWQ, Qwen3-8B, Nemotron-3-Nano, Qwen3.5-9B) agree on one value the gold calls wrong. 18 of these are job-shop problems
+(26 in the set); at least 12 of the 26 name no machine and no shared operation pair, so the makespan cannot be derived from the text
+(e.g. optmath-16: "multiple operations ... may need to be assigned to the same machine", gold 4; all six models print 2 — every
+operation on its own machine). 5 are dispersion problems whose pair values differ by direction (Node 0→1: 24, Node 1→0: 22): the gold
+sums both directions (optmath-42: 46 = 24 + 22), every model counts each pair once (25). OptMATH's ceiling is the statement, not the
+check; the report's "shared formulation errors" are mostly these two kinds.
