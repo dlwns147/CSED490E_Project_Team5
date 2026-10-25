@@ -3822,3 +3822,11 @@ geometry +1.7 [+0.3, +3.8]) but at 94–109% of its tokens (221% on geometry, wh
 The 30-label pilot loses 1.05 points (pre-registered ≤ 1.0: refuted narrowly); the best fixed policy here is two agreeing cheap programs
 (0.80). Pre-registered: P3 (gate) held; P1 (library), P2 (census), P4 (pure saving), P5 (pilot) refuted. The family-independent part of
 the claim is the decomposition and the gate's accuracy; the token saving belongs to models whose free check does not leak.
+
+## 2026-10-25 02:20 UTC: HO-SB on Nemotron-3-Nano (PREREG_HO.md): short thinking first is cheaper and more accurate than the review gate
+For the leaky Nemotron-3-Nano, thinking with the library cut at 2,000 tokens first (budget forcing) and full thinking only when that
+program visibly fails ties or beats always thinking with the fact in all 4 word-problem cells (OptiBench +3.8 [+1.8, +5.9] at 72% of the
+tokens, BWOR +5.3 at 79%, LogiOR +3.3 at 92%, OptMATH +6.3 [+1.0, +12.0] at 73%) and is at least as accurate as the self-review gate at
+fewer tokens in all 4 (OptMATH +5.7 [+0.7, +11.0]). Raw: the extra accuracy comes from problems where full thinking's program crashes,
+prints nothing or runs out at 32k while the forced-short program works. Pre-registered SB-P1 and P2 hold (idea chosen post hoc on the
+6 Qwen3 cells of HO-TB; these 4 cells were not used). Putting the non-thinking program first brings the leak back (exploratory, −5 to −8).

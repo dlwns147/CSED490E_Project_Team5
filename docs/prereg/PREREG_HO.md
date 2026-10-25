@@ -821,3 +821,20 @@ finished so far) and Qwen3.5-9B (`q35`, where FF+F already ties or wins); compar
   recipe already works).
 **Decision.** P1 and P2 → for leaky models the recipe's branch becomes short thinking with the fact first (no review); with P3 it is the
 candidate no-label default for hybrid-thinking models and joins the pilot. Otherwise the gate stays.
+
+### Results HO-SB, Nemotron-3-Nano: SB-P1 / P2 (2026-10-25 02:2x UTC; `python poc/analyze_hotb.py 2000 n3n`; 3 seeds, all rows)
+| cell | THINK+F | SB+F (tokens vs THINK+F) | SB+F − THINK+F | gate FF-R+F (tokens) | SB+F − gate |
+|---|---|---|---|---|---|
+| OptiBench (third) | 67.8% @ 6.6k | 71.6% (72%) | **+3.8 [+1.8, +5.9]** | 69.3% (94%) | +2.3 [−0.0, +4.8] |
+| BWOR | 49.2% @ 11.9k | 54.5% (79%) | +5.3 [−0.8, +11.4] | 49.2% (107%) | +5.3 [−0.8, +11.4] |
+| LogiOR | 44.6% @ 12.8k | 47.8% (92%) | +3.3 [−1.4, +8.0] | 46.7% (109%) | +1.1 [−4.0, +6.2] |
+| OptMATH | 29.7% @ 19.1k | 36.0% (73%) | **+6.3 [+1.0, +12.0]** | 30.3% (106%) | **+5.7 [+0.7, +11.0]** |
+- **SB-P1 holds** (ties or beats THINK+F in 4 / 4, at ≤ 90% of its tokens in 3 / 4; LogiOR at 92%). **SB-P2 holds** (no more than
+  2 points below the gate — in fact above it — and fewer tokens in 4 / 4).
+- **Raw: where the gain comes from.** On the problems where the 2k-token program passes the free check and full thinking does not get it
+  right, full thinking's own program mostly crashes or prints no value (BWOR 18 of 26, OptMATH 6 of 35) or hits the 32k cap (OptMATH 17
+  of 35); the reverse (full thinking right, the short program wrong though it passed) is 13 on BWOR and 16 on OptMATH. Budget forcing makes
+  the short think finish, and the escalation is a second attempt only where the first visibly failed.
+- **Exploratory (not pre-registered):** putting the non-thinking library program in front (library → short think → full think) brings
+  the leak back for this model (−4.6 to −7.7 on OptiBench / BWOR / LogiOR vs THINK+F); for the leaky models the cheap step must think.
+SB-P3 (Qwen3.5-9B) is scored when its OptiBench / OptMATH runs finish.
