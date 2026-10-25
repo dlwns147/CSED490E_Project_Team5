@@ -12,11 +12,13 @@ or a checked program for a similar problem found without labels), run a free che
 fails. Compared with always thinking *given the same fact* on five benchmarks never used in development, the recipe ties or wins on all
 five for gpt-oss-20b and for Qwen3.5-9B (a model it was never developed with) at 30–78% of the output tokens, and ties gpt-oss-120b at
 50–63%. For the Qwen3 models and for Nemotron-3-Nano (another family) the free check lets through wrong programs that thinking would solve (exactly: the recipe loses where
-thinking with the fact solves the problems the check passes), and the recipe loses 4–17 points — unless a 2k-token self-review in thinking
-mode gates the cheap program: then it ties or beats always thinking in 7 of 8 Qwen3 cells and 5 of 5 Nemotron cells, saving 27–30% of
-the tokens where any check could (Qwen3 OptiBench) and nothing elsewhere. The fact is the main lever: the label-free library raises the cheap program in 25 of 29 cells and raises thinking by up to 23
+thinking with the fact solves the problems the check passes), and the recipe loses 4–17 points. A 2k-token self-review in thinking mode
+as the gate removes the loss but saves nothing on hard problems; writing the first program after a short think instead (2,000 tokens
+with the fact, full thinking only on its visible failure) never loses to always thinking in 14 cells it was not chosen on (−0.3 to
++10.1), saves 8–28% of the tokens on word problems, and closes the last losing cell (Qwen3-8B geometry: −16.7 → −0.3). The fact is the main lever: the label-free library raises the cheap program in 25 of 29 cells and raises thinking by up to 23
 points, and fine-tuning on the recipe's own checked programs moves it into the weights (no labels). Which policy to use is detectable: 30
-labelled problems of a new cell pick it within 0.85 points over 60 held-out cells. Where the check is perfect (Lean proofs) the rule
+labelled problems of a new cell pick it within 0.85 points over 60 held-out cells; with short thinking in the menu, always using it
+loses only 1.47 points to each cell's best over 54 cells of four hybrid-thinking models (30 labels: 1.19). Where the check is perfect (Lean proofs) the rule
 becomes "sample cheaply, then think"; where it leaks, it bounds label-free self-training as it bounds the recipe.
 
 ## 1. Introduction
@@ -218,7 +220,10 @@ cell's best on average (10 labels: 2.81; always using fact-first: 1.80; always t
 the recipe loses, the 30 labels pick thinking: 0.74 points of regret instead of 7.83 (pre-registered, `PREREG_MODEL.md`, addendum HO-P). The labels are needed: estimating accuracies from how often the cheap program, a second sample and thinking agree (no labels) keeps fact-first in exactly those cells (regret 1.71 overall, 11.2 on Qwen3-8B geometry), because a model's cheap programs share their mistakes and vouch for each other (HO-L). Where no labels are available, the 2k-token
 self-review gate (§5.6) is the best fixed policy for the leaky Qwen models: over the 39 cells with reviews it loses 2.52 points to each
 cell's best, against 3.99 for always thinking with the fact and 5.17 for repair-first; given 30 labels, adding it to the pilot gains only
-+0.28 (regret 0.96), because the pilot already finds a near-equal policy in the cells the gate wins (HO-P3).
++0.28 (regret 0.96), because the pilot already finds a near-equal policy in the cells the gate wins (HO-P3). Short thinking first
+(§5.6) changes this: over 54 cells of the four hybrid-thinking models it is the best policy in 28 and the three-step cascade (non-thinking
+program, then short thinking, then full) in 12; always using short thinking first loses 1.47 to each cell's best, where the best other
+fixed policy loses 5.8, and adding the two to the 30-label pilot raises its utility by +2.1 per cell (regret 1.19; HO-P4).
 
 ### 5.6 Larger models, stronger checks, shorter thinking
 - **gpt-oss-120b** (4 × RTX 3090, tensor parallel): fact-first ties thinking with the same fact on OptiBench, BWOR and LogiOR (−1.0, +3.7,
@@ -234,6 +239,15 @@ cell's best, against 3.99 for always thinking with the fact and 5.17 for repair-
   every check on the given input missed (§5.2), at 31% false alarms.
 - **Shorter thinking with the fact** (budget forcing): 2k tokens keep all but 2–4 points on OptiBench at ~40% of the tokens but lose 11–17
   on BWOR / LogiOR; escalating to a budgeted think does not rescue fact-first for the Qwen3 models (HO-TB).
+- **Short thinking first** (HO-SB, SB2, SB3; found in HO-TB's stored runs, then tested on 14 cells it was not chosen on): write the first
+  program after thinking with the fact for at most 2,000 tokens, and think fully only if that program visibly fails. It never loses to
+  always thinking with the fact (−0.3 to +10.1): Nemotron-3-Nano OptiBench +3.8 [+1.8, +5.9] at 72% of the tokens, BWOR +5.3 at 79%,
+  LogiOR +3.3 at 92%, OptMATH +6.3 [+1.0, +12.0] at 73% — more accurate and cheaper than the review gate in all four; Qwen3 OptMATH +2.3
+  / +3.3 at 85–90%; Qwen3-8B geometry −0.3 [−2.8, +2.1], where fact-first loses 16.7 and the gate 6.6. Where its gain comes from, in the
+  raw runs: problems on which full thinking's own program crashes, prints nothing or runs out at 32k, while the forced-short think
+  finishes. It costs where full thinking is already short (Nemotron geometry, 1.7k: 137%) and, on Qwen3.5-9B, whose non-thinking programs
+  are right when they pass, it is more accurate than the plain recipe (+2 to +8) but dearer (+4 to +66% tokens). A thinking first step
+  is what the leaky models lack; the non-thinking program first brings the leak back (exploratory: −5 to −17).
 
 ### 5.7 Putting the fact into the weights, with no labels
 Qwen3-8B and Qwen3-14B were LoRA-fine-tuned (36 / 53 minutes on 2–4 RTX 3090s) on 1,127 programs from the development sets that pass the
