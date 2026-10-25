@@ -904,7 +904,8 @@ Qwen3-14B-AWQ geometry (FF+SB+F +4.5 [+1.0, +8.3] at 37%, HO-SB2 rows) was seen 
   geometry program fails the metamorphic check often enough that most problems still escalate). **SB2-P2 holds:** Qwen3-8B geometry,
   the claim's worst cell (−16.7 for fact-first, −6.6 with the review gate), is closed (−0.3) — at the cost of always thinking.
 - Exploratory: the three-step cascade on Qwen3-8B OptMATH is +6.7 [+2.0, +11.3] at 77% (Qwen3-14B-AWQ +0.3 at 77%).
-- **Reading (HO-SB, SB2, SB3).** Short thinking with the fact first never loses to always thinking with the fact in 15 new cells
-  (Nemotron 5, Qwen3.5 5, Qwen3 4, plus Qwen3-14B-AWQ geometry): −0.3 to +10.1. It saves tokens where full thinking is long (word
-  problems: 49–92%) and not where it is short or the short program rarely passes (geometry: 94–137%). It replaces the review gate as
-  the leaky-model step: as accurate or more, never more expensive.
+- **Reading (HO-SB, SB2, SB3).** Short thinking with the fact first never loses to always thinking with the fact in the 14 cells it
+  was not chosen on (Nemotron 5, Qwen3.5 5, Qwen3 4): −0.3 to +10.1. It saves tokens where full thinking is long (word problems:
+  49–92%) and not where it is short or the short program rarely passes (geometry: 94–137%). It replaces the review gate as the
+  leaky-model step: on Nemotron's word problems it is as accurate or more and cheaper in all 4, and on Qwen3-8B geometry it closes the
+  gap the gate left (−6.6 → −0.3).
