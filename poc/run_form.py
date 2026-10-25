@@ -147,7 +147,10 @@ if __name__ == "__main__":
                 **({"solution": next((l.strip()[:6000] for l in reversed(sol_lines[:-1]) if l.strip().startswith("{")), None)} if mode == "formxv" else {})}
     with ThreadPoolExecutor(48) as ex, open(path, "a") as f:
         for fu in as_completed([ex.submit(one, p) for p in P if p["id"] not in done]):
-            f.write(json.dumps(fu.result()) + "\n"); f.flush()
+            try:   # 10-25: one rejected request (prompt + max_tokens over the context) used to stop every later row from being written
+                f.write(json.dumps(fu.result()) + "\n"); f.flush()
+            except Exception as e:
+                print(tag, mode, seed, "request failed, no row:", repr(e)[:200], flush=True)
     rows = _rows(path); by = {}
     for r in rows:
         by.setdefault(r["kind"] or "other", []).append(r["correct"])
