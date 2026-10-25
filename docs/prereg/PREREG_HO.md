@@ -869,3 +869,13 @@ the gate stays a second option. With P2 the claim no longer has a losing Qwen3 c
 - **Decision as registered.** SB-P1 / P2 held, P3 refuted: short thinking first is the step for leaky models (replacing the review
   gate), not a universal default; where the free check holds, the non-thinking program stays first. Which side a cell is on is what the
   pilot detects (next: HO-P4).
+
+## Addendum HO-SB3 (2026-10-25 05:0x UTC, before any run): the three-step cascade where the free check holds
+**Why.** On Qwen3.5-9B's word problems (exploratory, HO-SB) the cascade non-thinking program → short thinking → full thinking (FF+SB+F)
+was at least as accurate as the plain recipe at no more tokens in all 4 cells; on leaky cells it brings the leak back. If it holds on
+new low-leak cells, the recipe's menu is: FF+SB+F where the check holds, SB+F where it leaks (the pilot picks; HO-P4). **Run (new
+cells).** Held-out geometry, where the metamorphic check leaks little for these models (Qwen3.5-9B; Nemotron-3-Nano: 5%):
+`run_geo_cross.py ... --distract 0 --algo_hint --think_budget 2000 --max_tokens 8192`, seeds 1–3 (`S2_HOG_<m>_geo_thinkfactb2000`).
+Qwen3-14B-AWQ geometry (FF+SB+F +4.5 [+1.0, +8.3] at 37%, HO-SB2 rows) was seen before this addendum and is not counted.
+- **SB3-P1:** in both new cells FF+SB+F is no more than 1 point below FF+F at no more than 110% of its tokens.
+**Decision.** P1 → the cascade is the recipe's form for low-leak cells (stated with the HO-P4 pilot); otherwise the plain recipe stays.
