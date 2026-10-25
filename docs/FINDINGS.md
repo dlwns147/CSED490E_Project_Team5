@@ -3888,3 +3888,10 @@ Qwen3-8B on four word benchmarks, 3 seeds: Nemotron ties or beats always thinkin
 BWOR +10.2 [+5.3, +15.4] at 4,000); Qwen3-8B loses at 1,000 on OptiBench (−3.1) and LogiOR (−6.2) and ties or beats at 4,000 in all four
 (86–109% of the tokens). SB4-P1 / P2 refuted: the budget matters; 4,000 has the best utility (λ = 0.5) in 6 of 8 cells. The claim reads
 "a short think first (2–4k tokens)", the budget being one of the pilot's choices.
+
+## 2026-10-26 17:46 UTC: HO-CC CC-P2 (PREREG_HO.md): cross-mode agreement is a label-free leak detector on contest problems too
+311 Codeforces geometry problems (hidden tests), 3 seeds: a non-thinking program that passes the samples and whose outputs agree with the
+same model's 2k-token-think program on every test input (inputs only, no expected outputs) passes all hidden tests 92.7% (Qwen3-14B-AWQ,
+n = 110) and 97.0% (Nemotron-3-Nano, n = 168) of the time; when they disagree or the short think fails the samples, 18.8% and 33.8%.
+Pre-registered CC-P2 (≥ 20-point gap) holds by +74 and +63. This is the label-free signal for "the cheap program is wrong although the
+free check passed" that the project set out to find; its limit is shared formulation errors (OptMATH). CC-P1 waits for the 32k thinks.

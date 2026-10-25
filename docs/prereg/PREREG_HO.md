@@ -1003,3 +1003,15 @@ SB+F − THINK+F (tokens vs THINK+F); utility U = accuracy − 0.5 × ktokens:
 - **Reading.** "Short thinking first" is not tied to 2,000 tokens, but it is not budget-free either: 1,000 is too short for Qwen3-8B;
   between 2,000 and 4,000 a longer first think buys accuracy (Nemotron BWOR +10.2 at 4,000) for tokens. **Decision as registered:** the
   claim says "a short think first (2–4k tokens)", and the budget joins what the 30-label pilot chooses.
+
+### Results HO-CC, CC-P2 (2026-10-26 17:4x UTC; `python poc/analyze_hocc.py --agree q14a n3n` on a CPU node; 3 seeds)
+Among non-thinking programs that pass the statement's samples, run with the same seed's short-think program on every test input (inputs
+only; outputs compared with the problem's tolerance):
+| model | agree on every input: pass all hidden tests | disagree, or the short think fails the samples | (short think passes the samples but disagrees) |
+|---|---|---|---|
+| Qwen3-14B-AWQ | **92.7%** (n = 110) | 18.8% (n = 117) | 8.5% (n = 59) |
+| Nemotron-3-Nano | **97.0%** (n = 168) | 33.8% (n = 133) | 31.7% (n = 41) |
+- **CC-P2 holds** (+73.9 and +63.2 points ≥ +20). On a domain it was not seen on, agreement between a model's non-thinking program and
+  its short-think program on the test inputs (no expected outputs) separates hidden-test-correct from leaked programs: an agreeing
+  program is right 93–97% of the time. With the word-problem result (exploratory: 78% vs 16%), this is the project's label-free signal
+  for when the cheap program is wrong — the open problem since the start — with OptMATH (shared formulation errors) as its known limit.
