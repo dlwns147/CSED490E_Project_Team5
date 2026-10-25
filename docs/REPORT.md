@@ -253,7 +253,7 @@ fixed policy loses 5.8, and adding the two to the 30-label pilot raises its util
 ### 5.6b The baseline matched in the check (HO-CM)
 Every comparison above gives always-thinking the same fact but lets it ignore its own visible failures. Given the same free check — a
 second think when its program crashes, prints nothing or prints 'No Best Solution' — thinking gains +2.5 to +12.3 points on all 16 word
-cells of the four hybrid-thinking models at 119–164% of its tokens, and +0 to +10 for the gpt-oss models (105–143%). Over 54 cells (λ =
+cells of the four hybrid-thinking models at 119–164% of its tokens, and +1 to +9 for the gpt-oss models (105–143%). Over 54 cells (λ =
 0.5) one think is never the best policy (always using it loses 7.64 utility points to each cell's best); the best fixed policy is short
 think → full think → retry (1.74), then short think first (3.00) and thinking with a retry (3.40). Against the check-matched think the
 cheap-first policies stay within one point in 37 of 54 cells (registered ≥ 40: refuted): ahead where the check holds (Qwen3.5-9B +2 to
