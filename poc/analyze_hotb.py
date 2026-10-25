@@ -4,7 +4,8 @@ THINK+F, THINK+Fb (always budgeted thinking), FF+Fb (the library program, budget
 HO-SB: also SB+F = budgeted thinking with the fact first, full thinking with the fact (formxt) only when the budgeted program visibly
 fails (crash, no value, 'No Best Solution'); OptMATH is included for models whose cheap arm there is the library (formx).
 FF+SB+F (exploratory, added after HO-SB's first cells): the library program if it passes, else SB+F (a three-step cascade).
-usage: python analyze_hotb.py <B> [model ...]"""
+HO-SB2: --geo for held-out geometry (fact / thinkfact / thinkfactb<B>; a visible failure = the metamorphic check fails; Python >= 3.10).
+usage: python analyze_hotb.py <B> [--geo] [model ...]"""
 import os, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -14,8 +15,36 @@ from run_nlopt import RES, _rows  # noqa: E402
 g = lambda r: (r or {}).get("out_tokens") or 0
 
 
+def geometry(B, m):
+    import analyze_n10 as N
+    from analyze_hogc import load, ok, tok as gt
+    per, tok = {}, {"THINK+F": 0, "FF+F": 0, "SB+F": 0, "FF+SB+F": 0}
+    for s in (1, 2, 3):
+        F, TF, SB = (load(f"S2_HOG_{m}_geo_{a}_s{s}") or {} for a in ("fact", "thinkfact", f"thinkfactb{B}"))
+        for k, t in TF.items():
+            if k not in F or k not in SB:
+                continue
+            f, sb = F[k], SB[k]; keep, sp = N.geo_check(f)[0], N.geo_check(sb)[0]
+            per.setdefault(k, []).append({"THINK+F": ok(t), "FF+F": ok(f) if keep else ok(t), "SB+F": ok(sb) if sp else ok(t),
+                                          "FF+SB+F": ok(f) if keep else ok(sb) if sp else ok(t)})
+            tok["THINK+F"] += gt(t); tok["FF+F"] += gt(f) + (0 if keep else gt(t)); tok["SB+F"] += gt(sb) + (0 if sp else gt(t))
+            tok["FF+SB+F"] += gt(f) + (0 if keep else gt(sb) + (0 if sp else gt(t)))
+    n = sum(len(v) for v in per.values())
+    if not n:
+        print(f"=== {m} geometry: no rows"); return
+    acc = {k: 100 * sum(x[k] for v in per.values() for x in v) / n for k in tok}
+    print(f"=== {m} geometry B={B} ({len(per)} items, {n} rows): " + " | ".join(f"{k} {acc[k]:.1f}% @ {tok[k] / n / 1000:.2f}k ({100 * tok[k] / tok['THINK+F']:.0f}%)" for k in tok))
+    for k in ("FF+F", "SB+F", "FF+SB+F"):
+        mu, lo, hi = ci({i: sum(x[k] - x["THINK+F"] for x in v) / len(v) for i, v in per.items()})
+        print(f"  {k} - THINK+F {mu:+.1f} [{lo:+.1f}, {hi:+.1f}]")
+
+
 def main():
     B = sys.argv[1]
+    if "--geo" in sys.argv:
+        for m in [a for a in sys.argv[2:] if not a.startswith("--")] or ["q14a", "q8b"]:
+            geometry(B, m)
+        return
     for m in sys.argv[2:] or ["q14a", "q8b"]:
         for b in ("optibench", "bwor", "logior") + (("optmath",) if os.path.exists(f"{RES}/opt_{m}_optmath_formxtb{B}_s1.jsonl") else ()):
             per, tok = {}, {"THINK+F": 0, "THINK+Fb": 0, "FF+Fb": 0, "SB+F": 0, "FF+SB+F": 0}
