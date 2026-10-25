@@ -14,7 +14,7 @@ five for gpt-oss-20b and for Qwen3.5-9B (a model it was never developed with) at
 50–63%. For the Qwen3 models the free check lets through wrong programs that thinking would solve (exactly: the recipe loses where
 thinking with the fact solves the problems the check passes), and the recipe loses 4–17 points — unless a 2k-token self-review in thinking
 mode gates the cheap program: then it ties or beats always thinking in 7 of 8 Qwen3 cells, saving 27–30% of the tokens where any check
-could. The fact is the main lever: the label-free library raises the cheap program in 23 of 25 cells and raises thinking by up to 23
+could. The fact is the main lever: the label-free library raises the cheap program in 25 of 29 cells and raises thinking by up to 23
 points, and fine-tuning on the recipe's own checked programs moves it into the weights (no labels). Which policy to use is detectable: 30
 labelled problems of a new cell pick it within 0.85 points over 60 held-out cells. Where the check is perfect (Lean proofs) the rule
 becomes "sample cheaply, then think"; where it leaks, it bounds label-free self-training as it bounds the recipe.
@@ -173,16 +173,22 @@ Agreement with gpt-oss-20b's program is a better check on BWOR / LogiOR than a s
 
 ### 5.3 Facts without a human
 The label-free library — for each problem, the program for the most similar other problem of the same benchmark that passed a strict check
-(two runs agree, not 'No Best Solution') in any of the three models' runs — raises the first program in 23 of 25 model × benchmark cells
+(two runs agree, not 'No Best Solution') in any of the three models' runs — raises the first program in 25 of 29 model × benchmark cells
 (e.g. OptiBench +7 / +17 / +24 points for gpt-oss-20b / Qwen3-14B-AWQ / Qwen3-8B; BWOR and LogiOR +5.7 to +14.9); it hurt only the gpt-oss
-models on OptMATH, whose failures are formulation and data errors, not usage. On held-out MAMO the model's own mined program matches the
+models on OptMATH, whose failures are formulation and data errors, not usage, and did not help Nemotron-3-Nano on BWOR / LogiOR (−1.6,
+−2.2; +16.3 on OptiBench). On held-out MAMO the model's own mined program matches the
 hand-written snippet (gpt-oss-20b 78.8% vs 78.9%; Qwen3-32B 75.3% vs 70.7%).
 
 **When does a fact pay?** The share of first programs that crash with a usage exception predicts the gain (r = 0.60 over 58 points; mean
 +10.9 points where ≥ 5% crash this way, +2.1 below). A rule fixed from 46 points ("add a fact unless usage crashes < 5% and other failures
-≥ 25%") was right in 18 of 20 new points (BWOR / LogiOR for the three development models; four benchmarks for Qwen3.5-9B), but all new
-cells were on its "add" side; whether it predicts when *not* to add
-a fact remains untested. A hand-written usage card fails where it misses the library the model reaches for (Qwen3-8B on routing problems
+≥ 25%") was right in 18 of 20 new points (BWOR / LogiOR for the three development models; four benchmarks for Qwen3.5-9B), all on its
+"add" side. It does not transfer: on the label-free fine-tuned models, the first to reach its "do not add" region, it was right on 2 of 5
+"do not add" and 3 of 6 "add" points (WF5), and on Nemotron-3-Nano, a model from another family, on 3 of 8 (HO-N4). The pattern is by kind
+of fact: after fine-tuning the usage card pays nowhere (−6.9 to +2.8) while the library of similar problems' programs still adds +4 to +7
+on 5 of 6 points — the usage fact is in the weights, the formulations of other problem types are not — and a usage-crash census sees only
+the first. On Nemotron-3-Nano neither fact helps on BWOR / LogiOR (its failures there are formulations; the card even pushes it onto one
+solver and into API mix-ups, LogiOR −6.9). The census is a description of where usage facts paid on the development models; the choice
+of fact is left to the pilot. A hand-written usage card fails where it misses the library the model reaches for (Qwen3-8B on routing problems
 writes `from ortools.constraint_solver import pywraplp`), while working code of a similar problem transfers.
 
 ### 5.4 A model the recipe was never developed with

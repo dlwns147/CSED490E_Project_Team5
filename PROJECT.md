@@ -23,7 +23,7 @@ reuse a checked program when the problem repeats.
 
 Held-out benchmarks, 3 seeds, 95% intervals over problems; always thinking is given the same fact as the recipe (HO-TF, HO-TF2; full
 table: `docs/REPORT.md` §5.1):
-- **The fact is the main lever.** It raises the cheap program (the label-free library: 23 of 25 cells) and thinking too (+3.5 to +22.6).
+- **The fact is the main lever.** It raises the cheap program (the label-free library: 25 of 29 cells) and thinking too (+3.5 to +22.6).
 - **Thinking only on a visible failure** ties or beats always thinking with the fact on all five unseen benchmarks for gpt-oss-20b and for
   Qwen3.5-9B — a model the recipe was never developed with — at 30–78% of the tokens, and for Qwen3-14B-AWQ on geometry, LogiOR and
   OptMATH. For Qwen3-14B-AWQ on OptiBench / BWOR and for Qwen3-8B on four of five, thinking with the fact is 4–17 points more accurate:
@@ -34,7 +34,8 @@ table: `docs/REPORT.md` §5.1):
 - **Which to use is detectable:** a 30-label pilot over five policies loses 0.85 points on average over 60 held-out cells, where no fixed
   policy comes within 3.3; on word problems the first escalation is one cheap repair from the error (HO7, HO-N3, HO-R). Without labels,
   the self-review gate is the best fixed policy for the leaky Qwen models (regret 2.52 vs 3.99 for always thinking with the fact; HO-P3).
-- The label-free library of checked programs raises the first program in 23 of 25 model × benchmark cells (up to +34 points).
+- The label-free library of checked programs raises the first program in 25 of 29 model × benchmark cells (up to +34 points; not on
+  BWOR / LogiOR for Nemotron-3-Nano, a model from another family, whose failures there are formulations).
 - Where it stops: short-answer competition math (text + thinking is better; a program is useful as a second opinion) and formal proofs
   (a specialized 8B prover, not a fact).
 
@@ -67,7 +68,9 @@ table: `docs/REPORT.md` §5.1):
 - **Held-out claim, against thinking given the same fact** (HO-TF, HO-TF2, HO-LG, HO-P2): the recipe is a pure saving for gpt-oss-20b,
   gpt-oss-120b and Qwen3.5-9B, a token-for-accuracy trade for the Qwen3 models on the hardest word problems; a 30-label pilot picks the
   policy within 0.85 points. Stronger check (solution checker, HO-VF) closes the Qwen3 gap but saves tokens only on OptiBench; budgeted
-  thinking (HO-TB) is a trade, not a fix. Rule for adding a fact: 21 / 24 prospective calls right, all on the "add" side (WF4).
+  thinking (HO-TB) is a trade, not a fix. The usage-crash rule for adding a fact (21 / 24 on the development base
+  models) does not transfer: 5 / 11 on the fine-tuned models, where the card stops paying and the library still pays (WF5), 3 / 8 on a new
+  family (HO-N4); the pilot chooses the fact.
 - **Direction 1 — proofs, where the check is perfect** (Lean 4 + Mathlib on the cluster; PF, PL1, PL2): cheap attempts dominate thinking
   up to always-thinking's budget, thinking adds the statements sampling never reaches; with tokens priced the best split is short and a
   30-label pilot finds it. Running: PL3 (Qwen3-8B on the frontier).
