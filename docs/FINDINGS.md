@@ -3881,3 +3881,10 @@ programs share their mistakes (HO-L); across modes they do not, except on OptMAT
 right vs disagree 12–30%). As a gate it does not pay (accepting only agreeing programs costs both runs: utility below short think → think
 → retry in 13 of 16 cells), so its use is as a label-free estimate of the leak per cell; the pre-registered test is HO-CC's CC-P2 on
 contest problems (running).
+
+## 2026-10-26 15:44 UTC: HO-SB4 (PREREG_HO.md): the first think needs 2–4k tokens; 1k is too short for Qwen3-8B
+Short thinking with the fact first (full thinking on a visible failure) at budgets 1,000 / 2,000 / 4,000 tokens, Nemotron-3-Nano and
+Qwen3-8B on four word benchmarks, 3 seeds: Nemotron ties or beats always thinking at every budget (+2.2 to +10.2 at 64–96% of its tokens;
+BWOR +10.2 [+5.3, +15.4] at 4,000); Qwen3-8B loses at 1,000 on OptiBench (−3.1) and LogiOR (−6.2) and ties or beats at 4,000 in all four
+(86–109% of the tokens). SB4-P1 / P2 refuted: the budget matters; 4,000 has the best utility (λ = 0.5) in 6 of 8 cells. The claim reads
+"a short think first (2–4k tokens)", the budget being one of the pilot's choices.

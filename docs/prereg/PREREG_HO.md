@@ -985,3 +985,21 @@ agreement is reported as a label-free leak signal (the project's open problem) a
   over without checking. **Amendment (before any 32k row is read):** both models' think is rerun at 32,000 tokens (`--think --max_tokens
   32000`, tag `<m>_think32k`) and CC-P1 is scored on it; the 16k table above stays as the record. CC-P2 does not involve the think and is
   scored as registered.
+
+### Results HO-SB4 (2026-10-26 15:4x UTC; `python poc/analyze_hotb.py <B> n3n q8b`, B ∈ {1,000, 2,000, 4,000}; 3 seeds, all rows)
+SB+F − THINK+F (tokens vs THINK+F); utility U = accuracy − 0.5 × ktokens:
+| cell | B = 1,000 | B = 2,000 | B = 4,000 | U at 1k / 2k / 4k |
+|---|---|---|---|---|
+| Nemotron OptiBench | +3.8 (64%) | +3.8 (72%) | +4.0 (77%) | 69.5 / 69.3 / 69.3 |
+| Nemotron BWOR | +4.1 (71%) | +5.3 (79%) | **+10.2 [+5.3, +15.4]** (81%) | 49.1 / 49.8 / 54.5 |
+| Nemotron LogiOR | +2.2 (80%) | +3.3 (92%) | +4.0 (96%) | 41.6 / 41.9 / 42.5 |
+| Nemotron OptMATH | +3.3 (68%) | +6.3 (73%) | +7.0 (80%) | 26.6 / 29.1 / 29.1 |
+| Qwen3-8B OptiBench | **−3.1 [−5.8, −0.8]** (51%) | −0.3 (62%) | +1.3 (86%) | 62.7 / 65.1 / 65.9 |
+| Qwen3-8B BWOR | −0.8 (83%) | +2.4 (86%) | +2.4 (99%) | 41.4 / 44.5 / 43.8 |
+| Qwen3-8B LogiOR | **−6.2 [−10.9, −1.8]** (88%) | −4.0 (92%) | +0.7 (109%) | 33.8 / 35.7 / 39.5 |
+| Qwen3-8B OptMATH | +1.7 (84%) | +3.3 (90%) | +4.3 (103%) | 20.4 / 21.8 / 22.1 |
+- **SB4-P1 refuted** (at 1,000 tokens 6 / 8 tie or beat — Qwen3-8B loses on OptiBench and LogiOR; at 4,000: 8 / 8). **SB4-P2 refuted**
+  (utility within 2 points across the budgets in 3 / 8). The best budget at λ = 0.5 is 4,000 in 6 / 8 cells, 2,000 in 1, 1,000 in 1.
+- **Reading.** "Short thinking first" is not tied to 2,000 tokens, but it is not budget-free either: 1,000 is too short for Qwen3-8B;
+  between 2,000 and 4,000 a longer first think buys accuracy (Nemotron BWOR +10.2 at 4,000) for tokens. **Decision as registered:** the
+  claim says "a short think first (2–4k tokens)", and the budget joins what the 30-label pilot chooses.
