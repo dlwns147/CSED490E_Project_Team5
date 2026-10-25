@@ -3845,3 +3845,12 @@ thinking (all with the fact) matched the plain recipe at 75% of its tokens for Q
 (+1.0), whose full thinking there is already only 1.7k tokens: SB3-P1 refuted (1 / 2). Short thinking first beat always thinking with the
 fact in all three geometry cells (+2.8 to +4.2). A fixed 2k budget pays where full thinking is long and costs where it is short; the
 choice per cell goes to the pilot (HO-P4, run when HO-SB2's OptMATH thinking reruns finish).
+
+## 2026-10-25 07:49 UTC: HO-SB2 and HO-P4: short thinking first closes the last losing Qwen3 cell and is the best no-label default
+HO-SB2 (PREREG_HO.md): on the Qwen3 cells the idea was not chosen on, short thinking with the fact first (2k-token budget, full
+thinking on a visible failure) ties or beats always thinking with the fact in 4 / 4 — OptMATH +2.3 / +3.3 at 85–90% of the tokens,
+geometry +3.5 and −0.3 at 94–98% — closing Qwen3-8B geometry (fact-first −16.7, gate −6.6) but saving tokens there only on OptMATH (P1
+refuted on tokens, P2 holds). Over 14 new cells it never loses (−0.3 to +10.1). HO-P4 (PREREG_MODEL.md, offline, 54 cells, λ = 0.5):
+adding SB+F and the three-step cascade to the 30-label pilot raises its utility by +2.12 per cell (P4-1 holds); a short-thinking policy
+is best in 40 of 54 cells; always SB+F loses 1.47 to each cell's best (other fixed policies 5.8–7.6), the pilot 1.19 (P4-2, ≤ 1.0,
+refuted). Harness: the first Qwen3 OptMATH thinking run lost all rows to 9 over-long requests (fixed in run_form; rerun at 28,672).

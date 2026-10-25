@@ -149,3 +149,20 @@ picks per cell from its own 30 labels.
 - **P4-3:** SB+F or FF+SB+F is the best policy in at least half of the covered cells.
 **Decision.** P4-1 → the recipe is stated as one menu chosen by 30 labels — non-thinking program first where the check holds, short
 thinking first where it leaks — and the claim's pilot bullet is restated over seven policies; otherwise SB+F stays a named option.
+
+### Results HO-P4 (2026-10-25 07:4x UTC; `python poc/analyze_hop.py --repair --fair --sb q14a q8b n3n q35`, 54 cells, run once)
+Cells: Qwen3-14B-AWQ and Qwen3-8B on OptiBench (third), BWOR, LogiOR, geometry; Nemotron-3-Nano and Qwen3.5-9B on the four word
+benchmarks and geometry; × 3 seeds. Qwen3 OptMATH is left out: HO-P2's cell there uses the mined-example arm (mips / thinks), and the
+budgeted rows exist only for the library arm.
+| λ | best policy in (of 54): SB+F / FF+SB+F / THINK / FF-R0 / FFR / FF | always SB+F | best other fixed | 30-label pilot, 7 policies | 7-policy − 5-policy pilot |
+|---|---|---|---|---|---|
+| 0 | 31 / 7 / 9 / 3 / 3 / 1 | 1.11 | THINK 4.38 | 1.50 | +1.93 |
+| **0.5** | **28 / 12 / 6 / 4 / 3 / 1** | **1.47** | FF+SB+F 5.75, THINK 6.11 | **1.19** | **+2.12** (worse in 13 cells) |
+| 2 | 22 / 11 / 6 / 3 / 1 / 1 (CHEAP 10) | 4.00 | FF+SB+F 4.29 | 1.34 | +2.14 |
+- **P4-1 holds** (+2.12 ≥ +1.0). **P4-2 refuted** (regret 1.19 > 1.0; k = 100: 0.07). **P4-3 holds** (a short-thinking policy is best in
+  40 of 54 cells).
+- **Reading.** With the two short-thinking policies the menu gains about two points of utility per cell; most of it is available
+  without labels: always using SB+F loses only 1.47 to each cell's best (the five-policy menu's best fixed policy loses 5.9–7.6 on these
+  cells), and 30 labels bring it to 1.19. **Decision as registered:** the recipe is stated as one menu — non-thinking program first where
+  the check holds, short thinking with the fact first where it leaks — with short thinking first as the no-label default for
+  hybrid-thinking models and 30 labels to choose per cell.
