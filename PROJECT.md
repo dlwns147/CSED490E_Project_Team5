@@ -30,10 +30,13 @@ table: `docs/REPORT.md` §5.1):
   there the recipe trades accuracy for tokens, because its free check lets wrong programs through. A 2k-token self-review in
   thinking mode as the gate removes that loss: fact-first ties or beats thinking with the fact in all 6 Qwen3 cells, at 70–73% of the
   tokens on OptiBench and the same cost on BWOR / LogiOR, where even a perfect check saves ≤ 12% (HO-VR); on OptMATH and geometry it ties or wins in 3 of 4 more cells and cuts Qwen3-8B's
-  geometry loss from −16.7 to −6.6 by catching 20 of its 37 edge-case-only leaks from the statement (HO-VR2).
+  geometry loss from −16.7 to −6.6 by catching 20 of its 37 edge-case-only leaks from the statement (HO-VR2). Nemotron-3-Nano, a model
+  from another family, leaks like Qwen3 (fact-first −6 to −12 on OptiBench / BWOR / LogiOR); the gate ties or beats thinking with the
+  fact in all 5 of its cells, at 94–109% of the tokens (HO-N4).
 - **Which to use is detectable:** a 30-label pilot over five policies loses 0.85 points on average over 60 held-out cells, where no fixed
   policy comes within 3.3; on word problems the first escalation is one cheap repair from the error (HO7, HO-N3, HO-R). Without labels,
   the self-review gate is the best fixed policy for the leaky Qwen models (regret 2.52 vs 3.99 for always thinking with the fact; HO-P3).
+  On Nemotron-3-Nano the pilot loses 1.05, and two agreeing cheap programs are the best fixed policy (0.80; HO-N4).
 - The label-free library of checked programs raises the first program in 25 of 29 model × benchmark cells (up to +34 points; not on
   BWOR / LogiOR for Nemotron-3-Nano, a model from another family, whose failures there are formulations).
 - Where it stops: short-answer competition math (text + thinking is better; a program is useful as a second opinion) and formal proofs
@@ -44,7 +47,7 @@ table: `docs/REPORT.md` §5.1):
 - **In:** computational geometry (CG) and combinatorial optimization (CO) solved by LLM-written programs: generated geometry and
   optimization suites, OR word-problem benchmarks (NL4OPT, IndustryOR, MAMO, OptMATH, OptiBench, BWOR, LogiOR), Codeforces geometry,
   Solomon routing, job-shop scheduling.
-- **Models:** gpt-oss-20b, Qwen3-14B-AWQ, Qwen3-8B (one RTX 3090 each), Qwen3.5-9B (unseen-model test), and larger models on several
+- **Models:** gpt-oss-20b, Qwen3-14B-AWQ, Qwen3-8B (one RTX 3090 each), Qwen3.5-9B and Nemotron-3-Nano-30B-A3B (unseen-model tests; the latter on 4 × 3090s), and larger models on several
   3090s (gpt-oss-120b, Qwen3-32B-AWQ, Qwen3.6-35B-A3B; earlier only references); trained baselines (STORM-Qwen3-4B, ORLM-8B) run on the same harness.
 - **Side tracks** (kept short in the report): competition math (MATH-500, AIME), Lean and geometry proofs, factual QA (PopQA).
 

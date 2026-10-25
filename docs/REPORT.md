@@ -11,10 +11,10 @@ for open models from 8B to 120B on RTX 3090s. The recipe: write a cheap program,
 or a checked program for a similar problem found without labels), run a free check, and think — given the same fact — only where the check
 fails. Compared with always thinking *given the same fact* on five benchmarks never used in development, the recipe ties or wins on all
 five for gpt-oss-20b and for Qwen3.5-9B (a model it was never developed with) at 30–78% of the output tokens, and ties gpt-oss-120b at
-50–63%. For the Qwen3 models the free check lets through wrong programs that thinking would solve (exactly: the recipe loses where
+50–63%. For the Qwen3 models and for Nemotron-3-Nano (another family) the free check lets through wrong programs that thinking would solve (exactly: the recipe loses where
 thinking with the fact solves the problems the check passes), and the recipe loses 4–17 points — unless a 2k-token self-review in thinking
-mode gates the cheap program: then it ties or beats always thinking in 7 of 8 Qwen3 cells, saving 27–30% of the tokens where any check
-could. The fact is the main lever: the label-free library raises the cheap program in 25 of 29 cells and raises thinking by up to 23
+mode gates the cheap program: then it ties or beats always thinking in 7 of 8 Qwen3 cells and 5 of 5 Nemotron cells, saving 27–30% of
+the tokens where any check could (Qwen3 OptiBench) and nothing elsewhere. The fact is the main lever: the label-free library raises the cheap program in 25 of 29 cells and raises thinking by up to 23
 points, and fine-tuning on the recipe's own checked programs moves it into the weights (no labels). Which policy to use is detectable: 30
 labelled problems of a new cell pick it within 0.85 points over 60 held-out cells. Where the check is perfect (Lean proofs) the rule
 becomes "sample cheaply, then think"; where it leaks, it bounds label-free self-training as it bounds the recipe.
@@ -199,6 +199,16 @@ beats always thinking *given the same fact* on all five (OptiBench +4.0 [+1.0, +
 of its tokens; HO-TF2). Its thinking fails
 by library misuse (14–25% of programs) and unfinished reasoning (6–32% at 32k): the fact, not the effort, is what it lacks. The census
 called "add a fact" on all four word benchmarks and both facts paid (+3.7 to +19.7; 8 / 8 calls right).
+
+**A model from another family** (HO-N4): NVIDIA-Nemotron-3-Nano-30B-A3B, a hybrid Mamba-Transformer mixture of experts, on 4 × RTX 3090,
+everything pre-registered from the rules above. It behaves like the Qwen3 models, not like gpt-oss or Qwen3.5: its passing non-thinking
+programs are wrong in 33–79% of word-problem cases, so fact-first loses to thinking with the same fact on OptiBench (−5.9 [−9.4, −2.5]),
+BWOR (−11.8) and LogiOR (−9.8) and ties only on OptMATH (−3.0 at 72% of the tokens) and geometry (0.0 at 66%, 5% leak). The self-review
+gate transfers: it ties or beats thinking with the fact in all 5 cells (LogiOR +2.2 [+0.7, +4.0], geometry +1.7 [+0.3, +3.8]), but at
+94–109% of the tokens (221% on geometry, where it raises false alarms on 64% of right programs). The library pays on OptiBench (+16.3)
+but not on BWOR / LogiOR, the census was right on 3 of 8 calls, and the 30-label pilot loses 1.05 points (best fixed policy: two
+agreeing cheap programs, 0.80). What transfers across families is the decomposition — the leak decides the side — and the gate's
+accuracy; the token saving belongs to models whose free check does not leak.
 
 ### 5.5 Knowing when not to use it
 The recipe's losses are detectable before deployment. Label 30 random problems of a new model × benchmark cell, run the four policies on
