@@ -956,3 +956,19 @@ think (no budgeted runs exist for them; their cheap arm already reasons at low e
 +1.5], BWOR **−10.2 [−16.7, −4.1]**, LogiOR **−8.0 [−12.3, −4.0]**, at 37–44% of T→T's tokens; gpt-oss-120b OptiBench −2.3 [−4.1,
 −0.7], BWOR −0.8, LogiOR −4.7 [−9.1, −0.7], at 47–51%. Against one think these cells were ties (−1.2 to +3.7). So on the hard word
 problems the check-matched think is more accurate for every model; the recipe is the cheap end of the frontier, not a free saving.*
+
+## Addendum HO-CC (2026-10-25 09:4x UTC, before any run): the check-at-every-step order on contest programming
+**Why it could change the claim.** The restated claim (HO-CM) — apply the free check at every step; without labels, short think → full
+think → retry on a visible failure — was measured on OR word problems and generated geometry only. Contest programming has the classic
+leaky check: a program passes the statement's sample tests and fails the hidden ones. If the order holds there, the claim is about
+programs, not about OR; if not, it is stated for those two domains. Related work: sample tests as a filter (AlphaCode, CodeT) and test-gated
+cascades *between* models (2405.15842); we test the order of thinking budgets inside one model against a check-matched think.
+**Run.** 311 validated Codeforces geometry problems (hidden tests; `CC_SET=full poc/run_cc.py`), no fact; Qwen3-14B-AWQ (1 × 3090 per
+seed) and Nemotron-3-Nano (4 × 3090), seeds 1–3: `plain` (non-thinking, 6,000 tokens), `tb2000` (2,000-token think, then the answer),
+`think` (16,000 tokens). A visible failure = the program fails a sample (public) test, crashes or prints nothing on it. Policies: T (one
+think), T→T (on T's visible failure the next seed's think), SB→T→T, FF+T (plain first), FF+SB+T; tokens of every step counted.
+- **CC-P1:** for each model, SB→T→T ties or beats T→T (paired 95% upper bound ≥ 0) at ≤ 90% of its tokens.
+- **CC-P2 (a label-free signal, per problem):** among plain programs that pass the samples, those whose outputs agree with the short-think
+  program's on every test input (inputs only, no expected outputs) pass all hidden tests ≥ 20 points more often than those that disagree.
+**Decision.** CC-P1 → the order is stated for programs in general (three domains); otherwise for OR and geometry. CC-P2 → cross-mode
+agreement is reported as a label-free leak signal (the project's open problem) and tested as a gate next.

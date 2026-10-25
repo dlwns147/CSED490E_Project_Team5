@@ -86,6 +86,11 @@ for think in (False, True):
          done ;;
   budgetsweep) for B in ${set//,/ }; do for st in optibench bwor logior optmath; do sub=""; [ "$st" = optibench ] && sub="FORM_SUBSET=0/3"   # HO-SB4
            for sd in 1 2 3; do env $sub NLOPT_SET=$st $P poc/run_form.py $m formx $sd --think_budget $B >> $L 2>&1 & done; done; done ;;
+  cc) for sd in 1 2 3; do   # HO-CC: contest geometry (hidden tests), no fact: plain / 2k-budget think / full think
+           CC_SET=full $P poc/run_cc.py run ${m}_plain $sd >> $L 2>&1 &
+           CC_SET=full $P poc/run_cc.py run ${m}_tb2000 $sd --think_budget 2000 >> $L 2>&1 &
+           CC_SET=full $P poc/run_cc.py run ${m}_think $sd --think >> $L 2>&1 &
+         done ;;
   thinkshard) NLOPT_SHARD=$4 NLOPT_SET=$set $P poc/run_nlopt.py ${m}_$set thinkfree $seeds --think --max_tokens $TK >> $L 2>&1 & ;;
   think) NLOPT_SET=$set $P poc/run_nlopt.py ${m}_$set thinkfree $seeds --think --max_tokens $TK >> $L 2>&1 & ;;
   geo)   for sd in 1 2 3; do
