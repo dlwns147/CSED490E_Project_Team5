@@ -780,3 +780,24 @@ q14sft q8bsft2 q8bsft`; `free` arm, 3 seeds; fine-tuned models from PREREG_DT.md
 - Reported with each: the paired 95% interval, output tokens, and the library's extra input tokens.
 **Decision.** P1 → the census rule is two-sided: after label-free fine-tuning it says when to drop the fact; the claim's rule bullet
 becomes two-sided. P1 refuted → the rule only marks where facts pay a lot; below 5% usage crashes the pilot decides (stated as one-sided).
+
+### Results WF5 (2026-10-25 00:0x UTC; `python poc/analyze_wf5.py`; 3 seeds, paired 95% intervals; gain = with fact − free)
+| cell (call) | free | + usage card | + label-free library (extra input) |
+|---|---|---|---|
+| `q14sft` OptiBench (add) | 58.0% @ 393 | −1.0 [−2.9, +0.9] ✗ | **+5.1 [+2.6, +8.0]** ✓ (331) |
+| `q14sft` BWOR (**do not add**) | 24.0% @ 1,027 | +2.8 [−2.4, +8.5] ✗ | +4.1 [−1.6, +10.6] ✗ (468) |
+| `q14sft` LogiOR (add) | 19.6% @ 1,130 | −1.1 [−6.5, +4.3] ✗ | +4.0 [−0.7, +9.1] ✓ (723) |
+| `q14sft` OptMATH (add) | 9.3% @ 1,489 | — | **+6.7 [+2.0, +12.3]** ✓ (858) |
+| `q8bsft2` BWOR (**do not add**) | 15.0% @ 961 | −2.4 [−7.7, +2.4] ✓ | +5.7 [−0.8, +12.2] ✗ (468) |
+| `q8bsft` BWOR (**do not add**) | 18.3% @ 921 | **−6.9 [−12.6, −2.4]** ✓ | (DT2, retrospective: −1.2 [−7.3, +4.9]) |
+| `q8bsft` OptMATH (add) | 8.3% @ 1,424 | — | +1.3 [−3.0, +6.0] ✗ (858) |
+- **WF5-P1 refuted** (the "do not add" side right on 2 / 5). **WF5-P2 refuted** (the "add" side right on 3 / 6).
+- **The pattern is by kind of fact, not by the census.** After label-free fine-tuning the usage card pays nowhere (5 / 5 points below
+  +2 whatever the call; on Qwen3-8B BWOR it hurts, −6.9: raw, the card makes the fine-tuned model write shorter programs with integer
+  variables for divisible quantities and wrong unit conversions, running-but-wrong 96 → 121 of 246), while the library of similar
+  problems' programs still pays on 5 / 6 points (significantly on Qwen3-14B OptiBench and OptMATH) — the usage fact is in the weights, the
+  formulations of other problem types are not. The census, which counts usage crashes, predicts the first and is blind to the second.
+- **Tally of prospective census calls:** 21 / 24 on the development base models (WF1–WF4), 5 / 11 here, 3 / 8 on Nemotron-3-Nano
+  (PREREG_HON.md, HO-N4). **Decision as registered:** the rule is not two-sided and does not transfer beyond the base models it was
+  built on; the report states it as a description of where usage facts paid on those models, and leaves the add / do-not-add choice to
+  the pilot (which can include "no fact" as a policy).

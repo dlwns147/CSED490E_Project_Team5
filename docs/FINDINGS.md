@@ -3803,3 +3803,12 @@ non-thinking programs, 3 seeds. The label-free library raises the first program 
 [−13.0, −0.7]). N4-P1 (library ≥ +2 on 3 of 4) and N4-P2 (census calls, all "add", right on ≥ 6 of 8: 3 / 8) refuted. Raw: with the card
 the model writes `pywraplp` in 97–99% of programs and mixes CP-SAT idioms into it (AttributeErrors 18 → 40 on BWOR); the failures that
 decide BWOR / LogiOR are formulations, which neither fact fixes. Thinking with the library, the gate and the pilot (N4-P3–P5) are running.
+
+## 2026-10-25 00:03 UTC: WF5 (PREREG_HO.md): the census rule is not two-sided; after fine-tuning the card stops paying, the library does not
+On the label-free fine-tuned models (Qwen3-14B and Qwen3-8B, DT / DT-14 / DT3) — the first models whose usage crashes fall below 5%, the
+rule's "do not add" region — the prospective calls were right on 2 / 5 "do not add" and 3 / 6 "add" points (both predictions refuted).
+The split is by kind of fact: the usage card adds nothing on any fine-tuned cell (−6.9 to +2.8; −6.9 [−12.6, −2.4] on Qwen3-8B BWOR),
+while the library of similar problems' programs adds +4 to +7 on 5 of 6 points (Qwen3-14B OptiBench +5.1 [+2.6, +8.0], OptMATH +6.7
+[+2.0, +12.3]) for 331–858 extra input tokens. Fine-tuning internalizes the usage fact, not the formulations of other problem types; the
+census counts usage crashes, so it predicts the first and misses the second. With Nemotron-3-Nano (3 / 8) the prospective tally beyond
+the development base models is 8 / 19: the rule is reported as descriptive only, and the fact choice goes to the pilot.
