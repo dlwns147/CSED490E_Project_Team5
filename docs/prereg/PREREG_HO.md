@@ -909,3 +909,12 @@ Qwen3-14B-AWQ geometry (FF+SB+F +4.5 [+1.0, +8.3] at 37%, HO-SB2 rows) was seen 
   49–92%) and not where it is short or the short program rarely passes (geometry: 94–137%). It replaces the review gate as the
   leaky-model step: on Nemotron's word problems it is as accurate or more and cheaper in all 4, and on Qwen3-8B geometry it closes the
   gap the gate left (−6.6 → −0.3).
+
+## Addendum HO-SB4 (2026-10-25 07:5x UTC, before any run): is "short thinking first" tied to the 2,000-token budget?
+**Why it could change the claim.** The budget 2,000 was fixed from HO-TB before any SB+F result; if SB+F only works near it, the claim must
+say "a budget chosen per model" (and the pilot must choose it); if it holds from 1,000 to 4,000 tokens, the claim is "a short think
+first". **Run.** `run_form.py <m> formx <seed> --think_budget B`, B ∈ {1,000, 4,000}, seeds 1–3, for the two leaky models where SB+F is
+the recommended step: Nemotron-3-Nano and Qwen3-8B, on OptiBench (third), BWOR, LogiOR, OptMATH (8 cells; THINK+F = the stored formxt).
+- **SB4-P1:** at B = 1,000 and at B = 4,000 separately, SB+F ties or beats THINK+F (upper bound ≥ 0) in ≥ 7 of the 8 cells.
+- **SB4-P2:** the utility (accuracy − 0.5 × ktokens) of SB+F varies by ≤ 2 points across the three budgets in ≥ 6 of the 8 cells.
+**Decision.** P1 and P2 → the claim says "a short think first (1–4k tokens)"; otherwise the budget is part of what the pilot chooses.
