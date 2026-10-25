@@ -3863,3 +3863,11 @@ that gain at 49–92%. At λ = 0.5 the two are close on several cells (e.g. Nemo
 be matched in the check as well as in the fact, and the claim read as a frontier, not "ties or beats one think". Pre-registered next:
 HO-CM (PREREG_HO.md). On contest geometry (311 Codeforces problems, hidden tests; the check = the statement's samples), stored Qwen3-32B
 runs (seed 1) give SB+F 32.2% at 97% of one think's tokens vs 29.9%: little to save where short programs rarely pass the samples.
+
+## 2026-10-25 08:42 UTC: HO-CM (PREREG_HO.md): with the check given to thinking too, the best policy is short think → think → retry
+On HO-P4's 54 cells (stored runs; λ = 0.5), giving always-thinking the free check (a second think when its program visibly fails) makes
+it the best policy in 16 cells and short thinking first followed by that check-matched think (SB→T→T) the best in 21; always SB→T→T loses
+1.74 to each cell's best, always T→T 3.40, always SB+F 3.00, and one think — the baseline of every earlier comparison — 7.64. The recipe's
+cheap-first policies stay within 1.0 of T→T in 37 / 54 cells (CM-P1, ≥ 40, refuted): ahead on Qwen3.5-9B and wherever the check holds,
+2–4 points behind on the leaky models' hardest word problems. The claim is restated: the free check is worth applying to every step,
+thinking included, and the step order that wins without labels is short think first, full think on a visible failure, a retry on its failure.

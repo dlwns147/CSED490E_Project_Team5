@@ -933,3 +933,21 @@ T→T); tokens of every step counted; geometry uses the next seed's thinkfact.
 **Decision.** CM-P1 refuted → the claim is restated: what the recipe buys is tokens at matched accuracy only where the check holds;
 against a check-matched think it is a token-accuracy trade elsewhere. CM-P1 and P2 hold → the claim stands with the stronger baseline,
 and every table gains a T→T column.
+
+### Results HO-CM (2026-10-25 08:4x UTC; `python poc/analyze_hop.py --repair --fair --sb --cm q14a q8b n3n q35`, 54 cells, λ = 0.5)
+| | best in (of 54) | always this policy: regret |
+|---|---|---|
+| SB→T→T (short think, then thinking with a retry on a visible failure) | 21 | **1.74** |
+| T→T (thinking with the fact, retry on a visible failure) | 16 | 3.40 |
+| FF+SB+F / FF-R0 / SB+F | 10 / 4 / 3 | 7.28 / 9.15 / 3.00 |
+| THINK+F (one think: the baseline used so far) | 0 | 7.64 |
+- **CM-P1 refuted** (the best of the recipe's policies is within 1.0 of T→T or above in 37 / 54 cells). Per model × benchmark (mean
+  utility difference, recipe's best − T→T): ahead on Qwen3.5-9B (+2.1 to +11.7), Nemotron OptMATH (+8.1) and Qwen3-14B-AWQ geometry
+  (+2.1); behind on the leaky models' hard word problems (Qwen3-14B-AWQ LogiOR −4.0, BWOR −2.0; Qwen3-8B BWOR −2.7, geometry −2.1;
+  Nemotron LogiOR −2.7). **CM-P2 holds** (always T→T 3.40 > always SB+F 3.00). **CM-P3 refuted** (pilot regret 1.35 > 1.2; adding the
+  two check-matched policies still raises it by +1.37 per cell).
+- **Decision as registered.** The claim is restated against the stronger baseline: one think that ignores its own visible failures is
+  a weak baseline (regret 7.64; never best). The recipe's check pays inside thinking too — retrying a visibly failed think is the
+  largest single gain on the hard word problems — and the best fixed policy is short thinking first with a retry on a visible failure
+  (SB→T→T, regret 1.74). The recipe without thinking first (FF+F) is on the frontier only where the check holds (Qwen3.5, geometry);
+  on the leaky models' hardest word problems the check-matched think is 2–4 utility points ahead of every cheap-first policy.

@@ -13,7 +13,9 @@ it also prints the realized utility of the pilot with vs without the gate.
 HO-P4 (PREREG_MODEL.md): --sb adds SB+F (thinking with the fact under a 2,000-token budget first, formxtb2000 / geometry
 thinkfactb2000; full thinking with the fact only on its visible failure) and FF+SB+F (the library program, then SB+F), keeps only cells
 with budgeted rows for all 3 seeds, and prints the pilot with vs without the two.
-usage: python analyze_hop.py [--repair] [--fair] [--gate] [--sb] [model ...]"""
+HO-CM (PREREG_HO.md): --cm (with --sb) adds T->T (thinking with the fact; on its visible failure the next seed's stored think) and
+SB->T->T, the baseline matched in the check as well as the fact.
+usage: python analyze_hop.py [--repair] [--fair] [--gate] [--sb] [--cm] [model ...]"""
 import os, random, sys, types
 from collections import defaultdict
 
@@ -28,7 +30,8 @@ WORDS_NEW = [("optmath", "formx", "thinkfree")] + WORDS[1:]   # a model never ru
 REPAIR = "--repair" in sys.argv
 GATE = "--gate" in sys.argv
 SB = "--sb" in sys.argv
-NEW = ("FF-R+F",) if GATE else ("SB+F", "FF+SB+F") if SB else ()   # the policies whose value the pilot comparison isolates
+CM = "--cm" in sys.argv
+NEW = ("FF-R+F",) if GATE else ("T->T", "SB->T->T") if CM else ("SB+F", "FF+SB+F") if SB else ()   # the policies whose value the pilot comparison isolates
 if "--fair" in sys.argv:
     WORDS = [("optmath", "mips", "thinks")] + [(b, "formx", "formxt") for b in ("optibench", "bwor", "logior")]
     WORDS_NEW = [("optmath", "formx", "formxt")] + WORDS[1:]
@@ -66,6 +69,14 @@ def policies(items):
             else:
                 a2 += so if sp else it["t_ok"]; t2 += it["f_tok"] + st + (0 if sp else it["t_tok"])
         out["SB+F"] = (100 * a1 / n, t1 / n / 1000); out["FF+SB+F"] = (100 * a2 / n, t2 / n / 1000)
+    if CM:
+        n = len(items); a1 = t1 = a2 = t2 = 0
+        for it in items:
+            tp, (t2o, t2t), (sp, so, st) = it["t_pass"], it["t2"], it["sb"]
+            tt_ok, tt_tok = (it["t_ok"], it["t_tok"]) if tp else (t2o, it["t_tok"] + t2t)
+            a1 += tt_ok; t1 += tt_tok
+            a2 += so if sp else tt_ok; t2 += st + (0 if sp else tt_tok)
+        out["T->T"] = (100 * a1 / n, t1 / n / 1000); out["SB->T->T"] = (100 * a2 / n, t2 / n / 1000)
     return out
 
 
@@ -76,6 +87,7 @@ def cells(models=("oss20", "q14a", "q8b")):
         for b, a, th in (WORDS if m in ("oss20", "q14a", "q8b") else WORDS_NEW):
             for s in (1, 2, 3):
                 F, F2, T = ({r["id"]: r for r in _rows(f"{XRES}/opt_{m}_{b}_{x}_s{y}.jsonl")} for x, y in ((a, s), (a, s % 3 + 1), (th, s)))
+                T2 = {r["id"]: r for r in _rows(f"{XRES}/opt_{m}_{b}_{th}_s{s % 3 + 1}.jsonl")}
                 R = {r["id"]: (ok_(r), bool(r["correct"]), r.get("out_tokens") or 0) for r in _rows(f"{XRES}/repair_{m}_{b}_{a}_s{s}.jsonl")}
                 V = {r["id"]: (bool(r["accept"]), r.get("out_tokens") or 0) for r in _rows(f"{XRES}/review_{m}_{b}_{a}_s{s}.jsonl")}
                 if GATE and not all(os.path.exists(f"{XRES}/review_{m}_{b}_{a}_s{x}.jsonl") for x in (1, 2, 3)):
@@ -83,7 +95,7 @@ def cells(models=("oss20", "q14a", "q8b")):
                 SBR = {r["id"]: r for r in _rows(f"{XRES}/opt_{m}_{b}_formxtb2000_s{s}.jsonl")}
                 if SB and (a != "formx" or not all(len(_rows(f"{XRES}/opt_{m}_{b}_formxtb2000_s{x}.jsonl")) for x in (1, 2, 3))):   # budgeted rows exist for the library arm only
                     continue
-                yield (m, b, s), [dict(v=V.get(i), sb=(ok_(SBR[i]), bool(SBR[i]["correct"]), SBR[i].get("out_tokens") or 0) if i in SBR else None, f_ok=bool(f["correct"]), f_pass=ok_(f), f_tok=f["out_tokens"] or 0,
+                yield (m, b, s), [dict(t_pass=ok_(T[i]), t2=(bool(T2[i]["correct"]), T2[i].get("out_tokens") or 0) if i in T2 else (False, 0), v=V.get(i), sb=(ok_(SBR[i]), bool(SBR[i]["correct"]), SBR[i].get("out_tokens") or 0) if i in SBR else None, f_ok=bool(f["correct"]), f_pass=ok_(f), f_tok=f["out_tokens"] or 0,
                                        agree=ok_(f) and ok_(F2[i]) and ag(f["pred"], F2[i]["pred"]), f2_tok=F2[i]["out_tokens"] or 0,
                                        t_ok=bool(T[i]["correct"]), t_tok=T[i]["out_tokens"] or 0, r=R.get(i)) for i, f in F.items() if i in T and i in F2 and (not SB or i in SBR)]
         for s in (1, 2, 3):
@@ -94,7 +106,8 @@ def cells(models=("oss20", "q14a", "q8b")):
                 continue
             V = {r["id"]: (bool(r["accept"]), r.get("out_tokens") or 0) for r in _rows(f"{XRES}/review_{m}_geo_fact_s{s}.jsonl")}
             F, F2, T = load(f"S2_HOG_{m}_geo_fact_s{s}"), load(f"S2_HOG_{m}_geo_fact_s{s % 3 + 1}"), load(f"S2_HOG_{m}_geo_{GEO_THINK}_s{s}")
-            yield (m, "geometry", s), [dict(sb=(N.geo_check(SBG[k])[0], ok(SBG[k]), tok(SBG[k])) if k in SBG else None, v=V.get("|".join(map(str, k))), f_ok=ok(f), f_pass=N.geo_check(f)[0], f_tok=tok(f),
+            T2G = load(f"S2_HOG_{m}_geo_{GEO_THINK}_s{s % 3 + 1}") or {}
+            yield (m, "geometry", s), [dict(t_pass=N.geo_check(T[k])[0], t2=(ok(T2G[k]), tok(T2G[k])) if k in T2G else (False, 0), sb=(N.geo_check(SBG[k])[0], ok(SBG[k]), tok(SBG[k])) if k in SBG else None, v=V.get("|".join(map(str, k))), f_ok=ok(f), f_pass=N.geo_check(f)[0], f_tok=tok(f),
                                             agree=N.geo_check(f)[0] and N.geo_check(F2[k])[0] and agree(f, F2[k]), f2_tok=tok(F2[k]),
                                             t_ok=ok(T[k]), t_tok=tok(T[k])) for k, f in F.items() if k in T and k in F2 and (not SB or k in SBG)]
 
