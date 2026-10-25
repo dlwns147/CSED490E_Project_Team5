@@ -972,3 +972,16 @@ think), T→T (on T's visible failure the next seed's think), SB→T→T, FF+T (
   program's on every test input (inputs only, no expected outputs) pass all hidden tests ≥ 20 points more often than those that disagree.
 **Decision.** CC-P1 → the order is stated for programs in general (three domains); otherwise for OR and geometry. CC-P2 → cross-mode
 agreement is reported as a label-free leak signal (the project's open problem) and tested as a gate next.
+
+### Results HO-CC as registered (2026-10-26 15:0x UTC; `python poc/analyze_hocc.py q14a n3n`; 311 problems × 3 seeds, all rows) — not interpretable for the order
+| model | T (one think, 16k) | T→T | SB→T→T − T→T (tokens) | SB+T − T→T | FF+T − T→T |
+|---|---|---|---|---|---|
+| Qwen3-14B-AWQ | 32.5% @ 13.4k | 37.0% @ 22.9k | +1.1 [−1.0, +3.1] (92%) | −1.5 (57%) | −6.6 (51%) |
+| Nemotron-3-Nano | 12.6% @ 15.2k | 15.8% @ 29.0k | +13.5 [+10.4, +16.5] (80%) | +13.1 (46%) | +8.9 (41%) |
+- As registered, CC-P1 is refuted for Qwen3-14B-AWQ (a tie, but at 92% > 90% of the tokens) and holds for Nemotron-3-Nano.
+- **But the full think is broken by its cap, so the comparison says nothing about the order.** At run_cc's 16,000-token think, 808 of
+  933 Nemotron thinks and 528 of 933 Qwen3-14B-AWQ thinks hit the cap without a program (Nemotron's full think solves 12.6%, *below* its
+  non-thinking program's 22.3%). Every other held-out thinking arm of these models used 32k (HO-N4); 16k was run_cc's old default, carried
+  over without checking. **Amendment (before any 32k row is read):** both models' think is rerun at 32,000 tokens (`--think --max_tokens
+  32000`, tag `<m>_think32k`) and CC-P1 is scored on it; the 16k table above stays as the record. CC-P2 does not involve the think and is
+  scored as registered.

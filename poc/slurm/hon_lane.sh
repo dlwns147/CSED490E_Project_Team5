@@ -92,6 +92,7 @@ for think in (False, True):
            CC_SET=full $P poc/run_cc.py run ${m}_tb2000 $sd --think_budget 2000 >> $L 2>&1 &
            CC_SET=full $P poc/run_cc.py run ${m}_think $sd --think >> $L 2>&1 &
          done ;;
+  cc32k) for sd in 1 2 3; do CC_SET=full $P poc/run_cc.py run ${m}_think32k $sd --think --max_tokens 32000 >> $L 2>&1 & done ;;   # HO-CC amendment
   thinkshard) NLOPT_SHARD=$4 NLOPT_SET=$set $P poc/run_nlopt.py ${m}_$set thinkfree $seeds --think --max_tokens $TK >> $L 2>&1 & ;;
   think) NLOPT_SET=$set $P poc/run_nlopt.py ${m}_$set thinkfree $seeds --think --max_tokens $TK >> $L 2>&1 & ;;
   geo)   for sd in 1 2 3; do
