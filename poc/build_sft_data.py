@@ -5,7 +5,9 @@ Prompt = the solver-choice prompt P_FREE (no fact); target = the program in a Py
 DT3: `--round2` also takes the unlabeled problems (poc/build_unlabeled.py) that the round-1 model solved twice in agreement
 -> checked_programs_r2.jsonl. DT4: `--round2 --cross` keeps an unlabeled problem only if gpt-oss-20b's value (oss20_unlabeled free s1)
 agrees too -> checked_programs_r2x.jsonl.
-usage: python build_sft_data.py [--round2]  -> $POC_DATA/sft/checked_programs.jsonl"""
+DT6: `--distill` takes the unlabeled problems that base Qwen3-8B solved twice in agreement after a 2,000-token think (q8b_unlabeled
+freetb2000; the program only, no reasoning text) -> checked_programs_r2d.jsonl.
+usage: python build_sft_data.py [--round2 | --distill]  -> $POC_DATA/sft/checked_programs.jsonl"""
 import json, os, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -15,6 +17,8 @@ SOURCES = {"x3": ("{m}_mipf", ("q17", "q4b", "q8b", "q14a", "oss20", "q32b", "q3
            "mamo": ("{m}_mamo_mips", ("oss20", "q14a", "q8b", "q32b", "q36"))}
 if "--round2" in sys.argv:
     SOURCES["unlabeled"] = ("{m}_unlabeled_free", ("q8bsft",))
+if "--distill" in sys.argv:   # DT6
+    SOURCES["unlabeled"] = ("{m}_unlabeled_freetb2000", ("q8b",))
 CROSS = {r["id"]: r for r in _rows(f"{RES}/opt_oss20_unlabeled_free_s1.jsonl")} if "--cross" in sys.argv else None
 REVIEW = {r["id"]: r for r in _rows(f"{RES}/review_q8bsft_unlabeled_free_s1.jsonl")} if "--review" in sys.argv else None   # DT5
 
@@ -48,7 +52,7 @@ def main():
             out.append({"id": i, "set": which, "from": m, "prompt": P_FREE.format(q=Q[i]["q"]), "target": "```python\n" + code.strip() + "\n```"})
         print(which, f"{len(Q)} problems, {sum(1 for o in out if o['set'] == which)} with a strict-check-passing program", flush=True)
     os.makedirs(f"{DATA}/sft", exist_ok=True)
-    with open(f"{DATA}/sft/checked_programs{'_r2' if '--round2' in sys.argv else ''}{'x' if '--cross' in sys.argv else ''}{'v' if '--review' in sys.argv else ''}.jsonl", "w") as f:
+    with open(f"{DATA}/sft/checked_programs{'_r2' if '--round2' in sys.argv else '_r2d' if '--distill' in sys.argv else ''}{'x' if '--cross' in sys.argv else ''}{'v' if '--review' in sys.argv else ''}.jsonl", "w") as f:
         for o in out:
             f.write(json.dumps(o) + "\n")
     print("wrote", len(out))
