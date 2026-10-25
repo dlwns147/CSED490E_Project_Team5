@@ -3830,3 +3830,11 @@ tokens, BWOR +5.3 at 79%, LogiOR +3.3 at 92%, OptMATH +6.3 [+1.0, +12.0] at 73%)
 fewer tokens in all 4 (OptMATH +5.7 [+0.7, +11.0]). Raw: the extra accuracy comes from problems where full thinking's program crashes,
 prints nothing or runs out at 32k while the forced-short program works. Pre-registered SB-P1 and P2 hold (idea chosen post hoc on the
 6 Qwen3 cells of HO-TB; these 4 cells were not used). Putting the non-thinking program first brings the leak back (exploratory, −5 to −8).
+
+## 2026-10-25 02:53 UTC: HO-SB complete (PREREG_HO.md): short thinking first fixes leaky models; on Qwen3.5 the plain recipe stays cheaper
+On Qwen3.5-9B, where fact-first already ties or wins, short thinking with the fact first (2k-token budget forcing, full thinking on a
+visible failure) beats always thinking with the fact on all four word benchmarks (+5.0 to +10.1 at 49–85% of its tokens: full thinking
+runs out at 32k on 9–33% of problems) but costs more than the plain recipe (4–66% more tokens for +2 to +8 points): SB-P3 refuted, as
+registered the policy is for leaky models (Nemotron: SB-P1 / P2 held). Exploratory: on Qwen3.5 a three-step cascade (non-thinking program,
+then short thinking, then full thinking) is at least as accurate as the plain recipe at no more tokens on all four. HO-SB2 (Qwen3 OptMATH
+and geometry, including Qwen3-8B geometry, the claim's worst cell) is running.

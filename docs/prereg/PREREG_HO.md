@@ -851,3 +851,21 @@ check fails, as everywhere). Nemotron's geometry is left out: its thinking with 
 - **SB2-P2:** on Qwen3-8B geometry SB+F is within 3 points of THINK+F (the worst cell closed).
 **Decision.** P1 → the leaky-model branch of the recipe is "short thinking with the fact first, full thinking on a visible failure";
 the gate stays a second option. With P2 the claim no longer has a losing Qwen3 cell.
+
+### Results HO-SB, Qwen3.5-9B: SB-P3 (2026-10-25 02:5x UTC; `python poc/analyze_hotb.py 2000 q35`, `analyze_hotf.py q35`; 3 seeds, all rows)
+| cell | THINK+F | FF+F | SB+F | SB+F − THINK+F | FF+SB+F (exploratory) |
+|---|---|---|---|---|---|
+| OptiBench (third) | 64.0% @ 17.0k | 68.0% @ 5.0k | 70.0% @ 8.3k | **+5.9 [+3.6, +8.4]** | 69.5% @ 4.2k |
+| BWOR | 41.9% @ 19.3k | 41.9% @ 12.7k | 50.0% @ 15.2k | **+8.1 [+2.8, +13.4]** | 45.1% @ 12.0k |
+| LogiOR | 38.8% @ 23.8k | 46.4% @ 18.7k | 48.9% @ 19.5k | **+10.1 [+5.4, +14.9]** | 51.8% @ 17.2k |
+| OptMATH | 29.0% @ 22.6k | 31.7% @ 13.7k | 34.0% @ 19.3k | **+5.0 [+0.3, +9.7]** | 36.3% @ 13.6k |
+- **SB-P3 refuted** (within 2 points of FF+F at no more than its tokens in 0 / 4): on this model SB+F is *more* accurate than FF+F
+  (+2.0 to +8.1) but costs 4–66% more tokens, because its non-thinking programs are already right when they pass.
+- SB+F beats always thinking with the fact on all four (+5.0 to +10.1, at 49–85% of its tokens): Qwen3.5's long thinking runs out at
+  32k on 9–33% of problems; the forced-short think finishes.
+- **Exploratory (not pre-registered):** the three-step cascade — the library program if it passes, else short thinking, else full
+  thinking — is at least as accurate as FF+F at no more tokens on all four (OptiBench +1.5 @ 84%, BWOR +3.3 @ 94%, LogiOR +5.4 @ 92%,
+  OptMATH +4.7 @ 100%), whereas on the leaky models it brings the leak back (HO-SB, Nemotron −5 to −8).
+- **Decision as registered.** SB-P1 / P2 held, P3 refuted: short thinking first is the step for leaky models (replacing the review
+  gate), not a universal default; where the free check holds, the non-thinking program stays first. Which side a cell is on is what the
+  pilot detects (next: HO-P4).
