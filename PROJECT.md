@@ -18,7 +18,7 @@ models).
 a similar problem, found with no labels) → run a free check (the program runs; its outputs on moved / rotated / mirrored copies agree; the
 statement's examples pass) → when the check visibly fails, one cheap repair turn with the error (word problems), then think harder →
 reuse a checked program when the problem repeats. For models whose free check leaks (their passing non-thinking programs are often
-wrong), the first program is written after a short think (2,000 tokens, budget forcing) instead of none (HO-SB); the check applies to
+wrong), the first program is written after a short think (2–4k tokens, budget forcing; 1k is too short, HO-SB4) instead of none (HO-SB); the check applies to
 every step, so a visibly failed think is retried (HO-CM).
 
 ## 2. Main claim and where it stands
