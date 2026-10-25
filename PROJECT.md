@@ -17,7 +17,8 @@ models).
 **The recipe we test:** write a program → add the missing fact (a few lines of exact library usage, or the model's own checked program for
 a similar problem, found with no labels) → run a free check (the program runs; its outputs on moved / rotated / mirrored copies agree; the
 statement's examples pass) → when the check visibly fails, one cheap repair turn with the error (word problems), then think harder →
-reuse a checked program when the problem repeats.
+reuse a checked program when the problem repeats. For models whose free check leaks (their passing non-thinking programs are often
+wrong), the first program is written after a short think (2,000 tokens, budget forcing) instead of none (HO-SB).
 
 ## 2. Main claim and where it stands
 
@@ -33,10 +34,17 @@ table: `docs/REPORT.md` §5.1):
   geometry loss from −16.7 to −6.6 by catching 20 of its 37 edge-case-only leaks from the statement (HO-VR2). Nemotron-3-Nano, a model
   from another family, leaks like Qwen3 (fact-first −6 to −12 on OptiBench / BWOR / LogiOR); the gate ties or beats thinking with the
   fact in all 5 of its cells, at 94–109% of the tokens (HO-N4).
+- **Short thinking first fixes the leak without a review** (HO-SB, SB2, SB3): thinking with the fact cut at 2,000 tokens, full thinking
+  only on that program's visible failure, never loses to always thinking with the fact in the 14 cells it was not chosen on (−0.3 to
+  +10.1): Nemotron +3.3 to +6.3 at 72–92% of the tokens (more accurate and cheaper than the gate in all 4 word cells), Qwen3 OptMATH +2.3
+  / +3.3 at 85–90%, and Qwen3-8B geometry, the last losing cell, −0.3 (at 98%). It saves tokens where full thinking is long, not where it
+  is already short (Nemotron geometry: 137%), and on Qwen3.5 it is more accurate but dearer than the plain recipe.
 - **Which to use is detectable:** a 30-label pilot over five policies loses 0.85 points on average over 60 held-out cells, where no fixed
   policy comes within 3.3; on word problems the first escalation is one cheap repair from the error (HO7, HO-N3, HO-R). Without labels,
   the self-review gate is the best fixed policy for the leaky Qwen models (regret 2.52 vs 3.99 for always thinking with the fact; HO-P3).
-  On Nemotron-3-Nano the pilot loses 1.05, and two agreeing cheap programs are the best fixed policy (0.80; HO-N4).
+  On Nemotron-3-Nano the pilot loses 1.05, and two agreeing cheap programs are the best fixed policy (0.80; HO-N4). With short thinking
+  first in the menu (HO-P4, 54 cells of the four hybrid-thinking models): always using it loses 1.47 to each cell's best (other fixed
+  policies ≥ 5.8), the 30-label pilot 1.19, and the menu gains +2.1 per cell.
 - The label-free library of checked programs raises the first program in 25 of 29 model × benchmark cells (up to +34 points; not on
   BWOR / LogiOR for Nemotron-3-Nano, a model from another family, whose failures there are formulations).
 - Where it stops: short-answer competition math (text + thinking is better; a program is useful as a second opinion) and formal proofs
@@ -66,12 +74,13 @@ table: `docs/REPORT.md` §5.1):
    (`*.jsonl`, logs), server addresses or keys; no co-author lines — commits are by the team's account.
 8. **Explain for a first-time reader:** what ran, how, the result with its cost, what is next.
 
-## 5. Status and next steps (2026-10-24, 21 UTC)
+## 5. Status and next steps (2026-10-25, 08 UTC)
 
 - **Held-out claim, against thinking given the same fact** (HO-TF, HO-TF2, HO-LG, HO-P2): the recipe is a pure saving for gpt-oss-20b,
   gpt-oss-120b and Qwen3.5-9B, a token-for-accuracy trade for the Qwen3 models on the hardest word problems; a 30-label pilot picks the
   policy within 0.85 points. Stronger check (solution checker, HO-VF) closes the Qwen3 gap but saves tokens only on OptiBench; budgeted
-  thinking (HO-TB) is a trade, not a fix. The usage-crash rule for adding a fact (21 / 24 on the development base
+  thinking *always* (HO-TB) is a trade, but budgeted thinking *first*, full thinking on a visible failure, is the fix for leaky models
+  and the best no-label default for hybrid-thinking models (HO-SB, SB2, SB3, P4; Nemotron-3-Nano, a new family, HO-N4). The usage-crash rule for adding a fact (21 / 24 on the development base
   models) does not transfer: 5 / 11 on the fine-tuned models, where the card stops paying and the library still pays (WF5), 3 / 8 on a new
   family (HO-N4); the pilot chooses the fact.
 - **Direction 1 — proofs, where the check is perfect** (Lean 4 + Mathlib on the cluster; PF, PL1, PL2): cheap attempts dominate thinking
@@ -81,7 +90,8 @@ table: `docs/REPORT.md` §5.1):
   Qwen3-14B the library's gain without the library (OptiBench, BWOR), not on unseen problem types; it does not fix the check (fact-first
   with the fine-tuned model still loses to thinking with the fact). Self-training on 3,996 unlabeled problems stays at round 1 with every
   label-free filter tried (self-consistency: harmful; cross-model agreement, agreement + thinking-mode review: neutral; DT3–DT5).
-- Open: the "do not add a fact" side; the final report (draft `docs/REPORT.md`, format / length / deadline from the team).
+- Open: the budget itself (a fixed 2,000 tokens costs where full thinking is already short); the final report (draft
+  `docs/REPORT.md`, format / length / deadline from the team).
 - Day-to-day state (running jobs, environment, evidence table): `docs/SLURM_HANDOFF.md`.
 
 ## 6. Documents
