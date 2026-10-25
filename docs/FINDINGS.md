@@ -3812,3 +3812,13 @@ while the library of similar problems' programs adds +4 to +7 on 5 of 6 points (
 [+2.0, +12.3]) for 331–858 extra input tokens. Fine-tuning internalizes the usage fact, not the formulations of other problem types; the
 census counts usage crashes, so it predicts the first and misses the second. With Nemotron-3-Nano (3 / 8) the prospective tally beyond
 the development base models is 8 / 19: the rule is reported as descriptive only, and the fact choice goes to the pilot.
+
+## 2026-10-25 01:13 UTC: HO-N4 complete (PREREG_HON.md): Nemotron-3-Nano is a leaky model; the gate transfers, the savings do not
+Thinking with the library (32k, model-card sampling), the 2k-token self-review gate, one cheap repair and held-out geometry on
+NVIDIA-Nemotron-3-Nano-30B-A3B (4 × RTX 3090), 3 seeds. Fact-first loses to thinking with the same fact on OptiBench (−5.9 [−9.4, −2.5]),
+BWOR (−11.8) and LogiOR (−9.8) and ties on OptMATH (−3.0, 72% of the tokens) and geometry (0.0, 66%): 33–79% of its passing word-problem
+programs are wrong (5% on geometry). The review gate ties or beats thinking with the fact in all 5 cells (LogiOR +2.2 [+0.7, +4.0],
+geometry +1.7 [+0.3, +3.8]) but at 94–109% of its tokens (221% on geometry, where it raises false alarms on 64% of right programs).
+The 30-label pilot loses 1.05 points (pre-registered ≤ 1.0: refuted narrowly); the best fixed policy here is two agreeing cheap programs
+(0.80). Pre-registered: P3 (gate) held; P1 (library), P2 (census), P4 (pure saving), P5 (pilot) refuted. The family-independent part of
+the claim is the decomposition and the gate's accuracy; the token saving belongs to models whose free check does not leak.

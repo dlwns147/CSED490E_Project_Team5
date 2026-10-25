@@ -79,6 +79,8 @@ for think in (False, True):
            NLOPT_SET=$set $P poc/run_repair.py $m $sd formx >> $L 2>&1 & done ;;
   budget2k) for st in optibench bwor logior optmath; do sub=""; [ "$st" = optibench ] && sub="FORM_SUBSET=0/3"   # HO-SB: budgeted thinking
            for sd in 1 2 3; do env $sub NLOPT_SET=$st $P poc/run_form.py $m formx $sd --think_budget 2000 >> $L 2>&1 & done; done ;;
+  budget2kset) sub=""; [ "$set" = optibench ] && sub="FORM_SUBSET=0/3"   # HO-SB, one benchmark per job (resumes from its rows)
+           for sd in 1 2 3; do env $sub NLOPT_SET=$set $P poc/run_form.py $m formx $sd --think_budget 2000 >> $L 2>&1 & done ;;
   thinkshard) NLOPT_SHARD=$4 NLOPT_SET=$set $P poc/run_nlopt.py ${m}_$set thinkfree $seeds --think --max_tokens $TK >> $L 2>&1 & ;;
   think) NLOPT_SET=$set $P poc/run_nlopt.py ${m}_$set thinkfree $seeds --think --max_tokens $TK >> $L 2>&1 & ;;
   geo)   for sd in 1 2 3; do

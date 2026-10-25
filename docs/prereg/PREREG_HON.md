@@ -225,3 +225,24 @@ All four "add" (u ≥ 5% everywhere): N4-P2 is scored on the 8 card / library po
 - **Reading.** The fact is the lever on OptiBench for this model too (+16.3, the largest library gain on any model there), but on the
   hardest word problems a model from another family gains nothing from either fact; the census rule's "add" side, right 21 / 24 on the
   development families, is right 3 / 8 here. Facts and the rule are stated for the families they were measured on.
+
+### Results HO-N4, thinking arms, gate and pilot: N4-P3 – P5 (2026-10-25 01:1x UTC; `python poc/analyze_hotf.py [--geo] n3n`, `analyze_hovr.py [--vr2] n3n`, `analyze_hop.py --repair --fair [--gate] n3n`; 3 seeds, all rows)
+| cell | THINK+F | FF+F − THINK+F (tokens) | leak (passing programs wrong) | gate FF-R+F − THINK+F (tokens) |
+|---|---|---|---|---|
+| OptiBench (third) | 67.8% @ 6.6k | −5.9 [−9.4, −2.5] (42%) | 33% | +1.5 [−0.5, +3.5] (94%) |
+| BWOR | 49.2% @ 11.9k | −11.8 [−18.7, −4.5] (64%) | 70% | 0.0 [−3.3, +3.7] (107%) |
+| LogiOR | 44.6% @ 12.8k | −9.8 [−14.9, −5.1] (75%) | 62% | **+2.2 [+0.7, +4.0]** (109%) |
+| OptMATH | 29.7% @ 19.1k | −3.0 [−8.3, +2.7] (72%) | 79% | +0.7 [−1.7, +3.0] (106%) |
+| geometry | 93.1% @ 1.7k | 0.0 [−3.5, +3.5] (66%) | 5% | **+1.7 [+0.3, +3.8]** (221%) |
+- **N4-P3 holds** (the gate ties or beats thinking with the fact in 5 / 5), but it saves no tokens (94–109% on the word problems; 221% on
+  geometry, where the metamorphic check already works and the review raises false alarms on 143 of 224 right programs). It flags 330 of
+  418 wrong passing word-problem programs (79%) and 103 of 427 right ones (24%).
+- **N4-P4 refuted** (FF+F ties at ≤ 80% of the tokens in 2 / 5: OptMATH @ 72%, geometry @ 66%). Like the Qwen3 models, this model's
+  non-thinking programs that pass the free check are wrong far more often than its thinking (decomposition column): it is on the trade side.
+- **N4-P5 refuted narrowly** (30-label pilot regret 1.05 > 1.0 over 15 cells; k = 100: 0.05). The best fixed policy here is two agreeing
+  cheap programs, else thinking with the fact (FFR, regret 0.80; best in 9 of 15 cells); always the gate 1.15 (with the gate as a sixth
+  policy the pilot's regret is 1.11, +0.48 over five policies).
+- **Reading.** On a model from another family the recipe behaves as the decomposition says: where its free check leaks (word problems),
+  fact-first loses to thinking with the fact and a stronger gate (the review, or a second agreeing program) is needed, at no token
+  saving; where the check holds (geometry, 5% leak), fact-first ties at two thirds of the tokens and the review only adds cost. The
+  library is the lever on OptiBench (+16), not on BWOR / LogiOR (N4-P1).
