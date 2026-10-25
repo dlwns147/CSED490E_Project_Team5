@@ -263,6 +263,14 @@ cheap-first policies stay within one point in 37 of 54 cells (registered ≥ 40:
 saving against one think, trails the check-matched think on BWOR (−10.2 [−16.7, −4.1]) and LogiOR (−8.0) at 37–44% of its tokens. The
 free check is worth applying to every step; which end of the frontier to take depends on the price of a token, and the pilot can choose.
 
+![Five policies on every held-out benchmark, all given the same fact](../figs/fig24_frontier.png)
+
+*Figure 24 (`poc/make_figure_frontier.py`, 3 seeds): accuracy vs output tokens per problem. Grey line: one think → think with a retry on
+a visible failure; orange line: short think first → short think, think, retry; blue: the non-thinking program first. On the hard word
+problems the orange line lies above-left of the grey one for Nemotron-3-Nano and Qwen3.5-9B (more accurate at fewer tokens), alongside it
+for Qwen3-14B-AWQ, and below it on Qwen3-8B LogiOR; the non-thinking program first is the cheapest point everywhere and the most
+accurate per token only where the check holds (Qwen3.5-9B, geometry).*
+
 ### 5.6c A label-free signal for the leak
 The open problem since the start was a label-free signal for when a program that passes the free check is wrong. Agreement *within* a
 mode fails (a model's cheap programs share their mistakes, HO-L); agreement *across* modes works. A non-thinking program that passes
