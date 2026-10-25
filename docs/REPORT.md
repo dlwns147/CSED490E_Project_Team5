@@ -36,16 +36,18 @@ experiments, then tested on held-out benchmarks:
 1. **Write a program** for anything that needs exact computation.
 2. **Add the missing fact**: the few lines of exact usage the model lacks, or the model's own checked program for a similar problem
    (no human, no labels) — not a long manual, not extra tools.
-3. **Run a free check**: the program runs and prints a value; its outputs on transformed copies agree; the statement's examples pass.
-   For a model whose free check leaks, add a short self-review in thinking mode (≤ 2k tokens) of the passing program (chosen by the
-   30-label pilot: on a model whose check is already good it costs 18–37% more tokens for little accuracy).
-4. **Think harder — given the same fact — only when the check fails**; on word problems after one cheap repair turn shown the error.
+3. **Run a free check at every step**: the program runs and prints a value; its outputs on transformed copies agree; the statement's
+   examples pass. For a model whose free check leaks (passing non-thinking programs often wrong), write the first program after a short
+   think (2–4k tokens with the fact) instead of none.
+4. **Think harder — given the same fact — only when the check fails, and think again when the thinking's own program visibly fails**;
+   on word problems one cheap repair turn shown the error first.
 5. **Reuse** a checked program when the same problem returns with new data.
 
-Contributions: (i) every method is compared in one harness with accuracy *and* tokens, against thinking given the same fact — the
-comparison most cascade and when-to-think evaluations leave confounded; (ii) an exact decomposition that predicts, per model and
-benchmark, whether thinking only on failure is a pure saving or a trade, and a 2k-token self-review gate that turns the trade into a saving
-or a tie for the Qwen3 models; (iii) facts without a human or labels: other runs' checked programs for similar problems, and the same
+Contributions: (i) every method is compared in one harness with accuracy *and* tokens, against thinking given the same fact *and the
+same check* — the comparison most cascade and when-to-think evaluations leave confounded (one think that ignores its own visible failures
+is never the best policy in our 54 cells); (ii) an exact decomposition that predicts, per model and benchmark, whether a cheap first step
+is a saving or a trade, and the step that fixes the leaky models — a short think first — with a label-free signal for the leak (agreement
+between the non-thinking and the short-think program); (iii) facts without a human or labels: other runs' checked programs for similar problems, and the same
 programs as fine-tuning data; (iv) held-out evaluation on five unseen benchmarks and an unseen model, with 95% intervals and pre-registered
 predictions, including the refuted ones. What is established elsewhere (cascades between models, sampling with a verifier on proofs,
 self-training and its collapse) is marked as such (§6.5).
@@ -322,8 +324,11 @@ ICLR 2024; AutoMix's self-verification, NeurIPS 2024; self-generated tests for c
 (AdaptThink, Thinkless, AutoThink); false positives of an imperfect verifier are known to cap resampling (Limits of Inference Scaling
 Through Resampling, ICLR 2026). What this work adds: (i) the comparison against thinking *given the same fact*, which removes the
 fact/policy confound present in most cascade and when-to-think evaluations; (ii) an exact decomposition that predicts, per model and
-benchmark, whether thinking only on failure is a pure saving or a trade; (iii) the evidence on OR word problems and geometry with open
-models on 24 GB GPUs. The proof results (cheap attempts before thinking under a perfect check) confirm Reasoning Models Can Be Effective
+benchmark, whether thinking only on failure is a pure saving or a trade; (iii) the evidence on OR word problems, geometry and contest
+programming with open models from three families on RTX 3090s. Escalating thinking budgets inside one model on a failed check is a
+within-model cascade (cf. CodeRescue 2607.19338 between models; cascades fail when the fallback budget is too small, 2605.07686); we add
+the fact- and check-matched comparison and the leak analysis. Distilling a short think into the non-thinking mode (DT6) relates to
+System-2 distillation (Yu et al., 2024) and self-distillation for code (2604.01193, 2607.09709). The proof results (cheap attempts before thinking under a perfect check) confirm Reasoning Models Can Be Effective
 Without Thinking (2504.09858) and repeated-sampling scaling (Large Language Monkeys) on general hybrid models. Label-free fine-tuning on
 self-consistent programs is self-improvement / context distillation (LLMs Can Self-Improve; STaR; ReST-EM); its collapse under self-
 agreement and the cross-model fix are known (Co-rewarding, Multiagent Finetuning) — our contribution there is the program-level version on
@@ -340,20 +345,23 @@ OR problems and the observation that the cross-model filter removes the harm but
 
 ## 8. Limitations
 
-Several held-out margins are ties within their intervals (reported as such). Always-thinking runs at a 16k-token budget (what fits beside the model on a 24 GB GPU); 0.3–7.6% of the stronger models' thinking rows hit it (Qwen3-8B 3–24%). Even counting every capped wrong row as right, no tie or win of the stronger models becomes a significant loss (largest shift −3.4 points; gpt-oss-20b's OptMATH win becomes a tie), and Qwen3-8B's losses only deepen. The development geometry and optimization
+Several held-out margins are ties within their intervals (reported as such). The comparisons in §5.1–5.4 are against one think; against
+a think given the same check (a retry on a visible failure, built from the next seed's stored think) the cheap end of the recipe trails
+on the hardest word problems (§5.6b). Always-thinking runs at a 16k-token budget (what fits beside the model on a 24 GB GPU); 0.3–7.6% of the stronger models' thinking rows hit it (Qwen3-8B 3–24%). Even counting every capped wrong row as right, no tie or win of the stronger models becomes a significant loss (largest shift −3.4 points; gpt-oss-20b's OptMATH win becomes a tie), and Qwen3-8B's losses only deepen. The development geometry and optimization
 suites, and the held-out geometry tasks, were generated by us; contest problems predate the models' training cutoffs; about half of MAMO's
-leaked problems have disputed labels. Models are two open families (Qwen3 / Qwen3.5, gpt-oss); a Gemma-4 test was withdrawn because our serving stack does not load it; the 14B model is 4-bit. Cost counts tokens, not
+leaked problems have disputed labels. Models are three open families (Qwen3 / Qwen3.5, gpt-oss, Nemotron-3-Nano); a Gemma-4 test was withdrawn because our serving stack does not load it; the 14B model is 4-bit. The short-think budget (2–4k) matters (1k is too short for Qwen3-8B) and is chosen, not derived. Cost counts tokens, not
 wall-clock time or CPU time of the checks.
 
 ## 9. Conclusion
 
-For computational problems on a single 24 GB GPU, the missing fact is the cheapest lever: a few lines of exact usage or a checked program
-for a similar problem, found without labels, improve both cheap programs and thinking. Paying for thinking only where a free check visibly
-fails — not where problems look hard — keeps the accuracy of always thinking with the fact at 30–78% of its tokens for gpt-oss-20b and for
-a model the recipe was never developed with (Qwen3.5-9B); on word problems one cheap repair from the error should come before thinking. Its limit is the check: where a model's wrong programs look right (the Qwen3 models on the hardest word problems, Qwen3-8B on geometry),
-thinking only on visible failures saves tokens by losing accuracy, and 30 labelled problems of a new task are enough to see that and
-think instead. Making checks see what the given input does not
-contain is the open problem. Two extensions point past it: where the check is perfect (formal proofs) the rule becomes
+For computational problems on RTX 3090s, the missing fact is the cheapest lever: a few lines of exact usage or a checked program for a
+similar problem, found without labels, improve both cheap programs and thinking. The free check is worth applying at every step —
+including to thinking, whose visibly failed programs are worth a second think. Where a model's non-thinking programs are right when they
+pass (gpt-oss, Qwen3.5-9B) a non-thinking program first is the cheap end of the frontier; where they leak (Qwen3, Nemotron-3-Nano) the
+first program should come after a short think (2–4k tokens), which never lost to one full think in 14 unseen cells and closed the worst
+one (Qwen3-8B geometry). Without labels, short think → think → retry is the best fixed order over 54 cells; 30 labels choose per cell, and
+agreement between the non-thinking and the short-think program flags the leak without any label (93–97% right when they agree on
+contest problems). Formulation errors that both modes share (OptMATH) remain the open problem. Two extensions point past it: where the check is perfect (formal proofs) the rule becomes
 "sample cheaply, then think", and the fact itself can be trained into the model from the recipe's own checked programs, with no labels.
 
 *Sources: `PROPOSAL.md`; held-out numbers `results/x3/ho*_analysis.log`, `results/x3/ho2_*_analysis.log`,
