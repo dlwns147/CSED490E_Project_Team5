@@ -102,7 +102,8 @@ table: `docs/REPORT.md` §5.1):
 - **Direction 2 — the fact in the weights, no labels** (DT, DT-14, DT2): LoRA on 1,127 strict-check-passing programs gives Qwen3-8B /
   Qwen3-14B the library's gain without the library (OptiBench, BWOR), not on unseen problem types; it does not fix the check (fact-first
   with the fine-tuned model still loses to thinking with the fact). Self-training on 3,996 unlabeled problems stays at round 1 with every
-  label-free filter tried (self-consistency: harmful; cross-model agreement, agreement + thinking-mode review: neutral; DT3–DT5).
+  label-free filter tried (self-consistency: harmful; cross-model agreement, agreement + thinking-mode review: neutral; DT3–DT5), and
+  training the non-thinking mode on its own short-think programs changes neither accuracy nor leak (DT6): the short think stays at inference.
 - Open: the budget itself (a fixed 2,000 tokens costs where full thinking is already short); the final report (draft
   `docs/REPORT.md`, format / length / deadline from the team).
 - Day-to-day state (running jobs, environment, evidence table): `docs/SLURM_HANDOFF.md`.

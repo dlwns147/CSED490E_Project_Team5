@@ -295,7 +295,9 @@ gets past round 1 (DT3–DT5, 3 seeds, held-out): with self-consistency as the f
 leak 69 → 76%; OptMATH 8.3 → 5.7%); with agreement across two models (DT4) or agreement plus the 2k-token thinking-mode review (DT5,
 1,452 problems kept) it is neutral (OptiBench −0.4 / −0.7, BWOR +2.4, LogiOR 0.0 / −1.8, OptMATH −0.7 / +0.3; no interval excludes 0).
 A better label-free check removes the harm but adds no new formulations; on the unseen types only the library of similar problems helps
-(base + library OptMATH 14.3%). Prior work reports the same plateau for self-training with imperfect filters (§6.5).
+(base + library OptMATH 14.3%). Prior work reports the same plateau for self-training with imperfect filters (§6.5). Training the
+non-thinking mode on the programs its own 2k-token think wrote (1,197 check-filtered unlabeled problems, code only; DT6) changes neither
+accuracy (−1.8 to +1.5) nor the leak (LogiOR 61 → 71%): the short think's benefit is in the thinking, not in the programs it leaves behind.
 
 ### 5.8 Proofs: where the check is perfect
 In Lean 4 a compiled proof is correct, so the check cannot leak. On miniF2F (244 statements), 32 cheap (non-thinking) attempts solve more

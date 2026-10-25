@@ -3895,3 +3895,10 @@ same model's 2k-token-think program on every test input (inputs only, no expecte
 n = 110) and 97.0% (Nemotron-3-Nano, n = 168) of the time; when they disagree or the short think fails the samples, 18.8% and 33.8%.
 Pre-registered CC-P2 (≥ 20-point gap) holds by +74 and +63. This is the label-free signal for "the cheap program is wrong although the
 free check passed" that the project set out to find; its limit is shared formulation errors (OptMATH). CC-P1 waits for the 32k thinks.
+
+## 2026-10-26 23:25 UTC: DT6 (PREREG_DT.md): distilling the short think into the non-thinking mode does not fix the leak
+Qwen3-8B fine-tuned (no labels) on the programs its own 2k-token think wrote for 1,197 unlabeled problems that pass the strict check
+(code only, non-thinking prompt): held-out, no fact, 3 seeds, vs the round-1 model — OptiBench 55.7% (+1.5 [−0.7, +3.5]), BWOR 18.7%
+(+0.4), LogiOR 14.9% (−1.8; leak 61 → 71%), OptMATH 9.7% (+1.3). Both predictions refuted. The short think helps at inference, not as
+training data for the non-thinking mode (consistent with System-2 distillation failing on reasoning-heavy tasks). Direction 2 is closed:
+label-free training moves the usage fact into the weights, not formulations and not the check.

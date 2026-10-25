@@ -215,3 +215,16 @@ think stays at inference and the report says distillation of it does not fix the
 3,996 run in seed 1; 2.7k tokens per problem); 1,197 problems pass the strict check in both runs and agree (DT3: 1,957; DT5: 1,452);
 2,324 training examples with the development data, code-only targets (no reasoning text in any). Training submitted (tag `q8bsft5`),
 evaluation queued behind it.*
+
+### Results DT6 (2026-10-26 23:2x UTC; `q8bsft5` = trained on short-think programs; no fact; 3 seeds, paired 95% intervals vs round 1)
+| held-out | round 1 (leak) | round 2 self-consistency | round 2c + review | **distilled short think** (leak) | distilled − round 1 |
+|---|---|---|---|---|---|
+| OptiBench all | 54.2% (28%) | 54.2% (28%) | 53.6% (28%) | 55.7% (28%) | +1.5 [−0.7, +3.5] |
+| BWOR | 18.3% (69%) | 15.0% (76%) | 20.7% (67%) | 18.7% (71%) | +0.4 [−4.5, +5.3] |
+| LogiOR | 16.7% (61%) | 14.5% (65%) | 14.9% (67%) | 14.9% (71%) | −1.8 [−6.9, +3.3] |
+| OptMATH | 8.3% (72%) | 5.7% (82%) | 8.7% (70%) | 9.7% (70%) | +1.3 [−2.3, +5.3] |
+- **DT6-P1 refuted** (the leak falls ≥ 5 points on 0 / 3; LogiOR rises 61 → 71%). **DT6-P2 refuted** (OptMATH +1.3, LogiOR −1.8).
+- **Reading.** Training the non-thinking mode on the programs a 2k-token think produced (1,197 check-filtered unlabeled problems) changes
+  neither its accuracy nor its leak: the short think's benefit is in the thinking, not in the programs it leaves behind — as System-2
+  distillation reports for reasoning-heavy tasks (Yu et al., 2024). With DT3–DT5 this closes Direction 2: label-free training moves the
+  usage fact into the weights, not formulations and not the check; the short think stays at inference.
