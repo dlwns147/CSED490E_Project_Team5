@@ -838,3 +838,16 @@ candidate no-label default for hybrid-thinking models and joins the pilot. Other
 - **Exploratory (not pre-registered):** putting the non-thinking library program in front (library → short think → full think) brings
   the leak back for this model (−4.6 to −7.7 on OptiBench / BWOR / LogiOR vs THINK+F); for the leaky models the cheap step must think.
 SB-P3 (Qwen3.5-9B) is scored when its OptiBench / OptMATH runs finish.
+
+## Addendum HO-SB2 (2026-10-25 02:2x UTC, before any run): short thinking first on the Qwen3 cells it was not chosen on
+**Why it could change the claim.** HO-SB held on Nemotron-3-Nano; if it also holds on the Qwen3 cells the idea was not chosen on —
+OptMATH and held-out geometry, including the claim's worst cell (Qwen3-8B geometry: fact-first −16.7 against thinking with the fact,
+−6.6 with the gate) — the recipe's step for leaky hybrid-thinking models becomes "think briefly with the fact first" instead of the
+non-thinking program plus a review. **Run.** Qwen3-14B-AWQ and Qwen3-8B, seeds 1–3: OptMATH with the library arm (`formx`, `formxt`
+at 16k as HO-TF, `formx --think_budget 2000`); geometry: `run_geo_cross.py ... --distract 0 --algo_hint --think_budget 2000 --max_tokens
+8192` (tag `S2_HOG_<m>_geo_thinkfactb2000_s<seed>`; THINK+F = the stored thinkfact runs at 16k; a visible failure = the metamorphic
+check fails, as everywhere). Nemotron's geometry is left out: its thinking with the fact already costs only 1.7k tokens.
+- **SB2-P1:** SB+F ties or beats THINK+F (upper bound ≥ 0) in ≥ 3 of the 4 cells at ≤ 90% of its tokens.
+- **SB2-P2:** on Qwen3-8B geometry SB+F is within 3 points of THINK+F (the worst cell closed).
+**Decision.** P1 → the leaky-model branch of the recipe is "short thinking with the fact first, full thinking on a visible failure";
+the gate stays a second option. With P2 the claim no longer has a losing Qwen3 cell.
