@@ -879,3 +879,16 @@ cells).** Held-out geometry, where the metamorphic check leaks little for these 
 Qwen3-14B-AWQ geometry (FF+SB+F +4.5 [+1.0, +8.3] at 37%, HO-SB2 rows) was seen before this addendum and is not counted.
 - **SB3-P1:** in both new cells FF+SB+F is no more than 1 point below FF+F at no more than 110% of its tokens.
 **Decision.** P1 → the cascade is the recipe's form for low-leak cells (stated with the HO-P4 pilot); otherwise the plain recipe stays.
+
+### Results HO-SB3 (2026-10-25 05:4x UTC; `python poc/analyze_hotb.py 2000 --geo q35 n3n q14a`; 3 seeds, all rows)
+| geometry cell | THINK+F | FF+F | SB+F | FF+SB+F | FF+SB+F vs FF+F |
+|---|---|---|---|---|---|
+| Qwen3.5-9B | 92.0% @ 18.1k | 91.7% @ 5.4k | 94.8% @ 8.9k | 92.7% @ 4.1k | +1.0 at 75% of its tokens ✓ |
+| Nemotron-3-Nano | 93.1% @ 1.7k | 93.1% @ 1.1k | **97.2%** @ 2.3k | 94.1% @ 1.4k | +1.0 at 119% ✗ |
+| (Qwen3-14B-AWQ, seen before; not counted) | 87.8% @ 6.8k | 90.3% @ 2.6k | 91.3% @ 6.4k | 92.4% @ 2.5k | +2.1 at 96% |
+- **SB3-P1 refuted** (1 / 2): on Nemotron-3-Nano, whose full thinking on geometry is already short (1.7k), a 2k-token budget costs more
+  than the thinking it replaces, so the cascade adds tokens (+19%) for +1.0 point. Where full thinking is long (Qwen3.5: 18k) the cascade
+  is cheaper and as accurate.
+- Short thinking first beats always thinking with the fact on all three geometry cells (+2.8 to +4.2; Nemotron +4.2 [+1.4, +6.9]).
+- **Reading.** The budget is the knob: a fixed 2k budget helps where full thinking is long and leaks, and costs where full thinking is
+  already short. As registered, the cascade is not adopted as the low-leak default; the pilot (HO-P4) decides per cell.

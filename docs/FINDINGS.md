@@ -3838,3 +3838,10 @@ runs out at 32k on 9–33% of problems) but costs more than the plain recipe (4�
 registered the policy is for leaky models (Nemotron: SB-P1 / P2 held). Exploratory: on Qwen3.5 a three-step cascade (non-thinking program,
 then short thinking, then full thinking) is at least as accurate as the plain recipe at no more tokens on all four. HO-SB2 (Qwen3 OptMATH
 and geometry, including Qwen3-8B geometry, the claim's worst cell) is running.
+
+## 2026-10-25 05:49 UTC: HO-SB3 (PREREG_HO.md): the three-step cascade is not a free default on low-leak cells
+On held-out geometry, where the free check rarely passes wrong programs, the cascade non-thinking program → 2k-token thinking → full
+thinking (all with the fact) matched the plain recipe at 75% of its tokens for Qwen3.5-9B (+1.0) but cost 19% more for Nemotron-3-Nano
+(+1.0), whose full thinking there is already only 1.7k tokens: SB3-P1 refuted (1 / 2). Short thinking first beat always thinking with the
+fact in all three geometry cells (+2.8 to +4.2). A fixed 2k budget pays where full thinking is long and costs where it is short; the
+choice per cell goes to the pilot (HO-P4, run when HO-SB2's OptMATH thinking reruns finish).
