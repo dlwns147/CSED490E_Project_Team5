@@ -7,19 +7,20 @@ pre-registrations in `docs/prereg/` and `docs/notes/REPORT_OUTLINE.md`; format a
 
 Language models can solve computational problems — geometry, scheduling, routing, optimization word problems — by writing a program, but
 programs fail silently and "thinking longer" (long reasoning before answering) is expensive. We ask where a fixed token budget should go,
-for open models from 8B to 120B on RTX 3090s. The recipe: write a cheap program, add the missing fact (a few lines of exact library usage,
-or a checked program for a similar problem found without labels), run a free check, and think — given the same fact — only where the check
-fails. Compared with always thinking *given the same fact* on five benchmarks never used in development, the recipe ties or wins on all
-five for gpt-oss-20b and for Qwen3.5-9B (a model it was never developed with) at 30–78% of the output tokens, and ties gpt-oss-120b at
-50–63%. For the Qwen3 models and for Nemotron-3-Nano (another family) the free check lets through wrong programs that thinking would solve (exactly: the recipe loses where
-thinking with the fact solves the problems the check passes), and the recipe loses 4–17 points. A 2k-token self-review in thinking mode
-as the gate removes the loss but saves nothing on hard problems; writing the first program after a short think instead (2,000 tokens
-with the fact, full thinking only on its visible failure) never loses to always thinking in 14 cells it was not chosen on (−0.3 to
-+10.1), saves 8–51% of the tokens on word problems, and closes the last losing cell (Qwen3-8B geometry: −16.7 → −0.3). The fact is the main lever: the label-free library raises the cheap program in 25 of 29 cells and raises thinking by up to 23
-points, and fine-tuning on the recipe's own checked programs moves it into the weights (no labels). Which policy to use is detectable: 30
-labelled problems of a new cell pick it within 0.85 points over 60 held-out cells; with short thinking in the menu, always using it
-loses only 1.47 points to each cell's best over 54 cells of four hybrid-thinking models (30 labels: 1.19). Where the check is perfect (Lean proofs) the rule
-becomes "sample cheaply, then think"; where it leaks, it bounds label-free self-training as it bounds the recipe.
+for open models from 8B to 120B on RTX 3090s. The recipe: write a program, add the missing fact (a few lines of exact library usage, or a
+checked program for a similar problem found without labels), run a free check (the program runs and prints a value; outputs on
+transformed copies agree), and spend more thinking only where the check visibly fails. The fact is the main lever: the label-free
+library raises the cheap program in 25 of 29 model × benchmark cells and raises thinking by up to 23 points. The comparison must be
+matched in the fact *and* in the check: one think that ignores its own visible failures is a weak baseline (it is never the best policy
+over 54 cells), and giving thinking the check — think again when its program visibly fails — adds +2.5 to +12.3 points on hard word
+problems. Against that baseline the recipe is a frontier, not a free lunch: a non-thinking program first costs 37–51% of the tokens and
+matches it where the check holds (Qwen3.5-9B, geometry), but trails it on the hardest word problems (2–10 points, even for gpt-oss). For
+models whose free check leaks (Qwen3, Nemotron-3-Nano: passing non-thinking programs are wrong 33–79% of the time), writing the first
+program after a short think (2,000 tokens with the fact) never loses to one full think in 14 cells it was not chosen on (−0.3 to +10.1),
+saves 8–51% of the tokens on word problems and closes the last losing cell (Qwen3-8B geometry: −16.7 → −0.3). Without labels the best
+fixed order over 54 cells of four hybrid-thinking models is short think → full think → retry on a visible failure (1.74 utility points
+below each cell's best; one think: 7.64); 30 labelled problems choose per cell within 1.35. Where the check is perfect (Lean proofs) the
+rule becomes "sample cheaply, then think"; where it leaks, it bounds label-free self-training as it bounds the recipe.
 
 ## 1. Introduction
 
@@ -248,6 +249,17 @@ fixed policy loses 5.8, and adding the two to the 30-label pilot raises its util
   finishes. It costs where full thinking is already short (Nemotron geometry, 1.7k: 137%) and, on Qwen3.5-9B, whose non-thinking programs
   are right when they pass, it is more accurate than the plain recipe (+2 to +8) but dearer (+4 to +66% tokens). A thinking first step
   is what the leaky models lack; the non-thinking program first brings the leak back (exploratory: −5 to −17).
+
+### 5.6b The baseline matched in the check (HO-CM)
+Every comparison above gives always-thinking the same fact but lets it ignore its own visible failures. Given the same free check — a
+second think when its program crashes, prints nothing or prints 'No Best Solution' — thinking gains +2.5 to +12.3 points on all 16 word
+cells of the four hybrid-thinking models at 119–164% of its tokens, and +0 to +10 for the gpt-oss models (105–143%). Over 54 cells (λ =
+0.5) one think is never the best policy (always using it loses 7.64 utility points to each cell's best); the best fixed policy is short
+think → full think → retry (1.74), then short think first (3.00) and thinking with a retry (3.40). Against the check-matched think the
+cheap-first policies stay within one point in 37 of 54 cells (registered ≥ 40: refuted): ahead where the check holds (Qwen3.5-9B +2 to
++12, Nemotron OptMATH +8, Qwen3-14B-AWQ geometry +2), behind on the leaky models' hardest word problems (−2 to −4); gpt-oss-20b, a pure
+saving against one think, trails the check-matched think on BWOR (−10.2 [−16.7, −4.1]) and LogiOR (−8.0) at 37–44% of its tokens. The
+free check is worth applying to every step; which end of the frontier to take depends on the price of a token, and the pilot can choose.
 
 ### 5.7 Putting the fact into the weights, with no labels
 Qwen3-8B and Qwen3-14B were LoRA-fine-tuned (36 / 53 minutes on 2–4 RTX 3090s) on 1,127 programs from the development sets that pass the
