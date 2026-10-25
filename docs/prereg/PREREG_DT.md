@@ -194,3 +194,20 @@ unlabeled problems pass both filters (DT3: 1,957; DT4: 1,348); 2,579 training ex
   a thinking-mode review) take self-training from harmful to neutral, never to useful: round 2 stays at round 1 on every held-out
   benchmark, and the unseen problem types (LogiOR, OptMATH) stay where only the library of similar problems helps. On these word problems
   label-free self-training is bounded by what the model already solves; the review removes wrong programs but adds no new formulations.
+
+## Addendum DT6 (2026-10-25 10:4x UTC, before any run): distil the short think into the non-thinking program, filtered by the check
+**Why it could change the claim / what is new.** DT2: label-free fine-tuning on non-thinking checked programs moves the usage fact into
+the weights but not the check (the leak stays); DT3–DT5: self-training on the fine-tuned model's own non-thinking programs never gets past
+round 1. HO-SB: a 2k-token think before the program is what the leaky models lack. If training on the *short-think* programs (code only,
+no reasoning text) lowers the non-thinking program's leak, the thinking step can move into the weights; if not, it must stay at inference.
+Related work: System-2 distillation (Yu et al., 2024; distils System-2 outputs into System-1 with self-consistency filtering, works for
+some tasks, not for math chain of thought), self-distillation for code without a verifier (2604.01193), execution-gated self-distillation
+(2607.09709); none measures the effect on a free check's leak. **Run.** Base Qwen3-8B writes programs for the 3,996 unlabeled problems with
+a 2,000-token think (`run_nlopt.py q8b_unlabeled free <seed> --think_budget 2000`, seeds 1–2, no fact); keep a problem when both runs
+pass the free check and agree (the DT3 filter); retrain from base on the DT development examples + these (code-only targets, the
+non-thinking prompt; tag `q8bsft5`); evaluate as DT (`free`, no fact, 3 seeds).
+- **DT6-P1:** the leak (wrong among running programs) falls ≥ 5 points below round 1 (`q8bsft`: BWOR 69%, LogiOR 61%, OptMATH 72%) on
+  ≥ 2 of the three.
+- **DT6-P2:** accuracy ≥ round 1 + 3 points on OptMATH or LogiOR, at least one significant.
+**Decision.** P1 → part of the thinking step moves into the weights without labels (reported with Direction 2); otherwise the short
+think stays at inference and the report says distillation of it does not fix the leak.

@@ -7,7 +7,8 @@ modes: mip   = Python program with OR-Tools pywraplp (SCIP), prints the optimal 
        think = mip with thinking on (Qwen) / the caller's higher reasoning effort (gpt-oss);
        thinkf = think + the snippet of mipf (X6: does the API fact make thinking pay?);
        mipa / thinka = mip / think + the library's public names by introspection (automatic fact, no human).
-usage: POC_BASE_URL=... python run_nlopt.py <tag> <mode> <seed> [--think] [--max_tokens N] -> results/x3/opt_<tag>_<mode>_s<seed>.jsonl"""
+usage: POC_BASE_URL=... python run_nlopt.py <tag> <mode> <seed> [--think] [--max_tokens N] -> results/x3/opt_<tag>_<mode>_s<seed>.jsonl
+DT6: --think_budget B writes the program after at most B thinking tokens (Qwen3 budget forcing) -> opt_<tag>_<mode>tb<B>_s<seed>.jsonl"""
 import json, os, re, sys, zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -173,6 +174,7 @@ def main():
     tag, mode, seed = sys.argv[1], sys.argv[2], int(sys.argv[3])
     mt = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else 8192
     think = "--think" in sys.argv
+    TB = int(sys.argv[sys.argv.index("--think_budget") + 1]) if "--think_budget" in sys.argv else None
 
     if mode in ("mips", "thinks"):
         os.environ["NLOPT_EX_SHORTEST"] = "1"
@@ -188,7 +190,11 @@ def main():
             ex = EX(p)
             if ex:
                 q += "\n\nA program that runs with this library (written for a different problem):\n```python\n" + ex.strip() + "\n```"
-        o = chat(q, think=think, max_tokens=mt, temperature=0.7, seed=sd)
+        if TB:
+            from run_geo_cross import budget_chat
+            o = budget_chat(q, TB, max_tokens=mt, temperature=0.7, seed=sd)
+        else:
+            o = chat(q, think=think, max_tokens=mt, temperature=0.7, seed=sd)
         text = o["text"] or ""
         row = {"id": p["id"], "src": p["src"], "difficulty": p["difficulty"], "gold": p["gold"], "mode": mode,
                "out_tokens": o.get("out_tokens"), "finish": o.get("finish")}
@@ -209,7 +215,7 @@ def main():
         row["correct"] = correct(row["pred"], p["gold"])
         return row
 
-    path = f"{RES}/opt_{tag}_{mode}_s{seed}.jsonl"   # rows are flushed as they finish; a re-run resumes (2026-10-17)
+    path = f"{RES}/opt_{tag}_{mode}{f'tb{TB}' if TB else ''}_s{seed}.jsonl"   # rows are flushed as they finish; a re-run resumes (2026-10-17)
     done = {r["id"] for r in _rows(path)}
     todo = problems()[:int(os.environ.get("NLOPT_LIMIT", 10**9))]   # NLOPT_LIMIT: the first N problems only (Slurm smoke test)
     if os.environ.get("NLOPT_SHARD"):   # "i/k": problems i, i+k, ... in <path>.shard<i>of<k> (one job each; merge_shards.py after; 2026-10-23)
@@ -217,7 +223,10 @@ def main():
         todo = todo[i::k]; path = path[:-len(".jsonl")] + f".shard{i}of{k}.jsonl"; done |= {r["id"] for r in _rows(path)}
     with ThreadPoolExecutor(48) as ex, open(path, "a") as f:
         for fu in as_completed([ex.submit(one, p) for p in todo if p["id"] not in done]):
-            f.write(json.dumps(fu.result()) + "\n"); f.flush()
+            try:   # 10-25 (as run_form): a rejected request must not stop the later rows from being written
+                f.write(json.dumps(fu.result()) + "\n"); f.flush()
+            except Exception as e:
+                print(tag, mode, seed, "request failed, no row:", repr(e)[:200], flush=True)
     rows = _rows(path)
     by = {}
     for r in rows:
