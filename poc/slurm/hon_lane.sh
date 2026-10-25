@@ -14,7 +14,7 @@
 # HO-N4: `--model n3n` = NVIDIA-Nemotron-3-Nano-30B-A3B (hybrid Mamba-Transformer MoE, a new family) on 4 x RTX 3090, tensor parallel:
 #   sbatch --gres=gpu:4 --cpus-per-task=16 poc/slurm/job.sh poc/slurm/hon_lane.sh --model n3n <group> ...
 m=q35; dir=Qwen/Qwen3.5-9B; TS=temperature=1.0,top_p=0.95,top_k=20,presence_penalty=1.5   # model card thinking sampling
-GPUL=0; XV="--language-model-only"
+GPUL=0; XV="--language-model-only"; MNS=32
 if [ "$1" = --model ]; then
   case $2 in
     g4e) m=g4e; dir=google/gemma-4-E4B-it; TS=temperature=1.0,top_p=0.95,top_k=64 ;;
@@ -23,14 +23,15 @@ if [ "$1" = --model ]; then
          D=/SSD/huggingface/$dir; [ -f $D/configuration_nemotron_h.py ] || { mkdir -p $D && ln -sf /SSD/huggingface/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16/* $D/ \
            && cp $POC_DATA/stage/n3n_code/configuration_nemotron_h.py $D/; }
          export POC_RAW_SYSTEM=1   # budget forcing (reviews): its template opens with an empty system turn
-         GPUL=0,1,2,3; XV="--tensor-parallel-size 4 --trust-remote-code --mamba-ssm-cache-dtype float32" ;;
+         GPUL=0,1,2,3; XV="--tensor-parallel-size 4 --trust-remote-code --mamba-ssm-cache-dtype float32"
+         MNS=128 ;;   # 10-25: at 32 sequences the KV cache was 17% used with 1,120 requests waiting
   esac; shift 2
 fi
 grp=$1 set=$2 seeds=${3:-"1 2 3"}
 # 10-23: the library prompt of long OptMATH problems + 32k thinking exceeded 36,864 tokens (vLLM rejects such a request, and the client
 # then stops writing rows); thinking with the fact gets a 45,056-token context (generation is unchanged: still at most 32k new tokens).
 MML=36864; case $grp in thinkfact|geothinkfact) MML=45056 ;; esac
-S=$(bash poc/start_server.sh /SSD/huggingface/$dir $PORT $GPUL 0.92 hon_${m}_${grp}_${set}${3:+_$3} --max-model-len $MML $XV --max-num-seqs 32) || exit 1
+S=$(bash poc/start_server.sh /SSD/huggingface/$dir $PORT $GPUL 0.92 hon_${m}_${grp}_${set}${3:+_$3} --max-model-len $MML $XV --max-num-seqs $MNS) || exit 1
 export POC_BASE_URL=http://127.0.0.1:$PORT/v1 POC_TIMEOUT=7200
 export POC_THINK_SAMPLING=$TS   # applied to thinking calls only (llm.chat)
 TK=32000
