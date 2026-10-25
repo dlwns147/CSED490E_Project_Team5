@@ -56,6 +56,10 @@ table: `docs/REPORT.md` §5.1):
   policies ≥ 5.8), the 30-label pilot 1.19, and the menu gains +2.1 per cell.
 - The label-free library of checked programs raises the first program in 25 of 29 model × benchmark cells (up to +34 points; not on
   BWOR / LogiOR for Nemotron-3-Nano, a model from another family, whose failures there are formulations).
+- **A label-free signal for when the passing cheap program is wrong** (HO-CC CC-P2; exploratory on word problems): run the same
+  model's short-think program too and compare outputs (on the test inputs, or the printed value). On 311 contest problems a
+  sample-passing non-thinking program that agrees is right 93–97% of the time, one that disagrees 19–34% (word problems: 78% vs 16%);
+  it fails where both modes share a wrong formulation (OptMATH). Used as a gate it costs both runs and does not beat short think first.
 - Where it stops: short-answer competition math (text + thinking is better; a program is useful as a second opinion) and formal proofs
   (a specialized 8B prover, not a fact).
 

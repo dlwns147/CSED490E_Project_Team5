@@ -263,6 +263,15 @@ cheap-first policies stay within one point in 37 of 54 cells (registered ≥ 40:
 saving against one think, trails the check-matched think on BWOR (−10.2 [−16.7, −4.1]) and LogiOR (−8.0) at 37–44% of its tokens. The
 free check is worth applying to every step; which end of the frontier to take depends on the price of a token, and the pilot can choose.
 
+### 5.6c A label-free signal for the leak
+The open problem since the start was a label-free signal for when a program that passes the free check is wrong. Agreement *within* a
+mode fails (a model's cheap programs share their mistakes, HO-L); agreement *across* modes works. A non-thinking program that passes
+the check and agrees with the same model's 2k-token-think program is right 78% of the time on the word problems (16% when they
+disagree; exploratory, 2,788 cases) and, pre-registered on 311 Codeforces geometry problems with hidden tests, 92.7% / 97.0% for
+Qwen3-14B-AWQ / Nemotron-3-Nano when the two programs agree on every test input (18.8% / 33.8% otherwise; HO-CC CC-P2). It fails where both
+modes share a wrong formulation (OptMATH: 26–38% vs 12–30%). As a gate it costs both runs and does not beat short thinking first; its use
+is to estimate, without labels, how leaky a model's check is on a new task.
+
 ### 5.7 Putting the fact into the weights, with no labels
 Qwen3-8B and Qwen3-14B were LoRA-fine-tuned (36 / 53 minutes on 2–4 RTX 3090s) on 1,127 programs from the development sets that pass the
 strict check — no label anywhere. Without any fact in the prompt, the fine-tuned models write programs about as good as the base models
