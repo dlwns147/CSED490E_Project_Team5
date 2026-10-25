@@ -211,3 +211,7 @@ non-thinking prompt; tag `q8bsft5`); evaluate as DT (`free`, no fact, 3 seeds).
 - **DT6-P2:** accuracy ≥ round 1 + 3 points on OptMATH or LogiOR, at least one significant.
 **Decision.** P1 → part of the thinking step moves into the weights without labels (reported with Direction 2); otherwise the short
 think stays at inference and the report says distillation of it does not fix the leak.
+*DT6 data (2026-10-25 13:2x UTC): base Qwen3-8B with a 2,000-token think wrote programs for all 3,996 unlabeled problems twice (2,482 of
+3,996 run in seed 1; 2.7k tokens per problem); 1,197 problems pass the strict check in both runs and agree (DT3: 1,957; DT5: 1,452);
+2,324 training examples with the development data, code-only targets (no reasoning text in any). Training submitted (tag `q8bsft5`),
+evaluation queued behind it.*
