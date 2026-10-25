@@ -2,6 +2,7 @@
 review says CORRECT (review_<m>_<set>_formx), else thinking with the fact (formxt); vs THINK+F and FF+F. OptiBench on the HO-TF third.
 Also the review's flag rates on wrong / right passing programs (labels used only for that note). Paired 95% intervals.
 HO-VR2: --vr2 for OptMATH (mips vs thinks) and held-out geometry (fact, MR check + review, vs thinkfact; leak flags).
+HO-N4: OptMATH with the library arm (formx vs formxt) is included when its reviews exist (models never run with mips there).
 usage: python analyze_hovr.py [--vr2] [model ...]"""
 import os, sys
 from collections import Counter
@@ -61,7 +62,7 @@ def main():
         return vr2([a for a in sys.argv[1:] if not a.startswith("--")] or ["q14a", "q8b"])
     flag = Counter()
     for m in sys.argv[1:] or ["q14a", "q8b"]:
-        for b in ("optibench", "bwor", "logior"):
+        for b in ("optibench", "bwor", "logior") + (("optmath",) if os.path.exists(f"{RES}/review_{m}_optmath_formx_s1.jsonl") else ()):   # HO-N4
             per, tok = {}, {"THINK+F": 0, "FF+F": 0, "FF-R+F": 0}
             for s in (1, 2, 3):
                 F = {r["id"]: r for r in _rows(f"{RES}/opt_{m}_{b}_formx_s{s}.jsonl")}

@@ -4,6 +4,7 @@ fact), THINK+F (formxt), FF+F (formx; formxt on a visible failure), FF (formx; t
 policy). Paired bootstrap 95% intervals over problems; token shares of THINK+F.
 HO-TF2: also OptMATH for Qwen3.5-9B (its cheap arm is formx there) and held-out geometry for every model (THINK = think, THINK+F =
 thinkfact, the fact prompt with thinking on; a visible failure = the metamorphic check fails); --geo for geometry (needs Python >= 3.10).
+HO-N4: a model run without the thinking arm that has no fact (Nemotron-3-Nano) reports THINK+F and FF+F only.
 usage: python analyze_hotf.py [--geo] [model ...]"""
 import os, sys
 
@@ -19,7 +20,7 @@ def report(name, per, tok, cap):
     acc = {k: 100 * sum(x[k] for v in per.values() for x in v) / n for k in tok}
     print(f"=== {name} ({len(per)} problems, {n} rows; THINK+F at the cap {100 * cap / n:.1f}%): " + " | ".join(
         f"{k} {acc[k]:.1f}% @ {tok[k] / n / 1000:.2f}k ({100 * tok[k] / tok['THINK+F']:.0f}%)" for k in tok))
-    for a, c in (("THINK+F", "THINK"), ("FF+F", "THINK+F"), ("FF+F", "FF")):
+    for a, c in [(a, c) for a, c in (("THINK+F", "THINK"), ("FF+F", "THINK+F"), ("FF+F", "FF")) if a in tok and c in tok]:
         mu, lo, hi = ci({i: sum(x[a] - x[c] for x in v) / len(v) for i, v in per.items()})
         print(f"  {a} - {c} {mu:+.1f} [{lo:+.1f}, {hi:+.1f}]")
     P = [x for v in per.values() for x in v if x["pass"]]   # FF+F - THINK+F = P(pass) x [P(cheap right | pass) - P(THINK+F right | pass)]
@@ -34,6 +35,7 @@ def geometry(m):
     per, tok, cap = {}, {k: 0 for k in ("THINK", "THINK+F", "FF+F", "FF")}, 0
     for s in (1, 2, 3):
         F, T, TF = (load(f"S2_HOG_{m}_geo_{a}_s{s}") or {} for a in ("fact", "think", "thinkfact"))
+        T = T or TF   # HO-N4: no thinking arm without the fact; THINK / FF are dropped below
         for k, tf in TF.items():
             if k not in F or k not in T:
                 continue
@@ -41,6 +43,8 @@ def geometry(m):
             per.setdefault(k, []).append({"THINK": ok(t), "THINK+F": ok(tf), "FF+F": ok(tf) if vis else ok(f), "FF": ok(t) if vis else ok(f),
                                           "pass": not vis, "cheap": ok(f)})
             tok["THINK"] += gt(t); tok["THINK+F"] += gt(tf); tok["FF+F"] += gt(f) + (gt(tf) if vis else 0); tok["FF"] += gt(f) + (gt(t) if vis else 0)
+    if not load(f"S2_HOG_{m}_geo_think_s1"):
+        tok = {k: v for k, v in tok.items() if k in ("THINK+F", "FF+F")}
     report(f"{m} geometry", per, tok, cap)
 
 
@@ -50,10 +54,12 @@ def main():
             geometry(m)
         return
     for m in sys.argv[1:] or ["oss20", "q14a", "q8b", "q35"]:
-        for b in ("optibench", "bwor", "logior") + (("optmath",) if m == "q35" else ()):
+        for b in ("optibench", "bwor", "logior") + (("optmath",) if m not in ("oss20", "q14a", "q8b") else ()):
+            has_t = os.path.exists(f"{RES}/opt_{m}_{b}_thinkfree_s1.jsonl")
             per, tok, cap = {}, {k: 0 for k in ("THINK", "THINK+F", "FF+F", "FF")}, 0
             for s in (1, 2, 3):
                 A = {a: {r["id"]: r for r in _rows(f"{RES}/opt_{m}_{b}_{a}_s{s}.jsonl")} for a in ("formx", "formxt", "thinkfree")}
+                A["thinkfree"] = A["thinkfree"] or A["formxt"]
                 for i, tf in A["formxt"].items():
                     if i not in A["formx"] or i not in A["thinkfree"]:
                         continue
@@ -63,6 +69,8 @@ def main():
                     per.setdefault(i, []).append({k: bool(v) for k, v in acc.items()})
                     g = lambda r: r.get("out_tokens") or 0
                     tok["THINK"] += g(t); tok["THINK+F"] += g(tf); tok["FF+F"] += g(f) + (g(tf) if vis else 0); tok["FF"] += g(f) + (g(t) if vis else 0)
+            if not has_t:
+                tok = {k: v for k, v in tok.items() if k in ("THINK+F", "FF+F")}
             report(f"{m} {b}", per, tok, cap)
 
 
