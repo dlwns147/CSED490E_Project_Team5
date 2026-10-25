@@ -81,7 +81,7 @@ def cells(models=("oss20", "q14a", "q8b")):
                 if GATE and not all(os.path.exists(f"{XRES}/review_{m}_{b}_{a}_s{x}.jsonl") for x in (1, 2, 3)):
                     continue
                 SBR = {r["id"]: r for r in _rows(f"{XRES}/opt_{m}_{b}_formxtb2000_s{s}.jsonl")}
-                if SB and not all(len(_rows(f"{XRES}/opt_{m}_{b}_formxtb2000_s{x}.jsonl")) for x in (1, 2, 3)):
+                if SB and (a != "formx" or not all(len(_rows(f"{XRES}/opt_{m}_{b}_formxtb2000_s{x}.jsonl")) for x in (1, 2, 3))):   # budgeted rows exist for the library arm only
                     continue
                 yield (m, b, s), [dict(v=V.get(i), sb=(ok_(SBR[i]), bool(SBR[i]["correct"]), SBR[i].get("out_tokens") or 0) if i in SBR else None, f_ok=bool(f["correct"]), f_pass=ok_(f), f_tok=f["out_tokens"] or 0,
                                        agree=ok_(f) and ok_(F2[i]) and ag(f["pred"], F2[i]["pred"]), f2_tok=F2[i]["out_tokens"] or 0,

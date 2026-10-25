@@ -892,3 +892,19 @@ Qwen3-14B-AWQ geometry (FF+SB+F +4.5 [+1.0, +8.3] at 37%, HO-SB2 rows) was seen 
 - Short thinking first beats always thinking with the fact on all three geometry cells (+2.8 to +4.2; Nemotron +4.2 [+1.4, +6.9]).
 - **Reading.** The budget is the knob: a fixed 2k budget helps where full thinking is long and leaks, and costs where full thinking is
   already short. As registered, the cascade is not adopted as the low-leak default; the pilot (HO-P4) decides per cell.
+
+### Results HO-SB2 (2026-10-25 07:4x UTC; `python poc/analyze_hotb.py 2000 [--geo] q14a q8b`; 3 seeds, all rows; OptMATH THINK+F rerun at a 28,672-token context after the first run lost its rows to over-long requests)
+| cell | THINK+F | FF+F − THINK+F | SB+F − THINK+F (tokens) |
+|---|---|---|---|
+| Qwen3-14B-AWQ OptMATH | 23.0% @ 9.9k | — | +2.3 [−1.3, +6.3] (85%) |
+| Qwen3-8B OptMATH | 23.3% @ 10.9k | — | +3.3 [+0.0, +7.0] (90%) |
+| Qwen3-14B-AWQ geometry | 87.8% @ 6.8k | +2.4 [−0.3, +5.6] | **+3.5 [+0.3, +6.6]** (94%) |
+| Qwen3-8B geometry | 78.1% @ 7.8k | **−16.7 [−21.9, −11.5]** | −0.3 [−2.8, +2.1] (98%) |
+- **SB2-P1 refuted** (ties or beats in 4 / 4, but at ≤ 90% of the tokens in 2 / 4: the geometry cells use 94–98%; the budgeted
+  geometry program fails the metamorphic check often enough that most problems still escalate). **SB2-P2 holds:** Qwen3-8B geometry,
+  the claim's worst cell (−16.7 for fact-first, −6.6 with the review gate), is closed (−0.3) — at the cost of always thinking.
+- Exploratory: the three-step cascade on Qwen3-8B OptMATH is +6.7 [+2.0, +11.3] at 77% (Qwen3-14B-AWQ +0.3 at 77%).
+- **Reading (HO-SB, SB2, SB3).** Short thinking with the fact first never loses to always thinking with the fact in 15 new cells
+  (Nemotron 5, Qwen3.5 5, Qwen3 4, plus Qwen3-14B-AWQ geometry): −0.3 to +10.1. It saves tokens where full thinking is long (word
+  problems: 49–92%) and not where it is short or the short program rarely passes (geometry: 94–137%). It replaces the review gate as
+  the leaky-model step: as accurate or more, never more expensive.
