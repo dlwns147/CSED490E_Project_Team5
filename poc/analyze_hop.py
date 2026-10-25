@@ -10,7 +10,10 @@ on geometry; OptMATH unchanged for the development models, formxt for Qwen3.5-9B
 HO-P3 (PREREG_MODEL.md): --gate adds FF-R+F (a passing program is the answer only if the 2k-token thinking-mode review says CORRECT,
 results/x3/review_<m>_<set>_<arm>_s<seed>.jsonl, else THINK; review tokens counted) and keeps only cells with review rows for all 3 seeds;
 it also prints the realized utility of the pilot with vs without the gate.
-usage: python analyze_hop.py [--repair] [--fair] [--gate] [model ...]"""
+HO-P4 (PREREG_MODEL.md): --sb adds SB+F (thinking with the fact under a 2,000-token budget first, formxtb2000 / geometry
+thinkfactb2000; full thinking with the fact only on its visible failure) and FF+SB+F (the library program, then SB+F), keeps only cells
+with budgeted rows for all 3 seeds, and prints the pilot with vs without the two.
+usage: python analyze_hop.py [--repair] [--fair] [--gate] [--sb] [model ...]"""
 import os, random, sys, types
 from collections import defaultdict
 
@@ -24,6 +27,8 @@ WORDS = [("optmath", "mips", "thinks"), ("optibench", "formx", "thinkfree"), ("b
 WORDS_NEW = [("optmath", "formx", "thinkfree")] + WORDS[1:]   # a model never run on the development word problems (HO-N)
 REPAIR = "--repair" in sys.argv
 GATE = "--gate" in sys.argv
+SB = "--sb" in sys.argv
+NEW = ("FF-R+F",) if GATE else ("SB+F", "FF+SB+F") if SB else ()   # the policies whose value the pilot comparison isolates
 if "--fair" in sys.argv:
     WORDS = [("optmath", "mips", "thinks")] + [(b, "formx", "formxt") for b in ("optibench", "bwor", "logior")]
     WORDS_NEW = [("optmath", "formx", "formxt")] + WORDS[1:]
@@ -51,6 +56,16 @@ def policies(items):
             a += it["f_ok"] if acc else it["t_ok"]
             t += it["f_tok"] + (v[1] if it["f_pass"] and v else 0) + (0 if acc else it["t_tok"])
         out["FF-R+F"] = (100 * a / n, t / n / 1000)
+    if SB:
+        n = len(items); a1 = t1 = a2 = t2 = 0
+        for it in items:
+            sp, so, st = it["sb"]   # budgeted program: passes the free check, right, tokens
+            a1 += so if sp else it["t_ok"]; t1 += st + (0 if sp else it["t_tok"])
+            if it["f_pass"]:
+                a2 += it["f_ok"]; t2 += it["f_tok"]
+            else:
+                a2 += so if sp else it["t_ok"]; t2 += it["f_tok"] + st + (0 if sp else it["t_tok"])
+        out["SB+F"] = (100 * a1 / n, t1 / n / 1000); out["FF+SB+F"] = (100 * a2 / n, t2 / n / 1000)
     return out
 
 
@@ -65,17 +80,23 @@ def cells(models=("oss20", "q14a", "q8b")):
                 V = {r["id"]: (bool(r["accept"]), r.get("out_tokens") or 0) for r in _rows(f"{XRES}/review_{m}_{b}_{a}_s{s}.jsonl")}
                 if GATE and not all(os.path.exists(f"{XRES}/review_{m}_{b}_{a}_s{x}.jsonl") for x in (1, 2, 3)):
                     continue
-                yield (m, b, s), [dict(v=V.get(i), f_ok=bool(f["correct"]), f_pass=ok_(f), f_tok=f["out_tokens"] or 0,
+                SBR = {r["id"]: r for r in _rows(f"{XRES}/opt_{m}_{b}_formxtb2000_s{s}.jsonl")}
+                if SB and not all(len(_rows(f"{XRES}/opt_{m}_{b}_formxtb2000_s{x}.jsonl")) for x in (1, 2, 3)):
+                    continue
+                yield (m, b, s), [dict(v=V.get(i), sb=(ok_(SBR[i]), bool(SBR[i]["correct"]), SBR[i].get("out_tokens") or 0) if i in SBR else None, f_ok=bool(f["correct"]), f_pass=ok_(f), f_tok=f["out_tokens"] or 0,
                                        agree=ok_(f) and ok_(F2[i]) and ag(f["pred"], F2[i]["pred"]), f2_tok=F2[i]["out_tokens"] or 0,
-                                       t_ok=bool(T[i]["correct"]), t_tok=T[i]["out_tokens"] or 0, r=R.get(i)) for i, f in F.items() if i in T and i in F2]
+                                       t_ok=bool(T[i]["correct"]), t_tok=T[i]["out_tokens"] or 0, r=R.get(i)) for i, f in F.items() if i in T and i in F2 and (not SB or i in SBR)]
         for s in (1, 2, 3):
             if GATE and not all(os.path.exists(f"{XRES}/review_{m}_geo_fact_s{x}.jsonl") for x in (1, 2, 3)):
                 continue
+            SBG = load(f"S2_HOG_{m}_geo_thinkfactb2000_s{s}") or {}
+            if SB and not all(load(f"S2_HOG_{m}_geo_thinkfactb2000_s{x}") for x in (1, 2, 3)):
+                continue
             V = {r["id"]: (bool(r["accept"]), r.get("out_tokens") or 0) for r in _rows(f"{XRES}/review_{m}_geo_fact_s{s}.jsonl")}
             F, F2, T = load(f"S2_HOG_{m}_geo_fact_s{s}"), load(f"S2_HOG_{m}_geo_fact_s{s % 3 + 1}"), load(f"S2_HOG_{m}_geo_{GEO_THINK}_s{s}")
-            yield (m, "geometry", s), [dict(v=V.get("|".join(map(str, k))), f_ok=ok(f), f_pass=N.geo_check(f)[0], f_tok=tok(f),
+            yield (m, "geometry", s), [dict(sb=(N.geo_check(SBG[k])[0], ok(SBG[k]), tok(SBG[k])) if k in SBG else None, v=V.get("|".join(map(str, k))), f_ok=ok(f), f_pass=N.geo_check(f)[0], f_tok=tok(f),
                                             agree=N.geo_check(f)[0] and N.geo_check(F2[k])[0] and agree(f, F2[k]), f2_tok=tok(F2[k]),
-                                            t_ok=ok(T[k]), t_tok=tok(T[k])) for k, f in F.items() if k in T and k in F2]
+                                            t_ok=ok(T[k]), t_tok=tok(T[k])) for k, f in F.items() if k in T and k in F2 and (not SB or k in SBG)]
 
 
 def main():
@@ -91,11 +112,11 @@ def main():
                 g = []
                 for _ in range(1000):
                     U_p = util(policies(rng.sample(items, min(k, len(items))))); r.append(U_full[best] - U_full[max(U_p, key=U_p.get)])
-                    if GATE and k == 30:   # HO-P3: the same sample's pick without the gate
-                        U5 = {q: u for q, u in U_p.items() if q != "FF-R+F"}; g.append(U_full[max(U_p, key=U_p.get)] - U_full[max(U5, key=U5.get)])
+                    if NEW and k == 30:   # HO-P3 / P4: the same sample's pick without the added policies
+                        U5 = {q: u for q, u in U_p.items() if q not in NEW}; g.append(U_full[max(U_p, key=U_p.get)] - U_full[max(U5, key=U5.get)])
                 reg[k].append(sum(r) / len(r))
                 if g:
-                    sub["gain6"].append(sum(g) / len(g)); sub["best6-5"].append(U_full[best] - max(u for q, u in U_full.items() if q != "FF-R+F"))
+                    sub["gain6"].append(sum(g) / len(g)); sub["best6-5"].append(U_full[best] - max(u for q, u in U_full.items() if q not in NEW))
                 if k == 30 and name[0] == "q8b" and name[1] in ("geometry", "bwor"):
                     sub["pilot"].append(sum(r) / len(r)); sub["FF"].append(U_full[best] - U_full["FF"])
         fixed = {p: sum(max(util(policies(it)).values()) - util(policies(it))[p] for _, it in C) / len(C) for p in policies(C[0][1])}
@@ -103,9 +124,9 @@ def main():
             W = [it for nm, it in C if nm[1] != "geometry"]
             print(f"  word cells ({len(W)}): always FF {sum(max(util(policies(it)).values()) - util(policies(it))['FF'] for it in W) / len(W):.2f}, "
                   f"always FF-R0 {sum(max(util(policies(it)).values()) - util(policies(it))['FF-R0'] for it in W) / len(W):.2f}")
-        if GATE:
-            print(f"  HO-P3: 30-label pilot with the gate - without it: {sum(sub['gain6']) / len(C):+.2f} (cells where it is worse: "
-                  f"{sum(x < 0 for x in sub['gain6'])}); best of six - best of five: {sum(sub['best6-5']) / len(C):+.2f}")
+        if NEW:
+            print(f"  HO-P3/P4: 30-label pilot with {'+'.join(NEW)} - without: {sum(sub['gain6']) / len(C):+.2f} (cells where it is worse: "
+                  f"{sum(x < 0 for x in sub['gain6'])}); best of all - best without: {sum(sub['best6-5']) / len(C):+.2f}")
         print(f"lambda {lam}: best policy counts {dict(best_count)} | mean regret of a pilot pick: "
               + ", ".join(f"k={k} {sum(v) / len(v):.2f}" for k, v in reg.items())
               + " | regret of always using one policy: " + ", ".join(f"{p} {v:.2f}" for p, v in fixed.items())

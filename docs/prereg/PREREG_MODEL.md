@@ -135,3 +135,17 @@ otherwise the gate stays a named option outside the pilot.
   similar utility, and a sixth option adds pick noise (the 6-policy pilot is worse in 22 of 39 cells, by little). Decision as registered:
   **the gate stays a named option outside the pilot** — the default for a leaky model without labels (it beats every other fixed policy
   there), not an addition to the 30-label pilot.
+
+## Addendum HO-P4 (2026-10-25 02:5x UTC, before computing; offline, run once when HO-SB2's rows are complete): short thinking in the pilot
+**Why it could change the claim.** HO-SB / SB2 make "short thinking with the fact first" (SB+F) the step for leaky models, and the
+three-step cascade (FF+SB+F: non-thinking program, then short thinking, then full thinking) looked best for Qwen3.5 (exploratory). Which
+side a cell is on is not known without labels; if the 30-label pilot can choose between them, the recipe's deployable form is one menu
+for every hybrid-thinking model. **Run:** `python poc/analyze_hop.py --repair --fair --sb q14a q8b n3n q35`: HO-P2's cells restricted to
+those with budgeted rows (`formxtb2000`, geometry `thinkfactb2000`) for all 3 seeds; two more policies, SB+F and FF+SB+F (tokens of
+every step counted); λ = 0.5. The Qwen3 OptiBench / BWOR / LogiOR cells are where SB+F was first seen (HO-SB origin); the pilot still
+picks per cell from its own 30 labels.
+- **P4-1:** the seven-policy pilot's realized utility beats the five-policy pilot's by ≥ +1.0 point on average over the covered cells.
+- **P4-2:** its regret against the best of seven stays ≤ 1.0.
+- **P4-3:** SB+F or FF+SB+F is the best policy in at least half of the covered cells.
+**Decision.** P4-1 → the recipe is stated as one menu chosen by 30 labels — non-thinking program first where the check holds, short
+thinking first where it leaks — and the claim's pilot bullet is restated over seven policies; otherwise SB+F stays a named option.
