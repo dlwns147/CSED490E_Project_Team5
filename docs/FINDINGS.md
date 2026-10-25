@@ -3854,3 +3854,12 @@ refuted on tokens, P2 holds). Over 14 new cells it never loses (−0.3 to +10.1)
 adding SB+F and the three-step cascade to the 30-label pilot raises its utility by +2.12 per cell (P4-1 holds); a short-thinking policy
 is best in 40 of 54 cells; always SB+F loses 1.47 to each cell's best (other fixed policies 5.8–7.6), the pilot 1.19 (P4-2, ≤ 1.0,
 refuted). Harness: the first Qwen3 OptMATH thinking run lost all rows to 9 over-long requests (fixed in run_form; rerun at 28,672).
+
+## 2026-10-25 08:29 UTC: exploratory — our baseline ignores its own visible failures (always thinking should also get the check)
+Re-reading stored runs (no new generation): if always thinking with the fact is also given the free check — a second full think (the
+next seed's stored run) whenever the first program visibly fails — it gains +2.5 to +12.3 points over one think on all 16 word-problem
+cells of Qwen3-14B-AWQ, Qwen3-8B, Nemotron-3-Nano and Qwen3.5-9B, at 119–164% of its tokens; short thinking first (SB+F) gets part of
+that gain at 49–92%. At λ = 0.5 the two are close on several cells (e.g. Nemotron BWOR: utility 50.5 vs 49.8). So the fair baseline must
+be matched in the check as well as in the fact, and the claim read as a frontier, not "ties or beats one think". Pre-registered next:
+HO-CM (PREREG_HO.md). On contest geometry (311 Codeforces problems, hidden tests; the check = the statement's samples), stored Qwen3-32B
+runs (seed 1) give SB+F 32.2% at 97% of one think's tokens vs 29.9%: little to save where short programs rarely pass the samples.

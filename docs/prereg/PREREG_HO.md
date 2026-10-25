@@ -918,3 +918,18 @@ the recommended step: Nemotron-3-Nano and Qwen3-8B, on OptiBench (third), BWOR, 
 - **SB4-P1:** at B = 1,000 and at B = 4,000 separately, SB+F ties or beats THINK+F (upper bound ≥ 0) in ≥ 7 of the 8 cells.
 - **SB4-P2:** the utility (accuracy − 0.5 × ktokens) of SB+F varies by ≤ 2 points across the three budgets in ≥ 6 of the 8 cells.
 **Decision.** P1 and P2 → the claim says "a short think first (1–4k tokens)"; otherwise the budget is part of what the pilot chooses.
+
+## Addendum HO-CM (2026-10-25 08:2x UTC, offline, before computing the pilot): the baseline matched in the check, not only in the fact
+**Why it could change the claim.** Every "ties or beats always thinking with the fact" in the claim compares with one think that ignores
+its own visible failures. Exploratory (FINDINGS 08:29): a second think on a visible failure (T→T) adds +2.5 to +12.3 points at 119–164% of
+the tokens on 16 word cells. If check-matched thinking dominates the recipe's policies at λ = 0.5, the claim's comparisons must be
+restated against it. **Run (stored rows only).** `analyze_hop.py --repair --fair --sb --cm q14a q8b n3n q35`: HO-P4's 54 cells with two
+more policies — T→T (thinking with the fact; on its visible failure, the next seed's stored think) and SB→T→T (short think first, then
+T→T); tokens of every step counted; geometry uses the next seed's thinkfact.
+- **CM-P1:** with T→T in the menu, the best of the recipe's policies (FF+F, FF-R0, FFR, SB+F, FF+SB+F) is within 1.0 utility point of
+  T→T or above it in ≥ 40 of 54 cells (the recipe is on the frontier at λ = 0.5).
+- **CM-P2:** always T→T has a larger regret than always SB+F over the 54 cells.
+- **CM-P3:** the 30-label pilot over the nine policies keeps regret ≤ 1.2 (HO-P4: 1.19).
+**Decision.** CM-P1 refuted → the claim is restated: what the recipe buys is tokens at matched accuracy only where the check holds;
+against a check-matched think it is a token-accuracy trade elsewhere. CM-P1 and P2 hold → the claim stands with the stronger baseline,
+and every table gains a T→T column.
