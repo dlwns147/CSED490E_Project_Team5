@@ -801,3 +801,23 @@ becomes two-sided. P1 refuted → the rule only marks where facts pay a lot; bel
   (PREREG_HON.md, HO-N4). **Decision as registered:** the rule is not two-sided and does not transfer beyond the base models it was
   built on; the report states it as a description of where usage facts paid on those models, and leaves the add / do-not-add choice to
   the pilot (which can include "no fact" as a policy).
+
+## Addendum HO-SB (2026-10-25 00:0x UTC, before any run): short thinking first — a cheaper fix for leaky models than the review gate?
+**Origin (post hoc, exploratory).** Re-reading HO-TB's stored runs (`python poc/analyze_hotb.py 2000`, policy added today): thinking with
+the fact cut at 2,000 tokens first, full thinking with the fact only when that program visibly fails (SB+F), ties THINK+F in 5 of the 6
+Qwen3 cells at 62–92% of its tokens (Qwen3-14B-AWQ OptiBench +0.5 @ 68%, BWOR +1.2 @ 83%, LogiOR +1.1 @ 90%; Qwen3-8B OptiBench −0.3 @
+62%, BWOR +2.4 @ 86%, LogiOR −4.0 [−7.6, −0.4] @ 92%), where the review gate ties at 70–73% (OptiBench) and ~100% (BWOR / LogiOR). The
+short-thinking program leaks less than the non-thinking one, so the free check suffices more often. These 6 cells chose the idea and are
+not evidence for it. **Why it could change the claim.** For leaky models the recipe's current branch (the gate) removes the loss but saves
+nothing on hard problems; if SB+F holds on unseen cells it is a saving there and needs no review. Related work: escalating from a cheap tier
+to a stronger one on a failed check is the standard cascade (docs/notes/RELATED_WORK.md; CodeRescue 2607.19338 between models; 2605.07686
+on cascades failing when the fallback budget is too small); we test it inside one model, with the fact matched, as the fix for a leaky check.
+**Run (prospective cells).** `run_form.py <m> formx <seed> --think_budget 2000` (as HO-TB: budget forcing, T 0.7, answer ≤ 8,192) on
+OptiBench's HO-TF third, BWOR, LogiOR, OptMATH, seeds 1–3, for Nemotron-3-Nano (`n3n`, leaky: FF+F − THINK+F −6 to −12 on the cells
+finished so far) and Qwen3.5-9B (`q35`, where FF+F already ties or wins); compared with their THINK+F (formxt), FF+F and (n3n) the gate.
+- **SB-P1:** on Nemotron's 4 cells SB+F ties or beats THINK+F (upper bound ≥ 0) in ≥ 3, at ≤ 90% of its tokens.
+- **SB-P2:** on Nemotron's 4 cells SB+F is within 2 points of the gate FF-R+F and uses fewer tokens than it in ≥ 3.
+- **SB-P3:** on Qwen3.5-9B's 4 cells SB+F is within 2 points of FF+F at no more than its tokens in ≥ 3 (it costs nothing where the plain
+  recipe already works).
+**Decision.** P1 and P2 → for leaky models the recipe's branch becomes short thinking with the fact first (no review); with P3 it is the
+candidate no-label default for hybrid-thinking models and joins the pilot. Otherwise the gate stays.
