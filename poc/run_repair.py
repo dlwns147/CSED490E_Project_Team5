@@ -2,7 +2,8 @@
 that does not run, prints nothing or 'No Best Solution', or whose solution the HO3 checker (verify_*) does not pass, the same model gets
 the problem, its program and the evidence, and writes a corrected program in the freev format; it is run as freev programs are.
 usage: NLOPT_SET=bwor POC_BASE_URL=... python run_repair.py <model> <seed> [arm]   -> results/x3/repair_<model>_<set>[_<arm>]_s<seed>.jsonl
-arm (HO7): freev (default; with the HO3 checker's verdicts) or a solver-choice arm without a checker (free, formx): only visible failures
+arm (HO7): freev (default; with the HO3 checker's verdicts) or a solver-choice arm without a checker (free, formx; HO-TR: formxt, the
+thinking-with-the-fact arm, repaired by one non-thinking turn): only visible failures
 (no run, no value, 'No Best Solution') are repaired, and the corrected program prints the objective alone on its last line."""
 import json, os, re, sys, zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -72,7 +73,10 @@ def main():
                 "out_tokens": o.get("out_tokens"), "finish": o.get("finish")}
     with ThreadPoolExecutor(48) as ex, open(path, "a") as fh:
         for fu in as_completed([ex.submit(one, f) for f in todo]):
-            fh.write(json.dumps(fu.result()) + "\n"); fh.flush()
+            try:   # 10-27 (as run_form): a rejected request must not stop the later rows from being written
+                fh.write(json.dumps(fu.result()) + "\n"); fh.flush()
+            except Exception as e:
+                print(m, SET, seed, "request failed, no row:", repr(e)[:200], flush=True)
     R = _rows(path)
     print(m, SET, seed, f"repaired {len(R)}: run and print a value {sum(ok_(r) for r in R)}", flush=True)
 

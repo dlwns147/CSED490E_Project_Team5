@@ -95,6 +95,7 @@ for think in (False, True):
   cc32k) for sd in 1 2 3; do CC_SET=full $P poc/run_cc.py run ${m}_think32k $sd --think --max_tokens 32000 >> $L 2>&1 & done ;;   # HO-CC amendment
   thinkfact64) env ${4:+NLOPT_SHARD=$4} NLOPT_SET=$set $P poc/run_form.py ${m}t64 formx $seeds --tarm --think --max_tokens 64000 >> $L 2>&1 & ;;   # HO-CAP
   cc64k) for sd in 1 2 3; do CC_SET=full $P poc/run_cc.py run ${m}_think64k $sd --think --max_tokens 64000 >> $L 2>&1 & done ;;   # HO-CAP
+  repairt) for st in optibench bwor logior optmath; do for sd in 1 2 3; do NLOPT_SET=$st $P poc/run_repair.py $m $sd formxt >> $L 2>&1 & done; done ;;   # HO-TR
   thinkshard) NLOPT_SHARD=$4 NLOPT_SET=$set $P poc/run_nlopt.py ${m}_$set thinkfree $seeds --think --max_tokens $TK >> $L 2>&1 & ;;
   think) NLOPT_SET=$set $P poc/run_nlopt.py ${m}_$set thinkfree $seeds --think --max_tokens $TK >> $L 2>&1 & ;;
   geo)   for sd in 1 2 3; do

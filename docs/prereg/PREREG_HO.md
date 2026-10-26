@@ -1048,3 +1048,16 @@ against an uncapped think, the claim must read "short thinking first beats a *ca
   not a cap artefact: lifting the cap helps the full think (+9.0 on LogiOR, +2.7 on OptMATH) yet short thinking first stays +4 ahead;
   the saving against an uncapped think is 16–19%. Against the check-matched think at 64k, short think → think → retry ties (−1.8, +0.7)
   at 80–81% of its tokens. CAP-P2 (Nemotron, contests) is scored when its 64k thinks finish.
+
+## Addendum HO-TR (2026-10-27 08:3x UTC, before any run): repair a failed think from its error instead of thinking again?
+**Why it could change the claim.** The largest transferable lever is the check applied to thinking: a second think on a visible failure
+(T→T) adds +2.5 to +12.3 points but costs 19–64% more tokens. If one cheap non-thinking repair turn shown the error recovers most of that
+at a fraction of the cost, the recipe's last step becomes "repair, then think again only if the repair fails". Prior work: self-repair
+is often *not* more cost-effective than resampling for code (Olausson et al., ICLR 2024, "Is Self-Repair a Silver Bullet?"); our test is
+the same question inside the fact-matched recipe. **Run.** `run_repair.py <m> <seed> formxt`: every thinking-with-the-fact program that
+visibly fails (crash, no value, 'No Best Solution') and has code gets one non-thinking repair turn with the error (thinks that ran out
+without a program cannot be repaired and go to a second think); Qwen3-14B-AWQ, Qwen3-8B, Nemotron-3-Nano, Qwen3.5-9B × OptiBench (third),
+BWOR, LogiOR, OptMATH, seeds 1–3. Policies: T→R (repair, else the next seed's think when no code or the repair fails visibly) vs T→T.
+- **TR-P1:** T→R recovers ≥ 50% of T→T's accuracy gain over one think in ≥ 10 of the 16 cells, at ≤ 50% of T→T's extra tokens.
+- **TR-P2:** SB→T→R ties SB→T→T (upper bound ≥ 0) in ≥ 12 of the 16 cells at ≤ 90% of its tokens.
+**Decision.** P1 and P2 → the recipe ends with a repair before a second think; otherwise a fresh think stays the retry (as Olausson et al.).
