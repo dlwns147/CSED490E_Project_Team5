@@ -15,6 +15,7 @@ thinkfactb2000; full thinking with the fact only on its visible failure) and FF+
 with budgeted rows for all 3 seeds, and prints the pilot with vs without the two.
 HO-CM (PREREG_HO.md): --cm (with --sb) adds T->T (thinking with the fact; on its visible failure the next seed's stored think) and
 SB->T->T, the baseline matched in the check as well as the fact.
+Items carry their id (HO-LF, analyze_holf.py: the label-free pilot reads the arms' values by id).
 usage: python analyze_hop.py [--repair] [--fair] [--gate] [--sb] [--cm] [model ...]"""
 import os, random, sys, types
 from collections import defaultdict
@@ -95,7 +96,7 @@ def cells(models=("oss20", "q14a", "q8b")):
                 SBR = {r["id"]: r for r in _rows(f"{XRES}/opt_{m}_{b}_formxtb2000_s{s}.jsonl")}
                 if SB and (a != "formx" or not all(len(_rows(f"{XRES}/opt_{m}_{b}_formxtb2000_s{x}.jsonl")) for x in (1, 2, 3))):   # budgeted rows exist for the library arm only
                     continue
-                yield (m, b, s), [dict(t_pass=ok_(T[i]), t2=(bool(T2[i]["correct"]), T2[i].get("out_tokens") or 0) if i in T2 else (False, 0), v=V.get(i), sb=(ok_(SBR[i]), bool(SBR[i]["correct"]), SBR[i].get("out_tokens") or 0) if i in SBR else None, f_ok=bool(f["correct"]), f_pass=ok_(f), f_tok=f["out_tokens"] or 0,
+                yield (m, b, s), [dict(id=i, t_pass=ok_(T[i]), t2=(bool(T2[i]["correct"]), T2[i].get("out_tokens") or 0) if i in T2 else (False, 0), v=V.get(i), sb=(ok_(SBR[i]), bool(SBR[i]["correct"]), SBR[i].get("out_tokens") or 0) if i in SBR else None, f_ok=bool(f["correct"]), f_pass=ok_(f), f_tok=f["out_tokens"] or 0,
                                        agree=ok_(f) and ok_(F2[i]) and ag(f["pred"], F2[i]["pred"]), f2_tok=F2[i]["out_tokens"] or 0,
                                        t_ok=bool(T[i]["correct"]), t_tok=T[i]["out_tokens"] or 0, r=R.get(i)) for i, f in F.items() if i in T and i in F2 and (not SB or i in SBR)]
         for s in (1, 2, 3):
@@ -107,7 +108,7 @@ def cells(models=("oss20", "q14a", "q8b")):
             V = {r["id"]: (bool(r["accept"]), r.get("out_tokens") or 0) for r in _rows(f"{XRES}/review_{m}_geo_fact_s{s}.jsonl")}
             F, F2, T = load(f"S2_HOG_{m}_geo_fact_s{s}"), load(f"S2_HOG_{m}_geo_fact_s{s % 3 + 1}"), load(f"S2_HOG_{m}_geo_{GEO_THINK}_s{s}")
             T2G = load(f"S2_HOG_{m}_geo_{GEO_THINK}_s{s % 3 + 1}") or {}
-            yield (m, "geometry", s), [dict(t_pass=N.geo_check(T[k])[0], t2=(ok(T2G[k]), tok(T2G[k])) if k in T2G else (False, 0), sb=(N.geo_check(SBG[k])[0], ok(SBG[k]), tok(SBG[k])) if k in SBG else None, v=V.get("|".join(map(str, k))), f_ok=ok(f), f_pass=N.geo_check(f)[0], f_tok=tok(f),
+            yield (m, "geometry", s), [dict(id=k, t_pass=N.geo_check(T[k])[0], t2=(ok(T2G[k]), tok(T2G[k])) if k in T2G else (False, 0), sb=(N.geo_check(SBG[k])[0], ok(SBG[k]), tok(SBG[k])) if k in SBG else None, v=V.get("|".join(map(str, k))), f_ok=ok(f), f_pass=N.geo_check(f)[0], f_tok=tok(f),
                                             agree=N.geo_check(f)[0] and N.geo_check(F2[k])[0] and agree(f, F2[k]), f2_tok=tok(F2[k]),
                                             t_ok=ok(T[k]), t_tok=tok(T[k])) for k, f in F.items() if k in T and k in F2 and (not SB or k in SBG)]
 
