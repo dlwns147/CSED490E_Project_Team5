@@ -143,20 +143,16 @@ def budget_chat(prompt, budget, think=False, max_tokens=4096, temperature=0.7, s
             "think_tokens": used}
 
 
-_HTOK = None
-
-
 def harmony_budget_chat(prompt, budget, max_tokens=4096, temperature=0.7, seed=None):
-    """HO-OSB: budget forcing for gpt-oss. The prompt is the model's own chat template (POC_HARMONY = its directory) at
-    POC_HARMONY_EFFORT (default medium); the analysis channel runs for at most `budget` tokens (<|end|>, id 200007, ends it), then the
-    final channel is forced and the answer generated."""
-    global _HTOK
+    """HO-OSB: budget forcing for gpt-oss (POC_HARMONY set). The prompt is the model's chat template rendered by hand (one user turn,
+    no tools; the client venv has no transformers) at POC_HARMONY_EFFORT (default medium); the analysis channel runs for at most
+    `budget` tokens (<|end|>, id 200007, ends it), then the final channel is forced and the answer generated."""
+    import time
     from llm import client
-    if _HTOK is None:
-        from transformers import AutoTokenizer
-        _HTOK = AutoTokenizer.from_pretrained(os.environ["POC_HARMONY"])
-    head = _HTOK.apply_chat_template([{"role": "user", "content": prompt}], tokenize=False, add_generation_prompt=True,
-                                     reasoning_effort=os.environ.get("POC_HARMONY_EFFORT", "medium")) + "<|channel|>analysis<|message|>"
+    head = ("<|start|>system<|message|>You are ChatGPT, a large language model trained by OpenAI.\nKnowledge cutoff: 2024-06\n"
+            f"Current date: {time.strftime('%Y-%m-%d')}\n\nReasoning: {os.environ.get('POC_HARMONY_EFFORT', 'medium')}\n\n"
+            "# Valid channels: analysis, commentary, final. Channel must be included for every message.<|end|>"
+            f"<|start|>user<|message|>{prompt}<|end|><|start|>assistant<|channel|>analysis<|message|>")
     tp = 0.95 if temperature > 0 else 1.0
     r = client.completions.create(model="local", prompt=head, max_tokens=budget, temperature=temperature, top_p=tp, seed=seed,
                                   extra_body={"stop_token_ids": [200007]})
