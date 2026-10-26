@@ -142,6 +142,10 @@ reading of result files runs on the login node.
 
 ## 7. Harness facts that cost us time (keep them)
 - Results are flushed row by row and runs resume (re-running the same command skips finished rows); a torn line is skipped.
+- Client timeout (10-26, HO-32): Qwen3-32B-AWQ on 2 × 3090 at a 40,960 context holds only ~2–3 sequences of 32k tokens in its KV
+  cache, so most of a lane's requests wait in the server queue; with the default POC_TIMEOUT (3,600 s in lane.sh runs) they time out,
+  are logged as 'request failed' and write no row (BWOR 146, OptMATH 179). Set POC_TIMEOUT=43200 for long thinks of large models and
+  split the arms over several jobs; check `grep -c 'request failed' results/run_<tag>.log` before scoring.
 - Sandbox (`poc/sandbox.py`): BLAS / OpenMP single-threaded (else `import scipy` / `cvxpy` exceeds the CPU limit: fixed 2026-10-19);
   multi-threaded CP-SAT needs `cpu_s` ≫ wall time (free-solver modes use 3,600 s).
 - gpt-oss: a small `max_tokens` returns empty content (reasoning eats the budget) — use ≥ 2,000 and count empty replies; effort via
