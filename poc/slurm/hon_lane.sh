@@ -30,7 +30,7 @@ fi
 grp=$1 set=$2 seeds=${3:-"1 2 3"}
 # 10-23: the library prompt of long OptMATH problems + 32k thinking exceeded 36,864 tokens (vLLM rejects such a request, and the client
 # then stops writing rows); thinking with the fact gets a 45,056-token context (generation is unchanged: still at most 32k new tokens).
-MML=36864; case $grp in thinkfact|geothinkfact) MML=45056 ;; esac
+MML=36864; case $grp in thinkfact|geothinkfact) MML=45056 ;; thinkfact64|cc64k) MML=73728 ;; esac   # HO-CAP: 64k thinks
 S=$(bash poc/start_server.sh /SSD/huggingface/$dir $PORT $GPUL 0.92 hon_${m}_${grp}_${set}${3:+_$3} --max-model-len $MML $XV --max-num-seqs $MNS) || exit 1
 export POC_BASE_URL=http://127.0.0.1:$PORT/v1 POC_TIMEOUT=7200
 export POC_THINK_SAMPLING=$TS   # applied to thinking calls only (llm.chat)
@@ -93,6 +93,8 @@ for think in (False, True):
            CC_SET=full $P poc/run_cc.py run ${m}_think $sd --think >> $L 2>&1 &
          done ;;
   cc32k) for sd in 1 2 3; do CC_SET=full $P poc/run_cc.py run ${m}_think32k $sd --think --max_tokens 32000 >> $L 2>&1 & done ;;   # HO-CC amendment
+  thinkfact64) env ${4:+NLOPT_SHARD=$4} NLOPT_SET=$set $P poc/run_form.py ${m}t64 formx $seeds --tarm --think --max_tokens 64000 >> $L 2>&1 & ;;   # HO-CAP
+  cc64k) for sd in 1 2 3; do CC_SET=full $P poc/run_cc.py run ${m}_think64k $sd --think --max_tokens 64000 >> $L 2>&1 & done ;;   # HO-CAP
   thinkshard) NLOPT_SHARD=$4 NLOPT_SET=$set $P poc/run_nlopt.py ${m}_$set thinkfree $seeds --think --max_tokens $TK >> $L 2>&1 & ;;
   think) NLOPT_SET=$set $P poc/run_nlopt.py ${m}_$set thinkfree $seeds --think --max_tokens $TK >> $L 2>&1 & ;;
   geo)   for sd in 1 2 3; do

@@ -1027,3 +1027,14 @@ only; outputs compared with the problem's tolerance):
 - What does transfer: **the check at every step.** A retry on a visibly failed think adds +4.5 (Qwen3-14B-AWQ) and +6.4 (Nemotron) over
   one think, as on the word problems. Caveat: Nemotron's full think is still cut at 32k on 56% of contest problems (507 without a
   program), so its think-based numbers here are lower bounds; Qwen3-14B-AWQ's are not.
+
+## Addendum HO-CAP (2026-10-27 03:2x UTC, before any run): is short thinking first's gain an artefact of the full think's cap?
+**Why it could change the claim.** Part of SB+F's gain over always thinking comes from problems where the full think runs out of tokens
+(Qwen3.5-9B: 18.7% of OptMATH and 32.6% of LogiOR thinks hit 32k; Nemotron-3-Nano: 56% of contest thinks hit 32k). If the gain vanishes
+against an uncapped think, the claim must read "short thinking first beats a *capped* think; against an uncapped one it saves tokens".
+**Run.** Thinking with the fact at a 64,000-token cap: Qwen3.5-9B on LogiOR and OptMATH (`run_form.py q35t64 formx <seed> --tarm --think
+--max_tokens 64000`, context 73,728; tag q35t64 is the same model under another name), Nemotron-3-Nano on the 311 contest problems
+(`run_cc.py run n3n_think64k <seed> --think --max_tokens 64000`); seeds 1–3; SB+F / SB→T→T recomputed against these.
+- **CAP-P1:** on both Qwen3.5-9B cells SB+F still ties or beats THINK+F at 64k (upper bound ≥ 0), at ≤ 70% of its tokens.
+- **CAP-P2:** on contests Nemotron's SB→T→T still ties T→T at 64k at ≤ 90% of its tokens.
+**Decision.** Both → the gain is not a cap artefact; otherwise the claim is restated against an uncapped think as a token saving only.

@@ -3919,3 +3919,9 @@ test adds +4.5 (Qwen3-14B-AWQ: 40.8 → 45.3%) and +6.4 points (Nemotron-3-Nano:
 ties that (−1.5 [−3.3, +0.2], −0.5 [−2.4, +1.3]) at 94% / 82% of its tokens (CC-P1 refuted: ≤ 90% needed for both); a non-thinking
 program first loses 5.5–7.8. Nemotron's think hits 32k on 56% of these problems, so its numbers are lower bounds. CC-P2 (cross-mode
 agreement flags leaked programs: 93–97% vs 19–34%) held earlier. Contest problems need the full think; the check at every step carries over.
+
+## 2026-10-27 03:24 UTC: exploratory — the retry inside the recipe for gpt-oss
+gpt-oss has no budgeted think (its cheap arm already reasons at low effort), so its analogue of short think → think → retry is
+low-effort program → medium think → retry (FF→T→T). Against the check-matched think (T→T): gpt-oss-120b ties on BWOR (0.0) and LogiOR
+(−1.1) and trails on OptiBench (−2.0) at 51–64% of the tokens; gpt-oss-20b ties on OptiBench (+0.7 at 48%) but trails on BWOR (−7.7
+[−13.8, −1.6]) and LogiOR (−5.1): its low-effort programs that pass the check are wrong too often on the hardest word problems.
