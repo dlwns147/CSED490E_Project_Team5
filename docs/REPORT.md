@@ -266,6 +266,8 @@ cheap-first policies stay within one point in 37 of 54 cells (registered ≥ 40:
 +12, Nemotron OptMATH +8, Qwen3-14B-AWQ geometry +2), behind on the leaky models' hardest word problems (−2 to −4); gpt-oss-20b, a pure
 saving against one think, trails the check-matched think on BWOR (−10.2 [−16.7, −4.1]) and LogiOR (−8.0) at 37–44% of its tokens. The
 free check is worth applying to every step; which end of the frontier to take depends on the price of a token, and the pilot can choose.
+The retry should be a fresh think, not a repair: one non-thinking repair turn shown the error fixes only 4–36 of 26–117 failed thinks per
+cell, so repair-then-think costs 79–104% of the second think's tokens for +0 to +3 points (HO-TR; as Olausson et al., ICLR 2024).
 
 ![Five policies on every held-out benchmark, all given the same fact](../figs/fig24_frontier.png)
 
