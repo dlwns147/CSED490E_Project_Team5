@@ -3931,3 +3931,10 @@ Thinking with the fact at a 64k cap (instead of 32k) on Qwen3.5-9B's two most-ca
 47.8%) and +2.7 (OptMATH 29.0 → 31.7%), but short thinking first (escalating to the 64k think) is still ahead, +4.0 [−1.1, +8.7] and +4.3
 [+0.3, +8.7], at 81–84% of the 64k think's tokens (CAP-P1, ≤ 70%, refuted on tokens). With a retry on both sides the two tie (−1.8,
 +0.7) at 80–81%. Nemotron's 64k contest thinks (CAP-P2) are ~40% done.
+
+## 2026-10-27 09:04 UTC: HO-TR (PREREG_HO.md): repairing a failed think is not cheaper than thinking again
+On 16 word cells (four hybrid-thinking models, 3 seeds), one non-thinking repair turn shown the error of a visibly failed think fixes only
+4–36 of 26–117 failures per cell; the rest still need a second think. Repair-then-think is as accurate or more than think-again
+(recovers 90–145% of its gain) but at 79–104% of its extra tokens (TR-P1 and TR-P2 refuted, 0 / 16 each); with a short think first it
+adds +0 to +2.8 points at 95–102% of the tokens. Consistent with Olausson et al. (ICLR 2024): self-repair does not beat resampling on
+cost. The recipe's retry stays a fresh think.

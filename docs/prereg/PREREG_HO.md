@@ -1061,3 +1061,13 @@ BWOR, LogiOR, OptMATH, seeds 1–3. Policies: T→R (repair, else the next seed'
 - **TR-P1:** T→R recovers ≥ 50% of T→T's accuracy gain over one think in ≥ 10 of the 16 cells, at ≤ 50% of T→T's extra tokens.
 - **TR-P2:** SB→T→R ties SB→T→T (upper bound ≥ 0) in ≥ 12 of the 16 cells at ≤ 90% of its tokens.
 **Decision.** P1 and P2 → the recipe ends with a repair before a second think; otherwise a fresh think stays the retry (as Olausson et al.).
+
+### Results HO-TR (2026-10-27 09:0x UTC; `python poc/analyze_hotr.py`; 16 word cells × 3 seeds)
+- **TR-P1 refuted (0 / 16), TR-P2 refuted (0 / 16).** Repairing a visibly failed think from its error, then thinking again only if the
+  repair does not run, is *at least as accurate* as thinking again (T→R recovers 90–145% of T→T's gain; 15 / 16 cells ≥ 100%) but costs
+  79–104% of T→T's extra tokens, not ≤ 50%: only 4–36 of the 26–117 repairs per cell produce a running program, and the rest still need
+  the second think. With a short think first, SB→T→R is +0.0 to +2.8 over SB→T→T (significant in Qwen3.5-9B BWOR +2.8 [+0.8, +5.3],
+  OptMATH +1.7, Qwen3-14B-AWQ BWOR +1.6, OptMATH +1.3) at 95–102% of its tokens.
+- **Reading.** As Olausson et al. (ICLR 2024) found for code, a repair turn is not a cheaper substitute for a second sample: most failed
+  thinks cannot be fixed by a cheap turn. It is a small, nearly free accuracy add-on before the second think (+1 to +3 where it works).
+  As registered, the recipe's retry stays a fresh think; the repair is noted as an optional step.
