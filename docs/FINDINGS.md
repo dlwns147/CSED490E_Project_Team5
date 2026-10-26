@@ -3965,3 +3965,9 @@ on BWOR / LogiOR: it passes the check as often but its passing programs are wron
 predictions hold. With Qwen3 / Nemotron (HO-SB, SB2, SB4, CM), the rule for a model whose cheap programs leak is now one rule for every
 family tested: a 2k think first, a full think on a visible failure, one retry. (Where the check holds — Qwen3.5 — a non-thinking
 program first stays the cheap end; for gpt-oss-20b even OptiBench prefers the short think, 75.8 vs 73.5 utility.)
+
+## 2026-10-26 22:15 UTC: exploratory — cross-mode agreement as a gate on contests does not pay
+Stored rows (HO-CC agreement files), 311 problems × 3 seeds: accept the non-thinking program when it passes the samples and agrees with
+the short-think program on every test input, else think with a retry. Accuracy equals the check-matched think (Qwen3-14B-AWQ +0.2 [−0.3,
++0.9], Nemotron-3-Nano +0.0 [−0.6, +0.5]) but costs 103–113% of its tokens: only 12–18% of problems agree, so both cheap runs are paid
+almost always. Not pursued; agreement stays a per-program flag.
