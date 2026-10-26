@@ -46,7 +46,8 @@ table: `docs/REPORT.md` §5.1):
 - **Short thinking first fixes the leak without a review** (HO-SB, SB2, SB3): thinking with the fact cut at 2,000 tokens, full thinking
   only on that program's visible failure, never loses to always thinking with the fact in the 14 cells it was not chosen on (−0.3 to
   +10.1): Nemotron +3.3 to +6.3 at 72–92% of the tokens (more accurate and cheaper than the gate in all 4 word cells), Qwen3 OptMATH +2.3
-  / +3.3 at 85–90%, and Qwen3-8B geometry, the last losing cell, −0.3 (at 98%). It saves tokens where full thinking is long, not where it
+  / +3.3 at 85–90%, and Qwen3-8B geometry, the last losing cell, −0.3 (at 98%). Against an uncapped (64k) think the accuracy gain
+  stays (+4.0 / +4.3) and the saving shrinks to 16–19% (HO-CAP). It saves tokens where full thinking is long, not where it
   is already short (Nemotron geometry: 137%), and on Qwen3.5 it is more accurate but dearer than the plain recipe.
 - **Which to use is detectable:** a 30-label pilot over five policies loses 0.85 points on average over 60 held-out cells, where no fixed
   policy comes within 3.3; on word problems the first escalation is one cheap repair from the error (HO7, HO-N3, HO-R). Without labels,

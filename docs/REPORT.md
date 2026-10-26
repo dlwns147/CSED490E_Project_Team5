@@ -250,7 +250,9 @@ fixed policy loses 5.8, and adding the two to the 30-label pilot raises its util
   raw runs: problems on which full thinking's own program crashes, prints nothing or runs out at 32k, while the forced-short think
   finishes. It costs where full thinking is already short (Nemotron geometry, 1.7k: 137%) and, on Qwen3.5-9B, whose non-thinking programs
   are right when they pass, it is more accurate than the plain recipe (+2 to +8) but dearer (+4 to +66% tokens). A thinking first step
-  is what the leaky models lack; the non-thinking program first brings the leak back (exploratory: −5 to −17). The budget matters
+  is what the leaky models lack; the non-thinking program first brings the leak back (exploratory: −5 to −17). Part of the saving is the
+  full think's cap: against a 64k think (HO-CAP, Qwen3.5-9B's two most-capped cells) short thinking first is still +4.0 / +4.3 ahead but
+  at 81–84% of its tokens, not 49–85% as against the 32k think. The budget matters
   (HO-SB4): at 1,000 tokens Qwen3-8B loses on OptiBench (−3.1) and LogiOR (−6.2); at 4,000 both Nemotron and Qwen3-8B tie or beat in
   all 8 cells (Nemotron BWOR +10.2 [+5.3, +15.4]) and 4,000 has the best utility in 6 of 8 — "a short think first" means 2–4k tokens.
 
