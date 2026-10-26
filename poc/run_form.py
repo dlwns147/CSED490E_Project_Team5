@@ -130,8 +130,8 @@ if __name__ == "__main__":
                 q += "\n\nA program that runs with this library (written for a different problem):\n```python\n" + EX(p).strip() + "\n```"
         sd_ = seed * 1000 + zlib.crc32(p["id"].encode()) % 997
         if TB:
-            from run_geo_cross import budget_chat
-            o = budget_chat(q, TB, max_tokens=8192, temperature=0.7, seed=sd_)
+            from run_geo_cross import budget_chat, harmony_budget_chat   # HO-OSB: POC_HARMONY=<gpt-oss dir> selects the gpt-oss form
+            o = (harmony_budget_chat if os.environ.get("POC_HARMONY") else budget_chat)(q, TB, max_tokens=8192, temperature=0.7, seed=sd_)
         else:
             o = chat(q, think=THINK, max_tokens=MT, temperature=0.7, seed=sd_)
         code = last_block(o["text"] or "", ("python", "py", "python3"))

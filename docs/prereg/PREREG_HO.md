@@ -1095,3 +1095,22 @@ models); OptiBench on the HO-TF third. Policies as HO-CM (T, T→T, FF+F, SB+F, 
   ≥ 30 points more often than those that disagree.
 **Decision.** All three → the final recipe and its leak signal are stated for 8B–32B hybrid models; each refuted part is stated as a limit.
 *HO-32 setting fix (2026-10-26 14:1x UTC, before any row): Qwen3-32B-AWQ allows at most 40,960 positions, so its server runs at 40,960 (not 45,056); a library prompt longer than ~8.9k tokens plus the 32k think would be rejected and is logged, not written.*
+
+## Addendum HO-OSB (2026-10-26 21:4x UTC, before any run): a short think first for gpt-oss (the third family)
+**Why it could change the claim.** The recipe's first step differs by family: hybrid-thinking models (Qwen3, Qwen3.5, Nemotron-3-Nano)
+write the first program after a 2–4k-token think; gpt-oss has no budgeted think, so its first program comes from low reasoning effort
+(median 0.7–0.8k tokens on BWOR / LogiOR) — and there its order low effort → medium think → retry trails the check-matched think
+(gpt-oss-20b: BWOR −7.7 [−13.8, −1.6], LogiOR −5.1; exploratory, 2026-10-26 03:24). Low effort is about as long as the 1k first think
+that was too short for Qwen3-8B (HO-SB4). If a 2k medium-effort think first closes the gap at fewer tokens, "a short think (2–4k) first"
+holds for all three families; if not, gpt-oss stays the exception (its cheap end of the frontier is low effort). Related: budget
+forcing (s1, Muennighoff et al. 2025); per-problem budgets (TALE, Han et al. 2024; L1, Aggarwal & Welleck 2025); here the budget is the
+first step of a check cascade inside one model, for a model whose only control is an effort level.
+**Run.** gpt-oss-20b (1 × RTX 3090), seeds 1–3, `run_form.py oss20 formx <seed> --think_budget 2000` with POC_HARMONY set (new, as
+budget_chat for Qwen3: the model's own chat template at medium effort, the analysis channel cut at 2,000 tokens, then the final channel
+forced; tokens = analysis + final) on the OptiBench third, BWOR and LogiOR (OptMATH has no stored medium think for gpt-oss). Stored arms:
+formx (low effort) and formxt (medium, 16k). Policies as HO-CM (T, T→T, FF+F, SB+F, SB→T→T, FF+SB+F; λ = 0.5; `analyze_ho32.py oss20`).
+- **OSB-P1:** SB→T→T ties or beats T→T (paired 95% upper bound ≥ 0) on BWOR and on LogiOR, at ≤ 85% of T→T's tokens.
+- **OSB-P2:** the short think leaks less than low effort: SB+F − FF+F ≥ +3 points on BWOR and on LogiOR.
+- **OSB-P3:** SB→T→T is within 1.0 utility point of the best of the six policies in ≥ 2 of the 3 cells.
+**Decision.** P1 and P2 → the recipe's first step is stated for all three families as a 2k think (for gpt-oss: medium effort, cut);
+low effort is too short a first think on the hard word problems. P1 refuted → gpt-oss stays the exception and the claim names it.
