@@ -1081,3 +1081,16 @@ SB→T→T 55.4% @ 33.7k: **−3.1 [−4.8, −1.4]** against T→T at 84% of it
   at 81–84% of the tokens); on contest programming it does not (Nemotron −3.1). The claim says: short thinking first pays where problems
   need modelling more than long search (OR word problems, geometry) and is a token–accuracy trade on contest programming; the check at
   every step (the retry) pays in all three domains.
+
+## Addendum HO-32 (2026-10-27 12:4x UTC, before any run): the final recipe on a larger hybrid model (Qwen3-32B-AWQ, 2 × RTX 3090)
+**Why it could change the claim.** The final recipe — fact; short think first where the check leaks; full think only on a visible
+failure; think again once on failure — and its no-label default (SB→T→T) were measured on four hybrid models of 8–30B (3B active). A
+32B dense model, never run on these held-out thinking arms, tests whether the order and the label-free leak signal hold at a larger size.
+**Run.** Qwen3-32B-AWQ (tag q32b; tensor parallel over 2 × RTX 3090), seeds 1–3: `formx` (stored for OptiBench / OptMATH, new for BWOR /
+LogiOR), `formx --think_budget 2000`, `formx --tarm --think --max_tokens 32000` (thinking with the fact, 32k as for the other unseen
+models); OptiBench on the HO-TF third. Policies as HO-CM (T, T→T, FF+F, SB+F, SB→T→T, FF+SB+F; λ = 0.5).
+- **32-P1:** SB→T→T is within 1.0 utility point of the best of the six policies in ≥ 3 of the 4 cells.
+- **32-P2:** the retry pays: T→T − T ≥ +2 points in ≥ 3 of the 4 cells.
+- **32-P3 (label-free signal):** pooled over the 4 cells, passing non-thinking programs that agree with the short-think program are right
+  ≥ 30 points more often than those that disagree.
+**Decision.** All three → the final recipe and its leak signal are stated for 8B–32B hybrid models; each refuted part is stated as a limit.

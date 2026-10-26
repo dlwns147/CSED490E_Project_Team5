@@ -12,7 +12,7 @@ all numbers: `PROPOSAL.md` (Korean: `PROPOSAL_ko.md`). The lab log: `docs/FINDIN
 |---|---|
 | The model misuses the library, so its program crashes | Give it the **missing fact**: a few lines of exact usage, or its own checked program for a similar problem (found without labels). Raises the cheap program in 25 of 29 cells. |
 | Thinking on every problem is expensive | **Run the program for free and think only when it visibly fails.** Same accuracy at 30–78% of the tokens for models whose passing programs are right (gpt-oss, Qwen3.5). |
-| Some models' programs run but are wrong (the "leak": Qwen3, Nemotron) | **Think briefly first** (2–4k tokens) before writing the program; never lost to one full think in 14 new cells and closed the worst one (−16.7 → −0.3). |
+| Some models' programs run but are wrong (the "leak": Qwen3, Nemotron) | **Think briefly first** (2–4k tokens) before writing the program; never lost to one full think in 14 new word-problem / geometry cells and closed the worst one (−16.7 → −0.3); on contest problems the full think is better (−3 points against an uncapped think). |
 | Thinking also fails visibly sometimes | **Check every step: think again when the think's program fails** (+2.5 to +12 points); a quick repair instead is not cheaper (HO-TR). |
 | No labels to tell a wrong-but-running program | **Compare the quick program with the short-think program**: agreeing ones are right 93–97% of the time, disagreeing ones 19–34% (contest problems). |
 | Every model misreads the same statement (OptMATH) | Unsolved — partly the benchmark: many of its problems omit information the gold answer needs. |
