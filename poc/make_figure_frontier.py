@@ -1,5 +1,6 @@
 """Report figure (docs/REPORT.md §5.6b): accuracy vs output tokens per problem of five policies, every one given the same fact, on each
-held-out benchmark (columns) for the four hybrid-thinking models (rows), from the stored rows (seed means; 3 seeds):
+held-out benchmark (columns) for the four hybrid-thinking models, gpt-oss-20b (HO-OSB: low effort first; the short think = medium
+effort cut at 2,000 tokens) and Qwen3-32B-AWQ (HO-32) (rows), from the stored rows (seed means; 3 seeds):
   one think (formxt / thinkfact), think + retry on a visible failure (T->T: the next seed's think), non-thinking program first (FF+F, the
   original recipe), short think first (SB+F: 2,000-token think, full think on its visible failure), short think -> think -> retry (SB->T->T).
 OptiBench on the HO-TF third; OptMATH with the label-free library for every model; geometry: the helpers + hint fact, visible failure = the
@@ -12,7 +13,8 @@ import matplotlib.pyplot as plt  # noqa: E402
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 X3 = f"{ROOT}/results/x3"
-MODELS = (("q14a", "Qwen3-14B-AWQ"), ("q8b", "Qwen3-8B"), ("n3n", "Nemotron-3-Nano (new family)"), ("q35", "Qwen3.5-9B"))
+MODELS = (("q14a", "Qwen3-14B-AWQ"), ("q8b", "Qwen3-8B"), ("n3n", "Nemotron-3-Nano (new family)"), ("q35", "Qwen3.5-9B"),
+          ("oss20", "gpt-oss-20b"), ("q32b", "Qwen3-32B-AWQ"))
 BENCH = (("optibench", "OptiBench"), ("bwor", "BWOR"), ("logior", "LogiOR"), ("optmath", "OptMATH"), ("geometry", "geometry"))
 POL = (("T", "one think", "#8a8985", "o"), ("T->T", "think, retry on a visible failure", "#0b0b0b", "s"),
        ("FF+F", "non-thinking program first", "#2a78d6", "^"), ("SB+F", "short think first", "#eb6834", "D"),
@@ -64,7 +66,7 @@ def geometry(m):
 
 
 def main():
-    fig, axes = plt.subplots(len(MODELS), len(BENCH), figsize=(16, 12.5), facecolor=SURFACE)
+    fig, axes = plt.subplots(len(MODELS), len(BENCH), figsize=(16, 3.1 * len(MODELS) + 0.5), facecolor=SURFACE)
     for r, (m, mname) in enumerate(MODELS):
         for c, (b, bname) in enumerate(BENCH):
             ax = axes[r][c]; ax.set_facecolor(SURFACE)
