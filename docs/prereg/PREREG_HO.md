@@ -1038,3 +1038,13 @@ against an uncapped think, the claim must read "short thinking first beats a *ca
 - **CAP-P1:** on both Qwen3.5-9B cells SB+F still ties or beats THINK+F at 64k (upper bound ≥ 0), at ≤ 70% of its tokens.
 - **CAP-P2:** on contests Nemotron's SB→T→T still ties T→T at 64k at ≤ 90% of its tokens.
 **Decision.** Both → the gain is not a cap artefact; otherwise the claim is restated against an uncapped think as a token saving only.
+
+### Results HO-CAP, Qwen3.5-9B: CAP-P1 (2026-10-27 07:3x UTC; 64k thinks merged from shards; 3 seeds; SB+F escalates to the 64k think)
+| cell | THINK+F 32k (at cap) | THINK+F 64k (at cap) | SB+F | SB+F − THINK+F 64k (tokens) | T64→T64 | SB→T→T − T64→T64 (tokens) |
+|---|---|---|---|---|---|---|
+| LogiOR | 38.8% @ 23.8k (90) | 47.8% @ 29.5k (13) | 51.8% @ 23.9k | +4.0 [−1.1, +8.7] (81%) | 60.9% @ 45.7k | −1.8 [−6.2, +2.2] (81%) |
+| OptMATH | 29.0% @ 22.6k (56) | 31.7% @ 24.4k (3) | 36.0% @ 20.5k | **+4.3 [+0.3, +8.7]** (84%) | 40.7% @ 34.3k | +0.7 [−3.7, +5.0] (80%) |
+- **CAP-P1 refuted on tokens** (SB+F ties or beats the 64k think in 2 / 2, but at 81–84% of its tokens, not ≤ 70%). The accuracy gain is
+  not a cap artefact: lifting the cap helps the full think (+9.0 on LogiOR, +2.7 on OptMATH) yet short thinking first stays +4 ahead;
+  the saving against an uncapped think is 16–19%. Against the check-matched think at 64k, short think → think → retry ties (−1.8, +0.7)
+  at 80–81% of its tokens. CAP-P2 (Nemotron, contests) is scored when its 64k thinks finish.

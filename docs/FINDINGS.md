@@ -3925,3 +3925,9 @@ gpt-oss has no budgeted think (its cheap arm already reasons at low effort), so 
 low-effort program → medium think → retry (FF→T→T). Against the check-matched think (T→T): gpt-oss-120b ties on BWOR (0.0) and LogiOR
 (−1.1) and trails on OptiBench (−2.0) at 51–64% of the tokens; gpt-oss-20b ties on OptiBench (+0.7 at 48%) but trails on BWOR (−7.7
 [−13.8, −1.6]) and LogiOR (−5.1): its low-effort programs that pass the check are wrong too often on the hardest word problems.
+
+## 2026-10-27 07:35 UTC: HO-CAP, Qwen3.5-9B: short thinking first's gain survives an uncapped think; its saving shrinks to 16–19%
+Thinking with the fact at a 64k cap (instead of 32k) on Qwen3.5-9B's two most-capped cells: the full think gains +9.0 (LogiOR 38.8 →
+47.8%) and +2.7 (OptMATH 29.0 → 31.7%), but short thinking first (escalating to the 64k think) is still ahead, +4.0 [−1.1, +8.7] and +4.3
+[+0.3, +8.7], at 81–84% of the 64k think's tokens (CAP-P1, ≤ 70%, refuted on tokens). With a retry on both sides the two tie (−1.8,
++0.7) at 80–81%. Nemotron's 64k contest thinks (CAP-P2) are ~40% done.
