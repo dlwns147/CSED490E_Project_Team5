@@ -1114,3 +1114,23 @@ formx (low effort) and formxt (medium, 16k). Policies as HO-CM (T, T→T, FF+F, 
 - **OSB-P3:** SB→T→T is within 1.0 utility point of the best of the six policies in ≥ 2 of the 3 cells.
 **Decision.** P1 and P2 → the recipe's first step is stated for all three families as a 2k think (for gpt-oss: medium effort, cut);
 low effort is too short a first think on the hard word problems. P1 refuted → gpt-oss stays the exception and the claim names it.
+
+### Results HO-OSB (2026-10-26 22:1x UTC; `python poc/analyze_ho32.py oss20`; gpt-oss-20b, 3 seeds, all rows; λ = 0.5)
+| cell | T (one think) | T→T | FF+F (low effort first) | SB+F (2k think first) | SB→T→T | SB→T→T − T→T (tokens) |
+|---|---|---|---|---|---|---|
+| OptiBench third | 71.6% @ 2.26k | 74.9% @ 2.59k | 74.1% @ 1.09k | 75.9% @ 2.13k | **76.9% @ 2.26k** | +2.0 [−0.0, +4.0] (87%) |
+| BWOR | 60.2% @ 4.51k | **69.1% @ 5.73k** | 58.9% @ 2.10k | 65.4% @ 3.39k | 67.1% @ 3.93k | −2.0 [−6.9, +2.4] (69%) |
+| LogiOR | 50.7% @ 4.69k | 58.0% @ 6.70k | 50.0% @ 2.98k | 58.3% @ 4.26k | **61.2% @ 5.54k** | +3.3 [−0.4, +7.2] (83%) |
+- **OSB-P1 holds** (SB→T→T ties T→T on BWOR and LogiOR at 69% / 83% of its tokens; the low-effort order trailed by −7.7 / −5.1).
+  **OSB-P2 holds** (SB+F − FF+F: BWOR +6.5 [+1.2, +12.2], LogiOR +8.3 [+4.3, +13.0]; OptiBench +1.8 [−0.5, +4.0]). **OSB-P3 holds**
+  (SB→T→T has the best utility on OptiBench and LogiOR; on BWOR it is 1.1 below T→T).
+- Mechanism (raw rows): the 2k medium think passes the free check about as often as low effort (69–88% vs 68–84%) but its passing
+  programs are wrong less often on the hard sets (BWOR 30% vs 38%, LogiOR 23% vs 36%; OptiBench 20% vs 22%). It stops by itself in 37–41%
+  of BWOR / LogiOR problems (median think = the 2,000 cap there; OptiBench 1,320); when cut, the forced final answer still writes a
+  program that runs and prints a value in 67–75% of problems (natural stop: 72–86%), and its failures are visible API errors (e.g. an
+  invented `IntervalVar.PresenceBoolVar`), which escalate to the full think.
+- Cross-mode agreement (32-P3's measure, reported): a passing low-effort program that agrees with the short-think program is right 87%
+  of the time, 20% when it prints a different value (gpt-oss-20b, 3 cells pooled).
+- **Decision as registered:** the recipe's first step where the check leaks is stated for all three families as a 2k think —
+  budget-forced for the hybrid-thinking models, medium effort cut at 2,000 tokens for gpt-oss. Low effort (0.7–0.8k tokens) is too short a first think on the
+  hard word problems, as 1k was for Qwen3-8B (HO-SB4). gpt-oss-120b is not run.

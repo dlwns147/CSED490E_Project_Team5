@@ -17,7 +17,9 @@ problems. Against that baseline the recipe is a frontier, not a free lunch: a no
 matches it where the check holds (Qwen3.5-9B, geometry), but trails it on the hardest word problems (2–10 points, even for gpt-oss). For
 models whose free check leaks (Qwen3, Nemotron-3-Nano: passing non-thinking programs are wrong 33–79% of the time), writing the first
 program after a short think (2,000 tokens with the fact) never loses to one full think in 14 cells it was not chosen on (−0.3 to +10.1),
-saves 8–51% of the tokens on word problems and closes the last losing cell (Qwen3-8B geometry: −16.7 → −0.3). Without labels the best
+saves 8–51% of the tokens on word problems and closes the last losing cell (Qwen3-8B geometry: −16.7 → −0.3); for gpt-oss, a
+medium-effort think cut at 2,000 tokens instead of low effort closes its gap to the check-matched think on the hard word problems
+(tie at 69–83% of the tokens). Without labels the best
 fixed order over 54 cells of four hybrid-thinking models is short think → full think → retry on a visible failure (1.74 utility points
 below each cell's best; one think: 7.64); 30 labelled problems choose per cell within 1.35. Where the check is perfect (Lean proofs) the
 rule becomes "sample cheaply, then think"; where it leaks, it bounds label-free self-training as it bounds the recipe.
@@ -265,6 +267,10 @@ think → full think → retry (1.74), then short think first (3.00) and thinkin
 cheap-first policies stay within one point in 37 of 54 cells (registered ≥ 40: refuted): ahead where the check holds (Qwen3.5-9B +2 to
 +12, Nemotron OptMATH +8, Qwen3-14B-AWQ geometry +2), behind on the leaky models' hardest word problems (−2 to −4); gpt-oss-20b, a pure
 saving against one think, trails the check-matched think on BWOR (−10.2 [−16.7, −4.1]) and LogiOR (−8.0) at 37–44% of its tokens. The
+gap is gpt-oss's first step, not the order: its cheap program comes from low reasoning effort (0.7–0.8k tokens, as short as the 1k
+think that was too short for Qwen3-8B); a medium-effort think cut at 2,000 tokens as the first step (HO-OSB, pre-registered) makes
+short think → think → retry tie the check-matched think on BWOR (−2.0 [−6.9, +2.4] at 69% of its tokens) and LogiOR (+3.3 [−0.4,
++7.2] at 83%) and beat it on OptiBench (+2.0 at 87%): its passing programs are wrong less often (BWOR 30% vs 38%, LogiOR 23% vs 36%). The
 free check is worth applying to every step; which end of the frontier to take depends on the price of a token, and the pilot can choose.
 The retry should be a fresh think, not a repair: one non-thinking repair turn shown the error fixes only 4–36 of 26–117 failed thinks per
 cell, so repair-then-think costs 79–104% of the second think's tokens for +0 to +3 points (HO-TR; as Olausson et al., ICLR 2024).
@@ -377,8 +383,9 @@ wall-clock time or CPU time of the checks.
 For computational problems on RTX 3090s, the missing fact is the cheapest lever: a few lines of exact usage or a checked program for a
 similar problem, found without labels, improve both cheap programs and thinking. The free check is worth applying at every step —
 including to thinking, whose visibly failed programs are worth a second think. Where a model's non-thinking programs are right when they
-pass (gpt-oss, Qwen3.5-9B) a non-thinking program first is the cheap end of the frontier; where they leak (Qwen3, Nemotron-3-Nano) the
-first program should come after a short think (2–4k tokens), which never lost to one full think in 14 unseen cells and closed the worst
+pass (gpt-oss, Qwen3.5-9B) a non-thinking program first is the cheap end of the frontier; where they leak (Qwen3, Nemotron-3-Nano, and
+gpt-oss-20b on the hardest word problems, where medium effort cut at 2k replaces low effort) the first program should come after a short
+think (2–4k tokens), which never lost to one full think in 14 unseen cells and closed the worst
 one (Qwen3-8B geometry). Without labels, short think → think → retry is the best fixed order over 54 cells; 30 labels choose per cell, and
 agreement between the non-thinking and the short-think program flags the leak without any label (93–97% right when they agree on
 contest problems). Where every model misreads the same statement (OptMATH: underspecified job-shop problems, direction-dependent pair

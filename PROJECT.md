@@ -12,9 +12,9 @@ all numbers: `PROPOSAL.md` (Korean: `PROPOSAL_ko.md`). The lab log: `docs/FINDIN
 |---|---|
 | The model misuses the library, so its program crashes | Give it the **missing fact**: a few lines of exact usage, or its own checked program for a similar problem (found without labels). Raises the cheap program in 25 of 29 cells. |
 | Thinking on every problem is expensive | **Run the program for free and think only when it visibly fails.** Same accuracy at 30–78% of the tokens for models whose passing programs are right (gpt-oss, Qwen3.5). |
-| Some models' programs run but are wrong (the "leak": Qwen3, Nemotron) | **Think briefly first** (2–4k tokens) before writing the program; never lost to one full think in 14 new word-problem / geometry cells and closed the worst one (−16.7 → −0.3); on contest problems the full think is better (−3 points against an uncapped think). |
+| Some models' programs run but are wrong (the "leak": Qwen3, Nemotron, gpt-oss on the hardest word problems) | **Think briefly first** (2–4k tokens) before writing the program; never lost to one full think in 14 new word-problem / geometry cells and closed the worst one (−16.7 → −0.3); for gpt-oss a medium think cut at 2k instead of low effort ties the think-with-retry at 69–83% of its tokens (HO-OSB); on contest problems the full think is better (−3 points against an uncapped think). |
 | Thinking also fails visibly sometimes | **Check every step: think again when the think's program fails** (+2.5 to +12 points); a quick repair instead is not cheaper (HO-TR). |
-| No labels to tell a wrong-but-running program | **Compare the quick program with the short-think program**: agreeing ones are right 93–97% of the time, disagreeing ones 19–34% (contest problems). |
+| No labels to tell a wrong-but-running program | **Compare the quick program with the short-think program**: agreeing ones are right 93–97% of the time, disagreeing ones 19–34% (contest problems). It flags single programs but cannot replace the 30 labels for choosing the policy (HO-LF: shared mistakes outvote the truth). |
 | Every model misreads the same statement (OptMATH) | Unsolved — partly the benchmark: many of its problems omit information the gold answer needs. |
 
 Recipe: give the fact → short think → program → free check → full think only on a visible failure → think again once on failure. Honest
@@ -33,7 +33,8 @@ models).
 a similar problem, found with no labels) → run a free check (the program runs; its outputs on moved / rotated / mirrored copies agree; the
 statement's examples pass) → when the check visibly fails, one cheap repair turn with the error (word problems), then think harder →
 reuse a checked program when the problem repeats. For models whose free check leaks (their passing non-thinking programs are often
-wrong), the first program is written after a short think (2–4k tokens, budget forcing; 1k is too short, HO-SB4) instead of none (HO-SB); the check applies to
+wrong), the first program is written after a short think (2–4k tokens, budget forcing; 1k is too short, HO-SB4; gpt-oss: medium effort cut at 2k
+instead of low effort, HO-OSB) instead of none (HO-SB); the check applies to
 every step, so a visibly failed think is retried (HO-CM).
 
 ## 2. Main claim and where it stands
@@ -44,7 +45,8 @@ tokens, and is more accurate than every cheap-first policy there for every model
 −4.1] at 37% of T→T's tokens). The claim is therefore a frontier: **apply the free check at every step, thinking included.** Over 54
 cells of four hybrid-thinking models the best fixed order without labels is short think → full think → retry on a visible failure
 (SB→T→T: 1.74 utility points below each cell's best at λ = 0.5; one think: 7.64; T→T: 3.40); the non-thinking program first is on the
-frontier where the check holds (Qwen3.5, geometry) and 2–4 points behind on the leaky models' hardest word problems.
+frontier where the check holds (Qwen3.5, geometry) and 2–4 points behind on the leaky models' hardest word problems. gpt-oss-20b's gap
+(low effort first) closes the same way: a medium-effort think cut at 2k first ties T→T on BWOR / LogiOR at 69–83% of its tokens (HO-OSB).
 
 Held-out benchmarks, 3 seeds, 95% intervals over problems; always thinking is given the same fact as the recipe (HO-TF, HO-TF2; full
 table: `docs/REPORT.md` §5.1):

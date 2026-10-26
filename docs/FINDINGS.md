@@ -3954,3 +3954,14 @@ votes kept the leaky cheap program, 2.58). The pseudo-labels match the true labe
 — Qwen3-8B geometry (wrong cheap programs that fail only the degenerate variant agree with the thinks on all six voting inputs; regret 7.5)
 and OptMATH (shared misformulations; Qwen3.5 3.4, with thinking-only votes 7.9). Decision as registered: labels stay; cross-mode
 agreement is reported as a per-program leak flag only.
+
+## 2026-10-26 22:14 UTC: HO-OSB (PREREG_HO.md): a 2k think first works for gpt-oss too — the recipe's first step holds for all three families
+gpt-oss has no budgeted think; its recipe started from low reasoning effort (median 0.7–0.8k tokens) and trailed the check-matched think
+on the hard word problems. Cutting a medium-effort think at 2,000 tokens (gpt-oss chat format rendered by hand, the final channel
+forced; harmony_budget_chat) and using it as the first step: short think → think → retry ties the check-matched think on BWOR (−2.0
+[−6.9, +2.4] at 69% of its tokens; low effort first: −7.7) and LogiOR (+3.3 [−0.4, +7.2] at 83%; low effort first: −5.1), and is the
+best policy on OptiBench (76.9% @ 2.26k vs T→T 74.9% @ 2.59k). The short think beats low effort as the first step by +6.5 / +8.3 points
+on BWOR / LogiOR: it passes the check as often but its passing programs are wrong less often (30% vs 38%, 23% vs 36%). All three
+predictions hold. With Qwen3 / Nemotron (HO-SB, SB2, SB4, CM), the rule for a model whose cheap programs leak is now one rule for every
+family tested: a 2k think first, a full think on a visible failure, one retry. (Where the check holds — Qwen3.5 — a non-thinking
+program first stays the cheap end; for gpt-oss-20b even OptiBench prefers the short think, 75.8 vs 73.5 utility.)
