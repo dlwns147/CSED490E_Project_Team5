@@ -216,7 +216,7 @@ think stays at inference and the report says distillation of it does not fix the
 2,324 training examples with the development data, code-only targets (no reasoning text in any). Training submitted (tag `q8bsft5`),
 evaluation queued behind it.*
 
-### Results DT6 (2026-10-26 23:2x UTC; `q8bsft5` = trained on short-think programs; no fact; 3 seeds, paired 95% intervals vs round 1)
+### Results DT6 (2026-10-25 23:2x UTC; `q8bsft5` = trained on short-think programs; no fact; 3 seeds, paired 95% intervals vs round 1)
 | held-out | round 1 (leak) | round 2 self-consistency | round 2c + review | **distilled short think** (leak) | distilled − round 1 |
 |---|---|---|---|---|---|
 | OptiBench all | 54.2% (28%) | 54.2% (28%) | 53.6% (28%) | 55.7% (28%) | +1.5 [−0.7, +3.5] |

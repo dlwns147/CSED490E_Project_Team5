@@ -683,3 +683,89 @@ SL vr2_q14a done Sat Oct 24 14:36:44 UTC 2026
 SL vr3_q35 done Sat Oct 24 16:42:26 UTC 2026
 SL dt5_review done Sat Oct 24 17:38:40 UTC 2026
 SL vr3b_q35 done Sat Oct 24 18:05:07 UTC 2026
+SL dt5_eval done Sat Oct 24 20:58:55 UTC 2026
+SL wf5_r2 done Sat Oct 24 21:26:55 UTC 2026
+SL wf5_r1 done Sat Oct 24 21:30:01 UTC 2026
+SL_HON probe  done Sat Oct 24 22:28:27 UTC 2026
+SL_HON cheap bwor done Sat Oct 24 22:45:57 UTC 2026
+SL_HON geofact  done Sat Oct 24 22:52:09 UTC 2026
+SL_HON cheap optmath done Sat Oct 24 22:58:57 UTC 2026
+SL_HON cheap logior done Sat Oct 24 23:00:14 UTC 2026
+SL_HON thinkfact optibench done Sat Oct 24 23:15:00 UTC 2026
+SL_HON gaterep bwor done Sat Oct 24 23:19:45 UTC 2026
+SL_HON cheap optibench done Sat Oct 24 23:23:17 UTC 2026
+SL_HON thinkfact optibench done Sat Oct 24 23:29:42 UTC 2026
+SL_HON thinkfact optibench done Sat Oct 24 23:30:58 UTC 2026
+SL_HON thinkfact bwor done Sat Oct 24 23:35:07 UTC 2026
+SL_HON gaterep logior done Sat Oct 24 23:36:05 UTC 2026
+SL_HON thinkfact bwor done Sat Oct 24 23:44:26 UTC 2026
+SL_HON gaterep optmath done Sat Oct 24 23:51:23 UTC 2026
+SL_HON review geo done Sat Oct 24 23:51:24 UTC 2026
+SL_HON thinkfact bwor done Sat Oct 24 23:51:48 UTC 2026
+SL_HON gaterep optibench done Sat Oct 24 23:53:55 UTC 2026
+SL_HON thinkfact logior done Sat Oct 24 23:59:23 UTC 2026
+SL_HON thinkfact logior done Sat Oct 24 23:59:34 UTC 2026
+SL wf5_q14 done Sun Oct 25 00:02:11 UTC 2026
+SL_HON geothinkfact 1 done Sun Oct 25 00:16:50 UTC 2026
+SL_HON geothinkfact 2 done Sun Oct 25 00:23:01 UTC 2026
+SL_HON geothinkfact 3 done Sun Oct 25 00:29:14 UTC 2026
+SL_HON budget2kset bwor done Sun Oct 25 02:02:39 UTC 2026
+SL_HON budget2kset logior done Sun Oct 25 02:09:13 UTC 2026
+SL_HON budget2kset optibench done Sun Oct 25 02:36:41 UTC 2026
+SL_HON budget2kset optmath done Sun Oct 25 02:51:15 UTC 2026
+SL sb2_q14a_b done Sun Oct 25 03:30:11 UTC 2026
+SL sb2_q8b_b done Sun Oct 25 03:58:46 UTC 2026
+SL_HON geobudget all done Sun Oct 25 05:15:44 UTC 2026
+SL_HON geobudget all done Sun Oct 25 05:45:18 UTC 2026
+SL sb2_q14a_t2s3 done Sun Oct 25 06:26:01 UTC 2026
+SL sb2_q14a_t2s2 done Sun Oct 25 06:26:16 UTC 2026
+SL sb2_q14a_t2s1 done Sun Oct 25 06:28:45 UTC 2026
+SL sb2_q8b_t2s2 done Sun Oct 25 07:25:02 UTC 2026
+SL sb2_q8b_t2s1 done Sun Oct 25 07:28:54 UTC 2026
+SL sb2_q8b_t2s3 done Sun Oct 25 07:41:34 UTC 2026
+SL_HON budgetsweep 1000 4000 done Sun Oct 25 07:54:37 UTC 2026
+SL sb4_q8b_1000_logior done Sun Oct 25 08:15:59 UTC 2026
+SL sb4_q8b_1000_optibench done Sun Oct 25 08:16:49 UTC 2026
+SL sb4_q8b_1000_bwor done Sun Oct 25 08:20:10 UTC 2026
+SL sb4_q8b_1000_optmath done Sun Oct 25 08:35:30 UTC 2026
+SL sb4_q8b_4000_bwor done Sun Oct 25 09:02:24 UTC 2026
+SL sb4_q8b_4000_logior done Sun Oct 25 09:12:26 UTC 2026
+SL sb4_q8b_4000_optibench done Sun Oct 25 09:38:46 UTC 2026
+SL sb4_q8b_4000_optmath done Sun Oct 25 09:43:41 UTC 2026
+SL dt6_gen_s1_0 done Sun Oct 25 13:16:04 UTC 2026
+SL dt6_gen_s1_2 done Sun Oct 25 13:16:35 UTC 2026
+SL dt6_gen_s2_1 done Sun Oct 25 13:18:43 UTC 2026
+SL dt6_gen_s1_1 done Sun Oct 25 13:18:53 UTC 2026
+SL dt6_gen_s2_0 done Sun Oct 25 13:19:23 UTC 2026
+SL dt6_gen_s2_2 done Sun Oct 25 13:19:43 UTC 2026
+SL_HON cc all done Sun Oct 25 14:59:26 UTC 2026
+SL cc_q14a_s2 done Sun Oct 25 15:02:16 UTC 2026
+SL cc_q14a_s1 done Sun Oct 25 15:02:45 UTC 2026
+SL cc_q14a_s3 done Sun Oct 25 15:05:40 UTC 2026
+SL dt6_eval done Sun Oct 25 23:21:45 UTC 2026
+SL cc32_q14a_s1_1 done Mon Oct 26 01:32:43 UTC 2026
+SL cc32_q14a_s3_1 done Mon Oct 26 01:34:06 UTC 2026
+SL cc32_q14a_s2_1 done Mon Oct 26 01:46:38 UTC 2026
+SL cc32_q14a_s2_0 done Mon Oct 26 01:54:41 UTC 2026
+SL cc32_q14a_s1_0 done Mon Oct 26 01:57:42 UTC 2026
+SL cc32_q14a_s3_0 done Mon Oct 26 02:16:01 UTC 2026
+SL_HON cc32k all done Mon Oct 26 03:18:23 UTC 2026
+SL_HON thinkfact64 optmath done Mon Oct 26 05:24:42 UTC 2026
+SL_HON thinkfact64 optmath done Mon Oct 26 05:40:19 UTC 2026
+SL_HON thinkfact64 logior done Mon Oct 26 05:59:16 UTC 2026
+SL_HON thinkfact64 optmath done Mon Oct 26 06:00:39 UTC 2026
+SL_HON thinkfact64 optmath done Mon Oct 26 06:12:44 UTC 2026
+SL_HON thinkfact64 optmath done Mon Oct 26 06:14:59 UTC 2026
+SL_HON thinkfact64 optmath done Mon Oct 26 06:19:11 UTC 2026
+SL_HON thinkfact64 logior done Mon Oct 26 06:27:08 UTC 2026
+SL_HON thinkfact64 logior done Mon Oct 26 06:31:19 UTC 2026
+SL_HON thinkfact64 logior done Mon Oct 26 07:10:45 UTC 2026
+SL_HON thinkfact64 logior done Mon Oct 26 07:12:13 UTC 2026
+SL_HON thinkfact64 logior done Mon Oct 26 07:34:02 UTC 2026
+SL_HON repairt all done Mon Oct 26 08:46:25 UTC 2026
+SL q14a_tr done Mon Oct 26 08:53:59 UTC 2026
+SL q8b_tr done Mon Oct 26 08:57:00 UTC 2026
+SL_HON repairt all done Mon Oct 26 09:02:46 UTC 2026
+SL h32_optibench done Mon Oct 26 19:10:46 UTC 2026
+SL h32_bwor done Mon Oct 26 19:44:55 UTC 2026
+SL h32_bwor2 done Mon Oct 26 21:07:03 UTC 2026

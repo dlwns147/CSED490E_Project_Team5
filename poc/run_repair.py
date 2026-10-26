@@ -73,7 +73,7 @@ def main():
                 "out_tokens": o.get("out_tokens"), "finish": o.get("finish")}
     with ThreadPoolExecutor(48) as ex, open(path, "a") as fh:
         for fu in as_completed([ex.submit(one, f) for f in todo]):
-            try:   # 10-27 (as run_form): a rejected request must not stop the later rows from being written
+            try:   # 10-26 (as run_form): a rejected request must not stop the later rows from being written
                 fh.write(json.dumps(fu.result()) + "\n"); fh.flush()
             except Exception as e:
                 print(m, SET, seed, "request failed, no row:", repr(e)[:200], flush=True)

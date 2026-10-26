@@ -973,7 +973,7 @@ think), T→T (on T's visible failure the next seed's think), SB→T→T, FF+T (
 **Decision.** CC-P1 → the order is stated for programs in general (three domains); otherwise for OR and geometry. CC-P2 → cross-mode
 agreement is reported as a label-free leak signal (the project's open problem) and tested as a gate next.
 
-### Results HO-CC as registered (2026-10-26 15:0x UTC; `python poc/analyze_hocc.py q14a n3n`; 311 problems × 3 seeds, all rows) — not interpretable for the order
+### Results HO-CC as registered (2026-10-25 15:0x UTC; `python poc/analyze_hocc.py q14a n3n`; 311 problems × 3 seeds, all rows) — not interpretable for the order
 | model | T (one think, 16k) | T→T | SB→T→T − T→T (tokens) | SB+T − T→T | FF+T − T→T |
 |---|---|---|---|---|---|
 | Qwen3-14B-AWQ | 32.5% @ 13.4k | 37.0% @ 22.9k | +1.1 [−1.0, +3.1] (92%) | −1.5 (57%) | −6.6 (51%) |
@@ -986,7 +986,7 @@ agreement is reported as a label-free leak signal (the project's open problem) a
   32000`, tag `<m>_think32k`) and CC-P1 is scored on it; the 16k table above stays as the record. CC-P2 does not involve the think and is
   scored as registered.
 
-### Results HO-SB4 (2026-10-26 15:4x UTC; `python poc/analyze_hotb.py <B> n3n q8b`, B ∈ {1,000, 2,000, 4,000}; 3 seeds, all rows)
+### Results HO-SB4 (2026-10-25 15:4x UTC; `python poc/analyze_hotb.py <B> n3n q8b`, B ∈ {1,000, 2,000, 4,000}; 3 seeds, all rows)
 SB+F − THINK+F (tokens vs THINK+F); utility U = accuracy − 0.5 × ktokens:
 | cell | B = 1,000 | B = 2,000 | B = 4,000 | U at 1k / 2k / 4k |
 |---|---|---|---|---|
@@ -1004,7 +1004,7 @@ SB+F − THINK+F (tokens vs THINK+F); utility U = accuracy − 0.5 × ktokens:
   between 2,000 and 4,000 a longer first think buys accuracy (Nemotron BWOR +10.2 at 4,000) for tokens. **Decision as registered:** the
   claim says "a short think first (2–4k tokens)", and the budget joins what the 30-label pilot chooses.
 
-### Results HO-CC, CC-P2 (2026-10-26 17:4x UTC; `python poc/analyze_hocc.py --agree q14a n3n` on a CPU node; 3 seeds)
+### Results HO-CC, CC-P2 (2026-10-25 17:4x UTC; `python poc/analyze_hocc.py --agree q14a n3n` on a CPU node; 3 seeds)
 Among non-thinking programs that pass the statement's samples, run with the same seed's short-think program on every test input (inputs
 only; outputs compared with the problem's tolerance):
 | model | agree on every input: pass all hidden tests | disagree, or the short think fails the samples | (short think passes the samples but disagrees) |
@@ -1016,7 +1016,7 @@ only; outputs compared with the problem's tolerance):
   program is right 93–97% of the time. With the word-problem result (exploratory: 78% vs 16%), this is the project's label-free signal
   for when the cheap program is wrong — the open problem since the start — with OptMATH (shared formulation errors) as its known limit.
 
-### Results HO-CC, CC-P1 as amended (2026-10-27 03:2x UTC; `python poc/analyze_hocc.py --think_tag think32k n3n q14a`; 311 problems × 3 seeds)
+### Results HO-CC, CC-P1 as amended (2026-10-26 03:2x UTC; `python poc/analyze_hocc.py --think_tag think32k n3n q14a`; 311 problems × 3 seeds)
 | model | T (one think, 32k) | T→T | SB→T→T (tokens vs T→T) | SB→T→T − T→T | FF+T − T→T | think at the cap |
 |---|---|---|---|---|---|---|
 | Qwen3-14B-AWQ | 40.8% @ 16.6k | **45.3%** @ 24.6k | 43.8% (94%) | −1.5 [−3.3, +0.2] | −7.8 [−9.9, −5.8] | 10 / 933 |
@@ -1028,7 +1028,7 @@ only; outputs compared with the problem's tolerance):
   one think, as on the word problems. Caveat: Nemotron's full think is still cut at 32k on 56% of contest problems (507 without a
   program), so its think-based numbers here are lower bounds; Qwen3-14B-AWQ's are not.
 
-## Addendum HO-CAP (2026-10-27 03:2x UTC, before any run): is short thinking first's gain an artefact of the full think's cap?
+## Addendum HO-CAP (2026-10-26 03:2x UTC, before any run): is short thinking first's gain an artefact of the full think's cap?
 **Why it could change the claim.** Part of SB+F's gain over always thinking comes from problems where the full think runs out of tokens
 (Qwen3.5-9B: 18.7% of OptMATH and 32.6% of LogiOR thinks hit 32k; Nemotron-3-Nano: 56% of contest thinks hit 32k). If the gain vanishes
 against an uncapped think, the claim must read "short thinking first beats a *capped* think; against an uncapped one it saves tokens".
@@ -1039,7 +1039,7 @@ against an uncapped think, the claim must read "short thinking first beats a *ca
 - **CAP-P2:** on contests Nemotron's SB→T→T still ties T→T at 64k at ≤ 90% of its tokens.
 **Decision.** Both → the gain is not a cap artefact; otherwise the claim is restated against an uncapped think as a token saving only.
 
-### Results HO-CAP, Qwen3.5-9B: CAP-P1 (2026-10-27 07:3x UTC; 64k thinks merged from shards; 3 seeds; SB+F escalates to the 64k think)
+### Results HO-CAP, Qwen3.5-9B: CAP-P1 (2026-10-26 07:3x UTC; 64k thinks merged from shards; 3 seeds; SB+F escalates to the 64k think)
 | cell | THINK+F 32k (at cap) | THINK+F 64k (at cap) | SB+F | SB+F − THINK+F 64k (tokens) | T64→T64 | SB→T→T − T64→T64 (tokens) |
 |---|---|---|---|---|---|---|
 | LogiOR | 38.8% @ 23.8k (90) | 47.8% @ 29.5k (13) | 51.8% @ 23.9k | +4.0 [−1.1, +8.7] (81%) | 60.9% @ 45.7k | −1.8 [−6.2, +2.2] (81%) |
@@ -1049,7 +1049,7 @@ against an uncapped think, the claim must read "short thinking first beats a *ca
   the saving against an uncapped think is 16–19%. Against the check-matched think at 64k, short think → think → retry ties (−1.8, +0.7)
   at 80–81% of its tokens. CAP-P2 (Nemotron, contests) is scored when its 64k thinks finish.
 
-## Addendum HO-TR (2026-10-27 08:3x UTC, before any run): repair a failed think from its error instead of thinking again?
+## Addendum HO-TR (2026-10-26 08:3x UTC, before any run): repair a failed think from its error instead of thinking again?
 **Why it could change the claim.** The largest transferable lever is the check applied to thinking: a second think on a visible failure
 (T→T) adds +2.5 to +12.3 points but costs 19–64% more tokens. If one cheap non-thinking repair turn shown the error recovers most of that
 at a fraction of the cost, the recipe's last step becomes "repair, then think again only if the repair fails". Prior work: self-repair
@@ -1062,7 +1062,7 @@ BWOR, LogiOR, OptMATH, seeds 1–3. Policies: T→R (repair, else the next seed'
 - **TR-P2:** SB→T→R ties SB→T→T (upper bound ≥ 0) in ≥ 12 of the 16 cells at ≤ 90% of its tokens.
 **Decision.** P1 and P2 → the recipe ends with a repair before a second think; otherwise a fresh think stays the retry (as Olausson et al.).
 
-### Results HO-TR (2026-10-27 09:0x UTC; `python poc/analyze_hotr.py`; 16 word cells × 3 seeds)
+### Results HO-TR (2026-10-26 09:0x UTC; `python poc/analyze_hotr.py`; 16 word cells × 3 seeds)
 - **TR-P1 refuted (0 / 16), TR-P2 refuted (0 / 16).** Repairing a visibly failed think from its error, then thinking again only if the
   repair does not run, is *at least as accurate* as thinking again (T→R recovers 90–145% of T→T's gain; 15 / 16 cells ≥ 100%) but costs
   79–104% of T→T's extra tokens, not ≤ 50%: only 4–36 of the 26–117 repairs per cell produce a running program, and the rest still need
@@ -1072,7 +1072,7 @@ BWOR, LogiOR, OptMATH, seeds 1–3. Policies: T→R (repair, else the next seed'
   thinks cannot be fixed by a cheap turn. It is a small, nearly free accuracy add-on before the second think (+1 to +3 where it works).
   As registered, the recipe's retry stays a fresh think; the repair is noted as an optional step.
 
-### Results HO-CAP, Nemotron-3-Nano on contests: CAP-P2 (2026-10-27 12:4x UTC; `python poc/analyze_hocc.py --think_tag think64k n3n`; 311 × 3)
+### Results HO-CAP, Nemotron-3-Nano on contests: CAP-P2 (2026-10-26 12:4x UTC; `python poc/analyze_hocc.py --think_tag think64k n3n`; 311 × 3)
 At 64k the think hits the cap on 13 of 933 problems (32k: 525) and solves 55.4% (32k: 34.9%); with a retry 58.5% @ 40.3k.
 SB→T→T 55.4% @ 33.7k: **−3.1 [−4.8, −1.4]** against T→T at 84% of its tokens; SB+T −5.4; the non-thinking program first −6.0.
 - **CAP-P2 refuted.** The contest tie at 32k (HO-CC, −0.5) was an artefact of the capped think: against an uncapped think, short thinking
@@ -1082,7 +1082,7 @@ SB→T→T 55.4% @ 33.7k: **−3.1 [−4.8, −1.4]** against T→T at 84% of it
   need modelling more than long search (OR word problems, geometry) and is a token–accuracy trade on contest programming; the check at
   every step (the retry) pays in all three domains.
 
-## Addendum HO-32 (2026-10-27 12:4x UTC, before any run): the final recipe on a larger hybrid model (Qwen3-32B-AWQ, 2 × RTX 3090)
+## Addendum HO-32 (2026-10-26 12:4x UTC, before any run): the final recipe on a larger hybrid model (Qwen3-32B-AWQ, 2 × RTX 3090)
 **Why it could change the claim.** The final recipe — fact; short think first where the check leaks; full think only on a visible
 failure; think again once on failure — and its no-label default (SB→T→T) were measured on four hybrid models of 8–30B (3B active). A
 32B dense model, never run on these held-out thinking arms, tests whether the order and the label-free leak signal hold at a larger size.
@@ -1094,4 +1094,4 @@ models); OptiBench on the HO-TF third. Policies as HO-CM (T, T→T, FF+F, SB+F, 
 - **32-P3 (label-free signal):** pooled over the 4 cells, passing non-thinking programs that agree with the short-think program are right
   ≥ 30 points more often than those that disagree.
 **Decision.** All three → the final recipe and its leak signal are stated for 8B–32B hybrid models; each refuted part is stated as a limit.
-*HO-32 setting fix (2026-10-27 14:1x UTC, before any row): Qwen3-32B-AWQ allows at most 40,960 positions, so its server runs at 40,960 (not 45,056); a library prompt longer than ~8.9k tokens plus the 32k think would be rejected and is logged, not written.*
+*HO-32 setting fix (2026-10-26 14:1x UTC, before any row): Qwen3-32B-AWQ allows at most 40,960 positions, so its server runs at 40,960 (not 45,056); a library prompt longer than ~8.9k tokens plus the 32k think would be rejected and is logged, not written.*

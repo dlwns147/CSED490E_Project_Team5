@@ -166,3 +166,27 @@ budgeted rows exist only for the library arm.
   cells), and 30 labels bring it to 1.19. **Decision as registered:** the recipe is stated as one menu — non-thinking program first where
   the check holds, short thinking with the fact first where it leaks — with short thinking first as the no-label default for
   hybrid-thinking models and 30 labels to choose per cell.
+
+## Addendum HO-LF (2026-10-26 21:2x UTC, before computing; offline): a label-free pilot from cross-mode votes
+**Why it could change the claim.** The recipe chooses its policy per cell with 30 labelled problems (HO-CM: regret 1.35 over the nine
+check-matched policies); without labels it falls back to the best fixed order, short think → think → retry (regret 1.74). HO-L's
+label-free pilot failed (1.71 vs 0.57) because its votes came from the same mode: the cheap program and its resample share their
+mistakes and vouch for each other. Since then, agreement *across* modes was found to flag wrong passing programs (word problems 78% vs
+16% right; contests 93–97% vs 19–34%, CC-P2). The pilot already runs every arm on its 30 problems, so it can label them itself.
+Related: accuracy from unlabeled agreement (Platanios et al. 2014; Dawid–Skene), label-free routing (Smoothie, Guha et al. 2024), majority
+votes as pseudo-labels (self-consistency; TTRL, Zuo et al. 2025); here the votes come from one model's two modes and choose its own policy.
+**Rule (no labels).** On k = 30 random items of a cell, each item's pseudo-answer is the plurality value among the pilot's programs that
+pass the free check: cheap F (seed s), cheap F2 (seed s+1), 2k-token think SB (seed s), think T (seed s), think T2 (seed s+1). Values are
+equal within the grader's tolerance (geometry: equal outputs on the six agreement inputs); ties go to the cluster holding T, then T2, SB,
+F, F2; no passing program → no pseudo-answer (every policy counted wrong on that item). Each policy's accuracy on the pilot is computed
+against the pseudo-answers (the repaired program of FF-R0 likewise), tokens as observed; the pilot picks the best utility (λ = 0.5).
+Regret on the full cell with the true labels, 1,000 pilots per cell; HO-CM's 54 cells and nine policies
+(`python poc/analyze_holf.py`, flags as HO-CM). Secondary, reported only: votes from SB, T, T2 alone; HO-32's Qwen3-32B-AWQ cells once
+complete (no repair rows: FF-R0 = FF there).
+- **LF-P1:** the label-free pilot's mean regret is below always SB→T→T's (1.74).
+- **LF-P2:** it is within 0.3 of the labelled pilot (≤ 1.65).
+- **LF-P3 (HO-L's failure case):** on Qwen3-8B BWOR (3 cells) its regret is ≤ 2 (HO-L kept the cheap program in 93% of pilots, 2.58).
+**Decision.** P1 and P2 → the recipe's per-cell choice needs no labels: run every arm on 30 unlabeled problems, label them by the
+programs' plurality, pick; the claim and REPORT drop the 30 labels and HO-L's negative result is stated for same-mode votes only. P1
+alone → the label-free pilot replaces the fixed default when no labels exist; labels still help. P1 refuted → labels stay; the per-cell
+picks say which cells the votes mislead.

@@ -3882,28 +3882,28 @@ right vs disagree 12–30%). As a gate it does not pay (accepting only agreeing 
 → retry in 13 of 16 cells), so its use is as a label-free estimate of the leak per cell; the pre-registered test is HO-CC's CC-P2 on
 contest problems (running).
 
-## 2026-10-26 15:44 UTC: HO-SB4 (PREREG_HO.md): the first think needs 2–4k tokens; 1k is too short for Qwen3-8B
+## 2026-10-25 15:44 UTC: HO-SB4 (PREREG_HO.md): the first think needs 2–4k tokens; 1k is too short for Qwen3-8B
 Short thinking with the fact first (full thinking on a visible failure) at budgets 1,000 / 2,000 / 4,000 tokens, Nemotron-3-Nano and
 Qwen3-8B on four word benchmarks, 3 seeds: Nemotron ties or beats always thinking at every budget (+2.2 to +10.2 at 64–96% of its tokens;
 BWOR +10.2 [+5.3, +15.4] at 4,000); Qwen3-8B loses at 1,000 on OptiBench (−3.1) and LogiOR (−6.2) and ties or beats at 4,000 in all four
 (86–109% of the tokens). SB4-P1 / P2 refuted: the budget matters; 4,000 has the best utility (λ = 0.5) in 6 of 8 cells. The claim reads
 "a short think first (2–4k tokens)", the budget being one of the pilot's choices.
 
-## 2026-10-26 17:46 UTC: HO-CC CC-P2 (PREREG_HO.md): cross-mode agreement is a label-free leak detector on contest problems too
+## 2026-10-25 17:46 UTC: HO-CC CC-P2 (PREREG_HO.md): cross-mode agreement is a label-free leak detector on contest problems too
 311 Codeforces geometry problems (hidden tests), 3 seeds: a non-thinking program that passes the samples and whose outputs agree with the
 same model's 2k-token-think program on every test input (inputs only, no expected outputs) passes all hidden tests 92.7% (Qwen3-14B-AWQ,
 n = 110) and 97.0% (Nemotron-3-Nano, n = 168) of the time; when they disagree or the short think fails the samples, 18.8% and 33.8%.
 Pre-registered CC-P2 (≥ 20-point gap) holds by +74 and +63. This is the label-free signal for "the cheap program is wrong although the
 free check passed" that the project set out to find; its limit is shared formulation errors (OptMATH). CC-P1 waits for the 32k thinks.
 
-## 2026-10-26 23:25 UTC: DT6 (PREREG_DT.md): distilling the short think into the non-thinking mode does not fix the leak
+## 2026-10-25 23:25 UTC: DT6 (PREREG_DT.md): distilling the short think into the non-thinking mode does not fix the leak
 Qwen3-8B fine-tuned (no labels) on the programs its own 2k-token think wrote for 1,197 unlabeled problems that pass the strict check
 (code only, non-thinking prompt): held-out, no fact, 3 seeds, vs the round-1 model — OptiBench 55.7% (+1.5 [−0.7, +3.5]), BWOR 18.7%
 (+0.4), LogiOR 14.9% (−1.8; leak 61 → 71%), OptMATH 9.7% (+1.3). Both predictions refuted. The short think helps at inference, not as
 training data for the non-thinking mode (consistent with System-2 distillation failing on reasoning-heavy tasks). Direction 2 is closed:
 label-free training moves the usage fact into the weights, not formulations and not the check.
 
-## 2026-10-26 23:27 UTC: exploratory — why no label-free check works on OptMATH: a third of its problems are underspecified or misread by every model
+## 2026-10-25 23:27 UTC: exploratory — why no label-free check works on OptMATH: a third of its problems are underspecified or misread by every model
 Cross-family agreement does not flag OptMATH errors either (passing programs that agree with another family's are right 16–38%, vs 68–96%
 on BWOR / LogiOR). Reading the problems: on 35 of its 97 problems (with stored programs) at least four of six models (gpt-oss-20b /
 120b, Qwen3-14B-AWQ, Qwen3-8B, Nemotron-3-Nano, Qwen3.5-9B) agree on one value the gold calls wrong. 18 of these are job-shop problems
@@ -3913,33 +3913,33 @@ operation on its own machine). 5 are dispersion problems whose pair values diffe
 sums both directions (optmath-42: 46 = 24 + 22), every model counts each pair once (25). OptMATH's ceiling is the statement, not the
 check; the report's "shared formulation errors" are mostly these two kinds.
 
-## 2026-10-27 03:23 UTC: HO-CC complete (PREREG_HO.md): on contest programming the retry transfers, the short-think saving does not
+## 2026-10-26 03:23 UTC: HO-CC complete (PREREG_HO.md): on contest programming the retry transfers, the short-think saving does not
 311 Codeforces geometry problems (hidden tests), 3 seeds, full think at 32k (amendment). Thinking again when the program fails a sample
 test adds +4.5 (Qwen3-14B-AWQ: 40.8 → 45.3%) and +6.4 points (Nemotron-3-Nano: 34.9 → 41.4%) over one think. Short think → think → retry
 ties that (−1.5 [−3.3, +0.2], −0.5 [−2.4, +1.3]) at 94% / 82% of its tokens (CC-P1 refuted: ≤ 90% needed for both); a non-thinking
 program first loses 5.5–7.8. Nemotron's think hits 32k on 56% of these problems, so its numbers are lower bounds. CC-P2 (cross-mode
 agreement flags leaked programs: 93–97% vs 19–34%) held earlier. Contest problems need the full think; the check at every step carries over.
 
-## 2026-10-27 03:24 UTC: exploratory — the retry inside the recipe for gpt-oss
+## 2026-10-26 03:24 UTC: exploratory — the retry inside the recipe for gpt-oss
 gpt-oss has no budgeted think (its cheap arm already reasons at low effort), so its analogue of short think → think → retry is
 low-effort program → medium think → retry (FF→T→T). Against the check-matched think (T→T): gpt-oss-120b ties on BWOR (0.0) and LogiOR
 (−1.1) and trails on OptiBench (−2.0) at 51–64% of the tokens; gpt-oss-20b ties on OptiBench (+0.7 at 48%) but trails on BWOR (−7.7
 [−13.8, −1.6]) and LogiOR (−5.1): its low-effort programs that pass the check are wrong too often on the hardest word problems.
 
-## 2026-10-27 07:35 UTC: HO-CAP, Qwen3.5-9B: short thinking first's gain survives an uncapped think; its saving shrinks to 16–19%
+## 2026-10-26 07:35 UTC: HO-CAP, Qwen3.5-9B: short thinking first's gain survives an uncapped think; its saving shrinks to 16–19%
 Thinking with the fact at a 64k cap (instead of 32k) on Qwen3.5-9B's two most-capped cells: the full think gains +9.0 (LogiOR 38.8 →
 47.8%) and +2.7 (OptMATH 29.0 → 31.7%), but short thinking first (escalating to the 64k think) is still ahead, +4.0 [−1.1, +8.7] and +4.3
 [+0.3, +8.7], at 81–84% of the 64k think's tokens (CAP-P1, ≤ 70%, refuted on tokens). With a retry on both sides the two tie (−1.8,
 +0.7) at 80–81%. Nemotron's 64k contest thinks (CAP-P2) are ~40% done.
 
-## 2026-10-27 09:04 UTC: HO-TR (PREREG_HO.md): repairing a failed think is not cheaper than thinking again
+## 2026-10-26 09:04 UTC: HO-TR (PREREG_HO.md): repairing a failed think is not cheaper than thinking again
 On 16 word cells (four hybrid-thinking models, 3 seeds), one non-thinking repair turn shown the error of a visibly failed think fixes only
 4–36 of 26–117 failures per cell; the rest still need a second think. Repair-then-think is as accurate or more than think-again
 (recovers 90–145% of its gain) but at 79–104% of its extra tokens (TR-P1 and TR-P2 refuted, 0 / 16 each); with a short think first it
 adds +0 to +2.8 points at 95–102% of the tokens. Consistent with Olausson et al. (ICLR 2024): self-repair does not beat resampling on
 cost. The recipe's retry stays a fresh think.
 
-## 2026-10-27 12:45 UTC: HO-CAP complete: on contests an uncapped think beats short thinking first; the retry still pays
+## 2026-10-26 12:45 UTC: HO-CAP complete: on contests an uncapped think beats short thinking first; the retry still pays
 Nemotron-3-Nano on 311 Codeforces geometry problems with a 64k think: the think solves 55.4% (32k: 34.9%, capped on 56%), 58.5% with a
 retry on a failed sample; short think → think → retry 55.4% at 84% of the tokens, −3.1 [−4.8, −1.4] (CAP-P2 refuted; the earlier tie was
 the 32k cap). With Qwen3.5-9B's word problems (+4 against a 64k think), short thinking first is a word-problem / geometry step, not a
