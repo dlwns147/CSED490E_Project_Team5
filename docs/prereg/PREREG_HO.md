@@ -1094,3 +1094,4 @@ models); OptiBench on the HO-TF third. Policies as HO-CM (T, T→T, FF+F, SB+F, 
 - **32-P3 (label-free signal):** pooled over the 4 cells, passing non-thinking programs that agree with the short-think program are right
   ≥ 30 points more often than those that disagree.
 **Decision.** All three → the final recipe and its leak signal are stated for 8B–32B hybrid models; each refuted part is stated as a limit.
+*HO-32 setting fix (2026-10-27 14:1x UTC, before any row): Qwen3-32B-AWQ allows at most 40,960 positions, so its server runs at 40,960 (not 45,056); a library prompt longer than ~8.9k tokens plus the 32k think would be rejected and is logged, not written.*
