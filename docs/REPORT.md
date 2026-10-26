@@ -292,6 +292,11 @@ disagree; exploratory, 2,788 cases) and, pre-registered on 311 Codeforces geomet
 Qwen3-14B-AWQ / Nemotron-3-Nano when the two programs agree on every test input (18.8% / 33.8% otherwise; HO-CC CC-P2). It fails where both
 modes share a wrong formulation (OptMATH: 26–38% vs 12–30%). As a gate it costs both runs and does not beat short thinking first; its use
 is to estimate, without labels, how leaky a model's check is on a new task.
+It does not replace the pilot's labels (HO-LF, pre-registered): labelling a 30-problem pilot by the plurality of its passing
+programs (both modes) chooses the policy with regret 2.00 over 54 cells — worse than the fixed short think → think → retry (1.74) and
+than 30 labels (1.35). The pseudo-labels agree with the true ones on 83–92% of programs, but their errors are one-sided: programs that
+share a mistake outvote the truth, here across modes — Qwen3-8B's geometry programs that fail only on degenerate inputs the vote never
+sees (regret 7.5), and OptMATH's shared misformulations (Qwen3.5: 3.4). The signal flags single programs; the choice of policy keeps its labels.
 
 ### 5.7 Putting the fact into the weights, with no labels
 Qwen3-8B and Qwen3-14B were LoRA-fine-tuned (36 / 53 minutes on 2–4 RTX 3090s) on 1,127 programs from the development sets that pass the

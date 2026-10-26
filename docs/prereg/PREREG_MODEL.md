@@ -190,3 +190,26 @@ complete (no repair rows: FF-R0 = FF there).
 programs' plurality, pick; the claim and REPORT drop the 30 labels and HO-L's negative result is stated for same-mode votes only. P1
 alone → the label-free pilot replaces the fixed default when no labels exist; labels still help. P1 refuted → labels stay; the per-cell
 picks say which cells the votes mislead.
+
+### Results HO-LF (2026-10-26 21:4x UTC; `python poc/analyze_holf.py [--think]` as a CPU job; 54 cells, k = 30, 1,000 pilots per cell, λ = 0.5)
+| choice among the nine policies | mean regret | Qwen3-8B BWOR (3) | Qwen3-8B geometry (3) | Qwen3.5 OptMATH (3) |
+|---|---|---|---|---|
+| label-free pilot, votes of F, F2, SB, T, T2 (registered) | 2.00 | 1.18 | 7.50 | 3.38 |
+| label-free pilot, votes of SB, T, T2 (secondary) | 1.93 | 0.23 | 3.93 | 7.94 |
+| labelled pilot, same samples | **1.35** | 0.79 | 0.93 | 1.91 |
+| always SB→T→T (no labels) | 1.74 | 1.06 | 1.20 | 6.73 |
+- **LF-P1 refuted** (2.00 > 1.74: worse than the fixed default), **LF-P2 refuted** (2.00 > 1.65), **LF-P3 holds** (Qwen3-8B BWOR 1.18 ≤ 2;
+  HO-L 2.58): cross-mode votes no longer keep the leaky cheap program on BWOR.
+- Why it fails. The pseudo-labels match the true labels on 83–92% of rows, but the errors are one-sided: a wrong think counted right
+  175–269 times per model against 13–20 right thinks counted wrong (cheap program: 129–197 against 10–24). Programs that share a mistake
+  still outvote the truth, now across modes, in two places: Qwen3-8B geometry, where 15 of seed 3's 54 wrong cheap programs fail only the
+  degenerate variant — not among the six voting inputs — so they agree with the thinks everywhere the vote looks (seed 3: FF in 470 and
+  FF+SB+F in 226 of 1,000 pilots; regret 13.1); and OptMATH, where both modes share wrong formulations (the audit of
+  2026-10-25), so the thinks vouch for each other and the thinking-only vote sends Qwen3.5 away from its library program (regret 9.5–12.2).
+  Elsewhere the votes are nearly unbiased but noisier than 30 labels (exploratory, chosen after seeing the cells: without OptMATH and
+  Qwen3-8B geometry, 45 cells, 1.53 / thinking votes 1.33 / labelled 1.33 / fixed 1.51; pseudo-labelling every item of a cell, which costs
+  every arm on every problem, 0.90).
+- **Decision as registered: labels stay.** The recipe keeps the 30 labelled problems for a per-cell choice and short think → think →
+  retry without them. HO-L's negative result widens: agreement-based pseudo-labels fail wherever a mistake is shared — within a mode
+  (HO-L) or across modes when the check's blind spot is in the input set or the formulation. Cross-mode agreement stays what CC-P2 and
+  HO-32 show: a per-program leak flag, not a substitute for labels in choosing the policy.

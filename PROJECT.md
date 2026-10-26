@@ -123,6 +123,9 @@ table: `docs/REPORT.md` §5.1):
   with the fine-tuned model still loses to thinking with the fact). Self-training on 3,996 unlabeled problems stays at round 1 with every
   label-free filter tried (self-consistency: harmful; cross-model agreement, agreement + thinking-mode review: neutral; DT3–DT5), and
   training the non-thinking mode on its own short-think programs changes neither accuracy nor leak (DT6): the short think stays at inference.
+- **Label-free choice of policy** (HO-L, HO-LF): pseudo-labels from agreement fail both within a mode (1.71 vs 0.57) and across modes
+  (2.00 vs 1.35 labelled, 1.74 fixed): shared mistakes outvote the truth where the check's blind spot is shared (geometry degenerate
+  inputs, OptMATH formulations). Cross-mode agreement is a per-program leak flag (CC-P2), not a substitute for the 30 labels.
 - Open: the budget itself (a fixed 2,000 tokens costs where full thinking is already short); the final report (draft
   `docs/REPORT.md`, format / length / deadline from the team).
 - Day-to-day state (running jobs, environment, evidence table): `docs/SLURM_HANDOFF.md`.

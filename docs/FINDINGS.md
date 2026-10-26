@@ -3944,3 +3944,13 @@ Nemotron-3-Nano on 311 Codeforces geometry problems with a 64k think: the think 
 retry on a failed sample; short think → think → retry 55.4% at 84% of the tokens, −3.1 [−4.8, −1.4] (CAP-P2 refuted; the earlier tie was
 the 32k cap). With Qwen3.5-9B's word problems (+4 against a 64k think), short thinking first is a word-problem / geometry step, not a
 contest one; the retry adds +3.1 to +12 points in every domain.
+
+## 2026-10-26 21:41 UTC: HO-LF (PREREG_MODEL.md): pseudo-labels from cross-mode votes do not replace the pilot's 30 labels
+Labelling a 30-problem pilot by the plurality value of its passing programs (cheap ×2, 2k-token think, think ×2) and choosing among the
+nine check-matched policies gives regret 2.00 over HO-CM's 54 cells — worse than always short think → think → retry (1.74) and than 30
+labels (1.35); votes of the three thinks only: 1.93. LF-P1 and LF-P2 refuted, LF-P3 holds (Qwen3-8B BWOR 1.18, where HO-L's same-mode
+votes kept the leaky cheap program, 2.58). The pseudo-labels match the true labels on 83–92% of programs, but their errors are one-sided
+(a wrong think counted right 175–269 times per model, a right one counted wrong 13–20): shared mistakes outvote the truth across modes too
+— Qwen3-8B geometry (wrong cheap programs that fail only the degenerate variant agree with the thinks on all six voting inputs; regret 7.5)
+and OptMATH (shared misformulations; Qwen3.5 3.4, with thinking-only votes 7.9). Decision as registered: labels stay; cross-mode
+agreement is reported as a per-program leak flag only.
