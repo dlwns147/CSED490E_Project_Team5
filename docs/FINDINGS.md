@@ -3912,3 +3912,10 @@ on BWOR / LogiOR). Reading the problems: on 35 of its 97 problems (with stored p
 operation on its own machine). 5 are dispersion problems whose pair values differ by direction (Node 0→1: 24, Node 1→0: 22): the gold
 sums both directions (optmath-42: 46 = 24 + 22), every model counts each pair once (25). OptMATH's ceiling is the statement, not the
 check; the report's "shared formulation errors" are mostly these two kinds.
+
+## 2026-10-27 03:23 UTC: HO-CC complete (PREREG_HO.md): on contest programming the retry transfers, the short-think saving does not
+311 Codeforces geometry problems (hidden tests), 3 seeds, full think at 32k (amendment). Thinking again when the program fails a sample
+test adds +4.5 (Qwen3-14B-AWQ: 40.8 → 45.3%) and +6.4 points (Nemotron-3-Nano: 34.9 → 41.4%) over one think. Short think → think → retry
+ties that (−1.5 [−3.3, +0.2], −0.5 [−2.4, +1.3]) at 94% / 82% of its tokens (CC-P1 refuted: ≤ 90% needed for both); a non-thinking
+program first loses 5.5–7.8. Nemotron's think hits 32k on 56% of these problems, so its numbers are lower bounds. CC-P2 (cross-mode
+agreement flags leaked programs: 93–97% vs 19–34%) held earlier. Contest problems need the full think; the check at every step carries over.

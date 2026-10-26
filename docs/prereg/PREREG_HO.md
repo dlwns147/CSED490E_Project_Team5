@@ -1015,3 +1015,15 @@ only; outputs compared with the problem's tolerance):
   its short-think program on the test inputs (no expected outputs) separates hidden-test-correct from leaked programs: an agreeing
   program is right 93–97% of the time. With the word-problem result (exploratory: 78% vs 16%), this is the project's label-free signal
   for when the cheap program is wrong — the open problem since the start — with OptMATH (shared formulation errors) as its known limit.
+
+### Results HO-CC, CC-P1 as amended (2026-10-27 03:2x UTC; `python poc/analyze_hocc.py --think_tag think32k n3n q14a`; 311 problems × 3 seeds)
+| model | T (one think, 32k) | T→T | SB→T→T (tokens vs T→T) | SB→T→T − T→T | FF+T − T→T | think at the cap |
+|---|---|---|---|---|---|---|
+| Qwen3-14B-AWQ | 40.8% @ 16.6k | **45.3%** @ 24.6k | 43.8% (94%) | −1.5 [−3.3, +0.2] | −7.8 [−9.9, −5.8] | 10 / 933 |
+| Nemotron-3-Nano | 34.9% @ 26.9k | **41.4%** @ 44.9k | 40.8% (82%) | −0.5 [−2.4, +1.3] | −5.5 [−7.7, −3.2] | 525 / 933 |
+- **CC-P1 refuted** (holds for Nemotron-3-Nano: a tie at 82% of the tokens; for Qwen3-14B-AWQ a tie at 94% > 90%). Decision as
+  registered: the order is stated for OR word problems and geometry; on contest programming short thinking first saves 6–18% of the
+  check-matched think's tokens at a 0.5–1.5-point cost, and the non-thinking program first loses 5–8 points.
+- What does transfer: **the check at every step.** A retry on a visibly failed think adds +4.5 (Qwen3-14B-AWQ) and +6.4 (Nemotron) over
+  one think, as on the word problems. Caveat: Nemotron's full think is still cut at 32k on 56% of contest problems (507 without a
+  program), so its think-based numbers here are lower bounds; Qwen3-14B-AWQ's are not.

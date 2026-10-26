@@ -56,6 +56,8 @@ table: `docs/REPORT.md` §5.1):
   policies ≥ 5.8), the 30-label pilot 1.19, and the menu gains +2.1 per cell.
 - The label-free library of checked programs raises the first program in 25 of 29 model × benchmark cells (up to +34 points; not on
   BWOR / LogiOR for Nemotron-3-Nano, a model from another family, whose failures there are formulations).
+- **Contest programming** (HO-CC, 311 Codeforces geometry problems, hidden tests): the retry on a visible failure transfers (+4.5 /
+  +6.4 over one think); short think first only ties it at 82–94% of the tokens; the non-thinking program first loses 5–8 points.
 - **A label-free signal for when the passing cheap program is wrong** (HO-CC CC-P2; exploratory on word problems): run the same
   model's short-think program too and compare outputs (on the test inputs, or the printed value). On 311 contest problems a
   sample-passing non-thinking program that agrees is right 93–97% of the time, one that disagrees 19–34% (word problems: 78% vs 16%);
