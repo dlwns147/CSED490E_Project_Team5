@@ -1071,3 +1071,13 @@ BWOR, LogiOR, OptMATH, seeds 1–3. Policies: T→R (repair, else the next seed'
 - **Reading.** As Olausson et al. (ICLR 2024) found for code, a repair turn is not a cheaper substitute for a second sample: most failed
   thinks cannot be fixed by a cheap turn. It is a small, nearly free accuracy add-on before the second think (+1 to +3 where it works).
   As registered, the recipe's retry stays a fresh think; the repair is noted as an optional step.
+
+### Results HO-CAP, Nemotron-3-Nano on contests: CAP-P2 (2026-10-27 12:4x UTC; `python poc/analyze_hocc.py --think_tag think64k n3n`; 311 × 3)
+At 64k the think hits the cap on 13 of 933 problems (32k: 525) and solves 55.4% (32k: 34.9%); with a retry 58.5% @ 40.3k.
+SB→T→T 55.4% @ 33.7k: **−3.1 [−4.8, −1.4]** against T→T at 84% of its tokens; SB+T −5.4; the non-thinking program first −6.0.
+- **CAP-P2 refuted.** The contest tie at 32k (HO-CC, −0.5) was an artefact of the capped think: against an uncapped think, short thinking
+  first loses 3 points for a 16% saving on contest problems. The retry still adds +3.1 over one think.
+- **HO-CAP overall (decision as registered).** On word problems the short think's gain survives an uncapped think (Qwen3.5-9B +4.0 / +4.3
+  at 81–84% of the tokens); on contest programming it does not (Nemotron −3.1). The claim says: short thinking first pays where problems
+  need modelling more than long search (OR word problems, geometry) and is a token–accuracy trade on contest programming; the check at
+  every step (the retry) pays in all three domains.

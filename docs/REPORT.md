@@ -281,7 +281,8 @@ accurate per token only where the check holds (Qwen3.5-9B, geometry).*
 seeds, think at 32k): the retry transfers — thinking again when the program fails a sample adds +4.5 (Qwen3-14B-AWQ) and +6.4
 (Nemotron-3-Nano) over one think — but the short-think saving mostly does not: short think → think → retry ties the check-matched think
 (−1.5 [−3.3, +0.2], −0.5 [−2.4, +1.3]) at 94% / 82% of its tokens, and a non-thinking program first loses 5–8 points. Contest problems
-need the full think; Nemotron's is cut at 32k on 56% of them (its numbers are lower bounds).
+need the full think: Nemotron's is cut at 32k on 56% of them, and at 64k it solves 55.4% (58.5% with a retry), where short think → think
+→ retry loses 3.1 [−4.8, −1.4] at 84% of the tokens (HO-CAP).
 
 ### 5.6c A label-free signal for the leak
 The open problem since the start was a label-free signal for when a program that passes the free check is wrong. Agreement *within* a

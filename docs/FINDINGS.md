@@ -3938,3 +3938,9 @@ On 16 word cells (four hybrid-thinking models, 3 seeds), one non-thinking repair
 (recovers 90–145% of its gain) but at 79–104% of its extra tokens (TR-P1 and TR-P2 refuted, 0 / 16 each); with a short think first it
 adds +0 to +2.8 points at 95–102% of the tokens. Consistent with Olausson et al. (ICLR 2024): self-repair does not beat resampling on
 cost. The recipe's retry stays a fresh think.
+
+## 2026-10-27 12:45 UTC: HO-CAP complete: on contests an uncapped think beats short thinking first; the retry still pays
+Nemotron-3-Nano on 311 Codeforces geometry problems with a 64k think: the think solves 55.4% (32k: 34.9%, capped on 56%), 58.5% with a
+retry on a failed sample; short think → think → retry 55.4% at 84% of the tokens, −3.1 [−4.8, −1.4] (CAP-P2 refuted; the earlier tie was
+the 32k cap). With Qwen3.5-9B's word problems (+4 against a 64k think), short thinking first is a word-problem / geometry step, not a
+contest one; the retry adds +3.1 to +12 points in every domain.

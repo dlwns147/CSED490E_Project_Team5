@@ -62,7 +62,7 @@ table: `docs/REPORT.md` §5.1):
   only on that program's visible failure, never loses to always thinking with the fact in the 14 cells it was not chosen on (−0.3 to
   +10.1): Nemotron +3.3 to +6.3 at 72–92% of the tokens (more accurate and cheaper than the gate in all 4 word cells), Qwen3 OptMATH +2.3
   / +3.3 at 85–90%, and Qwen3-8B geometry, the last losing cell, −0.3 (at 98%). Against an uncapped (64k) think the accuracy gain
-  stays (+4.0 / +4.3) and the saving shrinks to 16–19% (HO-CAP). It saves tokens where full thinking is long, not where it
+  stays (+4.0 / +4.3) and the saving shrinks to 16–19% (HO-CAP); on contest programming it does not survive (−3.1). It saves tokens where full thinking is long, not where it
   is already short (Nemotron geometry: 137%), and on Qwen3.5 it is more accurate but dearer than the plain recipe.
 - **Which to use is detectable:** a 30-label pilot over five policies loses 0.85 points on average over 60 held-out cells, where no fixed
   policy comes within 3.3; on word problems the first escalation is one cheap repair from the error (HO7, HO-N3, HO-R). Without labels,
@@ -73,7 +73,8 @@ table: `docs/REPORT.md` §5.1):
 - The label-free library of checked programs raises the first program in 25 of 29 model × benchmark cells (up to +34 points; not on
   BWOR / LogiOR for Nemotron-3-Nano, a model from another family, whose failures there are formulations).
 - **Contest programming** (HO-CC, 311 Codeforces geometry problems, hidden tests): the retry on a visible failure transfers (+4.5 /
-  +6.4 over one think); short think first only ties it at 82–94% of the tokens; the non-thinking program first loses 5–8 points.
+  +6.4 over one think; +3.1 at 64k); short think first is a trade there (Nemotron, uncapped 64k think: −3.1 at 84% of the tokens); the
+  non-thinking program first loses 5–8 points.
 - **A label-free signal for when the passing cheap program is wrong** (HO-CC CC-P2; exploratory on word problems): run the same
   model's short-think program too and compare outputs (on the test inputs, or the printed value). On 311 contest problems a
   sample-passing non-thinking program that agrees is right 93–97% of the time, one that disagrees 19–34% (word problems: 78% vs 16%);
