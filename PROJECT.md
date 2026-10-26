@@ -6,6 +6,21 @@
 This file holds what the project is for and how we work. How to install and run everything: `README.md` (the manual). The argument with
 all numbers: `PROPOSAL.md` (Korean: `PROPOSAL_ko.md`). The lab log: `docs/FINDINGS.md`.
 
+## 0. In plain words (problems and what solved them)
+
+| problem | what we found / do |
+|---|---|
+| The model misuses the library, so its program crashes | Give it the **missing fact**: a few lines of exact usage, or its own checked program for a similar problem (found without labels). Raises the cheap program in 25 of 29 cells. |
+| Thinking on every problem is expensive | **Run the program for free and think only when it visibly fails.** Same accuracy at 30–78% of the tokens for models whose passing programs are right (gpt-oss, Qwen3.5). |
+| Some models' programs run but are wrong (the "leak": Qwen3, Nemotron) | **Think briefly first** (2–4k tokens) before writing the program; never lost to one full think in 14 new cells and closed the worst one (−16.7 → −0.3). |
+| Thinking also fails visibly sometimes | **Check every step: think again when the think's program fails** (+2.5 to +12 points); a quick repair instead is not cheaper (HO-TR). |
+| No labels to tell a wrong-but-running program | **Compare the quick program with the short-think program**: agreeing ones are right 93–97% of the time, disagreeing ones 19–34% (contest problems). |
+| Every model misreads the same statement (OptMATH) | Unsolved — partly the benchmark: many of its problems omit information the gold answer needs. |
+
+Recipe: give the fact → short think → program → free check → full think only on a visible failure → think again once on failure. Honest
+summary: against a baseline that also thinks again on failure, the recipe is the cheap end of a cost–accuracy trade-off, not a free win;
+30 labelled problems choose the setting for a new task.
+
 ## 1. Goal
 
 LLMs can solve computational problems — geometry, combinatorial optimization, contest and word problems — by writing a program.
