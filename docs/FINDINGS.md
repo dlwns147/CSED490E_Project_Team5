@@ -4014,3 +4014,19 @@ difference is significant (−1.8 to +2.8 points) and the cascade costs 99–131
 and the cascade repairs the visible failures either way (e.g. a correct `linear_sum_assignment` at 2k becomes a CP-SAT program calling a
 method that does not exist at 4k). Decision as registered: the first think stays 2,000 tokens; 4,000 pays only for the leakiest models
 (Nemotron-3-Nano, Qwen3-8B).
+
+## 2026-10-27 13:32 UTC: related-work check of the budget results; HO-4K's mechanism corrected (the 4k first program is better, the cascade absorbs it)
+
+The 12:43 entry said the 4k think "changes the first program in both directions"; reported apart from the cascade (as the literature
+check advised), the 4k first program is right +2.4 points more often, pooled over 1,428 problems [+1.1, +3.8] (10 of 12 cells ≥ 0),
+with the passing-but-wrong rate about unchanged. The gain falls mostly where the 2k program fails visibly and the full think repairs it
+anyway: end accuracy +0.6 [−0.3, +1.5] (equivalent within ±2 points) at +1.5k tokens per problem (≈ −0.75 utility) — the registered
+outcome (P1–P3 refuted, default 2,000) stands. Literature: DART (2606.23181) finds fixed caps just as flat (Qwen3-8B, MATH-500: 69.25 /
+69.75 / 70.00 at 1k / 2k / 4k); the Coupling Tax (2605.07686) finds a cascade's fallback must be long enough (Qwen3-8B, GSM8K: −15 net
+at 512 tokens, +77 at 2,048), which matches HO-SB4's "1k is too short"; "Does Thinking More Always Help?" (2506.04210) finds gains from
+longer thinking non-monotone and parallel samples better than longer thinks, which matches HO-CM. Known: answer-side compensation after
+a cut (Nemotron Nano 2, 2508.14444). Not found in the literature: a short forced think as the first stage behind a run-only check
+(HO-SB), a trained budget overrun in 88–99% of problems (HO-SEED), and budget choice by a few labels failing (HO-PB; with 30 labels an
+accuracy's standard error is about 9 points against 1–3-point budget differences, so this was predictable). Citations in PREREG_TC and
+PREREG_IF were verified (three corrections in PREREG_TC; ProgCo, 2501.01264, added as IF-1's closest prior work). Details:
+docs/notes/RELATED_WORK.md (2026-10-27 section).

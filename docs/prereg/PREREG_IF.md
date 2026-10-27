@@ -80,3 +80,19 @@ unchanged (2026-10-27 10:3x UTC): jobs if_{q8b,q14a,q35}_{ifeval,ifbench} (12604
 *Operations (2026-10-27 11:4x UTC, no change to the design): job 1260491 (if_q8b_ifbench) sat on an RTX 3090 held at 450 MHz by
 its power cap (n19, 146 generated tokens/s against 677 for the same model on the next GPU); cancelled after an hour and resubmitted
 off that node as 1260938. Rows resume, so only the requests in flight were lost.*
+
+*Related-work check (2026-10-27 13:3x UTC, after registration and before any result; nothing in the design, the predictions or the decision rules
+changes). The cited IDs and claims hold (2505.11423 NeurIPS 2025; 2606.09662 "When Built-in Thinking Helps and Hurts: Constraint-Level
+Error Shifts in Instruction Following": 10–20% of IFEval prompts flip between thinking on and off for Qwen3 1.7–32B; DVR Findings of ACL
+2025; AutoIF 2406.13542, ICLR 2025, training data only). **Closest prior work missed above: ProgCo (2501.01264, ACL 2025)** — the model
+writes a verification program from the instruction, runs it on its answer and refines, with a reflection step that questions the program
+itself (aimed at false alarms): IFEval prompt-strict GPT-4o 83.0 → 88.0 (91.3 with real Python execution), Llama3.1-8B 73.8 → 76.3;
+without its contrast step correct → incorrect flips rise from 15.4% to 35.2%. ProgCo and DVR refine only; neither escalates into a
+thinking mode, uses hybrid-thinking models or IFBench, or counts tokens against always / never thinking. Other relevant: Instruction
+Boosting (2510.14842, an LLM judge detects violations, 73% accurate); self-correction that does not change the output (Self-Correction
+Blind Spot 2507.02778; Feedback Friction 2506.11930) — the verbatim rewrites seen in the partial rows are this; model-written tests that
+fail right outputs (2501.12793). CounterRoute (2609.29109) routes Qwen3 between modes with a trained router. New here remains the executed
+self-written checker as the gate for the thinking mode, the rewrite-vs-think comparison under the same gate, IFBench at inference time,
+and measured false-alarm and copy rates. If IF-1's checker is the bottleneck (false alarms), the named follow-ups are a ProgCo-style
+reflection on the checker and AutoIF-style cross-checks of the checker against its own test cases.*
+

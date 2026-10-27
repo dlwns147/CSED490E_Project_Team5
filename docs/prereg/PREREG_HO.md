@@ -1258,15 +1258,26 @@ P3 holding and P1 refuted, a longer first think fixes failures but not at a pric
   narrowly** (the 4k think fails visibly less often in 9 / 12, needed ≥ 10: a tie on Qwen3-14B OptiBench, more often on Qwen3.5-9B
   OptiBench and Qwen3-32B BWOR). No accuracy difference is significant in any cell (−1.8 to +2.8); the 4k first step costs 99–131% of
   the 2k one's cascade tokens.
-- Mechanism: on these models 4,000 tokens is still a cut, not a finished think — Qwen3.5-9B reaches it in 98–100% of rows, the Qwen3
-  models in 58–98% — so the longer think mostly buys a different first program, not a finished one, and the difference cuts both ways.
-  The failures it adds or removes are visible (the program does not run), which the cascade then repairs with the full think, so the
-  end accuracy barely moves while the tokens rise. Raw rows: Qwen3.5-9B BWOR-018 (assignment, seed 1): the 2k program calls
+- Mechanism (corrected 13:3x UTC at the related-work check, which asked for the first program to be reported apart from the cascade;
+  `results/ho4k_analysis.log` plus the per-problem rows): on these models 4,000 tokens is still a cut, not a finished think —
+  Qwen3.5-9B reaches it in 98–100% of rows, the Qwen3 models in 58–98%. The 4k *first program* is better: right +2.4 points pooled over
+  the 1,428 problems [+1.1, +3.8] (10 of 12 cells ≥ 0; e.g. Qwen3-14B LogiOR 29.7 → 36.6%), with passing-but-wrong about unchanged
+  (within ±7 points of the 2k rate in every cell). But the gain falls mostly on problems whose 2k program fails *visibly*, which the
+  cascade repairs with the full think anyway, so the end accuracy moves +0.6 [−0.3, +1.5] pooled (equivalent within ±2 points) while
+  the tokens rise by 1.5k per problem (13.6k vs 12.1k), about −0.75 utility: the fixed price of the longer first step alone predicts the
+  null. Raw rows: Qwen3.5-9B BWOR-018 (assignment, seed 1): the 2k program calls
   `scipy.optimize.linear_sum_assignment` and prints 34 (gold 34); the 4k program builds a CP-SAT model and calls a method that does not
   exist (`model.NewSolver()`, AttributeError), so the cascade thinks again. Qwen3-32B LogiOR prob_004 (bin packing, seed 1): the 2k
   program passes a linear expression to `add_implication` (TypeError); the 4k program links items to boxes with a capacity constraint and
   prints 5 (gold 5).
+- Related work (checked 13:3x UTC): consistent with DART (2606.23181), whose fixed caps on MATH-500 with Qwen3-8B give 69.25 / 69.75 /
+  70.00 at 1k / 2k / 4k (flat at the cut) and whose per-item entropy budget beats shuffled budgets by under 1 point; with "Does
+  Thinking More Always Help?" (2506.04210: non-monotone gains from longer thinking) and with the Coupling Tax (2605.07686: a cascade's
+  fallback must be long enough — Qwen3-8B on GSM8K nets −15 at 512 fallback tokens, +77 at 2,048 — but beyond that the first stage's
+  budget matters little). Cutting thinking is s1's budget forcing (2501.19393); both budgets here are cuts, so this compares two cut
+  points, not short against finished thinking (as Wu, 2507.14419, warns for tight budgets).
 - **Decision as registered:** the default first think stays 2,000 tokens, and 4,000 pays only for the leakiest models
   (Nemotron-3-Nano, Qwen3-8B; HO-SB4 / HO-PB). P3 does not hold either, so there is no "fixes failures but not at a price worth paying"
-  clause: a longer first think neither fixes failures reliably nor pays.
+  clause: by the registered count (9 / 12 cells) a longer first think does not fix visible failures reliably, and it does not pay. (The
+  pooled first-program gain above is real but is bought where the cascade repairs anyway.)
 

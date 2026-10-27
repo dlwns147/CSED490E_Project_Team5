@@ -105,3 +105,52 @@ point that a cross-model filter removes harm but adds nothing. DT-P (Lean expert
 **Open questions not answered by prior work:** (i) a few-label predictor of when escalation pays (false-pass rate, cheap pass rate,
 thinking's accuracy on failures); (ii) label-free checks for OR programs that turn the Qwen3 trade into a pure saving (problem-semantic
 metamorphic relations, thinking-mode review of the cheap program); (iii) thinking-vs-non-thinking mode agreement as a self-training filter.
+
+## Related-work check 2026-10-27 (2026-10-27 13:32 UTC): thinking budgets (HO-SB / SB4 / PB / 4K / SEED / CM), tool calling (TC-1), instruction following (IF-1)
+
+**Budgets and the short think first.**
+- Budget forcing: s1 (2501.19393, EMNLP 2025; AIME24 50 → 56.7 by forcing; budgets written into the prompt fail because the model cannot
+  count). Most of s1's scaling is scaling down, and tight caps lower the ceiling (Wu, 2507.14419).
+- What a cut does: Qwen3's report (2505.09388) inserts "Considering the limited time by the user, …" at the budget, an untrained, emergent
+  behaviour. Nemotron Nano 2 (2508.14444): an untrained cut makes the model reason on in the answer, fixed by training on traces cut to
+  1–2k tokens; Nemotron-3-Nano (2512.20848) truncates 3% of its fine-tuning traces. Seed-OSS has budget-reflection tags but no published
+  adherence data. → HO-SEED (overrun in 88–99%, answer-side reasoning to the 8k cap) is new as a measurement.
+- Trained length control: L1 / LCPO (2503.04697), Elastic Reasoning (2505.05315, separate think / answer budgets), TALE (2412.18547),
+  ThinkPrune (2504.01296), AnytimeReasoner (2505.13438), BudgetThinker (2508.17196), SelfBudgeter (2505.11274), AlphaOne (2505.24863).
+  Early exit from inside the think: DEER (2504.15895), ThinkBrake (2510.00546), FlashThink (2505.13949), probes (2504.05419), answer
+  convergence (2506.02536) — none uses an execution check.
+- Longer is not monotone: overthinking (2412.21187), underthinking (2501.18585), an inverted U in length (2502.07266), non-monotone gains
+  and parallel beating extended thinking (2506.04210, NeurIPS 2025), inverse scaling (2507.14417), abandoned right answers (2604.10739),
+  3–19% of items get worse with budget (2608.12150).
+- Cascades inside one model: **DART (2606.23181, EMNLP 2026 Findings)** — two no-think drafts; agree → answer; else think with an
+  entropy-predicted budget; +9.0 math, +22.5 code, 32–73% fewer thinking tokens; fixed caps flat (Qwen3-8B MATH-500 69.25 / 69.75 /
+  70.00 / 72.25 at 1k / 2k / 4k / 32k). **The Coupling Tax (2605.07686)** — no-think first, escalate on an unfinished answer; the
+  fallback must be long enough (Qwen3-8B GSM8K: −15 net at 512, +42 at 1,024, +77 at 2,048). HRBench (2605.28398; speculative no-think →
+  think on keywords / entropy, largest on code), CopT (2605.20075), learned routers (AdaptThink 2505.13417, Thinkless 2505.13379,
+  AutoThink 2505.10832, Learning When to Think 2608.20256). Demystifying Hybrid Thinking (2510.12680) uses "leak" for reasoning in the
+  no-think mode — not our passing-but-wrong program.
+- Allocation: compute-optimal test-time scaling (Snell et al., 2408.03314; needs difficulty estimates), learned allocation (2410.04707),
+  consistency-gated cascades between models (Yue et al., 2310.03094, ICLR 2024), OptiMind (2509.22979: gpt-oss-20b OptMATH 74.9 → 90.3
+  with 8-sample majority, 86.5 with 5 rounds of execution feedback).
+- Placement: HO-SB consistent with DART / Yue (a cascade is as good as its gate) and against "no-think is enough" (2504.09858, Coupling
+  Tax) where the check leaks — new for OR programs; HO-SB4 consistent with the Coupling Tax; HO-PB consistent with DART's shuffled-budget
+  control, the few-label negative is new; HO-4K consistent with DART's flat caps (reported with the first program apart: +2.4 first
+  program, +0.6 end); HO-SEED new; HO-CM's kind of gain known (2506.04210, OptiMind), conditional on a visible failure new.
+
+**Tool calling (TC-1).** Verified: Qwen3 report BFCL v3 thinking 68.1 / non-thinking 60.2 (8B); 2608.22472 ("Small Reasoning Models are
+Instruction Followers in Function Calling") — 74.5 → 83.3 live is inside its IFFC prompting, native FC with thinking 75.5 live / 88.8
+non-live; Reasoning Trap (2510.22977) distractor-tool hallucination 36.2 → 56.8% (Qwen3-8B); ThinkBrake v1 oracle stopping 85.8 → 94.2
+(v5: ~90.7 → 95.4); CopT 85.77% @ 235 → 86.45% @ 168 tokens (contrastive reverse-KL score); Reinforced Agent (2604.27233, a separate
+reviewer model); ComplexFuncBench 78.8% value errors (Qwen2.5-72B). No paper gates a hybrid model's thinking on tool calls with a
+deterministic schema check.
+
+**Instruction following (IF-1).** Verified: Li et al. 2505.11423 (NeurIPS 2025), 2606.09662 (10–20% of IFEval prompts flip with Qwen3
+thinking; planning constraints helped, precision constraints hurt), DVR 2410.12207 (Findings ACL 2025), NSVIF 2601.17789 (VIFBench), AutoIF
+2406.13542 (ICLR 2025, training data), HRBench (no IF). **Closest: ProgCo (2501.01264, ACL 2025)** — self-written verification program,
+executed, then refine, with reflection on the program (IFEval GPT-4o 83.0 → 88.0, 91.3 with real Python; correct → incorrect flips 15.4%
+vs 35.2% without its contrast step). Also TICK / STICK (2410.03608), Instruction Boosting (2510.14842, judge 73% accurate), training-time
+verifiers (Tülu 3 RLVR 2411.15124; IFBench 2507.02833; VerIF 2506.09942; RECAST 2505.19030; IFDecorator 2508.04632), self-correction that
+does not change the output (Blind Spot 2507.02778; Feedback Friction 2506.11930; Huang et al. 2310.01798), model-written tests failing
+right outputs (2501.12793), CounterRoute (2609.29109, an RL router between Qwen3 modes). New in IF-1: the executed self-written checker as
+the gate for the thinking mode, rewrite vs think under the same gate, IFBench at inference time, measured false-alarm and copy rates.
+Likely reviewer asks: a ProgCo-style reflection on the checker; AutoIF-style cross-checks of the checker.

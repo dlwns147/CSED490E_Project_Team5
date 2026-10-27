@@ -262,8 +262,10 @@ fixed policy loses 5.8, and adding the two to the 30-label pilot raises its util
   its regret is 1.68, against 1.60 for always a 4,000-token first think with no labels, and it picks worse than the 2,000-only pilot in
   10 of 24 cells. 4,000 does not carry over (HO-4K, Qwen3-14B / Qwen3.5-9B / Qwen3-32B, 12 fresh cells): mean utility −0.06,
   4k ≥ 2k in 5 of 12, no accuracy difference significant, 99–131% of the tokens — 4,000 tokens is still a cut on these models (58–100%
-  of thinks reach it), so it changes the first program both ways and the cascade repairs the visible failures either way. The
-  default first think is 2,000 tokens; 4,000 is for the leakiest models (Nemotron-3-Nano, Qwen3-8B).
+  of thinks reach it). The 4k first program is better (+2.4 [+1.1, +3.8] points pooled over 1,428 problems), but mostly where the 2k
+  program fails visibly and the full think repairs it anyway, so the end accuracy moves +0.6 [−0.3, +1.5] at +1.5k tokens per problem;
+  DART's fixed caps are as flat (Qwen3-8B, MATH-500: 69.75 at 2k, 70.00 at 4k). The default first think is 2,000 tokens; 4,000 is for
+  the leakiest models (Nemotron-3-Nano, Qwen3-8B).
 
 ### 5.6b The baseline matched in the check (HO-CM)
 Every comparison above gives always-thinking the same fact but lets it ignore its own visible failures. Given the same free check — a
@@ -370,7 +372,15 @@ fact/policy confound present in most cascade and when-to-think evaluations; (ii)
 benchmark, whether thinking only on failure is a pure saving or a trade; (iii) the evidence on OR word problems, geometry and contest
 programming with open models from four families on RTX 3090s. Escalating thinking budgets inside one model on a failed check is a
 within-model cascade (cf. CodeRescue 2607.19338 between models; cascades fail when the fallback budget is too small, 2605.07686); we add
-the fact- and check-matched comparison and the leak analysis. Distilling a short think into the non-thinking mode (DT6) relates to
+the fact- and check-matched comparison and the leak analysis. The closest within-model cascade is DART (2606.23181): two non-thinking
+drafts, think on disagreement with an entropy-predicted budget; others switch on hesitation keywords or entropy (HRBench 2605.28398) or
+an internal score (CopT 2605.20075). None puts a *short forced think* (s1's budget forcing, 2501.19393) as the first stage behind a check
+that only confirms the program runs — the stage the leaky models need (HO-SB); the Coupling Tax (2605.07686) studies a non-thinking
+first stage. That a cut think keeps reasoning in its answer (HO-SEED) is known for untrained cuts (Nemotron Nano 2, 2508.14444, fixed
+there by training on truncated traces, which Nemotron-3-Nano does, 2512.20848); a trained budget (Seed-OSS) overrunning it in 88–99% of
+problems is, as far as we found, not reported. Longer thinking pays non-monotonically (2506.04210, 2502.07266), which fits a flat
+2k → 4k first step (HO-4K) and a second sample beating one longer think (HO-CM). Note: "leak" here is a passing-but-wrong program; in
+Demystifying Hybrid Thinking (2510.12680) it means reasoning appearing in the non-thinking mode. Distilling a short think into the non-thinking mode (DT6) relates to
 System-2 distillation (Yu et al., 2024) and self-distillation for code (2604.01193, 2607.09709). The proof results (cheap attempts before thinking under a perfect check) confirm Reasoning Models Can Be Effective
 Without Thinking (2504.09858) and repeated-sampling scaling (Large Language Monkeys) on general hybrid models. Label-free fine-tuning on
 self-consistent programs is self-improvement / context distillation (LLMs Can Self-Improve; STaR; ReST-EM); its collapse under self-

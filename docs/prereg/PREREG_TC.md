@@ -73,3 +73,12 @@ the assistant turns). The gold-call floor on the full set: the check fails 14 of
 model and seed (9 jobs, `-x n19`), seeds 1–3; nothing else changes. Main runs submitted 12:2x UTC: jobs tc_{q8b,q14a,q35}_s{1,2,3}
 (1261150–1261158).*
 
+*Citation check (2026-10-27 13:3x UTC, after registration and before any result; nothing in the design, the predictions or the decision rules
+changes): every ID above exists and says what is quoted, with three corrections. (i) 2608.22472 is "Small Reasoning Models are
+Instruction Followers in Function Calling"; IFFC is its method (tool calls posed to the model as an instruction-following task), and
+the 74.5 → 83.3 (live) / 93.8 → 94.9 (non-live) thinking gains are inside IFFC (its Table 5); native function calling with thinking
+scores 75.5 live / 88.8 non-live (its Table 2). (ii) ThinkBrake's oracle-stopping numbers (Qwen3-4B-Thinking-2507, BFCL single-turn
+non-live average 85.8 → 94.2 at 87.1% fewer tokens) are from 2510.00546v1; v5 reports about 90.7 → 95.4. (iii) ComplexFuncBench's 78.8%
+value errors are Qwen2.5-72B's. Also: CopT's estimate is a contrastive reverse-KL score (85.77% at 235 tokens → 86.45% at 168, or 86.17%
+at 130); DART, where its drafts disagree, predicts a thinking budget from the drafts' entropy (our 2N→T uses the full think instead).*
+
