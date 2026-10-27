@@ -2,21 +2,18 @@
 equal the server's template (unlimited thinking), and the budget-0 prompt must open the think block as the card says."""
 import os, sys
 
-import httpx
-
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from llm import BASE_URL  # noqa: E402
+from llm import post_json  # noqa: E402
 
-ROOT = BASE_URL.rsplit("/v1", 1)[0]
 q = "A farmer has 3 fields of 12 hectares. How many hectares in total?"
 
 
 def tok(**kw):
-    return httpx.post(ROOT + "/tokenize", json={"model": "local", **kw}, timeout=60).json()["tokens"]
+    return post_json("/tokenize", {"model": "local", **kw})["tokens"]
 
 
 def text(t):
-    return httpx.post(ROOT + "/detokenize", json={"model": "local", "tokens": t}, timeout=60).json()["prompt"]
+    return post_json("/detokenize", {"model": "local", "tokens": t})["prompt"]
 
 
 msgs = [{"role": "user", "content": q}]

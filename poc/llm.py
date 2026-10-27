@@ -57,9 +57,15 @@ def chat(prompt: str, model: str = "local", temperature: float = 0.7, max_tokens
 
 def n_tokens(text: str) -> int:
     """tokens of `text` under the served model's tokenizer (vLLM /tokenize; HO-SEED: a native think = out_tokens - answer tokens)"""
-    import httpx
-    return httpx.post(BASE_URL.rsplit("/v1", 1)[0] + "/tokenize", json={"model": "local", "prompt": text, "add_special_tokens": False},
-                      timeout=60).json()["count"]
+    return post_json("/tokenize", {"model": "local", "prompt": text, "add_special_tokens": False})["count"]
+
+
+def post_json(path: str, body: dict) -> dict:
+    """POST to the vLLM server's own endpoints (outside /v1); stdlib only (the client venv has no httpx / requests)"""
+    import json, urllib.request
+    req = urllib.request.Request(BASE_URL.rsplit("/v1", 1)[0] + path, data=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=60) as r:
+        return json.loads(r.read())
 
 
 def strip_think(t: str) -> str:

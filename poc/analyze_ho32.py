@@ -6,7 +6,8 @@ failure = no value, crash or 'No Best Solution'):
 32-P1: SB->T->T within 1.0 utility point of the best of the six in >= 3 of the 4 cells. 32-P2: T->T - T >= +2 points in >= 3 of 4.
 32-P3 (label-free signal): pooled over the cells, passing library programs whose value matches the same seed's passing short-think
 program are right >= 30 points more often than those that print a different value (also shown: the short think fails visibly).
-usage: python analyze_ho32.py [model ...]   (default q32b)"""
+HO-SEED: --native = the short think is the model's own trained budget (formxnb2048) instead of the forced cut (formxtb2000).
+usage: python analyze_ho32.py [--native] [model ...]   (default q32b)"""
 import os, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -16,13 +17,14 @@ from run_nlopt import RES, _rows, correct  # noqa: E402
 g = lambda r: r.get("out_tokens") or 0
 POL = ("T", "T->T", "FF+F", "SB+F", "SB->T->T", "FF+SB+F")
 LAM = 0.5
+SB_ARM = "formxnb2048" if "--native" in sys.argv else "formxtb2000"
 
 
 def cell(m, b):
-    per, tok, n, agree = {}, dict.fromkeys(POL, 0), 0, []
+    per, tok, n, agree, diag = {}, dict.fromkeys(POL, 0), 0, [], []
     for s in (1, 2, 3):
         F, S, T, T2 = ({r["id"]: r for r in _rows(f"{RES}/opt_{m}_{b}_{a}_s{x}.jsonl")}
-                       for a, x in (("formx", s), ("formxtb2000", s), ("formxt", s), ("formxt", s % 3 + 1)))
+                       for a, x in (("formx", s), (SB_ARM, s), ("formxt", s), ("formxt", s % 3 + 1)))
         for i, f in F.items():   # 32-P3 uses the two cheap arms only
             if ok_(f) and i in S:
                 sb = S[i]
@@ -31,6 +33,7 @@ def cell(m, b):
             if i not in F or i not in S or i not in T2:
                 continue
             f, sb, t2 = F[i], S[i], T2[i]; n += 1
+            diag.append(((sb.get("think_tokens") or 0) > 2048, t.get("finish") == "length"))
             tt = (t["correct"], g(t)) if ok_(t) else (t2["correct"], g(t) + g(t2))
             res = {"T": (t["correct"], g(t)), "T->T": tt,
                    "FF+F": (f["correct"], g(f)) if ok_(f) else (t["correct"], g(f) + g(t)),
@@ -40,14 +43,14 @@ def cell(m, b):
             per.setdefault(i, []).append({k: bool(v[0]) for k, v in res.items()})
             for k, v in res.items():
                 tok[k] += v[1]
-    return per, tok, n, agree
+    return per, tok, n, agree, diag
 
 
 def main():
     for m in [a for a in sys.argv[1:] if not a.startswith("--")] or ["q32b"]:
         p1 = p2 = cells = 0; pooled = []
         for b in ("optibench", "bwor", "logior", "optmath"):
-            per, tok, n, agree = cell(m, b)
+            per, tok, n, agree, diag = cell(m, b)
             pooled += agree
             if not n:
                 print(f"=== {m} {b}: no rows"); continue
@@ -56,7 +59,8 @@ def main():
             kt = {k: tok[k] / n / 1000 for k in POL}
             u = {k: acc[k] - LAM * kt[k] for k in POL}
             best = max(u, key=u.get)
-            print(f"=== {m} {b} ({len(per)} problems, {n} rows; best utility {best} {u[best]:.1f})")
+            print(f"=== {m} {b} ({len(per)} problems, {n} rows; best utility {best} {u[best]:.1f}; short think past 2,048 tokens "
+                  f"{100 * sum(d[0] for d in diag) / n:.0f}%, full think at its cap {100 * sum(d[1] for d in diag) / n:.0f}%)")
             print("  " + " | ".join(f"{k} {acc[k]:.1f}% @ {kt[k]:.2f}k u {u[k]:.1f}" for k in POL))
             mu, lo, hi = ci({i: sum(x["T->T"] - x["T"] for x in v) / len(v) for i, v in per.items()})
             print(f"  32-P1 SB->T->T utility gap to the best {u['SB->T->T'] - u[best]:+.2f}; 32-P2 T->T - T {mu:+.1f} [{lo:+.1f}, {hi:+.1f}]")

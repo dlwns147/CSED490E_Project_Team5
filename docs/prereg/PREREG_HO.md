@@ -1163,3 +1163,9 @@ native thinks past 2,048 tokens, the share of full thinks at the 32k cap.
 **Smoke (before the main runs; not part of the results).** 7 BWOR + 11 OptiBench problems (FORM_SUBSET 0/12, 0/60), seed 1, all four
 arms (tag seedsmoke), and `poc/smoke_seed.py` (the hand-rendered chat format equals the server's template). Amendment rule fixed now: if
 more than 10% of the smoke's full thinks hit 32k, the full think moves to a 64k cap (73,728 positions) before any main row.
+*HO-SEED smoke (2026-10-27 00:5x UTC, jobs 1255678 / 1255799, tag seedsmoke; not part of the results): the server loads (AWQ, tensor parallel 4);
+the hand-rendered chat format equals the server's template (26 / 26 tokens); budget 0 opens the think with a budget reflection as the card
+says. 0 of 18 full thinks reach 32k (5.1–14.2k tokens), so the cap stays at 32k (amendment rule not triggered). The forced cut stops every
+think at 2,000 tokens (18 / 18). The trained budget is soft: the native think runs past 2,048 tokens in 18 / 18 problems (2.2–3.7k; one
+9.8k, cut by max_tokens 10,240 without an answer) — counted as registered, not cut. The first smoke's native rows were lost to a client
+bug (httpx is not in the client venv; replaced with urllib) and re-run in the second.*
