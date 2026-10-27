@@ -72,7 +72,38 @@ def b4k(models):
           f"4K-P3 {p3}/{cells} cells where the 4k think fails visibly less often")
 
 
+def samp(models):
+    """SAMP (PREREG_SAMP.md): per cell, SB->T->T with the 2k cut think at the card's thinking sampling (formxtb2000c) against the
+    harness-sampled one (formxtb2000), the same full-think rows; and against T->T. Also the first program alone."""
+    global SB_ARM
+    p1 = p2 = cells = 0
+    for m in models:
+        for b in ("optibench", "bwor", "logior", "optmath"):
+            R = {}
+            for a in ("formxtb2000", "formxtb2000c"):
+                SB_ARM = a; R[a] = cell(m, b)
+            (ph, th, nh, _, _), (pc, tc, nc, _, _) = R["formxtb2000"], R["formxtb2000c"]
+            if not nh or nh != nc:
+                print(f"=== {m} {b}: rows harness {nh} / card {nc}, skipped"); continue
+            cells += 1
+            acc = lambda P, n, k: 100 * sum(x[k] for v in P.values() for x in v) / n
+            u = lambda P, T, n, k: acc(P, n, k) - LAM * T[k] / n / 1000
+            uh, uc, utt = u(ph, th, nh, "SB->T->T"), u(pc, tc, nc, "SB->T->T"), u(ph, th, nh, "T->T")
+            mu, lo, hi = ci({i: sum(y["SB->T->T"] - x["SB->T->T"] for x, y in zip(ph[i], pc[i])) / len(ph[i]) for i in ph})
+            mt, lt, ht = ci({i: sum(y["SB->T->T"] - y["T->T"] for y in pc[i]) / len(pc[i]) for i in pc})
+            F1 = {a: [r["correct"] for s in (1, 2, 3) for r in _rows(f"{RES}/opt_{m}_{b}_{a}_s{s}.jsonl")] for a in R}
+            f1 = {a: 100 * sum(v) / max(1, len(v)) for a, v in F1.items()}
+            p1 += uc >= uh - 1.0; p2 += acc(pc, nc, "SB->T->T") >= acc(pc, nc, "T->T") - 1.0
+            print(f"=== {m} {b} ({len(ph)} problems, {nh} rows): SB->T->T utility harness {uh:.1f} / card {uc:.1f} ({uc - uh:+.2f}); accuracy "
+                  f"card - harness {mu:+.1f} [{lo:+.1f}, {hi:+.1f}]; tokens card {tc['SB->T->T'] / nc / 1000:.2f}k / harness {th['SB->T->T'] / nh / 1000:.2f}k; "
+                  f"card SB->T->T - T->T {mt:+.1f} [{lt:+.1f}, {ht:+.1f}] (T->T u {utt:.1f}); first program right harness {f1['formxtb2000']:.1f}% / "
+                  f"card {f1['formxtb2000c']:.1f}%")
+    print(f"*** SAMP-P1 {p1}/{cells} cells with card utility >= harness - 1.0; SAMP-P2 {p2}/{cells} cells with card SB->T->T accuracy >= T->T - 1.0")
+
+
 def main():
+    if "--samp" in sys.argv:
+        return samp([a for a in sys.argv[1:] if not a.startswith("--")] or ["q35"])
     if "--b4k" in sys.argv:
         return b4k([a for a in sys.argv[1:] if not a.startswith("--")] or ["q14a", "q35", "q32b"])
     for m in [a for a in sys.argv[1:] if not a.startswith("--")] or ["q32b"]:

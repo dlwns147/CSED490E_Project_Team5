@@ -4030,3 +4030,18 @@ a cut (Nemotron Nano 2, 2508.14444). Not found in the literature: a short forced
 accuracy's standard error is about 9 points against 1–3-point budget differences, so this was predictable). Citations in PREREG_TC and
 PREREG_IF were verified (three corrections in PREREG_TC; ProgCo, 2501.01264, added as IF-1's closest prior work). Details:
 docs/notes/RELATED_WORK.md (2026-10-27 section).
+
+## 2026-10-27 14:23 UTC: TC-1 (PREREG_TC.md): on tool calls the recipe transfers as a small gain, not a saving; the free check is weak and thinking is short
+
+BFCL v4 single-turn (3,482 items; Qwen3-8B, Qwen3-14B-AWQ, Qwen3.5-9B; 3 seeds; BFCL's own checker). TC-P1 refuted (3 / 6: the schema
+check fails 17.5 / 25.1 / 8.7 / 21.4% of the Qwen3 models' wrong non-thinking answers, 41.6 / 39.2% of Qwen3.5-9B's, whose errors are
+mostly malformed calls; false alarms 0–4%). TC-P2 holds (4 / 6: agreement of two cheap answers adds +1.0 to +5.4). TC-P3 refuted (0 / 6:
+cheap-first with check and agreement is 1.3–7.0 points below thinking for Qwen3 at 29–45% of its tokens; 4.7–8.1 above for Qwen3.5-9B,
+at 51–72%). TC-P4 holds (6 / 6: the check is worth adding to agreement). TC-P5 holds (6 / 6: SB→T at or above T, +0.5 to +7.6, at
+97–105% of its tokens). Thinks are 0.3k tokens, so the cut never binds and the dearest policy costs 0.3 utility points: accuracy
+decides, and thinking (with a check-gated second think) wins for Qwen3. The leaks no free signal sees are repeated wrong answers, most
+often a call where no tool applies (Qwen3-14B books an Uber ride for a food order in both cheap answers; the think declines). Thinking
+cuts irrelevant calls (Qwen3-14B 56 → 91% non-live irrelevance), opposite to the Reasoning Trap's distractor tools. Reading the rows
+found a confound: Qwen3.5-9B's full think runs at its card's sampling (T 1.0, top-k 20, presence penalty 1.5), its cut think and
+non-thinking answer at T 0.7 without a penalty — it copies BFCL's template (`[func_name1=…]`) in 16% of thinking outputs vs 12%, and
+the same mismatch sits under every Qwen3.5-9B / Nemotron short-think result since HO-N. Pre-registered next: PREREG_SAMP.md.

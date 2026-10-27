@@ -5,7 +5,7 @@ all arms against one server (BFCL's system prompt with the function docs, then t
   sb     SB = thinking cut at 2,000 tokens (budget forcing), then the calls
 The free check (schema validation of the decoded calls, no gold), agreement, grading (BFCL's own AST checker) and the policies are
 offline: poc/grade_tc.py, poc/analyze_tc.py. Items: $POC_DATA/bfcl/tc_items.jsonl (poc/prep_tc.py). Rows resume.
-usage: python run_tc.py <tag> <seed>     (TC_SUBSET=i/k: items i, i+k, ... only — the smoke)"""
+usage: python run_tc.py <tag> <seed>     (TC_SUBSET=i/k: items i, i+k, ... only — the smoke; TC_ARMS=think: only those arms — SAMP)"""
 import json, os, sys, zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -48,7 +48,8 @@ def main():
                         system=p["system"])
         return "sb", {"id": p["id"], "text": o["text"], "out_tokens": o["out_tokens"], "think_tokens": o["think_tokens"], "finish": o["finish"]}
 
-    jobs = [(f, p) for p in P for a, f in (("cheap", cheap), ("think", think), ("sb", sb)) if p["id"] not in done[a]]
+    arms = os.environ.get("TC_ARMS", "cheap,think,sb").split(",")
+    jobs = [(f, p) for p in P for a, f in (("cheap", cheap), ("think", think), ("sb", sb)) if a in arms and p["id"] not in done[a]]
     out = {a: open(f, "a") for a, f in path.items()}
     with ThreadPoolExecutor(64) as ex:
         for fu in as_completed([ex.submit(f, p) for f, p in jobs]):

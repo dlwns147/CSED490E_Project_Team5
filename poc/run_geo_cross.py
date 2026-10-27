@@ -127,8 +127,14 @@ def retrieve_hint(q, k=1):
 def budget_chat(prompt, budget, think=False, max_tokens=4096, temperature=0.7, seed=None, cut_note="I will now write the program.", system=None):
     """budget forcing (s1-style) for Qwen3: think for at most `budget` tokens, then force </think> and generate the answer.
     Uses the raw completions endpoint with the Qwen3 chat format; budget=0 means an empty think block (= thinking off).
-    cut_note: what the cut think says it does next (IF-1: "I will now write the response."); system: a system turn (TC-1: the tool docs)."""
-    from llm import client
+    cut_note: what the cut think says it does next (IF-1: "I will now write the response."); system: a system turn (TC-1: the tool docs).
+    POC_BUDGET_CARD=1 (SAMP, PREREG_SAMP.md): both calls use the thinking sampling of POC_THINK_SAMPLING (the model card's, as the full
+    think) instead of `temperature` / top-p 0.95 — before 10-27 the cut think always ran at the harness sampling."""
+    from llm import client, _TS
+    card = _TS if os.environ.get("POC_BUDGET_CARD") else {}
+    temperature = card.get("temperature", temperature)
+    xs = {**({"presence_penalty": card["presence_penalty"]} if "presence_penalty" in card else {}),
+          **({"extra_body": {"top_k": int(card["top_k"])}} if "top_k" in card else {})}
     head = f"<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n<think>\n"
     if system:
         head = f"<|im_start|>system\n{system}<|im_end|>\n" + head
@@ -137,11 +143,11 @@ def budget_chat(prompt, budget, think=False, max_tokens=4096, temperature=0.7, s
     think_txt, used = "", 0
     if budget > 0:
         r = client.completions.create(model="local", prompt=head, max_tokens=budget, temperature=temperature,
-                                      top_p=0.95 if temperature > 0 else 1.0, seed=seed, stop=["</think>"])
+                                      top_p=card.get("top_p", 0.95 if temperature > 0 else 1.0), seed=seed, stop=["</think>"], **xs)
         think_txt, used, cut = r.choices[0].text, r.usage.completion_tokens, r.choices[0].finish_reason == "length"
     cont = head + think_txt + (f"\n\nTime is up; {cut_note}\n" if budget > 0 and cut else "") + "\n</think>\n\n"
     r2 = client.completions.create(model="local", prompt=cont, max_tokens=max_tokens, temperature=temperature,
-                                   top_p=0.95 if temperature > 0 else 1.0, seed=seed, stop=["<|im_end|>"])
+                                   top_p=card.get("top_p", 0.95 if temperature > 0 else 1.0), seed=seed, stop=["<|im_end|>"], **xs)
     return {"text": r2.choices[0].text, "finish": r2.choices[0].finish_reason, "out_tokens": used + r2.usage.completion_tokens,
             "think_tokens": used}
 

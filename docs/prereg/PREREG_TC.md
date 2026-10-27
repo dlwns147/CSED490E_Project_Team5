@@ -86,3 +86,51 @@ at 130); DART, where its drafts disagree, predicts a thinking budget from the dr
 their prompt (≥ 4.48k tokens) plus the 16k thinking cap exceeds the default 20,480-token context; jobs tc_q8b_fix / tc_q14a_fix
 (1261464, 1261465) rerun only the missing rows with `--max-model-len 32768`.*
 
+### Results TC-1 (2026-10-27 14:2x UTC; `python3.11 poc/analyze_tc.py` after `grade_tc.py` per model; 3 models × 3 seeds × 3,482 items, every row; results/tc_analysis.log; λ = 0.5)
+| cell | N | T | SB | S | N→T | SB→T | T→T | 2N→T | N→T\|ag | check power / false alarm |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Qwen3-8B non-live | 89.4 @ 0.03k | 92.5 @ 0.30k | 92.7 @ 0.30k | 91.3 @ 0.26k | 90.7 @ 0.04k | **93.0 @ 0.31k** | 92.9 @ 0.31k | 90.4 @ 0.08k | 91.3 @ 0.09k | 17.5% / 0% |
+| Qwen3-8B live | 69.5 @ 0.02k | 77.4 @ 0.40k | 77.4 @ 0.37k | 76.6 @ 0.30k | 73.5 @ 0.07k | 78.2 @ 0.40k | **78.6 @ 0.43k** | 72.9 @ 0.11k | 75.8 @ 0.14k | 25.1% / 1% |
+| Qwen3-14B-AWQ non-live | 86.1 @ 0.04k | 93.5 @ 0.27k | 93.7 @ 0.26k | 90.8 @ 0.25k | 86.9 @ 0.04k | **94.0 @ 0.27k** | 93.8 @ 0.27k | 87.4 @ 0.09k | 87.9 @ 0.09k | 8.7% / 0% |
+| Qwen3-14B-AWQ live | 62.3 @ 0.03k | 79.0 @ 0.32k | 79.6 @ 0.31k | 75.2 @ 0.28k | 66.6 @ 0.07k | **80.6 @ 0.34k** | 80.1 @ 0.34k | 69.3 @ 0.12k | 72.0 @ 0.14k | 21.4% / 1% |
+| Qwen3.5-9B non-live | 81.5 @ 0.04k | 76.9 @ 0.35k | 80.2 @ 0.30k | 73.9 @ 0.31k | 84.1 @ 0.07k | 84.3 @ 0.34k | 84.2 @ 0.40k | 84.3 @ 0.16k | **84.9 @ 0.18k** | 41.6% / 1% |
+| Qwen3.5-9B live | 61.4 @ 0.04k | 67.2 @ 0.31k | 71.3 @ 0.28k | 62.6 @ 0.24k | 66.9 @ 0.10k | **74.7 @ 0.33k** | 73.7 @ 0.38k | 70.6 @ 0.21k | 71.8 @ 0.23k | 39.2% / 4% |
+(accuracy % @ output tokens per item; bold: best utility; at these lengths utility ≈ accuracy — the most expensive policy costs 0.3 points.)
+- **TC-P1 refuted** (3 / 6, needed 4): the schema check fails on fewer than 25% of wrong N in the Qwen3 cells (17.5, 8.7, 21.4%) except
+  Qwen3-8B live (25.1%), and on 39–42% for Qwen3.5-9B, whose errors are mostly malformed calls the check sees. Its false alarms are
+  0–4%. The leaks (wrong but passing) are, in order: a call where none applies (irrelevance), a wrong string value, the wrong number of calls.
+- **TC-P2 holds** (4 / 6): agreement adds +2.3 to +5.4 points on the live splits and Qwen3-14B non-live (+1.0); +0.5 / +0.8 elsewhere.
+  Disagreement is rare where the check is blind: two non-thinking answers disagree on only 3–14% of items for Qwen3 (14–29% of the wrong
+  ones — most wrong answers are repeated).
+- **TC-P3 refuted** (0 / 6): for Qwen3, N→T|ag is 1.3–7.0 points below T at 29–45% of its tokens; for Qwen3.5-9B it is 4.7–8.1 above T
+  but at 51% / 72% of T's tokens (above the 50% bound).
+- **TC-P4 holds** (6 / 6): adding the schema check to agreement is worth its cost (+0.5 to +2.9 points over 2N→T at 103–131% tokens).
+- **TC-P5 holds** (6 / 6): the recipe as stated (SB→T) is at or above T in every cell: +0.5 [+0.0, +0.9], +0.8 [+0.2, +1.3], +0.5
+  [−0.1, +1.0], +1.5 [+0.8, +2.2], +7.4 [+6.3, +8.6], +7.6 [+6.7, +8.5], at 97–105% of T's tokens. The 2,000-token cut almost never
+  binds (0–2% of thinks reach it): on tool calls the short think *is* the full think, and SB→T is "think, and think again on a
+  failed schema check".
+- Reported: thinking helps every Qwen3 cell (T − N +3.1 to +16.8). On BFCL's irrelevance items thinking calls tools *less* (Qwen3-14B
+  56 → 91% non-live, 42 → 81% live; Qwen3-8B 77 → 87%; Qwen3.5-9B 66 → 92%), the opposite direction from the Reasoning Trap's distractor
+  tools (2510.22977, a different setup: similar but wrong tools, a judge), and it calls less where a call is needed (live_relevance,
+  n = 48: Qwen3-14B 100 → 75%, Qwen3.5-9B 79 → 52%). Self-selection says "think" on 69–86% of items; S is 0.0–3.1 points better than
+  N→T|ag for Qwen3 at 2–3× its tokens, 9–11 points worse for Qwen3.5-9B. oracle(N, T) 79.9–95.6%.
+- **Qwen3.5-9B's thinking is worse than its non-thinking answer on non-live (−4.6 [−6.4, −2.7]), and raw outputs show why:** it copies
+  BFCL's format template literally (`[func_name1=solve_quadratic_equation(a=2, b=6, c=5)]`, `math.factorial(params_name1=5)`) in 16% of
+  thinking outputs vs 12% of non-thinking and 12% of short-think ones; BFCL cannot decode these. **Confound found in reading:** its
+  full think runs at the card's sampling (T 1.0, top-k 20, presence penalty 1.5) while the short think (`budget_chat`) and the
+  non-thinking answer run at T 0.7 without a penalty, so part of SB's +3–4 points over T on Qwen3.5-9B may be sampling, not length.
+  The same holds for SB vs T of Qwen3.5-9B and Nemotron-3-Nano in the HO word-problem runs (HO-4K's "card sampling" for the budget
+  arm was wrong: `budget_chat` never applied it) — a sampling-matched control is pre-registered next (PREREG_SAMP.md).
+- Raw rows (Qwen3-14B, seed 1): live_irrelevance_10-1-0 ("order five burgers … from Uber Eats McDonald's", only `uber.ride` given):
+  both non-thinking answers book a ride (`uber.ride(loc="123 Main St, New York, …", type="plus", time=300)`) — the schema check passes,
+  the two answers agree, a leak no free signal sees; the 206-token think says no tool applies (right). live_multiple_12-4-4 ("who is
+  park ji sung"): the two non-thinking answers differ (max_results 1 vs 10), so N→T|ag thinks and the think's
+  `HNA_WQA.search(keyword="park ji sung")` is right.
+- **Decision as registered:** P1, P2 and P3 do not all hold, so the claim is not restated as "check or agreement". The P1-refuted rule
+  ("the schema check catches what matters; N→T is the recipe there") applies only where P1 failed — Qwen3.5-9B, whose errors are
+  malformed calls — and even there N→T|ag and SB→T beat N→T; for Qwen3 the check is as weak as predicted. P3 refuted → on tool calls
+  cheap-first loses to thinking for Qwen3 (−1.3 to −7.0 points), reported as a boundary; with thinks this short (0.3k tokens) there is
+  almost nothing to save at λ = 0.5 (the dearest policy costs 0.3 utility points), so accuracy decides. P4 holds → the check is worth
+  adding to agreement. P5 holds → the recipe as stated transfers to tool calls, as a small accuracy gain (+0.5 to +1.5 for Qwen3), not a
+  saving: the short think is the full think, and the check-gated second think fixes malformed calls.
+

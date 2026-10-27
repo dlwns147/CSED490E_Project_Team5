@@ -3,7 +3,7 @@
 State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Team5, public). The hourly loop on the old server
 (/NAS/SJ/POSTECH/nlp, 8 × RTX PRO 6000 Blackwell, GPUs 0–3) was stopped on 2026-10-20 04:2x UTC; no job is running there.
 
-## 0. Status on the Slurm cluster (updated 2026-10-27 12:4x UTC)
+## 0. Status on the Slurm cluster (updated 2026-10-27 14:2x UTC)
 - **Done 10-25 → 10-27 (PREREG_HO / _HON / _DT / _MODEL; FINDINGS has one entry each):** HO-N4 (Nemotron-3-Nano, a new family:
   a leaky model), HO-SB / SB2 / SB3 / P4 (a 2k-token think first, full thinking on a visible failure, is the fix for leaky models and the
   best no-label default), HO-CM (with the check given to thinking too, the best policy is short think → think → retry), HO-SB4 (the first
@@ -14,7 +14,7 @@ State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Tea
   holds in 4 / 4; its trained budget is not a better first step).
 - **Done 10-27 12 UTC:** HO-4K (PREREG_HO.md addendum): a 4,000-token first think on Qwen3-14B-AWQ / Qwen3.5-9B / Qwen3-32B-AWQ
   (`k4_*` jobs) does not carry over (P1–P3 refuted); analysis `python3 poc/analyze_ho32.py --b4k q14a q35 q32b`.
-- **Running (since 10-27 12:2x UTC):** TC-1 (docs/prereg/PREREG_TC.md): tool calling (BFCL v4 single-turn, 3,482 items, prompt mode),
+- **Done 10-27 14 UTC:** TC-1 (docs/prereg/PREREG_TC.md): tool calling (BFCL v4 single-turn, 3,482 items, prompt mode),
   a schema check and cheap-answer agreement as the gates for thinking; jobs `tc_{q8b,q14a,q35}_s{1,2,3}` (1261150–1261158; q35 via
   `hon_lane.sh tc bfcl <seed>`); items from `/home1/leesangjun/venvs/bfcl/bin/python poc/prep_tc.py` (venv: pip bfcl-eval, soundfile);
   then `/home1/leesangjun/venvs/bfcl/bin/python poc/grade_tc.py <q8b|q14a|q35>` (login node) and `python3 poc/analyze_tc.py`.

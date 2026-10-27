@@ -1280,4 +1280,8 @@ P3 holding and P1 refuted, a longer first think fixes failures but not at a pric
   (Nemotron-3-Nano, Qwen3-8B; HO-SB4 / HO-PB). P3 does not hold either, so there is no "fixes failures but not at a price worth paying"
   clause: by the registered count (9 / 12 cells) a longer first think does not fix visible failures reliably, and it does not pay. (The
   pooled first-program gain above is real but is bought where the cascade repairs anyway.)
+- Correction (2026-10-27 14:2x UTC, found in TC-1's rows): the run description above says the Qwen3.5-9B budget arm used the
+  model-card thinking sampling; it did not — `budget_chat` ran both budgets at the harness sampling (temperature 0.7, top-p 0.95), so
+  HO-4K's 2k-vs-4k comparison is matched, but every cut think of Qwen3.5-9B / Nemotron-3-Nano is sampled unlike their full thinks
+  (PREREG_SAMP.md tests it).
 
