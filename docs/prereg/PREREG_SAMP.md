@@ -53,3 +53,8 @@ corrected); P3 or P4 refuted → the mode matters at matched sampling, reported 
 server, the fact matches q35's `fact_from`) before the results are used.
 
 *Submitted 2026-10-27 14:4x UTC: samp_{bwor,logior}_s{1,2,3} (1261670–1261675), samp_tch (1261676), samp_tcsbc (1261677), `-x n19`.*
+*First rows read (2026-10-27 14:5x UTC, before any result is used): the coding-preset full thinks carry the same fact as q35's rows
+(`fact_from` identical in 43 of 43); with the client replaced by a recorder, `budget_chat` (both calls) and `llm.chat(think=True)` send
+temperature 0.6, top-p 0.95, top-k 20 and no presence penalty under the codepreset environment; the cut-think rows come later because the
+server queues them behind the 32k thinks (4 running, KV 89%). Tool-call cells: 2.5k / 2.3k of 10.4k rows after 15 minutes, 0 failures.*
+
