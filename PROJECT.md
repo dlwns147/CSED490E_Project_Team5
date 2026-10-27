@@ -48,7 +48,8 @@ cells of four hybrid-thinking models the best fixed order without labels is shor
 frontier where the check holds (Qwen3.5, geometry) and 2–4 points behind on the leaky models' hardest word problems. gpt-oss-20b's gap
 (low effort first) closes the same way: a medium-effort think cut at 2k first ties T→T on BWOR / LogiOR at 69–83% of its tokens (HO-OSB).
 On Qwen3-32B the order holds unchanged (SB→T→T best in 3 of 4 cells, retry +2.3 to +10.9, cheap-first still −5 to −12; HO-32): the leak
-does not shrink with size.
+does not shrink with size. On Seed-OSS-36B, a fourth family, it is best in all 4 cells (retry +3.6 to +10.6, cheap-first −6 to −12;
+HO-SEED); the model's own trained thinking budget overruns 2,048 tokens and is not a better first step than the forced cut.
 
 Held-out benchmarks, 3 seeds, 95% intervals over problems; always thinking is given the same fact as the recipe (HO-TF, HO-TF2; full
 table: `docs/REPORT.md` §5.1):
@@ -135,9 +136,9 @@ table: `docs/REPORT.md` §5.1):
 - **Label-free choice of policy** (HO-L, HO-LF): pseudo-labels from agreement fail both within a mode (1.71 vs 0.57) and across modes
   (2.00 vs 1.35 labelled, 1.74 fixed): shared mistakes outvote the truth where the check's blind spot is shared (geometry degenerate
   inputs, OptMATH formulations). Cross-mode agreement is a per-program leak flag (CC-P2), not a substitute for the 30 labels.
-- **Larger model, more families** (HO-32, HO-OSB; running: HO-SEED): the order holds on Qwen3-32B (best in 3 / 4 cells, leak not
-  smaller than at 8–14B) and, with a medium think cut at 2k, on gpt-oss-20b. Running: Seed-OSS-36B (ByteDance, a fourth family) with a
-  forced 2k cut vs the budget it was trained to keep (its native budget overruns 2,048 tokens in the smoke: 2.2–3.7k).
+- **Larger model, more families** (HO-32, HO-OSB, HO-SEED): the order holds on Qwen3-32B (best in 3 / 4 cells, leak not
+  smaller than at 8–14B), with a medium think cut at 2k on gpt-oss-20b, and on Seed-OSS-36B (ByteDance, a fourth family; best in 4 / 4;
+  its trained budget overruns 2,048 tokens in 88–99% of problems and loses to the forced cut in 3 / 4).
 - Open: the budget itself (a fixed 2,000 tokens costs where full thinking is already short); the final report (draft
   `docs/REPORT.md`, format / length / deadline from the team).
 - Day-to-day state (running jobs, environment, evidence table): `docs/SLURM_HANDOFF.md`.

@@ -3,15 +3,18 @@
 State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Team5, public). The hourly loop on the old server
 (/NAS/SJ/POSTECH/nlp, 8 × RTX PRO 6000 Blackwell, GPUs 0–3) was stopped on 2026-10-20 04:2x UTC; no job is running there.
 
-## 0. Status on the Slurm cluster (updated 2026-10-27 02:3x UTC)
+## 0. Status on the Slurm cluster (updated 2026-10-27 09:5x UTC)
 - **Done 10-25 → 10-27 (PREREG_HO / _HON / _DT / _MODEL; FINDINGS has one entry each):** HO-N4 (Nemotron-3-Nano, a new family:
   a leaky model), HO-SB / SB2 / SB3 / P4 (a 2k-token think first, full thinking on a visible failure, is the fix for leaky models and the
   best no-label default), HO-CM (with the check given to thinking too, the best policy is short think → think → retry), HO-SB4 (the first
   think needs 2–4k tokens), HO-CC / CC-P2 and HO-CAP (contests: the retry transfers, the short-think saving does not; cross-mode agreement
   flags wrong passing programs), HO-TR (repairing a failed think is not cheaper than thinking again), DT6 (distilling the short think does
   not fix the leak), HO-LF (cross-mode pseudo-labels do not replace the 30 labels), HO-OSB (gpt-oss-20b, medium think cut at 2k) and HO-32
-  (Qwen3-32B-AWQ on 2 × 3090: the order holds, the leak does not shrink with size).
-- **Running (since 10-27 00:56 UTC):** HO-SEED (PREREG_HO.md addendum), Seed-OSS-36B-Instruct-AWQ (ByteDance, a fourth family) on
+  (Qwen3-32B-AWQ on 2 × 3090: the order holds, the leak does not shrink with size), HO-SEED (Seed-OSS-36B, a fourth family: the order
+  holds in 4 / 4; its trained budget is not a better first step).
+- **Running (since 10-27 02:4x UTC):** HO-4K (PREREG_HO.md addendum): a 4,000-token first think on Qwen3-14B-AWQ / Qwen3.5-9B /
+  Qwen3-32B-AWQ (`k4_*` jobs; Qwen3.5-9B last, `k4_q35`); analysis `python3 poc/analyze_ho32.py --b4k q14a q35 q32b`.
+- **Done 10-27 09 UTC:** HO-SEED (PREREG_HO.md addendum), Seed-OSS-36B-Instruct-AWQ (ByteDance, a fourth family) on
   4 × 3090 per job (TP 4, `--max-model-len 40960`), jobs `sd_optibench` / `sd_bwor` / `sd_logior` / `sd_optmath`, arms budget 0 / forced
   2k cut / its own trained 2,048 budget / full think, seeds 1–3; analysis `python3 poc/analyze_ho32.py [--native] seed36`. Runs resume:
   re-submit the same lane command for missing rows.

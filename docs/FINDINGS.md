@@ -3992,3 +3992,14 @@ for always SB→T→T at 2k (PB-3 holds). Per model × benchmark (3 seeds pooled
 helps (1.80 vs 2.94). Decision as registered: the budget leaves the pilot; the first think is fixed — 4,000 on these two models.
 Pre-registered next (HO-4K, PREREG_HO.md, submitted): a 4,000-token first think on Qwen3-14B-AWQ, Qwen3.5-9B and Qwen3-32B-AWQ, which
 so far ran at 2,000 only; if it does not carry over, the default stays 2,000.
+
+## 2026-10-27 09:54 UTC: HO-SEED (PREREG_HO.md): the recipe holds on a fourth family; its trained thinking budget is not a better first step
+Seed-OSS-36B-Instruct-AWQ (ByteDance Seed, never run here; 4 × RTX 3090), the label-free library prompt on the OptiBench third, BWOR,
+LogiOR and OptMATH, 3 seeds, six check-matched policies at λ = 0.5. Short think (forced 2,000-token cut) → full think → retry has the
+best utility in all 4 cells (72.6% @ 5.1k, 64.2% @ 12.6k, 55.8% @ 13.2k, 36.0% @ 13.4k; SD-P1 holds), against the check-matched think
+−0.7 to +3.7 points at 72–90% of its tokens; the retry pays in all 4 (+3.6 to +10.6; SD-P2 holds); a passing non-thinking program that
+agrees with the short-think program is right 83.9% of the time, one that differs 16.1% (SD-P4 holds). The leak is Qwen3's: passing
+budget-0 programs are wrong 35–47% of the time on the three solvable benchmarks (28–35% after the 2k think), and the non-thinking
+program first trails by 6–12 points. The budget Seed-OSS was trained to keep (thinking_budget 2,048) overruns it in 88–99% of problems
+(median 2.6–3.7k tokens) and, as the first step, loses 1.4–3.2 utility points in 3 of 4 cells (SD-P3 refuted). Decision as registered:
+the recipe is stated for four families; the forced cut stays the first step.

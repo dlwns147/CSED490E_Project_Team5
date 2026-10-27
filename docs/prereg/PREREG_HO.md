@@ -1212,3 +1212,29 @@ the next seed's on a visible failure), tokens of every step, λ = 0.5.
 **Decision.** P1 and P2 → the recipe's first think is 4,000 tokens for every hybrid-thinking model (claim, REPORT, PROJECT, PROPOSAL).
 Otherwise → the default stays 2,000 tokens and the claim says 4,000 pays only for the leakiest models (Nemotron-3-Nano, Qwen3-8B); with
 P3 holding and P1 refuted, a longer first think fixes failures but not at a price worth paying.
+
+### Results HO-SEED (2026-10-27 09:5x UTC; `python poc/analyze_ho32.py seed36` and `--native seed36`; Seed-OSS-36B-Instruct-AWQ, 3 seeds, all rows; λ = 0.5)
+| cell | T (one think) | T→T | FF+F | SB+F | SB→T→T | FF+SB+F | SB→T→T − T→T (tokens) | SBn→T→T (native budget) |
+|---|---|---|---|---|---|---|---|---|
+| OptiBench third | 69.6% @ 5.93k | 73.3% @ 7.11k | 67.2% @ 3.03k | 70.8% @ 4.30k | **72.6% @ 5.13k** | 68.3% @ 2.94k | −0.7 [−3.3, +1.7] (72%) | 73.3% @ 5.97k (u +0.3) |
+| BWOR | 53.3% @ 11.19k | 63.8% @ 14.65k | 51.6% @ 7.82k | 57.3% @ 9.85k | **64.2% @ 12.64k** | 52.0% @ 8.07k | +0.4 [−2.4, +3.3] (86%) | 62.2% @ 12.05k (u −1.7) |
+| LogiOR | 48.6% @ 11.10k | 55.1% @ 15.69k | 44.6% @ 8.86k | 53.3% @ 9.61k | **55.8% @ 13.24k** | 50.0% @ 8.99k | +0.7 [−2.2, +4.0] (84%) | 55.1% @ 14.63k (u −1.4) |
+| OptMATH | 28.0% @ 10.74k | 32.3% @ 14.98k | 30.7% @ 7.08k | 33.0% @ 9.84k | **36.0% @ 13.43k** | 31.3% @ 8.31k | +3.7 [−0.7, +8.3] (90%) | 33.3% @ 14.39k (u −3.2) |
+(bold: best utility in the cell; u = SBn→T→T utility minus SB→T→T utility.)
+- **SD-P1 holds** (4 / 4: SB→T→T has the best utility of the six in every cell). **SD-P2 holds** (4 / 4: T→T − T +3.6 [+2.3, +5.1],
+  +10.6 [+7.3, +13.8], +6.5 [+4.0, +9.4], +4.3 [+2.3, +6.7]). **SD-P3 refuted** (1 / 4: the native budget ties on OptiBench, +0.3, and
+  loses 1.4–3.2 utility points elsewhere). **SD-P4 holds** (pooled: a passing budget-0 program that agrees with the short-think program
+  is right 83.9% of the time, n = 548; one that prints a different value 16.1%, n = 149; gap +67.8; OptMATH alone 59% vs 11%).
+- Mechanism: Seed-OSS leaks like Qwen3. Passing programs are wrong 35 / 43 / 47 / 65% of the time at budget 0 (OptiBench / BWOR /
+  LogiOR / OptMATH), 28 / 35 / 31 / 62% after the forced 2k think, 24 / 29 / 29 / 62% after the full think; the non-thinking program
+  first (FF+F) trails T→T by −6.1 [−9.6, −2.8], −12.2 [−18.7, −5.7], −10.5 [−14.9, −5.8] (OptMATH −1.7, a tie). The trained budget is
+  soft: the native think runs past 2,048 tokens in 88 / 99 / 94 / 95% of rows (median 2.6–3.7k); alone it is 0.4–3.0 points more
+  accurate than the forced cut at +1.0–1.7k tokens per problem, but as the cascade's first step the extra tokens are paid on every
+  problem and the escalations they save do not cover them. The forced cut ends the think, yet the model keeps reasoning in its answer:
+  6–15 forced rows per cell end at the 8,192-token answer cap. No full think reached the 32k cap; 0 request failures.
+- Raw rows: e.g. BWOR-028 (nurse shifts, seed 1): the budget-0 program lets each 8-hour shift cover three 4-hour periods and prints 37
+  (gold 53); after the 2k think the program covers two periods and prints 53. OptMATH: passing programs are wrong 62–65% in every arm
+  (the statement limit, REPORT §8).
+- **Decision as registered:** P1 and P2 → the recipe (short think → think → retry, free check at every step) is stated for four
+  families (Qwen3 / Qwen3.5, Nemotron-3-Nano, gpt-oss, Seed-OSS). P3 refuted → the forced cut stays the rule; a budget the model was
+  trained to keep overruns it and is not a better first step.
