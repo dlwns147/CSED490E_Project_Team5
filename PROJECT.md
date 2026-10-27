@@ -12,7 +12,7 @@ all numbers: `PROPOSAL.md` (Korean: `PROPOSAL_ko.md`). The lab log: `docs/FINDIN
 |---|---|
 | The model misuses the library, so its program crashes | Give it the **missing fact**: a few lines of exact usage, or its own checked program for a similar problem (found without labels). Raises the cheap program in 25 of 29 cells. |
 | Thinking on every problem is expensive | **Run the program for free and think only when it visibly fails.** Same accuracy at 30–78% of the tokens for models whose passing programs are right (gpt-oss, Qwen3.5). |
-| Some models' programs run but are wrong (the "leak": Qwen3, Nemotron, gpt-oss on the hardest word problems) | **Think briefly first** (2–4k tokens) before writing the program; never lost to one full think in 14 new word-problem / geometry cells and closed the worst one (−16.7 → −0.3); for gpt-oss a medium think cut at 2k instead of low effort ties the think-with-retry at 69–83% of its tokens (HO-OSB); on contest problems the full think is better (−3 points against an uncapped think). |
+| Some models' programs run but are wrong (the "leak": Qwen3, Nemotron, gpt-oss on the hardest word problems) | **Think briefly first** (2,000 tokens; 4,000 for the leakiest models) before writing the program; never lost to one full think in 14 new word-problem / geometry cells and closed the worst one (−16.7 → −0.3); for gpt-oss a medium think cut at 2k instead of low effort ties the think-with-retry at 69–83% of its tokens (HO-OSB); on contest problems the full think is better (−3 points against an uncapped think). |
 | Thinking also fails visibly sometimes | **Check every step: think again when the think's program fails** (+2.5 to +12 points); a quick repair instead is not cheaper (HO-TR). |
 | No labels to tell a wrong-but-running program | **Compare the quick program with the short-think program**: agreeing ones are right 93–97% of the time, disagreeing ones 19–34% (contest problems). It flags single programs but cannot replace the 30 labels for choosing the policy (HO-LF: shared mistakes outvote the truth). |
 | Every model misreads the same statement (OptMATH) | Unsolved — partly the benchmark: many of its problems omit information the gold answer needs. |
@@ -33,7 +33,7 @@ models).
 a similar problem, found with no labels) → run a free check (the program runs; its outputs on moved / rotated / mirrored copies agree; the
 statement's examples pass) → when the check visibly fails, one cheap repair turn with the error (word problems), then think harder →
 reuse a checked program when the problem repeats. For models whose free check leaks (their passing non-thinking programs are often
-wrong), the first program is written after a short think (2–4k tokens, budget forcing; 1k is too short, HO-SB4; fixed, not a pilot choice, HO-PB; gpt-oss: medium effort cut at 2k
+wrong), the first program is written after a short think (2,000 tokens, budget forcing; 4,000 only for Nemotron-3-Nano / Qwen3-8B, HO-SB4, and not on three other models, HO-4K; 1k is too short; fixed, not a pilot choice, HO-PB; gpt-oss: medium effort cut at 2k
 instead of low effort, HO-OSB) instead of none (HO-SB); the check applies to
 every step, so a visibly failed think is retried (HO-CM).
 
@@ -139,7 +139,8 @@ table: `docs/REPORT.md` §5.1):
 - **Larger model, more families** (HO-32, HO-OSB, HO-SEED): the order holds on Qwen3-32B (best in 3 / 4 cells, leak not
   smaller than at 8–14B), with a medium think cut at 2k on gpt-oss-20b, and on Seed-OSS-36B (ByteDance, a fourth family; best in 4 / 4;
   its trained budget overruns 2,048 tokens in 88–99% of problems and loses to the forced cut in 3 / 4).
-- Open: the budget itself (a fixed 2,000 tokens costs where full thinking is already short); the final report (draft
+- Budget (HO-4K): 4,000 does not carry over to Qwen3-14B / Qwen3.5-9B / Qwen3-32B (mean utility −0.06, 5 / 12 cells); the default stays
+  2,000. Open: a fixed 2,000 tokens still costs where full thinking is already short (tool calls, TC-1); the final report (draft
   `docs/REPORT.md`, format / length / deadline from the team).
 - Day-to-day state (running jobs, environment, evidence table): `docs/SLURM_HANDOFF.md`.
 

@@ -4003,3 +4003,14 @@ budget-0 programs are wrong 35–47% of the time on the three solvable benchmark
 program first trails by 6–12 points. The budget Seed-OSS was trained to keep (thinking_budget 2,048) overruns it in 88–99% of problems
 (median 2.6–3.7k tokens) and, as the first step, loses 1.4–3.2 utility points in 3 of 4 cells (SD-P3 refuted). Decision as registered:
 the recipe is stated for four families; the forced cut stays the first step.
+
+## 2026-10-27 12:43 UTC: HO-4K (PREREG_HO.md): a 4,000-token first think does not carry over — the default stays 2,000
+
+Qwen3-14B-AWQ, Qwen3.5-9B and Qwen3-32B-AWQ on the four held-out word-problem benchmarks (12 cells, 3 seeds): the recipe
+(SB→T→T) with a 4,000-token first think against the 2,000-token one, the same full-think rows. Mean utility gain −0.06 (4K-P1 needed
++0.5), 4k ≥ 2k in 5 / 12 cells (4K-P2 needed 7), the 4k think fails visibly less often in 9 / 12 (4K-P3 needed 10); no cell's accuracy
+difference is significant (−1.8 to +2.8 points) and the cascade costs 99–131% of the tokens. On these models 4,000 tokens is still a cut
+(Qwen3.5-9B reaches it in 98–100% of rows, the Qwen3 models in 58–98%), so the longer think changes the first program in both directions
+and the cascade repairs the visible failures either way (e.g. a correct `linear_sum_assignment` at 2k becomes a CP-SAT program calling a
+method that does not exist at 4k). Decision as registered: the first think stays 2,000 tokens; 4,000 pays only for the leakiest models
+(Nemotron-3-Nano, Qwen3-8B).

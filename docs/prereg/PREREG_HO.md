@@ -1238,3 +1238,35 @@ P3 holding and P1 refuted, a longer first think fixes failures but not at a pric
 - **Decision as registered:** P1 and P2 → the recipe (short think → think → retry, free check at every step) is stated for four
   families (Qwen3 / Qwen3.5, Nemotron-3-Nano, gpt-oss, Seed-OSS). P3 refuted → the forced cut stays the rule; a budget the model was
   trained to keep overruns it and is not a better first step.
+
+### Results HO-4K (2026-10-27 12:4x UTC; `python3.11 poc/analyze_ho32.py --b4k q14a q35 q32b`, 12 cells, 3 seeds, all rows; results/ho4k_analysis.log; λ = 0.5)
+| cell | SB→T→T utility 2k → 4k (gain) | accuracy 4k − 2k [95%] | tokens 4k / 2k | short think fails visibly 2k → 4k | think reaches the cut 2k / 4k |
+|---|---|---|---|---|---|
+| Qwen3-14B-AWQ OptiBench third | 66.0 → 65.2 (−0.73) | +0.0 [−2.0, +1.7] | 6.14k / 4.69k (131%) | 16.3 → 16.3% | 91 / 58% |
+| Qwen3-14B-AWQ BWOR | 51.3 → 52.5 (+1.19) | +1.2 [−3.7, +6.5] | 10.39k / 10.33k (101%) | 44.7 → 35.0% | 100 / 92% |
+| Qwen3-14B-AWQ LogiOR | 44.3 → 44.8 (+0.54) | +1.1 [−2.9, +5.4] | 13.31k / 12.21k (109%) | 53.6 → 46.4% | 100 / 95% |
+| Qwen3-14B-AWQ OptMATH | 22.0 → 21.5 (−0.55) | +0.0 [−4.3, +4.3] | 13.05k / 11.95k (109%) | 47.0 → 40.7% | 100 / 97% |
+| Qwen3.5-9B OptiBench third | 66.0 → 64.9 (−1.04) | +0.5 [−0.8, +2.0] | 13.69k / 10.61k (129%) | 20.6 → 21.3% | 100 / 100% |
+| Qwen3.5-9B BWOR | 43.4 → 46.4 (+2.97) | +2.8 [−1.2, +7.3] | 22.71k / 22.96k (99%) | 47.2 → 41.9% | 97 / 98% |
+| Qwen3.5-9B LogiOR | 37.2 → 36.5 (−0.71) | +0.7 [−3.3, +5.1] | 33.47k / 30.61k (109%) | 53.3 → 52.5% | 100 / 100% |
+| Qwen3.5-9B OptMATH | 24.4 → 26.0 (+1.57) | +1.7 [−2.0, +5.7] | 28.05k / 27.87k (101%) | 50.3 → 45.0% | 100 / 100% |
+| Qwen3-32B-AWQ OptiBench third | 70.0 → 70.8 (+0.80) | +1.3 [−0.5, +3.1] | 5.10k / 4.06k (126%) | 14.6 → 11.1% | 93 / 59% |
+| Qwen3-32B-AWQ BWOR | 60.3 → 58.7 (−1.62) | −0.4 [−5.3, +4.5] | 10.26k / 7.83k (131%) | 37.0 → 39.8% | 100 / 92% |
+| Qwen3-32B-AWQ LogiOR | 50.6 → 47.8 (−2.75) | −1.8 [−5.1, +2.2] | 13.09k / 11.21k (117%) | 47.8 → 47.1% | 100 / 89% |
+| Qwen3-32B-AWQ OptMATH | 27.8 → 27.4 (−0.43) | +0.3 [−3.7, +4.3] | 12.53k / 10.99k (114%) | 43.3 → 39.7% | 100 / 98% |
+- **4K-P1 refuted** (mean utility gain −0.06, needed ≥ +0.5). **4K-P2 refuted** (4k ≥ 2k in 5 / 12, needed ≥ 7). **4K-P3 refuted,
+  narrowly** (the 4k think fails visibly less often in 9 / 12, needed ≥ 10: a tie on Qwen3-14B OptiBench, more often on Qwen3.5-9B
+  OptiBench and Qwen3-32B BWOR). No accuracy difference is significant in any cell (−1.8 to +2.8); the 4k first step costs 99–131% of
+  the 2k one's cascade tokens.
+- Mechanism: on these models 4,000 tokens is still a cut, not a finished think — Qwen3.5-9B reaches it in 98–100% of rows, the Qwen3
+  models in 58–98% — so the longer think mostly buys a different first program, not a finished one, and the difference cuts both ways.
+  The failures it adds or removes are visible (the program does not run), which the cascade then repairs with the full think, so the
+  end accuracy barely moves while the tokens rise. Raw rows: Qwen3.5-9B BWOR-018 (assignment, seed 1): the 2k program calls
+  `scipy.optimize.linear_sum_assignment` and prints 34 (gold 34); the 4k program builds a CP-SAT model and calls a method that does not
+  exist (`model.NewSolver()`, AttributeError), so the cascade thinks again. Qwen3-32B LogiOR prob_004 (bin packing, seed 1): the 2k
+  program passes a linear expression to `add_implication` (TypeError); the 4k program links items to boxes with a capacity constraint and
+  prints 5 (gold 5).
+- **Decision as registered:** the default first think stays 2,000 tokens, and 4,000 pays only for the leakiest models
+  (Nemotron-3-Nano, Qwen3-8B; HO-SB4 / HO-PB). P3 does not hold either, so there is no "fixes failures but not at a price worth paying"
+  clause: a longer first think neither fixes failures reliably nor pays.
+
