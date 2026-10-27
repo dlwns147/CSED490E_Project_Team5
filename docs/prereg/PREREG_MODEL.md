@@ -213,3 +213,20 @@ picks say which cells the votes mislead.
   retry without them. HO-L's negative result widens: agreement-based pseudo-labels fail wherever a mistake is shared — within a mode
   (HO-L) or across modes when the check's blind spot is in the input set or the formulation. Cross-mode agreement stays what CC-P2 and
   HO-32 show: a per-program leak flag, not a substitute for labels in choosing the policy.
+
+## Addendum HO-PB (2026-10-27 02:3x UTC, before computing; offline): is the first think's budget worth putting in the pilot?
+**Why it could change the claim.** HO-SB4 refuted "the budget does not matter" (1,000 is too short for Qwen3-8B; 4,000 had the best
+utility in 6 / 8 cells) and the claim was then written as "a short think first (2–4k tokens), the budget being one of the pilot's
+choices". That second half was decided, not tested: every pilot result so far (HO-P4, HO-CM, HO-LF) used the 2,000-token think only.
+With three budgets the menu grows from nine to fifteen policies, and 30 labels may pick worse among more options than the extra options
+gain. **Run:** `python poc/analyze_hop.py --repair --fair --sb --cm --budgets n3n q8b`: the HO-SB4 cells (Nemotron-3-Nano and Qwen3-8B on
+the OptiBench third, BWOR, LogiOR, OptMATH; × 3 seeds = 24 cells; the library arm formx and thinking with the fact formxt on all four,
+since budgeted rows exist for the library arm only); HO-CM's nine policies plus, for B = 1,000 and 4,000, SB_B+F, FF+SB_B+F and
+SB_B→T→T (tokens of every step counted); k = 30, 1,000 pilots per cell; λ = 0.5. Caveat: these are the cells HO-SB4's decision was
+made on, so this tests the pilot's choice, not whether budgets differ.
+- **PB-1:** the fifteen-policy pilot's realized utility beats the nine-policy pilot's (same samples) by ≥ +0.5 point on average over the
+  24 cells, and is worse in ≤ 8 of them.
+- **PB-2:** its regret against the best of fifteen is ≤ 1.5.
+- **PB-3 (no labels):** always SB_4000→T→T has a mean regret at least 0.5 point below always SB_2000→T→T.
+**Decision.** PB-1 holds → the claim keeps "the budget is one of the pilot's choices", now as a tested statement with the gain. PB-1
+refuted → the budget leaves the pilot: the first think is fixed, at 4,000 if PB-3 holds, else at 2,000.
