@@ -58,3 +58,30 @@ server, the fact matches q35's `fact_from`) before the results are used.
 temperature 0.6, top-p 0.95, top-k 20 and no presence penalty under the codepreset environment; the cut-think rows come later because the
 server queues them behind the 32k thinks (4 running, KV 89%). Tool-call cells: 2.5k / 2.3k of 10.4k rows after 15 minutes, 0 failures.*
 
+
+### Results SAMP (b), tool calls (2026-10-27 17:1x UTC; `python3.11 poc/analyze_tc.py --samp` after `grade_tc.py q35h` / `q35sbc`; 3,482 items × 3 seeds, all rows, 0 failed requests)
+| split | N (harness) | SB (cut, harness) | Th (full, harness) | SBc (cut, card) | T (full, card) | template copies N / SB / Th / SBc / T |
+|---|---|---|---|---|---|---|
+| non-live (1,240) | 81.5% | 80.2% | 79.8% | 77.1% | 76.9% | 8.4 / 11.5 / 12.0 / 12.9 / 15.1% |
+| live (2,242) | 61.4% | 71.3% | 72.1% | 68.8% | 67.2% | 13.3 / 12.5 / 12.4 / 14.6 / 16.8% |
+- **SAMP-P3 holds (2 / 2):** at the harness sampling the mode does not matter: Th − SB −0.5 [−1.5, +0.5] non-live, +0.8 [−0.1, +1.7] live.
+- **SAMP-P4 refuted (1 / 2):** at the card's general preset the cut think stays ahead on live: SBc − T +0.2 [−1.1, +1.5] non-live, **+1.7
+  [+0.7, +2.7]** live.
+- What moves accuracy is the sampling: the card's general preset (T 1.0, top-k 20, presence penalty 1.5) costs the full think 2.9
+  [+1.7, +4.2] (non-live) and 4.9 [+3.9, +6.0] (live) points and the cut think 3.2 / 2.5 against the harness sampling (T 0.7, top-p 0.95).
+  At matched harness sampling thinking vs not thinking is −1.7 [−3.4, +0.3] on non-live (TC-1 reported −4.6 with the mismatch) and +10.7
+  [+8.9, +12.4] on live. Tokens barely move (full think 0.32k card / 0.34k harness; cut think 0.29k / 0.30k).
+- Raw rows: where the two presets disagree on the full think, the harness one is right on 1,105 items and the card one on 666; on the
+  1,105, the card's answer copies BFCL's template (`func_name1=`, `params_name1`) in 640 and 584 of them do not decode at all; on the 666
+  the harness answer copies it in 295. Copying the placeholders is the main way either preset fails; the general preset does it more
+  (15.1 / 16.8% vs 12.0 / 12.4%). This fits the presence-penalty reading (the penalty counts the think's own tokens, including the real
+  function names, not the prompt's placeholders) but the run does not separate the penalty from the temperature.
+- **Decision as registered (P3 holds, P4 refuted):** the mode matters at matched sampling only at the card's preset on live (+1.7 for the
+  cut think), reported with the template copies; at the harness sampling it does not. TC-1's description of Qwen3.5-9B is corrected in
+  the REPORT: most of its "thinking is worse" (non-live −4.6) is the card's general preset, not the mode (−1.7 [−3.4, +0.3] at matched
+  sampling). TC-1's registered verdicts stand as scored (they compare policies, each with its arms' sampling as run).
+- Related work: the size of the effect (3–5 points from the preset, more than the mode's) is in the range A Sober Look (2504.07086)
+  reports for temperature and top-p on reasoning benchmarks, and agrees with the Qwen3.5-9B card's own warning that a higher presence
+  penalty can lower performance; the Qwen3 report evaluates thinking at T 0.6 without a presence penalty except for creative writing.
+  No prior report of models copying BFCL's prompt-mode placeholders was found; we report it, not its cause. Part (a) (word problems)
+  is still running.

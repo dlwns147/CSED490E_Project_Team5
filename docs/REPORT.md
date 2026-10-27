@@ -360,8 +360,11 @@ is short here (0.3k tokens), so the 2,000-token cut never binds and there is alm
 (SB→T: think, and think again on a failed schema check) is at or above one think in all 6 cells (+0.5 to +1.5 for Qwen3, at 97–105% of
 its tokens) — a small accuracy gain, not a saving. On BFCL's irrelevance items thinking calls tools *less* (Qwen3-14B 56 → 91%), the
 opposite direction from the distractor-tool result of the Reasoning Trap (2510.22977), and it calls less where a call is needed. For
-Qwen3.5-9B thinking is worse than not thinking (non-live −4.6): it copies BFCL's format template (`[func_name1=…]`) more often, and its
-thinking arm is sampled differently from its other arms (§8; SAMP tests whether that, not the mode, is the cause).
+Qwen3.5-9B thinking first looked worse than not thinking (non-live −4.6), but its full think ran at the card's general preset (T 1.0,
+presence penalty 1.5) and its other arms at T 0.7. Re-run at matched sampling (SAMP, pre-registered), the preset costs the full think
+2.9–4.9 points and the cut think 2.5–3.2, mostly by copying BFCL's format placeholders (`func_name1=`) into undecodable answers
+(15–17% of answers vs 12%); at the harness sampling the full and the cut think tie (−0.5, +0.8) and thinking vs not thinking is −1.7
+[−3.4, +0.3] on non-live and +10.7 on live. At the card's preset the cut think keeps +1.7 [+0.7, +2.7] on live.
 
 ## 6. Baselines on the same harness
 

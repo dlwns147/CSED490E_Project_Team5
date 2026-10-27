@@ -4045,3 +4045,12 @@ cuts irrelevant calls (Qwen3-14B 56 → 91% non-live irrelevance), opposite to t
 found a confound: Qwen3.5-9B's full think runs at its card's sampling (T 1.0, top-k 20, presence penalty 1.5), its cut think and
 non-thinking answer at T 0.7 without a penalty — it copies BFCL's template (`[func_name1=…]`) in 16% of thinking outputs vs 12%, and
 the same mismatch sits under every Qwen3.5-9B / Nemotron short-think result since HO-N. Pre-registered next: PREREG_SAMP.md.
+
+## 2026-10-27 17:17 UTC: SAMP (b) (PREREG_SAMP.md): on tool calls Qwen3.5-9B's "thinking is worse" was mostly its sampling preset
+Qwen3.5-9B, BFCL v4 (3,482 items, 3 seeds), a 2 × 2 of mode (full / cut think) × sampling (card general preset / harness). At the harness
+sampling the mode does not matter (Th − SB −0.5 non-live, +0.8 live; SAMP-P3 holds); at the card's preset the cut think keeps +1.7
+[+0.7, +2.7] on live (SAMP-P4 refuted on one split). The preset is the bigger effect: T 1.0 + presence 1.5 costs the full think 2.9 /
+4.9 points and the cut think 3.2 / 2.5, at equal tokens, mostly through answers that copy BFCL's format placeholders and do not decode
+(640 of the 1,105 items the harness preset wins). At matched sampling thinking vs not thinking is −1.7 [−3.4, +0.3] on non-live (TC-1
+said −4.6) and +10.7 on live. In line with A Sober Look (2504.07086, sampling moves reasoning accuracy by up to 15 points) and the card's
+own warning about the presence penalty; the placeholder copying is a new observation. The word-problem half (SAMP-P1 / P2) is running.
