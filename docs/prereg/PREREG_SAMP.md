@@ -51,3 +51,5 @@ P3 and P4 → on tool calls Qwen3.5-9B's "thinking is worse than not thinking" i
 corrected); P3 or P4 refuted → the mode matters at matched sampling, reported with the template copies.
 **Smoke.** None: every arm reuses code that ran in TC-1 / HO-SB; the first rows of each job are read (sampling parameters reach the
 server, the fact matches q35's `fact_from`) before the results are used.
+
+*Submitted 2026-10-27 14:4x UTC: samp_{bwor,logior}_s{1,2,3} (1261670–1261675), samp_tch (1261676), samp_tcsbc (1261677), `-x n19`.*

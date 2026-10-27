@@ -154,3 +154,10 @@ does not change the output (Blind Spot 2507.02778; Feedback Friction 2506.11930;
 right outputs (2501.12793), CounterRoute (2609.29109, an RL router between Qwen3 modes). New in IF-1: the executed self-written checker as
 the gate for the thinking mode, rewrite vs think under the same gate, IFBench at inference time, measured false-alarm and copy rates.
 Likely reviewer asks: a ProgCo-style reflection on the checker; AutoIF-style cross-checks of the checker.
+
+**Sampling (2026-10-27 14:4x UTC, for SAMP).** Qwen3.5-9B card: thinking general T 1.0 / top-p 0.95 / top-k 20 / presence 1.5, precise
+coding T 0.6 / 0.95 / 20 / presence 0; Qwen3 report evaluates thinking at T 0.6 (presence 1.5 only for creative writing); Nemotron-3-Nano:
+T 1.0 / top-p 1.0 reasoning, T 0.6 / 0.95 tool calling. Sampling sensitivity of reasoning models: A Sober Look (2504.07086, up to 15
+points from temperature), temperature diversity (2510.02611), repetition penalty and code (2505.10402). Budget-forcing studies mostly
+match decoding across arms (Coupling Tax, HRBench greedy; ThinkBrake official presets); DART drafts at T 0.6 and thinks greedily. Our
+mismatch (cut think at T 0.7, full think at the general preset) is tested in PREREG_SAMP.md.

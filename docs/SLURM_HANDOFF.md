@@ -14,6 +14,10 @@ State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Tea
   holds in 4 / 4; its trained budget is not a better first step).
 - **Done 10-27 12 UTC:** HO-4K (PREREG_HO.md addendum): a 4,000-token first think on Qwen3-14B-AWQ / Qwen3.5-9B / Qwen3-32B-AWQ
   (`k4_*` jobs) does not carry over (P1–P3 refuted); analysis `python3 poc/analyze_ho32.py --b4k q14a q35 q32b`.
+- **Running (since 10-27 14:4x UTC):** SAMP (docs/prereg/PREREG_SAMP.md): Qwen3.5-9B sampling controls — `samp_{bwor,logior}_s*`
+  (`hon_lane.sh codepreset <set> <seed>`: cut and full think at the card's coding preset, tag q35c; cheap rows linked from q35) and
+  `samp_tch` / `samp_tcsbc` (BFCL: full think at the harness sampling, tag q35h; cut think at the card's general preset, tag q35sbc);
+  then `grade_tc.py q35h` / `q35sbc` (bfcl venv), `python3 poc/analyze_tc.py --samp`, `python3 poc/analyze_ho32.py --samp`.
 - **Done 10-27 14 UTC:** TC-1 (docs/prereg/PREREG_TC.md): tool calling (BFCL v4 single-turn, 3,482 items, prompt mode),
   a schema check and cheap-answer agreement as the gates for thinking; jobs `tc_{q8b,q14a,q35}_s{1,2,3}` (1261150–1261158; q35 via
   `hon_lane.sh tc bfcl <seed>`); items from `/home1/leesangjun/venvs/bfcl/bin/python poc/prep_tc.py` (venv: pip bfcl-eval, soundfile);
