@@ -91,6 +91,11 @@ table: `docs/REPORT.md` §5.1):
 - **In:** computational geometry (CG) and combinatorial optimization (CO) solved by LLM-written programs: generated geometry and
   optimization suites, OR word-problem benchmarks (NL4OPT, IndustryOR, MAMO, OptMATH, OptiBench, BWOR, LogiOR), Codeforces geometry,
   Solomon routing, job-shop scheduling.
+- **Widened 2026-10-27 (user):** the project need not stay on computation-only problems. Next directions may take the recipe (missing
+  fact → cheap answer → free check → think on a visible failure) to tasks whose checks are not program execution, e.g. instruction
+  following with model-written constraint checkers or tool calling with API usage as the fact; each is pre-registered against the
+  named prior work first (DART 2606.23181 already covers draft-agreement routing on math / code; Li et al. 2505.11423 selective
+  reasoning on instruction following).
 - **Models:** gpt-oss-20b, Qwen3-14B-AWQ, Qwen3-8B (one RTX 3090 each), Qwen3.5-9B and Nemotron-3-Nano-30B-A3B (unseen-model tests; the latter on 4 × 3090s), and larger models on several
   3090s (gpt-oss-120b, Qwen3-32B-AWQ, Qwen3.6-35B-A3B; earlier only references); trained baselines (STORM-Qwen3-4B, ORLM-8B) run on the same harness.
 - **Side tracks** (kept short in the report): competition math (MATH-500, AIME), Lean and geometry proofs, factual QA (PopQA).
