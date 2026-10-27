@@ -1,5 +1,5 @@
 """IF-1 (docs/prereg/PREREG_IF.md): instruction following, where thinking can hurt. Per prompt and seed, all arms against one server:
-  cheap  N = non-thinking response; C = the model's own checker, written from the instruction alone (non-thinking: a Python function
+  cheap  N = non-thinking response; C = the model's own checker, written from the instruction alone (after a 2k-token think: a Python function
          check(response) -> list of violated requirements, standard library only), run in the sandbox on N; R = one non-thinking
          rewrite of N given C's violations (DVR-style refine, only where C fails on N), checked by C; S = self-selective reasoning
          (Li et al. 2025 style): the model answers yes / no to "would thinking first help you follow every requirement?"
@@ -89,7 +89,9 @@ def main():
     def cheap(p):
         q, s = p["prompt"], sd(p)
         n = chat(q, think=False, max_tokens=4096, temperature=0.7, seed=s)
-        c = chat(CHECKER.format(q=q), think=False, max_tokens=2048, temperature=0.7, seed=s)
+        # second smoke amendment (PREREG_IF.md): the non-thinking checker still failed 11 of 18 right responses, so as registered it is
+        # written after a think cut at 2,000 tokens (its tokens count as the check's cost)
+        c = budget_chat(CHECKER.format(q=q), 2000, max_tokens=2048, temperature=0.7, seed=s, cut_note="I will now write the code.")
         code = last_block(c["text"] or "", ("python", "py", "python3"))
         cn, vn = check(code, n["text"])
         row = {"id": p["id"], "n_text": n["text"], "n_tok": n["out_tokens"], "n_finish": n["finish"], "c_code": code, "c_tok": c["out_tokens"],

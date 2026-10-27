@@ -61,3 +61,14 @@ checks it; rule fixed now: if its checkers still fail more than half of the resp
 written after a 2k think instead (one more amendment, recorded here) — otherwise the main runs start unchanged. Other smoke facts: the
 self-selective question gets "yes" on 31 of 33 prompts (Li-style self-selection ≈ always thinking for Qwen3-8B); thinks are short on
 IFEval (0.7k mean) and longer on IFBench (2.5k; 1 of 12 at the 16k cap).*
+
+*Second IF smoke (2026-10-27 10:2x UTC, job 1260399, tag q8bsmoke2, IF_SUBSET=1/27, seed 1; not part of the results): with the amended prompt the
+checkers still fail 11 of the 18 IFEval responses the grader passes (61%; false passes 0 / 2), and 10 of 12 IFBench responses (2 do not
+run). The invented limits are gone; what remains are requirements the instruction does state but code cannot verify ("must answer the
+question", "not a limerick", "rhyme scheme not AABBA", "APA format") checked by brittle heuristics, plus over-strict readings ("exactly
+2" italic sections for "include two"; "yes" / "no" matched inside other words). **Second amendment, as fixed above:** the checker is
+written after a think cut at 2,000 tokens (`budget_chat`, its think and code counted as the check's cost); nothing else changes, and
+no further change follows from the checker's false-alarm rate, which is now a result. Expected consequence, stated before any main row:
+on IFEval, where Qwen3-8B's full think is short (0.7k tokens in the smokes), a thought-out checker costs about as much as thinking, so
+IF-P1 (≤ 50% of T's tokens) is unlikely to hold there; P2–P5 are unaffected. A third smoke (IF_SUBSET=2/27) checks only that the
+harness writes every row.*
