@@ -3981,3 +3981,14 @@ check-matched think by 5–12 points on OptiBench / BWOR / LogiOR: passing non-t
 the 2k think (e.g. a reliability table read transposed). Cross-mode agreement flags them: 81% right when the two programs agree, 15% when
 they differ. All three predictions hold; the recipe is stated for 8B–32B hybrid models. Running: HO-SEED (Seed-OSS-36B, a fourth family
 with a trained thinking budget).
+
+## 2026-10-27 02:42 UTC: HO-PB (PREREG_MODEL.md): the first think's budget is not worth putting in the pilot
+Offline, on the 24 HO-SB4 cells (Nemotron-3-Nano and Qwen3-8B × OptiBench third / BWOR / LogiOR / OptMATH × 3 seeds), HO-CM's nine
+policies plus SB+F, FF+SB+F and SB→T→T at 1,000 and 4,000 tokens (fifteen), λ = 0.5, k = 30: the extra budgets raise the best of the
+menu by +1.02 per cell, but the fifteen-policy pilot gains only +0.69 over the nine-policy one and picks worse in 10 of 24 cells
+(PB-1 refuted, ≤ 8 registered); its regret is 1.68 (PB-2, ≤ 1.5, refuted), against 1.60 for always SB4k→T→T with no labels and 2.38
+for always SB→T→T at 2k (PB-3 holds). Per model × benchmark (3 seeds pooled) SB4k→T→T − SB2k→T→T is +0.78 utility on average, ≥ 0 in
+5 of 8, no accuracy difference significant; the 4k think fails visibly less often in 8 / 8. At λ = 2 the 1k think wins and the pilot
+helps (1.80 vs 2.94). Decision as registered: the budget leaves the pilot; the first think is fixed — 4,000 on these two models.
+Pre-registered next (HO-4K, PREREG_HO.md, submitted): a 4,000-token first think on Qwen3-14B-AWQ, Qwen3.5-9B and Qwen3-32B-AWQ, which
+so far ran at 2,000 only; if it does not carry over, the default stays 2,000.

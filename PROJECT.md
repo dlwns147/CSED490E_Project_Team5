@@ -33,7 +33,7 @@ models).
 a similar problem, found with no labels) → run a free check (the program runs; its outputs on moved / rotated / mirrored copies agree; the
 statement's examples pass) → when the check visibly fails, one cheap repair turn with the error (word problems), then think harder →
 reuse a checked program when the problem repeats. For models whose free check leaks (their passing non-thinking programs are often
-wrong), the first program is written after a short think (2–4k tokens, budget forcing; 1k is too short, HO-SB4; gpt-oss: medium effort cut at 2k
+wrong), the first program is written after a short think (2–4k tokens, budget forcing; 1k is too short, HO-SB4; fixed, not a pilot choice, HO-PB; gpt-oss: medium effort cut at 2k
 instead of low effort, HO-OSB) instead of none (HO-SB); the check applies to
 every step, so a visibly failed think is retried (HO-CM).
 
