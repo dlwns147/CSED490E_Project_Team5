@@ -99,6 +99,7 @@ for think in (False, True):
   thinkshard) NLOPT_SHARD=$4 NLOPT_SET=$set $P poc/run_nlopt.py ${m}_$set thinkfree $seeds --think --max_tokens $TK >> $L 2>&1 & ;;
   think) NLOPT_SET=$set $P poc/run_nlopt.py ${m}_$set thinkfree $seeds --think --max_tokens $TK >> $L 2>&1 & ;;
   ifone) for sd in $seeds; do $P poc/run_if.py $set $m $sd >> $L 2>&1 & done ;;   # IF-1 (PREREG_IF.md): <ifeval|ifbench> [seeds]
+  tc) for sd in $seeds; do $P poc/run_tc.py $m $sd >> $L 2>&1 & done ;;   # TC-1 (PREREG_TC.md): tc bfcl [seeds]
   geo)   for sd in 1 2 3; do
            $P poc/run_geo_cross.py --model_tag S2_HOG_${m}_geo_fact_s$sd $GX --seed $sd --distract 0 --algo_hint --max_tokens 4096 >> $L 2>&1 &
            $P poc/run_geo_cross.py --model_tag S2_HOG_${m}_geo_think_s$sd $GX --seed $sd --distract 8 --think --max_tokens $TK >> $L 2>&1 &

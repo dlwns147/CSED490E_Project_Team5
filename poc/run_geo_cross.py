@@ -124,13 +124,15 @@ def retrieve_hint(q, k=1):
     return sc[:k]
 
 
-def budget_chat(prompt, budget, think=False, max_tokens=4096, temperature=0.7, seed=None, cut_note="I will now write the program."):
+def budget_chat(prompt, budget, think=False, max_tokens=4096, temperature=0.7, seed=None, cut_note="I will now write the program.", system=None):
     """budget forcing (s1-style) for Qwen3: think for at most `budget` tokens, then force </think> and generate the answer.
     Uses the raw completions endpoint with the Qwen3 chat format; budget=0 means an empty think block (= thinking off).
-    cut_note: what the cut think says it does next (IF-1: "I will now write the response.")."""
+    cut_note: what the cut think says it does next (IF-1: "I will now write the response."); system: a system turn (TC-1: the tool docs)."""
     from llm import client
     head = f"<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n<think>\n"
-    if os.environ.get("POC_RAW_SYSTEM"):   # HO-N4: Nemotron-3-Nano's template always opens with an empty system turn
+    if system:
+        head = f"<|im_start|>system\n{system}<|im_end|>\n" + head
+    elif os.environ.get("POC_RAW_SYSTEM"):   # HO-N4: Nemotron-3-Nano's template always opens with an empty system turn
         head = "<|im_start|>system\n<|im_end|>\n" + head
     think_txt, used = "", 0
     if budget > 0:
