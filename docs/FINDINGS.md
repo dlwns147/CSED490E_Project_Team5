@@ -4054,3 +4054,14 @@ sampling the mode does not matter (Th − SB −0.5 non-live, +0.8 live; SAMP-P3
 (640 of the 1,105 items the harness preset wins). At matched sampling thinking vs not thinking is −1.7 [−3.4, +0.3] on non-live (TC-1
 said −4.6) and +10.7 on live. In line with A Sober Look (2504.07086, sampling moves reasoning accuracy by up to 15 points) and the card's
 own warning about the presence penalty; the placeholder copying is a new observation. The word-problem half (SAMP-P1 / P2) is running.
+
+## 2026-10-27 19:49 UTC: SAMP (a) (PREREG_SAMP.md): Qwen3.5-9B's word-problem saving holds at a matched preset; the coding preset caps the full think
+Every thinking arm of Qwen3.5-9B at the card's precise-coding preset (T 0.6, no presence penalty), BWOR / LogiOR, 3 seeds: short think →
+think → retry beats the check-matched think by +5.3 [+0.8, +9.8] / +7.2 [+2.9, +12.3] at 68–74% of its tokens (SAMP-P1 holds 2 / 2). The
+general preset did not handicap the baseline (SAMP-P2 holds): the coding preset makes the full think worse (−5.7 / −6.9 for one think)
+because it runs to the 32k cap without a program twice as often (95 vs 44 of 246, 149 vs 90 of 276); the card says the presence penalty
+is there against endless repetitions. The short-think-first policy does not move with the preset (54.5 vs 54.9%, 52.2 vs 52.5%). With
+SAMP (b): the preset matters in opposite directions (short tool-call thinks lose 3–5 points to the presence penalty, long program thinks
+lose 5–7 without it); the recipe is robust to it, the full-think baseline is not, and the report's comparison was the conservative one.
+LC-1 is amended before any Qwen3.5-9B row is graded: its thinks move to the general preset (102 of the first 224 coding-preset
+LiveCodeBench thinks hit the cap).

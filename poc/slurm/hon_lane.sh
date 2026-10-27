@@ -103,7 +103,9 @@ for think in (False, True):
   tch) for sd in $seeds; do POC_THINK_SAMPLING= TC_ARMS=think $P poc/run_tc.py ${m}h $sd >> $L 2>&1 & done ;;   # SAMP: thinking at the harness sampling
   tcsbc) for sd in $seeds; do POC_BUDGET_CARD=1 TC_ARMS=sb $P poc/run_tc.py ${m}sbc $sd >> $L 2>&1 & done ;;   # SAMP: the cut think at the card's sampling
   lcb) export POC_THINK_SAMPLING=temperature=0.6,top_p=0.95,top_k=20 POC_BUDGET_CARD=1   # LC-1 (PREREG_LC.md): lcb lcb [seeds]; both thinks
-       for sd in $seeds; do LCB_TK=$TK $P poc/run_lcb.py $m $sd >> $L 2>&1 & done ;;   # at the card's precise-coding preset, 32k
+       for sd in $seeds; do LCB_TK=$TK $P poc/run_lcb.py $m $sd >> $L 2>&1 & done ;;   # at the card's precise-coding preset, 32k (stopped 10-27)
+  lcbg) export POC_BUDGET_CARD=1   # LC-1 amendment: both thinks at the card's general preset ($TS), tag ${m}g; lcbg lcb [seeds]
+       for sd in $seeds; do LCB_TK=$TK $P poc/run_lcb.py ${m}g $sd >> $L 2>&1 & done ;;
   codepreset) sub=""; [ "$set" = optibench ] && sub="FORM_SUBSET=0/3"   # SAMP (PREREG_SAMP.md): every think at the card's precise-coding preset
            export POC_THINK_SAMPLING=temperature=0.6,top_p=0.95,top_k=20 POC_BUDGET_CARD=1   # tag ${m}c; the cheap formx rows are q35's
            for sd in $seeds; do

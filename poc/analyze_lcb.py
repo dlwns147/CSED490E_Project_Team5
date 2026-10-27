@@ -10,7 +10,7 @@
 Accuracy = pass@1 on sample + hidden tests (official grader). Utility = accuracy - 0.5 x ktokens. Paired 95% intervals over problems
 (seed means). Also the leak (passes the samples, fails hidden tests) of N / SB / T with how the first hidden test failed, and every
 policy by difficulty with its share of the tokens.
-usage: python analyze_lcb.py [tag ...]   (default q8b q14a q35; LCB_SEEDS=1 for the smoke, where T->T reuses the same seed)"""
+usage: python analyze_lcb.py [tag ...]   (default q8b q14a q35g — Qwen3.5-9B at the general preset, the amendment; LCB_SEEDS=1 for the smoke, where T->T reuses the same seed)"""
 import json, os, sys
 from collections import Counter
 
@@ -61,7 +61,7 @@ def cell(m, seeds=(1, 2, 3)):
 
 def main():
     score = Counter(); cells = 0
-    for m in [a for a in sys.argv[1:] if not a.startswith("--")] or ["q8b", "q14a", "q35"]:
+    for m in [a for a in sys.argv[1:] if not a.startswith("--")] or ["q8b", "q14a", "q35g"]:
         r = cell(m, tuple(int(x) for x in os.environ.get("LCB_SEEDS", "1,2,3").split(",")))
         if not r or not r[2]["all"]:
             print(f"=== {m}: no complete rows"); continue

@@ -85,3 +85,25 @@ server queues them behind the 32k thinks (4 running, KV 89%). Tool-call cells: 2
   penalty can lower performance; the Qwen3 report evaluates thinking at T 0.6 without a presence penalty except for creative writing.
   No prior report of models copying BFCL's prompt-mode placeholders was found; we report it, not its cause. Part (a) (word problems)
   is still running.
+
+### Results SAMP (a), word problems (2026-10-27 19:4x UTC; `python3.11 poc/analyze_ho32.py --samp`; BWOR 82 / LogiOR 92 problems × 3 seeds, all rows, 0 failed requests)
+| benchmark | SB→T→T, coding preset | T→T, coding preset | difference (tokens) | T→T, general preset (as run) | T→T coding − general | full think alone coding − general | full thinks at the 32k cap, coding / general |
+|---|---|---|---|---|---|---|---|
+| BWOR | 54.5% @ 22.3k | 49.2% @ 33.0k | **+5.3 [+0.8, +9.8]** (68%) | 53.7% @ 30.7k | −4.5 [−12.6, +3.3] | −5.7 [−11.8, +0.4] | 95 / 44 of 246 |
+| LogiOR | 52.2% @ 31.7k | 44.9% @ 42.8k | **+7.2 [+2.9, +12.3]** (74%) | 51.1% @ 39.0k | −6.2 [−13.0, +0.7] | −6.9 [−13.0, −1.1] | 149 / 90 of 276 |
+- **SAMP-P1 holds (2 / 2):** at an on-card preset matched across every thinking arm, short think → think → retry is above the
+  check-matched think (+5.3, +7.2) at 68–74% of its tokens.
+- **SAMP-P2 holds (2 / 2):** the general preset did not handicap the baseline; the coding preset is *worse* for the full think (−4.5 /
+  −6.2 for T→T, −5.7 / −6.9 for one think).
+- Mechanism, from the rows: at the coding preset (T 0.6, no presence penalty) the full think runs to the 32k cap without a program about
+  twice as often (95 vs 44, 149 vs 90); the runs that finish are not worse. The card itself says the presence penalty is there "to reduce
+  endless repetitions" (Qwen3.5-9B README, verified). The short-think-first policy is unmoved by the preset (54.5 vs 54.9%, 52.2 vs
+  52.5% as run before), and the first program at the coding preset is as good or slightly better (42.3 vs 39.0%, 39.1 vs 37.3%).
+- **Decision as registered (P1 and P2):** Qwen3.5-9B's word-problem result stands at a matched on-card preset; the REPORT's methods state
+  each arm's sampling. The comparison the report makes (against the general-preset think) is the conservative one: it is the stronger
+  baseline. Nemotron's conditional test is not triggered.
+- Across both halves: the preset matters in opposite directions by task — on 0.3k-token tool-call thinks the general preset (presence
+  penalty 1.5) costs 3–5 points through copied placeholders; on 20–30k-token program-writing thinks the coding preset (no penalty) costs
+  5–7 through capped thinks — while the recipe's cascade is robust to it. Related: A Sober Look (2504.07086) on sampling sensitivity;
+  HO-CAP (a capped full think flatters a short think first) — here the general preset is the one with fewer caps. Consequence for LC-1
+  (Qwen3.5-9B was set to the coding preset): amended, PREREG_LC.md.

@@ -82,3 +82,12 @@ allocation, so vLLM refuses to start on it (13.0–13.4 of 23.6 GiB free). lcb_q
 landed on it and exited at server start without a row; resubmitted with `-x n19,n22` as 1262743 and 1262807–1262809. First rows read
 (17:1x UTC): the yes / no question now gets one-word answers (Qwen3-14B-AWQ: "yes" on 31 of 31; Qwen3.5-9B: 3 of 3 so far); 0 failed
 requests. Throughput is KV-bound at 32k (3–4 thinks at a time, 115–150 tokens/s per job), so each seed takes about 6–7 hours.*
+
+**Amendment (2026-10-27 19:4x UTC, before any Qwen3.5-9B row is graded or analysed).** Qwen3.5-9B's thinking arms switch to the card's
+*general* preset (T 1.0, top-p 0.95, top-k 20, presence penalty 1.5), still matched across the full and the cut think (tag q35g,
+`hon_lane.sh lcbg lcb <seed>`, jobs 1263769–1263771); its non-thinking arm stays at the harness sampling. Why: SAMP (a), finished at
+19:4x, shows that on the project's program-writing word problems the coding preset doubles the full think's 32k-capped, program-less runs
+(95 vs 44 of 246; 149 vs 90 of 276) and lowers the check-matched think by 4.5–6.2 points, and the coding-preset LiveCodeBench thinks
+finished so far show the same pattern (102 of 224 at the cap; finish reasons only, no grade read). A capped baseline flatters a short
+think first (HO-CAP), which is what LC-1 tests. The coding-preset jobs (1262534 / 6 / 8) were stopped at 67–76 of 182 problems per seed;
+their rows stay as a record (tag q35) and are reported for their cap rate only. Everything else is unchanged.
