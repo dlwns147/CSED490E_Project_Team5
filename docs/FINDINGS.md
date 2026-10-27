@@ -4076,3 +4076,15 @@ the executed check beats the model's yes / no; it says yes almost always). IF-P5
 think). Thinking fixes length / counting and breaks combined instructions in every model (Li et al. 2505.11423's pitfall, but on
 average it helps these hybrid models). With TC-1: beyond programs the recipe's order transfers as a gain, its saving does not, because
 the check is not free. No further run on instructions.
+
+## 2026-10-27 21:05 UTC: LC-1 interim (PREREG_LC.md), Qwen3-14B-AWQ on LiveCodeBench: the contest boundary holds, and the samples leak a third
+182 problems from 2025, 3 seeds, official grader, think at 32k (cut on 3 / 546). Short think → think → retry loses to the check-matched
+think, −3.5 [−5.7, −1.6] at 94% of its tokens (HO-CC on geometry: −1.5 at 94%), and the non-thinking program first loses −4.4 at 79%:
+for this model "contests need the full think" holds on general contest code, by difficulty too (hard problems carry 63% of the think's
+tokens and the cut think passes their samples 23% of the time). The loss is all leaked cut-think programs (23 problem-seeds where the
+full think was right). The samples leak about a third of every mode's passing programs — N 33.6%, SB 27.8%, T 31.3% — wrong answers on
+small inputs the samples miss, time limits on large ones (42% of N's and SB's leaks; a low-load re-grade keeps 134 / 135); DART's
+hidden-test gate would add +4.9 points. New against prior work: no study we found reports LiveCodeBench's sample-test leak, and
+HardTests (2505.24098) measures test-suite precision, not the samples a model can run. Exploratory: gated on the hidden tests, the
+recipe would still cost 105% of the check-matched think's tokens — a better check (ALGO's brute force, a size check) buys accuracy,
+not a saving, for this model. Qwen3.5-9B (general preset) and Qwen3-8B wait for GPUs; no decision until they are in.

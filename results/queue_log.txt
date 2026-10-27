@@ -773,3 +773,52 @@ SL osb_oss20 done Mon Oct 26 21:48:40 UTC 2026
 SL osb_oss20 done Mon Oct 26 22:11:19 UTC 2026
 SL h32_logior done Mon Oct 26 22:22:52 UTC 2026
 SL h32_logior2 done Mon Oct 26 23:20:05 UTC 2026
+SL h32_om_b done Tue Oct 27 00:39:33 UTC 2026
+SL seedsmoke done Tue Oct 27 00:45:47 UTC 2026
+SL seedsmoke done Tue Oct 27 00:55:18 UTC 2026
+SL h32_om_a done Tue Oct 27 01:20:11 UTC 2026
+SL k4_q14a_bwor done Tue Oct 27 04:27:12 UTC 2026
+SL k4_q32b_bwor done Tue Oct 27 04:45:26 UTC 2026
+SL k4_q14a_optibench done Tue Oct 27 05:04:04 UTC 2026
+SL k4_q14a_logior done Tue Oct 27 05:32:14 UTC 2026
+SL sd_optmath done Tue Oct 27 05:45:14 UTC 2026
+SL k4_q14a_optmath done Tue Oct 27 06:07:25 UTC 2026
+SL k4_q32b_optibench done Tue Oct 27 06:21:27 UTC 2026
+SL sd_logior done Tue Oct 27 07:12:12 UTC 2026
+SL k4_q32b_logior done Tue Oct 27 07:19:58 UTC 2026
+SL k4_q32b_optmath done Tue Oct 27 08:04:24 UTC 2026
+SL sd_bwor done Tue Oct 27 09:21:40 UTC 2026
+SL sd_optibench done Tue Oct 27 09:52:10 UTC 2026
+SL if_smoke done Tue Oct 27 10:12:03 UTC 2026
+SL if_smoke2 done Tue Oct 27 10:22:05 UTC 2026
+SL if_smoke3 done Tue Oct 27 10:36:37 UTC 2026
+SL tc_smoke done Tue Oct 27 12:18:01 UTC 2026
+SL_HON budgetsweep 4000 done Tue Oct 27 12:39:26 UTC 2026
+SL tc_q14a_s1 done Tue Oct 27 13:17:02 UTC 2026
+SL tc_q14a_s2 done Tue Oct 27 13:17:17 UTC 2026
+SL tc_q14a_s3 done Tue Oct 27 13:18:19 UTC 2026
+SL tc_q8b_s3 done Tue Oct 27 13:19:49 UTC 2026
+SL tc_q8b_s1 done Tue Oct 27 13:20:31 UTC 2026
+SL tc_q8b_s2 done Tue Oct 27 13:21:41 UTC 2026
+SL if_q14a_ifeval done Tue Oct 27 13:32:37 UTC 2026
+SL if_q14a_ifbench done Tue Oct 27 13:36:59 UTC 2026
+SL tc_q8b_fix done Tue Oct 27 13:39:56 UTC 2026
+SL tc_q14a_fix done Tue Oct 27 13:40:17 UTC 2026
+SL if_q8b_ifeval done Tue Oct 27 14:06:49 UTC 2026
+SL_HON tc bfcl done Tue Oct 27 14:10:55 UTC 2026
+SL_HON tc bfcl done Tue Oct 27 14:13:58 UTC 2026
+SL_HON tc bfcl done Tue Oct 27 14:15:11 UTC 2026
+SL if_q14a_ifbench done Tue Oct 27 16:05:50 UTC 2026
+SL if_q8b_ifbench done Tue Oct 27 16:08:19 UTC 2026
+SL lcb_q8bsmoke done Tue Oct 27 16:34:43 UTC 2026
+SL_HON tch bfcl done Tue Oct 27 16:44:43 UTC 2026
+SL_HON codepreset bwor done Tue Oct 27 17:05:45 UTC 2026
+SL_HON tcsbc bfcl done Tue Oct 27 17:15:41 UTC 2026
+SL_HON codepreset bwor done Tue Oct 27 17:28:53 UTC 2026
+SL_HON codepreset bwor done Tue Oct 27 17:31:03 UTC 2026
+SL_HON codepreset logior done Tue Oct 27 19:11:52 UTC 2026
+SL_HON codepreset logior done Tue Oct 27 19:26:15 UTC 2026
+SL_HON codepreset logior done Tue Oct 27 19:42:20 UTC 2026
+SL lcb_q14a_s1 done Tue Oct 27 20:09:11 UTC 2026
+SL lcb_q14a_s2 done Tue Oct 27 20:26:45 UTC 2026
+SL lcb_q14a_s3 done Tue Oct 27 20:31:54 UTC 2026

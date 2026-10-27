@@ -91,3 +91,37 @@ requests. Throughput is KV-bound at 32k (3–4 thinks at a time, 115–150 token
 finished so far show the same pattern (102 of 224 at the cap; finish reasons only, no grade read). A capped baseline flatters a short
 think first (HO-CAP), which is what LC-1 tests. The coding-preset jobs (1262534 / 6 / 8) were stopped at 67–76 of 182 problems per seed;
 their rows stay as a record (tag q35) and are reported for their cap rate only. Everything else is unchanged.
+
+## Interim: Qwen3-14B-AWQ (2026-10-27 21:0x UTC; no decision until all three models are in, each prediction needs 2 of 3)
+3 seeds × 182 problems, official grader (job 1264396). Accuracy (pass@1) @ tokens per problem:
+
+| N | SB | T | N→T | N→SB→T | SB→T→T | T→T | N→T\|hidden |
+|---|---|---|---|---|---|---|---|
+| 27.5% @ 0.49k | 36.6% @ 3.19k | 55.1% @ 13.20k | 50.7% @ 10.43k | 48.5% @ 10.59k | 53.8% @ 16.46k | 57.3% @ 17.43k | 55.7% @ 12.53k |
+
+- **LC-P1 refuted for this model:** SB→T→T − T→T = −3.5 [−5.7, −1.6] at 94% of its tokens (HO-CC: −1.5 [−3.3, +0.2] at 94%).
+  The whole loss is leaked cut-think programs: of the 277 problem-seeds where SB passes the samples, SB is wrong on 77, and on 23 of
+  those (medium 15, hard 7, easy 1) the check-matched think is right, against 4 the other way: −19 / 546 = −3.5. The saving is small
+  because the cut think passes the samples on 23% of hard problems (T: 67%), where 63% of T's tokens sit, and then pays for both.
+- **LC-P2 refuted:** N→T − T = −4.4 [−6.8, −2.2] at 79%. **LC-P3 holds:** the samples leak 33.6% of N's passing programs (76 / 226),
+  27.8% of SB's (77 / 277) and **31.3% of T's (137 / 438)** — the full think leaks as much as the non-thinking program. **LC-P4 holds:**
+  N→T|hidden − N→T = +4.9 [+2.9, +7.1] (DART's gate). Retry: T→T − T = +2.2 [+1.1, +3.5] at 132% (HO-CC: +4.5).
+- **How leaks fail:** first hidden failure wrong answer / time limit / runtime error: N 44 / 32 / 0, SB 45 / 32 / 0, T 86 / 48 / 3. Wrong
+  answers fail on small inputs (median failing input 6–7% of the problem's largest; half under 200 characters: edge cases the samples
+  miss, e.g. abc391_d, a closed form that is wrong once a second row fills); time limits fail on large ones (57–79% at ≥ half the largest; the
+  intended algorithm too slow in Python, e.g. abc390_d's Bell(12) partitions, 3716's O(300 n²) DP). Time limit is 42% of N's and SB's
+  leaks (64 / 153), under the half that triggers the size check. Re-graded at 4 workers on 16 CPUs (`LCB_RECHECK=1`, job 1264444),
+  134 of the 135 time-limit failures stay time limits (one passes): the time limits are not grading load.
+- **Exploratory (not pre-registered): even a perfect check would not make the short think save here.** Gated on the hidden tests,
+  SB→T→T|hidden is 61.7% @ 22.8k vs T→T|hidden 61.4% @ 21.7k (105% of its tokens); N→SB→T|hidden 56.6% @ 14.1k vs T 55.1% @ 13.2k. The
+  cut think fails where the tokens are, so no check (a size check, ALGO's brute-force oracle 2305.14591, HardTests 2505.24098) can turn
+  this model's leak into a saving; a better check would buy accuracy, as the retry does.
+- Reported: S answers "yes" on 546 / 546 (S = T). T is cut at 32k on 3 / 546; SB's answer runs out of its 4k on 62 (58 without a
+  program). By difficulty (T's share of tokens): easy 99% @ 3.7k (7%), medium 59% @ 13.2k (30%), hard 29% @ 18.4k (63%). Against the
+  Qwen3 report (2505.09388; BF16, LiveCodeBench v5, 2024-10 → 2025-02): Qwen3-14B 63.5 thinking / 29.0 non-thinking; here 55.1 / 27.5 on
+  2025 problems with the AWQ model. Grader: the official grader compares numbers exactly, so 2 of 182 problems with a stated float
+  tolerance (abc392_d, 3763) fail right answers by digits (abc392_d's 9 programs count as leaks); without them every interval above moves
+  by ≤ 0.2. Kept as pre-registered.
+- Qwen3.5-9B at the coding preset (stopped runs, tag q35; reported for the cap only): T cut at 32k on 102 / 224 (hard 70 / 95), SB's
+  answer at its 4k cap on 122 / 204; its non-thinking program runs to the 4k cap on 93 / 207 (it reasons in plain text at length,
+  2.3–2.4k tokens on average) — the general-preset runs keep the same non-thinking arm.
