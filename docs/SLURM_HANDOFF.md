@@ -30,7 +30,7 @@ State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Tea
   a schema check and cheap-answer agreement as the gates for thinking; jobs `tc_{q8b,q14a,q35}_s{1,2,3}` (1261150–1261158; q35 via
   `hon_lane.sh tc bfcl <seed>`); items from `/home1/leesangjun/venvs/bfcl/bin/python poc/prep_tc.py` (venv: pip bfcl-eval, soundfile);
   then `/home1/leesangjun/venvs/bfcl/bin/python poc/grade_tc.py <q8b|q14a|q35>` (login node) and `python3 poc/analyze_tc.py`.
-- **Running (since 10-27 10:4x UTC):** IF-1 (docs/prereg/PREREG_IF.md; the scope widened beyond computation on 10-27): instruction
+- **Done 10-27 19 UTC:** IF-1 (docs/prereg/PREREG_IF.md; the scope widened beyond computation on 10-27): instruction
   following (IFEval, IFBench) with the model's own checker deciding when to think; jobs `if_{q8b,q14a,q35}_{ifeval,ifbench}`
   (if_q8b_ifbench resubmitted 11:4x as 1260938 with `-x n19`: one n19 GPU runs at 450 MHz under its power cap, 4× slower); then
   `/home1/leesangjun/venvs/ifgrade/bin/python poc/grade_if.py <bench> <tag>` (official graders, login node) and `python3 poc/analyze_if.py`.

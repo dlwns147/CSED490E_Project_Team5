@@ -366,6 +366,20 @@ presence penalty 1.5) and its other arms at T 0.7. Re-run at matched sampling (S
 (15–17% of answers vs 12%); at the harness sampling the full and the cut think tie (−0.5, +0.8) and thinking vs not thinking is −1.7
 [−3.4, +0.3] on non-live and +10.7 on live. At the card's preset the cut think keeps +1.7 [+0.7, +2.7] on live.
 
+### 5.10 Instructions: a self-written check buys accuracy, not tokens (IF-1)
+On IFEval (541 prompts) and IFBench (300; 58 unseen constraint types), official strict graders, 3 models × 3 seeds, the model first
+answers without thinking, then writes a Python checker for the stated requirements (after a 2k-token think: written non-thinking, the
+checkers invented or misread requirements and failed 61% of right answers in the smokes) and thinks only where its checker fails.
+That check-gated think is the most accurate of the three in 4 of 6 cells (+1.1 to +2.5 points over always thinking: all three models on
+IFEval, Qwen3-8B on IFBench), but never cheaper: it costs 98–262% of thinking's tokens, because the checker itself costs 1.8–2.5k
+tokens (more than a Qwen3 think on IFEval) and fails 19–47% of right answers. Its leak is small (it passes 7–20% of wrong answers,
+mostly ratio and repeat constraints). Thinking is the better use of the failed check: one non-thinking rewrite with the checker's
+message is 0.2–18.4 points worse, and 32–61% of rewrites return the answer verbatim (the resistance to feedback of Feedback Friction,
+2506.11930). The executed check beats the model's own yes / no choice of thinking (5 / 6 cells; it says yes almost always). Thinking
+helps length and counting constraints and hurts combined instructions ("repeat the request, then answer") in every model, the pitfall Li
+et al. (2505.11423) describe; with hybrid-thinking models it helps on average (+1.5 to +26.3). Like tool calls (§5.9), instructions are
+a domain where the recipe's order transfers as a gain and its saving does not: the check is not free.
+
 ## 6. Baselines on the same harness
 
 | task | baseline | its result | ours |

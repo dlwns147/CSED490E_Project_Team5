@@ -101,3 +101,45 @@ reflection on the checker and AutoIF-style cross-checks of the checker against i
 check arms; 299 of 300). Its checker returns one violation per sentence, and the rewrite prompt that lists them is longer than the
 context: 16,385+ tokens against 20,480 in the main job, 28,673+ against 32,768 in a rerun (job 1262230). The analysis pairs within each
 seed, so that (prompt, seed) pair is left out of every policy alike.*
+
+### Results IF-1 (2026-10-27 19:5x UTC; `python3 poc/analyze_if.py` after `grade_if.py` for every cell; 3 seeds, all rows but one pair, see Operations)
+| cell | N | T | N→T (tokens vs T) | N→R | SB→T | T→T | S | checker: false pass / false alarm |
+|---|---|---|---|---|---|---|---|---|
+| Qwen3-8B IFEval | 82.6% @ 0.37k | 85.2% @ 1.19k | **87.4%** (251%) | 85.5% | 87.6% | 87.2% | 85.0% | 7% / 34% |
+| Qwen3-8B IFBench | 25.6% @ 0.60k | 30.4% @ 2.75k | **32.9%** (179%) | 28.6% | 33.1% | 32.3% | 30.0% | 9% / 47% |
+| Qwen3-14B-AWQ IFEval | 84.8% @ 0.35k | 86.3% @ 0.97k | **88.7%** (262%) | 88.5% | 88.5% | 89.2% | 86.4% | 13% / 22% |
+| Qwen3-14B-AWQ IFBench | 27.5% @ 0.51k | 34.9% @ 1.79k | 35.2% (210%) | 32.6% | 37.3% | 36.7% | 34.9% | 20% / 34% |
+| Qwen3.5-9B IFEval | 83.6% @ 0.33k | 91.3% @ 4.25k | **92.4%** (98%) | 88.5% | 92.7% | 93.0% | 89.3% | 14% / 19% |
+| Qwen3.5-9B IFBench | 33.1% @ 0.57k | 59.4% @ 8.38k | 58.0% (102%) | 39.6% | 64.1% | 63.2% | 51.3% | 17% / 22% |
+- **IF-P1 refuted (0 / 6):** N→T costs 98–262% of always thinking's tokens. Not because the check leaks (it passes 7–20% of wrong answers)
+  but because it costs: the checker, written after a 2k think, is 1.8–2.5k tokens per prompt — more than a Qwen3 think on IFEval — and
+  it fails 19–47% of right answers, so the think runs anyway. Even with the checker free, N→T would cost 46–99% of T's tokens (≤ 50% only
+  for Qwen3.5-9B on IFEval). The named next step (the checker written after a short think) is already the design (second amendment), so
+  the line closes here.
+- **IF-P2 holds (4 / 6):** the check-gated think is above both modes by +1.1 to +2.5 points on IFEval for all three models and on
+  IFBench for Qwen3-8B (N→T − T +2.2 [+1.2, +3.3], +2.5 [+1.5, +3.5], +1.1 [+0.2, +2.0], +2.4 [+0.3, +4.8]); a tie (+0.2) and a loss
+  (−1.4) on IFBench for the two stronger models.
+- **IF-P3 refuted (0 / 6):** under the same check, one non-thinking rewrite is worse than thinking (N→R − N→T −0.2 to −18.4): 32–61% of
+  rewrites return the answer verbatim and only 3–25% then pass the model's own checker.
+- **IF-P4 holds (5 / 6):** the executed check beats the model's yes / no choice (N→T − S +2.3 to +6.7; +0.2 on Qwen3-14B-AWQ IFBench).
+  The model says "yes, thinking would help" almost always, so S ≈ T for the Qwen3 models.
+- **IF-P5 refuted (3 / 6):** against the check-matched think the cheap end is a trade (utility ahead for Qwen3-8B on both and Qwen3.5-9B
+  on IFEval, behind elsewhere; accuracy −5.2 to +0.6).
+- Raw failures by constraint type (all six cells): thinking fixes length and counting constraints most (Qwen3.5-9B IFBench count 55 →
+  87%, IFEval length 87 → 97%) and breaks more than it fixes on IFEval's combined instructions in every model (fixes / breaks 11 / 17,
+  3 / 14, 5 / 13 — "repeat the request, then answer", "two responses separated by ******"); the checker's false passes sit on IFBench's
+  ratio and repeat constraints (21–38% of the wrong answers there pass it) and IFEval's combined ones; its false alarms come from
+  requirements the instruction states but code cannot verify, checked by brittle heuristics (second smoke).
+- Caveat (SAMP): Qwen3.5-9B's full think ran at the card's general preset, its cut think and non-thinking answer at T 0.7; every
+  N→T / T→T comparison uses the same T rows, so only the SB→T column mixes presets.
+- **Decision as registered:** P1 refuted → on instructions the self-written check does not save tokens; its false-pass rate is low
+  (7–20%), its cost and false alarms are the problem; no further run (the named next step is in place). P2 holds → where thinking
+  helps some requirements and hurts others, the executed check picks per prompt and beats both modes on IFEval: a gain at 1.8–2.6× the
+  tokens of thinking, not a saving (as TC-1). P3 refuted → think on the failed check, do not rewrite. New REPORT section; the PROPOSAL's
+  claim does not change (P1 refuted).
+- Related work: Li et al. (2505.11423) find reasoning can hurt instruction following and propose selective reasoning — for these hybrid
+  models thinking helps on average (+1.5 to +26.3) and hurts one constraint family (combined instructions), and the executed check
+  beats the model's own selection (P4). ProgCo (2501.01264) refines with a program-driven check; with the same kind of check, thinking
+  beats refining in 6 / 6 cells here, and the verbatim rewrites are the resistance to feedback reported by Feedback Friction
+  (2506.11930) and the Self-Correction Blind Spot (2507.02778). ProgCo's reflection on the checker (aimed at its false alarms) is the
+  untested piece that could lower the cost side; it would add tokens to a check that already costs more than thinking.

@@ -4065,3 +4065,14 @@ SAMP (b): the preset matters in opposite directions (short tool-call thinks lose
 lose 5–7 without it); the recipe is robust to it, the full-think baseline is not, and the report's comparison was the conservative one.
 LC-1 is amended before any Qwen3.5-9B row is graded: its thinks move to the general preset (102 of the first 224 coding-preset
 LiveCodeBench thinks hit the cap).
+
+## 2026-10-27 19:52 UTC: IF-1 (PREREG_IF.md): on instructions the self-written check buys accuracy, not tokens
+IFEval (541) / IFBench (300), Qwen3-8B, Qwen3-14B-AWQ, Qwen3.5-9B, 3 seeds, official strict graders. IF-P1 refuted (0 / 6): thinking
+only where the model's own executed checker fails costs 98–262% of always thinking's tokens — the checker (written after a 2k think)
+costs 1.8–2.5k tokens per prompt and fails 19–47% of right answers; it leaks little (passes 7–20% of wrong ones). IF-P2 holds (4 / 6):
+that gated think beats both modes by +1.1 to +2.5 (IFEval all models, IFBench Qwen3-8B). IF-P3 refuted (0 / 6): a non-thinking rewrite
+with the checker's message is 0.2–18.4 points worse; 32–61% of rewrites are verbatim (Feedback Friction 2506.11930). IF-P4 holds (5 / 6:
+the executed check beats the model's yes / no; it says yes almost always). IF-P5 refuted (3 / 6: a trade against the check-matched
+think). Thinking fixes length / counting and breaks combined instructions in every model (Li et al. 2505.11423's pitfall, but on
+average it helps these hybrid models). With TC-1: beyond programs the recipe's order transfers as a gain, its saving does not, because
+the check is not free. No further run on instructions.

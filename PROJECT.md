@@ -139,6 +139,7 @@ table: `docs/REPORT.md` §5.1):
 - **Larger model, more families** (HO-32, HO-OSB, HO-SEED): the order holds on Qwen3-32B (best in 3 / 4 cells, leak not
   smaller than at 8–14B), with a medium think cut at 2k on gpt-oss-20b, and on Seed-OSS-36B (ByteDance, a fourth family; best in 4 / 4;
   its trained budget overruns 2,048 tokens in 88–99% of problems and loses to the forced cut in 3 / 4).
+- **Instructions (IF-1)**: IFEval / IFBench, 3 models: the model's executed checker (written after a 2k think) gates thinking; it beats both modes in 4 / 6 cells (+1.1 to +2.5) but costs 1.8–2.6× thinking's tokens (the checker costs more than a Qwen3 think and fails 19–47% of right answers; it leaks little, 7–20%); thinking beats a rewrite under the same check in 6 / 6. A gain, not a saving, as on tool calls.
 - **Tool calls (TC-1)**: BFCL v4, 3 models: the schema check is weak (9–25% of wrong answers for Qwen3) and thinks are short (0.3k), so
   cheap-first loses to thinking for Qwen3 and the recipe as stated (think, again on a failed check) is a +0.5 to +1.5 gain, not a
   saving. Sampling confound found (Qwen3.5-9B / Nemotron cut thinks at the harness sampling, full thinks at the card's) and tested (SAMP): Qwen3.5-9B's word-problem saving holds with every thinking arm at a matched preset (+5.3 / +7.2 at 68–74% of the tokens); the preset moves the full think in opposite directions by task (tool calls: the general preset −3–5; long program thinks: the coding preset −5–7 via 32k caps), not the cascade.
