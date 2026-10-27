@@ -286,7 +286,9 @@ cell, so repair-then-think costs 79–104% of the second think's tokens for +0 t
 a visible failure; orange line: short think first → short think, think, retry; blue: the non-thinking program first. On the hard word
 problems the orange line lies above-left of the grey one for Nemotron-3-Nano and Qwen3.5-9B (more accurate at fewer tokens), alongside it
 for Qwen3-14B-AWQ, and below it on Qwen3-8B LogiOR; the non-thinking program first is the cheapest point everywhere and the most
-accurate per token only where the check holds (Qwen3.5-9B, geometry).*
+accurate per token only where the check holds (Qwen3.5-9B, geometry). Bottom rows: gpt-oss-20b (short think = medium effort cut at
+2k, HO-OSB; OptMATH and geometry not run) and Qwen3-32B-AWQ (HO-32): the orange end lies above-left of the grey one on 5 of their 7
+cells and just below-left on the other two (gpt-oss-20b BWOR, Qwen3-32B OptiBench).*
 
 **Contest programming** (HO-CC; 311 Codeforces geometry problems with hidden tests, the check = the statement's samples, no fact, 3
 seeds, think at 32k): the retry transfers — thinking again when the program fails a sample adds +4.5 (Qwen3-14B-AWQ) and +6.4
