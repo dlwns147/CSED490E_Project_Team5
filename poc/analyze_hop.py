@@ -15,8 +15,11 @@ thinkfactb2000; full thinking with the fact only on its visible failure) and FF+
 with budgeted rows for all 3 seeds, and prints the pilot with vs without the two.
 HO-CM (PREREG_HO.md): --cm (with --sb) adds T->T (thinking with the fact; on its visible failure the next seed's stored think) and
 SB->T->T, the baseline matched in the check as well as the fact.
+HO-PB (PREREG_MODEL.md): --budgets (with --sb --cm) adds SB+F, FF+SB+F and SB->T->T with a 1,000- or 4,000-token first think
+(formxtb1000 / formxtb4000; SB1k+F, ..., SB4k->T->T) on the word cells with all three budgets (library arm and formxt on all four
+benchmarks; no geometry), and prints the pilot with vs without them.
 Items carry their id (HO-LF, analyze_holf.py: the label-free pilot reads the arms' values by id).
-usage: python analyze_hop.py [--repair] [--fair] [--gate] [--sb] [--cm] [model ...]"""
+usage: python analyze_hop.py [--repair] [--fair] [--gate] [--sb] [--cm] [--budgets] [model ...]"""
 import os, random, sys, types
 from collections import defaultdict
 
@@ -32,10 +35,13 @@ REPAIR = "--repair" in sys.argv
 GATE = "--gate" in sys.argv
 SB = "--sb" in sys.argv
 CM = "--cm" in sys.argv
-NEW = ("FF-R+F",) if GATE else ("T->T", "SB->T->T") if CM else ("SB+F", "FF+SB+F") if SB else ()   # the policies whose value the pilot comparison isolates
+BUDS = (1000, 4000) if "--budgets" in sys.argv else ()
+NEW = tuple(f"{p}SB{B // 1000}k{q}" for B in BUDS for p, q in (("", "+F"), ("FF+", "+F"), ("", "->T->T"))) if BUDS else ("FF-R+F",) if GATE else ("T->T", "SB->T->T") if CM else ("SB+F", "FF+SB+F") if SB else ()   # the policies whose value the pilot comparison isolates
 if "--fair" in sys.argv:
     WORDS = [("optmath", "mips", "thinks")] + [(b, "formx", "formxt") for b in ("optibench", "bwor", "logior")]
     WORDS_NEW = [("optmath", "formx", "formxt")] + WORDS[1:]
+if BUDS:   # budgeted rows exist for the library arm only
+    WORDS = WORDS_NEW = [(b, "formx", "formxt") for b in ("optmath", "optibench", "bwor", "logior")]
 GEO_THINK = "thinkfact" if "--fair" in sys.argv else "think"
 
 
@@ -78,6 +84,19 @@ def policies(items):
             a1 += tt_ok; t1 += tt_tok
             a2 += so if sp else tt_ok; t2 += st + (0 if sp else tt_tok)
         out["T->T"] = (100 * a1 / n, t1 / n / 1000); out["SB->T->T"] = (100 * a2 / n, t2 / n / 1000)
+    for B in BUDS:   # HO-PB: the same three policies with a 1,000- or 4,000-token first think
+        n = len(items); a1 = t1 = a2 = t2 = a3 = t3 = 0
+        for it in items:
+            tp, (t2o, t2t), (sp, so, st) = it["t_pass"], it["t2"], it["sbx"][B]
+            tt_ok, tt_tok = (it["t_ok"], it["t_tok"]) if tp else (t2o, it["t_tok"] + t2t)
+            a1 += so if sp else it["t_ok"]; t1 += st + (0 if sp else it["t_tok"])
+            if it["f_pass"]:
+                a2 += it["f_ok"]; t2 += it["f_tok"]
+            else:
+                a2 += so if sp else it["t_ok"]; t2 += it["f_tok"] + st + (0 if sp else it["t_tok"])
+            a3 += so if sp else tt_ok; t3 += st + (0 if sp else tt_tok)
+        k = f"SB{B // 1000}k"
+        out[f"{k}+F"] = (100 * a1 / n, t1 / n / 1000); out[f"FF+{k}+F"] = (100 * a2 / n, t2 / n / 1000); out[f"{k}->T->T"] = (100 * a3 / n, t3 / n / 1000)
     return out
 
 
@@ -94,12 +113,17 @@ def cells(models=("oss20", "q14a", "q8b")):
                 if GATE and not all(os.path.exists(f"{XRES}/review_{m}_{b}_{a}_s{x}.jsonl") for x in (1, 2, 3)):
                     continue
                 SBR = {r["id"]: r for r in _rows(f"{XRES}/opt_{m}_{b}_formxtb2000_s{s}.jsonl")}
+                SBX = {B: {r["id"]: r for r in _rows(f"{XRES}/opt_{m}_{b}_formxtb{B}_s{s}.jsonl")} for B in BUDS}
+                if not all(len(_rows(f"{XRES}/opt_{m}_{b}_formxtb{B}_s{x}.jsonl")) for B in BUDS for x in (1, 2, 3)):
+                    continue
                 if SB and (a != "formx" or not all(len(_rows(f"{XRES}/opt_{m}_{b}_formxtb2000_s{x}.jsonl")) for x in (1, 2, 3))):   # budgeted rows exist for the library arm only
                     continue
                 yield (m, b, s), [dict(id=i, t_pass=ok_(T[i]), t2=(bool(T2[i]["correct"]), T2[i].get("out_tokens") or 0) if i in T2 else (False, 0), v=V.get(i), sb=(ok_(SBR[i]), bool(SBR[i]["correct"]), SBR[i].get("out_tokens") or 0) if i in SBR else None, f_ok=bool(f["correct"]), f_pass=ok_(f), f_tok=f["out_tokens"] or 0,
                                        agree=ok_(f) and ok_(F2[i]) and ag(f["pred"], F2[i]["pred"]), f2_tok=F2[i]["out_tokens"] or 0,
-                                       t_ok=bool(T[i]["correct"]), t_tok=T[i]["out_tokens"] or 0, r=R.get(i)) for i, f in F.items() if i in T and i in F2 and (not SB or i in SBR)]
-        for s in (1, 2, 3):
+                                       t_ok=bool(T[i]["correct"]), t_tok=T[i]["out_tokens"] or 0, r=R.get(i),
+                                       sbx={B: (ok_(X[i]), bool(X[i]["correct"]), X[i].get("out_tokens") or 0) for B, X in SBX.items() if i in X})
+                                  for i, f in F.items() if i in T and i in F2 and (not SB or i in SBR) and all(i in X for X in SBX.values())]
+        for s in (() if BUDS else (1, 2, 3)):   # no budgeted geometry rows at 1,000 / 4,000
             if GATE and not all(os.path.exists(f"{XRES}/review_{m}_geo_fact_s{x}.jsonl") for x in (1, 2, 3)):
                 continue
             SBG = load(f"S2_HOG_{m}_geo_thinkfactb2000_s{s}") or {}

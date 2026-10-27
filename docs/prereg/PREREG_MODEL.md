@@ -230,3 +230,19 @@ made on, so this tests the pilot's choice, not whether budgets differ.
 - **PB-3 (no labels):** always SB_4000→T→T has a mean regret at least 0.5 point below always SB_2000→T→T.
 **Decision.** PB-1 holds → the claim keeps "the budget is one of the pilot's choices", now as a tested statement with the gain. PB-1
 refuted → the budget leaves the pilot: the first think is fixed, at 4,000 if PB-3 holds, else at 2,000.
+
+### Results HO-PB (2026-10-27 02:3x UTC; `python3.11 poc/analyze_hop.py --repair --fair --sb --cm --budgets n3n q8b`, 24 cells, run once; results/hopb_analysis.log)
+| λ | best policy (of 24): SB4k→T→T / SB→T→T / T→T / other | 15-policy pilot regret | 15 − 9-policy pilot (cells worse) | always SB4k→T→T | always SB→T→T (2k) | always T→T |
+|---|---|---|---|---|---|---|
+| 0 | 7 / 4 / 10 / 3 | 2.09 | +0.65 (9) | **1.38** | 2.64 | 2.07 |
+| **0.5** | **9 / 6 / 3 / 6** | **1.68** | **+0.69 (10)** | **1.60** | 2.38 | 3.57 |
+| 2 | 0 / 2 / 0 / 22 (SB+F 5, SB1k+F 6) | 1.80 | +1.22 (8) | 7.37 | 6.72 | 13.20 |
+- **PB-1 refuted** (+0.69 ≥ +0.5, but worse in 10 of 24 cells > 8). **PB-2 refuted** (1.68 > 1.5). **PB-3 holds** (always SB4k→T→T 1.60
+  vs always SB→T→T 2.38: 0.78 lower).
+- **Reading.** The extra budgets are worth about one point of utility per cell (best of fifteen − best of nine +1.02), but thirty
+  labels capture only part of it and pick worse than the nine-policy menu in 10 cells; a fixed 4,000-token first think with no labels
+  (1.60) does as well as the fifteen-policy pilot (1.68). The 1,000-token think is never the right fixed choice at λ ≤ 0.5 (SB1k→T→T
+  3.87); it wins only when tokens are priced four times higher (λ = 2), where the pilot helps (1.80 vs the best fixed 2.94).
+- **Decision as registered:** the budget leaves the pilot; the first think is fixed at 4,000 tokens. Scope: this is the two models the
+  4,000 result came from (Nemotron-3-Nano, Qwen3-8B), on the cells HO-SB4 was decided on; every other model so far ran at 2,000. Whether
+  4,000 is the number for the other hybrid-thinking models is a fresh test (HO-4K, PREREG_HO.md).

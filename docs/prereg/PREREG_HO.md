@@ -1194,3 +1194,21 @@ bug (httpx is not in the client venv; replaced with urllib) and re-run in the se
 - **Decision as registered:** the final recipe and its leak signal are stated for 8B–32B hybrid models; the leak of non-thinking programs
   on the hard word problems does not shrink with size in the Qwen3 family (32B: −5 to −12 points for the cheap-first order), so the short
   think first stays the rule there.
+
+## Addendum HO-4K (2026-10-27 02:4x UTC, before any run): is 4,000 tokens the first think for every hybrid-thinking model?
+**Why it could change the claim.** HO-PB (PREREG_MODEL.md) took the budget out of the pilot and fixed the first think at 4,000 tokens,
+but that number comes from Nemotron-3-Nano and Qwen3-8B on the cells it was chosen on (SB→T→T, 4k − 2k: utility +0.78 on average,
+4k ≥ 2k in 5 of 8 cells, no cell's accuracy difference significant; the 4k think fails visibly less often in 8 / 8). Every other model ran
+at 2,000. If 4k does not carry over, the recipe's number stays 2,000 and the 4k result is a property of the two leakiest models.
+**Run.** Thinking with the fact under a 4,000-token budget (`run_form.py <m> formx <s> --think_budget 4000`, the same settings as each
+model's 2,000-token rows) for Qwen3-14B-AWQ (q14a, one RTX 3090, lane.sh defaults), Qwen3.5-9B (q35, one RTX 3090,
+`hon_lane.sh budgetsweep 4000`, model-card thinking sampling) and Qwen3-32B-AWQ (q32b, 2 × RTX 3090, TP 2, 40,960 positions) on the
+OptiBench third, BWOR, LogiOR and OptMATH, seeds 1–3: 12 cells (model × benchmark, 3 seeds pooled). Analysis
+`python3.11 poc/analyze_ho32.py --b4k q14a q35 q32b`: SB→T→T with the 4k against the 2k first think, the same full-think rows (formxt,
+the next seed's on a visible failure), tokens of every step, λ = 0.5.
+- **4K-P1:** the mean utility gain of the 4k over the 2k first think is ≥ +0.5 point over the 12 cells.
+- **4K-P2:** 4k utility ≥ 2k utility in ≥ 7 of the 12 cells.
+- **4K-P3 (mechanism):** the 4k think fails visibly less often than the 2k think in ≥ 10 of the 12 cells.
+**Decision.** P1 and P2 → the recipe's first think is 4,000 tokens for every hybrid-thinking model (claim, REPORT, PROJECT, PROPOSAL).
+Otherwise → the default stays 2,000 tokens and the claim says 4,000 pays only for the leakiest models (Nemotron-3-Nano, Qwen3-8B); with
+P3 holding and P1 refuted, a longer first think fixes failures but not at a price worth paying.

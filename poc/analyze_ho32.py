@@ -7,7 +7,9 @@ failure = no value, crash or 'No Best Solution'):
 32-P3 (label-free signal): pooled over the cells, passing library programs whose value matches the same seed's passing short-think
 program are right >= 30 points more often than those that print a different value (also shown: the short think fails visibly).
 HO-SEED: --native = the short think is the model's own trained budget (formxnb2048) instead of the forced cut (formxtb2000).
-usage: python analyze_ho32.py [--native] [model ...]   (default q32b)"""
+HO-4K (PREREG_HO.md): --b4k = per cell, SB->T->T with a 4,000-token first think (formxtb4000) against the 2,000-token one (formxtb2000),
+same T / T2 rows: utility gap, paired accuracy difference (95% CI over problems), tokens, and how often the short think fails visibly.
+usage: python analyze_ho32.py [--native | --b4k] [model ...]   (default q32b)"""
 import os, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -33,7 +35,7 @@ def cell(m, b):
             if i not in F or i not in S or i not in T2:
                 continue
             f, sb, t2 = F[i], S[i], T2[i]; n += 1
-            diag.append(((sb.get("think_tokens") or 0) > 2048, t.get("finish") == "length"))
+            diag.append(((sb.get("think_tokens") or 0) > 2048, t.get("finish") == "length", not ok_(sb)))
             tt = (t["correct"], g(t)) if ok_(t) else (t2["correct"], g(t) + g(t2))
             res = {"T": (t["correct"], g(t)), "T->T": tt,
                    "FF+F": (f["correct"], g(f)) if ok_(f) else (t["correct"], g(f) + g(t)),
@@ -46,7 +48,33 @@ def cell(m, b):
     return per, tok, n, agree, diag
 
 
+def b4k(models):
+    global SB_ARM
+    p1 = p3 = cells = 0; gains = []
+    for m in models:
+        for b in ("optibench", "bwor", "logior", "optmath"):
+            R = {}
+            for B in (2000, 4000):
+                SB_ARM = f"formxtb{B}"; R[B] = cell(m, b)
+            (per2, tok2, n2, _, d2), (per4, tok4, n4, _, d4) = R[2000], R[4000]
+            if not n2 or n2 != n4:
+                print(f"=== {m} {b}: rows 2k {n2} / 4k {n4}, skipped"); continue
+            cells += 1
+            u = {B: 100 * sum(x["SB->T->T"] for v in P.values() for x in v) / n - LAM * T["SB->T->T"] / n / 1000
+                 for B, (P, T, n) in ((2000, (per2, tok2, n2)), (4000, (per4, tok4, n4)))}
+            mu, lo, hi = ci({i: sum(y["SB->T->T"] - x["SB->T->T"] for x, y in zip(per2[i], per4[i])) / len(per2[i]) for i in per2})
+            esc = {B: 100 * sum(d[2] for d in D) / len(D) for B, D in ((2000, d2), (4000, d4))}
+            gains.append(u[4000] - u[2000]); p1 += u[4000] >= u[2000]; p3 += esc[4000] < esc[2000]
+            print(f"=== {m} {b} ({len(per2)} problems, {n2} rows): SB->T->T utility 2k {u[2000]:.1f} / 4k {u[4000]:.1f} ({u[4000] - u[2000]:+.2f}); "
+                  f"accuracy 4k - 2k {mu:+.1f} [{lo:+.1f}, {hi:+.1f}]; tokens 4k {tok4['SB->T->T'] / n4 / 1000:.2f}k / 2k {tok2['SB->T->T'] / n2 / 1000:.2f}k "
+                  f"({100 * tok4['SB->T->T'] / tok2['SB->T->T']:.0f}%); short think fails visibly 2k {esc[2000]:.1f}% / 4k {esc[4000]:.1f}%")
+    print(f"*** 4K-P1 mean utility gain {sum(gains) / max(1, len(gains)):+.2f}; 4K-P2 {p1}/{cells} cells with 4k utility >= 2k; "
+          f"4K-P3 {p3}/{cells} cells where the 4k think fails visibly less often")
+
+
 def main():
+    if "--b4k" in sys.argv:
+        return b4k([a for a in sys.argv[1:] if not a.startswith("--")] or ["q14a", "q35", "q32b"])
     for m in [a for a in sys.argv[1:] if not a.startswith("--")] or ["q32b"]:
         p1 = p2 = cells = 0; pooled = []
         for b in ("optibench", "bwor", "logior", "optmath"):
