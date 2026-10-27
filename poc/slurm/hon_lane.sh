@@ -101,8 +101,13 @@ for think in (False, True):
   ifone) for sd in $seeds; do $P poc/run_if.py $set $m $sd >> $L 2>&1 & done ;;   # IF-1 (PREREG_IF.md): <ifeval|ifbench> [seeds]
   tc) for sd in $seeds; do $P poc/run_tc.py $m $sd >> $L 2>&1 & done ;;   # TC-1 (PREREG_TC.md): tc bfcl [seeds]
   tch) for sd in $seeds; do POC_THINK_SAMPLING= TC_ARMS=think $P poc/run_tc.py ${m}h $sd >> $L 2>&1 & done ;;   # SAMP: thinking at the harness sampling
-  budgetcard) sub=""; [ "$set" = optibench ] && sub="FORM_SUBSET=0/3"   # SAMP (PREREG_SAMP.md): the 2k cut think at the card's sampling
-           for sd in $seeds; do env $sub POC_BUDGET_CARD=1 NLOPT_SET=$set $P poc/run_form.py $m formx $sd --think_budget 2000 >> $L 2>&1 & done ;;
+  tcsbc) for sd in $seeds; do POC_BUDGET_CARD=1 TC_ARMS=sb $P poc/run_tc.py ${m}sbc $sd >> $L 2>&1 & done ;;   # SAMP: the cut think at the card's sampling
+  codepreset) sub=""; [ "$set" = optibench ] && sub="FORM_SUBSET=0/3"   # SAMP (PREREG_SAMP.md): every think at the card's precise-coding preset
+           export POC_THINK_SAMPLING=temperature=0.6,top_p=0.95,top_k=20 POC_BUDGET_CARD=1   # tag ${m}c; the cheap formx rows are q35's
+           for sd in $seeds; do
+             env $sub NLOPT_SET=$set $P poc/run_form.py ${m}c formx $sd --think_budget 2000 >> $L 2>&1 &
+             env $sub NLOPT_SET=$set $P poc/run_form.py ${m}c formx $sd --tarm --think --max_tokens $TK >> $L 2>&1 &
+           done ;;
   geo)   for sd in 1 2 3; do
            $P poc/run_geo_cross.py --model_tag S2_HOG_${m}_geo_fact_s$sd $GX --seed $sd --distract 0 --algo_hint --max_tokens 4096 >> $L 2>&1 &
            $P poc/run_geo_cross.py --model_tag S2_HOG_${m}_geo_think_s$sd $GX --seed $sd --distract 8 --think --max_tokens $TK >> $L 2>&1 &

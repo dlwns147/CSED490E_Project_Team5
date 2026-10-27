@@ -73,8 +73,10 @@ def cell(m, split, cats):
 
 
 def samp(m="q35"):
-    """SAMP (PREREG_SAMP.md): the thinking arm at the harness sampling (tag <m>h, T 0.7 / top-p 0.95, as N and SB) against the card's
-    (T), per split: accuracy, paired intervals, BFCL-template copies ("func_name1=", "params_name1="), SB->T with either think"""
+    """SAMP (PREREG_SAMP.md), a 2 x 2 for Qwen3.5-9B on tool calls: mode (full think T / 2k cut think SB) x sampling (the card's general
+    thinking preset: T 1.0, top-k 20, presence penalty 1.5 / the harness's: T 0.7, top-p 0.95). Runs so far: T at the card's (tag q35),
+    SB at the harness's (q35); new: Th = T at the harness's (q35h), SBc = SB at the card's (q35sbc). Per split: accuracy, paired
+    intervals, BFCL-template copies ("func_name1=", "params_name1=")."""
     import re
     pat = re.compile(r"params_name|func_name\d?=|func_name\d?\(")
     cats = {x["id"]: x["cat"] for x in (json.loads(l) for l in open(DATA))}
@@ -82,30 +84,32 @@ def samp(m="q35"):
     for split in ("non-live", "live"):
         per, cp = {}, Counter()
         for s in (1, 2, 3):
-            G, Gh = (json.load(open(f"{RES}/grades_{t}_s{s}.json")) for t in (m, m + "h"))
+            G, Gh, Gs = (json.load(open(f"{RES}/grades_{t}_s{s}.json")) for t in (m, m + "h", m + "sbc"))
             C, T, SB = ({r["id"]: r for r in _rows(f"{RES}/{m}_{a}_s{s}.jsonl")} for a in ("cheap", "think", "sb"))
             Th = {r["id"]: r for r in _rows(f"{RES}/{m}h_think_s{s}.jsonl")}
+            SBc = {r["id"]: r for r in _rows(f"{RES}/{m}sbc_sb_s{s}.jsonl")}
             for i, g in G.items():
-                if (cats[i] in NONLIVE) != (split == "non-live") or i not in Gh or "T" not in Gh[i] or not {"N", "T", "SB"} <= set(g):
+                if (cats[i] in NONLIVE) != (split == "non-live") or "T" not in Gh.get(i, {}) or "SB" not in Gs.get(i, {}) \
+                        or not {"N", "T", "SB"} <= set(g):
                     continue
-                th = Gh[i]["T"]["ok"]
-                fs = g["SB"]["chk"] == "fail"
-                per.setdefault(i, []).append({"N": g["N"]["ok"], "SB": g["SB"]["ok"], "T": g["T"]["ok"], "Th": th,
-                                              "SB->T": g["T"]["ok"] if fs else g["SB"]["ok"], "SB->Th": th if fs else g["SB"]["ok"]})
-                for k, txt in (("N", C[i]["n_text"]), ("SB", SB[i]["text"]), ("T", T[i]["text"]), ("Th", Th[i]["text"])):
+                per.setdefault(i, []).append({"N": g["N"]["ok"], "SB": g["SB"]["ok"], "T": g["T"]["ok"], "Th": Gh[i]["T"]["ok"],
+                                              "SBc": Gs[i]["SB"]["ok"]})
+                for k, txt in (("N", C[i]["n_text"]), ("SB", SB[i]["text"]), ("T", T[i]["text"]), ("Th", Th[i]["text"]), ("SBc", SBc[i]["text"])):
                     cp[k] += bool(pat.search(txt or ""))
                 cp["n"] += 1
         n = cp["n"]
-        acc = {k: 100 * sum(x[k] for v in per.values() for x in v) / n for k in ("N", "SB", "T", "Th", "SB->T", "SB->Th")}
+        if not n:
+            print(f"=== {m} {split}: no complete rows"); continue
+        acc = {k: 100 * sum(x[k] for v in per.values() for x in v) / n for k in ("N", "SB", "T", "Th", "SBc")}
         print(f"=== {m} {split} ({len(per)} items, {n} rows): " + " | ".join(f"{k} {v:.1f}%" for k, v in acc.items())
-              + "; template copies " + " / ".join(f"{k} {100 * cp[k] / n:.1f}%" for k in ("N", "SB", "T", "Th")))
+              + "; template copies " + " / ".join(f"{k} {100 * cp[k] / n:.1f}%" for k in ("N", "SB", "T", "Th", "SBc")))
         d = lambda a, c: ci({i: sum(x[a] - x[c] for x in v) / len(v) for i, v in per.items()})
-        for a, c in (("Th", "T"), ("Th", "SB"), ("Th", "N"), ("SB->Th", "Th")):
+        for a, c in (("Th", "SB"), ("SBc", "T"), ("Th", "T"), ("SB", "SBc"), ("Th", "N")):
             mu, lo, hi = d(a, c)
             print(f"  {a} - {c} {mu:+.1f} [{lo:+.1f}, {hi:+.1f}]")
         score["P3"] += abs(acc["Th"] - acc["SB"]) <= 1.0
-        score["P4"] += cp["Th"] <= cp["SB"] + 0.01 * n
-    print(f"*** SAMP-P3 {score['P3']}/2 splits with |Th - SB| <= 1.0; SAMP-P4 {score['P4']}/2 splits with Th's template copies <= SB's + 1 point")
+        score["P4"] += abs(acc["SBc"] - acc["T"]) <= 1.0
+    print(f"*** SAMP-P3 {score['P3']}/2 splits with |Th - SB| <= 1.0 (harness sampling); SAMP-P4 {score['P4']}/2 splits with |SBc - T| <= 1.0 (card sampling)")
 
 
 def main():

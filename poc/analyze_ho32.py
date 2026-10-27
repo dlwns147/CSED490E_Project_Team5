@@ -72,38 +72,42 @@ def b4k(models):
           f"4K-P3 {p3}/{cells} cells where the 4k think fails visibly less often")
 
 
-def samp(models):
-    """SAMP (PREREG_SAMP.md): per cell, SB->T->T with the 2k cut think at the card's thinking sampling (formxtb2000c) against the
-    harness-sampled one (formxtb2000), the same full-think rows; and against T->T. Also the first program alone."""
+def samp(sets=("bwor", "logior")):
+    """SAMP (PREREG_SAMP.md): Qwen3.5-9B with every thinking arm at the card's precise-coding preset (tag q35c: temperature 0.6, top-p
+    0.95, top-k 20, no presence penalty; the cut think formxtb2000c, the full think formxt) against the runs so far (tag q35: cut think at
+    the harness sampling, full think at the card's general preset). Per benchmark: SB->T->T and T->T at the coding preset, T->T at the
+    general preset, the first program and the full think alone."""
     global SB_ARM
     p1 = p2 = cells = 0
-    for m in models:
-        for b in ("optibench", "bwor", "logior", "optmath"):
-            R = {}
-            for a in ("formxtb2000", "formxtb2000c"):
-                SB_ARM = a; R[a] = cell(m, b)
-            (ph, th, nh, _, _), (pc, tc, nc, _, _) = R["formxtb2000"], R["formxtb2000c"]
-            if not nh or nh != nc:
-                print(f"=== {m} {b}: rows harness {nh} / card {nc}, skipped"); continue
-            cells += 1
-            acc = lambda P, n, k: 100 * sum(x[k] for v in P.values() for x in v) / n
-            u = lambda P, T, n, k: acc(P, n, k) - LAM * T[k] / n / 1000
-            uh, uc, utt = u(ph, th, nh, "SB->T->T"), u(pc, tc, nc, "SB->T->T"), u(ph, th, nh, "T->T")
-            mu, lo, hi = ci({i: sum(y["SB->T->T"] - x["SB->T->T"] for x, y in zip(ph[i], pc[i])) / len(ph[i]) for i in ph})
-            mt, lt, ht = ci({i: sum(y["SB->T->T"] - y["T->T"] for y in pc[i]) / len(pc[i]) for i in pc})
-            F1 = {a: [r["correct"] for s in (1, 2, 3) for r in _rows(f"{RES}/opt_{m}_{b}_{a}_s{s}.jsonl")] for a in R}
-            f1 = {a: 100 * sum(v) / max(1, len(v)) for a, v in F1.items()}
-            p1 += uc >= uh - 1.0; p2 += acc(pc, nc, "SB->T->T") >= acc(pc, nc, "T->T") - 1.0
-            print(f"=== {m} {b} ({len(ph)} problems, {nh} rows): SB->T->T utility harness {uh:.1f} / card {uc:.1f} ({uc - uh:+.2f}); accuracy "
-                  f"card - harness {mu:+.1f} [{lo:+.1f}, {hi:+.1f}]; tokens card {tc['SB->T->T'] / nc / 1000:.2f}k / harness {th['SB->T->T'] / nh / 1000:.2f}k; "
-                  f"card SB->T->T - T->T {mt:+.1f} [{lt:+.1f}, {ht:+.1f}] (T->T u {utt:.1f}); first program right harness {f1['formxtb2000']:.1f}% / "
-                  f"card {f1['formxtb2000c']:.1f}%")
-    print(f"*** SAMP-P1 {p1}/{cells} cells with card utility >= harness - 1.0; SAMP-P2 {p2}/{cells} cells with card SB->T->T accuracy >= T->T - 1.0")
+    for b in sets:
+        SB_ARM = "formxtb2000c"; pc, tc, nc, _, _ = cell("q35c", b)
+        SB_ARM = "formxtb2000"; po, to, no, _, _ = cell("q35", b)
+        if not nc or not no:
+            print(f"=== {b}: rows coding {nc} / so far {no}, skipped"); continue
+        cells += 1
+        acc = lambda P, n, k: 100 * sum(x[k] for v in P.values() for x in v) / n
+        u = lambda P, T, n, k: acc(P, n, k) - LAM * T[k] / n / 1000
+        mu, lo, hi = ci({i: sum(y["SB->T->T"] - y["T->T"] for y in pc[i]) / len(pc[i]) for i in pc})
+        ids = sorted(set(pc) & set(po))
+        mt, lt, ht = ci({i: sum(y["T->T"] for y in pc[i]) / len(pc[i]) - sum(x["T->T"] for x in po[i]) / len(po[i]) for i in ids})
+        m1, l1, h1 = ci({i: sum(y["T"] for y in pc[i]) / len(pc[i]) - sum(x["T"] for x in po[i]) / len(po[i]) for i in ids})
+        share = tc["SB->T->T"] / tc["T->T"]
+        p1 += acc(pc, nc, "SB->T->T") >= acc(pc, nc, "T->T") - 1.0 and share <= 0.85
+        p2 += acc(pc, nc, "T->T") <= acc(po, no, "T->T") + 2.0
+        F1 = {a: [r["correct"] for s in (1, 2, 3) for r in _rows(f"{RES}/opt_{t}_{b}_{a}_s{s}.jsonl")] for t, a in (("q35c", "formxtb2000c"), ("q35", "formxtb2000"))}
+        print(f"=== {b} ({len(pc)} problems, {nc} rows at the coding preset): SB->T->T {acc(pc, nc, 'SB->T->T'):.1f}% @ {tc['SB->T->T'] / nc / 1000:.2f}k "
+              f"(u {u(pc, tc, nc, 'SB->T->T'):.1f}) vs T->T {acc(pc, nc, 'T->T'):.1f}% @ {tc['T->T'] / nc / 1000:.2f}k (u {u(pc, tc, nc, 'T->T'):.1f}): "
+              f"{mu:+.1f} [{lo:+.1f}, {hi:+.1f}] at {100 * share:.0f}% of its tokens | so far: SB->T->T {acc(po, no, 'SB->T->T'):.1f}% @ "
+              f"{to['SB->T->T'] / no / 1000:.2f}k, T->T {acc(po, no, 'T->T'):.1f}% @ {to['T->T'] / no / 1000:.2f}k | T->T coding - general {mt:+.1f} "
+              f"[{lt:+.1f}, {ht:+.1f}]; T alone {m1:+.1f} [{l1:+.1f}, {h1:+.1f}], T {tc['T'] / nc / 1000:.2f}k vs {to['T'] / no / 1000:.2f}k | first program "
+              f"coding {100 * sum(F1['formxtb2000c']) / max(1, len(F1['formxtb2000c'])):.1f}% / harness {100 * sum(F1['formxtb2000']) / max(1, len(F1['formxtb2000'])):.1f}%")
+    print(f"*** SAMP-P1 {p1}/{cells} benchmarks (coding preset: SB->T->T within 1.0 of T->T at <= 85% of its tokens); "
+          f"SAMP-P2 {p2}/{cells} (T->T at the coding preset <= the general preset's + 2.0)")
 
 
 def main():
     if "--samp" in sys.argv:
-        return samp([a for a in sys.argv[1:] if not a.startswith("--")] or ["q35"])
+        return samp([a for a in sys.argv[1:] if not a.startswith("--")] or ("bwor", "logior"))
     if "--b4k" in sys.argv:
         return b4k([a for a in sys.argv[1:] if not a.startswith("--")] or ["q14a", "q35", "q32b"])
     for m in [a for a in sys.argv[1:] if not a.startswith("--")] or ["q32b"]:
