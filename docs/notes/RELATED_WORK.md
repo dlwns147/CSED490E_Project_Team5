@@ -161,3 +161,13 @@ T 1.0 / top-p 1.0 reasoning, T 0.6 / 0.95 tool calling. Sampling sensitivity of 
 points from temperature), temperature diversity (2510.02611), repetition penalty and code (2505.10402). Budget-forcing studies mostly
 match decoding across arms (Coupling Tax, HRBench greedy; ThinkBrake official presets); DART drafts at T 0.6 and thinks greedily. Our
 mismatch (cut think at T 0.7, full think at the general preset) is tested in PREREG_SAMP.md.
+
+**Contest code (2026-10-27 16 UTC, for LC-1; IDs and numbers opened).** DART (2606.23181): its code gate runs the non-thinking drafts on
+the reference tests that later score them (accept precision 100% by construction, its Limitations); on half of each problem's assertions
+precision is 92.5 / 97.9 / 98.1% (Qwen3-8B / 14B / 32B); HumanEval and MBPP only. PaT (2605.07248): examples + model-written tests gate an
+escalation to planning, non-thinking Qwen3. Test-gated model cascades for code (2405.15842, −26% cost). S* (2502.14382): public tests
+drive revision and selection on LiveCodeBench, tokens not counted. Self-Debugging (2304.05128), CodeT (2207.10397), AlphaCode sample
+filtering (2203.07814), Olausson et al. (2306.09896). Trained mode routers: Thinkless, AdaptThink, AutoThink (math), LHRM (2505.14631, also
+LiveCodeBench). Qwen3 report LiveCodeBench v5 (32k): 8B 57.5 / 22.8, 14B 63.5 / 29.0 (thinking / non-thinking). No published rate of
+programs that pass LiveCodeBench's samples and fail its hidden tests. In the project: HO-CC / HO-CAP (Codeforces geometry) are the
+reference; LC-1 asks whether their contest boundary is contest code or that set.
