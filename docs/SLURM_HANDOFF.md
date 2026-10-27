@@ -18,11 +18,11 @@ State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Tea
   check, 32k thinks; is HO-CC's "contests need the full think" about contest code or the geometry set? Items `python3.11 -I
   poc/prep_lcb.py` (data in `$POC_DATA/lcb`: raw test5 / test6 from HF, official repo clone @28fef95); jobs `lcb_q14a_s{1,2,3}`
   (`lane.sh --vllm '--max-model-len 36864' Qwen/Qwen3-14B-AWQ lcb_q14a_s<seed> '$P poc/run_lcb.py q14a <seed>'`) and `lcb_q35_s{1,2,3}`
-  (`hon_lane.sh lcb lcb <seed>`); Qwen3-8B next on two 3090s per seed (`sbatch --gres=gpu:2 --cpus-per-task=8 ... lane.sh --gpus 0,1
+  (`hon_lane.sh lcb lcb <seed>`: coding preset, stopped 19:4x; amended to `lcbg`, tag q35g, the general preset, jobs `lcb_q35g_s*`); Qwen3-8B next on two 3090s per seed (`sbatch --gres=gpu:2 --cpus-per-task=8 ... lane.sh --gpus 0,1
   --vllm '--max-model-len 36864 --tensor-parallel-size 2' Qwen/Qwen3-8B ...`). Then grade on a CPU node (`sbatch -p
   cpu-max16,cpu-max10,cpu-max24 -q nogpu --gres=none --cpus-per-task=16 poc/slurm/job.sh '$P poc/grade_lcb.py <tag>'`) and
   `python3 poc/analyze_lcb.py`. Exclude n22 as well as n19 (`-x n19,n22`): one of its GPUs has ~10 GB held outside Slurm (10-27 17 UTC).
-- **Running (since 10-27 14:4x UTC):** SAMP (docs/prereg/PREREG_SAMP.md): Qwen3.5-9B sampling controls — `samp_{bwor,logior}_s*`
+- **Done 10-27 19 UTC:** SAMP (docs/prereg/PREREG_SAMP.md): Qwen3.5-9B sampling controls — `samp_{bwor,logior}_s*`
   (`hon_lane.sh codepreset <set> <seed>`: cut and full think at the card's coding preset, tag q35c; cheap rows linked from q35) and
   `samp_tch` / `samp_tcsbc` (BFCL: full think at the harness sampling, tag q35h; cut think at the card's general preset, tag q35sbc);
   then `grade_tc.py q35h` / `q35sbc` (bfcl venv), `python3 poc/analyze_tc.py --samp`, `python3 poc/analyze_ho32.py --samp`.

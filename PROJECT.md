@@ -141,7 +141,7 @@ table: `docs/REPORT.md` §5.1):
   its trained budget overruns 2,048 tokens in 88–99% of problems and loses to the forced cut in 3 / 4).
 - **Tool calls (TC-1)**: BFCL v4, 3 models: the schema check is weak (9–25% of wrong answers for Qwen3) and thinks are short (0.3k), so
   cheap-first loses to thinking for Qwen3 and the recipe as stated (think, again on a failed check) is a +0.5 to +1.5 gain, not a
-  saving. Sampling confound found (Qwen3.5-9B / Nemotron cut thinks at the harness sampling, full thinks at the card's): SAMP running.
+  saving. Sampling confound found (Qwen3.5-9B / Nemotron cut thinks at the harness sampling, full thinks at the card's) and tested (SAMP): Qwen3.5-9B's word-problem saving holds with every thinking arm at a matched preset (+5.3 / +7.2 at 68–74% of the tokens); the preset moves the full think in opposite directions by task (tool calls: the general preset −3–5; long program thinks: the coding preset −5–7 via 32k caps), not the cascade.
 - Budget (HO-4K): 4,000 does not carry over to Qwen3-14B / Qwen3.5-9B / Qwen3-32B (mean utility −0.06, 5 / 12 cells); the default stays
   2,000. Open: a fixed 2,000 tokens still costs where full thinking is already short (tool calls, TC-1); the final report (draft
   `docs/REPORT.md`, format / length / deadline from the team).
