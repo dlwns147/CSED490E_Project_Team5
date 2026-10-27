@@ -21,7 +21,7 @@ State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Tea
   (`hon_lane.sh lcb lcb <seed>`); Qwen3-8B next on two 3090s per seed (`sbatch --gres=gpu:2 --cpus-per-task=8 ... lane.sh --gpus 0,1
   --vllm '--max-model-len 36864 --tensor-parallel-size 2' Qwen/Qwen3-8B ...`). Then grade on a CPU node (`sbatch -p
   cpu-max16,cpu-max10,cpu-max24 -q nogpu --gres=none --cpus-per-task=16 poc/slurm/job.sh '$P poc/grade_lcb.py <tag>'`) and
-  `python3 poc/analyze_lcb.py`.
+  `python3 poc/analyze_lcb.py`. Exclude n22 as well as n19 (`-x n19,n22`): one of its GPUs has ~10 GB held outside Slurm (10-27 17 UTC).
 - **Running (since 10-27 14:4x UTC):** SAMP (docs/prereg/PREREG_SAMP.md): Qwen3.5-9B sampling controls — `samp_{bwor,logior}_s*`
   (`hon_lane.sh codepreset <set> <seed>`: cut and full think at the card's coding preset, tag q35c; cheap rows linked from q35) and
   `samp_tch` / `samp_tcsbc` (BFCL: full think at the harness sampling, tag q35h; cut think at the card's general preset, tag q35sbc);

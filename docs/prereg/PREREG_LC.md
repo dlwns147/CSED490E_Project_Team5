@@ -76,3 +76,9 @@ answers, "yes" and then code in the other 6); it now shows the problem without i
 carries no decision. Main runs submitted 16:3x UTC: lcb_q14a_s{1,2,3} (1262533, 1262535, 1262537; `lane.sh --vllm '--max-model-len
 36864'`) and lcb_q35_s{1,2,3} (1262534, 1262536, 1262538; `hon_lane.sh lcb lcb <seed>`); Qwen3-8B (two 3090s per seed) follows when
 the IF-1 jobs free their GPUs.*
+
+*Operations (2026-10-27 17:2x UTC, no change to the design): one RTX 3090 on n22 has ~10 GB held by a process outside Slurm's
+allocation, so vLLM refuses to start on it (13.0–13.4 of 23.6 GiB free). lcb_q14a_s3 (1262537) and lcb_q8b_s{1,2,3} (1262745–1262747)
+landed on it and exited at server start without a row; resubmitted with `-x n19,n22` as 1262743 and 1262807–1262809. First rows read
+(17:1x UTC): the yes / no question now gets one-word answers (Qwen3-14B-AWQ: "yes" on 31 of 31; Qwen3.5-9B: 3 of 3 so far); 0 failed
+requests. Throughput is KV-bound at 32k (3–4 thinks at a time, 115–150 tokens/s per job), so each seed takes about 6–7 hours.*
