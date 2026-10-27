@@ -124,9 +124,10 @@ def retrieve_hint(q, k=1):
     return sc[:k]
 
 
-def budget_chat(prompt, budget, think=False, max_tokens=4096, temperature=0.7, seed=None):
+def budget_chat(prompt, budget, think=False, max_tokens=4096, temperature=0.7, seed=None, cut_note="I will now write the program."):
     """budget forcing (s1-style) for Qwen3: think for at most `budget` tokens, then force </think> and generate the answer.
-    Uses the raw completions endpoint with the Qwen3 chat format; budget=0 means an empty think block (= thinking off)."""
+    Uses the raw completions endpoint with the Qwen3 chat format; budget=0 means an empty think block (= thinking off).
+    cut_note: what the cut think says it does next (IF-1: "I will now write the response.")."""
     from llm import client
     head = f"<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n<think>\n"
     if os.environ.get("POC_RAW_SYSTEM"):   # HO-N4: Nemotron-3-Nano's template always opens with an empty system turn
@@ -136,7 +137,7 @@ def budget_chat(prompt, budget, think=False, max_tokens=4096, temperature=0.7, s
         r = client.completions.create(model="local", prompt=head, max_tokens=budget, temperature=temperature,
                                       top_p=0.95 if temperature > 0 else 1.0, seed=seed, stop=["</think>"])
         think_txt, used, cut = r.choices[0].text, r.usage.completion_tokens, r.choices[0].finish_reason == "length"
-    cont = head + think_txt + ("\n\nTime is up; I will now write the program.\n" if budget > 0 and cut else "") + "\n</think>\n\n"
+    cont = head + think_txt + (f"\n\nTime is up; {cut_note}\n" if budget > 0 and cut else "") + "\n</think>\n\n"
     r2 = client.completions.create(model="local", prompt=cont, max_tokens=max_tokens, temperature=temperature,
                                    top_p=0.95 if temperature > 0 else 1.0, seed=seed, stop=["<|im_end|>"])
     return {"text": r2.choices[0].text, "finish": r2.choices[0].finish_reason, "out_tokens": used + r2.usage.completion_tokens,
