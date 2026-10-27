@@ -1,0 +1,67 @@
+"""LC-1 (docs/prereg/PREREG_LC.md): code generation (LiveCodeBench, problems from 2025 on), where the free check is the problem's own
+sample tests and full thinks are long. Per problem and seed, all arms against one server (LiveCodeBench's generic prompt):
+  cheap  N = non-thinking program (4k cap); S = the model's yes / no answer to "would thinking first help you write a correct program?"
+  think  T = thinking program (cap LCB_TK, default 16,000; Qwen3.5-9B 32,000 as on the word problems)
+  sb     SB = thinking cut at 2,000 tokens (budget forcing), then the program (4k cap)
+The free check (the sample tests), the grade (the official LiveCodeBench grader on sample + hidden tests) and the policies are
+offline: poc/grade_lcb.py, poc/analyze_lcb.py. Items: $POC_DATA/lcb/lcb_items.jsonl (poc/prep_lcb.py). Rows resume.
+usage: python run_lcb.py <tag> <seed>     (LCB_SUBSET=i/k: problems i, i+k, ... only — the smoke; LCB_ARMS=think: only those arms)"""
+import json, os, sys, zlib
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from llm import chat  # noqa: E402
+from run_geo_cross import budget_chat  # noqa: E402
+from run_nlopt import _rows  # noqa: E402
+
+RES = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "results", "lcb")
+DATA = os.path.join(os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nlp_data"), "lcb", "lcb_items.jsonl")
+TK = int(os.environ.get("LCB_TK", 16000))
+SELECT = """Here is a programming problem. Before writing the program for it, decide: would thinking step by step first help you \
+write a correct program? Answer with one word, yes or no.
+
+{q}"""
+
+
+def main():
+    tag, seed = sys.argv[1], int(sys.argv[2])
+    P = [json.loads(l) for l in open(DATA)]
+    if os.environ.get("LCB_SUBSET"):
+        i, k = map(int, os.environ["LCB_SUBSET"].split("/")); P = P[i::k]
+    os.makedirs(RES, exist_ok=True)
+    path = {a: f"{RES}/{tag}_{a}_s{seed}.jsonl" for a in ("cheap", "think", "sb")}
+    done = {a: {r["id"] for r in _rows(f)} for a, f in path.items()}
+    sd = lambda p: seed * 1000 + zlib.crc32(p["id"].encode()) % 997
+
+    def cheap(p):
+        n = chat(p["user"], system=p["system"], think=False, max_tokens=4096, temperature=0.7, seed=sd(p))
+        d = chat(SELECT.format(q=p["user"]), system=p["system"], think=False, max_tokens=8, temperature=0.7, seed=sd(p))
+        return "cheap", {"id": p["id"], "n_text": n["text"], "n_tok": n["out_tokens"], "n_finish": n["finish"],
+                         "s_ans": (d["text"] or "").strip().lower()[:20], "s_tok": d["out_tokens"]}
+
+    def think(p):
+        o = chat(p["user"], system=p["system"], think=True, max_tokens=TK, temperature=0.7, seed=sd(p))
+        return "think", {"id": p["id"], "text": o["text"], "out_tokens": o["out_tokens"], "finish": o["finish"]}
+
+    def sb(p):
+        o = budget_chat(p["user"], 2000, max_tokens=4096, temperature=0.7, seed=sd(p), cut_note="I will now write the program.",
+                        system=p["system"])
+        return "sb", {"id": p["id"], "text": o["text"], "out_tokens": o["out_tokens"], "think_tokens": o["think_tokens"], "finish": o["finish"]}
+
+    arms = os.environ.get("LCB_ARMS", "cheap,think,sb").split(",")
+    jobs = [(f, p) for p in P for a, f in (("cheap", cheap), ("think", think), ("sb", sb)) if a in arms and p["id"] not in done[a]]
+    out = {a: open(f, "a") for a, f in path.items()}
+    with ThreadPoolExecutor(64) as ex:
+        for fu in as_completed([ex.submit(f, p) for f, p in jobs]):
+            try:
+                a, row = fu.result()
+                out[a].write(json.dumps(row) + "\n"); out[a].flush()
+            except Exception as e:   # as run_tc: one failed request must not stop the other rows
+                print(tag, seed, "request failed, no row:", repr(e)[:200], flush=True)
+    for f in out.values():
+        f.close()
+    print(tag, seed, {a: len(_rows(f)) for a, f in path.items()}, flush=True)
+
+
+if __name__ == "__main__":
+    main()
