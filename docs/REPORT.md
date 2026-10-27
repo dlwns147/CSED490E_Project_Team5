@@ -371,7 +371,7 @@ On IFEval (541 prompts) and IFBench (300; 58 unseen constraint types), official 
 answers without thinking, then writes a Python checker for the stated requirements (after a 2k-token think: written non-thinking, the
 checkers invented or misread requirements and failed 61% of right answers in the smokes) and thinks only where its checker fails.
 That check-gated think is the most accurate of the three in 4 of 6 cells (+1.1 to +2.5 points over always thinking: all three models on
-IFEval, Qwen3-8B on IFBench), but never cheaper: it costs 98–262% of thinking's tokens, because the checker itself costs 1.8–2.5k
+IFEval, Qwen3-8B on IFBench), but at most 2% cheaper: it costs 98–262% of thinking's tokens, because the checker itself costs 1.8–2.5k
 tokens (more than a Qwen3 think on IFEval) and fails 19–47% of right answers. Its leak is small (it passes 7–20% of wrong answers,
 mostly ratio and repeat constraints). Thinking is the better use of the failed check: one non-thinking rewrite with the checker's
 message is 0.2–18.4 points worse, and 32–61% of rewrites return the answer verbatim (the resistance to feedback of Feedback Friction,

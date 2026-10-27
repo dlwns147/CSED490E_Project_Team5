@@ -128,13 +128,13 @@ seed, so that (prompt, seed) pair is left out of every policy alike.*
 - Raw failures by constraint type (all six cells): thinking fixes length and counting constraints most (Qwen3.5-9B IFBench count 55 →
   87%, IFEval length 87 → 97%) and breaks more than it fixes on IFEval's combined instructions in every model (fixes / breaks 11 / 17,
   3 / 14, 5 / 13 — "repeat the request, then answer", "two responses separated by ******"); the checker's false passes sit on IFBench's
-  ratio and repeat constraints (21–38% of the wrong answers there pass it) and IFEval's combined ones; its false alarms come from
+  ratio and repeat constraints (19–38% and 21–56% of the wrong answers there pass it) and IFEval's combined ones; its false alarms come from
   requirements the instruction states but code cannot verify, checked by brittle heuristics (second smoke).
 - Caveat (SAMP): Qwen3.5-9B's full think ran at the card's general preset, its cut think and non-thinking answer at T 0.7; every
   N→T / T→T comparison uses the same T rows, so only the SB→T column mixes presets.
 - **Decision as registered:** P1 refuted → on instructions the self-written check does not save tokens; its false-pass rate is low
   (7–20%), its cost and false alarms are the problem; no further run (the named next step is in place). P2 holds → where thinking
-  helps some requirements and hurts others, the executed check picks per prompt and beats both modes on IFEval: a gain at 1.8–2.6× the
+  helps some requirements and hurts others, the executed check picks per prompt and beats both modes on IFEval: a gain at 1.0–2.6× the
   tokens of thinking, not a saving (as TC-1). P3 refuted → think on the failed check, do not rewrite. New REPORT section; the PROPOSAL's
   claim does not change (P1 refuted).
 - Related work: Li et al. (2505.11423) find reasoning can hurt instruction following and propose selective reasoning — for these hybrid
