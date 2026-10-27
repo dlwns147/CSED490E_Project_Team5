@@ -86,8 +86,9 @@ def main():
                 print(f"  {dd} ({len(ids)}): " + " | ".join(
                     f"{k} {100 * sum(x[k] for x in rows) / len(rows):.0f}% @ {tok[(k, dd)] / len(rows) / 1000:.1f}k "
                     f"({100 * tok[(k, dd)] / max(1, tok[k]):.0f}% of its tokens)" for k in ("N", "T", "N->T", "SB->T->T", "T->T")))
-        score["P1"] += acc["N->T"] >= acc["T"] - 1.0 and tok["N->T"] <= 0.85 * tok["T"]
-        score["P2"] += acc["SB->T->T"] >= acc["T->T"] - 1.0 and tok["SB->T->T"] <= 0.85 * tok["T->T"]
+        tie = lambda a, c: d(a, c)[2] >= 0 and tok[a] <= 0.90 * tok[c]   # HO-CC's CC-P1: the paired upper bound >= 0 at <= 90% tokens
+        score["P1"] += tie("SB->T->T", "T->T")
+        score["P2"] += tie("N->T", "T")
         score["P3"] += leak[("N", "leak")] >= 0.10 * leak[("N", "chk")]
         score["P4"] += acc["N->T|hidden"] >= acc["N->T"] + 2.0
     print(f"*** {cells} models: LC-P1 {score['P1']}; LC-P2 {score['P2']}; LC-P3 {score['P3']}; LC-P4 {score['P4']} (each needs >= 2 of 3)")

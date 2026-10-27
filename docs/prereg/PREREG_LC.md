@@ -1,62 +1,67 @@
-# Pre-registration LC: the recipe on contest code, where the free check is the problem's own sample tests
+# Pre-registration LC: is "contests need the full think" about contest code, or about the geometry set?
 
-Written 2026-10-27 16:2x UTC, before any main row (the smoke below runs alongside and is not part of the results). Results go below.
+Written 2026-10-27 16:2x UTC, before any main row (the smoke below runs alongside and is not part of the results); revised 16:3x UTC,
+still before any main row: the project's own contest result (HO-CC / HO-CAP) is now the reference, the thinking cap is 32,000 for every
+model (HO-CC's 16k cap left 57–87% of contest thinks without a program), and the criteria are HO-CC's so the two sets compare. Results
+go below.
 
-**Why it could change the claim.** The recipe (cheap answer → free check → think only on a visible failure) saves tokens where the
-check is free and full thinks are long. Its two transfer tests so far had no tokens to save: tool calls (TC-1, thinks of 0.3k tokens)
-and instructions (IF-1, a checker that costs more than the think). Contest code is the canonical case the claim should cover: every
-problem ships sample tests (a free check that needs no labels), and thinking models spend 10k+ tokens per problem. It can fail in two
-ways the word problems did not show as strongly: the samples are small, so a program can pass them and still be wrong or too slow on
-the hidden tests (the leak), and the tokens may sit on hard problems the cheap answer never solves, so skipping thinking where the
-cheap answer passes saves little. Either outcome bounds the claim with a measured mechanism.
-**Prior work (related-work check, 2026-10-27 16 UTC; IDs and numbers opened and verified).** Closest: DART (2606.23181, no training,
-Qwen3 0.6B–32B): two non-thinking drafts, accept on agreement, else think with an entropy-set budget; on code (HumanEval, MBPP only) its
-gate *runs the drafts on the reference tests that later score the answer*, so accept precision is 100% by construction (its own
-Limitations); re-gated on half of each problem's assertions, precision falls to 92.5 / 97.9 / 98.1% (8B / 14B / 32B), and its code gains
-(up to +22.5 points) are measured with that gate. PaT (2605.07248): try first, check on the given examples plus model-written tests,
-escalate to planning (not thinking), Qwen3 4B–32B non-thinking, HumanEval / MBPP / xCodeEval. Model cascading for code (2405.15842):
-small → large model gated by self-generated tests (HumanEval, MBPP, APPS-intro), 26% cost cut. S* (2502.14382): public tests drive up to
-two revision rounds and selection, on LiveCodeBench, always reasoning, tokens not counted — in effect our check-matched think. Execution
-feedback without mode routing: Self-Debugging (2304.05128), CodeT (2207.10397), AlphaCode's example-test filtering (2203.07814),
-repair vs resample at matched cost (Olausson et al., 2306.09896). Trained mode routers: Thinkless (2505.13379), AdaptThink (2505.13417),
-AutoThink (2505.10832) on math; LHRM (2505.14631) also on LiveCodeBench. Reported scale: Qwen3 report (2505.09388) LiveCodeBench v5
-(2024.10–2025.02, 32k output): Qwen3-8B 57.5 thinking / 22.8 non-thinking, Qwen3-14B 63.5 / 29.0 (BF16). No study found reports how
-often programs that pass LiveCodeBench's samples fail its hidden tests. **New here:** the cheap-first and short-think-first cascades on
-contest code with a gate that sees only the samples, against always thinking and the check-matched think, with output tokens counted,
-the leak measured with how it fails, and what DART's scoring-test gate would have reported on the same rows.
+**Why it could change the claim.** The claim's contest statement rests on one set: 311 Codeforces geometry problems (HO-CC, PREREG_HO.md),
+where short think → think → retry tied the check-matched think at 94% / 82% of its tokens (Qwen3-14B-AWQ / Nemotron-3-Nano; CC-P1
+refuted at ≤ 90%), a non-thinking program first lost 5.5–7.8 points, and an uncapped think beat short thinking first (HO-CAP, −3.1). The
+report states it as "contest problems need the full think". That set is hard and one domain (Qwen3-14B-AWQ's 32k think solves 40.8%).
+LiveCodeBench is general contest code with graded difficulty (easy / medium / hard, AtCoder and LeetCode). If the recipe saves there,
+the contest boundary was the geometry set's difficulty, and the claim is restated by difficulty; if not, the boundary is contest code
+itself, now on a second set and for two models not tested on contests (Qwen3-8B, the leaky one; Qwen3.5-9B, the one whose check holds).
+Two quantities are new either way: how often LiveCodeBench's sample tests leak, and what DART's scoring-test gate would report instead.
+**Prior work (related-work check, 2026-10-27 16 UTC; IDs and numbers opened and verified).** In the project: HO-CC / HO-CAP (above);
+CC-P2: cross-mode agreement flags leaked contest programs. Outside: DART (2606.23181, no training, Qwen3 0.6B–32B): two non-thinking
+drafts, accept on agreement, else think with an entropy-set budget; on code (HumanEval, MBPP only) its gate *runs the drafts on the
+reference tests that later score the answer*, so accept precision is 100% by construction (its own Limitations); re-gated on half of each
+problem's assertions, precision falls to 92.5 / 97.9 / 98.1% (8B / 14B / 32B), and its code gains (up to +22.5 points) are measured with
+that gate. PaT (2605.07248): try first, check on the given examples plus model-written tests, escalate to planning (not thinking), Qwen3
+4B–32B non-thinking, HumanEval / MBPP / xCodeEval. Model cascading for code (2405.15842): small → large model gated by self-generated
+tests (HumanEval, MBPP, APPS-intro), 26% cost cut. S* (2502.14382): public tests drive up to two revision rounds and selection on
+LiveCodeBench, always reasoning, tokens not counted — in effect the check-matched think. Execution feedback without mode routing:
+Self-Debugging (2304.05128), CodeT (2207.10397), AlphaCode's example-test filtering (2203.07814), repair vs resample at matched cost
+(Olausson et al., 2306.09896). Trained mode routers: Thinkless (2505.13379), AdaptThink (2505.13417), AutoThink (2505.10832) on math;
+LHRM (2505.14631) also on LiveCodeBench. Scale: Qwen3 report (2505.09388) LiveCodeBench v5 (2024.10–2025.02, 32k output): Qwen3-8B 57.5
+thinking / 22.8 non-thinking, Qwen3-14B 63.5 / 29.0 (BF16). No study found reports how often programs that pass LiveCodeBench's samples
+fail its hidden tests.
 **Run.** Problems: LiveCodeBench (livecodebench/code_generation_lite, files test5 / test6) dated 2025-01-01 or later: 182 problems
 (45 easy, 55 medium, 82 hard; 112 AtCoder stdin / stdout, 70 LeetCode functional; 2.6 sample tests and 40 tests in all per problem on
-average; `poc/prep_lcb.py`). LiveCodeBench's own generic prompt (system + question + format). Models: Qwen3-8B (q8b) and Qwen3-14B-AWQ
-(q14a), one RTX 3090 each, 20,480-token context, thinking cap 16,000 (the project's cap for these models), every arm at the harness
-sampling (T 0.7, top-p 0.95); Qwen3.5-9B (q35), thinking cap 32,000 (as on the word problems), both thinking arms at its card's
-precise-coding preset (T 0.6, top-p 0.95, top-k 20, no presence penalty: matched, the SAMP lesson), the non-thinking arm at the harness
-sampling. Seeds 1–3, one job per model and seed (9 jobs). Per problem and seed (`poc/run_lcb.py`): N = non-thinking program (4k cap);
-S = the model's yes / no answer to "would thinking first help?"; T = thinking program; SB = thinking cut at 2,000 tokens (budget
-forcing), then the program (4k cap). Grade (`poc/grade_lcb.py`, CPU partition): LiveCodeBench's official grader (`run_test`, repo
-@28fef95), 6 s per test, its global timeout; tests run samples first, then hidden, so one run gives the free check (a program was
-extracted and passes every sample) and the grade (passes every test). Policies (`poc/analyze_lcb.py`): N, T, SB, S; **N→T** (T where N
-fails the samples); N→SB→T; **SB→T→T** (the recipe's default from HO-SB: SB; T where SB fails; the next seed's T where T fails too);
-**T→T** (the check-matched think: T; the next seed's T where T fails the samples); N→T|hidden (gated on the hidden tests, DART's code
-gate). Utility = accuracy − 0.5 × ktokens; paired 95% intervals over problems (seed means).
-- **LC-P1 (cheap first saves):** N→T is within 1.0 point of T's accuracy (or above) at ≤ 85% of T's output tokens, for ≥ 2 of 3 models.
-- **LC-P2 (the recipe's default saves against the check-matched think):** SB→T→T is within 1.0 point of T→T's accuracy (or above) at
-  ≤ 85% of its tokens, for ≥ 2 of 3 models.
+average; `poc/prep_lcb.py`). Every problem predates every model's release, so contamination is not controlled; it shifts all arms of a
+model alike. LiveCodeBench's own generic prompt (system + question + format). Models, thinking cap 32,000 for all: Qwen3-8B (q8b, two
+RTX 3090s, tensor parallel: one 3090 holds no 32k context in bf16) and Qwen3-14B-AWQ (q14a, one 3090), 36,864-token context, every arm
+at the harness sampling (T 0.7, top-p 0.95), as HO-CC; Qwen3.5-9B (q35, one 3090), both thinking arms at its card's precise-coding
+preset (T 0.6, top-p 0.95, top-k 20, no presence penalty; matched, the SAMP lesson), the non-thinking arm at the harness sampling.
+Seeds 1–3, one job per model and seed. Per problem and seed (`poc/run_lcb.py`): N = non-thinking program (4k cap); S = the model's
+yes / no answer to "would thinking first help?"; T = thinking program (32k); SB = thinking cut at 2,000 tokens (budget forcing), then
+the program (4k cap). Grade (`poc/grade_lcb.py`, CPU partition): LiveCodeBench's official grader (`run_test`, repo @28fef95), 6 s per
+test, its global timeout; tests run samples first, then hidden, so one run gives the free check (a program was extracted and passes
+every sample) and the grade (passes every test). Policies (`poc/analyze_lcb.py`): N, T, SB, S; **N→T** (T where N fails the samples);
+N→SB→T; **SB→T→T** (the recipe's default: SB; T where SB fails; the next seed's T where T fails too); **T→T** (the check-matched
+think: T; the next seed's T where T fails the samples); N→T|hidden (gated on the hidden tests: DART's code gate). Utility = accuracy −
+0.5 × ktokens; paired 95% intervals over problems (seed means). "Ties or beats" = the paired 95% interval's upper bound ≥ 0 (CC-P1).
+- **LC-P1 (the recipe's default saves on contest code):** SB→T→T ties or beats T→T at ≤ 90% of its tokens, for ≥ 2 of 3 models.
+- **LC-P2 (cheap first saves on contest code):** N→T ties or beats T at ≤ 90% of its tokens, for ≥ 2 of 3 models.
 - **LC-P3 (the samples leak):** ≥ 10% of the N programs that pass the samples fail a hidden test, for ≥ 2 of 3 models.
 - **LC-P4 (an honest gate costs DART-style routing):** N→T|hidden is ≥ 2.0 points more accurate than N→T, for ≥ 2 of 3 models.
-- Reported, no decision: every policy by difficulty with its share of the tokens; the leak of N, SB and T with how the first hidden
-  test fails (wrong answer / time limit / runtime error); S's yes-rate; thinks that hit the cap (no program); raw failures read.
-**Expected (stated now, not a rule).** N passes the samples on 30–40% of problems (non-thinking pass@1 is 23–29% in the Qwen3 report)
-and leaks on 15–35% of those, many by time limit (Python, hidden max-size inputs); T's tokens concentrate on hard problems (> 60% of
-them on the 45% that are hard), where N passes nothing, so N→T saves ≤ 10% and loses 1–4 points: LC-P1 refuted, LC-P3 and LC-P4 hold.
-SB→T→T is the open one: a 2k think should pass the samples on most easy and some medium problems.
-**Decision.** P1 holds → the cheap-first saving extends to contest code under an honest gate (new REPORT section; PROJECT claim;
-PROPOSAL and PROPOSAL_ko). P1 refuted, P2 holds → on code the saving needs the short think first: SB→T→T is the recipe's general form
-(claim restated in the same places). P1 and P2 refuted → contest code is a boundary, explained by where the tokens sit (by difficulty)
-and by the leak; next, only if at least half of the leaks of N and SB fail by time limit: a size check (the model writes, once per
-problem and non-thinking, a generator of one maximum-size input; a program that does not finish on it within the limit fails the
-check), pre-registered then; otherwise no further run. P3 → the sample tests leak on contest code (measured, with how). P4 → DART's
+- Reported, no decision: every policy by difficulty with its share of the tokens (where the saving sits); the leak of N, SB and T with
+  how the first hidden test fails (wrong answer / time limit / runtime error); S's yes-rate; thinks at the cap; raw failures read;
+  Qwen3-14B-AWQ against its own HO-CC numbers.
+**Expected (stated now, not a rule).** From HO-CC: LC-P1 is close (SB→T→T was at 82–94% of T→T's tokens on geometry); LiveCodeBench's
+easy and medium problems, where a 2k think should pass the samples, make it more likely to hold than on geometry. LC-P2 refuted (on
+geometry the non-thinking program first lost 5.5–7.8; here non-thinking pass@1 is 23–29% in the Qwen3 report, and T's tokens sit on
+the hard problems where N passes nothing). LC-P3 holds (15–35% leak, many by time limit: Python, hidden max-size inputs), LC-P4 holds.
+**Decision.** P1 holds → "contests need the full think" was the geometry set, not contest code: the claim's contest statement is
+restated by difficulty (REPORT contests section; PROJECT claim; PROPOSAL and PROPOSAL_ko). P1 refuted → the contest boundary holds on
+general contest code and for Qwen3-8B / Qwen3.5-9B too; the claim stands, now with two sets, and the by-difficulty table says where
+the tokens that cannot be saved sit. P2 holds → cheap first saves on contest code (against HO-CC; restated in the same places). P1 and P2
+refuted → next, only if at least half of the leaks of N and SB fail by time limit: a size check (the model writes, once per problem and
+non-thinking, a generator of one maximum-size input; a program that does not finish on it within the limit fails the check),
+pre-registered then; otherwise no further run on code. P3 → the sample tests leak on contest code (measured, with how). P4 → DART's
 code results would shrink by about that much under an honest gate (REPORT §6.5).
-**Smoke (before the main runs; not part of the results).** Qwen3-8B, seed 1, LCB_SUBSET=0/26 (7 problems), all arms, graded and
-analysed in the same job (job 1262398). Amendment rules fixed now: if an arm's rows are missing, code is not extracted from a response
-that holds a code block, or the grader fails, the harness is fixed first; if 3 or more of the 7 thinks hit the 16k cap without a
-program, the Qwen3 thinking cap becomes 32,000 on two RTX 3090s (tensor parallel) before any main row, recorded here.
+**Smoke (before the main runs; not part of the results).** Qwen3-8B, seed 1, LCB_SUBSET=0/26 (7 problems), all arms (submitted before
+the revision, so at a 16k think on one 3090), graded and analysed in the same job (job 1262398). It checks the harness only: if an
+arm's rows are missing, code is not extracted from a response that holds a code block, or the grader fails in the image, the harness is
+fixed before any main row.

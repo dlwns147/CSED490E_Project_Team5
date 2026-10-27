@@ -1,7 +1,7 @@
 """LC-1 (docs/prereg/PREREG_LC.md): code generation (LiveCodeBench, problems from 2025 on), where the free check is the problem's own
 sample tests and full thinks are long. Per problem and seed, all arms against one server (LiveCodeBench's generic prompt):
   cheap  N = non-thinking program (4k cap); S = the model's yes / no answer to "would thinking first help you write a correct program?"
-  think  T = thinking program (cap LCB_TK, default 16,000; Qwen3.5-9B 32,000 as on the word problems)
+  think  T = thinking program (cap LCB_TK, default 32,000: HO-CC's 16k cap left most contest thinks without a program)
   sb     SB = thinking cut at 2,000 tokens (budget forcing), then the program (4k cap)
 The free check (the sample tests), the grade (the official LiveCodeBench grader on sample + hidden tests) and the policies are
 offline: poc/grade_lcb.py, poc/analyze_lcb.py. Items: $POC_DATA/lcb/lcb_items.jsonl (poc/prep_lcb.py). Rows resume.
@@ -16,7 +16,7 @@ from run_nlopt import _rows  # noqa: E402
 
 RES = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "results", "lcb")
 DATA = os.path.join(os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nlp_data"), "lcb", "lcb_items.jsonl")
-TK = int(os.environ.get("LCB_TK", 16000))
+TK = int(os.environ.get("LCB_TK", 32000))
 SELECT = """Here is a programming problem. Before writing the program for it, decide: would thinking step by step first help you \
 write a correct program? Answer with one word, yes or no.
 
