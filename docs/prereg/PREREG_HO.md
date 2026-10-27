@@ -1169,3 +1169,28 @@ says. 0 of 18 full thinks reach 32k (5.1–14.2k tokens), so the cap stays at 32
 think at 2,000 tokens (18 / 18). The trained budget is soft: the native think runs past 2,048 tokens in 18 / 18 problems (2.2–3.7k; one
 9.8k, cut by max_tokens 10,240 without an answer) — counted as registered, not cut. The first smoke's native rows were lost to a client
 bug (httpx is not in the client venv; replaced with urllib) and re-run in the second.*
+
+### Results HO-32 (2026-10-27 01:2x UTC; `python poc/analyze_ho32.py q32b`; Qwen3-32B-AWQ, 3 seeds; λ = 0.5)
+| cell | T (one think) | T→T | FF+F | SB+F | SB→T→T | FF+SB+F | SB→T→T − T→T (tokens) |
+|---|---|---|---|---|---|---|---|
+| OptiBench third | 70.5% @ 5.59k | 72.8% @ 6.33k | 67.5% @ 1.96k | 71.7% @ 3.59k | **72.0% @ 4.06k** | 68.0% @ 1.72k | −0.8 [−2.6, +1.0] (64%) |
+| BWOR | 53.3% @ 8.57k | 61.8% @ 11.24k | 50.0% @ 4.53k | 60.2% @ 6.43k | **64.2% @ 7.83k** | 52.8% @ 4.09k | +2.4 [−2.8, +7.7] (70%) |
+| LogiOR | 42.8% @ 8.98k | 53.6% @ 13.68k | 44.2% @ 6.28k | 50.0% @ 7.72k | **56.2% @ 11.21k** | 46.7% @ 6.12k | +2.5 [−1.8, +6.9] (82%) |
+| OptMATH | 27.7% @ 9.84k | 31.7% @ 13.50k | 32.0% @ 6.79k | 32.0% @ 8.09k | 33.3% @ 10.99k | **33.7% @ 7.08k** | +1.7 [−3.0, +6.7] (81%) |
+(bold: best utility in the cell.)
+- **32-P1 holds** (3 / 4: SB→T→T has the best utility on OptiBench, BWOR and LogiOR; on OptMATH it is 2.3 below FF+SB+F, where every
+  policy lies within 2 points of accuracy — 31.7–33.7% — and the cheapest wins). **32-P2 holds** (4 / 4: T→T − T +2.3 [+1.3, +3.6],
+  +8.5 [+5.3, +11.8], +10.9 [+8.0, +14.1], +4.0 [+2.0, +6.3]). **32-P3 holds** (pooled: a passing non-thinking program that agrees with
+  the short-think program is right 81.4% of the time, n = 576; one that prints a different value 14.7%, n = 191; gap +66.8; OptMATH alone
+  49% vs 28%).
+- Mechanism: the non-thinking programs still leak at 32B. Passing programs are wrong 27 / 48 / 44% of the time (OptiBench / BWOR /
+  LogiOR) without thinking vs 22 / 29 / 26% after the 2k think (full think 22 / 28 / 18%); FF+F trails T→T by −5.3 [−8.6, −2.3], −11.8
+  [−18.7, −4.9], −9.4 [−15.9, −2.9]. Raw rows: e.g. BWOR-022, the non-thinking program reads the reliability table transposed (spares ×
+  components) and prints −3.0 (gold −3.17), the 2k think reads it right; BWOR-063 (26 vs gold 16) writes each resource limit once per
+  allocation level instead of once in total, so the plan uses more than the resources. OptMATH: passing programs are wrong 58–61% in every arm (the statement limit, REPORT §8).
+- Runs: OptMATH's first job lost 179 requests to the client's default 3,600 s timeout (2 × 3090 at 40,960 positions holds ~3 32k
+  sequences); re-run as two jobs with a 12 h timeout, no failures. OptiBench has 604 of 606 matched rows (one think row lost to an earlier
+  timeout). 1 of 1,382 thinks reached 32k.
+- **Decision as registered:** the final recipe and its leak signal are stated for 8B–32B hybrid models; the leak of non-thinking programs
+  on the hard word problems does not shrink with size in the Qwen3 family (32B: −5 to −12 points for the cheap-first order), so the short
+  think first stays the rule there.

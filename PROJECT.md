@@ -47,6 +47,8 @@ cells of four hybrid-thinking models the best fixed order without labels is shor
 (SB→T→T: 1.74 utility points below each cell's best at λ = 0.5; one think: 7.64; T→T: 3.40); the non-thinking program first is on the
 frontier where the check holds (Qwen3.5, geometry) and 2–4 points behind on the leaky models' hardest word problems. gpt-oss-20b's gap
 (low effort first) closes the same way: a medium-effort think cut at 2k first ties T→T on BWOR / LogiOR at 69–83% of its tokens (HO-OSB).
+On Qwen3-32B the order holds unchanged (SB→T→T best in 3 of 4 cells, retry +2.3 to +10.9, cheap-first still −5 to −12; HO-32): the leak
+does not shrink with size.
 
 Held-out benchmarks, 3 seeds, 95% intervals over problems; always thinking is given the same fact as the recipe (HO-TF, HO-TF2; full
 table: `docs/REPORT.md` §5.1):
@@ -108,7 +110,7 @@ table: `docs/REPORT.md` §5.1):
    (`*.jsonl`, logs), server addresses or keys; no co-author lines — commits are by the team's account.
 8. **Explain for a first-time reader:** what ran, how, the result with its cost, what is next.
 
-## 5. Status and next steps (2026-10-25, 08 UTC)
+## 5. Status and next steps (2026-10-27, 01 UTC)
 
 - **Held-out claim, against thinking given the same fact** (HO-TF, HO-TF2, HO-LG, HO-P2): the recipe is a pure saving for gpt-oss-20b,
   gpt-oss-120b and Qwen3.5-9B, a token-for-accuracy trade for the Qwen3 models on the hardest word problems; a 30-label pilot picks the
@@ -128,6 +130,9 @@ table: `docs/REPORT.md` §5.1):
 - **Label-free choice of policy** (HO-L, HO-LF): pseudo-labels from agreement fail both within a mode (1.71 vs 0.57) and across modes
   (2.00 vs 1.35 labelled, 1.74 fixed): shared mistakes outvote the truth where the check's blind spot is shared (geometry degenerate
   inputs, OptMATH formulations). Cross-mode agreement is a per-program leak flag (CC-P2), not a substitute for the 30 labels.
+- **Larger model, more families** (HO-32, HO-OSB; running: HO-SEED): the order holds on Qwen3-32B (best in 3 / 4 cells, leak not
+  smaller than at 8–14B) and, with a medium think cut at 2k, on gpt-oss-20b. Running: Seed-OSS-36B (ByteDance, a fourth family) with a
+  forced 2k cut vs the budget it was trained to keep (its native budget overruns 2,048 tokens in the smoke: 2.2–3.7k).
 - Open: the budget itself (a fixed 2,000 tokens costs where full thinking is already short); the final report (draft
   `docs/REPORT.md`, format / length / deadline from the team).
 - Day-to-day state (running jobs, environment, evidence table): `docs/SLURM_HANDOFF.md`.

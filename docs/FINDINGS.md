@@ -3971,3 +3971,13 @@ Stored rows (HO-CC agreement files), 311 problems × 3 seeds: accept the non-thi
 the short-think program on every test input, else think with a retry. Accuracy equals the check-matched think (Qwen3-14B-AWQ +0.2 [−0.3,
 +0.9], Nemotron-3-Nano +0.0 [−0.6, +0.5]) but costs 103–113% of its tokens: only 12–18% of problems agree, so both cheap runs are paid
 almost always. Not pursued; agreement stays a per-program flag.
+
+## 2026-10-27 01:23 UTC: HO-32 (PREREG_HO.md): the recipe holds on Qwen3-32B — the leak does not shrink with size
+Qwen3-32B-AWQ (2 × RTX 3090), 4 held-out word benchmarks × 3 seeds, the six check-matched policies. Short think → think → retry has
+the best utility on OptiBench (72.0% @ 4.06k), BWOR (64.2% @ 7.83k) and LogiOR (56.2% @ 11.21k) and ties the check-matched think there
+(−0.8 / +2.4 / +2.5 points at 64–82% of its tokens); on OptMATH every policy lies within 2 points (31.7–33.7%) and the cheapest
+(non-thinking → short think → think) wins. The retry pays in all 4 cells (+2.3 to +10.9). A non-thinking program first still trails the
+check-matched think by 5–12 points on OptiBench / BWOR / LogiOR: passing non-thinking programs are wrong 27–48% of the time vs 22–29% after
+the 2k think (e.g. a reliability table read transposed). Cross-mode agreement flags them: 81% right when the two programs agree, 15% when
+they differ. All three predictions hold; the recipe is stated for 8B–32B hybrid models. Running: HO-SEED (Seed-OSS-36B, a fourth family
+with a trained thinking budget).

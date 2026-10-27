@@ -19,7 +19,7 @@ models whose free check leaks (Qwen3, Nemotron-3-Nano: passing non-thinking prog
 program after a short think (2,000 tokens with the fact) never loses to one full think in 14 cells it was not chosen on (−0.3 to +10.1),
 saves 8–51% of the tokens on word problems and closes the last losing cell (Qwen3-8B geometry: −16.7 → −0.3); for gpt-oss, a
 medium-effort think cut at 2,000 tokens instead of low effort closes its gap to the check-matched think on the hard word problems
-(tie at 69–83% of the tokens). Without labels the best
+(tie at 69–83% of the tokens); on Qwen3-32B the order holds unchanged (best utility in 3 of 4 cells; HO-32). Without labels the best
 fixed order over 54 cells of four hybrid-thinking models is short think → full think → retry on a visible failure (1.74 utility points
 below each cell's best; one think: 7.64); 30 labelled problems choose per cell within 1.35. Where the check is perfect (Lean proofs) the
 rule becomes "sample cheaply, then think"; where it leaks, it bounds label-free self-training as it bounds the recipe.
@@ -270,7 +270,12 @@ saving against one think, trails the check-matched think on BWOR (−10.2 [−16
 gap is gpt-oss's first step, not the order: its cheap program comes from low reasoning effort (0.7–0.8k tokens, as short as the 1k
 think that was too short for Qwen3-8B); a medium-effort think cut at 2,000 tokens as the first step (HO-OSB, pre-registered) makes
 short think → think → retry tie the check-matched think on BWOR (−2.0 [−6.9, +2.4] at 69% of its tokens) and LogiOR (+3.3 [−0.4,
-+7.2] at 83%) and beat it on OptiBench (+2.0 at 87%): its passing programs are wrong less often (BWOR 30% vs 38%, LogiOR 23% vs 36%). The
++7.2] at 83%) and beat it on OptiBench (+2.0 at 87%): its passing programs are wrong less often (BWOR 30% vs 38%, LogiOR 23% vs 36%).
+The leak does not shrink with size: on Qwen3-32B-AWQ (HO-32, pre-registered) a non-thinking program first still trails the check-matched
+think by 5–12 points on OptiBench / BWOR / LogiOR (passing programs wrong 27–48% vs 22–29% after a 2k think), and short think → think →
+retry has the best utility in those three cells (72.0% @ 4.1k, 64.2% @ 7.8k, 56.2% @ 11.2k; −0.8 to +2.5 points against the
+check-matched think at 64–82% of its tokens); the retry pays in all four (+2.3 to +10.9), and agreement with the short-think program
+flags the leak (81% right when they agree, 15% when they differ). The
 free check is worth applying to every step; which end of the frontier to take depends on the price of a token, and the pilot can choose.
 The retry should be a fresh think, not a repair: one non-thinking repair turn shown the error fixes only 4–36 of 26–117 failed thinks per
 cell, so repair-then-think costs 79–104% of the second think's tokens for +0 to +3 points (HO-TR; as Olausson et al., ICLR 2024).
@@ -383,7 +388,7 @@ wall-clock time or CPU time of the checks.
 For computational problems on RTX 3090s, the missing fact is the cheapest lever: a few lines of exact usage or a checked program for a
 similar problem, found without labels, improve both cheap programs and thinking. The free check is worth applying at every step —
 including to thinking, whose visibly failed programs are worth a second think. Where a model's non-thinking programs are right when they
-pass (gpt-oss, Qwen3.5-9B) a non-thinking program first is the cheap end of the frontier; where they leak (Qwen3, Nemotron-3-Nano, and
+pass (gpt-oss, Qwen3.5-9B) a non-thinking program first is the cheap end of the frontier; where they leak (Qwen3 at 8–32B, Nemotron-3-Nano, and
 gpt-oss-20b on the hardest word problems, where medium effort cut at 2k replaces low effort) the first program should come after a short
 think (2–4k tokens), which never lost to one full think in 14 unseen cells and closed the worst
 one (Qwen3-8B geometry). Without labels, short think → think → retry is the best fixed order over 54 cells; 30 labels choose per cell, and
