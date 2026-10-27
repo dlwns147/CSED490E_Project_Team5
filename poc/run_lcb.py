@@ -17,10 +17,12 @@ from run_nlopt import _rows  # noqa: E402
 RES = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "results", "lcb")
 DATA = os.path.join(os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nlp_data"), "lcb", "lcb_items.jsonl")
 TK = int(os.environ.get("LCB_TK", 32000))
-SELECT = """Here is a programming problem. Before writing the program for it, decide: would thinking step by step first help you \
-write a correct program? Answer with one word, yes or no.
+SELECT = """Here is a programming problem.
 
-{q}"""
+{q}
+
+Do not write the program yet. Decide only: would thinking step by step first help you write a correct program for it? Answer with \
+one word, yes or no."""   # smoke (PREREG_LC.md): with the problem last, its format line made the model start the program instead
 
 
 def main():
@@ -35,7 +37,7 @@ def main():
 
     def cheap(p):
         n = chat(p["user"], system=p["system"], think=False, max_tokens=4096, temperature=0.7, seed=sd(p))
-        d = chat(SELECT.format(q=p["user"]), system=p["system"], think=False, max_tokens=8, temperature=0.7, seed=sd(p))
+        d = chat(SELECT.format(q=p["user"].split("### Format:")[0].strip()), think=False, max_tokens=8, temperature=0.7, seed=sd(p))
         return "cheap", {"id": p["id"], "n_text": n["text"], "n_tok": n["out_tokens"], "n_finish": n["finish"],
                          "s_ans": (d["text"] or "").strip().lower()[:20], "s_tok": d["out_tokens"]}
 

@@ -65,3 +65,14 @@ code results would shrink by about that much under an honest gate (REPORT §6.5)
 the revision, so at a 16k think on one 3090), graded and analysed in the same job (job 1262398). It checks the harness only: if an
 arm's rows are missing, code is not extracted from a response that holds a code block, or the grader fails in the image, the harness is
 fixed before any main row.
+
+*LC smoke (2026-10-27 16:3x UTC, job 1262398, Qwen3-8B, seed 1, 7 problems, a 16k think on one 3090; not part of the results): every
+arm wrote all 7 rows; code was extracted from every response that closes a code block; the official grader runs in the image (N 4 / 7
+right, T 5 / 7, SB 3 / 7; one N and one SB program pass the samples and fail a hidden test with a wrong answer). Both hard-problem thinks
+hit the 16k cap without a program (the main runs use 32k), and on both the cut think's answer ran to its 4k cap writing reasoning as
+comments inside an unclosed code block — no program, a visible failure, as LiveCodeBench's own extraction treats it. **Fixed before any
+main row:** the yes / no question showed the problem last, so its format line made the model start the program (a code block in 1 of 7
+answers, "yes" and then code in the other 6); it now shows the problem without its format line, asks last, and has no system turn. S
+carries no decision. Main runs submitted 16:3x UTC: lcb_q14a_s{1,2,3} (1262533, 1262535, 1262537; `lane.sh --vllm '--max-model-len
+36864'`) and lcb_q35_s{1,2,3} (1262534, 1262536, 1262538; `hon_lane.sh lcb lcb <seed>`); Qwen3-8B (two 3090s per seed) follows when
+the IF-1 jobs free their GPUs.*
