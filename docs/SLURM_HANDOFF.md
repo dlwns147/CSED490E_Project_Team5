@@ -15,7 +15,8 @@ State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Tea
 - **Running (since 10-27 02:4x UTC):** HO-4K (PREREG_HO.md addendum): a 4,000-token first think on Qwen3-14B-AWQ / Qwen3.5-9B /
   Qwen3-32B-AWQ (`k4_*` jobs; Qwen3.5-9B last, `k4_q35`); analysis `python3 poc/analyze_ho32.py --b4k q14a q35 q32b`.
 - **Running (since 10-27 10:4x UTC):** IF-1 (docs/prereg/PREREG_IF.md; the scope widened beyond computation on 10-27): instruction
-  following (IFEval, IFBench) with the model's own checker deciding when to think; jobs `if_{q8b,q14a,q35}_{ifeval,ifbench}`; then
+  following (IFEval, IFBench) with the model's own checker deciding when to think; jobs `if_{q8b,q14a,q35}_{ifeval,ifbench}`
+  (if_q8b_ifbench resubmitted 11:4x as 1260938 with `-x n19`: one n19 GPU runs at 450 MHz under its power cap, 4× slower); then
   `/home1/leesangjun/venvs/ifgrade/bin/python poc/grade_if.py <bench> <tag>` (official graders, login node) and `python3 poc/analyze_if.py`.
 - **Done 10-27 09 UTC:** HO-SEED (PREREG_HO.md addendum), Seed-OSS-36B-Instruct-AWQ (ByteDance, a fourth family) on
   4 × 3090 per job (TP 4, `--max-model-len 40960`), jobs `sd_optibench` / `sd_bwor` / `sd_logior` / `sd_optmath`, arms budget 0 / forced

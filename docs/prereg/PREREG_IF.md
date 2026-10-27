@@ -76,3 +76,7 @@ harness writes every row.*
 *Third IF smoke (2026-10-27 10:3x UTC, job 1260445, tag q8bsmoke3, IF_SUBSET=2/27; not part of the results): every arm wrote every row, 0 request
 failures, every checker came with code (2 of 32 do not run); the thought-out checker costs 2.0–2.2k tokens. Main runs submitted
 unchanged (2026-10-27 10:3x UTC): jobs if_{q8b,q14a,q35}_{ifeval,ifbench} (1260488–1260493), seeds 1–3, one RTX 3090 each.*
+
+*Operations (2026-10-27 11:4x UTC, no change to the design): job 1260491 (if_q8b_ifbench) sat on an RTX 3090 held at 450 MHz by
+its power cap (n19, 146 generated tokens/s against 677 for the same model on the next GPU); cancelled after an hour and resubmitted
+off that node as 1260938. Rows resume, so only the requests in flight were lost.*
