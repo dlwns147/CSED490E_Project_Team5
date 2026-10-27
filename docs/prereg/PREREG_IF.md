@@ -96,3 +96,8 @@ self-written checker as the gate for the thinking mode, the rewrite-vs-think com
 and measured false-alarm and copy rates. If IF-1's checker is the bottleneck (false alarms), the named follow-ups are a ProgCo-style
 reflection on the checker and AutoIF-style cross-checks of the checker against its own test cases.*
 
+
+*Operations (2026-10-27 16:2x UTC, no change to the design): one row is missing, Qwen3-14B-AWQ IFBench prompt 187, seed 1 (cheap and
+check arms; 299 of 300). Its checker returns one violation per sentence, and the rewrite prompt that lists them is longer than the
+context: 16,385+ tokens against 20,480 in the main job, 28,673+ against 32,768 in a rerun (job 1262230). The analysis pairs within each
+seed, so that (prompt, seed) pair is left out of every policy alike.*
