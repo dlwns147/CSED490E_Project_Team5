@@ -61,3 +61,15 @@ rule fixed now: if any arm's rows are missing, a request fails, or the grader fa
 N responses are malformed in a way BFCL's own decoder rejects because of our client (not the model), the client is fixed. Nothing about
 the policies, the check or the predictions changes after the smoke. The item subset (every 3rd of two live categories) and the job
 split (one job per model and seed, or one per model) are fixed from the smoke's token counts and recorded here.
+
+*TC smoke (2026-10-27 12:1x UTC, job 1261112, tag q8bsmoke, TC_SUBSET=0/40 = 55 items, seed 1; not part of the results): every arm
+wrote every row, 0 request failures, BFCL's decoder and checker run on every response; no response is malformed because of the client
+(the malformed ones are the model's, e.g. JSON `true` for a Python boolean, which BFCL decodes as a string and grades as a type error
+— the schema check sees it). Thinks are short: T 0.32k tokens on average (max 1.7k), SB 0.31k with 1 of 55 thinks cut at 2,000, N 28
+tokens; the model says "yes, think" on 43 of 55. **Recorded before any main row:** the every-3rd subset of live_multiple and
+live_irrelevance was for cost, and at these lengths the full set costs about an hour per model and seed, so every item is used:
+3,482 items (live_multiple 1,053; live_irrelevance 875 — 9 whose question is more than one user turn are left out, by the same rule as
+the assistant turns). The gold-call floor on the full set: the check fails 14 of the 2,300 gold calls BFCL passes (0.6%). One job per
+model and seed (9 jobs, `-x n19`), seeds 1–3; nothing else changes. Main runs submitted 12:2x UTC: jobs tc_{q8b,q14a,q35}_s{1,2,3}
+(1261150–1261158).*
+

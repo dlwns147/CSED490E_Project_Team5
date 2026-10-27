@@ -1,8 +1,9 @@
 """TC-1 (docs/prereg/PREREG_TC.md): write the tool-calling items from BFCL v4 (pip package bfcl-eval 2026.3.23, Apache-2.0) to
 $POC_DATA/bfcl/tc_items.jsonl ({id, cat, system, user, functions}) and their answers to tc_answers.jsonl ({id, cat, ground_truth}).
 The prompt is BFCL's own prompt mode for open models (its default system prompt with the function docs in JSON; calls returned as
-[func(arg=value), ...]), built with its code. Single-turn Python categories; live_multiple and live_irrelevance every 3rd item (cost);
-items with an assistant turn in the question are left out. Runs on the login node in the grader venv:
+[func(arg=value), ...]), built with its code. Single-turn Python categories, every item (the every-3rd subset of live_multiple and
+live_irrelevance planned for cost was dropped after the smoke, PREREG_TC.md); items whose question is not one user turn (after an optional system
+turn) are left out. Runs on the login node in the grader venv:
   /home1/leesangjun/venvs/bfcl/bin/python poc/prep_tc.py"""
 import json, os
 
@@ -13,7 +14,7 @@ SRC = os.path.join(os.path.dirname(bfcl_eval.__file__), "data")
 OUT = os.path.join(os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nlp_data"), "bfcl")
 CATS = ("simple_python", "multiple", "parallel", "parallel_multiple", "irrelevance",
         "live_simple", "live_multiple", "live_parallel", "live_parallel_multiple", "live_irrelevance", "live_relevance")
-THIRD = ("live_multiple", "live_irrelevance")
+THIRD = ()   # was ("live_multiple", "live_irrelevance"): every 3rd item only; dropped after the smoke (thinks are short)
 
 
 def main():
@@ -28,10 +29,9 @@ def main():
             if c in THIRD and i % 3:
                 continue
             q = [dict(m) for m in r["question"][0]]
-            if any(m["role"] == "assistant" for m in q):
+            if [m["role"] for m in q] not in (["user"], ["system", "user"]):
                 continue
             msgs = system_prompt_pre_processing_chat_model(q, r["function"], r["id"])
-            assert [m["role"] for m in msgs] == ["system", "user"], r["id"]
             items.append({"id": r["id"], "cat": c, "system": msgs[0]["content"], "user": msgs[1]["content"], "functions": r["function"]})
             answers.append({"id": r["id"], "cat": c, "ground_truth": A.get(r["id"])})
     with open(f"{OUT}/tc_items.jsonl", "w") as f:

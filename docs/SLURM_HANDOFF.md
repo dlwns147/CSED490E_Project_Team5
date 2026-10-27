@@ -14,6 +14,10 @@ State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Tea
   holds in 4 / 4; its trained budget is not a better first step).
 - **Running (since 10-27 02:4x UTC):** HO-4K (PREREG_HO.md addendum): a 4,000-token first think on Qwen3-14B-AWQ / Qwen3.5-9B /
   Qwen3-32B-AWQ (`k4_*` jobs; Qwen3.5-9B last, `k4_q35`); analysis `python3 poc/analyze_ho32.py --b4k q14a q35 q32b`.
+- **Running (since 10-27 12:2x UTC):** TC-1 (docs/prereg/PREREG_TC.md): tool calling (BFCL v4 single-turn, 3,482 items, prompt mode),
+  a schema check and cheap-answer agreement as the gates for thinking; jobs `tc_{q8b,q14a,q35}_s{1,2,3}` (1261150–1261158; q35 via
+  `hon_lane.sh tc bfcl <seed>`); items from `/home1/leesangjun/venvs/bfcl/bin/python poc/prep_tc.py` (venv: pip bfcl-eval, soundfile);
+  then `/home1/leesangjun/venvs/bfcl/bin/python poc/grade_tc.py <q8b|q14a|q35>` (login node) and `python3 poc/analyze_tc.py`.
 - **Running (since 10-27 10:4x UTC):** IF-1 (docs/prereg/PREREG_IF.md; the scope widened beyond computation on 10-27): instruction
   following (IFEval, IFBench) with the model's own checker deciding when to think; jobs `if_{q8b,q14a,q35}_{ifeval,ifbench}`
   (if_q8b_ifbench resubmitted 11:4x as 1260938 with `-x n19`: one n19 GPU runs at 450 MHz under its power cap, 4× slower); then
