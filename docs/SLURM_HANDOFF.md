@@ -3,7 +3,7 @@
 State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Team5, public). The hourly loop on the old server
 (/NAS/SJ/POSTECH/nlp, 8 × RTX PRO 6000 Blackwell, GPUs 0–3) was stopped on 2026-10-20 04:2x UTC; no job is running there.
 
-## 0. Status on the Slurm cluster (updated 2026-10-27 14:2x UTC)
+## 0. Status on the Slurm cluster (updated 2026-10-27 16:3x UTC)
 - **Done 10-25 → 10-27 (PREREG_HO / _HON / _DT / _MODEL; FINDINGS has one entry each):** HO-N4 (Nemotron-3-Nano, a new family:
   a leaky model), HO-SB / SB2 / SB3 / P4 (a 2k-token think first, full thinking on a visible failure, is the fix for leaky models and the
   best no-label default), HO-CM (with the check given to thinking too, the best policy is short think → think → retry), HO-SB4 (the first
@@ -14,6 +14,14 @@ State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Tea
   holds in 4 / 4; its trained budget is not a better first step).
 - **Done 10-27 12 UTC:** HO-4K (PREREG_HO.md addendum): a 4,000-token first think on Qwen3-14B-AWQ / Qwen3.5-9B / Qwen3-32B-AWQ
   (`k4_*` jobs) does not carry over (P1–P3 refuted); analysis `python3 poc/analyze_ho32.py --b4k q14a q35 q32b`.
+- **Running (since 10-27 16:3x UTC):** LC-1 (docs/prereg/PREREG_LC.md): LiveCodeBench, 182 problems from 2025, sample tests as the free
+  check, 32k thinks; is HO-CC's "contests need the full think" about contest code or the geometry set? Items `python3.11 -I
+  poc/prep_lcb.py` (data in `$POC_DATA/lcb`: raw test5 / test6 from HF, official repo clone @28fef95); jobs `lcb_q14a_s{1,2,3}`
+  (`lane.sh --vllm '--max-model-len 36864' Qwen/Qwen3-14B-AWQ lcb_q14a_s<seed> '$P poc/run_lcb.py q14a <seed>'`) and `lcb_q35_s{1,2,3}`
+  (`hon_lane.sh lcb lcb <seed>`); Qwen3-8B next on two 3090s per seed (`sbatch --gres=gpu:2 --cpus-per-task=8 ... lane.sh --gpus 0,1
+  --vllm '--max-model-len 36864 --tensor-parallel-size 2' Qwen/Qwen3-8B ...`). Then grade on a CPU node (`sbatch -p
+  cpu-max16,cpu-max10,cpu-max24 -q nogpu --gres=none --cpus-per-task=16 poc/slurm/job.sh '$P poc/grade_lcb.py <tag>'`) and
+  `python3 poc/analyze_lcb.py`.
 - **Running (since 10-27 14:4x UTC):** SAMP (docs/prereg/PREREG_SAMP.md): Qwen3.5-9B sampling controls — `samp_{bwor,logior}_s*`
   (`hon_lane.sh codepreset <set> <seed>`: cut and full think at the card's coding preset, tag q35c; cheap rows linked from q35) and
   `samp_tch` / `samp_tcsbc` (BFCL: full think at the harness sampling, tag q35h; cut think at the card's general preset, tag q35sbc);
