@@ -143,6 +143,21 @@ def budget_chat(prompt, budget, think=False, max_tokens=4096, temperature=0.7, s
             "think_tokens": used}
 
 
+def seed_budget_chat(prompt, budget, max_tokens=4096, temperature=0.7, seed=None):
+    """HO-SEED: budget forcing for Seed-OSS (POC_SEED set), as budget_chat: its chat format rendered by hand (one user turn, no budget
+    system turn = unlimited thinking), the think cut at `budget` tokens, </seed:think> forced, then the answer. Thinking sampling
+    (POC_THINK_SAMPLING) applies to both calls, as to its native-budget and full thinks."""
+    from llm import client, _TS
+    t, tp = _TS.get("temperature", temperature), _TS.get("top_p", 0.95 if temperature > 0 else 1.0)
+    head = f"<seed:bos>user\n{prompt}<seed:eos><seed:bos>assistant\n<seed:think>"
+    r = client.completions.create(model="local", prompt=head, max_tokens=budget, temperature=t, top_p=tp, seed=seed, stop=["</seed:think>"])
+    think_txt, used, cut = r.choices[0].text, r.usage.completion_tokens, r.choices[0].finish_reason == "length"
+    cont = head + think_txt + ("\n\nTime is up; I will now write the program." if cut else "") + "</seed:think>"
+    r2 = client.completions.create(model="local", prompt=cont, max_tokens=max_tokens, temperature=t, top_p=tp, seed=seed)
+    return {"text": r2.choices[0].text, "finish": r2.choices[0].finish_reason, "out_tokens": used + r2.usage.completion_tokens,
+            "think_tokens": used}
+
+
 def harmony_budget_chat(prompt, budget, max_tokens=4096, temperature=0.7, seed=None):
     """HO-OSB: budget forcing for gpt-oss (POC_HARMONY set). The prompt is the model's chat template rendered by hand (one user turn,
     no tools; the client venv has no transformers) at POC_HARMONY_EFFORT (default medium); the analysis channel runs for at most

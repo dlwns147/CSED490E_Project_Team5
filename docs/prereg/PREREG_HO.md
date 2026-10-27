@@ -1134,3 +1134,32 @@ low effort is too short a first think on the hard word problems. P1 refuted → 
 - **Decision as registered:** the recipe's first step where the check leaks is stated for all three families as a 2k think —
   budget-forced for the hybrid-thinking models, medium effort cut at 2,000 tokens for gpt-oss. Low effort (0.7–0.8k tokens) is too short a first think on the
   hard word problems, as 1k was for Qwen3-8B (HO-SB4). gpt-oss-120b is not run.
+
+## Addendum HO-SEED (2026-10-27 00:3x UTC, before any run): the recipe on a fourth family, with a budget the model was trained for
+**Why it could change the claim.** The recipe's first step — a 2k think, then the full think on a visible failure, one retry — holds
+for three families (Qwen3 8–32B, Nemotron-3-Nano, gpt-oss; HO-SB…SB4, HO-OSB, HO-32), always with a *forced* cut (s1-style budget
+forcing; for gpt-oss, a medium think cut at 2k). Seed-OSS-36B-Instruct (ByteDance Seed, never run here) is a fourth family and is trained
+to keep a thinking budget itself (`thinking_budget` in its template: budget 0 answers directly; a budget B makes it reflect on the tokens
+left and finish within B). This tests (i) whether the order holds on a family the recipe never saw, and (ii) whether a trained budget is
+a better first step than a forced cut. Related: budget forcing (s1, Muennighoff et al. 2025) vs trained or steered budgets (L1, Aggarwal &
+Welleck 2025; BudgetThinker 2508.17196; Budget Guidance, which beats forcing under tight budgets); none uses the budget as the first step
+of a check cascade. If the trained budget wins, the recipe says "the model's own budget where it has one".
+**Run.** Seed-OSS-36B-Instruct-AWQ (QuantTrio; tag seed36; tensor parallel over 4 × RTX 3090, 40,960 positions), seeds 1–3, the
+label-free library prompt (`formx`) on the OptiBench third (FORM_SUBSET=0/3), BWOR, LogiOR and OptMATH, four arms (POC_SEED=1):
+F = `formx` (thinking_budget 0; T 0.7 as every model's cheap arm); SB = `--think_budget 2000` (forced: its chat format by hand, the think
+cut at 2,000 tokens, `</seed:think>` forced; seed_budget_chat); SBn = `--native_budget 2048` (its own budget, 2,048 as the card's
+multiples of 512; tokens past the budget are counted, not cut); T = `--tarm --think --max_tokens 32000` (unlimited budget, 32k cap).
+Thinking calls use the card's sampling (temperature 1.1, top_p 0.95; as HO-N for Qwen3.5 / Nemotron). Policies as HO-CM / HO-32 (T, T→T,
+FF+F, SB+F, SB→T→T, FF+SB+F; λ = 0.5; `analyze_ho32.py seed36`), and the same with SBn in place of SB.
+- **SD-P1:** SB→T→T is within 1.0 utility point of the best of the six policies in ≥ 3 of the 4 cells.
+- **SD-P2:** the retry pays: T→T − T ≥ +2 points in ≥ 3 of the 4 cells.
+- **SD-P3 (trained vs forced budget):** SBn→T→T has utility ≥ SB→T→T in ≥ 3 of the 4 cells.
+- **SD-P4 (label-free signal, as 32-P3):** pooled, passing budget-0 programs that agree with the short-think (SB) program are right
+  ≥ 30 points more often than those that print a different value.
+**Decision.** P1 and P2 → the recipe is stated for four families. P1 refuted → Seed-OSS is named with its best policy (and whether the
+30-label pilot finds it). P3 holds → the first step is "the model's own 2k budget where it has one, else a forced cut"; refuted → the
+forced cut stays the rule (it needs no training and works on every family). Reported for every cell: accuracy with tokens, the share of
+native thinks past 2,048 tokens, the share of full thinks at the 32k cap.
+**Smoke (before the main runs; not part of the results).** 7 BWOR + 11 OptiBench problems (FORM_SUBSET 0/12, 0/60), seed 1, all four
+arms (tag seedsmoke), and `poc/smoke_seed.py` (the hand-rendered chat format equals the server's template). Amendment rule fixed now: if
+more than 10% of the smoke's full thinks hit 32k, the full think moves to a 64k cap (73,728 positions) before any main row.
