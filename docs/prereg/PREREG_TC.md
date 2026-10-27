@@ -82,3 +82,7 @@ non-live average 85.8 → 94.2 at 87.1% fewer tokens) are from 2510.00546v1; v5 
 value errors are Qwen2.5-72B's. Also: CopT's estimate is a contrastive reverse-KL score (85.77% at 235 tokens → 86.45% at 168, or 86.17%
 at 130); DART, where its drafts disagree, predicts a thinking budget from the drafts' entropy (our 2N→T uses the full think instead).*
 
+*Operations (2026-10-27 13:3x UTC, no change to the design): on Qwen3-8B and Qwen3-14B-AWQ, 3 items per seed lost their T row because
+their prompt (≥ 4.48k tokens) plus the 16k thinking cap exceeds the default 20,480-token context; jobs tc_q8b_fix / tc_q14a_fix
+(1261464, 1261465) rerun only the missing rows with `--max-model-len 32768`.*
+
