@@ -48,3 +48,16 @@ cheaper; reported as such. P5 refuted → as on the word problems, the cheap end
 **Smoke (before the main runs; not part of the results).** Qwen3-8B, seed 1, IF_SUBSET=0/27 (21 IFEval + 12 IFBench prompts), all arms,
 graded. Amendment rule fixed now: if more than 25% of the smoke's checkers do not run, the checker prompt is revised once (and the
 revision recorded here) before any main row; if any arm's rows are missing or a grader fails, the harness is fixed first.
+
+*IF smoke (2026-10-27 10:1x UTC, job 1260342, tag q8bsmoke, IF_SUBSET=0/27, seed 1; not part of the results): every arm wrote all rows (21 IFEval +
+12 IFBench), both graders run, every checker runs (0 / 33 errors). But the checkers invent requirements the instruction never states
+(a 100-character limit on a one-sentence answer, "start with SUMMARY:", "contains the word joke", no punctuation for a "professional"
+joke): on IFEval they fail 15 of the 18 responses the grader passes, so N→T would think on almost every prompt and N→R rewrites right
+answers (R 78% vs N 86%). This is the checker prompt, not the model's ability to check: it listed requirement types (format, length,
+counts, …), which the model read as a menu. **Amendment (before any main row):** the checker prompt now says to check only requirements
+the instruction states explicitly, to quote each one in a comment above its check, to add none of its own, and to accept the response
+when a stated requirement is ambiguous (`poc/run_if.py`, CHECKER). A second smoke on other prompts (IF_SUBSET=1/27, tag q8bsmoke2)
+checks it; rule fixed now: if its checkers still fail more than half of the responses the grader passes on IFEval, the checker is
+written after a 2k think instead (one more amendment, recorded here) — otherwise the main runs start unchanged. Other smoke facts: the
+self-selective question gets "yes" on 31 of 33 prompts (Li-style self-selection ≈ always thinking for Qwen3-8B); thinks are short on
+IFEval (0.7k mean) and longer on IFBench (2.5k; 1 of 12 at the 16k cap).*

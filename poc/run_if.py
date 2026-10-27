@@ -22,11 +22,14 @@ RES = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
 DATA = os.path.join(os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nlp_data"), "ifeval")
 FILES = {"ifeval": "ifeval_input_data.jsonl", "ifbench": "IFBench_test.jsonl"}
 
+# 10-27 smoke amendment (PREREG_IF.md): the first prompt listed requirement types, and the checkers invented requirements the
+# instruction never states (a 100-character limit, "start with SUMMARY:"), failing 15 of 18 right responses; checks are now limited to
+# requirements the instruction states, each quoted above its check.
 CHECKER = """Below is an instruction that a response must follow. Write a Python function `check(response: str) -> list` that returns a \
-list of short strings, one for each requirement of the instruction that the response violates, and [] when every requirement is met. \
-Check only requirements that code can verify exactly (format, length, counts of words / sentences / paragraphs / letters, punctuation, \
-sections, keywords, start or end phrases, letter case, repetition); ignore content quality. Use only the Python standard library. \
-Return only the code, in one ```python block.
+list of short strings, one for each requirement of the instruction that the response violates, and [] when every requirement is met.
+Rules: check only requirements that the instruction states explicitly and that code can verify exactly; quote each one in a comment \
+above its check. Do not add requirements of your own (topic, tone, quality, or limits the instruction does not state). When a stated \
+requirement is ambiguous, accept the response. Use only the Python standard library. Return only the code, in one ```python block.
 
 Instruction:
 {q}"""
