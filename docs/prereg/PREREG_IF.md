@@ -72,3 +72,7 @@ no further change follows from the checker's false-alarm rate, which is now a re
 on IFEval, where Qwen3-8B's full think is short (0.7k tokens in the smokes), a thought-out checker costs about as much as thinking, so
 IF-P1 (≤ 50% of T's tokens) is unlikely to hold there; P2–P5 are unaffected. A third smoke (IF_SUBSET=2/27) checks only that the
 harness writes every row.*
+
+*Third IF smoke (2026-10-27 10:3x UTC, job 1260445, tag q8bsmoke3, IF_SUBSET=2/27; not part of the results): every arm wrote every row, 0 request
+failures, every checker came with code (2 of 32 do not run); the thought-out checker costs 2.0–2.2k tokens. Main runs submitted
+unchanged (2026-10-27 10:3x UTC): jobs if_{q8b,q14a,q35}_{ifeval,ifbench} (1260488–1260493), seeds 1–3, one RTX 3090 each.*
