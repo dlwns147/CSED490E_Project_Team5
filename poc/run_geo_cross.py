@@ -167,16 +167,18 @@ def seed_budget_chat(prompt, budget, max_tokens=4096, temperature=0.7, seed=None
             "think_tokens": used}
 
 
-def harmony_budget_chat(prompt, budget, max_tokens=4096, temperature=0.7, seed=None):
+def harmony_budget_chat(prompt, budget, max_tokens=4096, temperature=0.7, seed=None, system=None):
     """HO-OSB: budget forcing for gpt-oss (POC_HARMONY set). The prompt is the model's chat template rendered by hand (one user turn,
     no tools; the client venv has no transformers) at POC_HARMONY_EFFORT (default medium); the analysis channel runs for at most
-    `budget` tokens (<|end|>, id 200007, ends it), then the final channel is forced and the answer generated."""
+    `budget` tokens (<|end|>, id 200007, ends it), then the final channel is forced and the answer generated. system (LC-OSS): a system
+    turn, rendered as the template does, as a developer message ("# Instructions")."""
     import time
     from llm import client
     head = ("<|start|>system<|message|>You are ChatGPT, a large language model trained by OpenAI.\nKnowledge cutoff: 2024-06\n"
             f"Current date: {time.strftime('%Y-%m-%d')}\n\nReasoning: {os.environ.get('POC_HARMONY_EFFORT', 'medium')}\n\n"
             "# Valid channels: analysis, commentary, final. Channel must be included for every message.<|end|>"
-            f"<|start|>user<|message|>{prompt}<|end|><|start|>assistant<|channel|>analysis<|message|>")
+            + (f"<|start|>developer<|message|># Instructions\n\n{system}<|end|>" if system else "")
+            + f"<|start|>user<|message|>{prompt}<|end|><|start|>assistant<|channel|>analysis<|message|>")
     tp = 0.95 if temperature > 0 else 1.0
     r = client.completions.create(model="local", prompt=head, max_tokens=budget, temperature=temperature, top_p=tp, seed=seed,
                                   extra_body={"stop_token_ids": [200007]})

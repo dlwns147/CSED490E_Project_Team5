@@ -10,6 +10,7 @@
 Accuracy = pass@1 on sample + hidden tests (official grader). Utility = accuracy - 0.5 x ktokens. Paired 95% intervals over problems
 (seed means). Also the leak (passes the samples, fails hidden tests) of N / SB / T with how the first hidden test failed, and every
 policy by difficulty with its share of the tokens.
+LCB_THINK=thinkh (LC-OSS): gpt-oss's high-effort think (rows thinkh, grade TH) takes T's place in every policy.
 usage: python analyze_lcb.py [tag ...]   (default q8b q14a q35g — Qwen3.5-9B at the general preset, the amendment; LCB_SEEDS=1 for the smoke, where T->T reuses the same seed)"""
 import json, os, sys
 from collections import Counter
@@ -22,6 +23,7 @@ RES = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
 ITEMS = os.path.join(os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nlp_data"), "lcb", "lcb_items.jsonl")
 POL = ("N", "T", "SB", "S", "N->T", "N->SB->T", "SB->T->T", "T->T", "N->T|hidden")
 LAM = 0.5
+TARM = os.environ.get("LCB_THINK", "think"); TG = {"think": "T", "thinkh": "TH"}[TARM]
 
 
 def cell(m, seeds=(1, 2, 3)):
@@ -32,10 +34,12 @@ def cell(m, seeds=(1, 2, 3)):
         return None
     for s in seeds:
         s2 = seeds[(seeds.index(s) + 1) % len(seeds)]
-        C, T, SB = ({r["id"]: r for r in _rows(f"{RES}/{m}_{a}_s{s}.jsonl")} for a in ("cheap", "think", "sb"))
-        T2 = {r["id"]: r for r in _rows(f"{RES}/{m}_think_s{s2}.jsonl")}
+        C, T, SB = ({r["id"]: r for r in _rows(f"{RES}/{m}_{a}_s{s}.jsonl")} for a in ("cheap", TARM, "sb"))
+        T2 = {r["id"]: r for r in _rows(f"{RES}/{m}_{TARM}_s{s2}.jsonl")}
         for i, c in C.items():
             g, g2 = G[s].get(i, {}), G[s2].get(i, {})
+            if TG != "T":
+                g, g2 = ({**x, "T": x[TG]} if TG in x else {} for x in (g, g2))
             if i not in T or i not in SB or i not in T2 or not all(a in g for a in ("N", "T", "SB")) or "T" not in g2:
                 continue
             ok = {a: g[a]["ok"] for a in ("N", "T", "SB")}; ck = {a: g[a]["chk"] for a in ("N", "T", "SB")}

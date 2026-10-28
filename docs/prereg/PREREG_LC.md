@@ -152,3 +152,38 @@ their rows stay as a record (tag q35) and are reported for their cap rate only. 
   N→T|hidden 50.7% @ 13.9k vs T 50.2% @ 14.5k.
 - Reported: S answers "yes" on 543 / 546. T is cut at 32k on 17 / 546; N runs out of its 4k on 16. Against the Qwen3 report (BF16,
   LiveCodeBench v5): Qwen3-8B 57.5 thinking / 22.8 non-thinking; here 50.2 / 24.9 on 2025 problems.
+
+## Addendum LC-OSS (2026-10-28 03:2x UTC, before any gpt-oss row): does the contest boundary hold for gpt-oss?
+**Why it could change the claim.** The contest statement ("contests need the full think") now rests on the hybrid-thinking models:
+Qwen3-14B-AWQ and Nemotron-3-Nano on geometry (HO-CC), Qwen3-8B and Qwen3-14B-AWQ on LiveCodeBench (LC-P1 refuted), Qwen3.5-9B
+running. gpt-oss is the family where the recipe is a pure saving on the word problems, with its own first step (a medium-effort think
+cut at 2,000 tokens, HO-OSB) and a trained cheap mode that still reasons (low effort) instead of a non-thinking one. Its cut think ends
+in a forced final channel, not inside a code block, so the failure that made Qwen3-8B pay twice (32% of cut thinks with no program) may
+not occur. If the cut medium think first saves here, the contest statement is a property of the hybrid-thinking models, not of
+contest code, and the claim names the family. **Prior work (2026-10-28 03 UTC, IDs opened):** the gpt-oss model card (2508.10925)
+reports accuracy by effort level (low / medium / high), not an effort cascade gated by a check; CodeRescue (2607.19338) routes a
+failed coding attempt between a cheap model's retry and a stronger model with a trained router (GPT-5.4-nano / GPT-5.4); DART, PaT,
+S*, model cascading (above). No study found escalates gpt-oss's effort on a failed sample test.
+**Run.** gpt-oss-20b (tag oss20, one RTX 3090, MXFP4, `--max-model-len 36864`), the same 182 problems, prompt, grader, seeds 1–3, every
+arm at the harness sampling (T 0.7, top-p 0.95; matched): N = low effort (4k cap, as every cheap arm); SB = medium effort, the analysis
+channel cut at 2,000 tokens, the final channel forced (`harmony_budget_chat`, LiveCodeBench's system turn as the developer message; 4k
+answer cap); T = medium effort (the model's default; 32k); TH = high effort (32k). S is not run (no non-thinking mode to ask). Policies
+as LC-1 (`analyze_lcb.py oss20`), and with TH in T's place (`LCB_THINK=thinkh`).
+- **OSS-P4 (high effort is the full think here):** TH→TH is ≥ 2.0 points more accurate than T→T.
+- **OSS-P1 (the recipe saves for gpt-oss on contest code):** SB→T→T ties or beats T→T (paired 95% upper bound ≥ 0) at ≤ 90% of its
+  tokens; if OSS-P4 holds, also SB→TH→TH against TH→TH, and P1 holds only if it holds against both (a weaker full think flatters a
+  short one, HO-CAP).
+- **OSS-P2 (low effort first saves):** N→T ties or beats T at ≤ 90% of its tokens (if OSS-P4 holds, also N→TH against TH; both).
+- **OSS-P3 (the samples leak):** ≥ 10% of the N programs that pass the samples fail a hidden test.
+- Reported, no decision: everything LC-1 reports (by difficulty, leaks and how they fail, caps, raw failures), and the cut think's
+  no-program rate against Qwen3's.
+**Expected (stated now, not a rule).** OSS-P4 holds (high effort is gpt-oss's contest setting); OSS-P1 refuted (as for Qwen3: the
+tokens sit on hard problems a 2k think does not solve), but closer than Qwen3's, since the cut think should write a program more often;
+OSS-P2 more likely than for Qwen3 (low effort reasons, 1–3k tokens); OSS-P3 holds.
+**Decision.** P1 holds → the contest statement is restated by family (hybrid-thinking models need the full think; gpt-oss's cut medium
+think first saves): REPORT contests section, PROJECT claim, PROPOSAL and PROPOSAL_ko. P1 refuted → the contest boundary holds on a
+third family; the claim stands and names it. P2 holds → low effort first saves on contest code for gpt-oss, stated the same way. P1
+and P2 refuted → no further run on code for gpt-oss.
+**Smoke (before the main runs; not part of the results).** seed 1, LCB_SUBSET=0/26 (7 problems), all four arms, graded and analysed in
+the same job: if an arm writes no rows, the harmony cut think's final channel holds no code where the full think does, or the effort
+levels do not change the think's length (low < medium < high), the harness is fixed before any main row.

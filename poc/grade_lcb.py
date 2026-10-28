@@ -5,7 +5,8 @@ official order); the grader stops at the first failure, so one run gives both:
   chk = the free check: a program was extracted and it passes every sample (public) test
   ok  = the grade: it passes every test (pass@1)
   err = where and how it first failed: nocode | pub/priv + WA (-2) / TLE (-3) / RE (-4) / compile (-1 or None)
-Code is extracted as LiveCodeBench does for chat models (between the last two lines holding ```). Arms: N (cheap.n_text), T, SB.
+Code is extracted as LiveCodeBench does for chat models (between the last two lines holding ```). Arms: N (cheap.n_text), T, SB
+(and TH, gpt-oss's high-effort think, where the tag has thinkh rows).
 Runs in the project image on a CPU partition (the programs are untrusted; the grader disables os functions in a child process):
   sbatch -J lcb_grade -p cpu-max16,cpu-max10,cpu-max24 -q nogpu --gres=none --cpus-per-task=16 poc/slurm/job.sh '$P poc/grade_lcb.py q8b'
 usage: python grade_lcb.py <tag> [seeds]   -> results/lcb/grades_<tag>_s<seed>.json (resumes)
@@ -75,6 +76,8 @@ def main():
         rows = {"N": {r["id"]: r.get("n_text") for r in _rows(f"{RES}/{tag}_cheap_s{s}.jsonl")},
                 "T": {r["id"]: r.get("text") for r in _rows(f"{RES}/{tag}_think_s{s}.jsonl")},
                 "SB": {r["id"]: r.get("text") for r in _rows(f"{RES}/{tag}_sb_s{s}.jsonl")}}
+        if os.path.exists(f"{RES}/{tag}_thinkh_s{s}.jsonl"):   # LC-OSS: gpt-oss's high-effort think
+            rows["TH"] = {r["id"]: r.get("text") for r in _rows(f"{RES}/{tag}_thinkh_s{s}.jsonl")}
         todo = [((i, a), extract_code(x)) for a, R in rows.items() for i, x in R.items() if a not in G.get(i, {})]
         if RECHECK:   # time-limit check: regrade every program that failed by time limit, at LCB_WORKERS (low load)
             todo = [((i, a), extract_code(rows[a][i])) for i, g in G.items() for a in g if (g[a]["err"] or "").endswith("-3")
