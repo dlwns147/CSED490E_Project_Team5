@@ -76,8 +76,9 @@ def main():
         rows = {"N": {r["id"]: r.get("n_text") for r in _rows(f"{RES}/{tag}_cheap_s{s}.jsonl")},
                 "T": {r["id"]: r.get("text") for r in _rows(f"{RES}/{tag}_think_s{s}.jsonl")},
                 "SB": {r["id"]: r.get("text") for r in _rows(f"{RES}/{tag}_sb_s{s}.jsonl")}}
-        if os.path.exists(f"{RES}/{tag}_thinkh_s{s}.jsonl"):   # LC-OSS: gpt-oss's high-effort think
-            rows["TH"] = {r["id"]: r.get("text") for r in _rows(f"{RES}/{tag}_thinkh_s{s}.jsonl")}
+        for arm, g in (("thinkh", "TH"), ("thinkh64", "TH64")):   # LC-OSS: gpt-oss's high-effort think (at 32k, at 64k)
+            if os.path.exists(f"{RES}/{tag}_{arm}_s{s}.jsonl"):
+                rows[g] = {r["id"]: r.get("text") for r in _rows(f"{RES}/{tag}_{arm}_s{s}.jsonl")}
         todo = [((i, a), extract_code(x)) for a, R in rows.items() for i, x in R.items() if a not in G.get(i, {})]
         if RECHECK:   # time-limit check: regrade every program that failed by time limit, at LCB_WORKERS (low load)
             todo = [((i, a), extract_code(rows[a][i])) for i, g in G.items() for a in g if (g[a]["err"] or "").endswith("-3")
