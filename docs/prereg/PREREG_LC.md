@@ -277,3 +277,11 @@ same model, server, preset, cap and per-problem sampling seed) takes the problem
 q35g_think64r). **Rule (fixed now):** once a seed's two files together cover all 182 problems, both jobs of that seed stop; each
 problem keeps the first job's row if it has one, else the second job's, and the merged file is the q35g_think64 that is graded. The
 choice of row depends only on which job wrote it, never on its grade. Hardware only; no prediction or decision rule changes.
+
+*Restart of the 64k jobs (2026-10-28 19:5x UTC; no row graded, no 64k policy scored).* The client's 2 h timeout counts the time a
+request waits in the server's queue; at 64k one 3090 runs 1–4 thinks while 60 wait, so 53 / 40 / 49 requests of the first jobs timed
+out (each retry starts the think again) and both jobs of a seed were redoing problems the other had finished (15 / 8 / 3 rows in
+both files): in the last hour the two files gained 2–3 new problems per seed. All six jobs are cancelled and restarted, one forward
+and one reverse job per seed as before, with a 24 h timeout, at most 8 requests per job, and each worker skips a problem the other
+file already has when it takes it. Rows already written are kept; the merge rule above is unchanged (the first job's row if it has
+one, else the second's). Hardware and scheduling only; no prediction or decision rule changes.

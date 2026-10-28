@@ -11,7 +11,9 @@ gpt-oss (LC-OSS, PREREG_LC.md addendum): POC_HARMONY=1 makes SB the medium-effor
 cap LCB_TK; LCB_ARMS=cheap,think,sb,thinkh). The 64k rerun (mid-run rule): LCB_ARMS=thinkh LCB_TK=64000 LCB_TH_NAME=thinkh64.
 LC-1 cap rule (Qwen3.5-9B's think at 64k): LCB_ARMS=think LCB_TK=64000 LCB_T_NAME=think64 (rows {tag}_think64). A second job on
 another GPU takes the problems from the end (LCB_REVERSE=1, LCB_T_NAME=think64r); once the two files cover every problem both stop
-and each problem keeps the first job's row if it has one, else the second's (rows chosen by job, not by outcome)."""
+and each problem keeps the first job's row if it has one, else the second's (rows chosen by job, not by outcome). 10-28 restart:
+LCB_SKIP=<the other job's row name> skips a problem the other job has written by the time a worker takes it, LCB_POOL=8 keeps
+few requests queued, POC_TIMEOUT=86400 (at 64k on one 3090 a request waited in the queue past the 2 h timeout and was retried)."""
 import json, os, sys, zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -27,6 +29,8 @@ EN, ET, EH = (os.environ["LCB_EFFORTS"].split(",") if os.environ.get("LCB_EFFORT
 HARMONY = bool(os.environ.get("POC_HARMONY"))
 TN = os.environ.get("LCB_T_NAME", "think")   # the think arm's rows (think64: the same arm at a 64k cap)
 TH = os.environ.get("LCB_TH_NAME", "thinkh")   # the high-effort arm's rows (thinkh64: the same arm at a 64k cap)
+SKIP = [n for n in os.environ.get("LCB_SKIP", "").split(",") if n]   # think rows of another job of the same seed (two jobs per seed)
+POOL = int(os.environ.get("LCB_POOL", 64))
 SELECT = """Here is a programming problem.
 
 {q}
@@ -57,6 +61,8 @@ def main():
                          "s_ans": (d["text"] or "").strip().lower()[:20], "s_tok": d["out_tokens"]}
 
     def think(p, arm="think", effort=ET):
+        if any(p["id"] in {r["id"] for r in _rows(f"{RES}/{tag}_{n}_s{seed}.jsonl")} for n in SKIP):
+            return arm, None   # the other job has it
         o = chat(p["user"], system=p["system"], think=True, max_tokens=TK, temperature=0.7, seed=sd(p), effort=effort)
         return arm, {"id": p["id"], "text": o["text"], "out_tokens": o["out_tokens"], "finish": o["finish"],
                      **{k: o[k] for k in ("empty_tail", "tool_calls") if k in o}}
@@ -73,10 +79,12 @@ def main():
     jobs = [(f, p) for p in P for a, f in (("cheap", cheap), ("think", think), ("sb", sb), ("thinkh", thinkh))
             if a in arms and p["id"] not in done[a]]
     out = {a: open(f, "a") for a, f in path.items()}
-    with ThreadPoolExecutor(64) as ex:
+    with ThreadPoolExecutor(POOL) as ex:
         for fu in as_completed([ex.submit(f, p) for f, p in jobs]):
             try:
                 a, row = fu.result()
+                if row is None:
+                    continue
                 out[a].write(json.dumps(row) + "\n"); out[a].flush()
             except Exception as e:   # as run_tc: one failed request must not stop the other rows
                 print(tag, seed, "request failed, no row:", repr(e)[:200], flush=True)
