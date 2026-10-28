@@ -14,7 +14,7 @@ State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Tea
   holds in 4 / 4; its trained budget is not a better first step).
 - **Done 10-27 12 UTC:** HO-4K (PREREG_HO.md addendum): a 4,000-token first think on Qwen3-14B-AWQ / Qwen3.5-9B / Qwen3-32B-AWQ
   (`k4_*` jobs) does not carry over (P1–P3 refuted); analysis `python3 poc/analyze_ho32.py --b4k q14a q35 q32b`.
-- **Running (since 10-28 09:2x UTC):** the LC-1 cap rule: Qwen3.5-9B's think alone at 64k, jobs `lcb_q35g64_s{1,2,3}` (1268124–1268126;
+- **Running (since 10-28 09:2x UTC):** the LC-1 cap rule: Qwen3.5-9B's think alone at 64k, jobs `lcb_q35g64_s{1,2,3}` (1268124–1268126, started 10-28 10:35 UTC on n20;
   `sbatch -J lcb_q35g64_s<seed> -x n19,n22 poc/slurm/job.sh 'bash poc/slurm/hon_lane.sh lcbg64 lcb <seed>'`, rows q35g_think64). Then
   `$P poc/grade_lcb.py q35g` (CPU node; grades T64 too) and `LCB_THINK=think64 python3.11 poc/analyze_lcb.py q35g`: LC-P2 for
   Qwen3.5-9B is N->T - T there (PREREG_LC.md, cap rule).
