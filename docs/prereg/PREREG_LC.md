@@ -240,3 +240,10 @@ think flatters a short one (HO-CAP). If P1 and P2 are refuted against T→T, the
   94% (P1 unchanged); Qwen3-14B-AWQ N→T − T −4.0 (official −4.4), no verdict changes. So OSS-P2's refutation rests on the grader: under
   a judge that waits for threads, low effort first is a bare tie with one medium think at 83% of its tokens, and 7.5 points below the
   check-matched think (T→T). The decision follows the official grade; the claim reports both.
+
+*LC-1 cap rule for Qwen3.5-9B (2026-10-28 08:2x UTC; seeds 1–2 graded, no policy of q35g analysed, seed 3 running).* Qwen3.5-9B's full
+think ends at the 32k cap on 243 of the 529 rows so far (46%; seed 1: 66 / 82 hard), at the general preset as at the coding preset, so
+its T is cap-bound as gpt-oss's TH was. **Added rule (no rule above changes):** if LC-P1 or LC-P2 reaches 2 of 3 through Qwen3.5-9B
+while its T ends at the cap on ≥ 20% of its rows, the claim is not restated until Qwen3.5-9B's think is rerun at a 64k cap (two
+3090s, the same three seeds, the same preset) and the policy that held is scored again for it against that think; the verdict is the
+64k one. If neither reaches 2 of 3, the 64k run cannot change the claim and is not run.
