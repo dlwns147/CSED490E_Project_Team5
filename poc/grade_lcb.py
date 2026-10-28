@@ -88,7 +88,8 @@ def main():
         rows = {"N": {r["id"]: r.get("n_text") for r in _rows(f"{RES}/{tag}_cheap_s{s}.jsonl")},
                 "T": {r["id"]: r.get("text") for r in _rows(f"{RES}/{tag}_think_s{s}.jsonl")},
                 "SB": {r["id"]: r.get("text") for r in _rows(f"{RES}/{tag}_sb_s{s}.jsonl")}}
-        for arm, g in (("thinkh", "TH"), ("thinkh64", "TH64")):   # LC-OSS: gpt-oss's high-effort think (at 32k, at 64k)
+        for arm, g in (("thinkh", "TH"), ("thinkh64", "TH64"), ("think64", "T64")):   # LC-OSS: gpt-oss's high-effort think (32k,
+            # 64k); the LC-1 cap rule: the think at 64k
             if os.path.exists(f"{RES}/{tag}_{arm}_s{s}.jsonl"):
                 rows[g] = {r["id"]: r.get("text") for r in _rows(f"{RES}/{tag}_{arm}_s{s}.jsonl")}
         todo = [((i, a), extract_code(x)) for a, R in rows.items() for i, x in R.items() if a not in G.get(i, {})]

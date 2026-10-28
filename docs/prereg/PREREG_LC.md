@@ -247,3 +247,25 @@ its T is cap-bound as gpt-oss's TH was. **Added rule (no rule above changes):** 
 while its T ends at the cap on ≥ 20% of its rows, the claim is not restated until Qwen3.5-9B's think is rerun at a 64k cap (two
 3090s, the same three seeds, the same preset) and the policy that held is scored again for it against that think; the verdict is the
 64k one. If neither reaches 2 of 3, the 64k run cannot change the claim and is not run.
+
+## Results LC-1 (2026-10-28 09:2x UTC; three models, 3 seeds, official grader; LC-P2 pending the cap rule)
+| model | N | T | SB | N→T | SB→T→T | T→T | N→T − T | SB→T→T − T→T | N→T\|hidden − N→T | N leak |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Qwen3-8B | 24.9 @ 0.50k | 50.2 @ 14.5k | 35.5 @ 3.75k | 48.9 @ 12.6k | 52.0 @ 20.6k | 52.6 @ 20.1k | −1.3 [−3.1, +0.2] 87% | −0.5 [−2.0, +0.7] 102% | +1.8 | 25.7% |
+| Qwen3-14B-AWQ | 27.5 @ 0.49k | 55.1 @ 13.2k | 36.6 @ 3.19k | 50.7 @ 10.4k | 53.8 @ 16.5k | 57.3 @ 17.4k | −4.4 [−6.8, −2.2] 79% | −3.5 [−5.7, −1.6] 94% | +4.9 | 33.6% |
+| Qwen3.5-9B | 38.3 @ 2.72k | 49.3 @ 23.1k | 34.4 @ 4.95k | 50.4 @ 19.7k | 53.5 @ 38.3k | 54.4 @ 38.3k | +1.1 [−0.9, +3.3] 85% | −0.9 [−2.2, +0.4] 100% | +1.6 | 11.4% |
+- **LC-P1 refuted (0 / 3):** short think first is never a saving on general contest code (94–102% of the check-matched think's tokens).
+- **LC-P2 reaches 2 / 3 (Qwen3-8B, Qwen3.5-9B) — the cap rule applies:** Qwen3.5-9B's think ends at the 32k cap on 252 / 546 rows
+  (46%; hard 190 / 246), so the claim is not restated until its think is rerun at 64k (jobs lcb_q35g64_s{1,2,3}, `hon_lane.sh lcbg64
+  lcb <seed>`, rows q35g_think64; one 3090 per seed, as HO-CAP's 64k Qwen3.5-9B thinks — the rule said two, hardware only) and N→T is
+  scored again against it (`LCB_THINK=think64 analyze_lcb.py q35g`). The verdict is the 64k one.
+- **LC-P3 holds (3 / 3):** 11.4–33.6% of the N programs that pass the samples fail a hidden test.
+- **LC-P4 refuted (1 / 3):** DART's hidden-test gate is +4.9 for Qwen3-14B-AWQ, +1.8 / +1.6 for the other two.
+- Size-check trigger (applies only if P2 is refuted at 64k): time limits are 105 of the 280 N / SB leaks (38%), under half, so no
+  size check; every time-limit failure re-graded at low load stays one (Qwen3.5-9B 9 / 9).
+- Reported: S (the yes / no question) says yes on 546 / 546 (Qwen3.5-9B, Qwen3-14B-AWQ) and 543 / 546 (Qwen3-8B): on contest code
+  the model always asks to think, so S = T. Qwen3.5-9B is the model whose samples hold (leak N 11.4%, SB 5.5%, T 3.2% against 18–34%
+  for the others), and its non-thinking program is the strongest (38.3%; it reasons in plain text first, 2.7k tokens): where N passes
+  the samples it is right, which is why N→T ties its think — against a think that is cut at 32k on 77% of hard problems. The hard
+  problems carry 59–71% of every policy's tokens for all three models. No threaded programs for Qwen3-8B / Qwen3.5-9B; the
+  thread-join sensitivity changes no LC-1 verdict.

@@ -8,7 +8,8 @@ offline: poc/grade_lcb.py, poc/analyze_lcb.py. Items: $POC_DATA/lcb/lcb_items.js
 usage: python run_lcb.py <tag> <seed>     (LCB_SUBSET=i/k: problems i, i+k, ... only — the smoke; LCB_ARMS=think: only those arms)
 gpt-oss (LC-OSS, PREREG_LC.md addendum): POC_HARMONY=1 makes SB the medium-effort think cut at 2,000 (harmony_budget_chat) and skips S
 (no non-thinking mode to ask); LCB_EFFORTS=low,medium,high sets the reasoning effort of N, T and the extra arm thinkh (TH, high effort,
-cap LCB_TK; LCB_ARMS=cheap,think,sb,thinkh). The 64k rerun (mid-run rule): LCB_ARMS=thinkh LCB_TK=64000 LCB_TH_NAME=thinkh64."""
+cap LCB_TK; LCB_ARMS=cheap,think,sb,thinkh). The 64k rerun (mid-run rule): LCB_ARMS=thinkh LCB_TK=64000 LCB_TH_NAME=thinkh64.
+LC-1 cap rule (Qwen3.5-9B's think at 64k): LCB_ARMS=think LCB_TK=64000 LCB_T_NAME=think64 (rows {tag}_think64)."""
 import json, os, sys, zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -22,6 +23,7 @@ DATA = os.path.join(os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nlp
 TK = int(os.environ.get("LCB_TK", 32000))
 EN, ET, EH = (os.environ["LCB_EFFORTS"].split(",") if os.environ.get("LCB_EFFORTS") else (None, None, None))
 HARMONY = bool(os.environ.get("POC_HARMONY"))
+TN = os.environ.get("LCB_T_NAME", "think")   # the think arm's rows (think64: the same arm at a 64k cap)
 TH = os.environ.get("LCB_TH_NAME", "thinkh")   # the high-effort arm's rows (thinkh64: the same arm at a 64k cap)
 SELECT = """Here is a programming problem.
 
@@ -38,7 +40,7 @@ def main():
         i, k = map(int, os.environ["LCB_SUBSET"].split("/")); P = P[i::k]
     os.makedirs(RES, exist_ok=True)
     arms = os.environ.get("LCB_ARMS", "cheap,think,sb").split(",")
-    path = {a: f"{RES}/{tag}_{TH if a == 'thinkh' else a}_s{seed}.jsonl" for a in ("cheap", "think", "sb", "thinkh")
+    path = {a: f"{RES}/{tag}_{ {'thinkh': TH, 'think': TN}.get(a, a)}_s{seed}.jsonl" for a in ("cheap", "think", "sb", "thinkh")
             if a != "thinkh" or a in arms}
     done = {a: {r["id"] for r in _rows(f)} for a, f in path.items()}
     sd = lambda p: seed * 1000 + zlib.crc32(p["id"].encode()) % 997

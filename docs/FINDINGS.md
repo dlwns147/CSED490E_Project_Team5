@@ -4113,3 +4113,15 @@ does its work in an unjoined thread (`threading.Thread(target=main).start()`), s
 project's issue tracker. Joining the threads (sensitivity, `LCB_JOIN=1`) turns 2 → 18 of gpt-oss's 77 threaded programs right and
 makes OSS-P2 a bare tie (−2.4 [−5.1, +0.2] at 83%, still 7.5 below T→T); Qwen3-14B-AWQ 71 threaded, no verdict changes; Qwen3-8B and
 Qwen3.5-9B write none. The official grade decides, as pre-registered; the claim reports both.
+
+## 2026-10-28 09:2x UTC: LC-1 (PREREG_LC.md), all three models: short think first never saves on contest code; cheap first ties for two — against cap-bound thinks
+LiveCodeBench 2025 (182 problems), 3 seeds, official grader. LC-P1 refuted 0 / 3: short think → think → retry ties or loses to the
+check-matched think at 94–102% of its tokens (Qwen3-8B −0.5, Qwen3-14B-AWQ −3.5, Qwen3.5-9B −0.9). LC-P2 reaches 2 / 3: the
+non-thinking program first ties one think for Qwen3-8B (−1.3 [−3.1, +0.2] at 87%) and Qwen3.5-9B (+1.1 [−0.9, +3.3] at 85%), not
+Qwen3-14B-AWQ (−4.4). But Qwen3.5-9B's think ends at 32k on 46% of rows (77% of hard ones), so by the cap rule stated before its
+analysis the claim waits for its think at 64k (3 jobs submitted); a cap-bound think flatters a cheap first step (HO-CAP). LC-P3 holds
+3 / 3 (the samples leak 11–34% of N's passing programs); LC-P4 refuted (DART's honest-gate gap ≥ 2 points only for Qwen3-14B-AWQ,
++4.9). Mechanism: Qwen3.5-9B's samples hold (N leak 11%, T 3%) and its non-thinking program is the strongest (38%), so its cheap
+first step is right where it passes — the property the recipe needs; the other models leak a quarter to a third. The yes / no
+selector asks to think on 99–100% of contest problems. Related work: no study we found reports LiveCodeBench's sample-test leak by
+model (HardTests 2505.24098 measures test-suite precision); DART gates on hidden tests.

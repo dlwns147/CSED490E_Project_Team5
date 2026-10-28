@@ -12,7 +12,8 @@ Accuracy = pass@1 on sample + hidden tests (official grader). Utility = accuracy
 policy by difficulty with its share of the tokens.
 LCB_JOIN=1 (sensitivity, not a rule): a threaded program's grade with its threads joined (grade_lcb.py LCB_JOIN) replaces the
 official one.
-LCB_THINK=thinkh (LC-OSS): gpt-oss's high-effort think (rows thinkh, grade TH) takes T's place in every policy (thinkh64: the same at a 64k cap).
+LCB_THINK=thinkh (LC-OSS): gpt-oss's high-effort think (rows thinkh, grade TH) takes T's place in every policy (thinkh64: the same at a 64k cap;
+think64: the think at a 64k cap, the LC-1 cap rule).
 usage: python analyze_lcb.py [tag ...]   (default q8b q14a q35g — Qwen3.5-9B at the general preset, the amendment; LCB_SEEDS=1 for the smoke, where T->T reuses the same seed)"""
 import json, os, sys
 from collections import Counter
@@ -26,7 +27,7 @@ ITEMS = os.path.join(os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nl
 POL = ("N", "T", "SB", "S", "N->T", "N->SB->T", "SB->T->T", "T->T", "N->T|hidden")
 LAM = 0.5
 JOIN = os.environ.get("LCB_JOIN") == "1"
-TARM = os.environ.get("LCB_THINK", "think"); TG = {"think": "T", "thinkh": "TH", "thinkh64": "TH64"}[TARM]
+TARM = os.environ.get("LCB_THINK", "think"); TG = {"think": "T", "thinkh": "TH", "thinkh64": "TH64", "think64": "T64"}[TARM]
 
 
 def cell(m, seeds=(1, 2, 3)):

@@ -30,7 +30,7 @@ fi
 grp=$1 set=$2 seeds=${3:-"1 2 3"}
 # 10-23: the library prompt of long OptMATH problems + 32k thinking exceeded 36,864 tokens (vLLM rejects such a request, and the client
 # then stops writing rows); thinking with the fact gets a 45,056-token context (generation is unchanged: still at most 32k new tokens).
-MML=36864; case $grp in thinkfact|geothinkfact) MML=45056 ;; thinkfact64|cc64k) MML=73728 ;; esac   # HO-CAP: 64k thinks
+MML=36864; case $grp in thinkfact|geothinkfact) MML=45056 ;; thinkfact64|cc64k|lcbg64) MML=73728 ;; esac   # HO-CAP: 64k thinks
 S=$(bash poc/start_server.sh /SSD/huggingface/$dir $PORT $GPUL 0.92 hon_${m}_${grp}_${set}${3:+_$3} --max-model-len $MML $XV --max-num-seqs $MNS) || exit 1
 export POC_BASE_URL=http://127.0.0.1:$PORT/v1 POC_TIMEOUT=7200
 export POC_THINK_SAMPLING=$TS   # applied to thinking calls only (llm.chat)
@@ -106,6 +106,8 @@ for think in (False, True):
        for sd in $seeds; do LCB_TK=$TK $P poc/run_lcb.py $m $sd >> $L 2>&1 & done ;;   # at the card's precise-coding preset, 32k (stopped 10-27)
   lcbg) export POC_BUDGET_CARD=1   # LC-1 amendment: both thinks at the card's general preset ($TS), tag ${m}g; lcbg lcb [seeds]
        for sd in $seeds; do LCB_TK=$TK $P poc/run_lcb.py ${m}g $sd >> $L 2>&1 & done ;;
+  lcbg64) for sd in $seeds; do   # LC-1 cap rule (PREREG_LC.md): the think alone at 64k, general preset; rows ${m}g_think64
+            LCB_TK=64000 LCB_ARMS=think LCB_T_NAME=think64 $P poc/run_lcb.py ${m}g $sd >> $L 2>&1 & done ;;
   codepreset) sub=""; [ "$set" = optibench ] && sub="FORM_SUBSET=0/3"   # SAMP (PREREG_SAMP.md): every think at the card's precise-coding preset
            export POC_THINK_SAMPLING=temperature=0.6,top_p=0.95,top_k=20 POC_BUDGET_CARD=1   # tag ${m}c; the cheap formx rows are q35's
            for sd in $seeds; do
