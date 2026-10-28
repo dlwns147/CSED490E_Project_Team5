@@ -205,3 +205,38 @@ changes):** OSS-P4 is scored, and reported, as "high effort at the 32k cap". If 
 the cap on ≥ 20% of its rows, the claim is not restated until TH is rerun at a 64k cap (`--max-model-len 69632`, the same three
 seeds, tag oss20 arm thinkh64) and the policy that held is scored again against it as in OSS-P1 (both comparators): a cap-bound full
 think flatters a short one (HO-CAP). If P1 and P2 are refuted against T→T, the 64k run cannot change the claim and is not run.
+
+## Results LC-OSS: gpt-oss-20b (2026-10-28 08:2x UTC; final, 3 seeds, official grader)
+| policy | N | SB | T (medium) | TH (high) | N→T | N→SB→T | SB→T→T | T→T | N→T\|hidden | TH→TH | SB→TH→TH |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| accuracy | 44.9 | 53.1 | 61.9 | 41.6 | 59.0 | 59.7 | 64.7 | 66.3 | 64.1 | 45.8 | 55.9 |
+| ktokens | 0.97 | 2.18 | 7.24 | 21.92 | 5.99 | 6.32 | 10.19 | 10.89 | 7.52 | 39.80 | 24.08 |
+- **OSS-P4 refuted (high effort at the 32k cap):** TH→TH 45.8 vs T→T 66.3. TH ends at the cap with no program on 310 / 546 (57%;
+  hard 76 / 82 in seed 1), so the comparator is T→T only.
+- **OSS-P1 refuted:** SB→T→T − T→T −1.6 [−3.8, +0.4] at 94% of its tokens: a tie, not a saving.
+- **OSS-P2 refuted:** N→T − T −2.9 [−5.7, −0.5] at 83% of its tokens.
+- **OSS-P3 holds:** 24.4% of the N programs that pass the samples fail a hidden test (79 / 324); SB 17.8%, T 21.0%.
+- Mid-run rule: neither P1 nor P2 holds against the medium think, so the 64k high-effort run cannot change the claim and is not run.
+- **Decision (as stated):** P1 refuted → the contest boundary holds on a third family; the claim stands and names it. P1 and P2
+  refuted → no further run on code for gpt-oss.
+- Reported: the forced final channel removes Qwen3-8B's failure — the cut think leaves no program on 10 / 546 (2%; Qwen3-8B 32%,
+  Qwen3-14B-AWQ 11%) — and the loss is leaks instead: 17 problem-seeds where SB's sample-passing program fails a hidden test and T is
+  right (11 hard, 6 medium). Read: 3795 (LeetCode, medium), SB's bitset DP returns the first k at which every target is reachable and
+  never returns 0 for an array that is already zero, a case no example covers; T checks it first. abc391_e (hard), SB's recursive
+  majority DP is right but runs in an unjoined thread (below). By difficulty the hard problems carry 74–79% of the tokens (T 37% at
+  12.0k; SB→T→T 39% at 17.3k; T→T 42% at 19.0k). Leaks fail by wrong answer 61 / 46 / 76 (N / SB / T), by time limit 16 / 13 / 11
+  (20% of N's and SB's leaks; a low-load re-grade keeps 48 / 48 time limits). DART's honest-gate gap: N→T|hidden − N→T +5.1
+  [+3.1, +7.3]. The medium think stopped with an empty answer on 7 / 546, 6 of them ending in "implement in python and test" (the
+  python tool gpt-oss was trained with, not given here; no call parsed). Exploratory (no rule): N→SB→T ties one think (−2.2 [−5.1,
+  +0.5]) at 87% of its tokens.
+- **Grader sensitivity (found reading the raw failures; the grade stays official, as pre-registered).** The official grader runs a
+  stdio program as a function under patched stdin / stdout and returns when that function returns, so a program that does its work in
+  a thread it does not join (`threading.Thread(target=main).start()`, the contest idiom for a larger stack) reads and prints after the
+  patches are gone and fails whatever it computes; a judge waits for the thread (checked: abc389_f's medium think fails sample 2 as
+  graded and passes all three samples joined). No report of it in the LiveCodeBench issue tracker (searched 2026-10-28). Re-graded with
+  `Thread.start` joining (`grade_lcb.py LCB_JOIN=1`): gpt-oss 77 threaded programs over N / SB / T (18 / 27 / 32; none in TH), 2 right as
+  graded, 18 joined; Qwen3-14B-AWQ 71 (N 39, SB 28, T 4), 0 → 2; Qwen3-8B and Qwen3.5-9B write none. With threads joined
+  (`analyze_lcb.py LCB_JOIN=1`): gpt-oss N→T − T −2.4 [−5.1, +0.2] at 83% — **OSS-P2 would tie**; SB→T→T − T→T −1.8 [−4.0, +0.2] at
+  94% (P1 unchanged); Qwen3-14B-AWQ N→T − T −4.0 (official −4.4), no verdict changes. So OSS-P2's refutation rests on the grader: under
+  a judge that waits for threads, low effort first is a bare tie with one medium think at 83% of its tokens, and 7.5 points below the
+  check-matched think (T→T). The decision follows the official grade; the claim reports both.

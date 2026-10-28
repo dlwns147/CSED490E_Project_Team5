@@ -4098,3 +4098,18 @@ waits for Qwen3.5-9B. LC-P3 holds (2 / 2): the samples leak 26–34% of N's pass
 the N / SB leaks are time limits (stable under a low-load re-grade), under the size-check trigger. DART's honest-gate gap is +1.8 for
 Qwen3-8B (+4.9 Qwen3-14B). Exploratory: a perfect check still leaves short-think-first at 105–106% of the check-matched think's tokens
 for both models — on contest code the full think's tokens sit on problems a 2k think does not solve, whatever the gate.
+
+## 2026-10-28 08:2x UTC: LC-OSS (PREREG_LC.md), gpt-oss-20b on LiveCodeBench: the contest boundary holds on a third family
+gpt-oss-20b, 182 LiveCodeBench problems from 2025, 3 seeds, official grader; N = low effort, SB = medium effort cut at 2k (forced
+final channel), T = medium, TH = high, thinks at 32k. Short think → think → retry ties the check-matched think (−1.6 [−3.8, +0.4]) at
+94% of its tokens — no saving, OSS-P1 refuted, as for Qwen3-14B-AWQ and Qwen3-8B; low effort first loses to one medium think (−2.9
+[−5.7, −0.5] at 83%, OSS-P2 refuted); high effort is not the full think at this cap (TH→TH 45.8 vs T→T 66.3; 57% of its runs end at
+32k with no program; OSS-P4 refuted), so no 64k run (the mid-run rule). The mechanism differs from Qwen3-8B's: the forced final
+channel makes the cut think write a program (no program 2% vs 32%), and the loss is its leaks — 17 problem-seeds where a sample-passing
+cut-think program fails a hidden test and the full think is right, e.g. an "already zero → 0" case no example covers. The samples leak
+for gpt-oss too (OSS-P3: 24.4% of N's passing programs; SB 17.8%, T 21.0%); DART's honest-gate gap +5.1. Decision: the claim stands
+and names three families; no further gpt-oss code run. **Grader finding:** the official LiveCodeBench grader fails any program that
+does its work in an unjoined thread (`threading.Thread(target=main).start()`), since it returns before the thread prints; not in the
+project's issue tracker. Joining the threads (sensitivity, `LCB_JOIN=1`) turns 2 → 18 of gpt-oss's 77 threaded programs right and
+makes OSS-P2 a bare tie (−2.4 [−5.1, +0.2] at 83%, still 7.5 below T→T); Qwen3-14B-AWQ 71 threaded, no verdict changes; Qwen3-8B and
+Qwen3.5-9B write none. The official grade decides, as pre-registered; the claim reports both.
