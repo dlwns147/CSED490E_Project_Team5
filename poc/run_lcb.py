@@ -50,7 +50,8 @@ def main():
 
     def think(p, arm="think", effort=ET):
         o = chat(p["user"], system=p["system"], think=True, max_tokens=TK, temperature=0.7, seed=sd(p), effort=effort)
-        return arm, {"id": p["id"], "text": o["text"], "out_tokens": o["out_tokens"], "finish": o["finish"]}
+        return arm, {"id": p["id"], "text": o["text"], "out_tokens": o["out_tokens"], "finish": o["finish"],
+                     **{k: o[k] for k in ("empty_tail", "tool_calls") if k in o}}
 
     def thinkh(p):
         return think(p, "thinkh", EH)

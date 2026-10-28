@@ -45,6 +45,9 @@ def chat(prompt: str, model: str = "local", temperature: float = 0.7, max_tokens
         text = text.split("</think>")[-1]   # templates that open <think> in the prompt (Qwen3.5-arch models) emit only the closing tag
     out = {"text": strip_think(text), "finish": r.choices[0].finish_reason,
            "out_tokens": r.usage.completion_tokens, "in_tokens": r.usage.prompt_tokens}
+    if not out["text"].strip() and out["finish"] == "stop":   # LC-OSS smoke: a stopped reply with no answer — keep where the think ended
+        rc = getattr(msg, "reasoning_content", None) or getattr(msg, "reasoning", None) or ""
+        out.update(empty_tail=rc[-400:], tool_calls=len(getattr(msg, "tool_calls", None) or []))
     if logprobs:   # raw-model log-probs of the sampled tokens (vLLM default logprobs_mode=raw_logprobs), for confidence analysis
         lc = r.choices[0].logprobs.content or []
         out.update(lp=[t.logprob for t in lc], lp_tok=[t.token for t in lc])
@@ -105,6 +108,9 @@ def chat_msgs(msgs: list, model: str = "local", temperature: float = 0.7, max_to
     text = r.choices[0].message.content or ""
     out = {"text": strip_think(text), "finish": r.choices[0].finish_reason,
            "out_tokens": r.usage.completion_tokens, "in_tokens": r.usage.prompt_tokens}
+    if not out["text"].strip() and out["finish"] == "stop":   # LC-OSS smoke: a stopped reply with no answer — keep where the think ended
+        rc = getattr(msg, "reasoning_content", None) or getattr(msg, "reasoning", None) or ""
+        out.update(empty_tail=rc[-400:], tool_calls=len(getattr(msg, "tool_calls", None) or []))
     if logprobs:   # N16: raw log-probs of the sampled answer tokens
         lc = r.choices[0].logprobs.content or []
         out.update(lp=[t.logprob for t in lc], lp_tok=[t.token for t in lc])

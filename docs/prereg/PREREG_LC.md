@@ -187,3 +187,10 @@ and P2 refuted → no further run on code for gpt-oss.
 **Smoke (before the main runs; not part of the results).** seed 1, LCB_SUBSET=0/26 (7 problems), all four arms, graded and analysed in
 the same job: if an arm writes no rows, the harmony cut think's final channel holds no code where the full think does, or the effort
 levels do not change the think's length (low < medium < high), the harness is fixed before any main row.
+
+*LC-OSS smoke (2026-10-28 03:4x UTC, job 1265873, seed 1, 7 problems; not part of the results): every arm wrote 7 rows; the effort levels
+order the think (low 0.67k, medium 6.4k, high 12.4k tokens per problem); the cut medium think's forced final channel holds a program in
+7 / 7 (on the two hard problems it reasons across 9–12 code blocks for 2.7–3.2k tokens first, and the last block is a program that
+runs). One high-effort think on a hard problem stopped at 31,283 tokens with an empty final answer (no program: a visible failure, as
+graded); the client now keeps the end of the reasoning and any tool-call count for such replies so the main rows say why. S is not run
+(its rows hold an empty answer; S = N for gpt-oss and carries nothing). Main runs submitted: lcb_oss_s{1,2,3}.*
