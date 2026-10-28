@@ -269,3 +269,11 @@ while its T ends at the cap on ≥ 20% of its rows, the claim is not restated un
   the samples it is right, which is why N→T ties its think — against a think that is cut at 32k on 77% of hard problems. The hard
   problems carry 59–71% of every policy's tokens for all three models. No threaded programs for Qwen3-8B / Qwen3.5-9B; the
   thread-join sensitivity changes no LC-1 verdict.
+
+*64k rows from two jobs per seed (2026-10-28 16:3x UTC; no row graded, no 64k policy scored).* At 64k one 3090 holds 1–4 thinks
+at a time (KV cache 83,827 tokens), so after 6 h the three jobs had 63 / 58 / 54 of 182 problems, with the long ones ahead (119 left
+in seed 1, 67 of them cut at 32k before): about 12 more hours. A second job per seed (`lcb_q35g64r_s{1,2,3}`, 1271063–1271065,
+same model, server, preset, cap and per-problem sampling seed) takes the problems from the last one (`LCB_REVERSE=1`, rows
+q35g_think64r). **Rule (fixed now):** once a seed's two files together cover all 182 problems, both jobs of that seed stop; each
+problem keeps the first job's row if it has one, else the second job's, and the merged file is the q35g_think64 that is graded. The
+choice of row depends only on which job wrote it, never on its grade. Hardware only; no prediction or decision rule changes.

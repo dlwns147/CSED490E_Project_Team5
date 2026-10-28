@@ -9,7 +9,9 @@ usage: python run_lcb.py <tag> <seed>     (LCB_SUBSET=i/k: problems i, i+k, ... 
 gpt-oss (LC-OSS, PREREG_LC.md addendum): POC_HARMONY=1 makes SB the medium-effort think cut at 2,000 (harmony_budget_chat) and skips S
 (no non-thinking mode to ask); LCB_EFFORTS=low,medium,high sets the reasoning effort of N, T and the extra arm thinkh (TH, high effort,
 cap LCB_TK; LCB_ARMS=cheap,think,sb,thinkh). The 64k rerun (mid-run rule): LCB_ARMS=thinkh LCB_TK=64000 LCB_TH_NAME=thinkh64.
-LC-1 cap rule (Qwen3.5-9B's think at 64k): LCB_ARMS=think LCB_TK=64000 LCB_T_NAME=think64 (rows {tag}_think64)."""
+LC-1 cap rule (Qwen3.5-9B's think at 64k): LCB_ARMS=think LCB_TK=64000 LCB_T_NAME=think64 (rows {tag}_think64). A second job on
+another GPU takes the problems from the end (LCB_REVERSE=1, LCB_T_NAME=think64r); once the two files cover every problem both stop
+and each problem keeps the first job's row if it has one, else the second's (rows chosen by job, not by outcome)."""
 import json, os, sys, zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -38,6 +40,8 @@ def main():
     P = [json.loads(l) for l in open(DATA)]
     if os.environ.get("LCB_SUBSET"):
         i, k = map(int, os.environ["LCB_SUBSET"].split("/")); P = P[i::k]
+    if os.environ.get("LCB_REVERSE") == "1":
+        P = P[::-1]
     os.makedirs(RES, exist_ok=True)
     arms = os.environ.get("LCB_ARMS", "cheap,think,sb").split(",")
     path = {a: f"{RES}/{tag}_{ {'thinkh': TH, 'think': TN}.get(a, a)}_s{seed}.jsonl" for a in ("cheap", "think", "sb", "thinkh")
