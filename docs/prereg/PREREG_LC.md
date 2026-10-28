@@ -125,3 +125,30 @@ their rows stay as a record (tag q35) and are reported for their cap rate only. 
 - Qwen3.5-9B at the coding preset (stopped runs, tag q35; reported for the cap only): T cut at 32k on 102 / 224 (hard 70 / 95), SB's
   answer at its 4k cap on 122 / 204; its non-thinking program runs to the 4k cap on 93 / 207 (it reasons in plain text at length,
   2.3–2.4k tokens on average) — the general-preset runs keep the same non-thinking arm.
+
+## Interim 2: Qwen3-8B (2026-10-28 03:2x UTC; LC-P1 and LC-P3 are now decided, LC-P2 and LC-P4 wait for Qwen3.5-9B)
+3 seeds × 182 problems, bf16 on two 3090s (jobs 1265067, 1265728, 1265729):
+
+| N | SB | T | N→T | N→SB→T | SB→T→T | T→T | N→T\|hidden |
+|---|---|---|---|---|---|---|---|
+| 24.9% @ 0.50k | 35.5% @ 3.75k | 50.2% @ 14.52k | 48.9% @ 12.65k | 48.5% @ 13.78k | 52.0% @ 20.57k | 52.6% @ 20.09k | 50.7% @ 13.93k |
+
+- **LC-P1 refuted for this model** (−0.5 [−2.0, +0.7]: a tie, but at 102% of T→T's tokens), so **LC-P1 is refuted** (0 of 2; the third
+  model cannot make 2 of 3): short think → think → retry does not save on general contest code either. The cut think writes no program
+  on 173 of 546 problem-seeds (32%; Qwen3-14B-AWQ 11%): it keeps reasoning in comments inside the code block until its 4k answer cap,
+  on medium and hard problems, so the recipe pays for the cut think and the full one. Its leaks cost little here (9 problem-seeds where
+  the check-matched think was right, 6 the other way), because this model's cut-think programs leak less (17.8%).
+- **LC-P2 holds for this model:** N→T − T = −1.3 [−3.1, +0.2] at 87% of its tokens (the non-thinking program first, a tie at 87%;
+  Qwen3-14B-AWQ: −4.4 at 79%, refuted). Its full think is weaker and dearer (50.2% @ 14.5k vs 55.1% @ 13.2k), so the cheap first step
+  loses less; the saving sits on easy problems (N→T 93% @ 1.1k vs T 97% @ 3.9k) and on hard ones, where a passing N replaces a think that is
+  mostly wrong too (20% @ 18.5k vs 20% @ 20.0k).
+- **LC-P3 holds** (2 of 2): the samples leak 25.7% of N's passing programs (47 / 183), 17.8% of SB's (42 / 236), 33.7% of T's
+  (139 / 413). **LC-P4 refuted for this model:** N→T|hidden − N→T = +1.8 [+0.5, +3.5], under the 2.0 points.
+- How leaks fail (wrong answer / time limit / runtime error): N 26 / 19 / 2, SB 25 / 17 / 0, T 92 / 46 / 1; time limit is 40% of N's
+  and SB's leaks (36 / 89; with Qwen3-14B-AWQ 100 / 242, 41%), under the half that triggers the size check. The low-load re-grade (job
+  1265737) keeps 94 of 94 time limits. Raw: 3634's cut-think program pairs mirror letters with a stack but still pushes a matched
+  index (a wrong answer on an 8-letter hidden input); abc392_d again fails by digits only (the grader's exact float comparison).
+- Exploratory (as for Qwen3-14B-AWQ): gated on the hidden tests, SB→T→T|hidden 56.4% @ 26.1k vs T→T|hidden 56.0% @ 24.6k (106%);
+  N→T|hidden 50.7% @ 13.9k vs T 50.2% @ 14.5k.
+- Reported: S answers "yes" on 543 / 546. T is cut at 32k on 17 / 546; N runs out of its 4k on 16. Against the Qwen3 report (BF16,
+  LiveCodeBench v5): Qwen3-8B 57.5 thinking / 22.8 non-thinking; here 50.2 / 24.9 on 2025 problems.

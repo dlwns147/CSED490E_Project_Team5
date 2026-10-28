@@ -4088,3 +4088,13 @@ hidden-test gate would add +4.9 points. New against prior work: no study we foun
 HardTests (2505.24098) measures test-suite precision, not the samples a model can run. Exploratory: gated on the hidden tests, the
 recipe would still cost 105% of the check-matched think's tokens — a better check (ALGO's brute force, a size check) buys accuracy,
 not a saving, for this model. Qwen3.5-9B (general preset) and Qwen3-8B wait for GPUs; no decision until they are in.
+
+## 2026-10-28 03:21 UTC: LC-1 (PREREG_LC.md), Qwen3-8B: LC-P1 refuted — short thinking first does not save on general contest code
+Qwen3-8B (bf16), LiveCodeBench 2025, 3 seeds: short think → think → retry ties the check-matched think (−0.5 [−2.0, +0.7]) but at
+102% of its tokens; with Qwen3-14B-AWQ (−3.5 at 94%) LC-P1 is refuted whatever Qwen3.5-9B does. The two failures differ: Qwen3-14B's
+cut-think programs leak (27.8%), Qwen3-8B's often never arrive (32% keep reasoning in comments inside the code block to the 4k cap).
+The non-thinking program first ties thinking for Qwen3-8B (−1.3 [−3.1, +0.2] at 87%, LC-P2 holds for it; Qwen3-14B −4.4) — LC-P2
+waits for Qwen3.5-9B. LC-P3 holds (2 / 2): the samples leak 26–34% of N's passing programs and 31–34% of the full think's; 41% of
+the N / SB leaks are time limits (stable under a low-load re-grade), under the size-check trigger. DART's honest-gate gap is +1.8 for
+Qwen3-8B (+4.9 Qwen3-14B). Exploratory: a perfect check still leaves short-think-first at 105–106% of the check-matched think's tokens
+for both models — on contest code the full think's tokens sit on problems a 2k think does not solve, whatever the gate.
