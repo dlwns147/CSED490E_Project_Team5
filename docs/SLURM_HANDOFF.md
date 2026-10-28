@@ -14,7 +14,14 @@ State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Tea
   holds in 4 / 4; its trained budget is not a better first step).
 - **Done 10-27 12 UTC:** HO-4K (PREREG_HO.md addendum): a 4,000-token first think on Qwen3-14B-AWQ / Qwen3.5-9B / Qwen3-32B-AWQ
   (`k4_*` jobs) does not carry over (P1–P3 refuted); analysis `python3 poc/analyze_ho32.py --b4k q14a q35 q32b`.
-- **Running (since 10-27 16:3x UTC):** LC-1 (docs/prereg/PREREG_LC.md): LiveCodeBench, 182 problems from 2025, sample tests as the free
+- **Running (since 10-28 09:2x UTC):** the LC-1 cap rule: Qwen3.5-9B's think alone at 64k, jobs `lcb_q35g64_s{1,2,3}` (1268124–1268126;
+  `sbatch -J lcb_q35g64_s<seed> -x n19,n22 poc/slurm/job.sh 'bash poc/slurm/hon_lane.sh lcbg64 lcb <seed>'`, rows q35g_think64). Then
+  `$P poc/grade_lcb.py q35g` (CPU node; grades T64 too) and `LCB_THINK=think64 python3.11 poc/analyze_lcb.py q35g`: LC-P2 for
+  Qwen3.5-9B is N->T - T there (PREREG_LC.md, cap rule).
+- **Done 10-28 09 UTC:** LC-1 (all three models graded; results in PREREG_LC.md) and LC-OSS (gpt-oss-20b; results there). Grader
+  sensitivities: `LCB_RECHECK=1 LCB_WORKERS=4` (time limits at low load) and `LCB_JOIN=1` (threaded programs with threads joined;
+  `LCB_JOIN=1 python3.11 poc/analyze_lcb.py <tag>`). CPU nodes were full 10-28 07–08 UTC: 8 CPUs per grading job fit where 16 waited.
+- **Done (since 10-27 16:3x UTC):** LC-1 (docs/prereg/PREREG_LC.md): LiveCodeBench, 182 problems from 2025, sample tests as the free
   check, 32k thinks; is HO-CC's "contests need the full think" about contest code or the geometry set? Items `python3.11 -I
   poc/prep_lcb.py` (data in `$POC_DATA/lcb`: raw test5 / test6 from HF, official repo clone @28fef95); jobs `lcb_q14a_s{1,2,3}`
   (`lane.sh --vllm '--max-model-len 36864' Qwen/Qwen3-14B-AWQ lcb_q14a_s<seed> '$P poc/run_lcb.py q14a <seed>'`) and `lcb_q35_s{1,2,3}`

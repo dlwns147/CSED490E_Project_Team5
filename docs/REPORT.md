@@ -311,6 +311,20 @@ seeds, think at 32k): the retry transfers — thinking again when the program fa
 need the full think: Nemotron's is cut at 32k on 56% of them, and at 64k it solves 55.4% (58.5% with a retry), where short think → think
 → retry loses 3.1 [−4.8, −1.4] at 84% of the tokens (HO-CAP).
 
+**General contest code** (LC-1, LC-OSS; LiveCodeBench, 182 AtCoder / LeetCode problems from 2025, the check = the sample tests,
+LiveCodeBench's official grader, 3 seeds, thinks at 32k). The boundary holds on a second set and for four models from three families:
+short think → think → retry is never a saving against the check-matched think — Qwen3-8B −0.5 [−2.0, +0.7] at 102% of its tokens,
+Qwen3-14B-AWQ −3.5 [−5.7, −1.6] at 94%, Qwen3.5-9B −0.9 [−2.2, +0.4] at 100%, gpt-oss-20b (medium effort cut at 2k first) −1.6
+[−3.8, +0.4] at 94%. The failures differ: Qwen3-8B's cut think often writes no program (32%: it reasons in comments to the 4k cap),
+gpt-oss's forced final channel always does (2%) and its programs leak instead. The samples leak on contest code: 11–34% of the
+non-thinking programs that pass them fail a hidden test (wrong answers on small cases they miss, time limits on large inputs; 38% of
+leaks), and DART's hidden-test gate would add +1.6 to +5.1 points. The non-thinking program first ties one think for Qwen3-8B (−1.3 at
+87%) and Qwen3.5-9B (+1.1 at 85%) — the model whose samples hold (11% leak) — but Qwen3.5-9B's think is cut at 32k on 46% of problems,
+so that verdict waits for its think at 64k (running), and for gpt-oss low effort first loses to one medium think (−2.9 [−5.7, −0.5] at
+83%). High effort is not gpt-oss's full think at this cap: it ends at 32k with no program on 57% of runs. The official grader also fails
+any program that does its work in a thread it does not join (it returns before the thread prints); re-graded with the threads joined,
+gpt-oss's low-effort-first verdict becomes a bare tie (−2.4 [−5.1, +0.2]) and nothing else changes (PREREG_LC.md).
+
 ### 5.6c A label-free signal for the leak
 The open problem since the start was a label-free signal for when a program that passes the free check is wrong. Agreement *within* a
 mode fails (a model's cheap programs share their mistakes, HO-L); agreement *across* modes works. A non-thinking program that passes

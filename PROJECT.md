@@ -79,7 +79,10 @@ table: `docs/REPORT.md` §5.1):
   BWOR / LogiOR for Nemotron-3-Nano, a model from another family, whose failures there are formulations).
 - **Contest programming** (HO-CC, 311 Codeforces geometry problems, hidden tests): the retry on a visible failure transfers (+4.5 /
   +6.4 over one think; +3.1 at 64k); short think first is a trade there (Nemotron, uncapped 64k think: −3.1 at 84% of the tokens); the
-  non-thinking program first loses 5–8 points.
+  non-thinking program first loses 5–8 points. On general contest code (LC-1 / LC-OSS, LiveCodeBench 2025, four models, three
+  families) short think first is never a saving (94–102% of the check-matched think's tokens); the samples leak 11–34% of passing
+  non-thinking programs; the non-thinking program first ties one think for Qwen3-8B and Qwen3.5-9B (the latter waits for its think at
+  64k: cut at 32k on 46%) and loses for Qwen3-14B-AWQ and gpt-oss-20b.
 - **A label-free signal for when the passing cheap program is wrong** (HO-CC CC-P2; exploratory on word problems): run the same
   model's short-think program too and compare outputs (on the test inputs, or the printed value). On 311 contest problems a
   sample-passing non-thinking program that agrees is right 93–97% of the time, one that disagrees 19–34% (word problems: 78% vs 16%);
@@ -146,6 +149,10 @@ table: `docs/REPORT.md` §5.1):
 - Budget (HO-4K): 4,000 does not carry over to Qwen3-14B / Qwen3.5-9B / Qwen3-32B (mean utility −0.06, 5 / 12 cells); the default stays
   2,000. Open: a fixed 2,000 tokens still costs where full thinking is already short (tool calls, TC-1); the final report (draft
   `docs/REPORT.md`, format / length / deadline from the team).
+- **Contest code (LC-1, LC-OSS; 10-28)**: LiveCodeBench 2025, Qwen3-8B / Qwen3-14B-AWQ / Qwen3.5-9B / gpt-oss-20b: the contest
+  boundary holds on a second set and a third family (short think first: no saving, 0 / 4); the samples leak (P3 3 / 3, gpt-oss too);
+  cheap first ties one think for 2 / 3 Qwen models, pending Qwen3.5-9B's 64k think (the cap rule); an official-grader artifact
+  (unjoined threads) found and reported as a sensitivity.
 - Day-to-day state (running jobs, environment, evidence table): `docs/SLURM_HANDOFF.md`.
 
 ## 6. Documents
