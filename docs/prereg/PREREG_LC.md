@@ -194,3 +194,14 @@ order the think (low 0.67k, medium 6.4k, high 12.4k tokens per problem); the cut
 runs). One high-effort think on a hard problem stopped at 31,283 tokens with an empty final answer (no program: a visible failure, as
 graded); the client now keeps the end of the reasoning and any tool-call count for such replies so the main rows say why. S is not run
 (its rows hold an empty answer; S = N for gpt-oss and carries nothing). Main runs submitted: lcb_oss_s{1,2,3}.*
+
+*LC-OSS mid-run note (2026-10-28 04:4x UTC, before any oss20 row is graded; rows so far: s1 ≈ half, s2–s3 ≈ a fifth).* At the shared
+32k cap the high-effort think is cut on most hard problems: TH ends at the cap on 37 / 45 hard rows (82%, mean 30.3k tokens), 10 / 33
+medium, 1 / 56 easy; the medium think (T) on 2 / 66 hard (mean 7.5k), 2 / 46 medium, 0 / 60 easy. A capped think has no final channel,
+so it is graded as no program (a visible failure). Two medium thinks (of 167) stopped with an empty answer and reasoning that ends
+"Let's implement in python to test." / "We'll test all subarrays.": gpt-oss reaching for the python tool it was trained with and not
+given here (tool-call count 0: the call is not parsed). Both are graded as written. **Added rule (stated before grading; no rule above
+changes):** OSS-P4 is scored, and reported, as "high effort at the 32k cap". If OSS-P1 or OSS-P2 holds against T→T while TH ends at
+the cap on ≥ 20% of its rows, the claim is not restated until TH is rerun at a 64k cap (`--max-model-len 69632`, the same three
+seeds, tag oss20 arm thinkh64) and the policy that held is scored again against it as in OSS-P1 (both comparators): a cap-bound full
+think flatters a short one (HO-CAP). If P1 and P2 are refuted against T→T, the 64k run cannot change the claim and is not run.
