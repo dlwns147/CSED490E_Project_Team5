@@ -10,6 +10,8 @@
 Accuracy = pass@1 on sample + hidden tests (official grader). Utility = accuracy - 0.5 x ktokens. Paired 95% intervals over problems
 (seed means). Also the leak (passes the samples, fails hidden tests) of N / SB / T with how the first hidden test failed, and every
 policy by difficulty with its share of the tokens.
+LCB_JOIN=1 (sensitivity, not a rule): a threaded program's grade with its threads joined (grade_lcb.py LCB_JOIN) replaces the
+official one.
 LCB_THINK=thinkh (LC-OSS): gpt-oss's high-effort think (rows thinkh, grade TH) takes T's place in every policy (thinkh64: the same at a 64k cap).
 usage: python analyze_lcb.py [tag ...]   (default q8b q14a q35g — Qwen3.5-9B at the general preset, the amendment; LCB_SEEDS=1 for the smoke, where T->T reuses the same seed)"""
 import json, os, sys
@@ -23,6 +25,7 @@ RES = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
 ITEMS = os.path.join(os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nlp_data"), "lcb", "lcb_items.jsonl")
 POL = ("N", "T", "SB", "S", "N->T", "N->SB->T", "SB->T->T", "T->T", "N->T|hidden")
 LAM = 0.5
+JOIN = os.environ.get("LCB_JOIN") == "1"
 TARM = os.environ.get("LCB_THINK", "think"); TG = {"think": "T", "thinkh": "TH", "thinkh64": "TH64"}[TARM]
 
 
@@ -30,6 +33,8 @@ def cell(m, seeds=(1, 2, 3)):
     diff = {r["id"]: r["difficulty"] for r in map(json.loads, open(ITEMS))}
     per, tok, n, leak = {}, Counter(), Counter(), Counter()
     G = {s: json.load(open(f"{RES}/grades_{m}_s{s}.json")) for s in seeds if os.path.exists(f"{RES}/grades_{m}_s{s}.json")}
+    if JOIN:
+        G = {s: {i: {a: x.get("join", x) for a, x in g.items()} for i, g in Gs.items()} for s, Gs in G.items()}
     if len(G) < len(seeds):
         return None
     for s in seeds:

@@ -10,7 +10,11 @@ Code is extracted as LiveCodeBench does for chat models (between the last two li
 Runs in the project image on a CPU partition (the programs are untrusted; the grader disables os functions in a child process):
   sbatch -J lcb_grade -p cpu-max16,cpu-max10,cpu-max24 -q nogpu --gres=none --cpus-per-task=16 poc/slurm/job.sh '$P poc/grade_lcb.py q8b'
 usage: python grade_lcb.py <tag> [seeds]   -> results/lcb/grades_<tag>_s<seed>.json (resumes)
-  LCB_RECHECK=1 LCB_WORKERS=4: regrade the time-limit failures at low load (a graded program's 'recheck'; the grade is unchanged)"""
+  LCB_RECHECK=1 LCB_WORKERS=4: regrade the time-limit failures at low load (a graded program's 'recheck'; the grade is unchanged)
+  LCB_JOIN=1: regrade every program that uses threading with Thread.start joining the thread (a graded program's 'join'; the grade
+  is unchanged). The official grader runs the program as a function under patched stdin / stdout and returns when it returns, so a
+  program that does its work in a thread it does not join (threading.Thread(target=main).start(), a common contest idiom for a larger
+  stack) reads and prints after the patches are gone and fails whatever it computes; a judge waits for the thread."""
 import importlib.util, json, multiprocessing, os, sys
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
@@ -23,6 +27,14 @@ RES = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
 LCB = os.path.join(os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nlp_data"), "lcb")
 TIMEOUT = 6
 RECHECK = os.environ.get("LCB_RECHECK") == "1"
+JOIN = os.environ.get("LCB_JOIN") == "1"
+JOIN_PRELUDE = ("import threading as _lcb_th\n"
+                "if not getattr(_lcb_th.Thread.start, '_lcb_joined', False):\n"
+                "    def _lcb_sj(self, _s=_lcb_th.Thread.start):\n"
+                "        _s(self)\n"
+                "        self.join()\n"
+                "    _lcb_sj._lcb_joined = True\n"
+                "    _lcb_th.Thread.start = _lcb_sj\n")
 _spec = importlib.util.spec_from_file_location("lcb_testing_util", f"{LCB}/LiveCodeBench/lcb_runner/evaluation/testing_util.py")
 tu = importlib.util.module_from_spec(_spec); _spec.loader.exec_module(tu)
 
@@ -83,12 +95,17 @@ def main():
         if RECHECK:   # time-limit check: regrade every program that failed by time limit, at LCB_WORKERS (low load)
             todo = [((i, a), extract_code(rows[a][i])) for i, g in G.items() for a in g if (g[a]["err"] or "").endswith("-3")
                     and "recheck" not in g[a]]
+        if JOIN:   # thread check: regrade every program that uses threading, its threads joined (JOIN_PRELUDE)
+            todo = [((i, a), JOIN_PRELUDE + c) for i, g in G.items() for a in g if "join" not in g[a]
+                    for c in [extract_code(rows[a][i])] if "threading" in c]
         with ProcessPoolExecutor(workers) as ex:
             fus = [ex.submit(grade, k, c, T[k[0]]) for k, c in todo]
             for n, fu in enumerate(as_completed(fus), 1):
                 (i, a), g = fu.result()
                 if RECHECK:
                     G[i][a]["recheck"] = g
+                elif JOIN:
+                    G[i][a]["join"] = g
                 else:
                     G.setdefault(i, {})[a] = g
                 if n % 200 == 0:
@@ -99,6 +116,12 @@ def main():
             print(tag, s, f"time-limit recheck: {len(r)} programs, still time limit {sum(x['recheck']['err'] == x['err'] for x in r)}, "
                   f"now pass {sum(x['recheck']['ok'] for x in r)}, other {sum(x['recheck']['err'] not in (None, x['err']) for x in r)}",
                   flush=True)
+            continue
+        if JOIN:
+            for a in rows:
+                r = [G[i][a] for i in G if a in G[i] and "join" in G[i][a]]
+                print(tag, s, a, f"threaded programs {len(r)}: graded ok {sum(x['ok'] for x in r)} chk {sum(x['chk'] for x in r)}; "
+                      f"joined ok {sum(x['join']['ok'] for x in r)} chk {sum(x['join']['chk'] for x in r)}", flush=True)
             continue
         for a in rows:
             v = [G[i][a] for i in G if a in G[i]]
