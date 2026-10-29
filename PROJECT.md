@@ -128,6 +128,9 @@ table: `docs/REPORT.md` §5.1):
    **Hard method work, not easy or incremental work** (user, 2026-10-29: "don't do just easy or incremental things"). Offline
    re-analyses, audits, one more task type and "measure X first" stages are not the work; they may only serve a method track. Lead with
    the hard, risky method that could move the cost–accuracy frontier, build it, and report it even if it fails.
+   **Theory counts as evidence** (user, 2026-10-29): use mathematical / theoretical analysis where it helps, not only empirical tests —
+   derive what a method can reach (bounds, decompositions, optimal policies) before or alongside running it, and let the derivation
+   shape the design and the pre-registered predictions.
 3. **At least 3 seeds** for any positive claim; report seed means and, for comparisons, a 95% interval over problems; call a tie a tie.
 4. **Accuracy with its cost:** output tokens per problem always; input tokens where prompts differ in length.
 5. **Read the raw outputs**, not only scores; treat a surprising number as a harness bug until the raw programs say otherwise.

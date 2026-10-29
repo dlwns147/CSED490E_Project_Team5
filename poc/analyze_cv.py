@@ -5,7 +5,7 @@ SQL-1's T->T of the base model (T at seed s; where its query fails the check, T 
   c2  SQL-1's base query -> failed check: T->T; else the trained gate as cv
 Accuracy and output tokens per question (turn 2: 1 token), paired 95% intervals over questions (seed means), utility = acc - 0.5 x ktokens.
 usage: python analyze_cv.py [cv tag] [c1 tag] [c2 tag]   (default q8bcv q8bc1 q8bc2)"""
-import json, os, sys
+import json, os, random, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from analyze_ho3 import ci  # noqa: E402
@@ -38,7 +38,8 @@ def base(m="q8b"):
 
 
 def trained(tag, kind, B, tau=0.5):
-    """{(id, seed): (right, tokens, decision)} for a trained cascade; decision: accept / defer / fail (check) / turn1 (DEFER)"""
+    """{(id, seed): (right, tokens, decision, quick query right)} for a trained cascade; decision: accept / defer / fail (check) /
+    turn1 (DEFER)"""
     out = {}
     for s in (1, 2, 3):
         gp = f"{RES}/grades_{tag}_s{s}.json"
@@ -51,15 +52,15 @@ def trained(tag, kind, B, tau=0.5):
                 continue
             ok, (tt_ok, tt_tok) = G[r["id"]]["N"]["ok"], B[k]["T->T"]
             if r.get("dfr"):
-                out[k] = (tt_ok, r["n_tok"] + tt_tok, "turn1")
+                out[k] = (tt_ok, r["n_tok"] + tt_tok, "turn1", ok)
             elif r["c_n"] != "pass":
-                out[k] = (tt_ok, r["n_tok"] + tt_tok, "fail")
+                out[k] = (tt_ok, r["n_tok"] + tt_tok, "fail", ok)
             elif kind == "c1":
-                out[k] = (ok, r["n_tok"], "accept")
+                out[k] = (ok, r["n_tok"], "accept", ok)
             elif r.get("g_acc") is not None and r["g_acc"] >= tau:
-                out[k] = (ok, r["n_tok"] + 1, "accept")
+                out[k] = (ok, r["n_tok"] + 1, "accept", ok)
             else:
-                out[k] = (tt_ok, r["n_tok"] + 1 + tt_tok, "defer")
+                out[k] = (tt_ok, r["n_tok"] + 1 + tt_tok, "defer", ok)
     return out
 
 
@@ -119,6 +120,28 @@ def main():
         for tau in (0.1, 0.3, 0.5, 0.7, 0.9):
             a, t = summary({key: v for key, v in trained(tags[0], "cv", B, tau).items() if key[0] in ids})
             print(f"  frontier tau {tau}: {a:.1f}% @ {t:.2f}k")
+    for k in ("cv", "c2"):   # does the gate learn where the think fails? passing wrong quick queries, accept rate by T->T
+        if k in pol:
+            pw = [(v[2] == "accept", B[key]["T->T"][0]) for key, v in pol[k].items() if key[0] in ids and v[2] in ("accept", "defer")
+                  and not v[3]]
+            for t in (True, False):
+                x = [a for a, tt in pw if tt == t]
+                print(f"  {k} gate keeps {100 * sum(x) / max(1, len(x)):.0f}% of passing wrong quick queries where T->T is "
+                      f"{'right' if t else 'wrong'} (n {len(x)})")
+    if "cv" in pol and "c1" in pol:   # CV-P6: complementarity
+        byq = {}
+        for (i, s), v in pol["cv"].items():
+            if i in ids and (i, s) in pol["c1"]:
+                byq.setdefault(i, []).append((float(v[3]) - float(pol["c1"][(i, s)][3]), B[(i, s)]["T->T"][0]))
+
+        def did(qs):
+            w = [x for q in qs for x, t in byq[q] if not t]
+            r = [x for q in qs for x, t in byq[q] if t]
+            return 100 * (sum(w) / max(1, len(w)) - sum(r) / max(1, len(r)))
+        qs, rng = sorted(byq), random.Random(0)
+        bs = sorted(did([rng.choice(qs) for _ in qs]) for _ in range(2000))
+        print(f"*** CV-P6: (CV - C1) quick-query accuracy, T->T-wrong minus T->T-right %+.1f [%+.1f, %+.1f]: {bs[50] > 0}"
+              % (did(qs), bs[50], bs[1949]))
     for k in ("cv", "c1"):
         if k in pol:
             G = {}

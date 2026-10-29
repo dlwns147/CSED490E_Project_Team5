@@ -84,3 +84,35 @@ escalation T→T): 63.5% at 1.46k tokens, +4.2 [+3.4, +5.1] over T→T at 79% of
 wrong-but-passing queries escalate). So CV-P1's token bound (≤ 75% of T→T's tokens) cannot be met by a gate on unchanged drafts,
 even a perfect one: it needs the quick query itself to fail less or defer earlier (fewer escalations after a wasted query does not
 lower the bound; more right first queries does). The prediction is unchanged; C2 (a gate only) cannot satisfy P1 by construction.
+
+## Addendum (2026-10-29 11:5x UTC, before any CV row): theory of the cascade, a new prediction, and a correction to the note above
+
+**Model.** Per question x: the quick query is right with probability p(x) (on SQL-1 every right quick query passes the check); a wrong
+one passes the check with q(x); the gate accepts a right passing query with 1 − α, a wrong passing one with β; the escalation (T→T) is
+right with v(x) and costs c(x) tokens; the quick query costs k(x). Then
+- (1) accuracy A = E[ v + p(1−α)(1−v) − (1−p)·q·β·v ];
+- (2) tokens K = E[ k + c·(p·α + (1−p)(1 − q·β)) ].
+Against always escalating (T→T: A = E v, K = E c) the cascade gains p(1−α)(1−v) — the quick query right where the think is wrong
+(*complementarity*) — and loses (1−p)qβv — the quick query wrong, check and gate blind, the think would be right (*the blind spot*); it
+saves c on every question it does not escalate.
+- (3) ∂A/∂p(x) = (1−α)(1−v) + qβv and ∂K/∂p(x) = −c(1 − α − qβ). Plain RL (C1) weights every question 1; the cascade objective weights a
+  question by how often the think fails on it (plus the leak while the gate is blind) and its token term by the think's cost there.
+  With a good gate, making the quick query right where the think is right buys only tokens, no accuracy.
+
+**Ceilings on SQL-1's base queries** (Qwen3-8B, 4,590 question-seeds, realised v ∈ {0, 1}; computed with `poc/analyze_cv.py`'s base()):
+- P(quick right ∧ T→T wrong) = 4.2%: no gate on these queries can add more than +4.2 points over T→T (the oracle: 63.5%).
+- Escalating exactly the wrong queries costs 79% of T→T's tokens because the questions the quick query gets right are the think's
+  cheap ones: 46.0% of the questions, 24.9% of T→T's tokens (mean 1,001 vs 1,851); the quick queries add 3.9%. In general a cascade
+  that escalates every wrong quick answer spends ≥ 1 − S + k̄/c̄ of the think's tokens, S = the think-token share of the questions the
+  quick answer gets right.
+- **Correction to the note above** (it said a gate on unchanged queries cannot meet CV-P1's token bound): a gate that also keeps the
+  wrong queries on questions where the think is wrong too loses nothing and reaches the same 63.5% at 0.94k, 51% of T→T's tokens.
+  19.5% of the quick queries fail the check; their questions hold 37.9% of T→T's tokens and T→T is right on only 34.3% of them. The
+  token lever is predicting where the think fails, not only whether the quick query is right; C2 can meet P1 if its gate learns that.
+  With λ = 0.005 per 1k tokens, keeping a wrong query gains only λc ≈ 0.01 where the think fails and loses 1 where it would succeed, so
+  a trained gate keeps one only when nearly sure the think fails (expected: tokens well above 51%).
+
+**New prediction from (3)** (no other prediction changes):
+- **CV-P6 (complementarity):** on dev, CV's quick query gains more over C1's on the questions where SQL-1's T→T is wrong than on those
+  where it is right: mean (CV − C1) quick-query accuracy on T→T-wrong question-seeds minus on T→T-right ones, bootstrap over questions,
+  lower bound > 0. Reported with it: each gate's accept rate on passing wrong queries split by T→T right / wrong.
