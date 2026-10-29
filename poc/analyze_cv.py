@@ -4,7 +4,7 @@ SQL-1's T->T of the base model (T at seed s; where its query fails the check, T 
   c1  quick query (adapter, plain RL) -> failed check: T->T
   c2  SQL-1's base query -> failed check: T->T; else the trained gate as cv
 Accuracy and output tokens per question (turn 2: 1 token), paired 95% intervals over questions (seed means), utility = acc - 0.5 x ktokens.
-usage: python analyze_cv.py [cv tag] [c1 tag] [c2 tag]   (default q8bcv q8bc1 q8bc2)"""
+usage: python analyze_cv.py [cv tag] [c1 tag] [c2 tag]   (default q8bcv q8bcvc1 q8bcvc2)"""
 import json, os, random, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -78,7 +78,7 @@ def summary(rows):
 
 
 def main():
-    tags = (sys.argv[1:] + ["q8bcv", "q8bc1", "q8bc2"][len(sys.argv[1:]):])[:3]
+    tags = (sys.argv[1:] + ["q8bcv", "q8bcvc1", "q8bcvc2"][len(sys.argv[1:]):])[:3]
     B = base()
     pol = {k: {key: v[k] for key, v in B.items()} for k in ("T", "T->T", "SB->T->T", "N->T->T")}
     for kind, tag in zip(("cv", "c1", "c2"), tags):

@@ -108,6 +108,14 @@ def think_values(tag="q8btrain"):
     return V
 
 
+def retry_ids(path, tag="q8btrain"):
+    """the training questions whose seed-1 think fails the check (they get the retry think, seed 2)"""
+    G = json.load(open(f"{RES}/grades_{tag}_s1.json"))
+    ids = [i for i, g in G.items() if i != "_gold_fail" and "T" in g and g["T"]["chk"] != "pass"]
+    open(path, "w").write("\n".join(ids) + "\n")
+    print(len(ids), "of", len(G) - 1, "training thinks fail the check: retry ids in", path, flush=True)
+
+
 class Policy:
     """Qwen3-8B + LoRA on one GPU; log-probs of completions after a prompt whose keys / values carry no gradient"""
 
