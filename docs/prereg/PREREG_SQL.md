@@ -60,3 +60,11 @@ check and the grade run, gold queries execute within 30 s; fixes to format or ex
 failed; the client's check and the grader's agree on all 52 N rows). One setting is taken from LC-1's q35g, as the Run paragraph says:
 Qwen3.5-9B's cut think runs at the card's general preset like its full think (`POC_BUDGET_CARD=1`; the smoke's ran at the harness
 sampling). No prediction or rule changes. Full runs: jobs 1273839–1273853 (docs/SLURM_HANDOFF.md).
+
+*Environment note (2026-10-29 03:2x UTC; before any policy is scored).* The container's SQLite (3.49.1, image nlp_project:261021) runs
+both the client's check and the grader. It rejects double-quoted string literals (`name = "Ancestor's Chosen"` → "no such column"),
+and three gold queries that take 0.1 s on SQLite 3.34.1 (the login node) pass 30 s there. So in Qwen3-8B seed 1, 4 of 1,534
+questions are left out as the grader rule says (gold 359: the quoting; 518, 701, 1131: timeouts). The same SQLite also rejects model
+queries on these grounds: of 4,875 graded queries, 3 had the quoting error and 12 timed out. The check and the grade see the same
+SQLite (they differ on 1 of 1,530 N rows), so the policies are compared under one environment. Accuracy can be up to ~0.3 points
+lower than under a SQLite that accepts double quotes. No prediction or rule changes.
