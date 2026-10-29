@@ -34,12 +34,14 @@ PILOT = "--pilot" in sys.argv
 ROWS = {}   # --pilot: (tag, seed) -> one {policy: (right, tokens)} per problem
 
 
-def pilot(rows, pols, default, reps=1000, ks=(10, 30, 100)):
+def pilot(rows, pols, default, reps=1000, ks=(10, 30, 100), alt=None):
     """PX (PREREG_MODEL.md): HO-P's k-label pilot on cells {(model, ..., seed): [{policy: (right, tokens)}]}: the policy with the best
     utility on k random problems of a cell, scored on the whole cell; regret = the cell's best utility - the pick's (1,000 pilots per
     cell). Prints, per lambda, the pilot's mean regret, always using each policy, the best policy per cell and the k = 30 regret by model.
     PX2: on the same draws, the conservative pilot keeps the default unless the policy with the largest mean paired utility gain over it
-    beats it by z x SE (one-sided 5%, Bonferroni over the other policies; z = 1.645 as a sensitivity)."""
+    beats it by z x SE (one-sided 5%, Bonferroni over the other policies; z = 1.645 as a sensitivity).
+    SQL-P7 (alt, PREREG_SQL.md): the label-free token switch — on the same k problems keep the default unless it used more output tokens
+    than `alt` there, else `alt` (no labels: tokens and check outcomes only)."""
     import random
     from statistics import NormalDist
     rng = random.Random(0)
@@ -55,18 +57,22 @@ def pilot(rows, pols, default, reps=1000, ks=(10, 30, 100)):
 
     for lam in (0.0, 0.5, 2.0):
         reg, fixed, best, by_model = {k: [] for k in ks}, {p: [] for p in pols}, Counter(), {}
-        creg = {(k, z): [] for k in ks for z in zs}; sw = {(k, z): [] for k in ks for z in zs}
+        creg = {(k, z): [] for k in ks for z in zs}; sw = {(k, z): [] for k in ks for z in zs}; treg = {k: [] for k in ks}
         for name, R in rows.items():
             Uf = U(R, lam); b = max(Uf, key=Uf.get); best[b] += 1
             for p in pols:
                 fixed[p].append(Uf[b] - Uf[p])
             for k in ks:
-                r, c = [], {z: [] for z in zs}
+                r, c, tr = [], {z: [] for z in zs}, []
                 for _ in range(reps):
                     S = rng.sample(R, min(k, len(R))); Up = U(S, lam); r.append(Uf[b] - Uf[max(Up, key=Up.get)])
+                    if alt:
+                        tr.append(Uf[b] - Uf[alt if sum(x[default][1] for x in S) > sum(x[alt][1] for x in S) else default])
                     for z in zs:
                         q = cons(S, lam, z); c[z].append(Uf[b] - Uf[q]); sw[(k, z)].append(q != default)
                 reg[k].append(sum(r) / len(r))
+                if alt:
+                    treg[k].append(sum(tr) / len(tr))
                 for z in zs:
                     creg[(k, z)].append(sum(c[z]) / len(c[z]))
                 if k == 30:
@@ -77,6 +83,7 @@ def pilot(rows, pols, default, reps=1000, ks=(10, 30, 100)):
         print(f"  lambda {lam}: {len(rows)} cells | pilot regret " + ", ".join(f"k={k} {mean(v):.2f}" for k, v in reg.items())
               + " | conservative (z " + "/".join(f"{z:.2f}" for z in zs) + ") " + ", ".join(
                   f"k={k} {mean(creg[(k, zs[0])]):.2f}/{mean(creg[(k, zs[1])]):.2f} (switch {100 * mean(sw[(k, zs[0])]):.0f}%/{100 * mean(sw[(k, zs[1])]):.0f}%)" for k in ks)
+              + (" | token switch to " + alt + " " + ", ".join(f"k={k} {mean(v):.2f}" for k, v in treg.items()) if alt else "")
               + f" | always: " + ", ".join(f"{p} {v:.2f}" for p, v in fx.items()) + f" | best per cell {dict(best)}"
               + " | k=30 by model (pilot / conservative / default) " + ", ".join(
                   f"{m} {mean(v['pilot']):.2f}/{mean(v['cons']):.2f}/{mean(v['default']):.2f}" for m, v in by_model.items()))
@@ -87,6 +94,10 @@ def pilot(rows, pols, default, reps=1000, ks=(10, 30, 100)):
             print(f"  *** PX2: k=30 conservative {c30:.2f} | in-sample bound min(default, pilot) + 0.25 = {min(fx[default], p30) + 0.25:.2f} "
                   f"(PX2-2 {c30 <= min(fx[default], p30) + 0.25}) | by model, conservative <= pilot and <= default (PX2-1): " + ", ".join(
                       f"{m} {mean(v['cons']) <= mean(v['pilot']) and mean(v['cons']) <= mean(v['default'])}" for m, v in by_model.items()))
+            if alt:
+                t30 = mean(treg[30])
+                print(f"  *** SQL-P6: always {default} {fx[default]:.2f} < k=30 pilot {p30:.2f}: {fx[default] < p30} | SQL-P7: token switch {t30:.2f} "
+                      f"<= {fx[default]:.2f} + 0.1: {t30 <= fx[default] + 0.1}")
 
 
 def cell(m, seeds=(1, 2, 3)):
