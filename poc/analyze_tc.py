@@ -10,6 +10,8 @@ and seed (tokens = every call's output tokens; s' = the next seed, s mod 3 + 1):
   SB->T|ag              N and SB; T where the check fails on SB or N's calls differ from SB's (else SB)
 Utility = accuracy - 0.5 x ktokens. Paired 95% intervals over items (seed means). Cells: model x {non-live, live}. Also: the check's
 power (share of wrong N it fails) and false alarms (share of right N it fails), agreement rates, oracle(N, T), per-category accuracy.
+--pilot (PX, PREREG_MODEL.md): HO-P's k-label pilot over every policy but the oracle, one cell per model x split x seed
+(analyze_lcb.pilot).
 usage: python analyze_tc.py [model ...]   (default q8b q14a q35)"""
 import json, os, sys
 from collections import Counter
@@ -22,6 +24,7 @@ RES = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
 DATA = os.path.join(os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nlp_data"), "bfcl", "tc_items.jsonl")
 POL = ("N", "T", "SB", "S", "N->T", "SB->T", "T->T", "2N->T", "N->T|ag", "SB->T|ag")
 LAM = 0.5
+ROWS = {}   # --pilot: (m, split, seed) -> one {policy: (right, tokens)} per item
 NONLIVE = ("simple_python", "multiple", "parallel", "parallel_multiple", "irrelevance")
 
 
@@ -64,6 +67,7 @@ def cell(m, split, cats):
                    "SB->T|ag": ((ok["T"], nt + st + tt) if fs or not agree_ns else (ok["SB"], nt + st)),
                    "oracle": (ok["N"] or ok["T"], nt + tt)}
             per.setdefault(i, []).append({k: bool(v[0]) for k, v in res.items()})
+            ROWS.setdefault((m, split, s), []).append({k: (bool(v[0]), v[1]) for k, v in res.items() if k != "oracle"})
             for k, v in res.items():
                 tok[k] += v[1]
             for a in ("N", "T", "SB"):
@@ -145,6 +149,10 @@ def main():
             score["P5"] += acc["SB->T"] >= acc["T"] - 1.0 and u["SB->T"] >= u["T"]
     print(f"*** {cells} cells: TC-P1 {score['P1']}; TC-P2 {score['P2']}; TC-P3 {score['P3']}; TC-P4 {score['P4']}; TC-P5 {score['P5']}")
 
+    if "--pilot" in sys.argv:
+        from analyze_lcb import pilot
+        print("PX pilot, tool calls:")
+        pilot(ROWS, list(POL), "SB->T")
 
 if __name__ == "__main__":
     main()

@@ -22,7 +22,9 @@ medium-effort think cut at 2,000 tokens instead of low effort closes its gap to 
 (tie at 69–83% of the tokens); on Qwen3-32B the order holds unchanged (best utility in 3 of 4 cells; HO-32), and on Seed-OSS-36B, a
 fourth family, in all 4 (HO-SEED; its own trained thinking budget overruns 2,048 tokens and is not a better first step). Without labels the best
 fixed order over 54 cells of four hybrid-thinking models is short think → full think → retry on a visible failure (1.74 utility points
-below each cell's best; one think: 7.64); 30 labelled problems choose per cell within 1.35. Where the check is perfect (Lean proofs) the
+below each cell's best; one think: 7.64); 30 labelled problems choose per cell within 1.35, but on three task types they were not
+developed on the no-label default does as well or better (tool calls 0.23 vs 1.96, instructions 0.92 vs 1.77) except on contest code
+(3.07 vs 1.29; PX). Where the check is perfect (Lean proofs) the
 rule becomes "sample cheaply, then think"; where it leaks, it bounds label-free self-training as it bounds the recipe.
 
 ## 1. Introduction
@@ -230,6 +232,11 @@ cell's best, against 3.99 for always thinking with the fact and 5.17 for repair-
 (§5.6) changes this: over 54 cells of the four hybrid-thinking models it is the best policy in 28 and the three-step cascade (non-thinking
 program, then short thinking, then full) in 12; always using short thinking first loses 1.47 to each cell's best, where the best other
 fixed policy loses 5.8, and adding the two to the 30-label pilot raises its utility by +2.1 per cell (regret 1.19; HO-P4).
+On the three task types the pilot was not developed on (PX, pre-registered, 48 cells, each type's whole menu of about ten policies) it
+does not carry over: it loses 1.29 / 1.96 / 1.77 points to each cell's best on contest code / tool calls / instructions, where always
+using the default order (short think, full think on a visible failure) loses 3.07 / 0.23 / 0.92. Picking the best of ten close policies
+on 30 labels costs about two points of selection noise (the optimizer's curse), so the labels pay only where the default is wrong by
+more — contest code, where one plain think does as well as the pilot (1.24); 100 labels bring it to 0.25 / 0.74 / 0.82.
 
 ### 5.6 Larger models, stronger checks, shorter thinking
 - **gpt-oss-120b** (4 × RTX 3090, tensor parallel): fact-first ties thinking with the same fact on OptiBench, BWOR and LogiOR (−1.0, +3.7,
@@ -462,7 +469,8 @@ including to thinking, whose visibly failed programs are worth a second think. W
 pass (gpt-oss, Qwen3.5-9B) a non-thinking program first is the cheap end of the frontier; where they leak (Qwen3 at 8–32B, Nemotron-3-Nano, and
 gpt-oss-20b on the hardest word problems, where medium effort cut at 2k replaces low effort) the first program should come after a short
 think (2,000 tokens; 4,000 for the leakiest models), which never lost to one full think in 14 unseen cells and closed the worst
-one (Qwen3-8B geometry). Without labels, short think → think → retry is the best fixed order over 54 cells; 30 labels choose per cell, and
+one (Qwen3-8B geometry). Without labels, short think → think → retry is the best fixed order over 54 cells and on tool calls and
+instructions; 30 labels pay only where it is wrong (contest code: one full think first; PX), and
 agreement between the non-thinking and the short-think program flags the leak without any label (93–97% right when they agree on
 contest problems). Where every model misreads the same statement (OptMATH: underspecified job-shop problems, direction-dependent pair
 values) no label-free check can help; there the statement, not the check, is the limit. Two extensions point past it: where the check is perfect (formal proofs) the rule becomes

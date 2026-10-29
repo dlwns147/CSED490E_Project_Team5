@@ -14,7 +14,9 @@ LCB_JOIN=1 (sensitivity, not a rule): a threaded program's grade with its thread
 official one.
 LCB_THINK=thinkh (LC-OSS): gpt-oss's high-effort think (rows thinkh, grade TH) takes T's place in every policy (thinkh64: the same at a 64k cap;
 think64: the think at a 64k cap, the LC-1 cap rule).
-usage: python analyze_lcb.py [tag ...]   (default q8b q14a q35g — Qwen3.5-9B at the general preset, the amendment; LCB_SEEDS=1 for the smoke, where T->T reuses the same seed)"""
+--pilot (PX, PREREG_MODEL.md): HO-P's k-label pilot over the deployable policies (N->T|hidden out), one cell per model x seed; a tag may
+name its think arm (q35g:think64, the LC-1 verdict think).
+usage: python analyze_lcb.py [tag[:arm] ...]   (default q8b q14a q35g — Qwen3.5-9B at the general preset, the amendment; LCB_SEEDS=1 for the smoke, where T->T reuses the same seed)"""
 import json, os, sys
 from collections import Counter
 
@@ -27,7 +29,36 @@ ITEMS = os.path.join(os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nl
 POL = ("N", "T", "SB", "S", "N->T", "N->SB->T", "SB->T->T", "T->T", "N->T|hidden")
 LAM = 0.5
 JOIN = os.environ.get("LCB_JOIN") == "1"
-TARM = os.environ.get("LCB_THINK", "think"); TG = {"think": "T", "thinkh": "TH", "thinkh64": "TH64", "think64": "T64"}[TARM]
+TARM = os.environ.get("LCB_THINK", "think"); TGS = {"think": "T", "thinkh": "TH", "thinkh64": "TH64", "think64": "T64"}; TG = TGS[TARM]
+PILOT = "--pilot" in sys.argv
+ROWS = {}   # --pilot: (tag, seed) -> one {policy: (right, tokens)} per problem
+
+
+def pilot(rows, pols, default, reps=1000, ks=(10, 30, 100)):
+    """PX (PREREG_MODEL.md): HO-P's k-label pilot on cells {(model, ..., seed): [{policy: (right, tokens)}]}: the policy with the best
+    utility on k random problems of a cell, scored on the whole cell; regret = the cell's best utility - the pick's (1,000 pilots per
+    cell). Prints, per lambda, the pilot's mean regret, always using each policy, the best policy per cell and the k = 30 regret by model."""
+    import random
+    rng = random.Random(0)
+    U = lambda R, lam: {p: 100 * sum(r[p][0] for r in R) / len(R) - lam * sum(r[p][1] for r in R) / len(R) / 1000 for p in pols}
+    for lam in (0.0, 0.5, 2.0):
+        reg, fixed, best, by_model = {k: [] for k in ks}, {p: [] for p in pols}, Counter(), {}
+        for name, R in rows.items():
+            Uf = U(R, lam); b = max(Uf, key=Uf.get); best[b] += 1
+            for p in pols:
+                fixed[p].append(Uf[b] - Uf[p])
+            for k in ks:
+                r = [Uf[b] - Uf[max(Up, key=Up.get)] for Up in (U(rng.sample(R, min(k, len(R))), lam) for _ in range(reps))]
+                reg[k].append(sum(r) / len(r))
+                if k == 30:
+                    by_model.setdefault(name[0], []).append(sum(r) / len(r))
+        fx = {p: sum(v) / len(v) for p, v in fixed.items()}; bf = min(fx, key=fx.get); p30 = sum(reg[30]) / len(reg[30])
+        print(f"  lambda {lam}: {len(rows)} cells | pilot regret " + ", ".join(f"k={k} {sum(v) / len(v):.2f}" for k, v in reg.items())
+              + f" | always: " + ", ".join(f"{p} {v:.2f}" for p, v in fx.items()) + f" | best per cell {dict(best)}"
+              + f" | k=30 by model " + ", ".join(f"{m} {sum(v) / len(v):.2f}" for m, v in by_model.items()))
+        if lam == 0.5:
+            print(f"  *** PX: k=30 pilot {p30:.2f} | default {default} {fx[default]:.2f} (PX-1 {p30 < fx[default]}) | PX-2 {p30 <= 1.5} | "
+                  f"best fixed {bf} {fx[bf]:.2f} (PX-3 {p30 < fx[bf]})")
 
 
 def cell(m, seeds=(1, 2, 3)):
@@ -59,6 +90,7 @@ def cell(m, seeds=(1, 2, 3)):
                    "T->T": ((ok["T"], tt) if ck["T"] else (g2["T"]["ok"], tt + t2t)),
                    "N->T|hidden": ((True, nt) if ok["N"] else (ok["T"], nt + tt))}
             per.setdefault(i, []).append({k: bool(v[0]) for k, v in res.items()})
+            ROWS.setdefault((m, s), []).append({k: (bool(v[0]), v[1]) for k, v in res.items()})
             for k, v in res.items():
                 tok[k] += v[1]; tok[(k, diff[i])] += v[1]
             n["all"] += 1; n[diff[i]] += 1
@@ -70,8 +102,11 @@ def cell(m, seeds=(1, 2, 3)):
 
 
 def main():
+    global TARM, TG
     score = Counter(); cells = 0
-    for m in [a for a in sys.argv[1:] if not a.startswith("--")] or ["q8b", "q14a", "q35g"]:
+    for a in [a for a in sys.argv[1:] if not a.startswith("--")] or ["q8b", "q14a", "q35g"]:
+        m, _, arm = a.partition(":")
+        TARM = arm or os.environ.get("LCB_THINK", "think"); TG = TGS[TARM]
         r = cell(m, tuple(int(x) for x in os.environ.get("LCB_SEEDS", "1,2,3").split(",")))
         if not r or not r[2]["all"]:
             print(f"=== {m}: no complete rows"); continue
@@ -102,6 +137,9 @@ def main():
         score["P3"] += leak[("N", "leak")] >= 0.10 * leak[("N", "chk")]
         score["P4"] += acc["N->T|hidden"] >= acc["N->T"] + 2.0
     print(f"*** {cells} models: LC-P1 {score['P1']}; LC-P2 {score['P2']}; LC-P3 {score['P3']}; LC-P4 {score['P4']} (each needs >= 2 of 3)")
+    if PILOT:
+        print("PX pilot, contest code:")
+        pilot(ROWS, [p for p in POL if p != "N->T|hidden"], "SB->T->T")
 
 
 if __name__ == "__main__":

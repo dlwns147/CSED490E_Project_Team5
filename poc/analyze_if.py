@@ -9,6 +9,8 @@ grader, prompt level = every instruction followed). Per prompt and seed (tokens 
   T->T                  the check-matched think: T; the next seed's T where the checker fails on T
 Utility = accuracy - 0.5 x ktokens. Paired 95% intervals over prompts (seed means). Also the checker: share that runs, its false
 passes (passes N, the grader fails it) and false alarms (fails N, the grader passes it), and oracle(N, T) as a diagnostic.
+--pilot (PX, PREREG_MODEL.md): HO-P's k-label pilot over every policy but the oracle, one cell per model x benchmark x seed
+(analyze_lcb.pilot).
 usage: python analyze_if.py [model ...]   (default q8b q14a q35)"""
 import json, os, sys
 
@@ -19,6 +21,7 @@ from run_nlopt import _rows  # noqa: E402
 RES = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "results", "if")
 POL = ("N", "T", "SB", "S", "N->T", "N->R", "N->R->T", "SB->T", "T->T")
 LAM = 0.5
+ROWS = {}   # --pilot: (m, b, seed) -> one {policy: (right, tokens)} per item
 
 
 def cell(m, b):
@@ -52,6 +55,7 @@ def cell(m, b):
                    "T->T": ((t2, ct + tt + t2t) if ft else (g["T"], ct + tt)),
                    "oracle": (g["N"] or g["T"], nt + tt)}
             per.setdefault(i, []).append({k: bool(v[0]) for k, v in res.items()})
+            ROWS.setdefault((m, b, s), []).append({k: (bool(v[0]), v[1]) for k, v in res.items() if k != "oracle"})
             for k, v in res.items():
                 tok[k] += v[1]
     return per, tok, n, ck
@@ -82,6 +86,10 @@ def main():
             score["P5"] += u["N->T"] >= u["T->T"]
     print(f"*** {cells} cells: IF-P1 {score['P1']}; IF-P2 {score['P2']}; IF-P3 {score['P3']}; IF-P4 {score['P4']}; IF-P5 {score['P5']}")
 
+    if "--pilot" in sys.argv:
+        from analyze_lcb import pilot
+        print("PX pilot, instructions:")
+        pilot(ROWS, list(POL), "SB->T")
 
 if __name__ == "__main__":
     main()

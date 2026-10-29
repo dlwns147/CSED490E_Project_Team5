@@ -19,7 +19,8 @@ all numbers: `PROPOSAL.md` (Korean: `PROPOSAL_ko.md`). The lab log: `docs/FINDIN
 
 Recipe: give the fact → short think → program → free check → full think only on a visible failure → think again once on failure. Honest
 summary: against a baseline that also thinks again on failure, the recipe is the cheap end of a cost–accuracy trade-off, not a free win;
-30 labelled problems choose the setting for a new task.
+without labels short think first is the default (0.2–1.5 points below each cell's best on four task types), and labels mainly tell a
+contest-like task, where one full think should go first, from the rest (PX: 30 labels add about two points of selection noise elsewhere).
 
 ## 1. Goal
 
@@ -74,7 +75,10 @@ table: `docs/REPORT.md` §5.1):
   the self-review gate is the best fixed policy for the leaky Qwen models (regret 2.52 vs 3.99 for always thinking with the fact; HO-P3).
   On Nemotron-3-Nano the pilot loses 1.05, and two agreeing cheap programs are the best fixed policy (0.80; HO-N4). With short thinking
   first in the menu (HO-P4, 54 cells of the four hybrid-thinking models): always using it loses 1.47 to each cell's best (other fixed
-  policies ≥ 5.8), the 30-label pilot 1.19, and the menu gains +2.1 per cell.
+  policies ≥ 5.8), the 30-label pilot 1.19, and the menu gains +2.1 per cell. On the three task types it was not developed on (PX,
+  48 cells) the pilot loses 1.29 / 1.96 / 1.77 (contest code / tool calls / instructions) and the no-label default 3.07 / 0.23 / 0.92:
+  among ten close policies 30 labels add about two points of selection noise, so they pay only where the default is wrong (contest code,
+  where one plain think, 1.24, does as well); 100 labels: 0.25 / 0.74 / 0.82.
 - The label-free library of checked programs raises the first program in 25 of 29 model × benchmark cells (up to +34 points; not on
   BWOR / LogiOR for Nemotron-3-Nano, a model from another family, whose failures there are formulations).
 - **Contest programming** (HO-CC, 311 Codeforces geometry problems, hidden tests): the retry on a visible failure transfers (+4.5 /

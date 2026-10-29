@@ -273,3 +273,25 @@ close, so the pilot's regret is small but a fixed N→T may be as good (PX-3 at 
 refuted → on the new types the recipe's default order is as good as the pilot and the bullet says so. PX-2 refuted → the bullet gives
 the number of labels the new types need (k = 100's regret). PX-3 is reported with the fixed policy that matches the pilot, if any.
 PROPOSAL / PROPOSAL_ko change only if the pilot's statement changes.
+
+### Results PX (2026-10-29 01:2x UTC; one CPU job, `analyze_lcb.py --pilot q8b q14a q35g:think64 oss20`, `analyze_tc.py --pilot`, `analyze_if.py --pilot`; logs results/px/; 48 cells, 1,000 pilots per cell, run once)
+| task type (cells) | best per cell, λ = 0.5 | 30-label pilot | default order (always) | best fixed (always) | pilot k = 10 / 100 |
+|---|---|---|---|---|---|
+| contest code (12) | T→T 4, S 2, SB→T→T 2, T 2, N→T 2 | **1.29** | SB→T→T 3.07 | T 1.24 (T→T 1.42, N→T 2.49) | 3.46 / 0.25 |
+| tool calls (18) | SB→T 10, T→T 5, N→T\|ag 2, SB→T\|ag 1 | **1.96** | SB→T **0.23** | SB→T 0.23 (T→T 0.49) | 4.14 / 0.74 |
+| instructions (18) | N→R→T 8, SB→T 5, SB 5 | **1.77** | SB→T **0.92** | SB→T 0.92 (N→R→T 1.33) | 3.21 / 0.82 |
+- **PX-1 refuted (1 / 3):** the pilot beats the default order only on contest code (1.29 vs 3.07); on tool calls and instructions always
+  using short think → think on a visible failure loses less than choosing from 30 labels (0.23 vs 1.96; 0.92 vs 1.77).
+- **PX-2 refuted (1 / 3):** the pilot's regret is ≤ 1.5 only on contest code; 100 labels bring it to 0.74 / 0.82, still not below the
+  default on tool calls.
+- **PX-3 refuted (0 / 3):** on contest code one think (1.24) matches the pilot (1.29); elsewhere the default is the best fixed policy.
+- λ = 0 and 2 (reported): the same picture at λ = 0 (pilot 1.66 / 1.66 / 1.97 against the default 1.83 / 0.23 / 0.56); at λ = 2 the
+  cheapest policies win and the default loses 22.9 / 0.25 / 4.40 against the pilot's 1.35 / 1.92 / 1.70.
+- **Reading.** The pilot picks the argmax of about ten policies from 30 noisy labels: where one policy is best or near-best in most cells
+  (tool calls, instructions) that pick costs 1.8–2.0 points of selection noise (the optimizer's curse), more than the default loses; it
+  pays only where the default is wrong by more than that noise (contest code, where the 2k first step and the extra think cost 3.07).
+  On the development and held-out cells the same was already close (HO-P4: always short think first 1.47, pilot 1.19).
+- **Decision as registered:** the pilot bullet is restated: on the three task types it was not developed on, the no-label default
+  (short think first, full think on a visible failure) is as good as or better than 30 labels except on contest code, where 30 labels
+  (or one plain think) recover 1.8 of its 3.1 points; the labels the new types need to match the default are more than 100 (tool calls)
+  or about 100 (instructions). PROJECT §0 / §2, REPORT and PROPOSAL / PROPOSAL_ko change accordingly.

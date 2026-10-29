@@ -4143,3 +4143,16 @@ strategies in hybrid models (prompt, routing, speculative fast-then-deep on unce
 the program's sample tests; DART (2606.23181) gates on the hidden tests. Decision: the claim is restated (REPORT §5.6b, PROJECT,
 PROPOSAL, PROPOSAL_ko): on contest code cheap first is a small saving (12–13% of one think's tokens at −1.3 points) for Qwen3-8B and
 Qwen3.5-9B, never a match for the check-matched think; short think first is never a saving.
+
+## 2026-10-29 01:2x UTC: PX (PREREG_MODEL.md), the 30-label pilot on contest code, tool calls and instructions: the no-label default does as well or better, except on contest code
+The claim's practical rule ("the recipe by default; 30 labelled problems of a new task choose the setting") had been measured only on
+word problems and geometry. Pre-registered and run once on the 48 cells of the three task types it was not developed on (HO-P's pilot:
+the best of each type's whole policy menu on 30 random labelled problems, scored on the cell; utility = accuracy − 0.5 × ktokens):
+the pilot loses 1.29 / 1.96 / 1.77 points to each cell's best on contest code / tool calls / instructions, and always using the
+default order (short think, full think only on a visible failure) loses 3.07 / 0.23 / 0.92. PX-1, PX-2 and PX-3 are refuted (1 / 3,
+1 / 3, 0 / 3). Mechanism: with about ten policies and 30 labels the argmax carries 1.8–2.0 points of selection noise (the optimizer's
+curse, Smith & Winkler 2006), so the pilot only pays where the default is wrong by more than that — contest code, where the 2k first
+step plus an extra think costs 3.07 and one plain think (1.24) does as well as the pilot. 100 labels bring the pilot to 0.25 / 0.74 /
+0.82. Decision: the claim's pilot bullet is restated — the no-label default is the rule (it loses 1.47 on the word-problem and
+geometry cells, HO-P4, 0.23 on tool calls, 0.92 on instructions); labels are for telling a contest-like task (where the full think
+should go first) from the rest, and 30 of them are too few to fine-tune among close policies. Next (to pre-register): a conservative pilot that keeps the default unless the labels show a paired gain.
