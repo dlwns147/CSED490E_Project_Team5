@@ -4176,7 +4176,8 @@ tokens (SQL-P2 0 / 3), and one non-thinking repair from the error does not repla
 (Qwen3-14B-AWQ) of its tokens (SQL-P3 2 / 3; Qwen3-8B ties at 91%), saving where the think is long (the cut binds on 50% of Qwen3.5-9B's
 questions, 22–24% of Qwen3's). Agreement with a second non-thinking query adds +2.4 / +3.1 (SQL-P5 2 / 3) at 1.5–2.2× the tokens.
 Over 9 model × seed cells the no-label default loses 0.33 to each cell's best, the 30-label pilot 2.25 (SQL-P6); the label-free token
-switch to the check-matched think costs nothing here (0.34, SQL-P7) and in-sample cuts contest code's loss from 3.07 to 2.40. Raw
+switch to the check-matched think costs nothing here (0.34, SQL-P7); in-sample it cuts contest code's loss from 3.07 to 2.40 but raises
+PX2's word cells from 0.72 to 0.86 (90 cells: 0.94 → 0.91), so it is kept as an option for contest-like tasks, not added to the default. Raw
 outputs: half the leaks are wrong rows (filter values, joins), 40% return other columns than gold (some of them right answers in another
 shape, the execution-accuracy false negatives FLEX, 2409.19014, measures); thinking loses N's right answers on 5–7% of rows (e.g. a
 value's case). Self-selection ("would thinking help?") says yes on 99.6–100%. Prior work: a trained think router saves 14.7% on BIRD

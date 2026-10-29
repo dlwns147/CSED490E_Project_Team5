@@ -420,7 +420,8 @@ works: a 2k-token think first, the full think on a failed check, one more think 
 well (+0.2) at 91%. The saving tracks the think's length: the cut binds on half of Qwen3.5-9B's questions (its thinks average 2.8k)
 and on 22–24% of Qwen3's (1.5–1.6k). Over the 9 model × seed cells the no-label default loses 0.33 points to each cell's best (λ =
 0.5), a 30-label pilot 2.25 (labels add noise, as on tool calls and instructions, §5.5), and a label-free switch to T→T when the default
-spends more tokens on 30 unlabeled questions costs nothing here (0.34). Reading the leaks: half return different rows (a filter value
+spends more tokens on 30 unlabeled questions costs nothing here (0.34;
+in-sample it trades: contest code 3.07 → 2.40, word problems 0.72 → 0.86, so it stays an option, not part of the default). Reading the leaks: half return different rows (a filter value
 in the wrong case, a join), 40% return other columns than gold, some of them right answers in another shape (execution accuracy's
 false negatives, FLEX 2409.19014). A trained router that decides when to think saves 14.7% of tokens on BIRD at matched accuracy
 (2607.22622); the training-free default saves 9–31% at a tie. Text-to-SQL thus joins word problems and geometry as a type where the

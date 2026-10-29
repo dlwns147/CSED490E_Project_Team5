@@ -81,7 +81,8 @@ table: `docs/REPORT.md` §5.1):
   where one plain think, 1.24, does as well); 100 labels: 0.25 / 0.74 / 0.82. On 33 cells no pilot had seen (Qwen3-32B-AWQ,
   Seed-OSS-36B, gpt-oss-20b; PX2) the default loses 0.72, the argmax pilot 1.30, a pilot gated on a paired test 0.79: the default is the rule. On text-to-SQL, pre-registered before any row (SQL-1, 9 cells), the
   default loses 0.33, the argmax pilot 2.25; a label-free switch to the check-matched think when the default spends more tokens on 30
-  unlabeled questions costs nothing there (0.34) and in-sample closes about 40% of contest code's gap (3.07 → 2.40).
+  unlabeled questions costs nothing there (0.34); in-sample it closes about 40% of contest code's gap (3.07 → 2.40) but costs
+  0.14 on PX2's word cells (0.72 → 0.86): an option for contest-like tasks, not part of the default.
 - The label-free library of checked programs raises the first program in 25 of 29 model × benchmark cells (up to +34 points; not on
   BWOR / LogiOR for Nemotron-3-Nano, a model from another family, whose failures there are formulations).
 - **Contest programming** (HO-CC, 311 Codeforces geometry problems, hidden tests): the retry on a visible failure transfers (+4.5 /
@@ -169,7 +170,8 @@ table: `docs/REPORT.md` §5.1):
   32k cap had flattered it by 2.4 points), a 12–13% saving on easy and medium problems, 3.7–5.5 points below the check-matched think;
   an official-grader artifact (unjoined threads) found and reported as a sensitivity.
 - **Text-to-SQL (SQL-1, 10-29)**: BIRD dev, three models: the default order saves (SQL-P3 2 / 3), cheap first does not (P2 0 / 3:
-  the check catches 30–36% of wrong queries), the no-label default beats the 30-label pilot (P6) and the token switch is harmless (P7).
+  the check catches 30–36% of wrong queries), the no-label default beats the 30-label pilot (P6) and the token switch is harmless there (P7; in-sample a
+  trade, so an option, not the default).
   Running: SQL-F (the fact: SQLite card + own check-passing queries on the same database, given to every arm; card-only and
   library-only attribution).
 - Day-to-day state (running jobs, environment, evidence table): `docs/SLURM_HANDOFF.md`.

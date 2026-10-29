@@ -114,6 +114,11 @@ on a failed check, think again once), not through cheap first: the check is too 
 repair-first rule on SQL. P6 holds → the no-label default is stated as holding on an unseen task type (0.33 vs the pilot's 2.25).
 P7 holds → the default gets its label-free token switch as tested once out of sample, with the caveat that on SQL it had little to
 fix and in-sample it closes only about 40% of the contest-code gap. Recorded in REPORT §5.11, PROJECT §2 / §5, PROPOSAL / PROPOSAL_ko.
+*Sensitivity (2026-10-29 06:2x UTC; in-sample, not a decision).* The same switch on the earlier cells (k = 30, λ = 0.5; default →
+switch): contest code 3.07 → 2.40, tool calls 0.23 → 0.30, instructions 0.92 → 0.91, PX2's 33 word cells 0.72 → 0.86 (above SQL-P7's
+0.1 bound), SQL 0.33 → 0.34; over all 90 cells 0.94 → 0.91. The switch trades word problems for contest code. Deviation from the
+Decision line, stated: P7 holds on SQL, but because the same bound fails on PX2's word cells the switch is recorded as an option for
+contest-like tasks, not added to the default.
 
 ## Addendum SQL-F: the fact on text-to-SQL
 
