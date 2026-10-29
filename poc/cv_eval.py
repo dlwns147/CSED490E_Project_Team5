@@ -4,12 +4,12 @@ server's top log-probs (greedy: ACCEPT if larger). Rows go to results/sql/<tag>_
 grade_sql.py as N) with g_acc (P(ACCEPT) over the two; None where turn 2 was not asked) and dfr (turn 1 replied DEFER).
 c2: turn 1 is SQL-1's base query (q8b's cheap rows of that seed), only turn 2 runs; c1: no turn 2.
 usage: python cv_eval.py <cv|c1|c2> <tag> <adapter dir> <seed>   (POC_BASE_URL: a server started with --enable-lora)"""
-import json, math, os, sys, zlib
+import json, math, os, sys, urllib.error, urllib.request, zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 os.environ["SQL_SPLIT"] = "dev"
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from cv_train import RES, is_defer, post, prompt1, rows_of, run_query, turn2  # noqa: E402
+from cv_train import BASE_URL, RES, is_defer, post, prompt1, rows_of, run_query, turn2  # noqa: E402
 from prep_sql import ITEMS, extract  # noqa: E402
 
 
@@ -25,7 +25,12 @@ def gate(model, msgs):
 
 def main():
     arm, tag, adapter, seed = sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4])
-    post("/v1/load_lora_adapter", {"lora_name": "eval", "lora_path": os.path.abspath(adapter)})
+    try:
+        post("/v1/load_lora_adapter", {"lora_name": "eval", "lora_path": os.path.abspath(adapter)})
+    except urllib.error.HTTPError as e:   # seeds 2-3 of one lane: the adapter is already loaded on this server
+        with urllib.request.urlopen(BASE_URL + "/models", timeout=60) as r:
+            if e.code != 400 or "eval" not in {m["id"] for m in json.load(r)["data"]}:
+                raise
     P = [json.loads(l) for l in open(ITEMS)]
     if os.environ.get("SQL_SUBSET"):   # the smoke
         i, k = map(int, os.environ["SQL_SUBSET"].split("/")); P = P[i::k]
