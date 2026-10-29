@@ -7,7 +7,7 @@ arms against one server:
   sb     SB = thinking cut at 2,000 tokens (budget forcing), then the query (2k cap)
 The check on T / SB, the grade (BIRD's execution accuracy) and the policies are offline: poc/grade_sql.py, poc/analyze_sql.py.
 Items: $POC_DATA/bird/sql_items.jsonl (poc/prep_sql.py). Rows resume. SQL-F: SQL_FACT=card | lib | both adds the fact to every arm's
-prompt (poc/fact_sql.py; lib / both: SQL_LIB=<SQL-1 tag> whose seed s' cheap rows give the library).
+prompt (poc/fact_sql.py; lib / both: SQL_LIB=<SQL-1 tag> whose seed s' cheap rows give the library; SQL-FA: SQL_LIB_ADMIT=agree | right | wrong).
 usage: python run_sql.py <tag> <seed>     (SQL_SUBSET=i/k: questions i, i+k, ... only — the smoke; SQL_ARMS=think: only those arms;
   SQL_SPLIT=train: BIRD train's items, CV-1; SQL_IDS=<file>: only those ids)"""
 import json, os, sys, zlib
@@ -37,7 +37,7 @@ def main():
     P = [json.loads(l) for l in open(ITEMS)]
     fact = os.environ.get("SQL_FACT")
     if fact:   # the library is built over all questions, before the subset
-        lib = library(P, os.environ["SQL_LIB"], seed) if fact in ("lib", "both") else None
+        lib = library(P, os.environ["SQL_LIB"], seed, admit=os.environ.get("SQL_LIB_ADMIT", "check")) if fact in ("lib", "both") else None
         P = [{**p, "user": with_fact(p, fact, lib)} for p in P]
     if os.environ.get("SQL_SUBSET"):
         i, k = map(int, os.environ["SQL_SUBSET"].split("/")); P = P[i::k]

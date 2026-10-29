@@ -3,6 +3,8 @@ the evidence (SQL_FACT=card | lib | both).
   card  a few lines of SQLite usage (written from SQLite's documentation of its dialect, before SQL-F's rows)
   lib   the model's own queries for the 3 most similar other questions on the same database (word overlap of the questions) that
         passed the free check in SQL-1, from seed s' = s mod 3 + 1 (no labels: only the check)
+SQL-FA (SQL_LIB_ADMIT): which of those queries may enter the library — check (SQL-F), agree (they also return the same rows as the
+same seed's short-think query, which passed too; no labels), right / wrong (gold says right / wrong: analysis-only conditions)
 usage: python fact_sql.py <lib tag> <seed> [id]   (prints one question's prompt, the smoke)"""
 import json, os, re, sys
 
@@ -25,16 +27,19 @@ def words(text):
     return set(re.findall(r"[a-z0-9]+", text.lower()))
 
 
-def library(items, tag, seed, k=K):
+def library(items, tag, seed, k=K, admit="check"):
     """{id: [(question, query), ...]}: per question, the k most similar other questions on its database whose SQL-1 query (seed s')
-    passed the check"""
+    passed the check (and, by admit, agrees with the short think / is right / is wrong)"""
     from prep_sql import extract
     s2 = seed % 3 + 1
     rows = {r["id"]: r for r in map(json.loads, open(f"{RES}/{tag}_cheap_s{s2}.jsonl"))}
+    G = json.load(open(f"{RES}/grades_{tag}_s{s2}.json")) if admit != "check" else {}
+    ok = {"check": lambda g: True, "agree": lambda g: g.get("SB", {}).get("chk") == "pass" and g["SB"].get("h") == g["N"].get("h"),
+          "right": lambda g: g["N"]["ok"], "wrong": lambda g: not g["N"]["ok"]}[admit]
     pool = {}
     for p in items:
         r = rows.get(p["id"])
-        if r and r["c_n"] == "pass":
+        if r and r["c_n"] == "pass" and (admit == "check" or ("N" in G.get(p["id"], {}) and ok(G[p["id"]]))):
             pool.setdefault(p["db_id"], []).append((p["id"], question(p["user"]), extract(r["n_text"])))
     out = {}
     for p in items:

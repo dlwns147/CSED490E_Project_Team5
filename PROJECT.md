@@ -182,6 +182,8 @@ table: `docs/REPORT.md` §5.1):
   trade, so an option, not the default).
   SQL-F (10-29): the fact raises the cheap query (F1 3 / 3) but not the cascade (F2 1 / 3, F4 0 / 3), the leak stays (F5 0 / 3), and
   it lowers the Qwen3 thinks (F3 1 / 3): the check-admitted library is 57–61% right and its effect tracks that share.
+  Running (SQL-FA, pre-registered with numeric predictions from SQL-F's bins): libraries admitted by agreement with the short think
+  (label-free, 78–79% right), by gold as right or as wrong — whether precision, not difficulty, decides what the fact does.
 - **Training the quick mode for the cascade (CV-1, 10-29, running)**: every fix so far changed the check, and each stronger check costs
   about a think; CV-1 changes the generator instead. RL (LoRA) on Qwen3-8B's non-thinking mode, rewarded with the whole cascade's
   value (its own answer if it accepts, the same model's think-with-retry if it defers), deciding after seeing its query's result;

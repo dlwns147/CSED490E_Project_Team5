@@ -208,3 +208,58 @@ difference with its 95% interval:
   examples can hurt; it filters them for relevance) and ODIS (2310.06302: synthetic examples kept only if they execute — the same
   check here, which BIRD shows to be too weak), and differs from Min et al. (2202.12837), where wrong labels in demonstrations barely
   matter for classification: in SQL generation the copied part is the structure (join path, output columns), and a wrong one is wrong.
+
+## Addendum SQL-FA: does the library's precision decide what the fact does? (written 2026-10-29 16:2x UTC, before any SQL-FA row)
+
+**Why it could change the claim.** SQL-F's explanation — the check-admitted library is 57–61% right and the fact's effect rises
+with how many of a question's three examples are right — is now a sentence of PROPOSAL, but it rests on bins that also sort
+difficulty (T without the fact: 28% in the 0-of-3 bin, 72% in the 3-of-3 bin). If difficulty alone explains the bins, changing which
+queries enter the library changes nothing; if precision is the cause, the bins predict each library's effect from its composition.
+**Model (from SQL-F only, before any new row).** Effect of the fact (card + library) on arm a for a question whose library has k of 3
+right: δ_a(k), SQL-F's per-bin paired effect (Results SQL-F). A library with composition w_k predicts Σ_k w_k δ_a(k). Libraries
+(same construction: the 3 most similar other questions on the database, SQL-1's non-thinking queries of seed s' that passed the check),
+differing only in which passing queries may enter (`SQL_LIB_ADMIT`, poc/fact_sql.py):
+- **agree** (label-free): the query also returns the same rows as SQL-1's short-think query of the same seed, which passed too
+  (precision 0.79 / 0.78 for Qwen3-8B / Qwen3-14B-AWQ, against 0.57 for check alone; mean question similarity 0.29 vs 0.32);
+- **right** / **wrong** (gold-admitted; analysis-only conditions that set precision to 1 / 0; similarity 0.29 / 0.27).
+
+| model | library | precision | predicted N vs no fact | predicted T vs no fact |
+|---|---|---|---|---|
+| Qwen3-8B | check (SQL-F, observed) | 0.57 | +2.8 | −2.1 |
+| Qwen3-8B | agree | 0.79 | +4.3 | −0.5 |
+| Qwen3-8B | right | 1.00 | +5.7 | +1.1 |
+| Qwen3-8B | wrong | 0.00 | +0.0 | −3.9 |
+| Qwen3-14B-AWQ | check (SQL-F, observed) | 0.57 | +3.3 | −1.0 |
+| Qwen3-14B-AWQ | agree | 0.78 | +4.9 | +0.4 |
+| Qwen3-14B-AWQ | right | 1.00 | +6.5 | +2.3 |
+| Qwen3-14B-AWQ | wrong | 0.00 | −2.4 | −3.3 |
+
+The difficulty-only alternative predicts every library's effect equal to the check library's.
+**Prior work.** COSP (2305.14106) builds zero-shot demonstrations from the model's own outputs selected by self-consistency;
+SQLPrompt (2311.02883) uses execution-based consistency over mixed prompts to select queries; SAFE-SQL (2502.11438) filters
+self-generated examples for relevance; ODIS (2310.06302) keeps examples that execute. None varies the admission rule's precision with
+the rest of the library fixed, or gives the same examples to thinking. New: the dose-response in precision, with a prediction fixed
+from SQL-F, and a label-free admission (agreement across modes) tested against the check alone, for thinking and non-thinking.
+**Run.** Qwen3-8B (TP 2, one job per seed) and Qwen3-14B-AWQ (two shards per seed), the two models whose thinks lost to the fact;
+seeds 1–3; SQL-1's questions, sampling, caps and grading; SQL_FACT=both (card + library, as SQL-F's q8bf / q14af, so only the
+admission differs); arms N and T only (`SQL_ARMS=cheap,think`); tags q8bfg / q8bfr / q8bfw and q14afg / q14afr / q14afw (shards
+p0 / p1 merged). Submitted at low priority behind CV-1 (`bash poc/slurm/submit_sqlfa.sh`). Analysis `python3.11 poc/analyze_sqlfa.py`,
+paired over the questions graded in all five conditions (no fact, check, agree, right, wrong).
+**Predictions.**
+- **SQL-FA1 (wrong examples hurt, right ones help):** right minus wrong library, paired lower bound > 0, for N and for T, in 2 / 2
+  models.
+- **SQL-FA2 (precision, not difficulty):** T with the right library minus T with the check library, lower bound > 0, in 2 / 2 models
+  (predicted +3.2 / +3.3; the difficulty-only alternative predicts 0).
+- **SQL-FA3 (the composition model's numbers):** observed effect vs no fact within ±2.0 points of the table, in ≥ 9 of the 12 cells
+  (2 models × 3 libraries × N / T).
+- **SQL-FA4 (label-free remedy):** T with the agreement library minus T with the check library, pooled over both models (bootstrap
+  over model × question), lower bound > 0; and T with the agreement library not below T without the fact (paired upper bound ≥ 0)
+  in 2 / 2 models.
+- Reported, no decision: tokens; the leak of N with each library; raw thinks lost with the right library and won with the wrong one.
+**Expected (stated now, not a rule).** FA1 holds. FA2 holds for T, with a smaller gap than predicted (difficulty explains part of the
+bins). FA3 6–9 of 12. FA4 borderline (predicted +1.5, about the width of one model's interval).
+**Decision.** FA1 and FA2 hold → "a fact the model builds itself is only as good as the check that admits it" is causal: PROPOSAL
+keeps it as tested (REPORT §5.11). FA1 holds, FA2 refuted → wrong examples cost thinking, but SQL-F's loss is mostly difficulty:
+PROPOSAL says "wrong examples cost thinking" without "in proportion". FA1 refuted → the sentence is withdrawn from PROPOSAL / PROPOSAL_ko.
+FA4 holds → the recipe's SQL entry admits library queries by agreement with the short think (REPORT §5.11, PROJECT; PROPOSAL if
+thinking with the agreement library beats thinking without the fact, lower bound > 0, in 2 / 2).
