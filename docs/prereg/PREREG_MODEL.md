@@ -295,3 +295,26 @@ PROPOSAL / PROPOSAL_ko change only if the pilot's statement changes.
   (short think first, full think on a visible failure) is as good as or better than 30 labels except on contest code, where 30 labels
   (or one plain think) recover 1.8 of its 3.1 points; the labels the new types need to match the default are more than 100 (tool calls)
   or about 100 (instructions). PROJECT §0 / §2, REPORT and PROPOSAL / PROPOSAL_ko change accordingly.
+
+## Addendum PX2 (2026-10-29 01:2x UTC, before computing; offline): a conservative pilot — keep the default unless the labels show a paired gain
+**Why it could change the claim.** PX: the argmax over about ten policies on 30 labels carries ~2 points of selection noise, more than
+the default order loses on tool calls and instructions, while on contest code the default loses 3.07 and the pilot recovers most of it.
+A pilot that starts from the default and switches only on evidence could keep both. Designed after seeing PX (so PX's cells are
+in-sample); the decision rests on cells no pilot has been run on.
+**Rule (fixed now).** On the k = 30 labelled problems, per-problem utility u = 100 × right − λ × tokens / 1000; for every other policy p
+of the menu, the mean of u(p) − u(default) and its standard error (sample SD / √30); switch to the p with the largest mean only if that
+mean exceeds z × SE with z from a one-sided 5% test Bonferroni-corrected over the menu's other policies (z = 2.33 for 6 policies, 2.45
+for 8, 2.50 for 9, 2.54 for 10; computed in the code from the menu size); otherwise keep the default. Same 1,000 draws per cell as the argmax pilot; λ = 0.5.
+**Cells.** Fresh (decision): HO-32 / HO-SEED / HO-OSB — Qwen3-32B-AWQ (OptiBench third, BWOR, LogiOR, OptMATH), Seed-OSS-36B (the same
+four), gpt-oss-20b (OptiBench, BWOR, LogiOR; medium effort cut at 2k) × seeds 1–3 = 33 cells, the six-policy menu of analyze_ho32.py (T,
+T→T, FF+F, SB+F, SB→T→T, FF+SB+F), default SB→T→T. In-sample (reported against PX-2-style bounds): PX's 48 cells.
+- **PX2-1 (out of sample):** on the fresh cells the conservative pilot's mean regret is ≤ both the argmax pilot's and always using the
+  default, for ≥ 2 of the 3 models.
+- **PX2-2 (in-sample):** on each of PX's three task types its regret is ≤ min(default, argmax pilot) + 0.25.
+- Reported: the switch rate per type; z = 1.645 (no correction) as a sensitivity; k = 100.
+**Expected (stated now, not a rule).** On tool calls and instructions it rarely switches and lands near the default (0.23 / 0.92); on
+contest code 30 problems may not show the default's 3-point loss at the corrected level, so PX2-2 is at risk there; on the fresh cells
+SB→T→T is best or near-best in most cells (HO-32: 3 / 4; HO-SEED: 4 / 4), so PX2-1 likely holds against the argmax pilot and is a
+tie with the default.
+**Decision.** PX2-1 and PX2-2 hold → the practical rule is stated as "the default order; switch only when 30 labels show a significant
+paired gain" with its regret on every task type (PROJECT, REPORT, PROPOSAL / PROPOSAL_ko). Otherwise PX's statement stands.
