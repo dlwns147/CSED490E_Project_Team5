@@ -8,9 +8,11 @@ arms against one server:
 The check on T / SB, the grade (BIRD's execution accuracy) and the policies are offline: poc/grade_sql.py, poc/analyze_sql.py.
 Items: $POC_DATA/bird/sql_items.jsonl (poc/prep_sql.py). Rows resume. SQL-F: SQL_FACT=card | lib | both adds the fact to every arm's
 prompt (poc/fact_sql.py; lib / both: SQL_LIB=<SQL-1 tag> whose seed s' cheap rows give the library; SQL-FA: SQL_LIB_ADMIT=agree | right | wrong).
+SQL-DV: SQL_VIEW=shuffle (the schema's tables in a per-question random order) | plan (a one-line plan comment before the query) changes
+the prompt of every arm; arm quick = N alone (no S / R), written to the cheap file.
 usage: python run_sql.py <tag> <seed>     (SQL_SUBSET=i/k: questions i, i+k, ... only — the smoke; SQL_ARMS=think: only those arms;
   SQL_SPLIT=train: BIRD train's items, CV-1; SQL_IDS=<file>: only those ids)"""
-import json, os, sys, zlib
+import json, os, random, sys, zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -30,6 +32,22 @@ SELECT = """Here is a text-to-SQL question.
 Do not write the query yet. Decide only: would thinking step by step first help you write a correct query for it? Answer with \
 one word, yes or no."""
 REPAIR = "Running this query on the database {what}. Write a corrected SQLite query. Return only the query in a ```sql block."
+PLAN = ("Write one SQLite query that answers the question: first a comment line `-- plan: <the tables to join> -> <the output columns>`, "
+        "then the query, both in one ```sql block.")
+
+
+def view(user, how, seed):
+    """SQL-DV: the same question seen differently (None: unchanged)"""
+    if how == "shuffle":
+        head, tail = user.split("\n\n-- External knowledge:", 1)
+        blocks = head.split("\n\nCREATE TABLE")
+        blocks = [blocks[0]] + ["CREATE TABLE" + b for b in blocks[1:]]
+        random.Random(seed).shuffle(blocks)
+        return "\n\n".join(blocks) + "\n\n-- External knowledge:" + tail
+    if how == "plan":
+        assert ASK in user
+        return user.replace(ASK, PLAN)
+    return user
 
 
 def main():
@@ -44,6 +62,8 @@ def main():
     if os.environ.get("SQL_IDS"):   # CV-1: only the question ids in this file (one per line), e.g. the retry thinks
         keep = set(open(os.environ["SQL_IDS"]).read().split()); P = [p for p in P if p["id"] in keep]
     os.makedirs(RES, exist_ok=True)
+    if os.environ.get("SQL_VIEW"):
+        P = [dict(p, user=view(p["user"], os.environ["SQL_VIEW"], seed * 1000 + zlib.crc32(p["id"].encode()) % 997)) for p in P]
     arms = os.environ.get("SQL_ARMS", "cheap,think,sb").split(",")
     path = {a: f"{RES}/{tag}_{a}_s{seed}.jsonl" for a in ("cheap", "think", "sb")}
     done = {a: {r["id"] for r in _rows(f)} for a, f in path.items()}
@@ -62,6 +82,11 @@ def main():
             row.update(r_text=r["text"], r_tok=r["out_tokens"], r_finish=r["finish"])
         return "cheap", row
 
+    def quick(p):   # SQL-DV: N alone
+        n = chat(p["user"], think=False, max_tokens=2048, temperature=0.7, seed=sd(p))
+        return "cheap", {"id": p["id"], "n_text": n["text"], "n_tok": n["out_tokens"], "n_finish": n["finish"],
+                         "c_n": check(p["db_id"], extract(n["text"]))}
+
     def think(p):
         o = chat(p["user"], think=True, max_tokens=TK, temperature=0.7, seed=sd(p))
         return "think", {"id": p["id"], "text": o["text"], "out_tokens": o["out_tokens"], "finish": o["finish"]}
@@ -70,7 +95,8 @@ def main():
         o = budget_chat(p["user"], 2000, max_tokens=2048, temperature=0.7, seed=sd(p), cut_note="I will now write the query.")
         return "sb", {"id": p["id"], "text": o["text"], "out_tokens": o["out_tokens"], "think_tokens": o["think_tokens"], "finish": o["finish"]}
 
-    jobs = [(f, p) for p in P for a, f in (("cheap", cheap), ("think", think), ("sb", sb)) if a in arms and p["id"] not in done[a]]
+    jobs = [(f, p) for p in P for a, f in (("cheap", cheap), ("think", think), ("sb", sb), ("quick", quick)) if a in arms
+            and p["id"] not in done["cheap" if a == "quick" else a]]
     out = {a: open(f, "a") for a, f in path.items()}
     with ThreadPoolExecutor(POOL) as ex:
         for fu in as_completed([ex.submit(f, p) for f, p in jobs]):

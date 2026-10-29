@@ -519,3 +519,46 @@ Error coincidence (same answer among both-wrong passing pairs, pooled over cells
   short-think order, and the theory says where it pays: short answers, low cross-model coincidence, an escalation not much longer
   than the two cheap answers' overhead covers.
 
+## Addendum SQL-DV: where does a check's independence come from — the same model seen differently, or another model? (written 2026-10-29 23:1x UTC, before any SQL-DV row)
+
+**Why it could change the claim.** SQL-PA and HO-PA place the peer check: it pays where answers are short and two models' wrong
+answers rarely coincide, and on tool calls it is now the no-label default — but it needs a second model served next to the first.
+The theory says only the coincidence of wrong answers (and the check's cost) matters, not where the second answer comes from. If the
+same model, shown the question differently, coincides with itself as little as another model does, no second model is needed; if
+only another model does, the recipe must say how small it can be and from which family.
+**What is known.** A second sample of the same model repeats 75–90% of its wrong answers (Qwen3, SQL / tool calls / word problems);
+the model's own 2k-token short think 46–63%; another Qwen generation 33–62%. Kim et al. (2506.07962): errors correlate more within
+an architecture or provider and among more accurate models. MCS-SQL (2405.07467) diversifies candidates with several prompts
+(including the schema's table order); mixture-of-thought cascades (2310.03094) take agreement between two representations of the
+same weak model as the signal to escalate. Neither measures how much a given variation decorrelates wrong answers, or compares it
+with a second model as the check of a cascade.
+**Run** (all quick answers only, `SQL_ARMS=quick` / `TC_ARMS=quick`: the non-thinking answer, 2k cap, temperature 0.7, SQL-1's /
+TC-1's per-item seeds 1–3; BIRD dev 1,534 questions and BFCL 3,482 items). Views of each A (Qwen3-8B, Qwen3-14B-AWQ, Qwen3.5-9B):
+**s** = the schema's tables / the function docs in a per-item random order (`SQL_VIEW` / `TC_VIEW=shuffle`; a no-op on the 1,623 tool
+items with one function); **p** = a one-line plan before the answer (SQL: `-- plan: <tables> -> <output columns>` inside the query
+block; tool calls: `# plan: …`, removed before decoding; `=plan`). Other models, plain prompt: Llama-3.1-8B-Instruct (another family,
+same size), Llama-3.2-3B-Instruct (another family, small), Qwen3-4B (Qwen3, small). Tags q8bvs / q8bvp, q14avs / q14avp, q35vs /
+q35vp, l8, l3, q4b; graded with grade_sql.py / grade_tc.py. Analysis `python3.11 poc/analyze_dv.py` (written and dry-run on the
+existing tags before any SQL-DV row): per A and check X, X's error coincidence with A and the cascade N → X agrees → A's answer, else
+A's SB→T→T (X's tokens counted), against SB→T→T and against the fixed peer's cascade (SQL-PA's peers).
+**Predictions** (paired 95% intervals over items; coincidence differences bootstrapped over items).
+- **SQL-DV1 (permuting the input does not decorrelate):** coincidence of A's next-seed answer minus view s, upper bound < 15 points,
+  for the two Qwen3 models on both types (4 of 4).
+- **SQL-DV2 (a plan line decorrelates partly):** coincidence of A's next-seed answer minus view p lower bound > 0, and view p minus the
+  fixed peer lower bound > 0, for the two Qwen3 models on both types (both differences, ≥ 3 of 4).
+- **SQL-DV3 (does the same model suffice?):** view p's cascade minus the peer's cascade, utility lower bound > −0.5 (non-inferior),
+  in ≥ 2 of 3 models on tool calls.
+- **SQL-DV4 (does a small model of another family suffice?):** Llama-3.2-3B's cascade minus the peer's cascade, utility lower bound
+  > −0.5, in ≥ 2 of 3 models on tool calls.
+- **SQL-DV5 (family over size):** coincidence with Qwen3-4B minus with Llama-3.2-3B, lower bound > 0, for the two Qwen3 models on
+  both types (4 of 4).
+- Reported, no decision: everything on SQL dev (where the peer check is an option) and for Qwen3.5-9B; Llama-3.1-8B; accuracy and
+  tokens of each quick answer; raw shared wrong answers of the closest self-view.
+**Expected (stated now, not a rule).** DV1 holds; DV2 holds (plan between resample and peer); DV3 refuted (the same model stays too
+close to itself); DV4 1–2 of 3 (a 3B model agrees with right answers less often, so fewer are accepted); DV5 holds.
+**Decision.** DV3 holds → the tool-call default needs no second model: its check becomes the model's own plan-view quick answer
+(PROJECT, REPORT §5.9, PROPOSAL / PROPOSAL_ko). DV3 refuted, DV4 holds → the second model can be a small one from another family,
+stated in the recipe (same places). Both refuted → the check needs an equal model, stated as the peer check's cost. DV1 and DV2 →
+REPORT, with SQL-PA's coincidence table (what decorrelates: other training > other mode > other wording > another sample). DV5 holds →
+the recipe picks the peer from another family before a larger one of the same family.
+
