@@ -376,3 +376,97 @@ where answers are exact and short"; next, the same check on stored word-problem 
 pre-registered then). PA1 holds, PA2 refuted → a saving against T→T, not better than the default: reported as an option. PA1 refuted →
 the dev result was selection: SQL stays a trade. PA3 holds → recorded as the mechanism that orders every check tried (HO-LF, HO-X,
 SQL-FA's agreement library, CV-1's gate): a check is worth what it does not share with the generator's wrong answers.
+
+## Results SQL-PA (2026-10-29 22:5x UTC; fresh BIRD-train questions, 1,337–1,338 per model, 3 seeds; `python3.11 poc/analyze_sqlpa.py`; PA4 waits for Nemotron's rows)
+
+| A ← peer | T→T | SB→T→T | N→T→T | N→peer→T→T | vs T→T accuracy (tokens) | vs SB→T→T utility |
+|---|---|---|---|---|---|---|
+| Qwen3-8B ← Qwen3.5-9B | 59.5% @ 1.44k | 59.8% @ 1.36k | 56.1% @ 0.35k | 61.2% @ 0.99k | +1.6 [+0.7, +2.6] (69%) | +1.5 [+0.3, +2.7] |
+| Qwen3-8B ← Qwen3-14B-AWQ (same generation) | | | | 59.8% @ 0.90k | +0.3 [−0.7, +1.5] (63%) | +0.3 [−1.0, +1.6] |
+| Qwen3-14B-AWQ ← Qwen3.5-9B | 59.9% @ 1.30k | 60.1% @ 1.20k | 58.2% @ 0.27k | 60.9% @ 0.82k | +1.0 [+0.1, +1.9] (63%) | +1.0 [−0.2, +2.1] |
+| Qwen3-14B-AWQ ← Qwen3-8B (same generation) | | | | 59.9% @ 0.80k | +0.0 [−1.0, +1.1] (62%) | +0.0 [−1.2, +1.2] |
+| Qwen3.5-9B ← Qwen3-8B | 61.1% @ 2.48k | 61.4% @ 1.67k | 60.5% @ 0.61k | 61.6% @ 1.57k | +0.5 [−0.2, +1.3] (63%) | +0.2 [−0.8, +1.2] |
+
+Error coincidence (same rows among both-wrong passing pairs; n pairs 882–1,376):
+
+| A | own N, next seed | own SB | Qwen3-8B N | Qwen3-14B-AWQ N | Qwen3.5-9B N |
+|---|---|---|---|---|---|
+| Qwen3-8B | 87% | 60% | — | 62% | 52% |
+| Qwen3-14B-AWQ | 90% | 63% | 62% | — | 59% |
+| Qwen3.5-9B | 75% | 63% | 52% | 59% | — |
+
+- **SQL-PA1 holds (3 / 3):** with its peer, cheap first is not below T→T in any model (+0.5 to +1.6) at 63–69% of its tokens. On
+  SQL-1's dev rows the same cascade without a peer was 3.7–6.5 points below T→T.
+- **SQL-PA2 refuted (1 / 3):** utility vs SB→T→T +1.5 [+0.3, +2.7] (Qwen3-8B), +1.0 [−0.2, +2.1], +0.2 [−0.8, +1.2]. The cascade is
+  more accurate and cheaper than the default in all three (73%, 68%, 94% of its tokens), significantly only for Qwen3-8B.
+- **SQL-PA3 refuted (3 / 4):** own N next seed − own SB +27.8 [+23.5, +32.3] / +27.3 [+23.2, +31.5]; same − other generation +10.4
+  [+5.7, +15.0] (Qwen3-8B) but +3.0 [−1.9, +8.1] (Qwen3-14B-AWQ). Self-consistency is no check (87–90% of wrong answers repeated);
+  the generation ordering holds for one of two models, and with a same-generation peer the cascade also ties T→T here (+0.3, +0.0 at
+  62–63%), unlike on dev (−1.0, −0.2).
+- Gain / loss against T→T (A's query right and kept where T→T is wrong / wrong and kept where T→T is right): +2.9 / −1.3, +2.8 /
+  −1.8, +2.1 / −1.5 points; the peer agrees on 55–60% of question-seeds (dev: 45–48%).
+- Raw shared wrong queries (Qwen3-8B and Qwen3.5-9B return the same wrong rows, seed 1: 152 questions; 6 random read): all 6 are
+  label or evidence noise, not shared reasoning errors — gold 'Name = PHL' where the evidence says CountryCode = 'PHL' (both models
+  follow the evidence); gold adds LIMIT 1 to "sort the listing"; gold adds an unasked s_acctbal < 0 filter; gold counts joined rows
+  instead of recipes; gold's 'rotavirus  monovalent' has a double space the evidence lacks; "which book … list these books" where gold
+  returns titles only and both models add the royalty column. BIRD's train labels are noisy (Wretblad et al., 2402.12243), so
+  measured coincidence here includes answers that are right and graded wrong: on train it is higher than on dev (other generation
+  52–59% vs 41–45%), and the cascade's true loss is smaller than measured.
+- Expected (stated before): PA1 holds with tokens 75–85% (observed 63–69%: more agreement on train), PA2 2 of 3 (1 of 3), PA3 holds
+  (3 of 4).
+- **Decision (rule above):** PA1 holds, PA2 refuted → with an equal model's quick query as the check, cheap first is a saving against
+  the check-matched think on SQL, but not significantly better than the no-label default: reported as an option (REPORT §5.11,
+  PROJECT); SQL's default stays SB→T→T, and the word-problem / contest test tied to PA2 is not run as that rule's next step.
+- **Exploratory (post hoc; chosen after seeing these rows, so not a result):** sending a disagreement to the default instead of to
+  T→T (N → peer agrees → answer, else SB→T→T) beats SB→T→T in utility for all three models on these questions (+1.7 [+0.8, +2.7],
+  +1.2 [+0.3, +2.2], +0.9 [+0.1, +1.6], at 64–70% of its tokens, accuracy ≥ T→T) and in 2 of 3 on dev (+0.6 [−0.3, +1.4], +1.0
+  [+0.1, +1.9], +1.2 [+0.4, +2.1]). Tested out of sample in addendum HO-PA below.
+- Prior work: Kim et al. (2506.07962) measure across 350+ models that two models agree on 60% of the items where both err, more with a
+  shared architecture or provider; here, on executed results, the same structure appears (same generation 52–62%, other 41–59%), and
+  a second sample of the same model repeats 75–90% of its wrong answers, which is why DART-style self-agreement (2606.23181) cannot
+  check Qwen3's quick queries.
+
+## Addendum HO-PA: the peer check, then the default, on word problems and tool calls (written 2026-10-29 22:5x UTC, offline, before computing any HO-PA policy)
+
+**Why it could change the claim.** SQL-PA made cheap first a saving against T→T with a peer's quick answer as the check, but not
+better than the default SB→T→T. Sending a disagreement to the default instead of to T→T beat SB→T→T in all three models on SQL —
+chosen after seeing those rows, so it needs data it was not chosen on. The project's main claim is that, against the check-matched
+think, cheap first is a trade and the best no-label order starts with a short think (PROJECT §2; HO-CM, HO-P4); if a peer's cheap
+answer lets the cheap program through only where it is right, that order changes on the task types where it was established.
+**What is already known (seen before; no HO-PA policy computed).** On these cells (HO-CM's rows) T→T costs 7–40k tokens and SB→T→T
+5–32k, the cheap program with the library 0.4–3k; the cheap program with the fact is 4–20 points below T→T on BWOR / LogiOR /
+OptMATH for the leaky models because its free check lets wrong programs through. The same model's quick and short-think programs
+agreeing are right 78% of the time on word problems, disagreeing 16% (HO-CC). Cheap accuracies of the four models (OptiBench third
+/ BWOR / LogiOR / OptMATH): Qwen3-8B 50.5 / 15.4 / 15.6 / 14.3, Qwen3-14B-AWQ 57.4 / 24.4 / 22.1 / 10.0, Qwen3.5-9B 61.1 / 28.0 / 25.7 /
+21.7, Nemotron-3-Nano 52.6 / 15.9 / 15.9 / 9.7. Tool calls: N 76.6 / 70.7 / 68.5%. 
+**Theory (SQL-PA's).** Against the default D = SB→T→T, accepting A's passing cheap answer when the peer's agrees changes accuracy by
+E[p·a·(1 − v_D)] − E[w·b·v_D] (p, w: A right / wrong and passing; a, b: the peer agrees given each; v_D the default's accuracy on the
+item) and tokens by k_A + E[(p + w)·k_peer] − E[(p·a + w·b)·c_D]. Where the default is expensive (word problems: c_D 5–32k) every
+accepted item saves several k, so at λ = 0.5 the policy gains utility unless the loss term exceeds the gain term by more than the
+saving; on tool calls c_D is small and the accuracy terms decide.
+**Policies** (poc/analyze_hopa.py; every row stored; peers fixed now, as SQL-PA: Qwen3-8B and Qwen3-14B-AWQ ← Qwen3.5-9B, Qwen3.5-9B
+← Qwen3-8B, Nemotron-3-Nano ← Qwen3.5-9B): N→peer→T→T and N→peer→SB→T→T (a failed check or a disagreement goes to T→T / to
+SB→T→T); also reported: the same with the same generation, with Nemotron (Qwen models, word problems), and with the model's own
+next-seed cheap answer. Word problems: cheap = the library program (formx), think = thinking with the library (formxt), short think =
+formxtb2000; check = runs and prints a value; same answer = within the grader's tolerance (HO-X); OptiBench's 202-item third, BWOR 82,
+LogiOR 92, OptMATH 100. Tool calls (BFCL, non-live / live, 3 models): cheap N, think T, short think SB; check = schema validation; same
+answer = the same canonical calls. 3 seeds; tokens include the peer's; utility = accuracy − 0.5 × ktokens.
+**Predictions** (paired 95% intervals; per model pooled over its cells, items weighted equally; word problems 4 models, tool calls 3).
+- **HO-PA1 (saving against the check-matched think):** N→peer→T→T accuracy vs T→T upper bound ≥ 0 at ≤ 90% of T→T's tokens: word
+  problems ≥ 3 of 4 models; tool calls ≥ 2 of 3.
+- **HO-PA2 (better than the no-label default):** N→peer→SB→T→T utility vs SB→T→T lower bound > 0 and accuracy vs SB→T→T lower bound
+  > −2.0 points (non-inferiority): word problems ≥ 3 of 4 models; tool calls ≥ 2 of 3.
+- **HO-PA3 (self-agreement is the weakest check):** error coincidence of the model's own next-seed cheap answer minus its peer's,
+  lower bound > 0, in every model (4 + 3).
+- Reported, no decision: per-cell results (cells where N→peer→SB→T→T is above / below SB→T→T); same-generation / Nemotron /
+  own-resample variants; error coincidence of the own short think; raw shared wrong programs.
+**Expected (stated now, not a rule).** HO-PA1 2 of 4 on word problems (ties on OptiBench, losses on BWOR / LogiOR where wrong
+formulations are shared), 2–3 of 3 on tool calls. HO-PA2 3 of 4 on word problems (the token saving dominates at λ = 0.5; the
+non-inferiority bound may fail on LogiOR-heavy models), 1–2 of 3 on tool calls. HO-PA3 holds.
+**Decision.** HO-PA2 holds on word problems (≥ 3 of 4) → the no-label default on word problems becomes the cheap program checked by
+a served peer, then the short-think order (PROJECT §2, REPORT, PROPOSAL / PROPOSAL_ko), and the same policy is pre-registered on fresh
+SQL questions (where it was chosen post hoc) before it becomes SQL's default. HO-PA2 holds on tool calls (≥ 2 of 3) → the same for
+tool calls. HO-PA1 holds but HO-PA2 does not → the peer check is reported as a saving against T→T across task types that does not
+improve the default (REPORT). Neither → the peer check is a SQL observation; the error-coincidence tables say why. HO-PA3 holds →
+recorded with SQL-PA: a second sample of the same model is the weakest check on every type.
+

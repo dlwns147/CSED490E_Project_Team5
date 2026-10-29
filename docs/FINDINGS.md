@@ -4233,3 +4233,15 @@ no-fact thinks' tokens. Raw thinks: what transfers is the example's structure (a
 DISTINCT lose; an ORDER BY … LIMIT 1 or a column layout copied from a wrong example wins). Decision: "a fact the model builds itself is
 only as good as the check that admits it" is now causal (PROPOSAL keeps it, as tested); the recipe's SQL library is admitted by
 agreement with the short think (REPORT §5.11, PROJECT), not stated as a gain over no fact.
+
+## 2026-10-29 22:5x UTC: SQL-PA (PREREG_SQL.md): a peer's quick query makes cheap first a saving against T→T on SQL, not better than the default
+1,338 fresh BIRD-train questions, 3 seeds. Accepting a model's passing non-thinking query only when another Qwen generation's quick
+query returns the same rows, else think-with-retry: not below T→T in any model (+1.6 [+0.7, +2.6], +1.0 [+0.1, +1.9], +0.5 [−0.2,
++1.3]) at 63–69% of its tokens (PA1 3 / 3; without the peer cheap first was 3.7–6.5 below T→T on dev). Against the no-label default
+SB→T→T it is more accurate and cheaper in all three but significant in utility only for Qwen3-8B (PA2 1 / 3, refuted). A second
+sample of the same model repeats 87–90% of its wrong answers (Qwen3), its own short think 60–63%, another model 52–62%; the
+same-generation > other-generation ordering holds for Qwen3-8B (+10.4) but not Qwen3-14B-AWQ (+3.0 [−1.9, +8.1]; PA3 3 / 4,
+refuted). All 6 shared wrong answers read are label or evidence noise (BIRD train, 2402.12243), so coincidence is overstated here.
+Decision: reported as an option; SQL's default stays SB→T→T. Exploratory (post hoc): sending a disagreement to the default instead
+beats SB→T→T in 3 / 3 models here (+0.9 to +1.7 utility at 64–70% of its tokens) and 2 / 3 on dev — pre-registered out of sample on
+word problems and tool calls (HO-PA, stored rows). Nemotron's rows (PA4) still running.

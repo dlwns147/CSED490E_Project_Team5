@@ -187,9 +187,10 @@ table: `docs/REPORT.md` §5.1):
   SQL-FA (10-29): precision, not difficulty, decides what the fact does (FA1–FA4 all hold): right − wrong examples +4.9 to +6.2,
   the composition model fixed from SQL-F predicts 12 / 12 cells within 2 points, and the label-free agreement library removes the
   thinks' loss (+1.8 pooled over the check library). The recipe's SQL library is admitted by agreement with the short think.
-  Running (SQL-PA, pre-registered on 1,338 fresh BIRD-train questions): another model's quick query (~60 tokens) as the check —
-  on dev (exploratory) cheap first then ties or beats T→T at 73–83% of its tokens with a peer from the other Qwen generation,
-  and the check's value follows error coincidence (same model 83–86%, same generation 52%, other generation 41–45%).
+  SQL-PA (10-29, 1,338 fresh BIRD-train questions): another model's quick query (~60 tokens) as the check makes cheap first a
+  saving against T→T (PA1 3 / 3: +0.5 to +1.6 at 63–69% of its tokens) but not significantly better than the default (PA2 1 / 3):
+  an option. A model's second sample repeats 87–90% of its wrong answers (Qwen3), another model 52–62%. Pre-registered next
+  (HO-PA, offline on stored rows): peer check then the default, on word problems and tool calls. Nemotron's rows (PA4) running.
 - **Training the quick mode for the cascade (CV-1, 10-29, running)**: every fix so far changed the check, and each stronger check costs
   about a think; CV-1 changes the generator instead. RL (LoRA) on Qwen3-8B's non-thinking mode, rewarded with the whole cascade's
   value (its own answer if it accepts, the same model's think-with-retry if it defers), deciding after seeing its query's result;
