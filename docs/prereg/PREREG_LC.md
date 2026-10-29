@@ -285,3 +285,31 @@ both files): in the last hour the two files gained 2–3 new problems per seed. 
 and one reverse job per seed as before, with a 24 h timeout, at most 8 requests per job, and each worker skips a problem the other
 file already has when it takes it. Rows already written are kept; the merge rule above is unchanged (the first job's row if it has
 one, else the second's). Hardware and scheduling only; no prediction or decision rule changes.
+
+## Results LC-1 at 64k: the cap rule (2026-10-29 01:1x UTC; Qwen3.5-9B, 3 seeds, official grader)
+Qwen3.5-9B's think rerun at a 64k cap (the general preset, the same per-problem sampling seeds), rows merged by the rule above (the
+second job supplied 55 / 64 / 69 of 182 rows), graded with the official grader; `LCB_THINK=think64 python3.11 poc/analyze_lcb.py q35g`.
+| Qwen3.5-9B | N | T | SB | N→T | SB→T→T | T→T | N→T − T | SB→T→T − T→T | N→T\|hidden − N→T | N leak |
+|---|---|---|---|---|---|---|---|---|---|---|
+| think at 32k (above) | 38.3 @ 2.72k | 49.3 @ 23.1k | 34.4 @ 4.95k | 50.4 @ 19.7k | 53.5 @ 38.3k | 54.4 @ 38.3k | +1.1 [−0.9, +3.3] 85% | −0.9 [−2.2, +0.4] 100% | +1.6 | 11.4% |
+| think at 64k | 38.3 @ 2.72k | 64.3 @ 32.2k | 34.4 @ 4.95k | 63.0 @ 28.3k | 67.2 @ 47.0k | 68.5 @ 46.5k | −1.3 [−3.1, +0.5] 88% | −1.3 [−2.6, −0.4] 101% | +2.4 | 11.4% |
+- **LC-P2 holds for Qwen3.5-9B at 64k** (the verdict, by the cap rule): N→T − T = −1.3 [−3.1, +0.5] at 88% of its tokens, a tie
+  under 90%. **LC-P2 holds: 2 / 3** (Qwen3-8B −1.3 [−3.1, +0.2] at 87%, Qwen3.5-9B; not Qwen3-14B-AWQ −4.4). Per the decision rule the
+  claim is restated: on general contest code the non-thinking program first ties one think for two of the three Qwen models at 87–88%
+  of its tokens (it loses for Qwen3-14B-AWQ and for gpt-oss-20b, LC-OSS), and stays 3.7–5.5 points below the check-matched think
+  (T→T) at 61–63% of its tokens. LC-P1 stays refuted (0 / 3; at 64k SB→T→T − T→T is −1.3 [−2.6, −0.4] at 101%).
+- The cap flattered the cheap first step, as HO-CAP said it would: N→T − T moves from +1.1 (32k) to −1.3 (64k), and T from 49.3% to
+  64.3% (the model card reports 65.6 on LiveCodeBench v6 at an 81,920-token budget). The 64k think ends at the cap on 93 / 546 rows
+  (17%; hard 78 / 246, medium 15 / 165, easy 0), under the rule's 20%; 159 of the 252 rows cut at 32k finish at 64k.
+- Where N→T loses and saves: it loses 13 problem-seeds where N's program passes the samples, fails a hidden test and the 64k think is
+  right (11 medium; 10 wrong answers, 3 time limits) and gains 6 where N is right and the think is not (5 medium); net −7 / 546. Its
+  tokens are saved on easy problems (2.3k vs 9.2k) and medium ones (22.5k vs 29.2k), not on hard ones (46.4k vs 46.7k). Raw read,
+  problem 3795 (seed 1; also lost on seed 2): the statement asks to decrement a chosen subset of indices by *exactly* val, so each index
+  needs an exact subset sum; N's program accumulates every query's val over the range and stops when the total covers each value (the
+  easier sibling problem), passes the three samples and fails the hidden tests; T and T64 are right.
+- Reported, not re-decided: the 64k think leaks more (12.5% of its sample-passing programs, against 3.2% at 32k: 40 wrong answers, 7
+  time limits, 3 runtime errors; on hard problems where the 32k think wrote no passing program), and DART's hidden-test gate gains
+  +2.4 [+0.9, +4.0] over N→T at 64k (106% of its tokens). LC-P4 was decided on the 32k thinks (1 / 3) and the cap rule re-scores only
+  the policy that held (LC-P2), so LC-P4 stays refuted; against the 64k think it would be 2 / 3.
+- Decision: the claim is restated in REPORT §5.6b, PROJECT §2 / §5, PROPOSAL and PROPOSAL_ko (Finding 4). No further code run (no
+  rule asks for one; the size check applies only if P2 were refuted).

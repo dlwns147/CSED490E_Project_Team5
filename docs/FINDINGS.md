@@ -4125,3 +4125,21 @@ analysis the claim waits for its think at 64k (3 jobs submitted); a cap-bound th
 first step is right where it passes — the property the recipe needs; the other models leak a quarter to a third. The yes / no
 selector asks to think on 99–100% of contest problems. Related work: no study we found reports LiveCodeBench's sample-test leak by
 model (HardTests 2505.24098 measures test-suite precision); DART gates on hidden tests.
+
+## 2026-10-29 01:1x UTC: LC-1 cap rule (PREREG_LC.md), Qwen3.5-9B's think at 64k: cheap first still ties one think on contest code — LC-P2 holds 2 / 3
+Qwen3.5-9B's think rerun at 64k on the 182 LiveCodeBench problems, 3 seeds, official grader (two jobs per seed, rows merged by the
+rule fixed before grading). The think gains 15 points over 32k (64.3% vs 49.3%; the card reports 65.6 on LiveCodeBench v6 at 81,920
+tokens) and now ends at the cap on 17% of rows (32% of hard ones). Against it the non-thinking program first, thinking only when it
+fails the samples, ties one think: −1.3 [−3.1, +0.5] at 88% of its tokens (at 32k it was +1.1 at 85%: the cap flattered the cheap
+step, as HO-CAP said, but the tie survives). LC-P2 therefore holds for 2 of 3 Qwen models (Qwen3-8B −1.3 at 87%); it loses for
+Qwen3-14B-AWQ (−4.4) and gpt-oss-20b (LC-OSS), and the check-matched think (think again when its program fails the samples) is 3.7–5.5
+points above it for both models at 1.6× its tokens. The saving sits on easy and medium problems; on hard ones cheap first costs what
+the think costs. What it loses: 13 problem-seeds where a sample-passing non-thinking program is wrong and the think is right (11
+medium) against 6 the other way, e.g. a "decrement a chosen subset by exactly val" problem where the cheap program solves the easier
+sibling problem (accumulate the range totals), passes all three samples and fails the hidden tests. Reported, not re-decided: the 64k
+think's programs leak more (12.5% vs 3.2%, on hard problems the 32k think left unsolved) and DART's hidden-test gate gains +2.4
+[+0.9, +4.0] over cheap first at 64k (LC-P4 was decided at 32k, 1 / 3). Related work: HRBench (2605.28398) compares mode-switch
+strategies in hybrid models (prompt, routing, speculative fast-then-deep on uncertainty signals); none we found gates the switch on
+the program's sample tests; DART (2606.23181) gates on the hidden tests. Decision: the claim is restated (REPORT §5.6b, PROJECT,
+PROPOSAL, PROPOSAL_ko): on contest code cheap first is a small saving (12–13% of one think's tokens at −1.3 points) for Qwen3-8B and
+Qwen3.5-9B, never a match for the check-matched think; short think first is never a saving.

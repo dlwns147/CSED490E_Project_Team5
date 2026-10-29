@@ -81,8 +81,9 @@ table: `docs/REPORT.md` §5.1):
   +6.4 over one think; +3.1 at 64k); short think first is a trade there (Nemotron, uncapped 64k think: −3.1 at 84% of the tokens); the
   non-thinking program first loses 5–8 points. On general contest code (LC-1 / LC-OSS, LiveCodeBench 2025, four models, three
   families) short think first is never a saving (94–102% of the check-matched think's tokens); the samples leak 11–34% of passing
-  non-thinking programs; the non-thinking program first ties one think for Qwen3-8B and Qwen3.5-9B (the latter waits for its think at
-  64k: cut at 32k on 46%) and loses for Qwen3-14B-AWQ and gpt-oss-20b.
+  non-thinking programs; the non-thinking program first ties one think for Qwen3-8B and Qwen3.5-9B at 87–88% of its tokens (Qwen3.5-9B
+  against its think at 64k, the cap rule: 64.3% vs 49.3% at 32k) and loses for Qwen3-14B-AWQ and gpt-oss-20b; the check-matched think
+  stays 3.7–5.5 points above it.
 - **A label-free signal for when the passing cheap program is wrong** (HO-CC CC-P2; exploratory on word problems): run the same
   model's short-think program too and compare outputs (on the test inputs, or the printed value). On 311 contest problems a
   sample-passing non-thinking program that agrees is right 93–97% of the time, one that disagrees 19–34% (word problems: 78% vs 16%);
@@ -151,8 +152,9 @@ table: `docs/REPORT.md` §5.1):
   `docs/REPORT.md`, format / length / deadline from the team).
 - **Contest code (LC-1, LC-OSS; 10-28)**: LiveCodeBench 2025, Qwen3-8B / Qwen3-14B-AWQ / Qwen3.5-9B / gpt-oss-20b: the contest
   boundary holds on a second set and a third family (short think first: no saving, 0 / 4); the samples leak (P3 3 / 3, gpt-oss too);
-  cheap first ties one think for 2 / 3 Qwen models, pending Qwen3.5-9B's 64k think (the cap rule); an official-grader artifact
-  (unjoined threads) found and reported as a sensitivity.
+  cheap first ties one think for 2 / 3 Qwen models (LC-P2 holds; Qwen3.5-9B decided against its 64k think, 10-29: −1.3 at 88%, the
+  32k cap had flattered it by 2.4 points), a 12–13% saving on easy and medium problems, 3.7–5.5 points below the check-matched think;
+  an official-grader artifact (unjoined threads) found and reported as a sensitivity.
 - Day-to-day state (running jobs, environment, evidence table): `docs/SLURM_HANDOFF.md`.
 
 ## 6. Documents
