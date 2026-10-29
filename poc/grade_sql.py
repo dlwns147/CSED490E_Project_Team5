@@ -7,7 +7,7 @@ import hashlib, json, os, sys
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from prep_sql import DATA, execute, extract  # noqa: E402
+from prep_sql import DATA, ITEMS, execute, extract  # noqa: E402
 from run_nlopt import _rows  # noqa: E402
 
 RES = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "results", "sql")
@@ -36,7 +36,7 @@ def grade(key, db, gold, sql):
 
 def main():
     tag, seeds = sys.argv[1], [int(s) for s in (sys.argv[2:] or ["1", "2", "3"])]
-    I = {r["id"]: r for r in map(json.loads, open(f"{DATA}/sql_items.jsonl"))}
+    I = {r["id"]: r for r in map(json.loads, open(ITEMS))}
     workers = int(os.environ.get("SQL_WORKERS", len(os.sched_getaffinity(0))))
     for s in seeds:
         gp = f"{RES}/grades_{tag}_s{s}.json"

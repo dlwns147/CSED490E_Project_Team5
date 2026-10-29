@@ -8,14 +8,15 @@ arms against one server:
 The check on T / SB, the grade (BIRD's execution accuracy) and the policies are offline: poc/grade_sql.py, poc/analyze_sql.py.
 Items: $POC_DATA/bird/sql_items.jsonl (poc/prep_sql.py). Rows resume. SQL-F: SQL_FACT=card | lib | both adds the fact to every arm's
 prompt (poc/fact_sql.py; lib / both: SQL_LIB=<SQL-1 tag> whose seed s' cheap rows give the library).
-usage: python run_sql.py <tag> <seed>     (SQL_SUBSET=i/k: questions i, i+k, ... only — the smoke; SQL_ARMS=think: only those arms)"""
+usage: python run_sql.py <tag> <seed>     (SQL_SUBSET=i/k: questions i, i+k, ... only — the smoke; SQL_ARMS=think: only those arms;
+  SQL_SPLIT=train: BIRD train's items, CV-1; SQL_IDS=<file>: only those ids)"""
 import json, os, sys, zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from llm import chat, chat_msgs  # noqa: E402
 from fact_sql import library, with_fact  # noqa: E402
-from prep_sql import ASK, DATA, check, extract  # noqa: E402
+from prep_sql import ASK, DATA, ITEMS, check, extract  # noqa: E402
 from run_geo_cross import budget_chat  # noqa: E402
 from run_nlopt import _rows  # noqa: E402
 
@@ -33,13 +34,15 @@ REPAIR = "Running this query on the database {what}. Write a corrected SQLite qu
 
 def main():
     tag, seed = sys.argv[1], int(sys.argv[2])
-    P = [json.loads(l) for l in open(f"{DATA}/sql_items.jsonl")]
+    P = [json.loads(l) for l in open(ITEMS)]
     fact = os.environ.get("SQL_FACT")
     if fact:   # the library is built over all questions, before the subset
         lib = library(P, os.environ["SQL_LIB"], seed) if fact in ("lib", "both") else None
         P = [{**p, "user": with_fact(p, fact, lib)} for p in P]
     if os.environ.get("SQL_SUBSET"):
         i, k = map(int, os.environ["SQL_SUBSET"].split("/")); P = P[i::k]
+    if os.environ.get("SQL_IDS"):   # CV-1: only the question ids in this file (one per line), e.g. the retry thinks
+        keep = set(open(os.environ["SQL_IDS"]).read().split()); P = [p for p in P if p["id"] in keep]
     os.makedirs(RES, exist_ok=True)
     arms = os.environ.get("SQL_ARMS", "cheap,think,sb").split(",")
     path = {a: f"{RES}/{tag}_{a}_s{seed}.jsonl" for a in ("cheap", "think", "sb")}

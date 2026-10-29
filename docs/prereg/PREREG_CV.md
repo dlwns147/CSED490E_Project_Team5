@@ -76,3 +76,11 @@ holds weakly. The main risk is the shared blind spot (2607.13918): the quick mod
 - P4 refuted → a gate on frozen drafts is enough; the generator need not be trained; reported, and the gate is the method.
 - P5 refuted → the quick mode cannot learn to see its own errors from its result: the blind spot is shared, as the correlated-verifier
   theory predicts; next, a decorrelated gate (another family) on the same reward.
+
+## Note (2026-10-29 12:2x UTC, after writing `poc/analyze_cv.py`, before any CV row): what a perfect gate reaches
+
+Checking `poc/analyze_cv.py` with an oracle gate on SQL-1's base queries (ACCEPT exactly the right ones; turn 2 counted as 1 token;
+escalation T→T): 63.5% at 1.46k tokens, +4.2 [+3.4, +5.1] over T→T at 79% of its tokens (SQL-1's 19% failed checks and the 35%
+wrong-but-passing queries escalate). So CV-P1's token bound (≤ 75% of T→T's tokens) cannot be met by a gate on unchanged drafts,
+even a perfect one: it needs the quick query itself to fail less or defer earlier (fewer escalations after a wasted query does not
+lower the bound; more right first queries does). The prediction is unchanged; C2 (a gate only) cannot satisfy P1 by construction.
