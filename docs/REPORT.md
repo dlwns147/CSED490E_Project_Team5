@@ -24,7 +24,9 @@ fourth family, in all 4 (HO-SEED; its own trained thinking budget overruns 2,048
 fixed order over 54 cells of four hybrid-thinking models is short think → full think → retry on a visible failure (1.74 utility points
 below each cell's best; one think: 7.64); 30 labelled problems choose per cell within 1.35, but on three task types they were not
 developed on the no-label default does as well or better (tool calls 0.23 vs 1.96, instructions 0.92 vs 1.77) except on contest code
-(3.07 vs 1.29; PX). Where the check is perfect (Lean proofs) the
+(3.07 vs 1.29; PX); on text-to-SQL, a fifth task type none of the rules was built on, the default loses 0.33 and the pilot 2.25, and
+the default ties the check-matched think at 69–90% of its tokens while the non-thinking query first loses 2.7–5.9 points (SQL-1).
+Where the check is perfect (Lean proofs) the
 rule becomes "sample cheaply, then think"; where it leaks, it bounds label-free self-training as it bounds the recipe.
 
 ## 1. Introduction
@@ -239,7 +241,8 @@ on 30 labels costs about two points of selection noise (the optimizer's curse), 
 more — contest code, where one plain think does as well as the pilot (1.24); 100 labels bring it to 0.25 / 0.74 / 0.82. On 33
 word-problem cells no pilot had seen (Qwen3-32B-AWQ, Seed-OSS-36B, gpt-oss-20b; PX2) always using the default loses 0.72, the argmax
 pilot 1.30, and a pilot that switches only on a significant paired gain 0.79: labels add noise or nothing, and 30 of them cannot see
-contest code's loss (2.76).
+contest code's loss (2.76). On text-to-SQL (SQL-1, 9 cells, pre-registered before any row) the default loses 0.33, the argmax pilot
+2.25, the gated pilot 0.35 (§5.11).
 
 ### 5.6 Larger models, stronger checks, shorter thinking
 - **gpt-oss-120b** (4 × RTX 3090, tensor parallel): fact-first ties thinking with the same fact on OptiBench, BWOR and LogiOR (−1.0, +3.7,
@@ -406,6 +409,23 @@ helps length and counting constraints and hurts combined instructions ("repeat t
 et al. (2505.11423) describe; with hybrid-thinking models it helps on average (+1.5 to +26.3). Like tool calls (§5.9), instructions are
 a domain where the recipe's order transfers as a gain and its saving does not: the check is not free.
 
+### 5.11 Text-to-SQL: the default order saves, cheap first does not (SQL-1)
+On BIRD dev (the corrected 2025-11-06 release, 1,530 questions on 11 SQLite databases; BIRD's evidence always in the prompt), 3
+models × 3 seeds, the free check is that the query runs within 30 s and returns rows; the grade is BIRD's execution accuracy. The
+check is weak: 40.7–42.9% of the non-thinking queries that pass it are wrong, and it fails only 30–36% of the wrong ones (thinking's
+queries leak almost as much, 36–39%). So the non-thinking query first, thinking only on a failed check, is 2.7–5.9 points below one
+think (at 27–38% of its tokens), and a non-thinking repair from the error recovers only 12–21% of the failures. The default order
+works: a 2k-token think first, the full think on a failed check, one more think if that fails too, ties the check-matched think
+(T→T) at 69% of its tokens for Qwen3.5-9B (−0.7 [−1.5, +0.1]) and 89.7% for Qwen3-14B-AWQ (−0.4 [−1.2, +0.4]); Qwen3-8B ties as
+well (+0.2) at 91%. The saving tracks the think's length: the cut binds on half of Qwen3.5-9B's questions (its thinks average 2.8k)
+and on 22–24% of Qwen3's (1.5–1.6k). Over the 9 model × seed cells the no-label default loses 0.33 points to each cell's best (λ =
+0.5), a 30-label pilot 2.25 (labels add noise, as on tool calls and instructions, §5.5), and a label-free switch to T→T when the default
+spends more tokens on 30 unlabeled questions costs nothing here (0.34). Reading the leaks: half return different rows (a filter value
+in the wrong case, a join), 40% return other columns than gold, some of them right answers in another shape (execution accuracy's
+false negatives, FLEX 2409.19014). A trained router that decides when to think saves 14.7% of tokens on BIRD at matched accuracy
+(2607.22622); the training-free default saves 9–31% at a tie. Text-to-SQL thus joins word problems and geometry as a type where the
+order saves and, with tool calls and instructions, as one where cheap first does not, because its free check is weak.
+
 ## 6. Baselines on the same harness
 
 | task | baseline | its result | ours |
@@ -473,7 +493,7 @@ pass (gpt-oss, Qwen3.5-9B) a non-thinking program first is the cheap end of the 
 gpt-oss-20b on the hardest word problems, where medium effort cut at 2k replaces low effort) the first program should come after a short
 think (2,000 tokens; 4,000 for the leakiest models), which never lost to one full think in 14 unseen cells and closed the worst
 one (Qwen3-8B geometry). Without labels, short think → think → retry is the best fixed order over 54 cells and on tool calls and
-instructions; 30 labels pay only where it is wrong (contest code: one full think first; PX), and
+instructions, and within 0.1 point of the best on text-to-SQL; 30 labels pay only where it is wrong (contest code: one full think first; PX), and
 agreement between the non-thinking and the short-think program flags the leak without any label (93–97% right when they agree on
 contest problems). Where every model misreads the same statement (OptMATH: underspecified job-shop problems, direction-dependent pair
 values) no label-free check can help; there the statement, not the check, is the limit. Two extensions point past it: where the check is perfect (formal proofs) the rule becomes

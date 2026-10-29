@@ -4166,3 +4166,20 @@ default), and in-sample it matches the default on tool calls / instructions (0.3
 in 30 problems (2.76; PX2-2 refuted). Together with PX: across 81 cells of six models and four task types, labels chosen by argmax add
 noise and labels gated by a test add nothing; the no-label default order is the project's rule, and the one task type it loses on
 (contest code, where one plain think is better by 1.8 points) is not detectable from 30 labels.
+
+## 2026-10-29 06:1x UTC: SQL-1 (PREREG_SQL.md), text-to-SQL: the default order saves, cheap first does not; the no-label default beats the 30-label pilot on a fifth task type
+BIRD dev (corrected 2025-11-06, 1,530 questions), Qwen3-8B / Qwen3-14B-AWQ / Qwen3.5-9B, 3 seeds; the free check is "the query runs
+and returns rows". It is weak: 40.7–42.9% of the passing non-thinking queries are wrong and it fails only 30–36% of the wrong ones
+(SQL-P1 3 / 3), so the non-thinking query first, thinking on a failed check, is 2.7–5.9 points below one think at 27–38% of its
+tokens (SQL-P2 0 / 3), and one non-thinking repair from the error does not replace thinking (SQL-P4 0 / 3). The default order — a
+2k-token think first, full think on a failed check, think again once — ties the check-matched think at 69% (Qwen3.5-9B) and 89.7%
+(Qwen3-14B-AWQ) of its tokens (SQL-P3 2 / 3; Qwen3-8B ties at 91%), saving where the think is long (the cut binds on 50% of Qwen3.5-9B's
+questions, 22–24% of Qwen3's). Agreement with a second non-thinking query adds +2.4 / +3.1 (SQL-P5 2 / 3) at 1.5–2.2× the tokens.
+Over 9 model × seed cells the no-label default loses 0.33 to each cell's best, the 30-label pilot 2.25 (SQL-P6); the label-free token
+switch to the check-matched think costs nothing here (0.34, SQL-P7) and in-sample cuts contest code's loss from 3.07 to 2.40. Raw
+outputs: half the leaks are wrong rows (filter values, joins), 40% return other columns than gold (some of them right answers in another
+shape, the execution-accuracy false negatives FLEX, 2409.19014, measures); thinking loses N's right answers on 5–7% of rows (e.g. a
+value's case). Self-selection ("would thinking help?") says yes on 99.6–100%. Prior work: a trained think router saves 14.7% on BIRD
+(2607.22622); the training-free default here saves 9–31% at a tie. Decision: the claim's task list adds text-to-SQL as a type where the
+default order saves and cheap first does not (REPORT §5.11, PROJECT, PROPOSAL, PROPOSAL_ko). Next (pre-registered, running): SQL-F,
+whether the fact (a SQLite card and the model's own check-passing queries on the same database) makes cheap first a saving.

@@ -69,6 +69,52 @@ queries on these grounds: of 4,875 graded queries, 3 had the quoting error and 1
 SQLite (they differ on 1 of 1,530 N rows), so the policies are compared under one environment. Accuracy can be up to ~0.3 points
 lower than under a SQLite that accepts double quotes. No prediction or rule changes.
 
+## Results SQL-1 (2026-10-29 06:1x UTC; three models, 3 seeds, 1,530 questions each; `python3.11 poc/analyze_sql.py --pilot`)
+
+Per model, seed means over 1,530 questions (4 gold queries fail in the container, environment note), tokens per question:
+
+| model | N | T | SB | N→T | SB→T→T | T→T | N passes / leak / power | N→T − T | SB→T→T − T→T |
+|---|---|---|---|---|---|---|---|---|---|
+| Qwen3-8B | 46.0% @ 0.07k | 58.1% @ 1.60k | 57.6% @ 1.21k | 52.2% @ 0.60k | 59.5% @ 1.68k | 59.2% @ 1.85k | 81% / 42.9% / 36% | −5.9 [−7.5, −4.2] at 38% | +0.2 [−0.5, +1.0] at 91% |
+| Qwen3-14B-AWQ | 49.4% @ 0.08k | 56.7% @ 1.49k | 56.0% @ 1.18k | 53.2% @ 0.45k | 57.3% @ 1.50k | 57.6% @ 1.67k | 85% / 41.8% / 30% | −3.5 [−5.2, −1.8] at 30% | −0.4 [−1.2, +0.4] at 89.7% |
+| Qwen3.5-9B | 48.7% @ 0.08k | 57.2% @ 2.83k | 55.8% @ 1.49k | 54.5% @ 0.75k | 58.0% @ 2.19k | 58.8% @ 3.17k | 82% / 40.7% / 35% | −2.7 [−4.3, −1.1] at 27% | −0.7 [−1.5, +0.1] at 69% |
+
+(leak = check-passing N queries that are wrong; power = wrong N queries the check fails; false alarms 0.0–0.1%.)
+- **SQL-P1 holds (3 / 3):** 40.7–42.9% of the passing N queries are wrong; the check fails only 30–36% of the wrong ones. The
+  thinking arms leak almost as much (T 36.6–38.8%, SB 36.1–38.9%).
+- **SQL-P2 refuted (0 / 3):** cheap first is 2.7–5.9 points below one think, at 27–38% of its tokens.
+- **SQL-P3 holds (2 / 3):** the default order ties the check-matched think at 69% (Qwen3.5-9B) and 89.7% (Qwen3-14B-AWQ) of its
+  tokens; Qwen3-8B ties too (+0.2) but at 91%, just outside the rule.
+- **SQL-P4 refuted (0 / 3):** one non-thinking repair from the error recovers 12–21% of the failed queries (R right on 28–58 of
+  231–309 per seed) and stays 1.9–3.3 points below N→T.
+- **SQL-P5 holds (2 / 3):** agreement with a second non-thinking query adds +2.4 [+1.8, +2.9] (Qwen3-8B) and +3.1 [+2.3, +4.0]
+  (Qwen3.5-9B) over N→T (Qwen3-14B-AWQ +0.7), at 152–223% of its tokens, still below one think for Qwen3 (−3.5 / −2.8) and tying it
+  for Qwen3.5-9B (+0.4 at 59%).
+- **SQL-P6 holds:** over the 9 cells (λ = 0.5) always using SB→T→T loses 0.33 to each cell's best, the 30-label argmax pilot 2.25
+  (k = 10 / 100: 4.05 / 0.90); the gated pilot (PX2) 0.35, switching in 1% of draws. Best fixed: T→T 0.26; best per cell SB→T→T 5,
+  T→T 3, N→T|ag 1. λ = 0: T→T 0.11, default 0.41; λ = 2: the default is the best fixed policy (0.37).
+- **SQL-P7 holds:** the token switch loses 0.34 (≤ 0.33 + 0.1). Here it had little to fix: the default is cheaper than T→T in every
+  cell. In-sample on contest code (PX's cells, where the switch was motivated; not a test) it cuts the default's 3.07 to 2.40 (k = 30),
+  still above one plain think (1.24) and T→T (1.42): it removes about 40% of the contest-code loss.
+- Reported: S answers "yes" on 99.6–100% of questions (S = T plus one or two tokens). Thinks are short (T 1.5–1.6k for Qwen3, 2.8k for
+  Qwen3.5-9B; none at the 16k cap); the 2k cut binds on 22–24% (Qwen3) and 50% (Qwen3.5-9B) of questions, which is where the saving
+  comes from. By difficulty the default is within 2 points of T→T at every level (simple 68–70%, moderate 53–56%, challenging 26–32%).
+- Raw outputs read. N's visible failures (all seeds): 46–49% name a column that does not exist, 23–38% return no rows, 7–21% are
+  SQLite usage (unquoted names with spaces, YEAR()). Of 60 random leaks (Qwen3-14B-AWQ, seed 1): 30 return entirely different rows
+  (wrong filter value, join or aggregate), 24 a different number of columns (6 of them contain gold's values, e.g. a full name in one
+  column for forename and surname in two — false negatives of execution accuracy, as FLEX, 2409.19014, reports for BIRD), 6 differ
+  in duplicates, NULLs or ties. Thinking loses a question N gets right on 4.7–7.1% of rows, e.g. `d.A3 = 'East Bohemia'` where the
+  value is 'east Bohemia' (N wrote `LIKE 'EAST%'`): the count is 0 and passes the check. Post hoc, not used: 2.4–4.6% of passing
+  queries return one row of only 0 / NULL and about 90% of them are wrong; rejecting those would raise the check's power by about 7
+  points at < 1% false alarms.
+- Related work: the trained think router of 2607.22622 saves 14.7% of output tokens at matched accuracy on BIRD; the training-free
+  default here saves 9–31% of the check-matched think's tokens at a tie (paired intervals include 0).
+**Decision.** P3 holds → the recipe's saving extends to text-to-SQL through its default order (short think first, full think only
+on a failed check, think again once), not through cheap first: the check is too weak (power 30–36%) for N→T. P4 refuted → no
+repair-first rule on SQL. P6 holds → the no-label default is stated as holding on an unseen task type (0.33 vs the pilot's 2.25).
+P7 holds → the default gets its label-free token switch as tested once out of sample, with the caveat that on SQL it had little to
+fix and in-sample it closes only about 40% of the contest-code gap. Recorded in REPORT §5.11, PROJECT §2 / §5, PROPOSAL / PROPOSAL_ko.
+
 ## Addendum SQL-F: the fact on text-to-SQL
 
 Written 2026-10-29 06:0x UTC, after SQL-1's results for Qwen3-14B-AWQ and Qwen3.5-9B (Qwen3-8B's last seed is still being

@@ -19,7 +19,7 @@ all numbers: `PROPOSAL.md` (Korean: `PROPOSAL_ko.md`). The lab log: `docs/FINDIN
 
 Recipe: give the fact → short think → program → free check → full think only on a visible failure → think again once on failure. Honest
 summary: against a baseline that also thinks again on failure, the recipe is the cheap end of a cost–accuracy trade-off, not a free win;
-without labels short think first is the default (0.2–1.5 points below each cell's best on four task types), and labels mainly tell a
+without labels short think first is the default (0.2–1.5 points below each cell's best on five task types; text-to-SQL 0.33), and labels mainly tell a
 contest-like task, where one full think should go first, from the rest (PX: 30 labels add about two points of selection noise elsewhere).
 
 ## 1. Goal
@@ -79,7 +79,9 @@ table: `docs/REPORT.md` §5.1):
   48 cells) the pilot loses 1.29 / 1.96 / 1.77 (contest code / tool calls / instructions) and the no-label default 3.07 / 0.23 / 0.92:
   among ten close policies 30 labels add about two points of selection noise, so they pay only where the default is wrong (contest code,
   where one plain think, 1.24, does as well); 100 labels: 0.25 / 0.74 / 0.82. On 33 cells no pilot had seen (Qwen3-32B-AWQ,
-  Seed-OSS-36B, gpt-oss-20b; PX2) the default loses 0.72, the argmax pilot 1.30, a pilot gated on a paired test 0.79: the default is the rule.
+  Seed-OSS-36B, gpt-oss-20b; PX2) the default loses 0.72, the argmax pilot 1.30, a pilot gated on a paired test 0.79: the default is the rule. On text-to-SQL, pre-registered before any row (SQL-1, 9 cells), the
+  default loses 0.33, the argmax pilot 2.25; a label-free switch to the check-matched think when the default spends more tokens on 30
+  unlabeled questions costs nothing there (0.34) and in-sample closes about 40% of contest code's gap (3.07 → 2.40).
 - The label-free library of checked programs raises the first program in 25 of 29 model × benchmark cells (up to +34 points; not on
   BWOR / LogiOR for Nemotron-3-Nano, a model from another family, whose failures there are formulations).
 - **Contest programming** (HO-CC, 311 Codeforces geometry problems, hidden tests): the retry on a visible failure transfers (+4.5 /
@@ -89,6 +91,12 @@ table: `docs/REPORT.md` §5.1):
   non-thinking programs; the non-thinking program first ties one think for Qwen3-8B and Qwen3.5-9B at 87–88% of its tokens (Qwen3.5-9B
   against its think at 64k, the cap rule: 64.3% vs 49.3% at 32k) and loses for Qwen3-14B-AWQ and gpt-oss-20b; the check-matched think
   stays 3.7–5.5 points above it.
+- **Text-to-SQL** (SQL-1, BIRD dev 2025-11-06, 1,530 questions, Qwen3-8B / Qwen3-14B-AWQ / Qwen3.5-9B, pre-registered): the free
+  check (the query runs and returns rows) is weak — 41–43% of passing non-thinking queries are wrong, it fails 30–36% of wrong ones — so
+  the non-thinking query first loses 2.7–5.9 points to one think; the default order ties the check-matched think at 69% (Qwen3.5-9B)
+  and 89.7% (Qwen3-14B-AWQ) of its tokens (Qwen3-8B: tie at 91%). Over its 9 cells the no-label default loses 0.33, the 30-label
+  pilot 2.25. Running (SQL-F): whether the fact (a SQLite card, the model's own check-passing queries on the same database) makes
+  cheap first a saving.
 - **A label-free signal for when the passing cheap program is wrong** (HO-CC CC-P2; exploratory on word problems): run the same
   model's short-think program too and compare outputs (on the test inputs, or the printed value). On 311 contest problems a
   sample-passing non-thinking program that agrees is right 93–97% of the time, one that disagrees 19–34% (word problems: 78% vs 16%);
@@ -160,6 +168,10 @@ table: `docs/REPORT.md` §5.1):
   cheap first ties one think for 2 / 3 Qwen models (LC-P2 holds; Qwen3.5-9B decided against its 64k think, 10-29: −1.3 at 88%, the
   32k cap had flattered it by 2.4 points), a 12–13% saving on easy and medium problems, 3.7–5.5 points below the check-matched think;
   an official-grader artifact (unjoined threads) found and reported as a sensitivity.
+- **Text-to-SQL (SQL-1, 10-29)**: BIRD dev, three models: the default order saves (SQL-P3 2 / 3), cheap first does not (P2 0 / 3:
+  the check catches 30–36% of wrong queries), the no-label default beats the 30-label pilot (P6) and the token switch is harmless (P7).
+  Running: SQL-F (the fact: SQLite card + own check-passing queries on the same database, given to every arm; card-only and
+  library-only attribution).
 - Day-to-day state (running jobs, environment, evidence table): `docs/SLURM_HANDOFF.md`.
 
 ## 6. Documents
