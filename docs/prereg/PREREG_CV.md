@@ -116,3 +116,16 @@ saves c on every question it does not escalate.
 - **CV-P6 (complementarity):** on dev, CV's quick query gains more over C1's on the questions where SQL-1's T→T is wrong than on those
   where it is right: mean (CV − C1) quick-query accuracy on T→T-wrong question-seeds minus on T→T-right ones, bootstrap over questions,
   lower bound > 0. Reported with it: each gate's accept rate on passing wrong queries split by T→T right / wrong.
+
+## Amendment (2026-10-29 13:0x UTC, engineering, from the smoke; before any dev row of an arm)
+
+- Rounds of 64 questions with one optimizer step each (on-policy, so no PPO clipping) instead of 128 questions and 4 clipped
+  mini-batches; 6,000 questions = 94 steps.
+- Turn 2 is not sampled in training: its loss is its exact expected reward over {ACCEPT, DEFER} (both outcomes are known for every
+  passing query, a zero-variance estimator), and a passing query's turn-1 value is that expected reward; at test turn 2 is greedy.
+- Quick queries are capped at 512 tokens in training (test: 2,048, as SQL-1); one sequence per gradient chunk (on one 24 GB GPU, SDPA
+  keeps each sequence's GQA-repeated prompt keys and values for the backward pass); result-preview lines are cut at 300 characters
+  (training and test). Turn 1 counts as DEFER when the reply has no query and contains DEFER.
+- Smokes: 1276741 ran out of GPU memory (four completions per chunk); 1276869 ran 3 rounds of 32 questions with dummy escalation values
+  (v = 0.5 everywhere), per round about 25 s sampling, 60 s running the queries, 90 s training, adapters loaded into vLLM each round;
+  its dev rows (tag q8bcvsmoke, every 50th question) were read only for format and are discarded.
