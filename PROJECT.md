@@ -177,6 +177,11 @@ table: `docs/REPORT.md` §5.1):
   trade, so an option, not the default).
   Running: SQL-F (the fact: SQLite card + own check-passing queries on the same database, given to every arm; card-only and
   library-only attribution).
+- **Training the quick mode for the cascade (CV-1, 10-29, running)**: every fix so far changed the check, and each stronger check costs
+  about a think; CV-1 changes the generator instead. RL (LoRA) on Qwen3-8B's non-thinking mode, rewarded with the whole cascade's
+  value (its own answer if it accepts, the same model's think-with-retry if it defers), deciding after seeing its query's result;
+  BIRD train, tested on SQL-1's dev questions against T→T and the default, with plain RL (C1) and a gate on frozen drafts (C2) as
+  controls. Headroom: a perfect gate on SQL-1's queries gives +4.2 points over T→T at 79% of its tokens (PREREG_CV.md).
 - Day-to-day state (running jobs, environment, evidence table): `docs/SLURM_HANDOFF.md`.
 
 ## 6. Documents

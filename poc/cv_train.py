@@ -195,7 +195,8 @@ def main():
     nq, B, G, lr, smoke = arg("--questions", 6000), arg("--batch", 64), arg("--group", 8), arg("--lr", 2e-5), arg("--smoke", 0)
     base = arg("--base", "/SSD/huggingface/Qwen/Qwen3-8B")
     os.makedirs(out, exist_ok=True)
-    pool = ProcessPoolExecutor(int(os.environ.get("CV_WORKERS", 6)))   # before CUDA (fork)
+    pool = ProcessPoolExecutor(int(os.environ.get("CV_WORKERS", 6)))
+    list(pool.map(abs, range(64)))   # start the workers before CUDA is initialised (fork)
     V = think_values() if not smoke else {}
     items = [json.loads(l) for l in open(ITEMS)]
     if smoke:   # engineering smoke: v = 0.5, c = 1,500 tokens for every question
