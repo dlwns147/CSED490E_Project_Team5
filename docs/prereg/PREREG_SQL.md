@@ -68,3 +68,46 @@ questions are left out as the grader rule says (gold 359: the quoting; 518, 701,
 queries on these grounds: of 4,875 graded queries, 3 had the quoting error and 12 timed out. The check and the grade see the same
 SQLite (they differ on 1 of 1,530 N rows), so the policies are compared under one environment. Accuracy can be up to ~0.3 points
 lower than under a SQLite that accepts double quotes. No prediction or rule changes.
+
+## Addendum SQL-F: the fact on text-to-SQL
+
+Written 2026-10-29 06:0x UTC, after SQL-1's results for Qwen3-14B-AWQ and Qwen3.5-9B (Qwen3-8B's last seed is still being
+graded), before any SQL-F run.
+
+**Why it could change the claim.** SQL-1: the free check catches 30–35% of wrong non-thinking queries, so cheap first loses to one
+think (SQL-P2 refuted) while the default order saves (SQL-P3). On word problems the recipe's main lever was the missing fact (exact
+library usage, or the model's own checked programs for similar problems): it raised the cheap program in 25 of 29 cells. On SQL, 46–49%
+of N's visible failures name a column that does not exist, 7–21% are SQLite usage (syntax, functions such as YEAR()), 23–38% return no
+rows; and 24 of 60 sampled leaks return other columns than gold (Qwen3-14B-AWQ, seed 1; Results). SQL-F asks whether the fact lever
+transfers to a task type with no library, whose domain fact (BIRD's evidence) is already in the prompt, and whether it makes cheap
+first a saving there.
+**Prior work, and what is new here.** In-domain demonstrations for text-to-SQL: ODIS (Chang & Fosler-Lussier, EMNLP 2023, 2310.06302:
+synthetic in-domain examples verified by execution, mixed with out-of-domain gold ones), SAFE-SQL (EMNLP 2025, 2502.11438:
+self-generated examples filtered for relevance; unfiltered self-generated examples can hurt), DAIL-SQL (2308.15363: labelled examples
+chosen by question and query similarity); SQL-Zero (2609.04697) trains on execution-only self-play. New: the model's own queries for the
+other questions of the same database, filtered only by the free check (no labels, no new questions generated), plus a short SQLite card,
+given to every arm, so that thinking is given the same fact, with tokens counted.
+**Run.** As SQL-1 (questions, models, seeds, sampling, caps, check, grade, policies), with the fact between the schema and the evidence
+(`poc/fact_sql.py`): the **card**, three comment lines of SQLite usage (quote names with spaces or symbols in backticks; string values in single
+quotes; dates are text, so STRFTIME / SUBSTR, not YEAR() / MONTH(); CAST(x AS REAL) for ratios; return only the columns the question
+asks for) — written from SQLite's dialect, but after reading SQL-1's errors, two of which it names — and the **library**: for each
+question, the 3 other questions on its database with the highest word overlap (Jaccard) whose SQL-1 N query by the same model at seed
+s' passed the check, each as its question and that query (about 320 tokens added at the median, at most about 2.5k). Tags q8bf / q14af /
+q35f (SQL_FACT=both; all arms); for attribution, the cheap arm only: q8bc / q14ac / q35c (card only), q8bl / q14al / q35l (library only).
+Analysis `poc/analyze_sqlf.py`, paired over the questions graded in both runs.
+- **SQL-F1 (the fact raises the cheap query):** N with the fact ≥ N + 2.0 points, for ≥ 2 of 3 models.
+- **SQL-F2 (cheap first saves, given the fact):** with the fact, N→T ties or beats T (paired upper bound ≥ 0) at ≤ 90% of its tokens,
+  for ≥ 2 of 3 models.
+- **SQL-F3 (the fact raises thinking):** T with the fact ≥ T + 1.0 point, for ≥ 2 of 3 models.
+- **SQL-F4 (the fact pays in the default order):** SB→T→T with the fact minus without: paired lower bound > 0, for ≥ 2 of 3 models.
+- **SQL-F5 (the fact narrows the leak):** the share of check-passing N queries that are wrong drops by ≥ 3 points, for ≥ 2 of 3 models.
+- Reported, no decision: card only and library only against N; the other policies with and without the fact; tokens; raw failures
+  read (copied example queries; what the remaining leaks return).
+**Expected (stated now, not a rule).** F1 holds (the library shows the database's join paths and value formats). F2 refuted (the leak
+stays: most wrong-but-running queries are not usage errors). F3 holds, with a smaller gain than N's. F4 holds narrowly or not. F5
+refuted, except through the columns line.
+**Decision.** F1 and F2 hold → the fact makes cheap first a saving on SQL: the recipe's first step transfers to a task type with no
+library (REPORT, PROJECT §2; PROPOSAL / PROPOSAL_ko). F1 holds, F2 refuted → the fact raises the cheap end and the check's power bounds
+it (SQL stays a type where cheap first is a trade, stated with the fact given). F1 refuted → the fact lever does not transfer where the
+task already supplies the domain fact; "the fact is the main lever" is scoped to tasks with a library or an API. F4 holds → the default
+on SQL is stated with the fact.

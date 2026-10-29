@@ -6,13 +6,15 @@ arms against one server:
   think  T = thinking query (cap SQL_TK, default 16,000)
   sb     SB = thinking cut at 2,000 tokens (budget forcing), then the query (2k cap)
 The check on T / SB, the grade (BIRD's execution accuracy) and the policies are offline: poc/grade_sql.py, poc/analyze_sql.py.
-Items: $POC_DATA/bird/sql_items.jsonl (poc/prep_sql.py). Rows resume.
+Items: $POC_DATA/bird/sql_items.jsonl (poc/prep_sql.py). Rows resume. SQL-F: SQL_FACT=card | lib | both adds the fact to every arm's
+prompt (poc/fact_sql.py; lib / both: SQL_LIB=<SQL-1 tag> whose seed s' cheap rows give the library).
 usage: python run_sql.py <tag> <seed>     (SQL_SUBSET=i/k: questions i, i+k, ... only — the smoke; SQL_ARMS=think: only those arms)"""
 import json, os, sys, zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from llm import chat, chat_msgs  # noqa: E402
+from fact_sql import library, with_fact  # noqa: E402
 from prep_sql import ASK, DATA, check, extract  # noqa: E402
 from run_geo_cross import budget_chat  # noqa: E402
 from run_nlopt import _rows  # noqa: E402
@@ -32,6 +34,10 @@ REPAIR = "Running this query on the database {what}. Write a corrected SQLite qu
 def main():
     tag, seed = sys.argv[1], int(sys.argv[2])
     P = [json.loads(l) for l in open(f"{DATA}/sql_items.jsonl")]
+    fact = os.environ.get("SQL_FACT")
+    if fact:   # the library is built over all questions, before the subset
+        lib = library(P, os.environ["SQL_LIB"], seed) if fact in ("lib", "both") else None
+        P = [{**p, "user": with_fact(p, fact, lib)} for p in P]
     if os.environ.get("SQL_SUBSET"):
         i, k = map(int, os.environ["SQL_SUBSET"].split("/")); P = P[i::k]
     os.makedirs(RES, exist_ok=True)
