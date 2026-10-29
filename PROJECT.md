@@ -96,8 +96,10 @@ table: `docs/REPORT.md` §5.1):
   check (the query runs and returns rows) is weak — 41–43% of passing non-thinking queries are wrong, it fails 30–36% of wrong ones — so
   the non-thinking query first loses 2.7–5.9 points to one think; the default order ties the check-matched think at 69% (Qwen3.5-9B)
   and 89.7% (Qwen3-14B-AWQ) of its tokens (Qwen3-8B: tie at 91%). Over its 9 cells the no-label default loses 0.33, the 30-label
-  pilot 2.25. Running (SQL-F): whether the fact (a SQLite card, the model's own check-passing queries on the same database) makes
-  cheap first a saving.
+  pilot 2.25. The fact (SQL-F: a SQLite card and the model's own check-passing queries for similar questions on the same database)
+  raises the non-thinking query by 2.8–3.7 points but not the cascade (cheap first still 1.2–3.9 below one think given the fact; the
+  default not better with it) and lowers the Qwen3 thinks (−2.1 / −1.0): only 57–61% of the check-admitted library is right, and
+  its effect rises with that share — a self-built fact is only as good as the check that admits it.
 - **A label-free signal for when the passing cheap program is wrong** (HO-CC CC-P2; exploratory on word problems): run the same
   model's short-think program too and compare outputs (on the test inputs, or the printed value). On 311 contest problems a
   sample-passing non-thinking program that agrees is right 93–97% of the time, one that disagrees 19–34% (word problems: 78% vs 16%);
@@ -178,8 +180,8 @@ table: `docs/REPORT.md` §5.1):
 - **Text-to-SQL (SQL-1, 10-29)**: BIRD dev, three models: the default order saves (SQL-P3 2 / 3), cheap first does not (P2 0 / 3:
   the check catches 30–36% of wrong queries), the no-label default beats the 30-label pilot (P6) and the token switch is harmless there (P7; in-sample a
   trade, so an option, not the default).
-  Running: SQL-F (the fact: SQLite card + own check-passing queries on the same database, given to every arm; card-only and
-  library-only attribution).
+  SQL-F (10-29): the fact raises the cheap query (F1 3 / 3) but not the cascade (F2 1 / 3, F4 0 / 3), the leak stays (F5 0 / 3), and
+  it lowers the Qwen3 thinks (F3 1 / 3): the check-admitted library is 57–61% right and its effect tracks that share.
 - **Training the quick mode for the cascade (CV-1, 10-29, running)**: every fix so far changed the check, and each stronger check costs
   about a think; CV-1 changes the generator instead. RL (LoRA) on Qwen3-8B's non-thinking mode, rewarded with the whole cascade's
   value (its own answer if it accepts, the same model's think-with-retry if it defers), deciding after seeing its query's result;

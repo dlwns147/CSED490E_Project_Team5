@@ -162,3 +162,49 @@ library (REPORT, PROJECT §2; PROPOSAL / PROPOSAL_ko). F1 holds, F2 refuted → 
 it (SQL stays a type where cheap first is a trade, stated with the fact given). F1 refuted → the fact lever does not transfer where the
 task already supplies the domain fact; "the fact is the main lever" is scoped to tasks with a library or an API. F4 holds → the default
 on SQL is stated with the fact.
+
+## Results SQL-F (2026-10-29 16:0x UTC; three models, 3 seeds, 1,530 questions each; `python3.11 poc/analyze_sqlf.py`)
+
+With the fact (card + library) against SQL-1's rows of the same model, seed means, tokens per question; in brackets the paired
+difference with its 95% interval:
+
+| model | N | T | SB→T→T | T→T | N passes / leak / power | N→T − T | SB→T→T − T→T | N, card only | N, library only |
+|---|---|---|---|---|---|---|---|---|---|
+| Qwen3-8B | 48.8% (+2.8 [+0.9, +4.6]) | 56.0% @ 1.42k (−2.1 [−3.5, −0.7]) | 57.2% @ 1.46k (−2.2 [−3.7, −0.8]) | 56.8% @ 1.60k (−2.4 [−3.8, −1.0]) | 81→87% / 42.9→43.7% / 36→26% | −3.9 [−5.4, −2.6] at 28% | +0.4 [−0.3, +1.1] at 91% | −1.4 [−2.7, −0.1] | +2.5 [+0.6, +4.3] |
+| Qwen3-14B-AWQ | 52.7% (+3.3 [+1.5, +5.1]) | 55.7% @ 1.26k (−1.0 [−2.4, +0.4]) | 57.2% @ 1.29k (−0.1 [−1.5, +1.4]) | 56.5% @ 1.39k (−1.2 [−2.5, +0.2]) | 85→89% / 41.8→40.9% / 30→23% | −1.2 [−2.7, +0.3] at 24% | +0.7 [−0.1, +1.5] at 92% | −0.4 [−1.5, +0.7] | +3.0 [+1.1, +4.8] |
+| Qwen3.5-9B | 52.4% (+3.7 [+2.2, +5.2]) | 59.2% @ 3.25k (+1.9 [+0.6, +3.2]) | 58.9% @ 2.38k (+0.9 [−0.3, +2.0]) | 60.1% @ 3.61k (+1.3 [−0.0, +2.6]) | 82→88% / 40.7→40.2% / 35→26% | −3.2 [−4.5, −1.7] at 20% | −1.2 [−2.0, −0.3] at 66% | −1.8 [−3.0, −0.7] | +3.4 [+2.0, +4.9] |
+
+- **SQL-F1 holds (3 / 3):** the fact raises the non-thinking query by 2.8–3.7 points; the library alone gives it (+2.5 to +3.4), the
+  card alone costs 0.4–1.8.
+- **SQL-F2 refuted (1 / 3):** with the fact, cheap first still loses to one think with the fact (−3.9 / −1.2 / −3.2 at 20–28% of its
+  tokens; only Qwen3-14B-AWQ's interval reaches 0).
+- **SQL-F3 refuted (1 / 3):** the fact raises Qwen3.5-9B's think (+1.9) and lowers the Qwen3 thinks (−2.1, −1.0).
+- **SQL-F4 refuted (0 / 3):** the default order with the fact minus without: −2.2, −0.1, +0.9, no lower bound above 0.
+- **SQL-F5 refuted (0 / 3):** the leak moves by −0.9 to +0.8 points. The fact makes 4–6% more queries run, wrong as often as the
+  rest, so the check's power falls from 30–36% to 23–26%: the library turns visible failures into silent ones as often as into right
+  queries.
+- **Decision (rule above):** F1 holds, F2 refuted: the fact raises the cheap end and the check's power bounds it; text-to-SQL stays a
+  type where cheap first is a trade, also with the fact given. F4 refuted: the default on SQL is stated without the fact.
+- Expected (stated before): F1 holds, F2 refuted, F3 holds, F4 narrowly or not, F5 refuted. F3 was wrong for the Qwen3 models.
+- **Why (post hoc, uses gold; analysis only).** The library is filtered by the same weak check, so 57% (Qwen3) / 61% (Qwen3.5-9B) of
+  its queries are right. The fact's effect rises with how many of a question's 3 library queries are right (question-seeds per bin
+  567–1,720; paired within the bin):
+
+  | library right | Qwen3-8B T / N | Qwen3-14B-AWQ T / N | Qwen3.5-9B T / N |
+  |---|---|---|---|
+  | 0 of 3 | −3.9 / +0.0 | −3.3 / −2.4 | −1.4 / −0.5 |
+  | 1 of 3 | −5.9 / −0.6 | −3.5 / +2.2 | +0.3 / +1.5 |
+  | 2 of 3 | −1.0 / +4.1 | −0.6 / +4.1 | +3.3 / +4.1 |
+  | 3 of 3 | +1.1 / +5.7 | +2.3 / +6.5 | +2.9 / +6.6 |
+
+  The bins also sort difficulty (T without the fact 28% → 72%), so this is not causal by itself; the raw outputs agree. Of 8 random
+  thinks lost to the fact (Qwen3-8B, seed 1; all pass the check), 3 take a wrong library pattern: a join through `attendance` instead
+  of `budget` (the library query for a similar question joins that way), two columns where gold has one (the library query for "the
+  atoms' elements that form bond …" returns two), COUNT(*) for "how many … List out the card id" (the library's "how many" query);
+  the other 5 are ordinary variance (a dropped filter, an extra column, SUBSTR(date, 5, 2) for the month). Exact copies are rare
+  (0.7–1.2% of queries); 9–13% are close to a library query (token Jaccard ≥ 0.8), and those are right more often (61–73% vs 49–59%).
+- So a library admitted by a check inherits the check's leak: unverified examples raise the cheap query but cost the Qwen3 thinks
+  1–2 points, and pay for thinking only when all three are right. This matches SAFE-SQL (2502.11438: unfiltered self-generated
+  examples can hurt; it filters them for relevance) and ODIS (2310.06302: synthetic examples kept only if they execute — the same
+  check here, which BIRD shows to be too weak), and differs from Min et al. (2202.12837), where wrong labels in demonstrations barely
+  matter for classification: in SQL generation the copied part is the structure (join path, output columns), and a wrong one is wrong.

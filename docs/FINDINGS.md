@@ -4184,3 +4184,22 @@ value's case). Self-selection ("would thinking help?") says yes on 99.6–100%. 
 (2607.22622); the training-free default here saves 9–31% at a tie. Decision: the claim's task list adds text-to-SQL as a type where the
 default order saves and cheap first does not (REPORT §5.11, PROJECT, PROPOSAL, PROPOSAL_ko). Next (pre-registered, running): SQL-F,
 whether the fact (a SQLite card and the model's own check-passing queries on the same database) makes cheap first a saving.
+
+## 2026-10-29 16:0x UTC: SQL-F (PREREG_SQL.md), the fact on text-to-SQL: it raises the cheap query, not the cascade; a check-admitted library inherits the check's leak
+The fact (a three-line SQLite card plus each question's 3 most similar other questions on its database with the model's own SQL-1
+queries that passed the free check) given to every arm, 3 models × 3 seeds × 1,530 questions. It raises the non-thinking query by
+2.8–3.7 points (SQL-F1 3 / 3; all of it from the library, +2.5 to +3.4; the card alone costs 0.4–1.8), but cheap first still loses to
+one think given the same fact (−3.9 / −1.2 / −3.2 at 20–28% of its tokens; F2 1 / 3), the default order is not better with the fact
+(F4 0 / 3; −2.2 / −0.1 / +0.9), and the leak does not move (F5 0 / 3): 4–6% more queries run, wrong as often as the rest, so the check's
+power falls from 30–36% to 23–26%. Unexpected (F3 1 / 3): the fact lowers the Qwen3 thinks (−2.1 [−3.5, −0.7] / −1.0) and raises Qwen3.5-9B's
+(+1.9). Why (post hoc, gold used only to analyse): the library is admitted by the same weak check, so 57–61% of its queries are right,
+and the fact's effect rises with how many of the 3 are right — think −3.3 to −5.9 points with 0–1 right (Qwen3), +1.1 to +2.9 with all
+3 right; the non-thinking query 0 to +2 with 0–1 right, +5.7 to +6.6 with 3. Raw thinks lost to the fact copy a wrong library structure
+(a join path, a two-column output, COUNT for a list) in 3 of 8 read; exact copies are rare (≈1%). Prior work: SAFE-SQL (2502.11438)
+filters self-generated examples because unfiltered ones can hurt; ODIS (2310.06302) keeps synthetic examples that execute — the same
+check, shown here to be too weak on BIRD; unlike classification (2202.12837), wrong demonstrations matter in SQL generation because the
+structure is copied. Decision (pre-registered rule): the fact raises the cheap end and the check's power bounds it; text-to-SQL stays a
+type where cheap first is a trade, also with the fact; the default on SQL is stated without the fact (REPORT §5.11, PROJECT, PROPOSAL,
+PROPOSAL_ko). For the claim: the fact lever and the check are not independent — a fact the model builds itself is only as good as the
+check that admits it: on word problems the library was admitted by a stricter check (two runs agree) and raised thinking too; on
+SQL it is admitted by "runs and returns rows" (41–44% leak) and lowers the Qwen3 thinks.

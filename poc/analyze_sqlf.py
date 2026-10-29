@@ -43,8 +43,9 @@ def main():
               f"with the fact; leak {100 * c0['n_leak'] / c0['n_pass']:.1f}% -> {100 * c1['n_leak'] / c1['n_pass']:.1f}%; "
               f"power {100 * c0['n_caught'] / c0['n_wrong']:.0f}% -> {100 * c1['n_caught'] / c1['n_wrong']:.0f}%")
         for k in ("N", "T", "SB", "N->R", "N->T", "SB->T->T", "T->T"):
+            mu, lo, hi = d(p1, k, p0, k)
             print(f"  {k}: {acc(p0, k):.1f}% @ {kt(t0, n0, k):.2f}k -> {acc(p1, k):.1f}% @ {kt(t1, n1, k):.2f}k with the fact "
-                  "(%+.1f [%+.1f, %+.1f])" % d(p1, k, p0, k))
+                  f"({mu:+.1f} [{lo:+.1f}, {hi:+.1f}])")
         for a, b in (("N->T", "T"), ("SB->T->T", "T->T"), ("N->R", "N->T")):
             mu, lo, hi = d(p1, a, p1, b)
             print(f"  with the fact: {a} - {b} {mu:+.1f} [{lo:+.1f}, {hi:+.1f}] at {100 * t1[a] / t1[b]:.0f}% of its tokens")

@@ -427,6 +427,18 @@ false negatives, FLEX 2409.19014). A trained router that decides when to think s
 (2607.22622); the training-free default saves 9–31% at a tie. Text-to-SQL thus joins word problems and geometry as a type where the
 order saves and, with tool calls and instructions, as one where cheap first does not, because its free check is weak.
 
+**The fact on SQL (SQL-F).** Given to every arm, a three-line SQLite card plus a library — for each question, the 3 most similar other
+questions on its database with the model's own non-thinking queries that passed the free check — raises the non-thinking query by 2.8–3.7
+points (all of it from the library, +2.5 to +3.4; the card alone costs 0.4–1.8). It does not make cheap first a saving: with the fact,
+cheap first is still 1.2–3.9 points below one think given the same fact, at 20–28% of its tokens; the default order is not better with
+the fact (−2.2 / −0.1 / +0.9); the leak stays at 40–44%, and as 4–6% more queries run, the check's power falls to 23–26%. Unlike on word
+problems, the fact lowers the Qwen3 thinks (−2.1 [−3.5, −0.7], −1.0) and raises only Qwen3.5-9B's (+1.9). The reason is the check that
+admits the library: only 57–61% of its queries are right, and the fact's effect rises with how many of a question's three are (Qwen3
+thinks −3.3 to −5.9 points with none or one right, +1.1 to +2.3 with all three; non-thinking queries 0 to +2 and +5.7 to +6.6; the bins
+also sort difficulty, but the lost thinks read copy a wrong join path or output shape from the library). A fact the model builds
+itself is only as good as the check that admits it: on word problems that check was stricter (two runs agree), here it is the 41–44%
+leak, so the fact raises the cheap end and the check bounds it, and the default on SQL is stated without the fact.
+
 ## 6. Baselines on the same harness
 
 | task | baseline | its result | ours |

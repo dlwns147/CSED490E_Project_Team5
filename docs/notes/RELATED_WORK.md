@@ -190,3 +190,11 @@ reference; LC-1 asks whether their contest boundary is contest code or that set.
   candidates; none gates a hybrid model's thinking. No paper found that distils a model's own thinking-mode review into a cheap gate.
 - **Agents:** HybridAgents (2610.18861; latent vs text reasoning with tool calls, a learned switch), HRBench (2605.28398): no
   check-gated thinking per step found.
+
+### 2026-10-29 16:0x UTC: SQL-F against prior work on self-generated examples
+- SAFE-SQL (2502.11438) filters the model's self-generated examples for relevance because unfiltered ones can hurt; ODIS (2310.06302)
+  keeps synthetic in-domain examples that execute. SQL-F's library is the ODIS filter applied to the model's own queries for other dev
+  questions: on BIRD that filter admits 39–43% wrong queries, and the fact's effect rises with how many of the three examples are right
+  (Qwen3 thinks −3 to −6 points with none or one right, +1 to +2 with all three). Min et al. (2202.12837) found wrong labels in
+  demonstrations barely matter for classification; in SQL generation the example's structure (join path, output columns) is copied,
+  so a wrong one costs. What is ours: the same fact given to thinking, tokens counted, and the link to the check's leak.
