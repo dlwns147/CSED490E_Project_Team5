@@ -20,8 +20,21 @@ BASE_URL = os.environ.get("POC_BASE_URL", "http://127.0.0.1:8080/v1")
 RES = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "results", "sql")
 DEFER_LINE = "If you would need to think step by step to get it right, reply only DEFER."
 LAM, TEMP, MAXQ, BUDGET, MAXB = 0.005, 0.7, 512, 512, 1   # quick-query cap in training; new tokens and sequences per gradient chunk
-# (one 24 GB GPU: SDPA keeps each sequence's GQA-repeated keys / values of the whole prompt for the backward pass, ~0.6 GB per 1k prompt tokens)
+# (one 24 GB GPU: SDPA keeps each sequence's GQA-repeated keys / values of the whole prompt for the backward pass, ~0.6 GB per 1k prompt
+# tokens, so each decoder layer is recomputed in the backward pass and the vocabulary log-softmax is taken in chunks of HEADC positions)
+HEADC = 128
 TARGETS = ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
+
+
+class _Prefix:
+    """one layer's stand-in for the KV cache: the prompt's keys / values (no gradient) before the layer's new ones"""
+
+    def __init__(self, k, v):
+        self.k, self.v = k, v
+
+    def update(self, k, v, layer_idx=None, cache_kwargs=None):
+        from torch import cat
+        return cat([self.k, k], -2), cat([self.v, v], -2)
 
 
 def arg(name, default):
@@ -129,6 +142,7 @@ class Policy:
         self.model = get_peft_model(m, LoraConfig(r=16, lora_alpha=32, lora_dropout=0.0, task_type="CAUSAL_LM", target_modules=TARGETS))
         self.model.print_trainable_parameters()
         self.opt = torch.optim.AdamW([p for p in self.model.parameters() if p.requires_grad], lr=lr, betas=(0.9, 0.99), weight_decay=0.0)
+        self.net, self.head = self.model.base_model.model.model, self.model.base_model.model.lm_head   # LoRA sits inside net's layers
         self.end = self.tok.convert_tokens_to_ids("<|im_end|>")
         self.pad = self.tok.pad_token_id if self.tok.pad_token_id is not None else self.end
         self.acc, self.de = self.tok.convert_tokens_to_ids("ACCEPT"), self.tok.convert_tokens_to_ids("DE")
@@ -145,27 +159,32 @@ class Policy:
             return list(zip(cache.key_cache, cache.value_cache))
         return [tuple(x) for x in cache]
 
-    @staticmethod
-    def cache(kv):
-        from transformers import DynamicCache
-        c = DynamicCache()
-        for i, (k, v) in enumerate(kv):
-            c.update(k, v, i)
-        return c
-
     def prefix(self, ids):
-        with self.torch.no_grad():
-            return self.kv(self.model(input_ids=self.torch.tensor([ids], device="cuda"), use_cache=True).past_key_values)
+        with self.torch.no_grad():   # the decoder only: no logits over the prompt
+            return self.kv(self.net(input_ids=self.torch.tensor([ids], device="cuda"), use_cache=True).past_key_values)
 
     def forward(self, kv, l, seqs):
-        """logits for each sequence in seqs (token lists continuing the cached prefix of length l), right-padded, with gradient"""
+        """final-norm hidden states for each sequence in seqs (token lists continuing the cached prefix of length l), right-padded, with
+        gradient; each decoder layer is recomputed in the backward pass, so only the layers' inputs are kept"""
         torch = self.torch
+        from torch.utils.checkpoint import checkpoint
         B, L = len(seqs), max(map(len, seqs))
-        kvB = [(k[:, :, :l].expand(B, -1, -1, -1).contiguous(), v[:, :, :l].expand(B, -1, -1, -1).contiguous()) for k, v in kv]
         inp = torch.tensor([s + [self.pad] * (L - len(s)) for s in seqs], device="cuda")
-        att = torch.tensor([[1] * (l + len(s)) + [0] * (L - len(s)) for s in seqs], device="cuda")
         pos = torch.arange(l, l + L, device="cuda")[None].expand(B, -1)
-        return self.model(input_ids=inp, attention_mask=att, position_ids=pos, past_key_values=self.cache(kvB), use_cache=True).logits
+        q, k = torch.arange(L, device="cuda")[:, None], torch.arange(l + L, device="cuda")[None]
+        n = torch.tensor([len(s) for s in seqs], device="cuda")[:, None, None, None]
+        mask = (k < l) | ((k - l <= q) & (k - l < n))   # (B, 1, L, l + L): the prompt, then causal over the sequence's own tokens
+        h = self.net.embed_tokens(inp)
+        pe = self.net.rotary_emb(h, pos)
+
+        def layer(h, i):
+            k0, v0 = kv[i]
+            out = self.net.layers[i](h, attention_mask=mask, position_ids=pos, use_cache=True, position_embeddings=pe,
+                                     past_key_values=_Prefix(k0[:, :, :l].expand(B, -1, -1, -1), v0[:, :, :l].expand(B, -1, -1, -1)))
+            return out[0] if isinstance(out, tuple) else out
+        for i in range(len(self.net.layers)):
+            h = checkpoint(layer, h, i, use_reentrant=False)
+        return self.net.norm(h)
 
     @staticmethod
     def packs(lens):
@@ -180,13 +199,19 @@ class Policy:
     def turn1_logp(self, kv, P, comps):
         """sum of log-probs (sampling temperature) of each completion, with gradient, in chunks; yields (index list, tensor)"""
         torch = self.torch
+        from torch.utils.checkpoint import checkpoint
+
+        def logp(h, t):
+            lg = self.head(h).float() / TEMP
+            return lg.gather(-1, t[..., None])[..., 0] - torch.logsumexp(lg, -1)
         seqs = [[P[-1]] + c for c in comps]
         for sub in self.packs([len(s) for s in seqs]):
             part = [seqs[b] for b in sub]
-            lg = self.forward(kv, len(P) - 1, part)[:, :-1].float() / TEMP
-            tgt = torch.tensor([s[1:] + [self.pad] * (lg.shape[1] - len(s) + 1) for s in part], device="cuda")
-            m = torch.tensor([[1] * (len(s) - 1) + [0] * (lg.shape[1] - len(s) + 1) for s in part], device="cuda", dtype=torch.float)
-            lp = lg.gather(-1, tgt[..., None])[..., 0] - torch.logsumexp(lg, -1)
+            h = self.forward(kv, len(P) - 1, part)[:, :-1]
+            T = h.shape[1]
+            tgt = torch.tensor([s[1:] + [self.pad] * (T - len(s) + 1) for s in part], device="cuda")
+            m = torch.tensor([[1] * (len(s) - 1) + [0] * (T - len(s) + 1) for s in part], device="cuda", dtype=torch.float)
+            lp = torch.cat([checkpoint(logp, h[:, a:a + HEADC], tgt[:, a:a + HEADC], use_reentrant=False) for a in range(0, T, HEADC)], 1)
             yield sub, (lp * m).sum(-1)
 
     def gate_p(self, kv, P, ctxs):
@@ -199,10 +224,11 @@ class Policy:
             l += 1
         for sub in self.packs([len(c) - l for c in ctxs]):
             part = [ctxs[b][l:] for b in sub]
-            lg = self.forward(kv, l, part)
-            last = torch.stack([lg[b, len(s) - 1, [self.acc, self.de]].float() for b, s in enumerate(part)])
-            del lg
-            yield sub, torch.softmax(last, -1)[:, 0]
+            h = self.forward(kv, l, part)
+            last = torch.stack([h[b, len(s) - 1] for b, s in enumerate(part)])
+            del h   # the two logits only: the softmax over {ACCEPT, DE} needs nothing else
+            lg = torch.nn.functional.linear(last, self.head.weight[[self.acc, self.de]]).float()
+            yield sub, torch.softmax(lg, -1)[:, 0]
 
     def step(self):
         self.torch.nn.utils.clip_grad_norm_([p for p in self.model.parameters() if p.requires_grad], 1.0)

@@ -129,3 +129,17 @@ saves c on every question it does not escalate.
 - Smokes: 1276741 ran out of GPU memory (four completions per chunk); 1276869 ran 3 rounds of 32 questions with dummy escalation values
   (v = 0.5 everywhere), per round about 25 s sampling, 60 s running the queries, 90 s training, adapters loaded into vLLM each round;
   its dev rows (tag q8bcvsmoke, every 50th question) were read only for format and are discarded.
+
+## Amendment 2 (2026-10-29 16:1x UTC, engineering; before any dev row of an arm)
+
+- The first trainings (1277124 cv / 1277125 c1 / 1277126 c2, from about 15:2x UTC) were stopped: cv ran out of GPU memory in its
+  first round, in the turn-1 backward pass on a long-schema question (SDPA keeps each layer's GQA-repeated prompt keys / values and
+  every layer's activations: over 23.5 GiB for a ~3.9k-token prompt with a 512-token query); c1 (2 rounds) and c2 (1 round) run the same
+  code and would have failed on the same kind of question, so all three restart together. Their logs are kept as `*_oom1`; their
+  rounds are not used.
+- Change (the gradients are the same; only memory differs): each decoder layer is recomputed in the backward pass (activation
+  checkpointing), the prompt's keys / values (no gradient) are handed to each layer directly, the vocabulary log-softmax is taken in
+  chunks of 128 positions, and the gate uses only the two logits it needs (ACCEPT, "DE"). Check (job 1277919, Qwen3-8B with a random
+  non-zero adapter): log-probs equal the previous code's to 4 decimals (−305.6608 both), the gate's P(ACCEPT) to 5 (0.93991), LoRA
+  gradients cosine 0.99993 / 0.99987 (bf16); peak memory on the longest training prompt (3,870 tokens) with a 512-token query 16.7 GiB.
+- Nothing else changes (questions, order, rewards, λ, rounds, learning rate, evaluation).
