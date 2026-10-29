@@ -318,3 +318,22 @@ SB→T→T is best or near-best in most cells (HO-32: 3 / 4; HO-SEED: 4 / 4), so
 tie with the default.
 **Decision.** PX2-1 and PX2-2 hold → the practical rule is stated as "the default order; switch only when 30 labels show a significant
 paired gain" with its regret on every task type (PROJECT, REPORT, PROPOSAL / PROPOSAL_ko). Otherwise PX's statement stands.
+
+### Results PX2 (2026-10-29 01:3x UTC; one CPU job, `analyze_ho32.py --pilot q32b seed36 oss20` and PX's three commands; logs results/px/px2_*.log; λ = 0.5, k = 30, 1,000 draws per cell, run once)
+| cells | argmax pilot | conservative pilot (switch rate) | always the default | z = 1.645 sensitivity |
+|---|---|---|---|---|
+| fresh: Qwen3-32B-AWQ (12) | 1.34 | 1.07 | **1.03** | — |
+| fresh: Seed-OSS-36B (12) | 1.32 | 0.64 | **0.56** | — |
+| fresh: gpt-oss-20b (9) | 1.22 | 0.59 | **0.50** | — |
+| fresh, all 33 | 1.30 | 0.79 (9%) | **0.72** | 0.82 (17%) |
+| in-sample: contest code (12) | **1.29** | 2.76 (13%) | 3.07 | 2.24 (34%) |
+| in-sample: tool calls (18) | 1.96 | 0.38 (5%) | **0.23** | 0.52 (12%) |
+| in-sample: instructions (18) | 1.77 | 1.09 (19%) | **0.92** | 1.15 (29%) |
+- **PX2-1 refuted (0 / 3):** on the fresh cells the conservative pilot beats the argmax pilot for every model but stays 0.04–0.09
+  above always using the default. **PX2-2 refuted:** it holds on tool calls (0.38 ≤ 0.48) and instructions (1.09 ≤ 1.17), not on
+  contest code (2.76 > 1.54): 30 problems rarely show the default's 3-point loss at the corrected level (switch 13%).
+- The fresh cells repeat PX out of sample: the argmax pilot (1.30) loses to always using the default (0.72; SB→T→T best in 18 of 33
+  cells) for all three models.
+- **Decision as registered:** PX's statement stands — the no-label default order is the rule, the argmax pilot adds selection noise, and
+  a significance-gated pilot only recovers the default (it cannot see contest code's loss in 30 problems). Labels do not tell a
+  contest-like task apart at this size; that needs a different signal (next: pre-registered separately).

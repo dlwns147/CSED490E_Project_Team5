@@ -9,7 +9,9 @@ program are right >= 30 points more often than those that print a different valu
 HO-SEED: --native = the short think is the model's own trained budget (formxnb2048) instead of the forced cut (formxtb2000).
 HO-4K (PREREG_HO.md): --b4k = per cell, SB->T->T with a 4,000-token first think (formxtb4000) against the 2,000-token one (formxtb2000),
 same T / T2 rows: utility gap, paired accuracy difference (95% CI over problems), tokens, and how often the short think fails visibly.
-usage: python analyze_ho32.py [--native | --b4k] [model ...]   (default q32b)"""
+--pilot (PX2, PREREG_MODEL.md): the argmax and the conservative 30-label pilot (analyze_lcb.pilot) over the six policies, one cell per
+model x benchmark x seed, default SB->T->T.
+usage: python analyze_ho32.py [--native | --b4k | --pilot] [model ...]   (default q32b)"""
 import os, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -20,6 +22,7 @@ g = lambda r: r.get("out_tokens") or 0
 POL = ("T", "T->T", "FF+F", "SB+F", "SB->T->T", "FF+SB+F")
 LAM = 0.5
 SB_ARM = "formxnb2048" if "--native" in sys.argv else "formxtb2000"
+ROWS = {}   # --pilot: (model, benchmark, seed) -> one {policy: (right, tokens)} per problem
 
 
 def cell(m, b):
@@ -43,6 +46,7 @@ def cell(m, b):
                    "SB->T->T": (sb["correct"], g(sb)) if ok_(sb) else (tt[0], g(sb) + tt[1]),
                    "FF+SB+F": (f["correct"], g(f)) if ok_(f) else (sb["correct"], g(f) + g(sb)) if ok_(sb) else (t["correct"], g(f) + g(sb) + g(t))}
             per.setdefault(i, []).append({k: bool(v[0]) for k, v in res.items()})
+            ROWS.setdefault((m, b, s), []).append({k: (bool(v[0]), v[1]) for k, v in res.items()})
             for k, v in res.items():
                 tok[k] += v[1]
     return per, tok, n, agree, diag
@@ -140,6 +144,10 @@ def main():
               f"differ {pct['differs']:.1f}% (n={len(right['differs'])}) -> gap {pct['agree'] - pct['differs']:+.1f}; "
               f"vs differ or short think fails {100 * sum(dis) / max(1, len(dis)):.1f}% (n={len(dis)}); short think fails {pct['fails']:.1f}% (n={len(right['fails'])})")
 
+    if "--pilot" in sys.argv:
+        from analyze_lcb import pilot
+        print("PX2 pilot, fresh cells:")
+        pilot(ROWS, list(POL), "SB->T->T")
 
 if __name__ == "__main__":
     main()

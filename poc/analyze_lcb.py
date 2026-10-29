@@ -37,28 +37,56 @@ ROWS = {}   # --pilot: (tag, seed) -> one {policy: (right, tokens)} per problem
 def pilot(rows, pols, default, reps=1000, ks=(10, 30, 100)):
     """PX (PREREG_MODEL.md): HO-P's k-label pilot on cells {(model, ..., seed): [{policy: (right, tokens)}]}: the policy with the best
     utility on k random problems of a cell, scored on the whole cell; regret = the cell's best utility - the pick's (1,000 pilots per
-    cell). Prints, per lambda, the pilot's mean regret, always using each policy, the best policy per cell and the k = 30 regret by model."""
+    cell). Prints, per lambda, the pilot's mean regret, always using each policy, the best policy per cell and the k = 30 regret by model.
+    PX2: on the same draws, the conservative pilot keeps the default unless the policy with the largest mean paired utility gain over it
+    beats it by z x SE (one-sided 5%, Bonferroni over the other policies; z = 1.645 as a sensitivity)."""
     import random
+    from statistics import NormalDist
     rng = random.Random(0)
+    zs = (NormalDist().inv_cdf(1 - 0.05 / (len(pols) - 1)), 1.645)
     U = lambda R, lam: {p: 100 * sum(r[p][0] for r in R) / len(R) - lam * sum(r[p][1] for r in R) / len(R) / 1000 for p in pols}
+
+    def cons(S, lam, z):
+        u = lambda r, p: 100 * r[p][0] - lam * r[p][1] / 1000
+        D = {p: [u(r, p) - u(r, default) for r in S] for p in pols if p != default}
+        p = max(D, key=lambda q: sum(D[q]))
+        mu = sum(D[p]) / len(S); sd = (sum((x - mu) ** 2 for x in D[p]) / (len(S) - 1)) ** 0.5
+        return p if mu > z * sd / len(S) ** 0.5 else default
+
     for lam in (0.0, 0.5, 2.0):
         reg, fixed, best, by_model = {k: [] for k in ks}, {p: [] for p in pols}, Counter(), {}
+        creg = {(k, z): [] for k in ks for z in zs}; sw = {(k, z): [] for k in ks for z in zs}
         for name, R in rows.items():
             Uf = U(R, lam); b = max(Uf, key=Uf.get); best[b] += 1
             for p in pols:
                 fixed[p].append(Uf[b] - Uf[p])
             for k in ks:
-                r = [Uf[b] - Uf[max(Up, key=Up.get)] for Up in (U(rng.sample(R, min(k, len(R))), lam) for _ in range(reps))]
+                r, c = [], {z: [] for z in zs}
+                for _ in range(reps):
+                    S = rng.sample(R, min(k, len(R))); Up = U(S, lam); r.append(Uf[b] - Uf[max(Up, key=Up.get)])
+                    for z in zs:
+                        q = cons(S, lam, z); c[z].append(Uf[b] - Uf[q]); sw[(k, z)].append(q != default)
                 reg[k].append(sum(r) / len(r))
+                for z in zs:
+                    creg[(k, z)].append(sum(c[z]) / len(c[z]))
                 if k == 30:
-                    by_model.setdefault(name[0], []).append(sum(r) / len(r))
+                    bm = by_model.setdefault(name[0], {"pilot": [], "cons": [], "default": []})
+                    bm["pilot"].append(sum(r) / len(r)); bm["cons"].append(sum(c[zs[0]]) / len(c[zs[0]])); bm["default"].append(Uf[b] - Uf[default])
         fx = {p: sum(v) / len(v) for p, v in fixed.items()}; bf = min(fx, key=fx.get); p30 = sum(reg[30]) / len(reg[30])
-        print(f"  lambda {lam}: {len(rows)} cells | pilot regret " + ", ".join(f"k={k} {sum(v) / len(v):.2f}" for k, v in reg.items())
+        mean = lambda v: sum(v) / len(v)
+        print(f"  lambda {lam}: {len(rows)} cells | pilot regret " + ", ".join(f"k={k} {mean(v):.2f}" for k, v in reg.items())
+              + " | conservative (z " + "/".join(f"{z:.2f}" for z in zs) + ") " + ", ".join(
+                  f"k={k} {mean(creg[(k, zs[0])]):.2f}/{mean(creg[(k, zs[1])]):.2f} (switch {100 * mean(sw[(k, zs[0])]):.0f}%/{100 * mean(sw[(k, zs[1])]):.0f}%)" for k in ks)
               + f" | always: " + ", ".join(f"{p} {v:.2f}" for p, v in fx.items()) + f" | best per cell {dict(best)}"
-              + f" | k=30 by model " + ", ".join(f"{m} {sum(v) / len(v):.2f}" for m, v in by_model.items()))
+              + " | k=30 by model (pilot / conservative / default) " + ", ".join(
+                  f"{m} {mean(v['pilot']):.2f}/{mean(v['cons']):.2f}/{mean(v['default']):.2f}" for m, v in by_model.items()))
         if lam == 0.5:
+            c30 = mean(creg[(30, zs[0])])
             print(f"  *** PX: k=30 pilot {p30:.2f} | default {default} {fx[default]:.2f} (PX-1 {p30 < fx[default]}) | PX-2 {p30 <= 1.5} | "
                   f"best fixed {bf} {fx[bf]:.2f} (PX-3 {p30 < fx[bf]})")
+            print(f"  *** PX2: k=30 conservative {c30:.2f} | in-sample bound min(default, pilot) + 0.25 = {min(fx[default], p30) + 0.25:.2f} "
+                  f"(PX2-2 {c30 <= min(fx[default], p30) + 0.25}) | by model, conservative <= pilot and <= default (PX2-1): " + ", ".join(
+                      f"{m} {mean(v['cons']) <= mean(v['pilot']) and mean(v['cons']) <= mean(v['default'])}" for m, v in by_model.items()))
 
 
 def cell(m, seeds=(1, 2, 3)):

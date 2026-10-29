@@ -4156,3 +4156,13 @@ step plus an extra think costs 3.07 and one plain think (1.24) does as well as t
 0.82. Decision: the claim's pilot bullet is restated — the no-label default is the rule (it loses 1.47 on the word-problem and
 geometry cells, HO-P4, 0.23 on tool calls, 0.92 on instructions); labels are for telling a contest-like task (where the full think
 should go first) from the rest, and 30 of them are too few to fine-tune among close policies. Next (to pre-register): a conservative pilot that keeps the default unless the labels show a paired gain.
+
+## 2026-10-29 01:3x UTC: PX2 (PREREG_MODEL.md), a significance-gated pilot recovers the default, not more; the argmax pilot loses to the default on 33 fresh cells too
+A pilot that keeps the default order unless 30 labels show a paired gain (one-sided 5%, Bonferroni over the menu) was pre-registered
+after PX and decided on 33 cells no pilot had seen (Qwen3-32B-AWQ, Seed-OSS-36B, gpt-oss-20b on the word benchmarks; six policies).
+There the argmax pilot loses 1.30 points to each cell's best, the conservative one 0.79 (switching in 9% of draws), always using short
+think → think → retry 0.72 (best policy in 18 of 33 cells): PX2-1 refuted (0 / 3 models; the gated pilot is 0.04–0.09 above the
+default), and in-sample it matches the default on tool calls / instructions (0.38 / 1.09) but cannot see contest code's 3-point loss
+in 30 problems (2.76; PX2-2 refuted). Together with PX: across 81 cells of six models and four task types, labels chosen by argmax add
+noise and labels gated by a test add nothing; the no-label default order is the project's rule, and the one task type it loses on
+(contest code, where one plain think is better by 1.8 points) is not detectable from 30 labels.
