@@ -171,3 +171,22 @@ filtering (2203.07814), Olausson et al. (2306.09896). Trained mode routers: Thin
 LiveCodeBench). Qwen3 report LiveCodeBench v5 (32k): 8B 57.5 / 22.8, 14B 63.5 / 29.0 (thinking / non-thinking). No published rate of
 programs that pass LiveCodeBench's samples and fail its hidden tests. In the project: HO-CC / HO-CAP (Codeforces geometry) are the
 reference; LC-1 asks whether their contest boundary is contest code or that set.
+
+## Related-work check 2026-10-29 (2026-10-29 11:0x UTC): the check as the bottleneck, tuned checks, next directions
+
+- **Closest to the thesis (abstract pages opened):** *Cheap Verifiers, Large Blind Spots* (arXiv 2609.01345, Sep 2026): a cheap student
+  answers, a frontier model verifies; the verifier's blind spot β (wrong answers it accepts) rises from 0.12 to 0.55 as the student grows
+  from 0.5B to 32B, a frontier verifier (β ≈ 0.05) escalates 46% of hard MATH against a 39% true error rate, the cascade's own metrics show
+  3% error while the true error reaches 32%, bound ε∞ ≲ q₀β₀; corrective fine-tuning on the verifier's rejections degrades the student.
+  *Partially Correlated Verifier Cascades* (2607.13918, Jul 2026, theory + synthetic only): correlated gates give concave log-odds,
+  polynomial reliability and a blind-spot ceiling; two repeated verdicts identify the correlation; "the practical lever is decorrelation"
+  (another family, modality or evidence source). → Our "the check decides" is their β measured inside one hybrid model with free
+  execution checks, against fact-matched thinking, on six task types; our leak does not shrink with size (HO-32), consistent with their β
+  rising. What stays ours: the within-model think / no-think cascade, the fact-matched baseline, the per-task split. Their correlation
+  model is untested on real tasks; our seeds, modes and models give repeated verdicts to test it offline.
+- **Trained checks for text-to-SQL (search snippets, not opened):** outcome reward models for test-time verification (2606.30851),
+  SQL-Checker (WWW '26), a label-free verifier on generated small databases (PVLDB vol. 19), SpotIt (2510.26840, gold queries often
+  wrong), CHASE-SQL's fine-tuned pairwise selector (2410.01943), Generative Verifiers (2408.15240). All use labels and select among
+  candidates; none gates a hybrid model's thinking. No paper found that distils a model's own thinking-mode review into a cheap gate.
+- **Agents:** HybridAgents (2610.18861; latent vs text reasoning with tool calls, a learned switch), HRBench (2605.28398): no
+  check-gated thinking per step found.
