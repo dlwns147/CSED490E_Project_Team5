@@ -426,6 +426,11 @@ Error coincidence (same rows among both-wrong passing pairs; n pairs 882–1,376
   a second sample of the same model repeats 75–90% of its wrong answers, which is why DART-style self-agreement (2606.23181) cannot
   check Qwen3's quick queries.
 
+- **SQL-PA4 refuted (0 / 3; 2026-10-29 23:3x UTC, Nemotron's rows graded):** coincidence with Nemotron-3-Nano's quick query minus with the fixed
+  peer −2.6 [−6.6, +1.8], −4.0 [−8.6, +0.3], +0.7 [−3.9, +5.2] (Nemotron 49 / 55 / 52%). Another family repeats about as many wrong
+  answers as another Qwen generation here, while being right less often (N 45.1% vs 51.4–55.7% on these questions; dev 40.4%): as the
+  peer it ties T→T at 68–73% of its tokens and ties the default (utility +0.0, +0.0, −0.3). Expected was 1–2 of 3.
+
 ## Addendum HO-PA: the peer check, then the default, on word problems and tool calls (written 2026-10-29 22:5x UTC, offline, before computing any HO-PA policy)
 
 **Why it could change the claim.** SQL-PA made cheap first a saving against T→T with a peer's quick answer as the check, but not

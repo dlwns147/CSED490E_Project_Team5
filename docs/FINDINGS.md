@@ -4256,3 +4256,9 @@ HO-PA2 0 / 4): the two cheap programs cost 1–6k and pass and agree on too few 
 of the same Qwen model repeats 75–80% of its wrong answers on both types (Nemotron: 59%, as diverse as another model; HO-PA3 6 / 7).
 Decision: tool calls' no-label default becomes N → peer agrees → answer, else SB→T→T; word problems unchanged; SQL keeps the peer
 check as an option. Two analysis-script fixes (utility scale, the non-inferiority clause) were made after a first run, before deciding.
+
+## 2026-10-29 23:3x UTC: SQL-PA4 (PREREG_SQL.md): another family is not a less correlated peer on SQL
+Nemotron-3-Nano's quick queries on the 1,338 fresh questions share 49–55% of the Qwen models' wrong answers, against 52–59% for the
+fixed Qwen peers (differences −4.0 to +0.7, none significant; PA4 0 / 3, refuted), and are right less often (45.1% vs 51.4–55.7%). As
+the check it ties T→T at 68–73% of its tokens and the default in utility. On SQL the coincidence of two different models' wrong
+answers sits around 50% whatever their family; the drop that matters is from the same model (75–90%) to any other (≈ 50%).

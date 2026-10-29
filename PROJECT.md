@@ -193,8 +193,8 @@ table: `docs/REPORT.md` §5.1):
   SQL-PA (10-29, 1,338 fresh BIRD-train questions): another model's quick query (~60 tokens) as the check makes cheap first a
   saving against T→T (PA1 3 / 3: +0.5 to +1.6 at 63–69% of its tokens) but not significantly better than the default (PA2 1 / 3):
   an option. A model's second sample repeats 87–90% of its wrong answers (Qwen3), another model 52–62%. HO-PA (offline): the peer
-  check then the default is the new no-label default on tool calls (2 / 3), not on word problems (0 / 4). Nemotron's rows (PA4)
-  running.
+  check then the default is the new no-label default on tool calls (2 / 3), not on word problems (0 / 4). Another family
+  (Nemotron) is no less correlated than another Qwen generation (PA4 0 / 3).
 - **Training the quick mode for the cascade (CV-1, 10-29, running)**: every fix so far changed the check, and each stronger check costs
   about a think; CV-1 changes the generator instead. RL (LoRA) on Qwen3-8B's non-thinking mode, rewarded with the whole cascade's
   value (its own answer if it accepts, the same model's think-with-retry if it defers), deciding after seeing its query's result;
