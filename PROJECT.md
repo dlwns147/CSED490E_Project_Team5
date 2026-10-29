@@ -125,6 +125,9 @@ table: `docs/REPORT.md` §5.1):
    below, never edit the predictions.
 2. **Only runs that can change the main claim.** Ask first: could this result change what we claim? If not, skip it — no replications or
    baselines for their own sake.
+   **Hard method work, not easy or incremental work** (user, 2026-10-29: "don't do just easy or incremental things"). Offline
+   re-analyses, audits, one more task type and "measure X first" stages are not the work; they may only serve a method track. Lead with
+   the hard, risky method that could move the cost–accuracy frontier, build it, and report it even if it fails.
 3. **At least 3 seeds** for any positive claim; report seed means and, for comparisons, a 95% interval over problems; call a tie a tie.
 4. **Accuracy with its cost:** output tokens per problem always; input tokens where prompts differ in length.
 5. **Read the raw outputs**, not only scores; treat a surprising number as a harness bug until the raw programs say otherwise.
