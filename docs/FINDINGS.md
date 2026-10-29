@@ -4203,3 +4203,21 @@ type where cheap first is a trade, also with the fact; the default on SQL is sta
 PROPOSAL_ko). For the claim: the fact lever and the check are not independent — a fact the model builds itself is only as good as the
 check that admits it: on word problems the library was admitted by a stricter check (two runs agree) and raised thinking too; on
 SQL it is admitted by "runs and returns rows" (41–44% leak) and lowers the Qwen3 thinks.
+
+## 2026-10-29 19:4x UTC: SQL-PA pre-registered (PREREG_SQL.md): another model's ~60-token quick query is as strong a check as the model's own 1.1k-token short think, because what sets a check's value is how rarely it shares the generator's wrong answer
+
+Exploratory, on SQL-1's stored dev rows (gold used only to analyse; `python3.11 poc/analyze_sqlpa.py --dev`). Accepting model A's
+passing non-thinking query only when another model's non-thinking query on the same question returns the same rows (else A's T→T)
+turns SQL's cheap-first trade (N→T→T 3.7–6.5 below T→T) into a tie or win at 73–83% of T→T's tokens when the peer is from the other
+Qwen generation: Qwen3-8B ← Qwen3.5-9B +0.5 [−0.4, +1.3], Qwen3-14B-AWQ ← Qwen3.5-9B +0.8 [−0.1, +1.7], Qwen3.5-9B ← Qwen3-8B
++1.2 [+0.3, +2.1]; utility vs the no-label default SB→T→T +0.3 / +1.2 / +1.9. With a same-generation peer (Qwen3-8B ↔ Qwen3-14B) it
+is −1.0 / −0.2. Decomposition: every peer adds the same +2.4 to +3.0 points (A right, kept, T→T wrong); the peer only changes the loss
+(A wrong, kept, T→T right): −1.8 / −1.9 for the other generation, −3.0 / −3.4 for the same. That loss is set by error coincidence ρ
+(same rows given both wrong and passing): a second sample of the same Qwen3 model 83–86%, its own short think 45–52%, the same
+generation 52%, the other generation 41–45%. So self-consistency of quick queries is no check here, and the cheap peer (59–70 tokens)
+does what the own short think does (1.1–1.4k). It also bears on CV-1: its trained in-model gates keep 47–55% of wrong passing queries
+on training questions by round 16–27, the untrained peer 25% on dev (PREREG_CV.md addendum 3, CV-P7, before any CV dev row). Prior
+work: agreement-based cascades (2407.02348, 2509.21837) defer when cheaper models disagree; similar models share mistakes
+(2502.04313); HO-X here used a much stronger second model. Pre-registered test on 1,338 fresh BIRD-train questions (66 databases,
+none in dev), three Qwen models with all SQL-1 arms and Nemotron-3-Nano (another family) as a further peer, 3 seeds: PA1 a saving
+against T→T, PA2 beats the default, PA3 the coincidence ordering, PA4 another family coincides less.

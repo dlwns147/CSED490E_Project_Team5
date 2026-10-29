@@ -143,3 +143,16 @@ saves c on every question it does not escalate.
   non-zero adapter): log-probs equal the previous code's to 4 decimals (−305.6608 both), the gate's P(ACCEPT) to 5 (0.93991), LoRA
   gradients cosine 0.99993 / 0.99987 (bf16); peak memory on the longest training prompt (3,870 tokens) with a 512-token query 16.7 GiB.
 - Nothing else changes (questions, order, rewards, λ, rounds, learning rate, evaluation).
+
+## Addendum 3 (2026-10-29 19:4x UTC, before any dev row of an arm): an untrained, decorrelated gate as a comparator
+
+Seen before writing this: the three trainings' logs to round 20 (cv), 59 (c1), 27 (c2) on training questions, and SQL-1's stored dev
+rows of the other models (PREREG_SQL.md addendum SQL-PA). In training rounds 16–27, c2's gate keeps 71–78% of right passing queries
+and 47–55% of wrong ones (cv: 78% / 55% in rounds 16–20; the base gate kept all). On dev, accepting Qwen3-8B's passing query only when
+Qwen3.5-9B's quick query (≈ 63 tokens) returns the same rows keeps 79% / 25%: the trained in-model gate shares more of the quick
+query's wrong answers than an untrained peer does (SQL-PA's error coincidence).
+- **CV-P7 (an untrained decorrelated gate against the trained one):** on SQL-1's base queries, utility of N → peer agrees → answer,
+  else T→T (the peer's tokens counted) minus c2's: paired lower bound > 0. Reported with it: peer minus cv.
+- Decision: P7 holds → the gate's limit is the model's own blind spot, and a peer's quick query is the gate (no training; with P5's
+  branch, "a decorrelated gate", answered by SQL-PA). P7 refuted → training the gate is worth more than a peer; reported.
+- Computed by `python3.11 poc/analyze_cv.py` (block CV-P7, written now). Nothing else changes.

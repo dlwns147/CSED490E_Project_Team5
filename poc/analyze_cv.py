@@ -120,6 +120,16 @@ def main():
         for tau in (0.1, 0.3, 0.5, 0.7, 0.9):
             a, t = summary({key: v for key, v in trained(tags[0], "cv", B, tau).items() if key[0] in ids})
             print(f"  frontier tau {tau}: {a:.1f}% @ {t:.2f}k")
+    if "c2" in pol:   # CV-P7 (PREREG_CV.md addendum 3): an untrained peer gate (Qwen3.5-9B's quick query returns the same rows)
+        from analyze_sqlpa import cascade, grades, ntok
+        pol["peer"] = cascade(B, grades("q8b"), ntok("q8b"), grades("q35"), ntok("q35"))
+        Q["peer"] = per_q({key: v for key, v in pol["peer"].items() if key[0] in ids})
+        a, t = summary({key: v for key, v in pol["peer"].items() if key[0] in ids})
+        print(f"  peer gate (N -> q35 N agrees -> answer, else T->T): {a:.1f}% @ {t:.2f}k, utility {a - 0.5 * t:.1f}")
+        for y in ("c2", "cv"):
+            if y in pol:
+                print(f"  peer - {y}: accuracy %+.1f [%+.1f, %+.1f], utility %+.1f [%+.1f, %+.1f]" % (*d("peer", y, 0), *d("peer", y, 1)))
+        print(f"*** CV-P7 {d('peer', 'c2', 1)[1] > 0}")
     for k in ("cv", "c2"):   # does the gate learn where the think fails? passing wrong quick queries, accept rate by T->T
         if k in pol:
             pw = [(v[2] == "accept", B[key]["T->T"][0]) for key, v in pol[k].items() if key[0] in ids and v[2] in ("accept", "defer")

@@ -184,6 +184,9 @@ table: `docs/REPORT.md` §5.1):
   it lowers the Qwen3 thinks (F3 1 / 3): the check-admitted library is 57–61% right and its effect tracks that share.
   Running (SQL-FA, pre-registered with numeric predictions from SQL-F's bins): libraries admitted by agreement with the short think
   (label-free, 78–79% right), by gold as right or as wrong — whether precision, not difficulty, decides what the fact does.
+  Running (SQL-PA, pre-registered on 1,338 fresh BIRD-train questions): another model's quick query (~60 tokens) as the check —
+  on dev (exploratory) cheap first then ties or beats T→T at 73–83% of its tokens with a peer from the other Qwen generation,
+  and the check's value follows error coincidence (same model 83–86%, same generation 52%, other generation 41–45%).
 - **Training the quick mode for the cascade (CV-1, 10-29, running)**: every fix so far changed the check, and each stronger check costs
   about a think; CV-1 changes the generator instead. RL (LoRA) on Qwen3-8B's non-thinking mode, rewarded with the whole cascade's
   value (its own answer if it accepts, the same model's think-with-retry if it defers), deciding after seeing its query's result;

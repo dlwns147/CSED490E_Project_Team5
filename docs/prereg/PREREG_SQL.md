@@ -263,3 +263,65 @@ keeps it as tested (REPORT §5.11). FA1 holds, FA2 refuted → wrong examples co
 PROPOSAL says "wrong examples cost thinking" without "in proportion". FA1 refuted → the sentence is withdrawn from PROPOSAL / PROPOSAL_ko.
 FA4 holds → the recipe's SQL entry admits library queries by agreement with the short think (REPORT §5.11, PROJECT; PROPOSAL if
 thinking with the agreement library beats thinking without the fact, lower bound > 0, in 2 / 2).
+
+## Addendum SQL-PA: another model's quick query as the check (written 2026-10-29 19:4x UTC, before any SQL-PA row)
+
+**Why it could change the claim.** On SQL the cheap-first cascade is a trade because the free check leaks (41–43% of passing
+non-thinking queries are wrong), and every stronger check built so far costs about as much as the think it saves (PREREG_CV.md).
+**Exploratory (post hoc, on SQL-1's stored dev rows, 2026-10-29; `python3.11 poc/analyze_sqlpa.py --dev`).** Accepting model A's passing
+non-thinking query (N) only when another model's N on the same question returns the same rows, else A's T→T:
+| A ← peer | accuracy @ tokens | vs T→T accuracy (tokens) | vs SB→T→T utility |
+|---|---|---|---|
+| Qwen3-8B ← Qwen3.5-9B | 59.7% @ 1.53k | +0.5 [−0.4, +1.3] (83%) | +0.3 [−0.7, +1.4] |
+| Qwen3-8B ← Qwen3-14B-AWQ (same generation) | 58.2% @ 1.45k | −1.0 [−2.1, +0.0] (78%) | −1.1 [−2.3, +0.0] |
+| Qwen3-14B-AWQ ← Qwen3.5-9B | 58.4% @ 1.35k | +0.8 [−0.1, +1.7] (81%) | +1.2 [+0.1, +2.3] |
+| Qwen3-14B-AWQ ← Qwen3-8B (same generation) | 57.5% @ 1.30k | −0.2 [−1.3, +0.9] (78%) | +0.3 [−1.0, +1.5] |
+| Qwen3.5-9B ← Qwen3-8B | 60.0% @ 2.31k | +1.2 [+0.3, +2.1] (73%) | +1.9 [+0.8, +2.9] |
+
+(SQL-1: N→T→T is 3.7–6.5 below T→T; the default SB→T→T ties T→T.) The peer's query costs 59–70 tokens; A's own short think, as a check of the
+same kind (agreeing with N), keeps about as many wrong queries at 1.1–1.4k tokens.
+**Theory.** Per question-seed, A's N is right with p (every right query passes), wrong but passing with w; T→T is right with v and
+costs c. The peer agrees with a right query iff it is right too (one right result set): a = P(peer right | A right); with a wrong
+passing query iff it is wrong and passing with the same rows: b = P(peer wrong, passing | A wrong, passing) · ρ, ρ = the *error
+coincidence* (same rows given both wrong and passing). Against T→T: ΔA = E[p·a·(1 − v)] − E[w·b·v] and ΔK = k_A + E[(p + w)·k_peer]
+− E[(p·a + w·b)·c]. The gain term needs a peer that is right where A is right; the loss term needs one that is wrong *differently*.
+On dev the gain is the same for every peer (+2.4 to +3.0 points: A right, kept, T→T wrong) and the peer changes only the loss
+(−1.8 / −1.9 with the other generation, −3.0 / −3.4 with the same generation), through ρ:
+| A | own N, next seed | own SB | same generation | other generation |
+|---|---|---|---|---|
+| Qwen3-8B | 83% | 45% | 52% | 41% |
+| Qwen3-14B-AWQ | 86% | 52% | 52% | 45% |
+| Qwen3.5-9B | 60% | 44% | — | 41 / 45% |
+
+A second sample of the same model shares its wrong answer 83–86% of the time (Qwen3), so self-consistency of quick queries is no check
+here; models alike in training share wrong answers (Goel et al., 2502.04313: similar models make similar mistakes). Prediction from
+this: a peer from another family coincides less still.
+**Prior work.** Agreement-based cascading (ABC, 2407.02348) and semantic-agreement cascades (2509.21837) defer to a larger model when
+an ensemble of smaller ones disagrees; EllieSQL (2503.22402) routes text-to-SQL by predicted complexity with a trained router;
+CHASE-SQL (2410.01943) generates candidates from several paths and selects among them (accuracy, not cost). In this project HO-X
+used gpt-oss-20b, a much stronger model, as the second opinion (better to switch models), HO-LF the same model's short think. New:
+a peer of equal accuracy as the check before the same model's think, on executed results; which peer works is predicted by error
+coincidence (self sample > same generation ≈ own think > other generation > other family); against a trained in-model gate (CV-1).
+**Run.** Fresh questions: the 1,338 kept BIRD-train questions outside CV-1's think subset (`$POC_DATA/bird/pa_ids.txt`; 66 databases,
+none of them in dev; not used to train CV-1). Qwen3-8B (TP 2), Qwen3-14B-AWQ and Qwen3.5-9B (two shards each), all SQL-1 arms, SQL-1's
+prompts, sampling, caps and grading, seeds 1–3 (tags q8bpa, q14apa, q35pa). Nemotron-3-Nano-30B-A3B (another family; 4 × 3090,
+TP 4, its non-thinking mode) runs the cheap arm only, on the fresh questions (n3npa) and on dev (n3n; exploratory, not part of a
+decision). Peers fixed now: Qwen3-8B and Qwen3-14B-AWQ ← Qwen3.5-9B, Qwen3.5-9B ← Qwen3-8B. Tokens include the peer's. Analysis
+`python3.11 poc/analyze_sqlpa.py` (`bash poc/slurm/submit_sqlpa.sh`; grading `SQL_SPLIT=train $P poc/grade_sql.py <tag>`).
+**Predictions** (fresh questions, paired 95% intervals over questions, seed means).
+- **SQL-PA1 (a saving against one fixed order):** with its peer, accuracy vs A's T→T upper bound ≥ 0 at ≤ 90% of T→T's tokens, in
+  ≥ 2 of 3 models.
+- **SQL-PA2 (beats the no-label default):** utility (λ = 0.5) vs A's SB→T→T, lower bound > 0, in ≥ 2 of 3 models.
+- **SQL-PA3 (error coincidence orders the checks):** for Qwen3-8B and Qwen3-14B-AWQ, ρ(own N, next seed) − ρ(own SB) and ρ(same
+  generation) − ρ(other generation), bootstrap over questions, lower bound > 0: 4 of 4.
+- **SQL-PA4 (another family):** ρ(Nemotron) − ρ(the fixed peer), upper bound < 0, in ≥ 2 of 3 models.
+- Reported, no decision: Nemotron as the peer in the cascade; the gain / loss decomposition; raw rows of wrong queries both models
+  share (what kind of mistake two models make alike).
+**Expected (stated now, not a rule).** PA1 holds (2–3 of 3; tokens 75–85%). PA2 2 of 3, the dev margins shrinking toward zero
+(selection). PA3 holds. PA4 1–2 of 3: Nemotron coincides less but may also be right less often (smaller a).
+**Decision.** PA1 and PA2 hold → the claim changes on SQL: with an equal model's quick query as the check, cheap first is a
+label-free saving (PROJECT §2, REPORT §5.11, PROPOSAL / PROPOSAL_ko); the recipe's check list gains "an equal model's quick answer
+where answers are exact and short"; next, the same check on stored word-problem / contest rows of equal-accuracy model pairs (offline,
+pre-registered then). PA1 holds, PA2 refuted → a saving against T→T, not better than the default: reported as an option. PA1 refuted →
+the dev result was selection: SQL stays a trade. PA3 holds → recorded as the mechanism that orders every check tried (HO-LF, HO-X,
+SQL-FA's agreement library, CV-1's gate): a check is worth what it does not share with the generator's wrong answers.
