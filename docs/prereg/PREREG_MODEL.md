@@ -246,3 +246,30 @@ refuted → the budget leaves the pilot: the first think is fixed, at 4,000 if P
 - **Decision as registered:** the budget leaves the pilot; the first think is fixed at 4,000 tokens. Scope: this is the two models the
   4,000 result came from (Nemotron-3-Nano, Qwen3-8B), on the cells HO-SB4 was decided on; every other model so far ran at 2,000. Whether
   4,000 is the number for the other hybrid-thinking models is a fresh test (HO-4K, PREREG_HO.md).
+
+## Addendum PX (2026-10-29 01:2x UTC, before computing; offline): the 30-label pilot on the three task types it was not developed on
+**Why it could change the claim.** The claim's practical rule is "the recipe by default; 30 labelled problems of a new task choose the
+setting" (HO-P 0.87, HO-P4 1.19 points of utility lost). Every pilot number so far comes from word problems and geometry. Since then the
+recipe ran on three new task types with their own policy menus, and the pilot was never applied to them: general contest code (LC-1 /
+LC-OSS), tool calls (TC-1) and instructions (IF-1). If the pilot holds there, the rule is stated for six task types; if it does not,
+the claim's pilot bullet is limited to the computational tasks.
+**Cells (48, fixed now):** LiveCodeBench — Qwen3-8B, Qwen3-14B-AWQ, Qwen3.5-9B (its think at 64k, the LC-1 verdict think), gpt-oss-20b ×
+seeds 1–3 (12); BFCL — Qwen3-8B, Qwen3-14B-AWQ, Qwen3.5-9B × non-live / live × seeds 1–3 (18, TC-1's cells and preset); IFEval /
+IFBench — the same three models × 2 × seeds 1–3 (18). **Menus** (every deployable policy of each analysis; the hidden-test gate and the
+oracle are out): LC N, T, SB, S, N→T, N→SB→T, SB→T→T, T→T; TC N, T, SB, S, N→T, SB→T, T→T, 2N→T, N→T|ag, SB→T|ag; IF N, T, SB, S,
+N→T, N→R, N→R→T, SB→T, T→T. **Pilot** as HO-P: k random problems of a cell, the policy with the best utility on them, scored on the
+whole cell; regret = the cell's best utility − the pick's; 1,000 pilots per cell; utility = accuracy − λ × ktokens, λ = 0.5 decides
+(0 and 2 reported). `--pilot` in poc/analyze_lcb.py / analyze_tc.py / analyze_if.py.
+- **PX-1 (the pilot beats the recipe's default):** the k = 30 pilot's mean regret is below always using the recipe's default order
+  (LC SB→T→T; TC and IF SB→T, their short-think-first policy), in ≥ 2 of 3 task types.
+- **PX-2 (the pilot is cheap):** the k = 30 pilot's mean regret ≤ 1.5 points, in ≥ 2 of 3 task types.
+- **PX-3 (no fixed policy does as well):** the k = 30 pilot's mean regret is below every fixed policy's (the best one in hindsight
+  included), in ≥ 2 of 3 task types.
+- Reported, no decision: k = 10 / 100, λ = 0 / 2, the best policy per cell, the best fixed policy per type, per-model pilot regret.
+**Expected (stated now, not a rule).** On contest code tokens dominate utility (thinks of 15–46k) and the top policies (N→T, N, T) are
+close, so the pilot's regret is small but a fixed N→T may be as good (PX-3 at risk); on tool calls thinks are short and accuracies close
+(small regrets everywhere); on instructions the checker's cost separates the policies. PX-1 and PX-2 likely hold, PX-3 is a coin flip.
+**Decision.** PX-1 and PX-2 hold → the pilot bullet (PROJECT §2, REPORT) is stated for six task types with the new regrets. PX-1
+refuted → on the new types the recipe's default order is as good as the pilot and the bullet says so. PX-2 refuted → the bullet gives
+the number of labels the new types need (k = 100's regret). PX-3 is reported with the fixed policy that matches the pilot, if any.
+PROPOSAL / PROPOSAL_ko change only if the pilot's statement changes.
