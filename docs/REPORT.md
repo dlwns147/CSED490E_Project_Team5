@@ -395,6 +395,15 @@ presence penalty 1.5) and its other arms at T 0.7. Re-run at matched sampling (S
 (15–17% of answers vs 12%); at the harness sampling the full and the cut think tie (−0.5, +0.8) and thinking vs not thinking is −1.7
 [−3.4, +0.3] on non-live and +10.7 on live. At the card's preset the cut think keeps +1.7 [+0.7, +2.7] on live.
 
+**A second model's cheap answer as the check (HO-PA, pre-registered, offline on these rows).** Agreement of two cheap answers fails
+here because they are the same model's: a second Qwen3 sample repeats 79–80% of its wrong calls. Another Qwen generation repeats
+33–39%. Accepting the passing cheap answer only when the other generation's cheap answer makes the same calls, else the no-label
+default (SB→T→T), is more accurate *and* cheaper than the default for Qwen3-8B (+0.8 points, utility +0.9 [+0.5, +1.3], 73% of its
+tokens) and Qwen3.5-9B (+1.9, utility +2.0 [+1.5, +2.5], 71%), and ties it for Qwen3-14B-AWQ (−0.3 [−0.8, +0.1], 77%); against T→T it
+holds in all three. It becomes the no-label default for tool calls when a second model is served. The same policy saves nothing on
+word problems (utility −0.7 to +0.1 at 101–105% of the default's tokens): there two models' wrong programs coincide 56–67% of the
+time, and the two cheap programs (1–6k tokens together) pass and agree on too few hard problems to pay for themselves.
+
 ### 5.10 Instructions: a self-written check buys accuracy, not tokens (IF-1)
 On IFEval (541 prompts) and IFBench (300; 58 unseen constraint types), official strict graders, 3 models × 3 seeds, the model first
 answers without thinking, then writes a Python checker for the stated requirements (after a 2k-token think: written non-thinking, the
@@ -448,6 +457,15 @@ short think is the label-free remedy: the Qwen3 thinks are no longer lowered (+0
 +1.8 [+1.1, +2.6] over the check library, pooled), at 86–88% of the no-fact thinks' tokens. Raw thinks show what transfers: the
 example's structure (an output shape, a join path, an aggregate), which a right example can impose where it does not fit and a wrong
 one can supply where it does; precision is exact on average, loose per case. The recipe's SQL library is admitted by agreement.
+
+**A second model's quick query as the check (SQL-PA, pre-registered on 1,338 fresh BIRD-train questions).** Accepting the passing
+non-thinking query only when another Qwen generation's quick query (~60 tokens) returns the same rows, else think-with-retry, is not
+below T→T for any model (+0.5 to +1.6) at 63–69% of its tokens — where without it cheap first was 3.7–6.5 points below T→T — but
+beats the default (SB→T→T) significantly only for Qwen3-8B (+1.5 [+0.3, +2.7]; +1.0 and +0.2 n.s.): an option, not the default.
+Which check works is a matter of error coincidence: a second sample of the same Qwen3 model returns the same wrong rows 87–90% of the
+time, its own short think 60–63%, another model 52–62% (inflated on train by label noise: all 6 shared wrong answers read are gold
+or evidence errors, 2402.12243). With tool calls (above) this places the peer check: it pays where answers are short and two
+models' errors rarely coincide, and it is cheap only where the escalation it avoids is long relative to the two cheap answers.
 
 ## 6. Baselines on the same harness
 

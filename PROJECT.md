@@ -46,7 +46,7 @@ tokens, and is more accurate than every cheap-first policy there for every model
 −4.1] at 37% of T→T's tokens). The claim is therefore a frontier: **apply the free check at every step, thinking included.** Over 54
 cells of four hybrid-thinking models the best fixed order without labels is short think → full think → retry on a visible failure
 (SB→T→T: 1.74 utility points below each cell's best at λ = 0.5; one think: 7.64; T→T: 3.40); the non-thinking program first is on the
-frontier where the check holds (Qwen3.5, geometry) and 2–4 points behind on the leaky models' hardest word problems. gpt-oss-20b's gap
+frontier where the check holds (Qwen3.5, geometry) and 2–4 points behind on the leaky models' hardest word problems. Where answers are short and two models' errors rarely coincide, another model's cheap answer is the check that makes cheap first pay: on tool calls, cheap answer → a second model's cheap answer agrees → answer, else SB→T→T, beats the default in 2 of 3 models (HO-PA); on SQL it ties T→T at 63–69% of its tokens (SQL-PA); on word problems it saves nothing. gpt-oss-20b's gap
 (low effort first) closes the same way: a medium-effort think cut at 2k first ties T→T on BWOR / LogiOR at 69–83% of its tokens (HO-OSB).
 On Qwen3-32B the order holds unchanged (SB→T→T best in 3 of 4 cells, retry +2.3 to +10.9, cheap-first still −5 to −12; HO-32): the leak
 does not shrink with size. On Seed-OSS-36B, a fourth family, it is best in all 4 cells (retry +3.6 to +10.6, cheap-first −6 to −12;
@@ -170,7 +170,10 @@ table: `docs/REPORT.md` §5.1):
 - **Instructions (IF-1)**: IFEval / IFBench, 3 models: the model's executed checker (written after a 2k think) gates thinking; it beats both modes in 4 / 6 cells (+1.1 to +2.5) but costs 1.0–2.6× thinking's tokens (the checker costs more than a Qwen3 think and fails 19–47% of right answers; it leaks little, 7–20%); thinking beats a rewrite under the same check in 6 / 6. A gain, not a saving, as on tool calls.
 - **Tool calls (TC-1)**: BFCL v4, 3 models: the schema check is weak (9–25% of wrong answers for Qwen3) and thinks are short (0.3k), so
   cheap-first loses to thinking for Qwen3 and the recipe as stated (think, again on a failed check) is a +0.5 to +1.5 gain, not a
-  saving. Sampling confound found (Qwen3.5-9B / Nemotron cut thinks at the harness sampling, full thinks at the card's) and tested (SAMP): Qwen3.5-9B's word-problem saving holds with every thinking arm at a matched preset (+5.3 / +7.2 at 68–74% of the tokens); the preset moves the full think in opposite directions by task (tool calls: the general preset −3–5; long program thinks: the coding preset −5–7 via 32k caps), not the cascade.
+  saving. HO-PA (10-29): with another Qwen generation's cheap answer as the check (same calls → accept, else SB→T→T) the default
+  becomes a saving: +0.9 / +2.0 utility, more accurate, at 71–73% of its tokens for Qwen3-8B / Qwen3.5-9B (Qwen3-14B-AWQ −0.3 n.s.);
+  a second sample of the same model repeats 79–80% of its wrong calls, another model 33–39%. On word problems the same check saves
+  nothing (coincidence 56–67%, two cheap programs' cost not repaid). Sampling confound found (Qwen3.5-9B / Nemotron cut thinks at the harness sampling, full thinks at the card's) and tested (SAMP): Qwen3.5-9B's word-problem saving holds with every thinking arm at a matched preset (+5.3 / +7.2 at 68–74% of the tokens); the preset moves the full think in opposite directions by task (tool calls: the general preset −3–5; long program thinks: the coding preset −5–7 via 32k caps), not the cascade.
 - Budget (HO-4K): 4,000 does not carry over to Qwen3-14B / Qwen3.5-9B / Qwen3-32B (mean utility −0.06, 5 / 12 cells); the default stays
   2,000. Open: a fixed 2,000 tokens still costs where full thinking is already short (tool calls, TC-1); the final report (draft
   `docs/REPORT.md`, format / length / deadline from the team).
@@ -189,8 +192,9 @@ table: `docs/REPORT.md` §5.1):
   thinks' loss (+1.8 pooled over the check library). The recipe's SQL library is admitted by agreement with the short think.
   SQL-PA (10-29, 1,338 fresh BIRD-train questions): another model's quick query (~60 tokens) as the check makes cheap first a
   saving against T→T (PA1 3 / 3: +0.5 to +1.6 at 63–69% of its tokens) but not significantly better than the default (PA2 1 / 3):
-  an option. A model's second sample repeats 87–90% of its wrong answers (Qwen3), another model 52–62%. Pre-registered next
-  (HO-PA, offline on stored rows): peer check then the default, on word problems and tool calls. Nemotron's rows (PA4) running.
+  an option. A model's second sample repeats 87–90% of its wrong answers (Qwen3), another model 52–62%. HO-PA (offline): the peer
+  check then the default is the new no-label default on tool calls (2 / 3), not on word problems (0 / 4). Nemotron's rows (PA4)
+  running.
 - **Training the quick mode for the cascade (CV-1, 10-29, running)**: every fix so far changed the check, and each stronger check costs
   about a think; CV-1 changes the generator instead. RL (LoRA) on Qwen3-8B's non-thinking mode, rewarded with the whole cascade's
   value (its own answer if it accepts, the same model's think-with-retry if it defers), deciding after seeing its query's result;

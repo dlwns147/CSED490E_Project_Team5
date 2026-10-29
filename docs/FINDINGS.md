@@ -4245,3 +4245,14 @@ refuted). All 6 shared wrong answers read are label or evidence noise (BIRD trai
 Decision: reported as an option; SQL's default stays SB→T→T. Exploratory (post hoc): sending a disagreement to the default instead
 beats SB→T→T in 3 / 3 models here (+0.9 to +1.7 utility at 64–70% of its tokens) and 2 / 3 on dev — pre-registered out of sample on
 word problems and tool calls (HO-PA, stored rows). Nemotron's rows (PA4) still running.
+
+## 2026-10-29 23:0x UTC: HO-PA (PREREG_SQL.md; offline on stored rows): a peer's cheap answer, then the default, pays on tool calls, not on word problems
+Accept the model's passing cheap answer only when another Qwen generation's cheap answer is the same, else the no-label default
+(SB→T→T). Tool calls (BFCL, 3,482 items, 3 models): more accurate and cheaper than the default for Qwen3-8B (+0.8 points, utility
++0.9 [+0.5, +1.3], 73% of its tokens) and Qwen3.5-9B (+1.9, +2.0 [+1.5, +2.5], 71%); Qwen3-14B-AWQ −0.3 (n.s.) at 77% (HO-PA2 2 / 3,
+holds); against T→T 3 / 3. Word problems (476 items, 4 models): utility −0.7 to +0.1, tokens 101–105% of the default (HO-PA1 1 / 4,
+HO-PA2 0 / 4): the two cheap programs cost 1–6k and pass and agree on too few hard items to pay for themselves (OptiBench alone:
+87–92% of the default's tokens, same accuracy), and two models' wrong programs coincide 56–67% (tool calls 33–39%). A second sample
+of the same Qwen model repeats 75–80% of its wrong answers on both types (Nemotron: 59%, as diverse as another model; HO-PA3 6 / 7).
+Decision: tool calls' no-label default becomes N → peer agrees → answer, else SB→T→T; word problems unchanged; SQL keeps the peer
+check as an option. Two analysis-script fixes (utility scale, the non-inferiority clause) were made after a first run, before deciding.

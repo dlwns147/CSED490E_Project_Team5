@@ -88,7 +88,7 @@ def per_q(rows, k):
     acc = {}
     for (i, s), v in rows.items():
         a, t = v[k]
-        acc.setdefault(i, []).append((float(a), float(a) - LAM * t / 1000))
+        acc.setdefault(i, []).append((float(a), float(a) - LAM / 100 * t / 1000))   # accuracy as a fraction: 0.5 points = 0.005
     return {i: (sum(x for x, _ in v) / len(v), sum(u for _, u in v) / len(v)) for i, v in acc.items()}
 
 
@@ -166,11 +166,12 @@ def run(kind):
         ids = list(P["T->T"])
         da = ci({i: P[f"N->{p}->T->T"][i][0] - P["T->T"][i][0] for i in ids})
         du = ci({i: P[f"N->{p}->SB->T->T"][i][1] - P["SB->T->T"][i][1] for i in ids})
-        a1 = da[2] >= 0 and tk(f"N->{p}->T->T") <= 0.9 * tk("T->T"); a2 = du[1] > 0
+        ds = ci({i: P[f"N->{p}->SB->T->T"][i][0] - P["SB->T->T"][i][0] for i in ids})   # non-inferiority in accuracy (margin 2 points)
+        a1 = da[2] >= 0 and tk(f"N->{p}->T->T") <= 0.9 * tk("T->T"); a2 = du[1] > 0 and ds[1] > -2.0
         h1 += a1; h2 += a2
         print(f"  {m} <- {p} ({len(ids)} items): N->peer->T->T vs T->T acc {da[0]:+.1f} [{da[1]:+.1f}, {da[2]:+.1f}] at "
               f"{100 * tk(f'N->{p}->T->T') / tk('T->T'):.0f}% of its tokens [{a1}]; N->peer->SB->T->T vs SB->T->T utility {du[0]:+.1f} "
-              f"[{du[1]:+.1f}, {du[2]:+.1f}] at {100 * tk(f'N->{p}->SB->T->T') / tk('SB->T->T'):.0f}% of its tokens [{a2}]")
+              f"[{du[1]:+.1f}, {du[2]:+.1f}], accuracy {ds[0]:+.1f} [{ds[1]:+.1f}, {ds[2]:+.1f}], at {100 * tk(f'N->{p}->SB->T->T') / tk('SB->T->T'):.0f}% of its tokens [{a2}]")
     print(f"*** {kind}: HO-PA1 {h1} of {len(pooled)}; HO-PA2 {h2} of {len(pooled)}; cells where N->peer->SB->T->T beats SB->T->T "
           f"(lower bound > 0) {cnt['win']} / loses (upper bound < 0) {cnt['loss']} of {cnt['n']}")
     pa3 = n3 = 0

@@ -470,3 +470,52 @@ tool calls. HO-PA1 holds but HO-PA2 does not → the peer check is reported as a
 improve the default (REPORT). Neither → the peer check is a SQL observation; the error-coincidence tables say why. HO-PA3 holds →
 recorded with SQL-PA: a second sample of the same model is the weakest check on every type.
 
+## Results HO-PA (2026-10-29 23:0x UTC; `python3.11 poc/analyze_hopa.py`, output results/hopa.txt)
+
+Two fixes to the script before the numbers below, neither changing a pre-registered quantity: the paired utility used accuracy as a
+fraction with the token price in points (100 × too heavy; the first run printed utility differences of −10 to −30 on word
+problems), and HO-PA2's accuracy non-inferiority clause had not been coded. Both seen in a first run, corrected, then rerun.
+
+Per model, pooled over its cells (paired 95% intervals over items, seed means):
+
+| type | A ← peer | N→peer→T→T vs T→T accuracy (tokens) | N→peer→SB→T→T vs SB→T→T utility | its accuracy | its tokens |
+|---|---|---|---|---|---|
+| word problems (476 items) | Qwen3-8B ← Qwen3.5-9B | +0.1 [−0.8, +0.9] (95%) | +0.0 [−0.8, +0.8] | +0.2 [−0.6, +1.0] | 104% |
+| | Qwen3-14B-AWQ ← Qwen3.5-9B | +0.2 [−0.7, +1.1] (96%) | +0.0 [−0.9, +1.0] | +0.2 [−0.7, +1.1] | 104% |
+| | Qwen3.5-9B ← Qwen3-8B | −0.1 [−1.1, +0.9] (88%) | +0.1 [−0.8, +1.0] | +0.2 [−0.6, +1.1] | 101% |
+| | Nemotron-3-Nano ← Qwen3.5-9B | −0.6 [−1.7, +0.6] (98%) | −0.7 [−1.6, +0.3] | −0.4 [−1.3, +0.6] | 105% |
+| tool calls (3,482 items) | Qwen3-8B ← Qwen3.5-9B | +0.8 [+0.4, +1.3] (73%) | +0.9 [+0.5, +1.3] | +0.8 [+0.4, +1.2] | 73% |
+| | Qwen3-14B-AWQ ← Qwen3.5-9B | −0.3 [−0.7, +0.2] (76%) | −0.3 [−0.8, +0.1] | −0.4 [−0.8, +0.1] | 77% |
+| | Qwen3.5-9B ← Qwen3-8B | +3.4 [+2.9, +4.0] (67%) | +2.0 [+1.5, +2.5] | +1.9 [+1.4, +2.5] | 71% |
+
+Per cell (N→peer→SB→T→T vs SB→T→T utility, at its share of SB→T→T's tokens): OptiBench +0.4 to +1.0 at 87–92% (no interval above
+0); BWOR −0.9 to −2.6, LogiOR −1.3 to +0.7, OptMATH −1.4 to +1.8, all at 104–112% (losses in BWOR Qwen3.5-9B, LogiOR Qwen3-8B and
+Qwen3.5-9B); tool calls non-live +0.1 / −0.6 / +2.8, live +1.3 / −0.2 / +1.5 (3 of 6 above 0, none below).
+
+Error coincidence (same answer among both-wrong passing pairs, pooled over cells): word problems — own next-seed cheap 75 / 75 / 79
+/ 59%, own short think 57 / 63 / 73 / 59%, another model 56–67%; tool calls — own next-seed 80 / 79 / 53%, own short think 46 / 48 /
+53%, another model 33–39%.
+
+- **HO-PA1:** word problems 1 of 4 (refuted; only Qwen3.5-9B under 90% of the tokens); tool calls 3 of 3 (holds).
+- **HO-PA2:** word problems 0 of 4 (refuted); tool calls 2 of 3 (holds: Qwen3-8B, Qwen3.5-9B; Qwen3-14B-AWQ −0.3 [−0.8, +0.1]).
+- **HO-PA3:** 6 of 7 (refuted as stated): every Qwen model's own resample coincides more than its peer (+8.0 to +47.6), Nemotron's does
+  not (−2.7 [−8.9, +3.9]: its two cheap samples differ as much as two models do).
+- Why the word problems give nothing (theory above, with these cells' numbers): the default is long (5–31k), but the cheap program and
+  the peer's cost 1–6k together, and on BWOR / LogiOR / OptMATH they pass and agree on too few items for the saving to cover them
+  (tokens 104–112% of the default); on OptiBench, where they agree often, the policy is at 87–92% of the default's tokens with the
+  same accuracy. And different models' wrong programs coincide 56–67% of the time (tool calls 33–39%), so agreement keeps many wrong
+  answers. Of 6 random shared wrong answers (Qwen3-8B and Qwen3.5-9B, seed 1, 71 cases), 3–4 are gold problems, not shared mistakes:
+  two copies of the fire-station problem with gold 0 stations, an "LP" whose gold is the integer optimum (both models print the LP
+  value 47.78; gold 50), a bakery problem whose gold (7.575) is not the stated objective's scale; two OptMATH ones are unclear.
+- Expected (stated before): HO-PA1 2 of 4 / 2–3 of 3 (1 / 3); HO-PA2 3 of 4 / 1–2 of 3 (0 / 2). The word-problem expectation was
+  wrong: it assumed the token saving would dominate, and the cheap programs' own cost was left out.
+- **Decision (rule above):** on word problems neither holds → no change there. On tool calls HO-PA2 holds → the no-label default on
+  tool calls becomes the cheap answer checked by a served peer's cheap answer, then the short-think order (N → the peer makes the same
+  calls → answer, else SB→T→T; PROJECT §2, REPORT §5.9, PROPOSAL / PROPOSAL_ko). The word-problem condition that would have sent the
+  policy to a fresh SQL test did not hold; SQL keeps SB→T→T as its default with the peer check as an option (SQL-PA).
+- Prior work: DART (2606.23181) uses two cheap answers of the same model; on tool calls a second sample of Qwen3 repeats 79–80% of its
+  wrong calls, another Qwen generation 33–39%, which is why the peer pays where self-agreement did not (TC-1). ABC (2407.02348) defers
+  when an ensemble of smaller models disagrees; here the ensemble is one equal model and the deferral goes to the same model's
+  short-think order, and the theory says where it pays: short answers, low cross-model coincidence, an escalation not much longer
+  than the two cheap answers' overhead covers.
+
