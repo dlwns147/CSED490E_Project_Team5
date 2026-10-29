@@ -4221,3 +4221,15 @@ work: agreement-based cascades (2407.02348, 2509.21837) defer when cheaper model
 (2502.04313); HO-X here used a much stronger second model. Pre-registered test on 1,338 fresh BIRD-train questions (66 databases,
 none in dev), three Qwen models with all SQL-1 arms and Nemotron-3-Nano (another family) as a further peer, 3 seeds: PA1 a saving
 against T→T, PA2 beats the default, PA3 the coincidence ordering, PA4 another family coincides less.
+
+## 2026-10-29 22:2x UTC: SQL-FA (PREREG_SQL.md): the self-built library's precision causes what the fact does on SQL
+Same library construction, only the admission rule changed (check, agreement with the short think, gold-right, gold-wrong), Qwen3-8B
+and Qwen3-14B-AWQ, 3 seeds, 1,530 BIRD dev questions. Right minus wrong examples: non-thinking query +5.8 / +6.2, think +4.9 / +6.2
+points (FA1 holds); think with right minus check-admitted examples +3.0 [+1.8, +4.3] / +3.9 [+2.7, +5.2] against +3.2 / +3.3 predicted
+from SQL-F's bins (FA2: the difficulty-only alternative predicted 0). The composition model fixed from SQL-F predicts all 12 cells
+within 2 points (mean error 0.67; thinks 0.23; FA3 12 / 12). The label-free agreement library (78–79% right) beats the check library
+for thinking by +1.8 [+1.1, +2.6] pooled and removes the Qwen3 thinks' loss (+0.0, +0.5 vs no fact; FA4 holds), at 86–88% of the
+no-fact thinks' tokens. Raw thinks: what transfers is the example's structure (a COUNT(*) pattern, MIN on a text column, an added
+DISTINCT lose; an ORDER BY … LIMIT 1 or a column layout copied from a wrong example wins). Decision: "a fact the model builds itself is
+only as good as the check that admits it" is now causal (PROPOSAL keeps it, as tested); the recipe's SQL library is admitted by
+agreement with the short think (REPORT §5.11, PROJECT), not stated as a gain over no fact.

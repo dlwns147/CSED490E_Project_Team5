@@ -99,7 +99,9 @@ table: `docs/REPORT.md` §5.1):
   pilot 2.25. The fact (SQL-F: a SQLite card and the model's own check-passing queries for similar questions on the same database)
   raises the non-thinking query by 2.8–3.7 points but not the cascade (cheap first still 1.2–3.9 below one think given the fact; the
   default not better with it) and lowers the Qwen3 thinks (−2.1 / −1.0): only 57–61% of the check-admitted library is right, and
-  its effect rises with that share — a self-built fact is only as good as the check that admits it.
+  its effect rises with that share — a self-built fact is only as good as the check that admits it (causal, SQL-FA: changing only the
+  admission predicts each library's effect within 2 points in 12 / 12 cells; admitted by agreement with the short think, the
+  library no longer lowers the thinks, at 86–88% of their tokens).
 - **A label-free signal for when the passing cheap program is wrong** (HO-CC CC-P2; exploratory on word problems): run the same
   model's short-think program too and compare outputs (on the test inputs, or the printed value). On 311 contest problems a
   sample-passing non-thinking program that agrees is right 93–97% of the time, one that disagrees 19–34% (word problems: 78% vs 16%);
@@ -182,8 +184,9 @@ table: `docs/REPORT.md` §5.1):
   trade, so an option, not the default).
   SQL-F (10-29): the fact raises the cheap query (F1 3 / 3) but not the cascade (F2 1 / 3, F4 0 / 3), the leak stays (F5 0 / 3), and
   it lowers the Qwen3 thinks (F3 1 / 3): the check-admitted library is 57–61% right and its effect tracks that share.
-  Running (SQL-FA, pre-registered with numeric predictions from SQL-F's bins): libraries admitted by agreement with the short think
-  (label-free, 78–79% right), by gold as right or as wrong — whether precision, not difficulty, decides what the fact does.
+  SQL-FA (10-29): precision, not difficulty, decides what the fact does (FA1–FA4 all hold): right − wrong examples +4.9 to +6.2,
+  the composition model fixed from SQL-F predicts 12 / 12 cells within 2 points, and the label-free agreement library removes the
+  thinks' loss (+1.8 pooled over the check library). The recipe's SQL library is admitted by agreement with the short think.
   Running (SQL-PA, pre-registered on 1,338 fresh BIRD-train questions): another model's quick query (~60 tokens) as the check —
   on dev (exploratory) cheap first then ties or beats T→T at 73–83% of its tokens with a peer from the other Qwen generation,
   and the check's value follows error coincidence (same model 83–86%, same generation 52%, other generation 41–45%).

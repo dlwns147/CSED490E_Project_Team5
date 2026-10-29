@@ -439,6 +439,16 @@ also sort difficulty, but the lost thinks read copy a wrong join path or output 
 itself is only as good as the check that admits it: on word problems that check was stricter (two runs agree), here it is the 41–44%
 leak, so the fact raises the cheap end and the check bounds it, and the default on SQL is stated without the fact.
 
+**What decides the library's value (SQL-FA, causal test).** Changing only which check-passing queries may enter the library —
+agreement with the same seed's short-think query (label-free, 78–79% right), gold-right, gold-wrong — moves the think by 4.9–6.2
+points from wrong to right examples and the non-thinking query by 5.8–6.2. A model that weights SQL-F's per-bin effects by each
+library's composition, fixed before any SQL-FA row, predicts all 12 model × library × arm cells within 2 points (mean error 0.67;
+0.23 for thinks), so the bins' difficulty sorting explains none of SQL-F's effect: precision does. Admitting by agreement with the
+short think is the label-free remedy: the Qwen3 thinks are no longer lowered (+0.0 [−1.3, +1.4], +0.5 [−0.8, +1.8] vs no fact;
++1.8 [+1.1, +2.6] over the check library, pooled), at 86–88% of the no-fact thinks' tokens. Raw thinks show what transfers: the
+example's structure (an output shape, a join path, an aggregate), which a right example can impose where it does not fit and a wrong
+one can supply where it does; precision is exact on average, loose per case. The recipe's SQL library is admitted by agreement.
+
 ## 6. Baselines on the same harness
 
 | task | baseline | its result | ours |

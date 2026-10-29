@@ -264,6 +264,57 @@ PROPOSAL says "wrong examples cost thinking" without "in proportion". FA1 refute
 FA4 holds → the recipe's SQL entry admits library queries by agreement with the short think (REPORT §5.11, PROJECT; PROPOSAL if
 thinking with the agreement library beats thinking without the fact, lower bound > 0, in 2 / 2).
 
+## Results SQL-FA (2026-10-29 22:2x UTC; Qwen3-8B and Qwen3-14B-AWQ, 3 seeds, 1,530 questions in all five conditions; `python3.11 poc/analyze_sqlfa.py`)
+
+Seed means; in brackets the paired difference to no fact with its 95% interval; N's pass rate / leak (share of passing queries that
+are wrong) pooled over seeds:
+
+| model | library (precision) | N | T | T tokens | N pass / leak |
+|---|---|---|---|---|---|
+| Qwen3-8B | none | 46.0% | 58.1% | 1.60k | 80.5 / 42.9% |
+| Qwen3-8B | check (0.57) | 48.8% (+2.8 [+0.9, +4.6]) | 56.0% (−2.1 [−3.5, −0.7]) | 1.42k | 86.5 / 43.7% |
+| Qwen3-8B | agree (0.79) | 49.1% (+3.1 [+1.3, +4.9]) | 58.1% (+0.0 [−1.3, +1.4]) | 1.41k | 83.4 / 41.1% |
+| Qwen3-8B | right (1.00) | 50.4% (+4.4 [+2.5, +6.2]) | 59.0% (+0.9 [−0.3, +2.3]) | 1.43k | 83.7 / 39.8% |
+| Qwen3-8B | wrong (0.00) | 44.7% (−1.3 [−3.2, +0.6]) | 54.2% (−3.9 [−5.4, −2.5]) | 1.44k | 84.3 / 47.0% |
+| Qwen3-14B-AWQ | none | 49.4% | 56.7% | 1.49k | 84.8 / 41.8% |
+| Qwen3-14B-AWQ | check (0.57) | 52.7% (+3.3 [+1.5, +5.1]) | 55.7% (−1.0 [−2.4, +0.4]) | 1.26k | 89.1 / 40.9% |
+| Qwen3-14B-AWQ | agree (0.78) | 54.4% (+5.0 [+3.2, +6.8]) | 57.2% (+0.5 [−0.8, +1.8]) | 1.28k | 88.6 / 38.6% |
+| Qwen3-14B-AWQ | right (1.00) | 55.1% (+5.7 [+4.0, +7.4]) | 59.6% (+2.9 [+1.6, +4.2]) | 1.28k | 87.2 / 36.8% |
+| Qwen3-14B-AWQ | wrong (0.00) | 48.9% (−0.5 [−2.1, +1.2]) | 53.4% (−3.3 [−4.7, −1.9]) | 1.31k | 88.0 / 44.4% |
+
+- **SQL-FA1 holds (2 / 2 for N and for T):** right minus wrong library, N +5.8 [+3.9, +7.5] / +6.2 [+4.4, +7.9], T +4.9 [+3.4, +6.4]
+  / +6.2 [+4.7, +7.6].
+- **SQL-FA2 holds (2 / 2):** T with the right library minus T with the check library +3.0 [+1.8, +4.3] / +3.9 [+2.7, +5.2]
+  (predicted +3.2 / +3.3; the difficulty-only alternative predicts 0).
+- **SQL-FA3 holds (12 / 12 cells within ±2.0):** mean absolute error 0.67 points (T cells 0.23, at most 0.6; N cells 1.1, at most 1.9:
+  Qwen3-14B-AWQ's wrong library, −0.5 vs −2.4). Qwen3-8B's N gains run 1.2–1.3 points below the prediction for all three libraries.
+- **SQL-FA4 holds:** T with the agreement library minus the check library +2.1 [+1.0, +3.2] / +1.5 [+0.5, +2.5], pooled +1.8 [+1.1,
+  +2.6]; T with it is not below T without the fact (+0.0 [−1.3, +1.4], +0.5 [−0.8, +1.8]).
+- Expected (stated before): FA1 holds; FA2 with a smaller gap than predicted; FA3 6–9 of 12; FA4 borderline. FA2 and FA3 were
+  underestimated: the bins' difficulty sorting explains none of SQL-F's effect.
+- Reported, no decision. Tokens: with any library the thinks are 10–15% shorter (1.41–1.44k vs 1.60k; 1.26–1.31k vs 1.49k),
+  whatever its precision, so the agreement library gives thinking the no-fact accuracy at 88% / 86% of its tokens. The leak of N
+  follows the library's precision (right 39.8 / 36.8%, agree 41.1 / 38.6%, check 43.7 / 40.9%, wrong 47.0 / 44.4%).
+- Raw thinks (Qwen3-8B, seed 1; 109 lost with the right library, 84 won with the wrong one; 4 random of each). Lost with right
+  examples: 3 of 4 copy a structure that is right for the example's question but not for this one — COUNT(*) alone for "state the code
+  numbers of the top 3 youngest drivers; how many … among them" (library: three "How many …" queries), MIN(time) on a text column for
+  the fastest lap (library: MIN(fastestLapTime)), an added DISTINCT (library: SELECT DISTINCT element …); the fourth takes
+  CreationDate from the comment examples onto posts, which has none (a visible failure). Won with wrong examples: 3 of 4 copy a
+  structure that is right here although the example is wrong for its own question — ORDER BY … DESC LIMIT 1 for "the patient with the
+  highest LDH in the normal range" (the example ranks another column with a wrong range), forename and surname as separate columns
+  (the example returns time instead of url), the lowercase watermark pattern for 'boros' (the 'abzan' example lacks DISTINCT); the
+  fourth is variance ('Normal' / 'Abnormal' instead of 'Yes' / 'No'). What transfers is the structure; whether the example's own query
+  is right is a proxy for whether its structure fits, exact on average and loose per case.
+- **Decision (rule above):** FA1 and FA2 hold, so "a fact the model builds itself is only as good as the check that admits it" is
+  causal: PROPOSAL keeps it, now as tested (REPORT §5.11). FA4 holds, so the recipe's SQL entry admits library queries by agreement
+  with the short think (REPORT §5.11, PROJECT); thinking with that library does not beat thinking without the fact (lower bounds −1.3,
+  −0.8), so PROPOSAL states no gain from it.
+- Prior work: Yoo et al. (2205.12685) found that ground-truth labels in demonstrations matter more than Min et al. (2202.12837)
+  reported, depending on the setup; here, for generation with retrieved similar questions, right vs wrong examples move the think by
+  5–6 points, and a model weighting SQL-F's per-precision effects predicts each library within 2 points. COSP (2305.14106) and
+  SQLPrompt (2311.02883) select demonstrations by consistency within one mode; agreement across the quick and short-think modes is
+  the cross-mode version, measured here against gold-precision endpoints.
+
 ## Addendum SQL-PA: another model's quick query as the check (written 2026-10-29 19:4x UTC, before any SQL-PA row)
 
 **Why it could change the claim.** On SQL the cheap-first cascade is a trade because the free check leaks (41–43% of passing
