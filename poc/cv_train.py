@@ -19,7 +19,8 @@ from prep_sql import ITEMS, db_path, extract  # noqa: E402
 BASE_URL = os.environ.get("POC_BASE_URL", "http://127.0.0.1:8080/v1")
 RES = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "results", "sql")
 DEFER_LINE = "If you would need to think step by step to get it right, reply only DEFER."
-LAM, TEMP, MAXQ = 0.005, 0.7, 1024
+LAM, TEMP, MAXQ, BUDGET, MAXB = 0.005, 0.7, 512, 512, 1   # quick-query cap in training; new tokens and sequences per gradient chunk
+# (one 24 GB GPU: SDPA keeps each sequence's GQA-repeated keys / values of the whole prompt for the backward pass, ~0.6 GB per 1k prompt tokens)
 TARGETS = ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
 
 
@@ -37,8 +38,8 @@ def is_defer(text):
 
 def turn2(n, cols, first):
     """what turn 2 shows: row count, column names, the first 5 rows (values cut at 50 characters)"""
-    rows = "\n".join("\t".join(r) for r in first)
-    return (f"Running your query returned {n} row{'' if n == 1 else 's'}. The first {len(first)}:\n" + "\t".join(cols) + f"\n{rows}\n\n"
+    rows = "\n".join("\t".join(r)[:300] for r in first)
+    return (f"Running your query returned {n} row{'' if n == 1 else 's'}. The first {len(first)}:\n" + "\t".join(cols)[:300] + f"\n{rows}\n\n"
             "Does this result answer the question? Reply ACCEPT or DEFER.")
 
 
@@ -158,19 +159,29 @@ class Policy:
         pos = torch.arange(l, l + L, device="cuda")[None].expand(B, -1)
         return self.model(input_ids=inp, attention_mask=att, position_ids=pos, past_key_values=self.cache(kvB), use_cache=True).logits
 
-    def turn1_logp(self, kv, P, comps, chunk=4):
+    @staticmethod
+    def packs(lens):
+        """index groups whose padded size (count x longest) stays within BUDGET tokens"""
+        out, cur = [], []
+        for i in sorted(range(len(lens)), key=lambda i: lens[i]):
+            if cur and ((len(cur) + 1) * lens[i] > BUDGET or len(cur) >= MAXB):
+                out.append(cur); cur = []
+            cur.append(i)
+        return out + [cur] if cur else out
+
+    def turn1_logp(self, kv, P, comps):
         """sum of log-probs (sampling temperature) of each completion, with gradient, in chunks; yields (index list, tensor)"""
         torch = self.torch
-        for a in range(0, len(comps), chunk):
-            part = comps[a:a + chunk]
-            seqs = [[P[-1]] + c for c in part]
-            lg = self.forward(kv, len(P) - 1, seqs)[:, :-1].float() / TEMP
-            tgt = torch.tensor([s[1:] + [self.pad] * (lg.shape[1] - len(s) + 1) for s in seqs], device="cuda")
-            m = torch.tensor([[1] * (len(s) - 1) + [0] * (lg.shape[1] - len(s) + 1) for s in seqs], device="cuda", dtype=torch.float)
-            lp = torch.log_softmax(lg, -1).gather(-1, tgt[..., None])[..., 0]
-            yield list(range(a, a + len(part))), (lp * m).sum(-1)
+        seqs = [[P[-1]] + c for c in comps]
+        for sub in self.packs([len(s) for s in seqs]):
+            part = [seqs[b] for b in sub]
+            lg = self.forward(kv, len(P) - 1, part)[:, :-1].float() / TEMP
+            tgt = torch.tensor([s[1:] + [self.pad] * (lg.shape[1] - len(s) + 1) for s in part], device="cuda")
+            m = torch.tensor([[1] * (len(s) - 1) + [0] * (lg.shape[1] - len(s) + 1) for s in part], device="cuda", dtype=torch.float)
+            lp = lg.gather(-1, tgt[..., None])[..., 0] - torch.logsumexp(lg, -1)
+            yield sub, (lp * m).sum(-1)
 
-    def gate_p(self, kv, P, ctxs, chunk=2):
+    def gate_p(self, kv, P, ctxs):
         """P(ACCEPT) against DEFER's first token at the end of each turn-2 context, with gradient, in chunks"""
         torch = self.torch
         l = 0
@@ -178,11 +189,12 @@ class Policy:
             if len(set(x)) > 1:
                 break
             l += 1
-        for a in range(0, len(ctxs), chunk):
-            part = [c[l:] for c in ctxs[a:a + chunk]]
+        for sub in self.packs([len(c) - l for c in ctxs]):
+            part = [ctxs[b][l:] for b in sub]
             lg = self.forward(kv, l, part)
             last = torch.stack([lg[b, len(s) - 1, [self.acc, self.de]].float() for b, s in enumerate(part)])
-            yield list(range(a, a + len(part))), torch.softmax(last, -1)[:, 0]
+            del lg
+            yield sub, torch.softmax(last, -1)[:, 0]
 
     def step(self):
         self.torch.nn.utils.clip_grad_norm_([p for p in self.model.parameters() if p.requires_grad], 1.0)
