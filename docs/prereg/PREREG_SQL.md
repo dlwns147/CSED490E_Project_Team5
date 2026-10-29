@@ -54,3 +54,9 @@ no-label default is stated as holding on an unseen task type (or not). P7 holds 
 where the short think does not save (the contest-code exception, PX), stated as tested once out of sample.
 **Smoke (not part of the results).** q35, seed 1, every 30th question (52): the prompt fits, the query is extracted from every arm, the
 check and the grade run, gold queries execute within 30 s; fixes to format or extraction only, then the rows are discarded.
+
+*Smoke (2026-10-29 02:0x UTC; q35smoke, seed 1, 52 questions; rows discarded).* Every arm returned a query that the extraction found
+(N 78 tokens on average, T 3.1k, max 12.7k, none at the 16k cap; SB cut at 2k on 28 / 52); the check and the grade ran (no gold query
+failed; the client's check and the grader's agree on all 52 N rows). One setting is taken from LC-1's q35g, as the Run paragraph says:
+Qwen3.5-9B's cut think runs at the card's general preset like its full think (`POC_BUDGET_CARD=1`; the smoke's ran at the harness
+sampling). No prediction or rule changes. Full runs: jobs 1273839–1273853 (docs/SLURM_HANDOFF.md).
