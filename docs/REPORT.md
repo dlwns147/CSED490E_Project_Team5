@@ -236,7 +236,10 @@ On the three task types the pilot was not developed on (PX, pre-registered, 48 c
 does not carry over: it loses 1.29 / 1.96 / 1.77 points to each cell's best on contest code / tool calls / instructions, where always
 using the default order (short think, full think on a visible failure) loses 3.07 / 0.23 / 0.92. Picking the best of ten close policies
 on 30 labels costs about two points of selection noise (the optimizer's curse), so the labels pay only where the default is wrong by
-more — contest code, where one plain think does as well as the pilot (1.24); 100 labels bring it to 0.25 / 0.74 / 0.82.
+more — contest code, where one plain think does as well as the pilot (1.24); 100 labels bring it to 0.25 / 0.74 / 0.82. On 33
+word-problem cells no pilot had seen (Qwen3-32B-AWQ, Seed-OSS-36B, gpt-oss-20b; PX2) always using the default loses 0.72, the argmax
+pilot 1.30, and a pilot that switches only on a significant paired gain 0.79: labels add noise or nothing, and 30 of them cannot see
+contest code's loss (2.76).
 
 ### 5.6 Larger models, stronger checks, shorter thinking
 - **gpt-oss-120b** (4 × RTX 3090, tensor parallel): fact-first ties thinking with the same fact on OptiBench, BWOR and LogiOR (−1.0, +3.7,

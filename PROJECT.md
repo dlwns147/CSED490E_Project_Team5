@@ -78,7 +78,8 @@ table: `docs/REPORT.md` §5.1):
   policies ≥ 5.8), the 30-label pilot 1.19, and the menu gains +2.1 per cell. On the three task types it was not developed on (PX,
   48 cells) the pilot loses 1.29 / 1.96 / 1.77 (contest code / tool calls / instructions) and the no-label default 3.07 / 0.23 / 0.92:
   among ten close policies 30 labels add about two points of selection noise, so they pay only where the default is wrong (contest code,
-  where one plain think, 1.24, does as well); 100 labels: 0.25 / 0.74 / 0.82.
+  where one plain think, 1.24, does as well); 100 labels: 0.25 / 0.74 / 0.82. On 33 cells no pilot had seen (Qwen3-32B-AWQ,
+  Seed-OSS-36B, gpt-oss-20b; PX2) the default loses 0.72, the argmax pilot 1.30, a pilot gated on a paired test 0.79: the default is the rule.
 - The label-free library of checked programs raises the first program in 25 of 29 model × benchmark cells (up to +34 points; not on
   BWOR / LogiOR for Nemotron-3-Nano, a model from another family, whose failures there are formulations).
 - **Contest programming** (HO-CC, 311 Codeforces geometry problems, hidden tests): the retry on a visible failure transfers (+4.5 /
