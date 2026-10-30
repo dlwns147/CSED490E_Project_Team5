@@ -4,9 +4,10 @@ cap) on ToolACE requests in BFCL's prompt format ($POC_DATA/toolace/tc_train_ite
 right (poc/tc_reward.py: the gold calls as a multiset, or no call where the gold makes none). One vLLM server (base + the current adapter,
 reloaded each round) on GPU 0, the trainer on GPU 1 (poc/slurm/tc_lane.sh).
 Addendum 2: --bil <file> (poc/prep_tcbil.py) replaces the reward with the cascade's own, c x [passes the check] x P_X(y|i) (right - r_D(i)
-+ 0.005 kd(i)): the gradient of the deployed cascade's utility with the peer X and the default fixed.
++ 0.005 kd(i)): the gradient of the deployed cascade's utility with the peer X and the default fixed; with --plus, right + that
+term unscaled (the quick answer's own accuracy plus the cascade's utility, both in accuracy units).
 usage: /opt/conda/bin/python tc_train.py <out dir> [--questions 6000] [--batch 64] [--group 8] [--lr 2e-5] [--smoke N] [--base DIR]
-       [--bil FILE]"""
+       [--bil FILE [--plus]]"""
 import json, os, random, sys, time
 from concurrent.futures import ThreadPoolExecutor
 
@@ -22,12 +23,13 @@ def main():
     nq, B, G, lr, smoke = arg("--questions", 6000), arg("--batch", 64), arg("--group", 8), arg("--lr", 2e-5), arg("--smoke", 0)
     base = arg("--base", "/SSD/huggingface/Qwen/Qwen3-8B")
     bil = json.load(open(arg("--bil", ""))) if "--bil" in sys.argv else None
+    plus = "--plus" in sys.argv
     os.makedirs(out, exist_ok=True)
     items = [json.loads(l) for l in open(ITEMS)]
     random.Random(0).shuffle(items)
     items = items[:smoke or nq]
-    print(f"tc c1: {len(items)} training requests, batch {B}, group {G}, lr {lr}" + (f", cascade reward x {bil['_scale']:.2f}" if bil else ""),
-          flush=True)
+    print(f"tc c1: {len(items)} training requests, batch {B}, group {G}, lr {lr}" + (f", cascade reward x {bil['_scale']:.2f}" if bil and not plus
+          else "") + (", right + cascade reward" if plus else ""), flush=True)
     pol = Policy(base, lr)
     log = open(f"{out}/log.jsonl", "a")
     model_name = "local"   # round 0: the adapter is zero, the base model samples
@@ -49,8 +51,9 @@ def main():
             if bil is not None:
                 b = bil.get(p["id"])
                 W = [0.0 if b is None or not check(d, p["functions"]) else
-                     bil["_scale"] * b["px"].get(canon(d), 0.0) * (r - b["rD"] + 0.005 * b["kd"]) for d, r in zip(ds, R)]
+                     b["px"].get(canon(d), 0.0) * (r - b["rD"] + 0.005 * b["kd"]) for d, r in zip(ds, R)]
                 st["w"] += sum(W)
+                W = [r + w for r, w in zip(R, W)] if plus else [bil["_scale"] * w for w in W]
                 st["agree"] += 0 if b is None else sum(b["px"].get(canon(d), 0.0) for d in ds if check(d, p["functions"]))
             mu = sum(W) / G
             A = [x - mu for x in W]

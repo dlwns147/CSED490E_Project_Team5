@@ -425,3 +425,56 @@ q8bcvc1} × peer ∈ {q4b, q4bcvc1}, plus Qwen3.5-9B).
 Decision: as PREREG_TCRL.md addendum 1 (P7 / P8 / theory row), on the second task. Expected (not a rule): P18 inconclusive (SQL's
 corrections spread over many question types, so the two trainings overlap less than BFCL's abstentions), P19 refuted (the 4B's
 quick queries are 42% right against Qwen3.5-9B's 49%), the theory row holds.
+
+## Results, addendum 6 (2026-10-30 10:4x UTC; `python3.11 poc/analyze_cvpeer.py --q4b` > results/cv6_q4b.txt, `--c1w` > results/cv6_c1w.txt; 1,530 questions × 3 seeds)
+
+(a) Qwen3-4B as the generator, peer Qwen3.5-9B, its own SB→T→T (57.4% at 1.72k):
+
+| | accuracy | ktokens | utility − default [95%] |
+|---|---|---|---|
+| base 4B quick → peer → default | 58.0% | 1.47 | +0.7 [−0.1, +1.5] |
+| C1 on Qwen3-4B → peer → default | 59.0% | 1.43 | **+1.8 [+0.9, +2.7]** |
+
+- **CV-P14 holds:** +1.80 [+0.92, +2.70].
+- **CV-P15 holds:** +1.11 [+0.44, +1.76] over the base 4B's cascade.
+- **CV-P14 theory holds:** predicted +2.35 (C1-4B's strata RR 42.9 / RW 6.3 / WR 8.0 / WW 22.4 / fail 20.4% with the base 4B's agreement
+  rates) inside the interval; the measured agreement on RW fell 57.1 → 53.0%, on WR rose 17.4 → 20.6%.
+
+(b) C1w (C1's reward × 0.532 where the base T→T is wrong, × 0.146 where right, mean 1) against C1, Qwen3-8B, peer Qwen3.5-9B:
+
+- **CV-P16 refuted:** C1w → peer → default 60.8% at 1.37k, − C1's cascade −0.44 [−0.93, −0.00] (predicted from the strata −0.22).
+- **CV-P17 refuted:** RW share +0.11 [−0.41, +0.68]; WR share +1.33 [+0.52, +2.09] (the wrong direction).
+- Quick query right: base 46.0%, C1 50.6%, C1w 49.3%; check passes 80.0 / 80.5%.
+
+**Decision (pre-registered rules).** P14 and P15 hold → on SQL, plain RL plus the peer check carries to a second generator, for both
+Qwen3 sizes (claim widened). P17 refuted → 6,000 questions with one-sample think outcomes do not let the weighting move right answers
+onto the questions the default fails.
+
+**Raw reading (C1w).** Per seed, C1 right → C1w wrong on 55.7 questions where the default is right and 13.3 where it is wrong; the
+reverse 33.7 and 15.0. What C1w lost is C1's learned conventions, on easy questions: unqualified columns in joins
+(`SELECT type FROM sets JOIN cards ...` → "ambiguous column name", where C1 wrote a subquery), quoted column names dropped
+(`ORDER BY Enrollment` for `f."Enrollment (Ages 5-17)"`), the wrong table (`UserDisplayName` from badges). Down-weighting the
+questions the default already gets right slowed the learning that transfers; up-weighting the ones it fails did not move them
+(+1.7 question-seeds net). The per-question value in the cascade is not the per-question value as a training signal.
+
+## Results, addendum 7 (2026-10-30 10:4x UTC; `python3.11 poc/analyze_pair.py --sql` > results/cv7_pair.txt; 1,530 questions × 3 seeds)
+
+Qwen3-8B's SB→T→T (59.5%) as the default; utility − default [95%]:
+
+| N \ peer | Qwen3-4B | C1 on Qwen3-4B | Qwen3.5-9B |
+|---|---|---|---|
+| Qwen3-8B | −0.19 [−1.18, +0.81] | +1.29 [+0.42, +2.21] | +0.58 [−0.27, +1.43] |
+| C1 | +1.35 [+0.48, +2.29] | +2.07 [+1.00, +3.16] | +1.99 [+1.14, +2.94] |
+
+- **CV-P18 refuted:** interaction −0.77 [−1.52, −0.07]: sub-additive (training N +1.54 with the base peer, the peer +1.48 with the
+  base N, both +2.26).
+- **CV-P19 refuted:** G(C1, C1-4B) − G(C1, Qwen3.5-9B) +0.08 [−0.86, +0.93].
+- **CV-P18 theory holds:** other-seed estimates within 0.12 of the same-seed values in all cells.
+
+**Decision.** As TCRL addendum 1: no cross term — training the peer is at most additive (here less); on SQL the trained 4B peer ties
+Qwen3.5-9B as the trained 8B's partner. **Raw reading (bilinear decomposition, utility points):** cross term −0.83 (measured −0.77) =
+−1.52 where both base models shared a wrong query and the default is right (either training alone breaks that agreement) + 0.61 where
+both now share a right query and the default fails + 0.08 rest. The same structure as tool calls (−0.82 / +1.17 there, plus −0.61
+from shared new wrong abstentions): the veto of a shared error needs only one trained member, so two trainings that fix the same
+errors overlap; a positive cross term needs the two trainings to put the same right answer on questions the default fails, which is
+rarer on SQL (its corrections spread over many conventions) than on BFCL (one behaviour, abstention).

@@ -5,7 +5,8 @@ X in {q4b, q4btcc1} with Qwen3-8B's default; the no-call rule (a no-call quick a
 --sql: CV-P18 / P19 — the same 2x2 on BIRD dev with X in {q4b, q4bcvc1} (and q35 for P19).
 Independence estimate (theory row): the peer's answer at the other two seeds in place of its answer at the same seed.
 --bil: TCRL-P10..P12 (addendum 2) — Qwen3-8B trained with the cascade's own reward against peer Qwen3.5-9B (q8btcb35) / C1tc-4B
-(q8btcb4t) vs C1tc with the same peer; P12: accepted wrong where the default is right (and accepted right where it is wrong).
+(q8btcb4t) vs C1tc with the same peer; P12: accepted wrong where the default is right (and accepted right where it is wrong);
+P13: right + the unscaled cascade reward against C1tc-4B (q8btcp4t).
 usage: python analyze_pair.py --tc | --sql | --bil"""
 import contextlib, io, os, sys
 
@@ -121,8 +122,9 @@ def accepted(kind, D, N, X, ids):
 def bil():
     D = default("tc", "q8b")
     C1, B35, B4t = quick("tc", "q8btcc1"), quick("tc", os.environ.get("BIL35", "q8btcb35")), quick("tc", os.environ.get("BIL4T", "q8btcb4t"))
+    P4t = quick("tc", os.environ.get("BILP4T", "q8btcp4t"))
     out = []
-    for name, B, xt in (("P10", B35, "q35"), ("P11", B4t, "q4btcc1")):
+    for name, B, xt in (("P10", B35, "q35"), ("P11", B4t, "q4btcc1"), ("P13", P4t, "q4btcc1")):
         if B is None:
             print(f"=== TCRL-{name}: no rows"); continue
         X = quick("tc", xt)
@@ -140,7 +142,7 @@ def bil():
         print(f"  accepted wrong where the default is right: C1tc {100 * sum(wc.values()) / len(ids):.2f}%, cascade reward "
               f"{100 * sum(wb.values()) / len(ids):.2f}% ({w[0]:+.2f} [{w[1]:+.2f}, {w[2]:+.2f}]); accepted right where it is wrong: "
               f"{100 * sum(rc.values()) / len(ids):.2f}% vs {100 * sum(rb.values()) / len(ids):.2f}% ({a[0]:+.2f} [{a[1]:+.2f}, {a[2]:+.2f}])")
-        out.append(f"TCRL-{name} {u[1] > 0} ({u[0]:+.2f} [{u[1]:+.2f}, {u[2]:+.2f}]); TCRL-P12 ({xt}) {w[2] < 0}")
+        out.append(f"TCRL-{name} {u[1] > 0} ({u[0]:+.2f} [{u[1]:+.2f}, {u[2]:+.2f}]); accepted wrong / default right lower ({xt}) {w[2] < 0}")
     print("*** " + "; ".join(out))
 
 

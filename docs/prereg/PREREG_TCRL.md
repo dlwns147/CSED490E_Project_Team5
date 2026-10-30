@@ -253,3 +253,28 @@ on these 6,000 items (one pass), so its P_X there is optimistic; BFCL is in neit
 Expected (stated now, not a rule): P10 holds narrowly (+0.3 to +0.8; with Qwen3.5-9B C1tc's accepted-wrong share is already 0.5%, so
 the gain must come from right answers the peer confirms where the default fails), P11 holds (C1tc's accepted-wrong share with C1tc-4B
 is 1.6%), P12 holds for B4t; both arms' quick accuracy 1–3 points below C1tc's.
+
+## Amendment to addendum 2 (2026-10-30 10:4x UTC, before any training round and any BFCL row of the arms): CV addendum 6's result, and a third arm
+
+The input jobs were resharded for speed (1283524 / 1283525 cancelled at 839 / ~700 rows; the rest in 1283546–1283550, tags taq8bp<j>
+/ taq35p<j>, merged into taq8b / taq35 before `prep_tcbil.py`; T on the SB-check failures as job tbil_q8bt). No reward file exists yet.
+
+CV addendum 6 (b) came in meanwhile: C1w, a two-weight version of the cascade's gradient on SQL (C1's reward × 2.0 where the default
+fails, × 0.56 where it succeeds), lost to plain C1 (−0.44 [−0.93, −0.00]); it did not move right answers onto the questions the default
+fails and it learned less of the conventions that transfer, on the questions the default already gets right. The exact reward w of
+B35 / B4t also drops the reward for right answers there (it keeps only the saved tokens), so the same failure is possible; what w has
+and C1w lacks is the penalty on wrong answers the peer shares where the default is right. The expectations above are revised (not a
+rule): P10 refuted, P11 inconclusive, P12 holds for B4t.
+
+**Third arm, P4t:** the quick answer's own accuracy plus the cascade's utility, both in accuracy units and with no scale: reward
+r(y) + w(y, i) (`--bil tc_bil_taq4btcc1.json --plus`, peer C1tc-4B, tag q8btcp4t, job tcp4t, out `/cv/tc_p4t`). It keeps
+plain RL's signal on every item and adds the cascade's terms (more reward for right answers the peer confirms where the default fails,
+less for wrong answers the peer shares where the default is right).
+
+- **TCRL-P13:** G(P4t, C1tc-4B) − G(C1tc, C1tc-4B): lower bound > 0 (utility, paired over items, Qwen3-8B's SB→T→T as the default).
+- Reported with it, as P12: accepted wrong where the default is right, accepted right where it is wrong, quick calls right.
+- **Decision:** P13 holds → the recipe adds the cascade's own reward to plain RL's (PROJECT / REPORT / PROPOSAL); with P11 refuted it
+  is the plain signal that carries the transfer and the cascade term that aims it. P13 refuted → plain RL stays the recipe; reported
+  with the mechanism.
+
+Expected (not a rule): P13 holds narrowly (+0.2 to +0.7).
