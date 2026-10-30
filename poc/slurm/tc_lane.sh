@@ -15,7 +15,7 @@ if [ -z "$TC_SKIP_TRAIN" ]; then
     /opt/conda/bin/python poc/tc_train.py $out "$@" >> results/tc/run_tcrl_train.log 2>&1
   kill $S; sleep 15
 fi
-[ -n "$TC_NO_EVAL" ] && exit 0
+[ -n "$TC_NO_EVAL" ] && { chown -R $(stat -c %u:%g /NAS/SJ/POSTECH/nlp) $out; exit 0; }
 [ -d $out/adapter_final ] || { echo "no adapter_final in $out" >> results/tc/run_tcrl_train.log; exit 1; }
 S=$(bash poc/start_server.sh /SSD/huggingface/Qwen/Qwen3-8B $PORT 0,1 0.90 tcrl_eval_${SLURM_JOB_ID} --max-model-len 20480 \
   --tensor-parallel-size 2 --served-model-name base --enable-lora --max-lora-rank 16 --max-loras 1 --lora-modules local=$out/adapter_final) || exit 1
