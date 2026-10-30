@@ -278,3 +278,12 @@ less for wrong answers the peer shares where the default is right).
   with the mechanism.
 
 Expected (not a rule): P13 holds narrowly (+0.2 to +0.7).
+
+## Note (2026-10-30 11:5x UTC, before any training round): the reward inputs
+
+Built by `prep_tcbil.py` on the 6,000 training requests (all have Qwen3-8B's SB, seed 1, and 4 quick samples of each peer; T seed 1 on
+the 110 whose SB fails the free check). The default (SB→T) is right on 70.6% of them (BFCL: 83.9%). Peer Qwen3.5-9B: quick calls right
+60.6%, no call 4.8%; an answer with w > 0.01 on 6.7% of the requests, one with w < −0.01 on 12.8%; mean per-request range of w 0.106,
+scale c = 9.39 (B35). Peer C1tc-4B: right 70.4%, no call 12.7%; w > 0.01 on 8.2%, w < −0.01 on 6.6%; range 0.124, c = 8.06 (B4t; P4t
+uses w unscaled). So B35's reward is mostly the veto (twice as many requests where a shared answer loses to the default as where one
+gains), and B4t's is balanced. Jobs: tcb35 1283750, tcb4t 1283751, tcp4t 1283752.
