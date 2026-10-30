@@ -25,9 +25,11 @@ contest-like task, where one full think should go first, from the rest (PX: 30 l
 
 ## 1. Goal
 
-LLMs can solve computational problems — geometry, combinatorial optimization, contest and word problems — by writing a program.
-Programs can be silently wrong, and thinking longer is expensive. **Goal: exactly right answers with the fewest tokens, with open models
-from 8B to 120B.** Every result is accuracy *and* tokens. Compute: primarily the RTX 3090 partition (24 GB each; models larger than one GPU
+Many tasks give an LLM's answer a free, partial check: a program for a geometry, optimization, contest or word problem runs; a SQL
+query executes and returns rows; a tool call parses against its API; a text meets the constraints its instruction states; a proof is
+accepted. A cheap answer can pass that check and still be wrong, and thinking longer is expensive. **Goal: exactly right answers with
+the fewest tokens, with open models from 8B to 120B, on any such task (not only computational problems: user, 2026-10-30) — where to
+spend thinking, and how to tell without labels that a cheap answer is wrong.** Every result is accuracy *and* tokens. Compute: primarily the RTX 3090 partition (24 GB each; models larger than one GPU
 run tensor-parallel over several 3090s in one job), so as not to compete with other users (user, 2026-10-23: no longer limited to 24 GB
 models).
 
@@ -112,9 +114,10 @@ table: `docs/REPORT.md` §5.1):
 
 ## 3. Scope
 
-- **In:** computational geometry (CG) and combinatorial optimization (CO) solved by LLM-written programs: generated geometry and
-  optimization suites, OR word-problem benchmarks (NL4OPT, IndustryOR, MAMO, OptMATH, OptiBench, BWOR, LogiOR), Codeforces geometry,
-  Solomon routing, job-shop scheduling.
+- **In:** any task with a free partial check. Started with computational geometry (CG) and combinatorial optimization (CO) solved by
+  LLM-written programs: generated geometry and optimization suites, OR word-problem benchmarks (NL4OPT, IndustryOR, MAMO, OptMATH,
+  OptiBench, BWOR, LogiOR), Codeforces geometry, Solomon routing, job-shop scheduling; now also contest code (LiveCodeBench),
+  text-to-SQL (BIRD), tool calls (BFCL), instruction following (IFEval) and proofs (miniF2F).
 - **Widened 2026-10-27 (user):** the project need not stay on computation-only problems. Next directions may take the recipe (missing
   fact → cheap answer → free check → think on a visible failure) to tasks whose checks are not program execution, e.g. instruction
   following with model-written constraint checkers or tool calling with API usage as the fact; each is pre-registered against the

@@ -7,7 +7,9 @@
 
 ## 1. The problem
 
-**Computational math** means problems whose answer is *computed*, exactly:
+**The tasks.** Any task whose answer is exactly right or wrong and can be checked, at least in part, for free: by running it,
+executing it, or testing it against the rules the task states. We started with computational math, where the answer is *computed*,
+and widened to database queries, tool calls and instructions:
 
 | Kind | Example | Answer | How hard, by a well-known yardstick |
 |---|---|---|---|
@@ -17,20 +19,23 @@
 | Word problems | Process A uses 3 gold and 2 wires to plate 5 coins; B uses 5 gold and 3 wires for 7. With 500 gold and 300 wires, how many coins at most? | 750 | undergraduate OR-course exercises (NL4OPT, a NeurIPS 2022 competition); the hard part is the solver's API |
 | Competition math | AIME, MATH-500 | a number | AIME invites roughly the top 2.5–5% of AMC takers |
 | Proofs (extension) | Prove a competition statement in Lean 4 (miniF2F), or a geometry theorem (IMO) | a proof the computer accepts | IMO-AG-30: an average IMO gold medallist solves 25.9 of 30 |
+| Text-to-SQL | What is the average number of SAT test takers from Fresno schools that opened in 1980? (a database of California schools) | an SQLite query whose rows match the gold query's | BIRD (NeurIPS 2023): data engineers 93%; our 8–14B open models 57–61% with thinking |
+| Tool calls | "What's the weather in Seoul in Celsius?", given a `get_weather(city, unit)` function | `get_weather(city="Seoul", unit="celsius")`, or no call when no function fits | BFCL (Berkeley Function-Calling Leaderboard), 3,482 items |
+| Instructions | "Write a story in 3 paragraphs, all lowercase, without commas" | a text that meets every constraint | IFEval (Google, 2023): 25 kinds of checkable constraint |
 
 ![The problems and their difficulty](figs/ex_problems.png)
 
-An LLM can solve them in four ways: answer in text, **write a program** and run it, write a program that **calls a solver library** (e.g. OR-Tools for routing), or **think longer** first (a reasoning mode that writes thousands of extra tokens). For computation, text is unreliable: asked for twice the area of one polygon in 8 equivalent copies (moved, rotated, mirrored), Qwen3-8B answers 436, 2944, 392 and 728; the program it writes is right on all 8.
+On computational problems an LLM can answer in four ways: answer in text, **write a program** and run it, write a program that **calls a solver library** (e.g. OR-Tools for routing), or **think longer** first (a reasoning mode that writes thousands of extra tokens). For computation, text is unreliable: asked for twice the area of one polygon in 8 equivalent copies (moved, rotated, mirrored), Qwen3-8B answers 436, 2944, 392 and 728; the program it writes is right on all 8.
 
-Programs are the right tool when the answer must be computed. On short-answer competition math, text is as good or better (Qwen3.6 on MATH-500: text 98.3%, program 86.8%); there the program is most useful as a *second opinion*: when gpt-oss-20b's text answer and program agree, only 0.3% are wrong (two text answers that agree: 1.5%).
+Programs are the right tool when the answer must be computed. On short-answer competition math, text is as good or better (Qwen3.6 on MATH-500: text 98.3%, program 86.8%); there the program is most useful as a *second opinion*: when gpt-oss-20b's text answer and program agree, only 0.3% are wrong (two text answers that agree: 1.5%). On the other tasks the answer is already code-like (a query, a call, a constrained text), and the choice is between answering at once and thinking first.
 
-But programs fail **silently** (they still print an answer), and thinking is **expensive**: on 311 real contest problems, gpt-oss-120b solves 57% at medium effort (6.8k tokens per problem) and 66% at high effort (30k tokens), 4.4× the cost for 9 more points.
+But cheap answers fail **silently** (a wrong program still prints an answer, a wrong query still returns rows), and thinking is **expensive**: on 311 real contest problems, gpt-oss-120b solves 57% at medium effort (6.8k tokens per problem) and 66% at high effort (30k tokens), 4.4× the cost for 9 more points.
 
-**Goal.** Solve these problems **effectively** (exactly right under strict checks) and **efficiently** (the fewest tokens, the smallest GPU). The question is *where* extra effort should go.
+**Goal.** Get exactly right answers on these tasks **effectively** (right under strict checks) and **efficiently** (the fewest tokens, the smallest GPU). The questions are *where* extra effort should go, and how to tell, without labels, that a cheap answer is wrong.
 
-**Why it matters.** Coding agents already write route planners, schedulers and geometry code; tokens are the cost and the waiting time; and many teams have one 24 GB GPU, not a 120B model.
+**Why it matters.** Agents already write route planners, schedulers and geometry code, query databases and call tools; tokens are the cost and the waiting time; and many teams have one 24 GB GPU, not a 120B model.
 
-**What we do.** We test each cheap fix (a missing fact, a free check, reuse) against thinking longer, on geometry, routing, scheduling, contest problems, word problems, competition math and proofs, with open models, scoring accuracy and tokens; then we combine the winners into one recipe.
+**What we do.** We test each cheap fix (a missing fact, a free check, reuse) against thinking longer, on geometry, routing, scheduling, contest problems, word problems, competition math, proofs, text-to-SQL, tool calls and instruction following, with open models, scoring accuracy and tokens; then we combine the winners into one recipe.
 
 ## 2. Findings at a glance
 

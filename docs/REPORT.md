@@ -5,8 +5,9 @@ pre-registrations in `docs/prereg/` and `docs/notes/REPORT_OUTLINE.md`; format a
 
 ## Abstract
 
-Language models can solve computational problems — geometry, scheduling, routing, optimization word problems — by writing a program, but
-programs fail silently and "thinking longer" (long reasoning before answering) is expensive. We ask where a fixed token budget should go,
+Many tasks give a language model's answer a free, partial check — a program for a geometry, scheduling or optimization problem runs, a
+SQL query returns rows, a tool call parses, a text meets its stated constraints — but a cheap answer can pass it and still be wrong, and
+"thinking longer" (long reasoning before answering) is expensive. We ask where a fixed token budget should go,
 for open models from 8B to 120B on RTX 3090s. The recipe: write a program, add the missing fact (a few lines of exact library usage, or a
 checked program for a similar problem found without labels), run a free check (the program runs and prints a value; outputs on
 transformed copies agree), and spend more thinking only where the check visibly fails. The fact is the main lever: the label-free

@@ -5,9 +5,9 @@
 This is the manual: how to set up, run and analyze everything in this repository. **What the project is for, its claim, scope and
 working rules: `PROJECT.md`.** The argument with all numbers: `PROPOSAL.md` (Korean: `PROPOSAL_ko.md`).
 
-LLMs can solve geometry, optimization, contest and word problems by writing a program. Programs can be silently wrong, and thinking longer
-is expensive. We look for the cheapest way to get exactly right answers: a program, the missing fact, a free check, and thinking only
-when the check fails.
+Many LLM tasks come with a free, partial check: programs for geometry, optimization, contest and word problems, SQL queries, tool calls,
+instructions with checkable constraints. Cheap answers can be silently wrong, and thinking longer is expensive. We look for the cheapest
+way to get exactly right answers: a cheap answer, the missing fact, a free check, and thinking only when the check fails.
 
 ![Findings at a glance](figs/fig21_results_glance.png)
 
