@@ -4,7 +4,9 @@ a bare "f(...)" is read as "[f(...)]" (as BFCL's decoder); [] if the text makes 
 arguments; literal values, where a bare name is read as BFCL's decoder does: true / false / null as booleans and None, any other
 name as its string). right(text, gold, functions): 1 if the calls equal the gold calls as a
 multiset — names equal; each gold argument present with an equal value, unless it equals the parameter's documented default; no
-extra argument unless equal to its default; numbers compare by value, strings after strip — or if both make no call."""
+extra argument unless equal to its default; numbers compare by value, strings after strip — or if both make no call.
+TC-RL addendum 2: check(text, functions) = grade_tc.py's free check (schema validation, no gold) on this decoder's calls ("int" read as
+"integer"); canon(text) = the decoded calls as a canonical string for agreement ("none" for no call, None if it does not decode)."""
 import ast, json, re
 
 
@@ -86,3 +88,44 @@ def right(text, gold, functions):
     defaults = {f["name"]: {k: p["default"] for k, p in f.get("parameters", {}).get("properties", {}).items()
                             if isinstance(p, dict) and "default" in p} for f in functions}
     return float(sorted(_key(n, a, defaults) for n, a in calls) == sorted(_key(n, a, defaults) for n, a in gold))
+
+
+TYPES = {"string": (str,), "integer": (int,), "int": (int,), "float": (int, float), "boolean": (bool,), "array": (list, tuple),
+         "tuple": (list, tuple), "dict": (dict,)}
+
+
+def check(text, functions):
+    """True = passes the free check: decodes (or makes no call) into calls of listed functions, required parameters present, no unknown
+    parameter, types and enums as documented (None for an optional parameter = unset)"""
+    doc = {f["name"]: f for f in functions}
+    d = decode(text)
+    if not d:
+        return d is not None or not any(n + "(" in (text or "") for n in doc)
+    for name, args in d:
+        if name not in doc:
+            return False
+        par = doc[name].get("parameters", {}) or {}
+        props, req = par.get("properties", {}) or {}, par.get("required", []) or []
+        if any(k not in args for k in req):
+            return False
+        for k, v in args.items():
+            if k not in props:
+                return False
+            if v is None and k not in req:
+                continue
+            t = props[k].get("type") if isinstance(props[k], dict) else None
+            if isinstance(t, str) and t in TYPES and (not isinstance(v, TYPES[t]) or (t in ("integer", "int", "float") and isinstance(v, bool))):
+                return False
+            e = props[k].get("enum") if isinstance(props[k], dict) else None
+            if isinstance(e, list) and not isinstance(v, (list, dict)) and v not in e:
+                return False
+    return True
+
+
+def canon(text):
+    d = decode(text)
+    if d is None:
+        return None
+    if not d:
+        return "none"
+    return json.dumps(sorted(json.dumps([n, {k: _canon(v) for k, v in a.items()}], sort_keys=True) for n, a in d))

@@ -149,3 +149,107 @@ quick rows exist), for its own SB→T→T. Grading `grade_tc.py`; analysis `pyth
 
 Expected (stated now, not a rule): P4 holds (+4 to +8; the 4B starts lower on irrelevance), P5 and P6 hold, P7 holds narrowly (shared
 abstentions), P8 open, the theory row holds in the untrained cells and is the risk in the trained-trained cell, P9 holds.
+
+## Results, addendum 1 (2026-10-30 10:2x UTC; `python3.11 poc/analyze_pair.py --tc` > results/tcrl_pair.txt; 3,479 / 3,482 items × 3 seeds)
+
+| | utility − default [95%] |
+|---|---|
+| Qwen3-4B: base quick calls → Qwen3.5-9B → Qwen3-4B's SB→T→T (85.5%) | −0.22 [−0.66, +0.19] |
+| Qwen3-4B: C1tc-4B → Qwen3.5-9B → that default | +0.94 [+0.57, +1.33] |
+| Qwen3-4B: C1tc-4B, no-call answers accepted without the peer | +1.08 [+0.34, +1.84] |
+| Qwen3-8B's default (83.9%): N q8b → peer q4b / q4btcc1 / q35 | +0.18 / +1.62 / +0.85 |
+| N q8btcc1 → peer q4b / q4btcc1 / q35 | +1.19 / **+2.60 [+1.90, +3.33]** / +1.35 |
+
+- **TCRL-P4 holds:** quick calls right 73.0 → 82.0%, +9.0 [+7.7, +10.3].
+- **TCRL-P5 holds:** +0.94 [+0.57, +1.33].
+- **TCRL-P6 holds:** +1.16 [+0.80, +1.56] over the base 4B's cascade.
+- **TCRL-P7 refuted:** interaction −0.03 [−0.54, +0.49]: the two trainings add (training N +1.01 with the base peer, training the peer
+  +1.44 with the base N, both +2.42).
+- **TCRL-P8 holds:** G(q8btcc1, q4btcc1) − G(q8btcc1, Qwen3.5-9B) = +1.25 [+0.61, +1.86].
+- **TCRL-P8 theory holds:** the other-seed estimate is within 0.09 of the same-seed value in all four cells (and +0.10 / 0.00 with
+  Qwen3.5-9B), so shared training data did not break conditional independence.
+- **TCRL-P9 refuted:** +0.14 [−0.50, +0.78].
+
+**Decision (pre-registered rules).** P4–P6 hold → the tool-call recipe holds on a second model (with CV-P14 / P15 pending, the SQL
+side). P7 refuted → no cross term: training the peer is at most additive; the recipe is not changed to "train both" on a synergy
+claim. P8 holds as stated: the pair of two trained quick models is the best measured system on BFCL (+2.60 over Qwen3-8B's default,
+86.5% at 0.27k tokens), +1.25 over the previous best pair. The theory row holds. P9 refuted → the no-call rule was the 8B's.
+
+**Raw reading.**
+- *The 4B learned the same thing, more of it.* Quick calls right by category, base → C1tc-4B: live_irrelevance 53.3 → 86.8% (874
+  items), irrelevance 65.8 → 90.1% (240); live_multiple 70.3 → 67.8, live_simple 82.9 → 77.3, live_relevance 97.9 → 62.5 (16 items);
+  the rest within ±2. 436 question-seeds per seed move wrong → right (881 / 1,308 in live_irrelevance), 124 right → wrong (226 / 372 in
+  live_multiple).
+- *Why the no-call rule fails on the 4B.* C1tc-4B abstains on 1,080 items per seed (8B: 982; base 4B: 621) and 9.8% of its abstentions
+  are wrong (8B 5.9%, base 4B 0.5%): it drops supported calls, e.g. `[Movies_3_FindMovies(directed_by="Hari Sama")]` → `[]`,
+  `[calc_absolute_pressure(atm_pressure=1, gauge_pressure=2)]` → `[]` (214 / 324 wrong abstentions in live_multiple). The default
+  is right on 88.5% of the items it abstains on, so accepting them unchecked gains 1.7 accuracy points where it lost 6.2 on the 8B.
+- *Why there is no cross term (bilinear decomposition, per-item answer distributions over 3 seeds, Qwen3-8B's default, utility
+  points).* The interaction is Σ_i Σ_y ΔP_N ΔP_X (r(y) − r_D(i)) (+ the saved default tokens); its terms by answer class: both
+  trainings move onto the same right abstention where the default is wrong +1.17; onto the same wrong abstention where the default is
+  right −0.61; both remove the same shared wrong call where the default is right −0.82 (one trained member already breaks the
+  agreement, so the second adds nothing: the main effects count it twice); the rest +0.33; total +0.08 (measured −0.03). The main
+  effects: training N +0.93, training the peer +1.39, most of each from removing wrong calls the base pair shared where the default is
+  right (+0.79 / +0.92).
+- *Headroom (exploratory).* With the peer fixed, the best any N can do under the bilinear account is Σ_i max(0, max_y P_X(y|i)(r(y) −
+  r_D(i))) (biased up: a max over 3-sample estimates): +3.70 with Qwen3.5-9B (q8btcc1 reaches +1.37), +6.90 with C1tc-4B (+2.66), +3.95 with the base 4B (+1.19); on BIRD
+  +7.09 with Qwen3.5-9B (C1 +1.98). Plain RL trains toward the right answer whether or not the peer can confirm it and whether or not
+  the default already has it; most of the headroom is left.
+
+## Addendum 2 (2026-10-30 10:2x UTC): train one member for the cascade it is deployed in
+
+Written before any row of the runs below exists, training-item rows included (the input jobs 1283524–1283526 were submitted at
+10:2x UTC and are loading their servers), and before CV addendum 6's C1w (a two-weight version of the same idea on SQL) has a graded
+dev row.
+
+**Why it could change the claim.** Conditional independence held in all 20 cells measured, so with the peer X and the default D fixed
+the deployed cascade's utility is linear in N's answer distribution: G = Σ_i Σ_y P_N(y|i) w(y, i), with
+w(y, i) = P_X(y|i) (r(y) − r_D(i) + 0.005 kd(i)) (accepted only when X gives the same answer; kd = the default's ktokens that the
+acceptance saves; utility = accuracy − 0.5 × ktokens in points; N's and X's own tokens are paid either way). Plain RL maximises
+Σ P_N r instead: it rewards right answers the peer cannot confirm (worth nothing in the cascade) and right answers where the default is
+already right (worth the saved tokens only), and it penalises a wrong answer the same whether or not the peer shares it where the
+default is right (the only way the cascade loses accuracy). w is the cascade's exact per-sample reward, and because it is linear in
+r_D and P_X, one default sample and K peer samples per training item estimate it without bias. Headroom (addendum 1): the best
+response to Qwen3.5-9B is +3.70 (plain RL's C1tc +1.37), to C1tc-4B +6.90 (+2.66). If the exact reward moves N toward the best
+response, the recipe becomes "train the quick answer for the cascade it is deployed in"; if not, plain RL is what transfers, and the
+objective's extra terms do not survive the shift from ToolACE to BFCL.
+
+**Prior work.** Cascade-aware training (2406.00060) masks the tokens both models get wrong in the small model's distillation loss and
+defers by the small model's own likelihood: no agreement gate, no reward from the other model's answer distribution or the fallback's
+correctness. Learning to defer (2006.01862) trains a classifier with a rejector to be right where the expert is not; negative
+correlation learning (Liu & Yao 1999) penalises ensemble members' shared errors; joint training of deep ensembles fails through learner
+collusion (Jeffares et al., NeurIPS 2023), so here the peer stays fixed and only one member is trained. LLM juries (2607.10139) name
+training models "that fail differently" as future work. None trains a member against a fixed peer's per-item answer distribution and
+the fallback's per-item correctness.
+
+**Runs.** (1) Inputs on the 6,000 ToolACE items of tc_train.py's order (`/toolace/tc_train_ids.txt`): Qwen3-8B's SB, seed
+1, and its T, seed 1, where SB fails the free check (tag taq8b, job 1283524); quick answers, seeds 1–4, of Qwen3.5-9B (taq35, 1283525)
+and C1tc-4B (taq4btcc1, 1283526). `python3.11 poc/prep_tcbil.py taq8b <peer tag> 4` → `/toolace/tc_bil_<peer tag>.json`.
+On training items the free check, agreement and correctness are poc/tc_reward.py's check / canon / right, the functions the trainer
+calls. (2) Arms: Qwen3-8B, C1tc's loop, items, order and hyperparameters; only the reward changes, to c × [N passes the check] × w, with
+c = 1 / the mean over the 6,000 items of max(0, max_y w) − min(0, min_y w) (the mean per-item reward range equals plain RL's 1, as C1w
+normalises its weights). **B35:** peer Qwen3.5-9B (`--bil tc_bil_taq35.json`, tag q8btcb35). **B4t:** peer C1tc-4B
+(`--bil tc_bil_taq4btcc1.json`, tag q8btcb4t). Each through tc_lane.sh: BFCL quick calls, seeds 1–3, grade_tc.py. C1tc-4B was trained
+on these 6,000 items (one pass), so its P_X there is optimistic; BFCL is in neither training set. Analysis
+`python3.11 poc/analyze_pair.py --bil`.
+
+## Predictions (3,482 items × 3 seeds, paired 95% intervals over items, utility, Qwen3-8B's SB→T→T as the default)
+
+- **TCRL-P10:** G(B35, Qwen3.5-9B) − G(C1tc, Qwen3.5-9B): lower bound > 0.
+- **TCRL-P11:** G(B4t, C1tc-4B) − G(C1tc, C1tc-4B): lower bound > 0.
+- **TCRL-P12 (mechanism, per arm against C1tc with the same peer):** the share of question-seeds accepted wrong where the default is
+  right: upper bound < 0. Reported with it: accepted right where the default is wrong.
+- Reported, not decided: each arm's quick calls right against C1tc's (the reward ignores right answers the peer cannot confirm, so
+  quick accuracy may fall while the cascade gains); each G against the best-response bound (+3.70 / +6.90).
+
+## Decision
+
+- P10 and P11 hold → the recipe becomes: train the quick answer with the cascade's own reward (the peer's answers and the default's
+  correctness on the training items; nothing labelled at test). PROJECT / REPORT / PROPOSAL; the SQL side next.
+- One of P10 / P11 holds → reported with the peer it holds for; the claim names it.
+- Both refuted, P12 holds for an arm → the reward moves the cascade's errors where derived, but too little to show in utility.
+- Both refuted, P12 refuted → the training-distribution reward does not transfer from ToolACE to BFCL; plain RL stays the recipe.
+
+Expected (stated now, not a rule): P10 holds narrowly (+0.3 to +0.8; with Qwen3.5-9B C1tc's accepted-wrong share is already 0.5%, so
+the gain must come from right answers the peer confirms where the default fails), P11 holds (C1tc's accepted-wrong share with C1tc-4B
+is 1.6%), P12 holds for B4t; both arms' quick accuracy 1–3 points below C1tc's.

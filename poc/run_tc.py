@@ -7,6 +7,7 @@ The free check (schema validation of the decoded calls, no gold), agreement, gra
 offline: poc/grade_tc.py, poc/analyze_tc.py. Items: $POC_DATA/bfcl/tc_items.jsonl (poc/prep_tc.py). Rows resume.
 SQL-DV (PREREG_SQL.md): TC_VIEW=shuffle (the function docs in a per-item random order; a no-op for one function) | plan (a line
 `# plan: ...` before the calls, removed from n_text and kept as p_text); arm quick = N alone, written to the cheap file.
+TC-RL addendum 2 (PREREG_TCRL.md): TC_ITEMS=<jsonl> another item file (the ToolACE training items); TC_IDS=<file> only those ids.
 usage: python run_tc.py <tag> <seed>     (TC_SUBSET=i/k: items i, i+k, ... only — the smoke; TC_ARMS=think: only those arms — SAMP)"""
 import json, os, random, sys, zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -17,7 +18,7 @@ from run_geo_cross import budget_chat  # noqa: E402
 from run_nlopt import _rows  # noqa: E402
 
 RES = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "results", "tc")
-DATA = os.path.join(os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nlp_data"), "bfcl", "tc_items.jsonl")
+DATA = os.environ.get("TC_ITEMS") or os.path.join(os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nlp_data"), "bfcl", "tc_items.jsonl")
 SELECT = """Here is a request. Before making the function calls for it, decide: would thinking step by step first help you make the \
 right calls? Answer with one word, yes or no.
 
@@ -43,6 +44,8 @@ def view(p, how, seed):
 def main():
     tag, seed = sys.argv[1], int(sys.argv[2])
     P = [json.loads(l) for l in open(DATA)]
+    if os.environ.get("TC_IDS"):
+        keep = set(open(os.environ["TC_IDS"]).read().split()); P = [p for p in P if p["id"] in keep]
     if os.environ.get("TC_SUBSET"):
         i, k = map(int, os.environ["TC_SUBSET"].split("/")); P = P[i::k]
     os.makedirs(RES, exist_ok=True)

@@ -4,7 +4,9 @@ makes the same answer -> N, else the default (SB->T->T); paired 95% intervals ov
 X in {q4b, q4btcc1} with Qwen3-8B's default; the no-call rule (a no-call quick answer is accepted without the peer).
 --sql: CV-P18 / P19 — the same 2x2 on BIRD dev with X in {q4b, q4bcvc1} (and q35 for P19).
 Independence estimate (theory row): the peer's answer at the other two seeds in place of its answer at the same seed.
-usage: python analyze_pair.py --tc | --sql"""
+--bil: TCRL-P10..P12 (addendum 2) — Qwen3-8B trained with the cascade's own reward against peer Qwen3.5-9B (q8btcb35) / C1tc-4B
+(q8btcb4t) vs C1tc with the same peer; P12: accepted wrong where the default is right (and accepted right where it is wrong).
+usage: python analyze_pair.py --tc | --sql | --bil"""
 import contextlib, io, os, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -106,5 +108,41 @@ def sql():
           f"[{u19[1]:+.2f}, {u19[2]:+.2f}]); CV-P18 theory (independence within 0.2 in the 2x2) {th}")
 
 
+def accepted(kind, D, N, X, ids):
+    """per item (seed means): N accepted and wrong where the default is right; accepted and right where it is wrong"""
+    wr, rw = {}, {}
+    for i in ids:
+        a = [(N[s][i][0] and same(kind, N[s][i], X[s][i]), N[s][i][1], D[(i, s)][0]) for s in (1, 2, 3)]
+        wr[i] = sum(g and not n and d for g, n, d in a) / 3
+        rw[i] = sum(g and n and not d for g, n, d in a) / 3
+    return wr, rw
+
+
+def bil():
+    D = default("tc", "q8b")
+    C1, B35, B4t = quick("tc", "q8btcc1"), quick("tc", os.environ.get("BIL35", "q8btcb35")), quick("tc", os.environ.get("BIL4T", "q8btcb4t"))
+    out = []
+    for name, B, xt in (("P10", B35, "q35"), ("P11", B4t, "q4btcc1")):
+        if B is None:
+            print(f"=== TCRL-{name}: no rows"); continue
+        X = quick("tc", xt)
+        ids, Dc = common(D, [C1, B, X])
+        ref = per_q(Dc)
+        print(f"=== TCRL-{name}: peer {xt}, Qwen3-8B's SB->T->T ({100 * sum(ref[i][0] for i in ids) / len(ids):.1f}%), {len(ids)} items x 3 seeds")
+        r = {k: 100 * sum(Q[s][i][1] for s in (1, 2, 3) for i in ids) / 3 / len(ids) for k, Q in (("C1tc", C1), ("cascade reward", B))}
+        print(f"  quick calls right: C1tc {r['C1tc']:.1f}%, cascade reward {r['cascade reward']:.1f}%")
+        Qc, Qb = per_q(run("tc", Dc, C1, X)), per_q(run("tc", Dc, B, X))
+        show(f"N C1tc -> peer {xt} -> default", Qc, ref, ids)
+        show(f"N cascade reward -> peer {xt} -> default", Qb, ref, ids)
+        u = ci({i: Qb[i][1] - Qc[i][1] for i in ids})
+        (wc, rc), (wb, rb) = accepted("tc", Dc, C1, X, ids), accepted("tc", Dc, B, X, ids)
+        w, a = ci({i: wb[i] - wc[i] for i in ids}), ci({i: rb[i] - rc[i] for i in ids})
+        print(f"  accepted wrong where the default is right: C1tc {100 * sum(wc.values()) / len(ids):.2f}%, cascade reward "
+              f"{100 * sum(wb.values()) / len(ids):.2f}% ({w[0]:+.2f} [{w[1]:+.2f}, {w[2]:+.2f}]); accepted right where it is wrong: "
+              f"{100 * sum(rc.values()) / len(ids):.2f}% vs {100 * sum(rb.values()) / len(ids):.2f}% ({a[0]:+.2f} [{a[1]:+.2f}, {a[2]:+.2f}])")
+        out.append(f"TCRL-{name} {u[1] > 0} ({u[0]:+.2f} [{u[1]:+.2f}, {u[2]:+.2f}]); TCRL-P12 ({xt}) {w[2] < 0}")
+    print("*** " + "; ".join(out))
+
+
 if __name__ == "__main__":
-    {"--tc": tc, "--sql": sql}[sys.argv[1]]()
+    {"--tc": tc, "--sql": sql, "--bil": bil}[sys.argv[1]]()
