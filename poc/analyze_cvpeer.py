@@ -8,7 +8,9 @@ accepting changes accuracy only on (N right, default wrong) = RW and (N wrong, d
 (a_s = the peer's agreement rate in stratum s); --predict transfers a_s from the base quick query to C1's strata, written before any
 agreement between C1 and the peer is computed.
 --c1think (addendum 5, CV-P12 / P13): the default with C1's adapter on its SB / T steps (tag q8bc1t) as the comparator and fallback.
-usage: python analyze_cvpeer.py [--predict] [--c1think]"""
+--q4b (addendum 6, CV-P14 / P15): the same with Qwen3-4B as the generator (base quick q4b, plain RL q4bcvc1, its own SB->T->T);
+--c1w (addendum 6, CV-P16 / P17): C1 trained with the cascade-weighted reward (q8bcvc1w) against C1.
+usage: python analyze_cvpeer.py [--predict] [--c1think | --q4b | --c1w]"""
 import contextlib, io, json, sys
 
 sys.path.insert(0, __import__("os").path.dirname(__import__("os").path.abspath(__file__)))
@@ -93,9 +95,86 @@ def c1think():
           f"{u13[2]:+.2f}])")
 
 
+def compare(title, D, NA, NB, X, names):
+    """paired comparison of N -> peer -> D for two quick queries NA (reference) and NB on the questions all have; returns
+    (ids, keys, Q, strata of each)"""
+    keys = [k for k in D if all(k[0] in Z[k[1]] for Z in (NA, NB, X))]
+    ids = {i for i, _ in keys}
+    ids = {i for i in ids if all((i, s) in D and all(i in Z[s] for Z in (NA, NB, X)) for s in (1, 2, 3))}
+    keys = [k for k in keys if k[0] in ids]
+    D = {k: D[k] for k in keys}
+    kpeer = {(i, s): X[s][i][2] for i, s in keys}
+    SA = strata(NA, D, keys)
+    aA = {st: sum(same(None, NA[s][i], X[s][i]) for i, s in v) / len(v) for st, v in SA.items() if st != "fail"}
+    print(f"=== {title}: {len(ids)} questions x 3 seeds")
+    print(f"  {names[0]} quick query: strata " + ", ".join(f"{st} {100 * len(v) / len(keys):.1f}%" for st, v in SA.items())
+          + " | peer agrees " + ", ".join(f"{st} {100 * r:.1f}%" for st, r in aA.items()))
+    pred = {}
+    for name, NQ in zip(names, (NA, NB)):
+        acc, kt, pi = theory(NQ, D, keys, aA, kpeer)
+        pred[name] = acc - 0.5 * kt
+        print(f"  predicted ({name}, {names[0]}'s agreement rates): peer cascade - default accuracy {acc:+.2f}, ktokens {kt:+.3f}, "
+              f"utility {pred[name]:+.2f} | strata " + ", ".join(f"{st} {100 * p:.1f}%" for st, p in pi.items()))
+    pol = {"default": D, f"N({names[0]})->peer->default": cascade("sql", D, NA, X), f"N({names[1]})->peer->default": cascade("sql", D, NB, X)}
+    Q = {k: per_q(v) for k, v in pol.items()}
+    for k, r in pol.items():
+        a, t = 100 * sum(v[0] for v in r.values()) / len(r), sum(v[1] for v in r.values()) / len(r) / 1000
+        line = f"  {k:>28}: {a:.1f}% @ {t:.2f}k, utility {a - 0.5 * t:.1f}"
+        for y in pol:
+            if y != k and y != f"N({names[1]})->peer->default":
+                da, du = ci({i: Q[k][i][0] - Q[y][i][0] for i in ids}), ci({i: Q[k][i][1] - Q[y][i][1] for i in ids})
+                line += f" | vs {y}: acc {da[0]:+.1f} [{da[1]:+.1f}, {da[2]:+.1f}], utility {du[0]:+.1f} [{du[1]:+.1f}, {du[2]:+.1f}]"
+        print(line)
+    SB = strata(NB, D, keys)
+    aB = {st: sum(same(None, NB[s][i], X[s][i]) for i, s in v) / len(v) for st, v in SB.items() if st != "fail"}
+    print(f"  {names[1]} quick query: measured peer agreement " + ", ".join(f"{st} {100 * r:.1f}%" for st, r in aB.items()))
+    return ids, keys, Q, pol, pred, SA, SB
+
+
+def q4b():
+    """CV-P14 / P15"""
+    D = {k: v["SB->T->T"] for k, v in composed("q4b").items()}
+    N0, N1, X = quick("sql", "q4b"), quick("sql", "q4bcvc1"), quick("sql", "q35")
+    ids, keys, Q, pol, pred, _, _ = compare("CV-P14 / P15, Qwen3-4B as the generator, BIRD dev, peer Qwen3.5-9B", D, N0, N1, X, ("base 4B", "C1 4B"))
+    u14 = ci({i: Q["N(C1 4B)->peer->default"][i][1] - Q["default"][i][1] for i in ids})
+    u15 = ci({i: Q["N(C1 4B)->peer->default"][i][1] - Q["N(base 4B)->peer->default"][i][1] for i in ids})
+    p = pred["C1 4B"]
+    print(f"*** CV-P14 {u14[1] > 0} ({u14[0]:+.2f} [{u14[1]:+.2f}, {u14[2]:+.2f}]); CV-P15 {u15[1] > 0} ({u15[0]:+.2f} [{u15[1]:+.2f}, "
+          f"{u15[2]:+.2f}]); CV-P14 theory (predicted {p:+.2f} inside the CV-P14 interval) {u14[1] <= p <= u14[2]}")
+
+
+def c1w():
+    """CV-P16 / P17"""
+    import random
+    D = {k: v["SB->T->T"] for k, v in base().items()}
+    N1, NW, X = quick("sql", "q8bcvc1"), quick("sql", "q8bcvc1w"), quick("sql", "q35")
+    ids, keys, Q, pol, pred, SA, SB = compare("CV-P16 / P17, C1w (cascade-weighted reward) against C1, Qwen3-8B, BIRD dev", D, N1, NW, X,
+                                              ("C1", "C1w"))
+    u16 = ci({i: Q["N(C1w)->peer->default"][i][1] - Q["N(C1)->peer->default"][i][1] for i in ids})
+    inA = {st: {} for st in ("RW", "WR")}
+    for st in inA:
+        for name, S in (("A", SA), ("B", SB)):
+            for i, s in S[st]:
+                inA[st].setdefault(i, [0, 0])[name == "B"] += 1
+    qs, rng = sorted(ids), random.Random(0)
+    def diff(st, sample):
+        return 100 * sum(inA[st].get(i, [0, 0])[1] - inA[st].get(i, [0, 0])[0] for i in sample) / (3 * len(sample))
+    out = {}
+    for st in ("RW", "WR"):
+        bs = sorted(diff(st, [rng.choice(qs) for _ in qs]) for _ in range(2000))
+        out[st] = (diff(st, qs), bs[50], bs[1949])
+        print(f"  share of {st}, C1w - C1: {out[st][0]:+.2f} [{out[st][1]:+.2f}, {out[st][2]:+.2f}] points")
+    print(f"*** CV-P16 {u16[1] > 0} ({u16[0]:+.2f} [{u16[1]:+.2f}, {u16[2]:+.2f}]; predicted from the strata {pred['C1w'] - pred['C1']:+.2f}); "
+          f"CV-P17 {out['RW'][1] > 0}")
+
+
 def main():
     if "--c1think" in sys.argv:
         return c1think()
+    if "--q4b" in sys.argv:
+        return q4b()
+    if "--c1w" in sys.argv:
+        return c1w()
     B = base()
     D = {k: v["SB->T->T"] for k, v in B.items()}
     TT = {k: v["T->T"] for k, v in B.items()}

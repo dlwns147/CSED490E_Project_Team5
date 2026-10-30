@@ -372,3 +372,40 @@ CV-1 is: the in-model gate cannot reach the ratio, the peer can, and the generat
 **Decision (by the rule above).** P12 holds: with the trained weights everywhere the peer cascade still adds +1.8; on SQL, train, then
 check with a peer — the claim as changed by CV-P8 stands, and the gain is the cascade's, not only the training's. The best no-label
 policy on BIRD dev is now C1 → peer → SB→T→T(C1), +2.7 [+1.5, +4.0] over the untrained default at 79% of its tokens.
+
+## Addendum 6 (2026-10-30 06:5x UTC, before any row of the runs below): a second generator, and the cascade's own gradient
+
+CV-P8 / P12 rest on one generator. Two runs test it from two sides; both reuse CV-1's loop, data (the same 6,000 BIRD-train
+questions, order and settings as C1) and dev evaluation (`cv_eval.py c1`, seeds 1–3), and `python3.11 poc/analyze_cvpeer.py`.
+
+**(a) Qwen3-4B as the generator (same family, half the size; quick query 42.2% on dev vs 46.0%).** C1 on Qwen3-4B (`cv_train.py c1
+--base Qwen3-4B`, tag q4bcvc1), and Qwen3-4B's own SB / T arms on dev (`run_sql.py q4b`, `SQL_ARMS=think,sb`, SQL-1's settings), so
+the default is its own SB→T→T. Peer: Qwen3.5-9B's quick query (q35), as before.
+- **CV-P14:** utility C1(4B) → peer → SB→T→T(4B) − SB→T→T(4B): paired lower bound > 0.
+- **CV-P15:** − the base 4B query's peer cascade: paired lower bound > 0.
+- **CV-P14 theory:** the decomposition's prediction (C1(4B)'s strata, the base 4B query's agreement rates) inside CV-P14's interval.
+- Decision: P14 and P15 hold → the result carries to a second generator: on SQL, train the quick query for correctness and check it
+  with a peer, for both Qwen3 sizes (claim widened in PROJECT / REPORT / PROPOSAL). P14 refuted → the 8B result does not carry; the
+  claim is restricted to Qwen3-8B, and the decomposition says which term failed (the strata shift or the agreement transfer).
+- `python3.11 poc/analyze_cvpeer.py --q4b`.
+
+**(b) Training for the cascade with the gate outside the model.** CV-1's cascade objective failed because the deferral decision was
+the model's. With a fixed peer gate there is no deferral channel, and equation (3) gives the cascade's gradient in the quick query's
+correctness directly: making the query right on question x raises the cascade's accuracy by a_RW where the default is wrong and by
+a_WR where it is right (the token term, ≤ λc a_RR, is small). Plain RL (C1) weights both 1:1; the cascade weights them 53.2 : 14.6
+(the peer's agreement rates on RW / WR on SQL-PA's 1,338 train questions, strata against T→T; dev not used), 3.6:1. Arm **C1w**
+(`cv_train.py c1w`): C1's reward times 0.532 where the base model's T→T is wrong on that training question, 0.146 where it is right,
+normalised to mean 1 over the training questions (so the effective step size matches C1's). Tag q8bcvc1w.
+- **CV-P16:** utility C1w → peer → SB→T→T − C1 → peer → SB→T→T: paired lower bound > 0.
+- **CV-P17 (mechanism):** C1w's share of RW question-seeds (right where SB→T→T is wrong) minus C1's: bootstrap lower bound > 0.
+- Reported: the WR share difference, both quick queries' own accuracy, the decomposition's predicted difference.
+- Power, stated now: if C1w moved one point of question-seeds from WR-reduction to RW, the decomposition gives about
+  0.54 − 0.18 ≈ +0.4 utility, against a paired half-width near 0.8: P16 will probably be inconclusive even if the mechanism works;
+  P17 is the sharper test.
+- Decision: P16 holds → the cascade's own gradient, with the check outside the model, is the training signal to use (claim: train for
+  the cascade, not only for correctness). P16 not shown, P17 holds → the weighting moves right answers where derived, too little to show
+  in utility at this size; reported. P17 refuted → 6,000 questions with one-sample think outcomes do not let the weighting move right
+  answers onto the questions the default fails; reported.
+- `python3.11 poc/analyze_cvpeer.py --c1w`.
+
+Expected (stated now, not a rule): P14 holds narrowly, P15 holds; P16 inconclusive, P17 holds weakly.

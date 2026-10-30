@@ -7,7 +7,10 @@ for every query); turn 1 by policy gradient with the group mean as the baseline 
 being the gate's expected reward. The prompt's keys and values carry no gradient (computed under the current adapter).
 Reward (accuracy units, LAM per 1k output tokens = SQL-1's 0.5 utility points): answer = right - LAM * k_quick; escalate =
 v(x) - LAM * (k_quick + c(x)), with v / c the base model's T->T on that training question (grades of tag q8btrain, seeds 1 / 2).
-usage: /opt/conda/bin/python cv_train.py <cv|c1|c2> <out dir> [--questions 6000] [--batch 64] [--group 8] [--lr 2e-5] [--smoke N]
+c1w (PREREG_CV.md addendum 6): as c1, the reward weighted by what a right query is worth to the peer-check cascade:
+  CV_W0 where the base model's T->T is wrong, CV_W1 where it is right (default 0.532 / 0.146: the peer's agreement rates on RW / WR
+  on SQL-PA's train questions), normalised to mean 1 over the training questions.
+usage: /opt/conda/bin/python cv_train.py <cv|c1|c1w|c2> <out dir> [--questions 6000] [--batch 64] [--group 8] [--lr 2e-5] [--smoke N]
   (POC_BASE_URL: a vLLM server started with --enable-lora and VLLM_ALLOW_RUNTIME_LORA_UPDATING=True; SQL_SPLIT=train is set here)"""
 import hashlib, json, os, random, sqlite3, sys, time, urllib.request
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
@@ -237,7 +240,7 @@ class Policy:
 
 def main():
     arm, out = sys.argv[1], sys.argv[2]
-    assert arm in ("cv", "c1", "c2"), arm
+    assert arm in ("cv", "c1", "c1w", "c2"), arm
     nq, B, G, lr, smoke = arg("--questions", 6000), arg("--batch", 64), arg("--group", 8), arg("--lr", 2e-5), arg("--smoke", 0)
     base = arg("--base", "/SSD/huggingface/Qwen/Qwen3-8B")
     os.makedirs(out, exist_ok=True)
@@ -251,6 +254,11 @@ def main():
     random.Random(0).shuffle(items)
     items = items[:smoke or nq]
     print(f"{arm}: {len(items)} training questions, batch {B}, group {G}, lr {lr}", flush=True)
+    W = (float(os.environ.get("CV_W0", 0.532)), float(os.environ.get("CV_W1", 0.146)))   # c1w: weight where T->T is wrong / right
+    m = sum(W[V[p["id"]][0] >= 0.5] for p in items) / len(items)
+    W = (W[0] / m, W[1] / m)
+    if arm == "c1w":
+        print(f"c1w weights: T->T wrong {W[0]:.3f}, right {W[1]:.3f}", flush=True)
     pol = Policy(base, lr)
     log = open(f"{out}/log.jsonl", "a")
     model_name = "local"   # round 0: the adapter is zero (B = 0), the base model samples
@@ -293,6 +301,8 @@ def main():
                         st["value_greedy"] += (y if x >= 0.5 else z) - V1[idx[b]]
             if arm == "c1":
                 V1 = [float(r) for r in right]
+            elif arm == "c1w":
+                V1 = [W[v >= 0.5] * float(r) for r in right]
             st["value_greedy"] += sum(V1)
             st["defer"] += sum(defer); st["pass"] += sum(passing); st["right"] += sum(right); st["n"] += G
             mu = sum(V1) / G
