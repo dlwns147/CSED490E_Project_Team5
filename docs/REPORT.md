@@ -28,8 +28,8 @@ developed on the no-label default does as well or better (tool calls 0.23 vs 1.9
 (3.07 vs 1.29; PX); on text-to-SQL, a fifth task type none of the rules was built on, the default loses 0.33 and the pilot 2.25, and
 the default ties the check-matched think at 69–90% of its tokens while the non-thinking query first loses 2.7–5.9 points (SQL-1).
 Trained with plain RL on open data (labels only in training) and checked by another model's quick answer, the non-thinking answer
-beats the no-label default on text-to-SQL (+2.0 utility, BIRD dev) and tool calls (+1.35, BFCL); trained to gate itself, it learns to
-defer everything (CV-1, TC-RL).
+beats the no-label default on text-to-SQL (+2.0 utility, BIRD dev) and tool calls (+1.35, BFCL; Qwen3-4B +0.94; with the peer trained too
++2.60, the two trainings adding without a cross term); trained to gate itself, it learns to defer everything (CV-1, TC-RL).
 Where the check is perfect (Lean proofs) the
 rule becomes "sample cheaply, then think"; where it leaks, it bounds label-free self-training as it bounds the recipe.
 
@@ -527,6 +527,20 @@ model can lift it above the default by more than P(peer right, default wrong) �
 reach 1.30 and 1.83. Agreement is conditionally independent given the item (the peer at another seed changes every stored pair's gain
 by ≤ 0.1 points), so the gain is bilinear in the two models' per-item answer distributions; whether training the peer too adds a
 positive cross term is pre-registered on Qwen3-4B for both tasks (TCRL addendum 1, CV addendum 7).
+
+**A second model, and a trained peer (TCRL addendum 1).** Qwen3-4B trained the same way gains more in quick calls (+9.0 [+7.7, +10.3],
+again mostly abstention: live irrelevance 53.3 → 86.8%) and its peer cascade beats its own default by +0.94 [+0.57, +1.33] (P4–P6
+hold). In the 2×2 of trained / untrained answering model (Qwen3-8B) and peer (Qwen3-4B), with Qwen3-8B's default, the trainings
+add without interaction (−0.03 [−0.54, +0.49], P7 refuted): training the answering model +1.01, training the peer +1.44, both +2.42,
+and **two trained quick models reach 86.5% at 0.27k tokens, +2.60 [+1.90, +3.33] over the default**, +1.25 [+0.61, +1.86] above the
+best pair with an untrained peer (P8 holds). Conditional independence survives shared training data (other-seed estimates within
+0.09 in all four cells), and the bilinear account explains the missing synergy term by term: Σ ΔP_N ΔP_X (r − r_D) = +1.17 where both
+learn the same right abstention and the default fails, −0.61 where both learn the same wrong abstention and the default is right,
+−0.82 where both base models shared a wrong call that either training alone removes, +0.33 elsewhere. Accepting the 4B's no-call
+answers without the peer does not pay (+0.14 [−0.50, +0.78], P9 refuted): 9.8% of them drop a supported call. With the peer fixed, the
+best possible answering model under the same account gains +3.70 (Qwen3.5-9B) or +6.90 (trained Qwen3-4B), where plain RL reaches
++1.37 / +2.66: plain RL rewards right answers the peer cannot confirm and does not penalise the wrong answers the peer shares. The
+exact reward of the deployed cascade, P_X(y|i)(r(y) − r_D(i)), is pre-registered next (TCRL addendum 2).
 
 ## 6. Baselines on the same harness
 

@@ -4334,3 +4334,14 @@ Agreement is conditionally independent given the item (other-seed peer within 0.
 the two models' answer distributions; training N helps with each of 5 peers on BFCL and 4 on BIRD (exploratory). In sample only:
 accepting no-call answers without the peer +2.36 vs +1.36. Next (pre-registered): Qwen3-4B with the same recipe, and the 2×2 of
 trained / untrained N and peer on both tasks (does training both add a cross term?).
+
+## 2026-10-30 10:3x UTC: TC-RL addendum 1: the recipe holds on Qwen3-4B; a trained peer adds as much, without a cross term
+Qwen3-4B, same loop on the same 6,000 ToolACE requests: BFCL quick calls 73.0 → 82.0% (+9.0 [+7.7, +10.3]), cascade with Qwen3.5-9B −
+its own SB→T→T +0.94 [+0.57, +1.33], − the base 4B's cascade +1.16 [+0.80, +1.56] (P4–P6 hold). 2×2 with Qwen3-8B's default
+(83.9%): N q8b / q8btcc1 × peer q4b / q4btcc1 = +0.18 / +1.62 / +1.19 / +2.60 [+1.90, +3.33]; interaction −0.03 [−0.54, +0.49] (P7
+refuted), both-trained − (q8btcc1, Qwen3.5-9B) +1.25 [+0.61, +1.86] (P8 holds), independence within 0.09 in every cell (theory row
+holds). No-call bypass on the 4B +0.14 [−0.50, +0.78] (P9 refuted; 9.8% of its 1,080 abstentions per seed are wrong, 8B 5.9%).
+Cross term by answer class (bilinear, 3-seed distributions): +1.17 shared new right abstention / default wrong, −0.61 shared new wrong
+abstention / default right, −0.82 shared base wrong call removed by either training alone, +0.33 rest. Best response to a fixed peer:
++3.70 (Qwen3.5-9B) / +6.90 (C1tc-4B) vs plain RL's +1.37 / +2.66. Next (addendum 2, pre-registered): train Qwen3-8B with the
+cascade's own reward P_X(y|i)(r(y) − r_D(i)) against each fixed peer.
