@@ -347,3 +347,28 @@ throughout: there is no stopping point to choose, and a KL term would only hold 
 **Decision (by the rule above).** P10 holds, P11 refuted → "the gate separates RW from WR at some point but too little of it to show
 at this sample size; reported." No CV-2 (stopping rule or KL term): at no checkpoint is there a gain to keep. With CV-P8, the account of
 CV-1 is: the in-model gate cannot reach the ratio, the peer can, and the generator is better trained for correctness alone.
+
+## Results, addendum 5 (2026-10-30 06:4x UTC; `python3.11 poc/analyze_cvpeer.py --c1think` > results/c1think.txt, 1,530 questions × 3 seeds)
+
+| policy | accuracy | tokens | utility |
+|---|---|---|---|
+| SB→T→T(base) (the no-label default) | 59.5% | 1.68k | 58.6 |
+| SB→T→T(C1) (C1's adapter on SB and T) | 60.3% | 1.63k | 59.5 |
+| T→T(C1) | 60.1% | 1.81k | 59.2 |
+| C1 → peer → SB→T→T(base) (CV-P8's policy) | 61.3% | 1.36k | 60.6 |
+| **C1 → peer → SB→T→T(C1)** | **62.0%** | **1.32k** | **61.3** |
+
+- **CV-P12 holds:** C1 → peer → SB→T→T(C1) − SB→T→T(C1) +1.81 [+0.90, +2.74] utility (accuracy +1.7 [+0.7, +2.6], at 81% of
+  its tokens).
+- **CV-P13 holds:** CV-P8's policy − SB→T→T(C1) +1.11 [−0.06, +2.44] (bound > −0.5).
+- Reported: SB→T→T(C1) − SB→T→T(base) +0.9 [−0.1, +1.9]: the non-thinking adapter carries little to thinking (T 58.8% vs 58.1%,
+  SB 58.6% vs 57.6%, same lengths: 1,572 vs 1,604 and 1,185 vs 1,208 tokens; on seed 1 the trained think is right where the base is
+  wrong on 77 questions and the reverse on 81). The decomposition with the base agreement rates predicted +1.90 for P12 before the
+  cascade was computed (C1's strata against SB→T→T(C1): RR 44.6%, RW 6.0%, WR 8.5%, WW 20.9%); measured +1.81.
+- Raw (seed 1, trained think right where the base think is wrong): parsing a "m:ss.sss" lap-time text column instead of casting the
+  wrong columns (q 942), joining on the plain key instead of the think's `substr(CDSCode, 2)` (q 39), a real division (q 47),
+  counting attendance rows per event (q 1324) — the same conventions C1's quick query learned, picked up only sometimes by the think.
+
+**Decision (by the rule above).** P12 holds: with the trained weights everywhere the peer cascade still adds +1.8; on SQL, train, then
+check with a peer — the claim as changed by CV-P8 stands, and the gain is the cascade's, not only the training's. The best no-label
+policy on BIRD dev is now C1 → peer → SB→T→T(C1), +2.7 [+1.5, +4.0] over the untrained default at 79% of its tokens.

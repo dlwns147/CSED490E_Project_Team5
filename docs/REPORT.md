@@ -504,7 +504,9 @@ accepts 11–89% of passing queries it accepts RW only 1.1–1.3 times as often 
 earns nothing, so the generator stops learning (46.1% vs 46.0%): the learning-to-defer failure that consistent surrogates avoid by
 training the predictor on every point (2006.01862). Rewarded only for being right (plain RL), the quick query rises to 50.6%, and with
 the peer check it beats the default: **61.3% at 1.36k tokens against 59.5% at 1.68k, +2.0 [+1.1, +2.9] utility, +1.4 over the
-untrained peer cascade** — the first cascade here to do so on SQL. The decomposition predicted it beforehand (+2.2) from where the
+untrained peer cascade** — the first cascade here to do so on SQL. The gain is the cascade's, not only the training's: run with the same adapter, the default
+gains only +0.9 (n.s.; the non-thinking adapter barely changes the think), and the peer cascade still adds +1.8 [+0.9, +2.7] on top
+(62.0% at 1.32k tokens, CV-P12). The decomposition predicted it beforehand (+2.2) from where the
 trained query is right, with the peer's agreement rates unchanged: RL moved right answers onto the questions the default fails (RW
 4.5% → 6.6%) and off those where it succeeds (WR 11.0% → 8.3%), mostly by learning the databases' conventions (quoted column names,
 join paths). On SQL, train the generator for correctness and take the check from outside the model.

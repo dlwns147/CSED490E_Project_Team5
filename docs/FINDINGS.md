@@ -4314,3 +4314,10 @@ C2's gate at checkpoints r10–r90 on dev: utility − T→T rises monotonically
 right, T→T wrong) only 1.10–1.30× as often as WR, against the 2.54 a gate needs; what it learns is the easy RR questions. The ratio
 clears 2.54 only in the last 4–5% (5 RW vs 2–4 WR question-seeds of 4,590: P11 refuted 5 / 8, worth +0.04 points). The collapse is
 the Bayes response throughout, not an optimizer artefact: no stopping point or KL term would keep a gain. Raw counts in results/cvck.txt.
+
+## 2026-10-30 06:4x UTC: CV-P12 / P13 (PREREG_CV.md addendum 5): the cascade's gain survives the default trained the same way
+SQL-1's short think and think of Qwen3-8B run with C1's adapter (trained in non-thinking mode): SB→T→T(C1) 60.3% at 1.63k, +0.9
+[−0.1, +1.9] over the untrained default — the adapter carries little to thinking (T 58.8% vs 58.1%). The peer cascade still adds on
+top: C1 → peer → SB→T→T(C1) 62.0% at 1.32k, +1.8 [+0.9, +2.7] over SB→T→T(C1) (P12 holds; predicted +1.9 from the strata), and CV-P8's
+policy is non-inferior to it (+1.1 [−0.1, +2.4]; P13 holds). So the gain is the cascade's, not only the training's: training lands in
+the quick path, and the peer check is what lets it pay. Best no-label SQL policy: +2.7 [+1.5, +4.0] over the untrained default.
