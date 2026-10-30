@@ -110,3 +110,11 @@ OptMATH. Analysis `python3.11 poc/analyze_wprl.py q8bg` (and `--peer q35g`).
 PROPOSAL; trained models are then also evaluated greedily, as a secondary arm); P1 holds, P3 refuted → the mode's gain does not survive
 the gate (coinciding modes); P1 refuted → greedy is not the mode here.
 Expected (not a rule): P1 holds (+6 to +12), P3 holds, P2 holds narrowly or is inconclusive.
+**Note (2026-10-30 23:5x UTC, before GREEDY's analysis; predictions unchanged).** Offline, from the 16 base samples (scratch script, 4 random draws
+of k seeds per problem-seed): the modal passing value of k quick programs as N, with the peer and SB→T→T as above. At k × the tokens
+(self-consistency) it loses: − SB→T→T −0.19 [−1.08, +0.74] (k 3), −0.96 [−1.92, +0.03] (k 5), −2.03 [−3.10, −0.96] (k 8); at one
+sample's tokens (what greedy would give if it found the answer mode) +0.62 / +0.65 / +0.87 [−0.17, +1.96] (k 3 / 5 / 8; quick right 36.5
+/ 38.3 / 40.4%). So the addendum's +1.16 needs the mode of all 16 samples; sampling the mode costs more than it gains, and greedy is the
+only way it could pay. Greedy decodes the most likely token path, not the most frequent value over programs, so GR-P1 is not implied.
+Seen before the analysis (one printout of seed 1's rows, read for repetition): greedy programs reach the 8,192-token cap in 16 of 476
+rows (sampled: 4 of 879, OptiBench whole), and seed 1's right rates per set were on the same lines (q8bg 54.0 / 18.3 / 13.0 / 17.0%).
