@@ -4,7 +4,9 @@ one-line plan first (view p), the fixed peer of SQL-PA / HO-PA, Llama-3.1-8B-Ins
 its error coincidence with A (same answer among both-wrong passing pairs) and the cascade N -> X agrees -> A's answer, else SB->T->T
 (A's no-label default; tokens include X's), against SB->T->T and against the fixed peer's cascade (paired 95% intervals over items,
 seed means; utility = accuracy - 0.5 x ktokens). Text-to-SQL: BIRD dev (SQL-1's rows); tool calls: BFCL (TC-1's rows, both splits).
-usage: python analyze_dv.py [--sql | --tc]   (default both)"""
+usage: python analyze_dv.py [--sql | --tc] [--next] [--multi]   (default both; --next, added after the run: every check at A's next seed,
+  s mod 3 + 1 — every run shares the per-item sampling seed, and the shuffled view at A's own seed repeats A's draws; --multi: tool
+  items with two or more functions only, where the shuffle is not a no-op)"""
 import json, os, random, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -15,6 +17,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PEER = {"q8b": "q35", "q14a": "q35", "q35": "q8b"}
 OTHER = {"view s": "{m}vs", "view p": "{m}vp", "Llama-3.1-8B": "l8", "Llama-3.2-3B": "l3", "Qwen3-4B": "q4b"}
 LAM = 0.5
+MULTI = {p["id"] for p in map(json.loads, open(os.path.join(os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nlp_data"), "bfcl",
+                                                             "tc_items.jsonl"))) if len(p["functions"]) > 1} if "--multi" in sys.argv else set()
 
 
 def quick(kind, tag):
@@ -106,6 +110,8 @@ def run(kind):
         NA, D = quick(kind, m), default(kind, m)
         src = {"own, next seed": {s: NA[s % 3 + 1] for s in (1, 2, 3)}, f"peer ({PEER[m]})": quick(kind, PEER[m])}
         src.update({k: quick(kind, t.format(m=m)) for k, t in OTHER.items()})
+        if "--next" in sys.argv:
+            src = {k: v if v is None or k == "own, next seed" else {s: v[s % 3 + 1] for s in (1, 2, 3)} for k, v in src.items()}
         missing = [k for k, v in src.items() if v is None]
         src = {k: v for k, v in src.items() if v is not None}
         pol = {"SB->T->T": D}
@@ -113,8 +119,12 @@ def run(kind):
         ids = set.intersection(*(set(i for i, _ in r) for r in pol.values()))
         Q = {k: per_q({key: v for key, v in r.items() if key[0] in ids}) for k, r in pol.items()}
         ids = set.intersection(*(set(q) for q in Q.values()))
+        if "--multi" in sys.argv and kind == "tc":
+            ids &= MULTI
         print(f"=== {kind} {m} ({len(ids)} items, 3 seeds; missing: {missing})")
         C = {k: coincide(kind, NA, X) for k, X in src.items()}
+        if "--multi" in sys.argv and kind == "tc":
+            C = {k: {i: c for i, c in d.items() if i in ids} for k, d in C.items()}
         pk = f"N->peer ({PEER[m]})->SB->T->T"
         for k, r in pol.items():
             rr = [v for key, v in r.items() if key[0] in ids]

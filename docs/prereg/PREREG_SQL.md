@@ -567,3 +567,54 @@ stated in the recipe (same places). Both refuted → the check needs an equal mo
 REPORT, with SQL-PA's coincidence table (what decorrelates: other training > other mode > other wording > another sample). DV5 holds →
 the recipe picks the peer from another family before a larger one of the same family.
 
+### Results SQL-DV (written 2026-10-30 02:3x UTC)
+All 12 runs complete (per tag: BIRD dev 1,534 × 3 seeds, BFCL 3,482 × 3 seeds); `python3.11 poc/analyze_dv.py` (results/dv.txt, not
+committed). Utility differences are against the fixed peer's cascade; paired 95% intervals over items.
+- **SQL-DV1 (permuting the input does not decorrelate): holds 4 / 4 as pre-registered, not credited.** Own next seed − view s: SQL
+  +11.2 [+7.9, +14.4], +11.2 [+8.3, +14.1]; tool calls +1.6 [−1.5, +4.6], −4.2 [−6.9, −1.3]. Every run uses the same per-item sampling
+  seed (seed × 1000 + crc32(id) mod 997), so the shuffled view at A's own seed reuses A's random draws: its text equals A's 37–44% of
+  the time on SQL (31–38% at A's next seed) and 85–87% on tool calls (78–79%); Qwen3.5-9B 39% vs 19% and 79% vs 46%. On the 47% of
+  tool items with one function the shuffle is a no-op, so there the view is A's answer. For the plan view and across models with the
+  same tokenizer (Qwen3-4B, Qwen3-14B-AWQ against Qwen3-8B) the identical-text rate is the same at the own and the next seed (within
+  0.6 points), so DV2–DV5 and SQL-PA's / HO-PA's cross-model numbers are unaffected. Post hoc, every check at A's next seed
+  (`--next`): SQL +14.4 [+11.6, +17.3], +14.7 [+12.2, +17.5]; tool calls +11.0 [+8.7, +13.4], +9.1 [+7.3, +11.0] (2 / 4, refuted);
+  tool items with ≥ 2 functions (`--multi --next`) +18.6 [+14.9, +22.3], +18.2 [+15.1, +21.4]. A shuffle removes 9–19 points of the
+  resample's 79–86% coincidence and leaves 63–71% (Qwen3).
+- **SQL-DV2 (a plan line decorrelates partly): holds 4 / 4** (both differences; the same with `--next`). Own next seed − view p: SQL
+  +34.4 [+30.3, +38.7], +29.6 [+25.8, +33.5]; tool calls +28.3 [+24.7, +31.9], +32.0 [+28.9, +35.2]. View p − peer: SQL +8.0 [+2.9,
+  +12.8], +11.2 [+6.6, +15.8]; tool calls +19.3 [+15.2, +23.6], +12.9 [+9.2, +16.6].
+- **SQL-DV3 (the same model suffices): refuted, 0 / 3.** View p's cascade − the peer's on tool calls: −1.6 [−2.1, −1.1] (Qwen3-8B),
+  −2.2 [−2.8, −1.6] (Qwen3-14B-AWQ), −0.1 [−0.6, +0.3] (Qwen3.5-9B). SQL (reported): −1.7, −1.5, −0.3 [−1.1, +0.4].
+- **SQL-DV4 (a small model of another family suffices): refuted, 0 / 3.** Llama-3.2-3B − peer on tool calls: −1.0 [−1.4, −0.6],
+  −0.3 [−0.7, +0.1], −0.9 [−1.3, −0.6]. SQL: −0.3 [−1.0, +0.5], −1.0 [−1.8, −0.2], −0.9 [−1.7, −0.1].
+- **SQL-DV5 (family over size): holds 4 / 4.** Coincidence with Qwen3-4B − with Llama-3.2-3B: SQL +18.1 [+13.1, +23.2], +12.6 [+7.0,
+  +18.3]; tool calls +12.2 [+8.4, +16.2], +10.9 [+7.5, +14.4] (the same with `--next`).
+- **Reported.** Error coincidence at independent seeds, SQL / tool calls (Qwen3-8B, Qwen3-14B-AWQ, Qwen3.5-9B): own resample 83 / 86 /
+  60% and 80 / 79 / 53%; shuffle 69 / 71 / 52% and 69 / 70 / 51%; plan 49 / 56 / 38% and 52 / 47 / 48%; Qwen3-4B 46 / 47 / 40% and 41 /
+  35 / 32%; the fixed peer 41 / 45 / 41% and 33 / 34 / 33%; Llama-3.2-3B 29 / 33 / 32% and 30 / 24 / 27%; Llama-3.1-8B 35 / 34 / 35% and
+  25 / 23 / 26%. Llama-3.1-8B (another family, same size) ties the peer as the check: tool calls −0.2 [−0.6, +0.1], +0.3 [−0.1,
+  +0.7], −0.4 [−0.7, +0.0]; SQL +0.0, −0.5, −0.5 (all intervals include 0). Quick-answer accuracy: Qwen3.5-9B with the plan line
+  makes 79.5% right tool calls against 68.5% plain (of the 554 calls it fixes at seed 1, 258 are irrelevance items where the plan
+  concludes no function fits, many others stop copying the prompt's `func_name=` template literally); on SQL the plan line lowers
+  every model's quick query (−3 to −7 points); the Qwen3 models' tool calls −1 to −8.
+- **Theory check (post hoc, the existing ΔA / ΔK model).** A check X enters the cascade only through its operating point —
+  r = P(X agrees | A's passing answer is right), e = P(X agrees | it is wrong) — and its tokens. If acceptance is independent of the
+  default's outcome given A's correctness, the gain over SB→T→T is linear in (r, e) with coefficients from A's own rows alone. Over
+  the 42 cascades (7 checks × 3 models × 2 types) it predicts the measured gain within 0.66 points on average (tool calls ≤ 0.9; SQL
+  overpredicts by up to 1.8: there the check accepts easier items, where the default is right anyway). The peer sits at r 72–83%,
+  e 18–28%; the plan view at r 70–85%, e 26–44% (accepts too many wrong answers); Llama-3.2-3B at r 44–67%, e 12–21% (accepts too few
+  right ones: it is right 26% / 59% of the time); iso-utility slope dr/de 1.3–4.9.
+- **Raw shared wrong answers of the plan view** (Qwen3-8B, SQL, seed 1: 185 of 381 both-wrong passing pairs return the same rows): the
+  same reading of the question, which the plan line restates instead of re-examining (1264: "blood clots in veins" as Thrombosis = 1
+  although the evidence says APS; 665: per-month counts for "average monthly number"), and the same output shape (1351, 68: extra
+  columns under BIRD's exact match).
+- **Related work (IDs checked).** Kim et al. 2506.07962 (errors correlate more within a provider / architecture and among more accurate
+  models) — DV5 and the peer's position agree. MCS-SQL 2405.07467 shuffles the schema for candidate diversity; here a shuffle removes
+  9–19 points of a model's self-coincidence and leaves it far above another model's. The Gumbel-max structural view of sampling
+  (Chatzi et al. 2409.17027; Ravfogel et al. 2411.07180) is the mechanism of the DV1 confound: a fixed seed fixes the noise, so a
+  slightly changed prompt yields a counterfactual of the same sample, not an independent one.
+- **Decision.** DV3 and DV4 refuted → the check needs an equal model: the peer check's cost is a second model of about the same
+  accuracy served next to the first (PROJECT, REPORT §5.9, PROPOSAL / PROPOSAL_ko). DV5 holds → the recipe takes the peer from another
+  family before a larger one of the same family (Llama-3.1-8B ties the Qwen3.5 peer). DV1 (not credited; refuted at independent
+  seeds) and DV2 → REPORT: what decorrelates wrong answers — another model (23–47%) > the model's plan view (38–56%) > its shuffled
+  input (51–71%) > another sample (53–86%). Method rule for every agreement check: never reuse the generator's sampling seed.

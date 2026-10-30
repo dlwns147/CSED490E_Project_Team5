@@ -4262,3 +4262,17 @@ Nemotron-3-Nano's quick queries on the 1,338 fresh questions share 49–55% of t
 fixed Qwen peers (differences −4.0 to +0.7, none significant; PA4 0 / 3, refuted), and are right less often (45.1% vs 51.4–55.7%). As
 the check it ties T→T at 68–73% of its tokens and the default in utility. On SQL the coincidence of two different models' wrong
 answers sits around 50% whatever their family; the drop that matters is from the same model (75–90%) to any other (≈ 50%).
+
+## 2026-10-30 02:3x UTC: SQL-DV (PREREG_SQL.md): a check's independence comes from another model of about the same accuracy, not from the same model seen differently
+Quick answers only, BIRD dev (1,534) and BFCL (3,482), 3 seeds. Taking A's passing quick answer only when the check's quick answer
+agrees, else SB→T→T: the model's own answer with a one-line plan loses to the fixed peer on tool calls (−1.6, −2.2, −0.1 utility;
+DV3 0 / 3, refuted), and so does Llama-3.2-3B (−1.0, −0.3, −0.9; DV4 0 / 3); Llama-3.1-8B (another family, same size) ties it. Error
+coincidence (independent seeds, SQL / tool calls): own resample 53–86%, shuffled schema / docs 51–71%, plan line 38–56%, other models
+23–47%; within the small models Qwen3-4B shares 11–18 points more of a Qwen3 model's wrong answers than Llama-3.2-3B (DV5 4 / 4,
+holds). DV1 (a shuffle does not decorrelate, < 15 points) held as pre-registered but is not credited: every run shares the per-item
+sampling seed, so the shuffled view at A's seed reuses A's random draws (text identical 37–44% on SQL vs 31–38% at the next seed;
+85–87% vs 78–79% on tool calls) — at independent seeds the shuffle removes 9–19 points (2 / 4, refuted). The plan view and the other
+models show no such coupling, so SQL-PA / HO-PA stand. A check enters only through r = P(agrees | A right) and e = P(agrees | A
+wrong): the linear (r, e) model from A's own rows predicts the 42 cascade gains within 0.66 points on average; the plan view accepts
+too many wrong answers (e 26–44%), the 3B model too few right ones (r 44–67%). Decision: the peer check needs a second model of about
+the same accuracy, from another family before a larger one of the same family; agreement checks must not reuse the generator's seed.

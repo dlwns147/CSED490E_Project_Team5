@@ -404,6 +404,21 @@ holds in all three. It becomes the no-label default for tool calls when a second
 word problems (utility −0.7 to +0.1 at 101–105% of the default's tokens): there two models' wrong programs coincide 56–67% of the
 time, and the two cheap programs (1–6k tokens together) pass and agree on too few hard problems to pay for themselves.
 
+**Where the check's independence comes from (SQL-DV, pre-registered).** The check enters the cascade only through two rates: how often
+it agrees with A's right answers (r, which saves the escalation) and with A's wrong ones (e, which lets errors through); a linear model
+in (r, e) with coefficients from A's own rows predicts the measured gains of 42 cascades (7 checks × 3 models × 2 task types) within
+0.66 points on average. The same model seen differently does not reach the peer's corner: with a one-line plan before the answer it
+repeats 47–52% of its wrong calls (a resample 79–80%, the peer 33–34%) and its cascade loses 1.6–2.2 utility to the peer's for the
+Qwen3 models (−0.1 for Qwen3.5-9B; 0 / 3 non-inferior); with the function docs shuffled it repeats 69–70%. A small model of another
+family (Llama-3.2-3B) rarely shares errors (24–30%) but is right too rarely to agree with A's right answers (r 63–67%) and loses
+0.3–1.0; an 8B model of another family (Llama-3.1-8B) ties the peer. Between the two small models, Qwen3-4B shares 11–18 points more
+of a Qwen3 model's wrong answers than Llama-3.2-3B (SQL and tool calls, 4 / 4). Ordering, at independent seeds: another model
+(23–47%) < the model's plan view (38–56%) < its shuffled input (51–71%) < another sample (53–86%). One measurement trap: every run
+used the same per-item sampling seed, and at a shared seed the shuffled view reuses the generator's random draws (its text equals the
+generator's 85–87% of the time against 78–79% at another seed; the Gumbel-max view of sampling, 2409.17027, 2411.07180), which made
+the shuffle look like no decorrelation at all; the pre-registered DV1 was therefore not credited. So the peer check costs a second
+model of about the same accuracy, preferably of another family, sampled with its own seed.
+
 ### 5.10 Instructions: a self-written check buys accuracy, not tokens (IF-1)
 On IFEval (541 prompts) and IFBench (300; 58 unseen constraint types), official strict graders, 3 models × 3 seeds, the model first
 answers without thinking, then writes a Python checker for the stated requirements (after a 2k-token think: written non-thinking, the
