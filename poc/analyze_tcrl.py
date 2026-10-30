@@ -6,10 +6,11 @@ usage: python analyze_tcrl.py [tag]   (default q8btcc1)"""
 import contextlib, io, os, random, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-with contextlib.redirect_stdout(io.StringIO()):   # analyze_dv's imports print word-problem tables
+with contextlib.redirect_stdout(io.StringIO()):   # analyze_dv's / analyze_ho3's imports print word-problem tables
     from analyze_cvpeer import compare
     from analyze_dv import default, quick
-from analyze_ho3 import ci  # noqa: E402
+    from analyze_ho3 import ci
+    import analyze_hopa  # noqa: F401 (default() imports it lazily)
 
 
 def main():

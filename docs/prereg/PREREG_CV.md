@@ -409,3 +409,19 @@ normalised to mean 1 over the training questions (so the effective step size mat
 - `python3.11 poc/analyze_cvpeer.py --c1w`.
 
 Expected (stated now, not a rule): P14 holds narrowly, P15 holds; P16 inconclusive, P17 holds weakly.
+
+## Addendum 7 (2026-10-30 08:5x UTC): train the peer too (SQL side of PREREG_TCRL.md addendum 1)
+
+Written while job 1282513 (C1 on Qwen3-4B) is at round 63 of 94, before any BIRD dev row of q4bcvc1. The theory is PREREG_TCRL.md
+addendum 1 (b): agreement is conditionally independent given the item in the stored pairs (BIRD: the other-seed estimate within 0.10
+of the same-seed gain for four peers × base / C1), so the gain is bilinear in the two quick models' per-item answer distributions and
+training both adds a cross term. Analysis: `python3.11 poc/analyze_pair.py --sql` (Qwen3-8B's SB→T→T as the default; N ∈ {q8b,
+q8bcvc1} × peer ∈ {q4b, q4bcvc1}, plus Qwen3.5-9B).
+
+- **CV-P18 (cross term):** the interaction G(C1, C1-4B) − G(C1, q4b) − G(q8b, C1-4B) + G(q8b, q4b), utility: lower bound > 0.
+- **CV-P19:** G(C1, peer C1-4B) − G(C1, peer Qwen3.5-9B): lower bound > 0.
+- **CV-P18 theory:** in each 2×2 cell the other-seed estimate within 0.2 utility points of the same-seed value.
+
+Decision: as PREREG_TCRL.md addendum 1 (P7 / P8 / theory row), on the second task. Expected (not a rule): P18 inconclusive (SQL's
+corrections spread over many question types, so the two trainings overlap less than BFCL's abstentions), P19 refuted (the 4B's
+quick queries are 42% right against Qwen3.5-9B's 49%), the theory row holds.

@@ -4321,3 +4321,16 @@ SQL-1's short think and think of Qwen3-8B run with C1's adapter (trained in non-
 top: C1 → peer → SB→T→T(C1) 62.0% at 1.32k, +1.8 [+0.9, +2.7] over SB→T→T(C1) (P12 holds; predicted +1.9 from the strata), and CV-P8's
 policy is non-inferior to it (+1.1 [−0.1, +2.4]; P13 holds). So the gain is the cascade's, not only the training's: training lands in
 the quick path, and the peer check is what lets it pay. Best no-label SQL policy: +2.7 [+1.5, +4.0] over the untrained default.
+
+## 2026-10-30 08:5x UTC: TC-RL (PREREG_TCRL.md): the trained quick answer with the peer check beats the default on tool calls too
+CV-1's plain-RL loop on 6,000 single-turn ToolACE requests (BFCL's prompt format; reward = the calls equal the gold calls, or no call
+where the gold makes none): BFCL quick calls +5.1 [+4.3, +6.0] (P1), C1tc → Qwen3.5-9B agrees → C1tc, else SB→T→T, 85.2% at 0.27k vs
+the default's 83.9% at 0.38k, +1.35 [+0.97, +1.76] utility (P2), +0.50 [+0.26, +0.76] over the untrained peer cascade (P3); the
+decomposition's +1.06 refuted. Raw rows: training taught abstention (live irrelevance 63.7 → 82.2%, irrelevance 76.9 → 86.0%, call
+categories ±1.3; no call on 3.0% of call items vs 0.8%). The peer calls on 41% of irrelevance items, so it agrees with 16.5% of the
+new right abstentions (43.7% on the base's old RW; SQL 48.4% vs 58.0%): correlated errors, not the strata, set the agreement. Exact
+ceiling: with a fixed peer the cascade gains at most P(peer right, default wrong) = 4.60 (BFCL) / 6.78 (BIRD); reached 1.30 / 1.83.
+Agreement is conditionally independent given the item (other-seed peer within 0.1 in 16 / 16 stored pairs) → the gain is bilinear in
+the two models' answer distributions; training N helps with each of 5 peers on BFCL and 4 on BIRD (exploratory). In sample only:
+accepting no-call answers without the peer +2.36 vs +1.36. Next (pre-registered): Qwen3-4B with the same recipe, and the 2×2 of
+trained / untrained N and peer on both tasks (does training both add a cross term?).

@@ -27,6 +27,9 @@ below each cell's best; one think: 7.64); 30 labelled problems choose per cell w
 developed on the no-label default does as well or better (tool calls 0.23 vs 1.96, instructions 0.92 vs 1.77) except on contest code
 (3.07 vs 1.29; PX); on text-to-SQL, a fifth task type none of the rules was built on, the default loses 0.33 and the pilot 2.25, and
 the default ties the check-matched think at 69–90% of its tokens while the non-thinking query first loses 2.7–5.9 points (SQL-1).
+Trained with plain RL on open data (labels only in training) and checked by another model's quick answer, the non-thinking answer
+beats the no-label default on text-to-SQL (+2.0 utility, BIRD dev) and tool calls (+1.35, BFCL); trained to gate itself, it learns to
+defer everything (CV-1, TC-RL).
 Where the check is perfect (Lean proofs) the
 rule becomes "sample cheaply, then think"; where it leaks, it bounds label-free self-training as it bounds the recipe.
 
@@ -510,6 +513,20 @@ gains only +0.9 (n.s.; the non-thinking adapter barely changes the think), and t
 trained query is right, with the peer's agreement rates unchanged: RL moved right answers onto the questions the default fails (RW
 4.5% → 6.6%) and off those where it succeeds (WR 11.0% → 8.3%), mostly by learning the databases' conventions (quoted column names,
 join paths). On SQL, train the generator for correctness and take the check from outside the model.
+
+**The same recipe on tool calls (TC-RL, pre-registered).** The identical loop on 6,000 single-turn ToolACE requests in BFCL's prompt
+format (reward: the calls equal the gold calls, or no call where the gold makes none; no BFCL item in training) raises Qwen3-8B's quick
+calls on BFCL by +5.1 [+4.3, +6.0] points, and with Qwen3.5-9B's agreement as the gate the cascade beats the default, **85.2% at 0.27k
+tokens against 83.9% at 0.38k, +1.35 [+0.97, +1.76] utility, +0.50 [+0.26, +0.76] over the untrained peer cascade** (TCRL-P1–P3 hold).
+What training changed is abstention: live irrelevance 63.7 → 82.2%, irrelevance 76.9 → 86.0%, every category that needs calls within
+±1.3 points (the model stops filling placeholders such as `where_to="City, State"` into a call the request does not support). This
+time the decomposition over-predicted (+1.06): the peer itself calls on 41% of irrelevance items, so it agrees with only 16.5% of the
+abstentions training adds (43.7% on the right answers the base already had; on SQL 48.4% vs 58.0%). Correlated errors set the
+limit, and the algebra makes it exact: the cascade accepts the quick answer only when it equals the peer's, so no training of the quick
+model can lift it above the default by more than P(peer right, default wrong) — 4.60 points on BFCL, 6.78 on BIRD; the trained models
+reach 1.30 and 1.83. Agreement is conditionally independent given the item (the peer at another seed changes every stored pair's gain
+by ≤ 0.1 points), so the gain is bilinear in the two models' per-item answer distributions; whether training the peer too adds a
+positive cross term is pre-registered on Qwen3-4B for both tasks (TCRL addendum 1, CV addendum 7).
 
 ## 6. Baselines on the same harness
 
