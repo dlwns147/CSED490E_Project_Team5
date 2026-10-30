@@ -4369,3 +4369,17 @@ abstains) and +2.14 − 1.14 with C1tc-4B (right abstentions where the default f
 is right), vs plain RL's 13.2. With SQL's C1w this makes two tasks where weighting the reward by the cascade's value loses to plain
 correctness. The per-request cascade value is the right weight for what is learned request by request (which call), not for shared
 behaviours. Next: the cascade term only within the answer class (calls on tool calls; every query on SQL, which has no abstention).
+
+## 2026-10-30 22:4x UTC: SHARP (PREREG_SHARP.md): plain RL's gain is on answers the base never gives in 16 samples, not a sharpening
+
+Base Qwen3-8B's quick answer at 16 seeds (BIRD dev, BFCL, the four held-out word-problem sets; `analyze_sharp.py 16`). SH-P1 refuted
+(11.7% / 6.4% of the trained models' right samples are on items no base sample answers right; threshold 5%); SH-P2 holds by its rule
+(trained − base fully sharpened onto 16 samples: SQL +0.52 [−0.20, +1.26], tool calls +0.16 [−0.07, +0.41]). The split by item
+(added after the run) shows the pre-registered reading of that branch was wrong: all of training's cascade gain is on the base-never
+items (SQL +1.76 [+1.19, +2.37], tool calls +0.49 [+0.33, +0.67]; new right answers the peer confirms, fewer agreed wrong ones), none on
+the covered ones (−0.35 [−0.83, +0.11], +0.01 [−0.16, +0.18]; the trained model is not more consistent there, SQL 87.0 → 84.6%).
+Sharpening would gain +0.89 / +0.34 on exactly those covered items, so the two are complementary and sharp_16 is no pre-training bound.
+Word problems: base pass@1/16 30.6 / 52.3%; base-never items where the default is right 14.3%; the modal quick answer of 16 (offline,
+one sample's tokens) is worth +1.15 [+0.38, +2.05] in the cascade and +1.16 [+0.02, +2.41] over SB→T→T, against −0.01 / −0.06 on SQL /
+tool calls, whose samples are near their mode. Next: GREEDY (addendum; q8bg / q35g at T 0, submitted) and TD (the thinking mode's
+programs vs RFT, data generating); SH-P3 note for WP-RL written before its rows.

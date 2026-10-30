@@ -23,6 +23,7 @@ from run_nlopt import RES, P_MIP, P_FREE, P_FREEV, SNIP, problems, value_of, cor
 
 POOL_MODELS = ("oss20", "q14a", "q8b", "q32b", "q36")
 SET = os.environ.get("NLOPT_SET", "mamo")
+CTEMP = float(os.environ.get("FORM_TEMP", "0.7"))   # GREEDY (PREREG_SHARP.md, 10-30): the cheap arm's temperature (0 = greedy)
 SRC = {"mamo": "{m}_mamo_mips", "optmath": "{m}_optmath_mips", "optibench": "{m}_optibench_free", "bwor": "{m}_bwor_free",
        "logior": "{m}_logior_free"}.get(SET, "{m}_mipf")   # the cheap arm whose programs form the pool
 if SET in ("optmath", "optibench", "bwor", "logior"):   # held-out (PREREG_HO.md): only the models run there
@@ -142,7 +143,7 @@ if __name__ == "__main__":
             from llm import n_tokens
             o["think_tokens"] = o["out_tokens"] - n_tokens(o["text"])   # its think (tags and budget reflections included)
         else:
-            o = chat(q, think=THINK, max_tokens=MT, temperature=0.7, seed=sd_)
+            o = chat(q, think=THINK, max_tokens=MT, temperature=CTEMP if not THINK else 0.7, seed=sd_)
         code = last_block(o["text"] or "", ("python", "py", "python3"))
         res = run_python(code, "", timeout=60, mem_bytes=4 << 30, cpu_s=3600 if FREE else None) if code else None
         sol_lines = [l for l in ((res.stdout if res and res.status == "ok" else "") or "").strip().splitlines() if l.strip()]   # as run_nlopt's free modes (H5: multi-threaded CP-SAT); OptiBench formx had 3 / 14,520 timeouts, none CP-SAT

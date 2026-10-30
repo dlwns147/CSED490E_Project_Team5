@@ -15,7 +15,7 @@ from collections import Counter
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 with contextlib.redirect_stdout(io.StringIO()):   # imported modules print their own tables
-    from analyze_dv import ROOT, default, per_q
+    from analyze_dv import ROOT, default, per_q, same
     from analyze_ho3 import ci
     from analyze_pair import common, run
     from analyze_hopa import BENCH, policies, same_word, word_rows
@@ -115,7 +115,22 @@ def short(kind, tr, K):
     for k in sorted({3, K}):
         Gs[f"sharp{k}"] = per_q(run(kind, D, sharpen(B, ids, k), X))
     Gs["trained"] = per_q(run(kind, D, T, X))
-    return report(f"{kind} (trained {tr})", ids, B, T, K, Gs, ref, Dright)
+    out = report(f"{kind} (trained {tr})", ids, B, T, K, Gs, ref, Dright)
+    decompose(kind, ids, B, {"sharp" + str(K): sharpen(B, ids, K), "trained": T}, X, D, Gs, K)
+    return out
+
+
+def decompose(kind, ids, B, arms, X, D, Gs, K):
+    """added after the run (not pre-registered): each arm's cascade gain over the base on the items some base seed <= K answers right
+    (covered) and on the rest (never), with the quick right rate there and the accepted right / wrong answers (points of all items)"""
+    never = {i for i in ids if not any(B[s][i][1] for s in range(1, K + 1))}
+    for name, sub in (("covered", set(ids) - never), ("never", never)):
+        for n, M in (("base", B), *arms.items()):
+            acc = [(M[s][i][1], D[(i, s)][0]) for i in sub for s in (1, 2, 3) if M[s][i][0] and same(kind, M[s][i], X[s][i])]
+            g = 100 * sum(Gs[n][i][1] - Gs["base"][i][1] for i in sub) / len(ids)
+            print(f"  {name:>7} ({len(sub)}) {n:>8}: quick right {100 * sum(M[s][i][1] for i in sub for s in (1, 2, 3)) / 3 / max(1, len(sub)):5.1f}%; "
+                  f"accepted right {100 * sum(a for a, _ in acc) / 3 / len(ids):5.2f}, accepted wrong {100 * sum(1 - a for a, _ in acc) / 3 / len(ids):5.2f} "
+                  f"(default right there {100 * sum((1 - a) * d for a, d in acc) / 3 / len(ids):4.2f}) points; cascade utility - base {g:+.2f}")
 
 
 def safe_same(x, y):

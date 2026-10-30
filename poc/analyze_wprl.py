@@ -4,7 +4,8 @@ N = Qwen3-8B (formx) or the trained adapter (<tag>_<bench>_formx), the peer Qwen
 program prints the same value (run_nlopt tolerance) -> N, else the default (analyze_hopa.policies). Paired 95% intervals over problems
 (seed means), pooled over the four benchmarks and per benchmark; utility = accuracy - 0.5 x ktokens, the peer's tokens counted.
 WP-P1: quick right, trained - base; WP-P2: trained cascade - SB->T->T; WP-P3: trained cascade - base cascade (utility).
-usage: python analyze_wprl.py [tag q8bwp1]"""
+GREEDY (PREREG_SHARP.md): --peer TAG = the peer's formx rows of another tag (e.g. q35g, greedy) in place of q35's.
+usage: python analyze_wprl.py [tag q8bwp1] [--peer TAG]"""
 import contextlib, io, os, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -18,10 +19,17 @@ CAS = "N->q35->SB->T->T"
 
 
 def main():
-    tag = sys.argv[1] if len(sys.argv) > 1 else "q8bwp1"
+    tag = sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("--") else "q8bwp1"
+    peer = sys.argv[sys.argv.index("--peer") + 1] if "--peer" in sys.argv else None
     pool = {k: {} for k in ("kb", "kt", "cb", "ct", "d")}
     for b in BENCH:
         A, X = word_rows("q8b", b), word_rows("q35", b)
+        if peer:
+            P = {s: {r["id"]: (ok_(r), bool(r["correct"]), r.get("out_tokens") or 0, r.get("pred")) for r in _rows(f"{RES}/opt_{peer}_{b}_formx_s{s}.jsonl")}
+                 for s in (1, 2, 3)}
+            if not all(P.values()):
+                print(f"=== {b}: no rows of peer {peer}"); continue
+            X = {"formx": P}
         F = {s: {r["id"]: (ok_(r), bool(r["correct"]), r.get("out_tokens") or 0, r.get("pred")) for r in _rows(f"{RES}/opt_{tag}_{b}_formx_s{s}.jsonl")}
              for s in (1, 2, 3)}
         if not all(F.values()):

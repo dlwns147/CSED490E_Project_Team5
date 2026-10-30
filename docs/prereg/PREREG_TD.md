@@ -55,3 +55,9 @@ value → N, else Qwen3-8B's SB→T→T (HO-PA's `policies`, as WP-RL); base cov
   coverage is the limit, and on word problems the default stays.
 
 Expected (not a rule): P1 holds narrowly, P2 holds, P3 inconclusive, P4 holds narrowly.
+
+**Note (2026-10-30 22:4x UTC, before any TD training or held-out row; predictions unchanged).** SHARP's result changes the premise above:
+on SQL and tool calls plain RL's whole cascade gain lies on items the base never answers right in 16 samples (+1.76 [+1.19, +2.37] /
++0.49 [+0.33, +0.67]), so RL does reach items the quick mode does not sample — it does not only reweight. TD still decides whether the
+thinking mode's programs reach those items further than the model's own right quick programs (P1, P4); the comparison with RL (q8bwp1)
+on the base-never items is reported, and rft, a sharpening method, is expected to gain on the covered items instead (reported).

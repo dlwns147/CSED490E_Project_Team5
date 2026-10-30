@@ -51,3 +51,62 @@ rows and as the RL rollouts; per-item sampling seeds as every run): BIRD dev `SQ
 
 Expected (not a rule): SH-P1 holds on tool calls, narrowly fails on SQL; SH-P2 holds on both, the bound giving 60–90% of training's
 gain.
+
+### Results SHARP (2026-10-30 22:4x UTC; `python3.11 poc/analyze_sharp.py 16 > results/sharp.txt`; base seeds 1–16 complete: BIRD dev 1,528 / BFCL 3,482 / word problems 476 items, no failed requests)
+| | SQL (BIRD dev) | tool calls (BFCL) | word problems (4 sets) |
+|---|---|---|---|
+| base quick pass@1 / 3 / 8 / 16 | 46.0 / 49.5 / 51.7 / 52.9% | 76.6 / 78.2 / 79.3 / 79.8% | 30.6 / 39.9 / 47.6 / 52.3% |
+| base-never items (0 of 16) where the default is right at some seed | 16.3% | 11.1% | 14.3% |
+| trained quick right (base) | 50.7% (46.1%) | 81.7% (76.6%) | (WP-RL pending) |
+| **SH-P1** trained right samples on base-never items | **11.7%** (271 / 2,324) | **6.4%** (547 / 8,539) | — |
+| cascade − SB→T→T: base / sharp_3 / sharp_16 / trained | +0.58 / +1.09 / +1.47 / +1.99 | +0.85 / +1.02 / +1.19 / +1.35 | +0.01 / +0.92 / **+3.06 [+1.82, +4.44]** / — |
+| **SH-P2** trained − sharp_16 | +0.52 [−0.20, +1.26] | +0.16 [−0.07, +0.41] | — |
+- **SH-P1 refuted on both** (11.7% and 6.4% ≥ 5%). **SH-P2 holds on both** by its rule (lower bounds −0.20 / −0.07), point estimates above zero.
+- **The pre-registered reading of this branch ("new right items carry little cascade value") is wrong, and SH-P2's "bound" is a coincidence of
+  sizes, not a bound.** Splitting each cascade's gain over the base by item (added after the run, `analyze_sharp.decompose`; contribution
+  to the all-item mean, 95% intervals):
+
+| | SQL: covered (809) | SQL: base-never (719) | tool calls: covered (2,778) | tool calls: base-never (704) |
+|---|---|---|---|---|
+| quick right, base → trained | 87.0 → 84.6% (−2.39 [−4.61, −0.16]) | 0 → 12.6% | 96.0 → 95.9% (−0.12 [−0.76, +0.50]) | 0 → 25.9% |
+| accepted right / accepted wrong (points of all items), base → trained | 36.45 / 0.37 → 36.08 / 0.81 | 0 / 8.16 → 3.18 / 7.18 | 55.00 / 0.19 → 54.40 / 0.11 | 0 / 3.19 → 1.08 / 2.66 |
+| trained cascade − base cascade | −0.35 [−0.83, +0.11] | **+1.76 [+1.19, +2.37]** | +0.01 [−0.16, +0.18] | **+0.49 [+0.33, +0.67]** |
+| sharp_16 cascade − base cascade | +0.89 [+0.56, +1.26] | 0 | +0.34 [+0.20, +0.50] | 0 |
+- **Mechanism.** All of plain RL's cascade gain is on items the base never answers right in 16 samples — new right answers the peer
+  confirms (+3.18 / +1.08 points accepted right) and fewer agreed wrong ones — and none of it on the items the base already solves,
+  where the trained model is not more consistent (SQL slightly less). Sharpening would gain on exactly the other items. So RL here is
+  not a sharpening of the base's 16-sample coverage (contrary to 2504.13837 / 2507.14843 at this scale; whether the base would reach
+  these answers at much larger k is not separable with 16 samples, but at the cost that matters — one quick sample — they are new).
+- **Decision.** No pre-training bound from base samples: G(sharp_k) does not predict training's gain (it measures a different set of
+  items). The two mechanisms are complementary: training gains on the base-never items; making the quick answer consistent would gain
+  +0.89 / +0.34 more on the covered ones, which RL leaves. For word problems this sets two tests: whether a consistent (modal) quick
+  program is worth it there (GREEDY below), and whether the thinking mode's programs reach base-never items further than RL (TD).
+- **SH-P3 note (before any WP-RL evaluation row; training at round ~31 of 63).** sharp_16 on word problems: +3.06 [+1.82, +4.44] over
+  SB→T→T. Given the decomposition, it is not WP-P2's ceiling. Predicted for q8bwp1 (stated now, decided with the pre-registered SH-P3
+  tests): its cascade gain over the base cascade lies on the base-never items (that part's lower bound > 0 if WP-P3 holds), and its
+  covered-item part has lower bound ≤ 0, as on SQL and tool calls.
+
+## Addendum GREEDY (2026-10-30 22:4x UTC, before any run): the modal quick program, at one sample's cost
+
+**Why it could change the claim.** The cascade's gain is linear in N's per-item answer distribution, so replacing each sampled quick
+answer by its mode changes G by Σ_i [G_i(mode) − E G_i(sample)]. From the 16 base samples (the most frequent passing answer, at one
+sample's tokens; offline, `scratchpad` estimate reproduced by `analyze_wprl.py` once rows exist): SQL −0.01 [−0.30, +0.30], tool calls
+−0.06 [−0.18, +0.05], **word problems +1.15 [+0.38, +2.05]** over the sampled cascade, and the modal cascade − SB→T→T +1.16 [+0.02,
++2.41]. The difference has a reason: word-problem programs are diverse (pass@1 30.6% vs pass@16 52.3%; SQL 46.0 vs 52.9, tool calls
+76.6 vs 79.8), so the mode is right far more often than a sample (42.4% vs 30.1%); on SQL and tool calls the mode adds few right answers
+and the peer already confirmed those. Greedy decoding approximates the mode at one sample's cost; for single-attempt program synthesis
+lower temperature is known to be better (2108.07732, 2207.11280; MBPP+ greedy ≈ sampling in 2505.12185), but not inside an agreement
+gate, where the two members' modes may coincide on wrong answers. If it holds, the cheap path beats the default on word problems
+without any training — the one task where it saved nothing.
+**Run.** `run_form.py` with `FORM_TEMP=0` (the cheap arm's temperature; default 0.7 unchanged): Qwen3-8B formx, tag q8bg, and the peer
+Qwen3.5-9B formx, tag q35g, seeds 1–3 (greedy is near-deterministic in vLLM; the seeds measure that), OptiBench third / BWOR / LogiOR /
+OptMATH. Analysis `python3.11 poc/analyze_wprl.py q8bg` (and `--peer q35g`).
+- **GR-P1:** q8bg quick right − q8b (sampled): lower bound > 0.
+- **GR-P2:** q8bg → Qwen3.5-9B (sampled) → SB→T→T minus SB→T→T: utility lower bound > 0.
+- **GR-P3:** that cascade − the sampled-N cascade: utility lower bound > 0.
+- Reported: both greedy (peer q35g) against GR-P2's cascade; greedy vs the offline mode estimate; tokens and unfinished programs
+  (greedy repetition); per benchmark.
+**Decision.** P2 and P3 → on word problems the cheap path pays with a greedy quick program and no training (PROJECT / REPORT /
+PROPOSAL; trained models are then also evaluated greedily, as a secondary arm); P1 holds, P3 refuted → the mode's gain does not survive
+the gate (coinciding modes); P1 refuted → greedy is not the mode here.
+Expected (not a rule): P1 holds (+6 to +12), P3 holds, P2 holds narrowly or is inconclusive.
