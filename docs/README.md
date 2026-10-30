@@ -27,7 +27,7 @@ Commands are in `poc/queues/queue_*<id>*.sh` (old servers, records only) and `po
 | Held-out tests | HO unseen OptMATH and OptiBench (+ OB-F facts, WF / WF2 when facts pay), HOG four held-out geometry tasks, HOGC a brute-force view against the check leak (Slurm) |
 | Choosing the policy | MODEL: which policy wins where; 30 labelled problems pick it for a new task |
 | Facts without a human | X3 (X6-AUTO, X6-VER: the model's own checked program as the fact); X7 held-out MAMO with no hand-written component |
-| Training the quick mode | CV: RL on the non-thinking mode with the cascade's value as the reward (text-to-SQL; controls: plain RL, a gate on frozen drafts); TCRL the same on tool calls (trained peer, the cascade's own reward); WPRL on optimization word problems |
+| Training the quick mode | CV: RL on the non-thinking mode with the cascade's value as the reward (text-to-SQL; controls: plain RL, a gate on frozen drafts); TCRL the same on tool calls (trained peer, the cascade's own reward); WPRL on optimization word problems; SHARP whether that training only sharpens what the base samples (a pre-training bound) |
 | Proofs | PROOF: Lean 4 (miniF2F) with specialized provers vs general models; geometry proofs with AlphaGeometry's engine (IMO-AG-30, JGEX-AG-231) |
 
 - `docs/SLURM_HANDOFF.md` — state of the project and how to continue it on the Slurm server (2026-10-20); `docs/SLURM_PROMPT.md` — the first prompt for that session.
