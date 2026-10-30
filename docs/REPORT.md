@@ -497,7 +497,9 @@ says ACCEPT; the same model's think-with-retry otherwise), the model learns to d
 CV-P1–P7 refuted), and so does a gate trained on frozen drafts. The decomposition above says why. The gate's reward differs between
 ACCEPT and DEFER by ±1 only on RW (4.2% of dev question-seeds) and WR (10.8%), so a gate pays only if it accepts RW at least
 π_WR / π_RW = 2.5 times as often as WR; the peer does (3.2), the model's view of its own result does not (in training it kept right
-and wrong passing queries at about 1.5:1, then accepted nothing). And once the gate defers everything the quick query's correctness
+and wrong passing queries at about 1.5:1, then accepted nothing). Its saved checkpoints confirm this on dev: wherever the gate
+accepts 11–89% of passing queries it accepts RW only 1.1–1.3 times as often as WR, so utility climbs toward T→T from below (−4.5 to
++0.04) and never passes it; there is no stopping point to keep. And once the gate defers everything the quick query's correctness
 earns nothing, so the generator stops learning (46.1% vs 46.0%): the learning-to-defer failure that consistent surrogates avoid by
 training the predictor on every point (2006.01862). Rewarded only for being right (plain RL), the quick query rises to 50.6%, and with
 the peer check it beats the default: **61.3% at 1.36k tokens against 59.5% at 1.68k, +2.0 [+1.1, +2.9] utility, +1.4 over the
