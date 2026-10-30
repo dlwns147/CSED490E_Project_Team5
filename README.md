@@ -1,4 +1,4 @@
-# Solving Computational Math with LLMs, Accurately and Cheaply
+# Solving Problems with LLMs, Accurately and Cheaply
 
 *Tools, Facts, and Checks.* POSTECH CSED490E (Graduate NLP) team project, Team 5.
 

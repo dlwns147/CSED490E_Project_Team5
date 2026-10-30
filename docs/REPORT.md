@@ -1,4 +1,4 @@
-# Facts First, Think on Failure: Solving Computational Math with LLM-Written Programs
+# Facts First, Think on Failure: Solving Problems with LLMs, Accurately and Cheaply
 
 *Draft of the final report, POSTECH CSED490E Team 5 (Sangjun Lee, Seongbin Park). Started 2026-10-23 from `PROPOSAL.md`, the
 pre-registrations in `docs/prereg/` and `docs/notes/REPORT_OUTLINE.md`; format and length to be fitted to the course template.*

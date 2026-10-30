@@ -1,4 +1,4 @@
-# LLM으로 계산 수학 문제를 정확하고 싸게 풀기
+# LLM으로 문제를 정확하고 싸게 풀기
 
 *Tools, Facts, and Checks. 대학원 NLP 수업 프로젝트 제안서 (POSTECH CSED490E, 5조).*
 

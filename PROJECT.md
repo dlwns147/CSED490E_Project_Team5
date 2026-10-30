@@ -1,6 +1,6 @@
 # Project: goal, scope, rules and status
 
-*Solving Computational Math with LLMs, Accurately and Cheaply — Tools, Facts, and Checks.* POSTECH CSED490E (Graduate NLP), Team 5
+*Solving Problems with LLMs, Accurately and Cheaply — Tools, Facts, and Checks.* POSTECH CSED490E (Graduate NLP), Team 5
 (Sangjun Lee, Seongbin Park).
 
 This file holds what the project is for and how we work. How to install and run everything: `README.md` (the manual). The argument with
