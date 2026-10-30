@@ -618,3 +618,39 @@ committed). Utility differences are against the fixed peer's cascade; paired 95%
   family before a larger one of the same family (Llama-3.1-8B ties the Qwen3.5 peer). DV1 (not credited; refuted at independent
   seeds) and DV2 → REPORT: what decorrelates wrong answers — another model (23–47%) > the model's plan view (38–56%) > its shuffled
   input (51–71%) > another sample (53–86%). Method rule for every agreement check: never reuse the generator's sampling seed.
+
+## Addendum SQL-AND: two checks from different families (written 2026-10-30 02:3x UTC, offline on stored rows, before any joint agreement is computed)
+
+**Why it could change the claim.** SQL-DV reduced a check to its operating point: r = P(it agrees | A's passing answer is right),
+e = P(it agrees | the answer is wrong), and its tokens; the gain over SB→T→T is linear in (r, e) (42 cascades within 0.66 points).
+On SQL one peer accepts too many wrong answers (e 25–39%) for the cascade to beat the default (SQL-PA2 1 / 3). Requiring a second
+check from yet another family multiplies e down if the two checks share A's wrong answers independently, at the price of r. If that
+trade pays, SQL gets a cascade that beats its default without labels; if not, one peer is the end of the agreement route.
+**What is known.** Single-check rates (printed by `python3.11 poc/analyze_and.py --predict` before this addendum; joint agreement not
+computed): SQL train (1,338 fresh questions) Qwen3-8B with Qwen3.5-9B r 84.1 e 32.7 and Nemotron-3-Nano r 72.9 e 33.5; Qwen3-14B-AWQ
+84.1 / 38.8 and 70.6 / 37.7; Qwen3.5-9B with Qwen3-8B 77.6 / 38.9 and Nemotron 69.7 / 36.4. Tool calls (BFCL) Qwen3-8B with
+Qwen3.5-9B 72.1 / 19.0 and Llama-3.1-8B 68.9 / 17.4; Qwen3-14B-AWQ 73.5 / 18.4 and 72.4 / 14.9; Qwen3.5-9B with Qwen3-8B 82.6 / 17.8
+and Llama-3.1-8B 69.4 / 15.7. Kim et al. (2506.07962): errors correlate across providers too, more among accurate models, so
+independence is optimistic for e and pessimistic for r. Ensembles of verifiers / multi-model agreement (MoT cascades 2310.03094 use one
+model's two views; MCS-SQL 2405.07467 votes over one model's candidates) do not measure what a second, independent check adds to a
+first in a cascade.
+**Rule** (`poc/analyze_and.py`, fixed now). A's passing quick answer → the first check (the fixed peer of SQL-PA / HO-PA) agrees →
+the second check (another family: Nemotron-3-Nano on SQL train, Llama-3.1-8B on tool calls and SQL dev) agrees → answer; any
+disagreement or a failed free check → A's SB→T→T. The second check is asked only after the first agrees; every check's tokens count.
+Decision data: SQL train (tags q8bpa / q14apa / q35pa / n3npa) and tool calls (BFCL, 3 seeds); SQL dev reported.
+**Theory prediction** (independent agreement given A's correctness: r1 r2, e1 e2; linear model with A's own coefficients): two checks
+minus the first alone, SQL train +0.64 / +0.39 / +0.14 utility (Qwen3-8B / Qwen3-14B-AWQ / Qwen3.5-9B), tool calls +0.32 / +1.60 /
++0.30; SQL dev +0.80 / +0.39 / −0.15.
+**Predictions** (paired 95% intervals over items, seed means).
+- **SQL-AND1 (the second family's shared errors are not nested in the first's):** joint e ≤ half the smaller single e, 6 of 6
+  decision cells.
+- **SQL-AND2 (SQL):** two checks − the single peer, utility lower bound > 0, and two checks − SB→T→T, lower bound > 0, each in ≥ 2 of 3
+  models on SQL train.
+- **SQL-AND3 (tool calls):** two checks − the single peer, lower bound > 0, in ≥ 2 of 3 models.
+- **SQL-AND4 (the theory's sign):** the measured sign of two checks − the single peer matches the predicted sign in ≥ 5 of 6 cells.
+**Expected (stated now, not a rule).** AND1 holds; AND2 refuted against the peer (predicted gains +0.1 to +0.6, smaller than the
+intervals); AND3 1 of 3 (Qwen3-14B-AWQ, where the peer leaks most per point of r); AND4 holds.
+**Decision.** AND2 holds (both parts) → SQL's no-label default becomes N → two checks of other families agree → answer, else SB→T→T
+(PROJECT, REPORT §5.11, PROPOSAL / PROPOSAL_ko). AND3 holds → tool calls' default takes a second check when a third model is served
+(same places). Otherwise reported: a second check costs more right answers than it saves wrong ones, and the single peer stays the
+agreement route's end.
