@@ -206,7 +206,7 @@ table: `docs/REPORT.md` §5.1):
   (P1–P7 refuted): a gate pays only if it accepts RW at least π_WR / π_RW = 2.5 times as often as WR, and the in-model gate does not
   (the peer: 3.2); with the gate deferring, the generator gets no gradient (46.1% vs base 46.0%). Plain RL (C1) raises the quick query
   to 50.6%, and C1 → peer check → SB→T→T beats the default, +2.0 [+1.1, +2.9] (addendum 4, P8 / P9 hold; predicted +2.2 from the
-  strata). C2's checkpoints along training (CV-P10 / P11: is the collapse the Bayes response throughout?) are running.
+  strata). Along training (C2's checkpoints r10–r90, CV-P10 holds) the gate never beats T→T: wherever it accepts 11–89% of passing queries it tells RW from WR at 1.1–1.3:1, so there is no stopping point to keep. Whether the cascade's gain survives the default trained the same way: addendum 5 (CV-P12 / P13), running.
 - Day-to-day state (running jobs, environment, evidence table): `docs/SLURM_HANDOFF.md`.
 
 ## 6. Documents

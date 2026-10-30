@@ -4307,3 +4307,10 @@ peer at the next seed +1.9. Predicted beforehand from SQL-AND's decomposition wi
 interval). The rates transfer (RW 54.0% vs 54.3%, WR 20.7% vs 18.4%); what changed is the strata: RL moved RW from 4.5% to 6.6% and
 WR from 11.0% to 8.3% (200 question-seeds WR → RR). New RW items read: quoting columns with spaces, join paths, unambiguous columns —
 the databases' conventions. First cascade to beat the default significantly on BIRD dev; claim changed (PROJECT, REPORT, PROPOSAL).
+
+## 2026-10-30 04:4x UTC: CV-P10 / P11 (PREREG_CV.md addendum 4 (b)): the in-model gate never had a profitable region
+C2's gate at checkpoints r10–r90 on dev: utility − T→T rises monotonically from −4.5 (r10, accepting 89% of passing queries) to
++0.04 (r70–r80, 4%) and never beats T→T (P10 holds, 0 / 10) or the peer gate. Wherever it accepts 11–89% it accepts RW (query
+right, T→T wrong) only 1.10–1.30× as often as WR, against the 2.54 a gate needs; what it learns is the easy RR questions. The ratio
+clears 2.54 only in the last 4–5% (5 RW vs 2–4 WR question-seeds of 4,590: P11 refuted 5 / 8, worth +0.04 points). The collapse is
+the Bayes response throughout, not an optimizer artefact: no stopping point or KL term would keep a gain. Raw counts in results/cvck.txt.

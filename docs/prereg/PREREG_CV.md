@@ -316,3 +316,34 @@ Policies: SB→T→T(C1) (SQL-1's composition with the adapter's SB / T rows); C
 Expected (stated now, not a rule): the adapter carries partly to thinking (SB→T→T(C1) +0.5 to +1.5 over the base default), since
 some of C1's gains are execution hygiene a think already gets right; P12 holds narrowly (the trained default's RW shrinks, its WR
 grows), P13 holds.
+
+## Results, addendum 4 (b) (2026-10-30 04:4x UTC; `python3.11 poc/analyze_cvck.py` > results/cvck.txt, 1,530 questions × 3 seeds, τ = 0.5)
+
+| checkpoint | accepts (of passing) | a_RR | a_RW | a_WR | a_WW | a_RW / a_WR | utility − T→T |
+|---|---|---|---|---|---|---|---|
+| r10 | 88.7% | 96.7% | 89.2% | 80.8% | 78.3% | 1.10 | −4.50 [−5.99, −2.94] |
+| r20 | 56.8% | 71.5% | 50.8% | 43.8% | 37.9% | 1.16 | −2.36 [−3.53, −1.20] |
+| r30 | 35.5% | 49.4% | 28.7% | 25.8% | 16.8% | 1.11 | −1.47 [−2.33, −0.60] |
+| r40 | 27.8% | 40.3% | 22.1% | 16.9% | 11.7% | 1.30 | −0.83 [−1.57, −0.09] |
+| r50 | 11.3% | 18.5% | 5.1% | 4.2% | 3.0% | 1.21 | −0.24 [−0.62, +0.12] |
+| r60 | 5.0% | 8.7% | 2.6% | 0.8% | 0.9% | 3.18 | −0.00 [−0.16, +0.22] |
+| r70 | 4.2% | 7.3% | 2.6% | 0.4% | 0.9% | 6.36 | +0.04 [−0.09, +0.24] |
+| r80 | 3.8% | 6.4% | 2.6% | 0.4% | 0.9% | 6.36 | +0.04 [−0.09, +0.24] |
+| r90, r94 | 0% | | | | | | −0.04 [−0.04, −0.03] |
+
+Break-even a_RW / a_WR = π_WR / π_RW = 2.54 (RR 41.7%, RW 4.2%, WR 10.8%, WW 23.7% of question-seeds); the peer gate: 3.2,
+utility − T→T +0.7.
+- **CV-P10 holds:** no checkpoint beats T→T (0 of 10); every one is at or below the peer gate (−0.6 to −5.1).
+- **CV-P11 refuted (5 of 8):** r60–r80 exceed the break-even, on 5 accepted RW question-seeds against 2–4 WR (of 4,590); r10–r50,
+  where the gate accepts 11–89% of passing queries, sit at 1.10–1.30.
+- Reported: the frontier over τ moves each checkpoint by ≤ 0.4 points; utility rises monotonically toward T→T from below
+  (−4.5 → +0.04) and never past it.
+
+**Reading.** Wherever the in-model gate accepts enough to matter, it tells RW from WR barely better than chance (1.1–1.3 against the
+2.54 needed); what it learns is RR (easy questions: accepted 1.3–2.4× as often as RW). Only its last few percent, about 140 RR
+queries and a handful of others, clear the ratio, and that tail is worth +0.04 points. So the trajectory is the Bayes response
+throughout: there is no stopping point to choose, and a KL term would only hold the gate where it loses.
+
+**Decision (by the rule above).** P10 holds, P11 refuted → "the gate separates RW from WR at some point but too little of it to show
+at this sample size; reported." No CV-2 (stopping rule or KL term): at no checkpoint is there a gain to keep. With CV-P8, the account of
+CV-1 is: the in-model gate cannot reach the ratio, the peer can, and the generator is better trained for correctness alone.
