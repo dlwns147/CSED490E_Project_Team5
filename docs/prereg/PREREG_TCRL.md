@@ -318,3 +318,32 @@ bootstrap intervals over requests. Smoke on the training requests (stand-in arms
   requests that carry w, more passes), not the transfer.
 
 Expected (not a rule): P15 and P16 hold (+0.5 to +1.5 on held-out, at least twice their BFCL difference); P14 holds narrowly.
+
+## Note (2026-10-30 13:0x UTC, before any BFCL or held-out row of the three arms): the training logs, and why an item's cascade value is not its weight
+
+**Logs** (each round samples 64 requests not seen before, so a window's means are on-policy estimates on new requests; rounds 1–15 →
+76–90; C1tc's log for comparison, which has no w):
+
+| arm | quick right | right on no-call requests | w per sample | peer agrees |
+|---|---|---|---|---|
+| C1tc (plain) | 0.670 → 0.683 | 0.38 → 0.72 (0.84–0.88 in mid rounds) | — | — |
+| B35 | 0.669 → 0.647 | 0.37 → 0.40 | +0.0056 → +0.0138 | 0.63 → 0.61 |
+| B4t | 0.669 → 0.644 | 0.37 → 0.41 | +0.0018 → +0.0137 | 0.70 → 0.70 |
+| P4t (rounds → 86) | 0.669 → 0.664 | 0.38 → 0.72 | +0.0018 → +0.0155 (0.019 at 61–75) | 0.70 → 0.73 |
+
+All three raise their own w (by about one utility point per request); the B arms do not learn abstention, which was most of C1tc's
+gain on BFCL, and P4t learns it as C1tc did and raises w more than B4t, which follows w alone.
+
+**Why (derivation).** One update moves the parameters by η Σ_i ∇J_i over the training requests (J_i = Σ_y P(y|i) R_i(y)), and the
+cascade's value on a test request j by η Σ_i ⟨∇G_j, ∇J_i⟩. Along a behaviour the model generalises as a whole, f (abstain when no
+function fits), the gradients factor: ⟨∇G_j, ∇J_i⟩ ≈ Δ_f w_j · Δ_f R_i, so the test gain from f is proportional to (Σ_j Δ_f w_j)(Σ_i
+Δ_f R_i): the *training* reward summed along f, times its *test* value. With R = w the first factor is the cascade value of f on the
+training requests, small where the default already abstains correctly (w = P_X · 0.005 kd there): f is learned only as far as the
+training default fails at it, whatever its value at test. With R = r the factor is f's accuracy gain, large whenever f is right. So the
+item's own cascade value is the right weight only for what the model learns item by item; for a shared behaviour the right weight is its
+value on the test distribution, which on BFCL (default right 83.9%, vs 70.6% on ToolACE) differs. This is C1w's failure on SQL in
+general form, and it predicts that the B arms' deficit against C1tc is larger on BFCL than on held-out ToolACE, where the training
+weights are the test weights.
+
+Expected now (not a rule, replacing the earlier expectations): P10 and P11 refuted; P13 inconclusive or holds narrowly; on held-out,
+P16 holds, P15 inconclusive, P14 refuted or inconclusive; each B arm's BFCL difference below its held-out difference.
