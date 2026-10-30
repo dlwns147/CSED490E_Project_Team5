@@ -156,3 +156,103 @@ query's wrong answers than an untrained peer does (SQL-PA's error coincidence).
 - Decision: P7 holds → the gate's limit is the model's own blind spot, and a peer's quick query is the gate (no training; with P5's
   branch, "a decorrelated gate", answered by SQL-PA). P7 refuted → training the gate is worth more than a peer; reported.
 - Computed by `python3.11 poc/analyze_cv.py` (block CV-P7, written now). Nothing else changes.
+
+## Results (2026-10-30 04:2x UTC; `python3.11 poc/analyze_cv.py` > results/cv.txt, 1,530 dev questions × 3 seeds in every arm)
+
+| policy | accuracy | tokens | utility |
+|---|---|---|---|
+| T (one think) | 58.1% | 1.60k | 57.3 |
+| T→T | 59.2% | 1.85k | 58.3 |
+| SB→T→T (no-label default) | 59.5% | 1.68k | 58.6 |
+| base N→T→T | 52.7% | 0.77k | 52.3 |
+| **CV** | 59.2% | 1.93k | 58.3 |
+| **C1** (plain RL, N→T→T) | 57.6% | 0.78k | 57.2 |
+| **C2** (gate on frozen drafts) | 59.2% | 1.92k | 58.3 |
+| peer gate (N → Qwen3.5-9B's N same rows → N, else T→T) | 59.7% | 1.53k | 59.0 |
+
+- **CV-P1 refuted:** CV − T→T accuracy +0.0 [+0.0, +0.0] at 104% of its tokens (bound: ≤ 75%).
+- **CV-P2 refuted:** utility CV − SB→T→T −0.3 [−1.1, +0.4].
+- **CV-P3 refuted:** utility CV − C1 +1.1 [−0.6, +2.7] (accuracy +1.7 [−0.0, +3.3], at 247% of C1's tokens).
+- **CV-P4 refuted:** CV − C2 +0.0 [+0.0, +0.0]: the two trained gates end identical.
+- **CV-P5 refuted:** CV answers 0% of questions itself (needs ≥ 40%).
+- **CV-P6 refuted:** (CV − C1) quick-query accuracy on T→T-wrong minus T→T-right −2.3 [−5.3, +0.7].
+- **CV-P7 refuted:** utility peer − C2 +0.7 [−0.2, +1.5] (accuracy +0.5 [−0.4, +1.3]); peer − CV the same.
+
+**Both trained gates collapsed to "always defer".** On all 3,690 (CV) and 3,705 (C2) passing dev queries, ACCEPT is not among the 20
+most likely first tokens (`cv_eval.py` then records P(ACCEPT) = 0), so the frontier over τ = 0.1–0.9 is one point (59.2% at 1.93k),
+and CV is T→T plus a wasted quick query. In training, C2's gate accepted 90% of passing queries in round 1, 69% in round 13, 38% in
+round 31, 28% in round 37 (88% of them right), 20% in round 49 (92%), 5% in round 55 (100%), and none from round 85; CV's the same
+(none in rounds 91–94). No turn-1 DEFER in any round or on dev.
+
+**Reported.** The quick query's own accuracy: CV 46.1%, C1 50.6%, base 46.0% (CV did not degrade the drafts, as 2609.01345 found
+for corrective fine-tuning; it did not change them). Length: base 72.2, CV 74.8, C1 68.9 tokens. Accept rate on passing wrong queries:
+0% for both gates whether T→T is right (n 471 / 496) or wrong (n 1,090 / 1,088).
+
+**Raw reading.** With no ACCEPT, every right passing query is deferred; the costly ones are those where T→T is wrong (68 question-seeds
+of seed 1). Read, they are mostly convention cases where the gold follows the literal reading and the think's more careful one
+differs: the think joins on `substr(CDSCode, 2)` (q 39), drops DISTINCT (232), counts DISTINCT where the gold counts rows (363), counts
+posts with `Tags LIKE '%careers%'` where the gold counts the tag row (696). Nothing in the quick query's result marks them.
+
+**Theory (post hoc, from the pre-registered model above and SQL-AND's decomposition, PREREG_SQL.md).**
+- *The gate.* Turn 2's loss is its exact expected reward, so its gradient on a passing query is σ'(z)·Δ with Δ = right − v + λc:
+  +1 + λc where the query is right and T→T wrong (RW, 4.2% of dev question-seeds), −1 + λc where it is wrong and T→T right (WR,
+  10.8%), only λc ≈ 0.005–0.02 on RR (41.7%) and WW (23.7%). The gate is trained as a classifier of RW against WR, and any gate pays
+  only if its acceptance rates satisfy π_RW·a_RW > π_WR·a_WR − (the token term, ≤ 0.5 utility points per 1k tokens saved), i.e.
+  a_RW / a_WR > π_WR / π_RW = 2.5 on Qwen3-8B's dev queries. The untrained peer reaches 55.4% / 17.3% = 3.2 (hence its +0.5 points); the
+  in-model gates, by round 16–27, kept 71–78% of right and 47–55% of wrong passing queries in training (ratio about 1.5 over all right
+  and wrong; RW are mostly the convention cases above, invisible in the result). With no region above the ratio and no KL term, the
+  logit runs to always defer, the Bayes response. Whether an earlier checkpoint had a profitable region: addendum 4 (CV-P10 / P11).
+- *The generator.* Equation (3) with α = 1, β = 0 gives ∂A/∂p = 0 and ∂K/∂p = 0: once the gate defers everything, the quick query's
+  correctness earns nothing, and only its own length (λk ≈ 0.0004) is left; a turn-1 DEFER saves the same λk. Predicted: CV's quick
+  query stays at the base's accuracy and turn-1 DEFER never appears; measured 46.1% vs 46.0% (C1, rewarded for correctness alone:
+  50.6%) and 0%. This is the learning-to-defer failure where the predictor gets no signal on deferred points: Mozannar & Sontag's
+  consistent surrogate (2006.01862) trains the classifier on every point for that reason; Madras et al. (1711.06664) set up the joint
+  problem; Mozannar et al. (2301.06197) show joint surrogates failing even when a zero-error pair exists. Gatekeeper (2502.19335) tunes
+  the small model's confidence with a fixed trade-off weight instead of a joint value reward. New here: the collapse quantified by the
+  ratio π_WR / π_RW, which the in-model gate does not reach and a peer does.
+
+**Decision (by the rules above).** P1, P2, P5 refuted: training the quick mode for the cascade's value does not turn SQL's trade into
+a saving; the claim does not change. The P4 and P7 rows read "a gate on frozen drafts is enough" and "training the gate is worth more
+than a peer"; both presuppose a working gate, and here both trained gates are T→T, so neither reading holds: no trained arm does
+anything T→T does not, and the untrained peer is +0.7 [−0.2, +1.5] above them. P5's row ("next, a decorrelated gate") is answered
+by the peer (CV-P7, SQL-PA, SQL-DV): its ratio clears 2.5, but the accuracy any gate can add over T→T is at most π_RW = 4.2 points.
+
+## Addendum 4 (2026-10-30 04:2x UTC, before any checkpoint row and before C1's agreement with the peer is computed)
+
+Seen before writing this: the results above, and `python3.11 poc/analyze_cvpeer.py --predict` (C1's strata against SB→T→T; no
+C1–peer agreement). Two questions, one offline and one on the GPU:
+
+**(a) Plain RL's quick query with the peer check (offline).** C1 raised the quick query from 46.0% to 50.6% but loses to the default
+(57.2 vs 58.6) because nothing gates its 37% wrong accepted queries; the peer is the gate that clears the ratio. Policy: C1's quick
+query → check → Qwen3.5-9B's quick query (SQL-1's q35 rows, same seed) returns the same rows → C1's query, else SB→T→T (SQL-DV's
+peer cascade with C1 in place of the base query). Theory (SQL-AND): against the default, accuracy changes by π_RW·a_RW − π_WR·a_WR.
+C1's strata against SB→T→T are RR 44.1%, RW 6.6%, WR 8.3%, WW 21.1%, fail 20.0% (base: 41.5 / 4.5 / 11.0 / 23.5 / 19.5): RL moved
+right answers onto the questions where the default fails and off those where it succeeds. With the base query's agreement rates
+(RR 81.9%, RW 54.3%, WR 18.4%, WW 27.6%) the model predicts **+2.24 utility** over SB→T→T (accuracy +2.04, −0.39k tokens); the base
+query's peer cascade: +0.62 (measured +0.6 [−0.3, +1.4], SQL-DV).
+- **CV-P8:** utility C1's peer cascade − SB→T→T: paired lower bound > 0.
+- **CV-P9:** utility C1's peer cascade − the base query's peer cascade: paired lower bound > 0.
+- **CV-P8 theory:** the transferred prediction (+2.24) lies inside CV-P8's paired 95% interval.
+- Reported: the peer at the next seed (s mod 3 + 1); T→T as the fallback; C1's measured agreement rates per stratum.
+- Decision: P8 and P9 hold → plain RL on the quick mode with a decorrelated peer check beats the no-label default on SQL, where every
+  untrained cascade tied: the claim changes (PROJECT §2, REPORT, PROPOSAL / PROPOSAL_ko: train the generator for correctness, take the
+  check from outside the model). P8 refuted, P9 holds → RL helps the peer cascade, not significantly past the default; reported.
+  P9 refuted → C1's gains fall where the peer cascade already did as well; reported. The theory row fails → the agreement rates do
+  not transfer to a changed generator (C1's new right answers are ones the peer does not share); reported with the measured rates.
+- `python3.11 poc/analyze_cvpeer.py` (written now).
+
+**(b) C2's gate along training (GPU, 1 job).** Does any checkpoint have a profitable accept region, or is the collapse the Bayes
+response throughout? C2's saved adapters r10, r20, …, r90 (`$POC_DATA/cv/c2/adapter_r<k>`), evaluated on dev seeds 1–3 exactly as
+C2's final one (`poc/slurm/cv_eval_lane.sh c2 q8bcvc2r<k> <adapter> 1 2 3`; turn 1 = SQL-1's base query; τ = 0.5).
+- **CV-P10:** for none of the nine checkpoints is utility − T→T's paired lower bound > 0.
+- **CV-P11:** at every checkpoint that accepts ≥ 1% of passing queries, a_RW / a_WR < π_WR / π_RW (2.54, strata against T→T).
+- Reported: per checkpoint the accept rate by stratum, utility against the peer gate, the frontier over τ.
+- Decision: P10 and P11 hold → at no point of training does the in-model gate separate RW from WR at the ratio a gate needs; the
+  collapse is the Bayes response to the shared blind spot, not an optimizer artefact, and the check must come from outside the model.
+  P10 refuted → the collapse is runaway (no KL term, no stopping rule): a stopping rule chosen on training questions or a KL term
+  makes the in-model gate a method; next, CV-2 with that fix, pre-registered then. P11 refuted with P10 holding → the gate separates
+  RW from WR at some point but too little of it to show at this sample size; reported.
+- `python3.11 poc/analyze_cvck.py` (written now).
+
+Expected (stated now, not a rule): P8 holds narrowly (the peer shares fewer of C1's new right answers, which are harder questions),
+P9 holds, the theory row holds; P10 and P11 hold (training ratio ≤ 1.5).
