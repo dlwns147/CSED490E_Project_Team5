@@ -15,6 +15,7 @@ all numbers: `PROPOSAL.md` (Korean: `PROPOSAL_ko.md`). The lab log: `docs/FINDIN
 | Some models' programs run but are wrong (the "leak": Qwen3, Nemotron, gpt-oss on the hardest word problems) | **Think briefly first** (2,000 tokens; 4,000 for the leakiest models) before writing the program; never lost to one full think in 14 new word-problem / geometry cells and closed the worst one (−16.7 → −0.3); for gpt-oss a medium think cut at 2k instead of low effort ties the think-with-retry at 69–83% of its tokens (HO-OSB); on contest problems the full think is better (−3 points against an uncapped think). |
 | Thinking also fails visibly sometimes | **Check every step: think again when the think's program fails** (+2.5 to +12 points); a quick repair instead is not cheaper (HO-TR). |
 | No labels to tell a wrong-but-running program | **Compare the quick program with the short-think program**: agreeing ones are right 93–97% of the time, disagreeing ones 19–34% (contest problems). It flags single programs but cannot replace the 30 labels for choosing the policy (HO-LF: shared mistakes outvote the truth). |
+| Text-to-SQL: passing quick queries are often wrong, and every untrained cascade only ties the default | **Train the quick query to be right (plain RL, labels only in training) and check it with another model's quick query**: 61.3% at 1.36k tokens vs the default's 59.5% at 1.68k on BIRD dev (CV-1). Trained to gate itself instead, the model learns to defer everything. |
 | Every model misreads the same statement (OptMATH) | Unsolved — partly the benchmark: many of its problems omit information the gold answer needs. |
 
 Recipe: give the fact → short think → program → free check → full think only on a visible failure → think again once on failure. Honest
@@ -46,7 +47,7 @@ tokens, and is more accurate than every cheap-first policy there for every model
 −4.1] at 37% of T→T's tokens). The claim is therefore a frontier: **apply the free check at every step, thinking included.** Over 54
 cells of four hybrid-thinking models the best fixed order without labels is short think → full think → retry on a visible failure
 (SB→T→T: 1.74 utility points below each cell's best at λ = 0.5; one think: 7.64; T→T: 3.40); the non-thinking program first is on the
-frontier where the check holds (Qwen3.5, geometry) and 2–4 points behind on the leaky models' hardest word problems. Where answers are short and two models' errors rarely coincide, another model's cheap answer is the check that makes cheap first pay: on tool calls, cheap answer → a second model's cheap answer agrees → answer, else SB→T→T, beats the default in 2 of 3 models (HO-PA); on SQL it ties T→T at 63–69% of its tokens (SQL-PA); on word problems it saves nothing. The second model must be about as accurate and of another family: the model's own answer with a plan line (it repeats 38–56% of its wrong answers) and a 3B Llama (right too rarely) both lose to it, an 8B Llama ties it (SQL-DV). gpt-oss-20b's gap
+frontier where the check holds (Qwen3.5, geometry) and 2–4 points behind on the leaky models' hardest word problems. Where answers are short and two models' errors rarely coincide, another model's cheap answer is the check that makes cheap first pay: on tool calls, cheap answer → a second model's cheap answer agrees → answer, else SB→T→T, beats the default in 2 of 3 models (HO-PA); on SQL it ties T→T at 63–69% of its tokens (SQL-PA); on word problems it saves nothing. The second model must be about as accurate and of another family: the model's own answer with a plan line (it repeats 38–56% of its wrong answers) and a 3B Llama (right too rarely) both lose to it, an 8B Llama ties it (SQL-DV). On SQL the quick query must improve too: plain RL on BIRD train (labels in training only) raises Qwen3-8B's quick query from 46.0% to 50.6%, and with the peer check it beats the default, 61.3% at 1.36k tokens vs 59.5% at 1.68k (+2.0 [+1.1, +2.9] utility, CV-P8); trained instead for the cascade's own value, the model learns to defer everything (CV-1). gpt-oss-20b's gap
 (low effort first) closes the same way: a medium-effort think cut at 2k first ties T→T on BWOR / LogiOR at 69–83% of its tokens (HO-OSB).
 On Qwen3-32B the order holds unchanged (SB→T→T best in 3 of 4 cells, retry +2.3 to +10.9, cheap-first still −5 to −12; HO-32): the leak
 does not shrink with size. On Seed-OSS-36B, a fourth family, it is best in all 4 cells (retry +3.6 to +10.6, cheap-first −6 to −12;
@@ -199,11 +200,13 @@ table: `docs/REPORT.md` §5.1):
   (Nemotron) is no less correlated than another Qwen generation (PA4 0 / 3). SQL-AND (10-30, offline): a second check from a
   third family loses to the single peer (SQL train 0 / 3, tool calls 1 / 3): agreement falls with difficulty for all checks
   together, and accepting gains accuracy only where the quick answer is right and the default wrong (3–7% of items).
-- **Training the quick mode for the cascade (CV-1, 10-29, running)**: every fix so far changed the check, and each stronger check costs
-  about a think; CV-1 changes the generator instead. RL (LoRA) on Qwen3-8B's non-thinking mode, rewarded with the whole cascade's
-  value (its own answer if it accepts, the same model's think-with-retry if it defers), deciding after seeing its query's result;
-  BIRD train, tested on SQL-1's dev questions against T→T and the default, with plain RL (C1) and a gate on frozen drafts (C2) as
-  controls. Headroom: a perfect gate on SQL-1's queries gives +4.2 points over T→T at 79% of its tokens (PREREG_CV.md).
+- **Training the quick mode for the cascade (CV-1, 10-29/30)**: RL (LoRA) on Qwen3-8B's non-thinking mode, BIRD train, tested on
+  SQL-1's dev questions. Rewarded with the whole cascade's value (its own answer if it accepts after seeing its query's result, the
+  same model's think-with-retry if it defers), the model and the gate-only control both learn to defer everything and end at T→T
+  (P1–P7 refuted): a gate pays only if it accepts RW at least π_WR / π_RW = 2.5 times as often as WR, and the in-model gate does not
+  (the peer: 3.2); with the gate deferring, the generator gets no gradient (46.1% vs base 46.0%). Plain RL (C1) raises the quick query
+  to 50.6%, and C1 → peer check → SB→T→T beats the default, +2.0 [+1.1, +2.9] (addendum 4, P8 / P9 hold; predicted +2.2 from the
+  strata). C2's checkpoints along training (CV-P10 / P11: is the collapse the Bayes response throughout?) are running.
 - Day-to-day state (running jobs, environment, evidence table): `docs/SLURM_HANDOFF.md`.
 
 ## 6. Documents

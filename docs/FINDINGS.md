@@ -4287,3 +4287,23 @@ cascade's accuracy upside over the default is at most 3–7 points whatever the 
 answers where the default fails (34–64%) than where it succeeds (74–88%): agreement falls with difficulty for all checks together,
 so stacking checks halves the useful agreement along with the leak. Decision: reported; the single peer remains the agreement
 route's end. Leaks passing both checks are mostly output-shape conventions (3 of 6 read).
+
+## 2026-10-30 04:2x UTC: CV-1 (PREREG_CV.md): trained for the cascade's value, the quick mode learns to defer everything
+RL (LoRA, 94 rounds of 64 BIRD-train questions) on Qwen3-8B's non-thinking mode, rewarded with the cascade's value: on 1,530 dev
+questions × 3 seeds CV and the gate-only control C2 both end exactly at T→T (59.2% at 1.92–1.93k vs 59.2% at 1.85k): ACCEPT is not in
+the top 20 first tokens on any of 7,395 passing queries. CV-P1–P7 refuted (CV − SB→T→T −0.3 [−1.1, +0.4]; − C1 +1.1 [−0.6, +2.7];
+the untrained peer gate − C2 +0.7 [−0.2, +1.5]). In training C2's gate went from accepting 90% of passing queries to 28% (88% right),
+5% (100% right), then none. Theory: the gate's exact-expected-reward gradient is ±1 only on RW (query right, T→T wrong: 4.2%) and WR
+(10.8%), so any gate pays only if a_RW / a_WR > π_WR / π_RW = 2.5; the peer reaches 3.2, the in-model gate kept right and wrong
+passing queries at a ratio near 1.5. Once the gate defers everything, eq. (3) gives the generator zero gradient: CV's quick query
+stays at 46.1% (base 46.0%; plain RL C1 50.6%), with no turn-1 DEFER — the learning-to-defer failure Mozannar & Sontag's surrogate
+(2006.01862) avoids by training the classifier on every point. The deferred right queries where T→T fails are mostly convention cases
+(the think's careful reading differs from the gold's literal one). Checkpoints r10–r90 are being evaluated (CV-P10 / P11).
+
+## 2026-10-30 04:2x UTC: CV-P8 / P9 (PREREG_CV.md addendum 4, offline): plain RL's quick query with the peer check beats the SQL default
+C1's quick query (plain RL) → Qwen3.5-9B's quick query returns the same rows → accept, else SB→T→T: 61.3% at 1.36k tokens vs the
+default's 59.5% at 1.68k, utility +2.0 [+1.1, +2.9] (P8 holds), +1.4 [+0.7, +2.2] over the base query's peer cascade (P9 holds); the
+peer at the next seed +1.9. Predicted beforehand from SQL-AND's decomposition with the base query's agreement rates: +2.24 (inside the
+interval). The rates transfer (RW 54.0% vs 54.3%, WR 20.7% vs 18.4%); what changed is the strata: RL moved RW from 4.5% to 6.6% and
+WR from 11.0% to 8.3% (200 question-seeds WR → RR). New RW items read: quoting columns with spaces, join paths, unambiguous columns —
+the databases' conventions. First cascade to beat the default significantly on BIRD dev; claim changed (PROJECT, REPORT, PROPOSAL).

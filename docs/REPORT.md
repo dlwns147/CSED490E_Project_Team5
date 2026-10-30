@@ -491,6 +491,21 @@ check from yet another family (Nemotron, Llama-3.1-8B) therefore halves the usef
 single peer it loses 0.4–0.9 utility on SQL train in all three models and wins only for Qwen3-14B-AWQ on tool calls (+0.6), against
 an independence-based prediction of a gain in all six cells. The single peer is the end of the agreement route.
 
+**Training the quick query, not the check (CV-1, pre-registered).** RL (LoRA) on Qwen3-8B's non-thinking mode over 6,000 BIRD-train
+questions, with labels only in training. Rewarded with the cascade's own value (its query if a second turn, shown the query's result,
+says ACCEPT; the same model's think-with-retry otherwise), the model learns to defer everything: on dev it ends exactly at T→T (59.2%,
+CV-P1–P7 refuted), and so does a gate trained on frozen drafts. The decomposition above says why. The gate's reward differs between
+ACCEPT and DEFER by ±1 only on RW (4.2% of dev question-seeds) and WR (10.8%), so a gate pays only if it accepts RW at least
+π_WR / π_RW = 2.5 times as often as WR; the peer does (3.2), the model's view of its own result does not (in training it kept right
+and wrong passing queries at about 1.5:1, then accepted nothing). And once the gate defers everything the quick query's correctness
+earns nothing, so the generator stops learning (46.1% vs 46.0%): the learning-to-defer failure that consistent surrogates avoid by
+training the predictor on every point (2006.01862). Rewarded only for being right (plain RL), the quick query rises to 50.6%, and with
+the peer check it beats the default: **61.3% at 1.36k tokens against 59.5% at 1.68k, +2.0 [+1.1, +2.9] utility, +1.4 over the
+untrained peer cascade** — the first cascade here to do so on SQL. The decomposition predicted it beforehand (+2.2) from where the
+trained query is right, with the peer's agreement rates unchanged: RL moved right answers onto the questions the default fails (RW
+4.5% → 6.6%) and off those where it succeeds (WR 11.0% → 8.3%), mostly by learning the databases' conventions (quoted column names,
+join paths). On SQL, train the generator for correctness and take the check from outside the model.
+
 ## 6. Baselines on the same harness
 
 | task | baseline | its result | ours |

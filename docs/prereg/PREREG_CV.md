@@ -256,3 +256,39 @@ C2's final one (`poc/slurm/cv_eval_lane.sh c2 q8bcvc2r<k> <adapter> 1 2 3`; turn
 
 Expected (stated now, not a rule): P8 holds narrowly (the peer shares fewer of C1's new right answers, which are harder questions),
 P9 holds, the theory row holds; P10 and P11 hold (training ratio ≤ 1.5).
+
+## Results, addendum 4 (a) (2026-10-30 04:2x UTC; `python3.11 poc/analyze_cvpeer.py` > results/cvpeer.txt, 1,530 questions × 3 seeds)
+
+| policy | accuracy | tokens | utility |
+|---|---|---|---|
+| SB→T→T (no-label default) | 59.5% | 1.68k | 58.6 |
+| base N → peer agrees → N, else SB→T→T | 59.9% | 1.39k | 59.2 |
+| **C1's N → peer agrees → N, else SB→T→T** | **61.3%** | **1.36k** | **60.6** |
+| same, the peer at the next seed | 61.2% | 1.37k | 60.5 |
+| same, T→T as the fallback | 60.9% | 1.50k | 60.1 |
+| C1 as deployed in CV-1 (N → check → T→T) | 57.6% | 0.78k | 57.2 |
+
+- **CV-P8 holds:** utility C1's peer cascade − SB→T→T +2.0 [+1.1, +2.9] (accuracy +1.8 [+1.0, +2.8], at 81% of its tokens).
+- **CV-P9 holds:** − the base query's peer cascade +1.4 [+0.7, +2.2] (accuracy +1.4 [+0.7, +2.2]).
+- **CV-P8 theory holds:** predicted +2.24 (the base query's agreement rates on C1's strata) inside [+1.14, +2.94]. The agreement
+  rates did transfer: on C1's queries the peer agrees RR 81.0% (base 81.9%), RW 54.0% (54.3%), WR 20.7% (18.4%), WW 29.6% (27.6%);
+  with C1's measured rates the decomposition gives +1.83 accuracy, the measured value.
+- Reported: at the next seed +1.9 [+1.0, +2.8]; with T→T as the fallback +1.5 [+0.4, +2.7] against SB→T→T.
+
+**Where C1's gain comes from (question-seeds, base → C1, strata against SB→T→T).** 200 move WR → RR (C1 is now right where the
+default was right; each removes a leak), 104 WW → RW and 96 fail → RR, against 90 RR → WR and 87 RR → fail. Read (seed 1, the 42
+question-seeds newly in RW): mostly execution hygiene and schema conventions the base query gets wrong — column names with spaces
+quoted (q 34: the base's `Free Meal Count (Ages 5-17)` unquoted fails the check), a join through the link table (`disp`, q 128), an
+unambiguous column for one table (q 429), counting rows rather than distinct ids (q 260). Plain RL on BIRD train taught the quick
+mode the database's and the benchmark's conventions; the think, untrained, keeps missing some of them.
+
+**Related work.** RL raising text-to-SQL accuracy is known (Reasoning-SQL 2503.23157, Think2SQL 2504.15077); agreement-based cascades
+are training-free (MoT 2310.03094, ABC 2407.02348, semantic agreement 2509.21837); the text-to-SQL router 2411.04319 notes that a
+weakest-first cascade is hard on SQL for lack of a verifier. New here: the cascade decomposition predicts from the generator's strata
+alone (π_RW up, π_WR down) what training the generator is worth under a fixed peer check, and the prediction held; and training the
+same generator for the cascade's value instead fails by the same decomposition (the ratio a gate must reach).
+
+**Decision (by the rule above).** P8 and P9 hold: plain RL on the quick mode with a decorrelated peer check beats the no-label default
+on SQL, where every untrained cascade tied. The claim changes (PROJECT §2, REPORT §5.11, PROPOSAL / PROPOSAL_ko): on SQL, train
+the generator for correctness and take the check from outside the model. Limits: one model (Qwen3-8B), one benchmark (BIRD dev; RL on
+BIRD train, the same databases' conventions), labels used in training only; the peer is an untrained Qwen3.5-9B.
