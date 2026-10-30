@@ -287,3 +287,34 @@ the 110 whose SB fails the free check). The default (SB→T) is right on 70.6% o
 scale c = 9.39 (B35). Peer C1tc-4B: right 70.4%, no call 12.7%; w > 0.01 on 8.2%, w < −0.01 on 6.6%; range 0.124, c = 8.06 (B4t; P4t
 uses w unscaled). So B35's reward is mostly the veto (twice as many requests where a shared answer loses to the default as where one
 gains), and B4t's is balanced. Jobs: tcb35 1283750, tcb4t 1283751, tcp4t 1283752.
+
+## Addendum 3 (2026-10-30 11:5x UTC, before any held-out row; the three trainings at round ~5 of 94): where the cascade reward works — the training distribution vs BFCL
+
+**Why.** P10, P11 and P13 are tested on BFCL, while the reward is computed on ToolACE. A refuted P13 would not say whether the reward
+fails to steer the quick answer at all (one pass of GRPO; only 6.6–12.8% of the training requests carry a w beyond ±0.01) or steers it
+where it was trained and does not transfer. The two failures call for different next steps (the optimiser vs the source of the
+reward), so the arms are also measured on requests from the training distribution that no arm trained on.
+
+**Set.** The 3,549 requests of tc_train_items.jsonl after tc_train.py's first 6,000 in its order (`$POC_DATA/toolace/tc_ho_ids.txt`;
+disjoint from the training ids, checked). Qwen3-8B's default from one sample (SB seed 1, T seed 1 where SB fails the free check; tag
+hoq8b), K = 4 quick samples of each N (base hoq8b, C1tc hoq8btcc1, B35 hoq8btcb35, B4t hoq8btcb4t, P4t hoq8btcp4t) and of each peer
+(Qwen3.5-9B hoq35, C1tc-4B hoq4btcc1). `poc/analyze_tcho.py`: every N sample paired with every peer sample (independent, so unbiased);
+an N answer that fails the check goes to the default, one that passes is accepted with the share of peer samples that pass and make
+the same calls, else the default; G = the cascade's utility minus the default's (accuracy − 0.5 × ktokens, points); paired 95%
+bootstrap intervals over requests. Smoke on the training requests (stand-in arms): it runs, and G is symmetric in N and X as it must be.
+
+- **TCRL-P14:** G_H(B35, Qwen3.5-9B) − G_H(C1tc, Qwen3.5-9B): lower bound > 0.
+- **TCRL-P15:** G_H(B4t, C1tc-4B) − G_H(C1tc, C1tc-4B): lower bound > 0.
+- **TCRL-P16:** G_H(P4t, C1tc-4B) − G_H(C1tc, C1tc-4B): lower bound > 0.
+- Reported, not decided: G_H(C1tc) − G_H(base) with each peer (plain RL's own gain where it trained); for each arm, its BFCL difference
+  (P10 / P11 / P13) over its held-out one (the share that transfers); accepted wrong where the default is right.
+
+**Decision (with P10 / P11 / P13 of the same arm).**
+- Held-out holds, BFCL holds → the recipe of addendum 2's decision; the transfer share is reported with it.
+- Held-out holds, BFCL refuted → the reward steers the cascade where it is computed and the gain does not carry to BFCL: the claim
+  says the cascade reward is specific to the distribution it is computed on, and the next test computes it on requests closer to the
+  deployment (the source of r_D and P_X, not the optimiser).
+- Held-out refuted → one pass of GRPO does not follow the cascade reward even in distribution: the next test is the optimiser (the
+  requests that carry w, more passes), not the transfer.
+
+Expected (not a rule): P15 and P16 hold (+0.5 to +1.5 on held-out, at least twice their BFCL difference); P14 holds narrowly.
