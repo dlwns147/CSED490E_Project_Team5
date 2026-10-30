@@ -512,7 +512,11 @@ gains only +0.9 (n.s.; the non-thinking adapter barely changes the think), and t
 (62.0% at 1.32k tokens, CV-P12). The decomposition predicted it beforehand (+2.2) from where the
 trained query is right, with the peer's agreement rates unchanged: RL moved right answers onto the questions the default fails (RW
 4.5% → 6.6%) and off those where it succeeds (WR 11.0% → 8.3%), mostly by learning the databases' conventions (quoted column names,
-join paths). On SQL, train the generator for correctness and take the check from outside the model.
+join paths). On SQL, train the generator for correctness and take the check from outside the model. The same recipe on Qwen3-4B (CV addendum 6) beats that model's own default
+by +1.8 [+0.9, +2.7] (the strata predicted +2.35). Weighting the training reward by what a right query is worth to the cascade —
+× 1.83 where the base model's think fails, × 0.50 where it succeeds (C1w) — loses to plain RL (−0.44 [−0.93, −0.00]): it does not move
+right answers onto the questions the default fails, and it learns fewer of the conventions (qualified columns, quoted names) that
+transfer, on the questions the default already gets right. A question's value in the cascade is not its value as a training signal.
 
 **The same recipe on tool calls (TC-RL, pre-registered).** The identical loop on 6,000 single-turn ToolACE requests in BFCL's prompt
 format (reward: the calls equal the gold calls, or no call where the gold makes none; no BFCL item in training) raises Qwen3-8B's quick
@@ -540,7 +544,11 @@ learn the same right abstention and the default fails, −0.61 where both learn 
 answers without the peer does not pay (+0.14 [−0.50, +0.78], P9 refuted): 9.8% of them drop a supported call. With the peer fixed, the
 best possible answering model under the same account gains +3.70 (Qwen3.5-9B) or +6.90 (trained Qwen3-4B), where plain RL reaches
 +1.37 / +2.66: plain RL rewards right answers the peer cannot confirm and does not penalise the wrong answers the peer shares. The
-exact reward of the deployed cascade, P_X(y|i)(r(y) − r_D(i)), is pre-registered next (TCRL addendum 2).
+exact reward of the deployed cascade, P_X(y|i)(r(y) − r_D(i)), is pre-registered next (TCRL addendum 2). On SQL the same 2×2 (C1 on Qwen3-8B and on Qwen3-4B) is
+sub-additive (interaction −0.77 [−1.52, −0.07], CV-P18 refuted), and the trained 4B is no better a partner than Qwen3.5-9B (+0.08,
+P19 refuted); its cross term has the same structure (−1.52 where either training alone removes a wrong query both base models shared,
++0.61 where both now share a right one the default misses). Shared errors need only one veto, so two trainings that fix the same
+errors overlap; the cross term is positive only where both learn the same right answer on questions the default fails.
 
 ## 6. Baselines on the same harness
 

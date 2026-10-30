@@ -4345,3 +4345,13 @@ Cross term by answer class (bilinear, 3-seed distributions): +1.17 shared new ri
 abstention / default right, −0.82 shared base wrong call removed by either training alone, +0.33 rest. Best response to a fixed peer:
 +3.70 (Qwen3.5-9B) / +6.90 (C1tc-4B) vs plain RL's +1.37 / +2.66. Next (addendum 2, pre-registered): train Qwen3-8B with the
 cascade's own reward P_X(y|i)(r(y) − r_D(i)) against each fixed peer.
+
+## 2026-10-30 10:4x UTC: CV addenda 6 / 7 (PREREG_CV.md): SQL recipe holds on Qwen3-4B; cascade-weighted reward loses; trained peer sub-additive
+C1 on Qwen3-4B → Qwen3.5-9B → its own SB→T→T (57.4%): 59.0% at 1.43k, +1.80 [+0.92, +2.70] (P14), − base 4B cascade +1.11 [+0.44,
++1.76] (P15), strata prediction +2.35 inside (P14 theory). C1w (× 1.83 / × 0.50 by the base T→T outcome) − C1: −0.44 [−0.93, −0.00]
+(P16 refuted), RW share +0.11 [−0.41, +0.68] (P17 refuted), WR share +1.33 [+0.52, +2.09]; quick right 49.3% vs C1 50.6%; raw rows:
+C1w lost C1's conventions on easy questions (unqualified columns in joins → "ambiguous column", quoted names dropped). Trained-peer 2×2
+(Qwen3-8B default 59.5%): +(−0.19) / +1.29 / +1.35 / +2.07 (N base/C1 × peer 4B base/C1-4B); interaction −0.77 [−1.52, −0.07] (P18
+refuted), C1 with C1-4B − with Qwen3.5-9B +0.08 [−0.86, +0.93] (P19 refuted), independence within 0.12. Cross term −1.52 (shared base
+wrong query removed by either training) + 0.61 (shared new right query, default wrong) + 0.08. Consequence for TC-RL addendum 2: an
+arm adding the cascade reward to plain RL's (P13, peer C1tc-4B) was pre-registered before any training round.
