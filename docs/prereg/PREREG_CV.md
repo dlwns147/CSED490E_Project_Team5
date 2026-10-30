@@ -292,3 +292,27 @@ same generator for the cascade's value instead fails by the same decomposition (
 on SQL, where every untrained cascade tied. The claim changes (PROJECT §2, REPORT §5.11, PROPOSAL / PROPOSAL_ko): on SQL, train
 the generator for correctness and take the check from outside the model. Limits: one model (Qwen3-8B), one benchmark (BIRD dev; RL on
 BIRD train, the same databases' conventions), labels used in training only; the peer is an untrained Qwen3.5-9B.
+
+## Addendum 5 (2026-10-30 04:2x UTC, before any row of the runs below): is CV-P8's gain the cascade's or the training's?
+
+CV-P8 compares a trained quick query (plus an untrained peer) with an untrained default. If C1's adapter, trained in non-thinking
+mode on BIRD train, also helps the thinking steps, the default with the same weights may match the cascade, and the gain would be the
+training's (known: RL raises text-to-SQL accuracy), not the cascade's. Run: SQL-1's SB and T arms of Qwen3-8B with C1's adapter on
+every call (`run_sql.py`, `SQL_ARMS=think,sb`, tag q8bc1t, BIRD dev, seeds 1–3, SQL-1's caps and per-question seeds; vLLM
+`--enable-lora --lora-modules local=<c1 adapter_final>`; C1's quick rows copied in as the cheap arm), graded by `grade_sql.py`.
+Policies: SB→T→T(C1) (SQL-1's composition with the adapter's SB / T rows); C1 → peer agrees → N, else SB→T→T(C1).
+- **CV-P12 (the cascade adds to the trained weights):** utility C1 → peer → SB→T→T(C1) − SB→T→T(C1): paired lower bound > 0.
+- **CV-P13 (the cheap path captures the training):** utility C1 → peer → SB→T→T(base) (CV-P8's policy) − SB→T→T(C1): paired
+  lower bound > −0.5 (non-inferior).
+- Reported: SB→T→T(C1) − SB→T→T(base) (does the non-thinking adapter carry to thinking?), T→T(C1), the strata of C1's quick query
+  against SB→T→T(C1) and the decomposition's prediction with the base agreement rates (computed before the cascade).
+- Decision: P12 holds → with the trained weights everywhere the peer cascade still adds: on SQL, train, then check with a peer
+  (the claim as changed by CV-P8 stands). P12 refuted, P13 holds → with trained weights everywhere the cascade only ties the default,
+  but it captures the training through the cheap path without changing the think: the claim is restated that way. P13 refuted → the
+  trained default beats CV-P8's cascade: CV-P8's gain is the training's; the claim is restated (the trained default is the policy;
+  the peer cascade is a token saving at most).
+- `python3.11 poc/analyze_cvpeer.py --c1think` (written before the rows exist).
+
+Expected (stated now, not a rule): the adapter carries partly to thinking (SB→T→T(C1) +0.5 to +1.5 over the base default), since
+some of C1's gains are execution hygiene a think already gets right; P12 holds narrowly (the trained default's RW shrinks, its WR
+grows), P13 holds.

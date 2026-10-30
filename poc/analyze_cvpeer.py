@@ -7,13 +7,15 @@ accepting changes accuracy only on (N right, default wrong) = RW and (N wrong, d
   acc(N -> peer) - acc(D) = pi_RW a_RW - pi_WR a_WR,   tokens = E k_N + P(pass) E k_peer - sum_s pi_s a_s E[c_D | s]
 (a_s = the peer's agreement rate in stratum s); --predict transfers a_s from the base quick query to C1's strata, written before any
 agreement between C1 and the peer is computed.
-usage: python analyze_cvpeer.py [--predict]"""
-import contextlib, io, sys
+--c1think (addendum 5, CV-P12 / P13): the default with C1's adapter on its SB / T steps (tag q8bc1t) as the comparator and fallback.
+usage: python analyze_cvpeer.py [--predict] [--c1think]"""
+import contextlib, io, json, sys
 
 sys.path.insert(0, __import__("os").path.dirname(__import__("os").path.abspath(__file__)))
 with contextlib.redirect_stdout(io.StringIO()):   # analyze_dv's imports print word-problem tables
     from analyze_dv import cascade, per_q, quick, same
-from analyze_cv import base  # noqa: E402
+from analyze_cv import RES, base  # noqa: E402
+from run_nlopt import _rows  # noqa: E402
 from analyze_ho3 import ci  # noqa: E402
 
 
@@ -37,7 +39,63 @@ def theory(NA, D, keys, a, kpeer):
     return acc, (kn + kp - saved) / 1000, {st: len(v) / n for st, v in S.items()}
 
 
+def composed(tag):
+    """{(id, seed): {"T->T": (right, tokens), "SB->T->T": (right, tokens)}} from a tag's graded T / SB rows (analyze_cv.base's
+    composition: T at seed s, its retry T at s mod 3 + 1; SB, then T->T where SB's query fails the check)"""
+    G, T, SB = {}, {}, {}
+    for s in (1, 2, 3):
+        G[s] = json.load(open(f"{RES}/grades_{tag}_s{s}.json")); G[s].pop("_gold_fail", None)
+        T[s], SB[s] = ({r["id"]: r for r in _rows(f"{RES}/{tag}_{a}_s{s}.jsonl")} for a in ("think", "sb"))
+    out = {}
+    for s in (1, 2, 3):
+        s2 = s % 3 + 1
+        for i, g in G[s].items():
+            g2 = G[s2].get(i, {})
+            if not {"T", "SB"} <= set(g) or "T" not in g2 or i not in T[s] or i not in SB[s] or i not in T[s2]:
+                continue
+            tt, st, t2t = T[s][i]["out_tokens"], SB[s][i]["out_tokens"], T[s2][i]["out_tokens"]
+            tto = (g2["T"]["ok"], tt + t2t) if g["T"]["chk"] != "pass" else (g["T"]["ok"], tt)
+            out[(i, s)] = {"T->T": tto, "SB->T->T": (g["SB"]["ok"], st) if g["SB"]["chk"] == "pass" else (tto[0], st + tto[1])}
+    return out
+
+
+def c1think():
+    """CV-P12 / P13"""
+    B, BC = base(), composed("q8bc1t")
+    N0, N1, X = quick("sql", "q8b"), quick("sql", "q8bcvc1"), quick("sql", "q35")
+    keys = [k for k in B if k in BC and all(k[0] in Z[k[1]] for Z in (N0, N1, X))]
+    ids = {i for i, _ in keys}
+    ids = {i for i in ids if all((i, s) in B and (i, s) in BC and all(i in Z[s] for Z in (N0, N1, X)) for s in (1, 2, 3))}
+    keys = [k for k in keys if k[0] in ids]
+    D0 = {k: B[k]["SB->T->T"] for k in keys}
+    DC = {k: BC[k]["SB->T->T"] for k in keys}
+    kpeer = {(i, s): X[s][i][2] for i, s in keys}
+    S0 = strata(N0, D0, keys)
+    a0 = {st: sum(same(None, N0[s][i], X[s][i]) for i, s in v) / len(v) for st, v in S0.items() if st != "fail"}
+    print(f"=== CV-P12 / P13, Qwen3-8B, BIRD dev: {len(ids)} questions x 3 seeds; the default with C1's adapter (q8bc1t)")
+    acc, kt, pi = theory(N1, DC, keys, a0, kpeer)
+    print(f"  predicted (C1 quick query vs SB->T->T(C1), base agreement rates): accuracy {acc:+.2f}, ktokens {kt:+.3f}, utility "
+          f"{acc - 0.5 * kt:+.2f} | strata " + ", ".join(f"{st} {100 * p:.1f}%" for st, p in pi.items()))
+    pol = {"SB->T->T(base)": D0, "SB->T->T(C1)": DC, "T->T(C1)": {k: BC[k]["T->T"] for k in keys},
+           "C1->peer->SB->T->T(C1)": cascade("sql", DC, N1, X), "C1->peer->SB->T->T(base)": cascade("sql", D0, N1, X)}
+    Q = {k: per_q(v) for k, v in pol.items()}
+    for k, r in pol.items():
+        a, t = 100 * sum(v[0] for v in r.values()) / len(r), sum(v[1] for v in r.values()) / len(r) / 1000
+        line = f"  {k:>26}: {a:.1f}% @ {t:.2f}k, utility {a - 0.5 * t:.1f}"
+        for y in ("SB->T->T(base)", "SB->T->T(C1)"):
+            if y != k:
+                da, du = ci({i: Q[k][i][0] - Q[y][i][0] for i in ids}), ci({i: Q[k][i][1] - Q[y][i][1] for i in ids})
+                line += f" | vs {y}: acc {da[0]:+.1f} [{da[1]:+.1f}, {da[2]:+.1f}], utility {du[0]:+.1f} [{du[1]:+.1f}, {du[2]:+.1f}]"
+        print(line)
+    u12 = ci({i: Q["C1->peer->SB->T->T(C1)"][i][1] - Q["SB->T->T(C1)"][i][1] for i in ids})
+    u13 = ci({i: Q["C1->peer->SB->T->T(base)"][i][1] - Q["SB->T->T(C1)"][i][1] for i in ids})
+    print(f"*** CV-P12 {u12[1] > 0} ({u12[0]:+.2f} [{u12[1]:+.2f}, {u12[2]:+.2f}]); CV-P13 {u13[1] > -0.5} ({u13[0]:+.2f} [{u13[1]:+.2f}, "
+          f"{u13[2]:+.2f}])")
+
+
 def main():
+    if "--c1think" in sys.argv:
+        return c1think()
     B = base()
     D = {k: v["SB->T->T"] for k, v in B.items()}
     TT = {k: v["T->T"] for k, v in B.items()}
