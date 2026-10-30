@@ -347,3 +347,51 @@ weights are the test weights.
 
 Expected now (not a rule, replacing the earlier expectations): P10 and P11 refuted; P13 inconclusive or holds narrowly; on held-out,
 P16 holds, P15 inconclusive, P14 refuted or inconclusive; each B arm's BFCL difference below its held-out difference.
+
+## Results, addenda 2 and 3 (2026-10-30 13:5x UTC; `python3.11 poc/analyze_pair.py --bil` > results/tcrl_bil.txt, BFCL 3,482 items × 3 seeds; `python3.11 poc/analyze_tcho.py` > results/tcrl_ho.txt, 3,549 held-out ToolACE requests × 4 × 4 samples)
+
+Each arm against C1tc (plain RL) with the same peer; utility points; default Qwen3-8B's SB→T→T (BFCL 83.9%) / SB→T (held-out 71.3%).
+
+| arm (peer) | quick right BFCL / held-out | BFCL: G − G(C1tc) | held-out: G − G(C1tc) | held-out: G − G(base) |
+|---|---|---|---|---|
+| C1tc (plain RL) | 81.7 / 70.1 | — | — | +0.45 (Qwen3.5-9B), +1.01 (C1tc-4B) |
+| B35 (Qwen3.5-9B) | 76.9 / 66.6 | **−0.43 [−0.67, −0.20]** (P10 refuted) | **−0.37 [−0.66, −0.10]** (P14 refuted) | +0.08 [−0.13, +0.29] |
+| B4t (C1tc-4B) | 78.0 / 67.0 | **−0.63 [−1.08, −0.19]** (P11 refuted) | **−0.83 [−1.27, −0.42]** (P15 refuted) | +0.18 [+0.05, +0.32] |
+| P4t (C1tc-4B) | 80.1 / 68.9 | −0.26 [−0.61, +0.11] (P13 refuted) | **−0.45 [−0.79, −0.16]** (P16 refuted) | +0.56 [+0.27, +0.87] |
+
+P12 (accepted wrong where the default is right, BFCL): B35 +0.30 [+0.15, +0.47] (refuted), B4t −0.61 [−0.90, −0.35] (holds), P4t
+−0.46 [−0.71, −0.23] (holds); accepted right where the default is wrong falls more for both (−1.23, −0.72).
+
+**Decisions.** P10, P11, P13 refuted, P12 holds for B4t and P4t → "the reward moves the cascade's errors where derived, but too
+little to show in utility"; P13 refuted → plain RL stays the recipe. P14–P16 refuted, all three significantly *below* plain RL on the
+training distribution too → by addendum 3's rule the failure is not the transfer to BFCL. The mechanism below says what it is instead.
+
+**Mechanism: the cascade reward helps on calls and loses abstention.** Split by the gold answer (contribution to the all-request mean):
+
+| | held-out: gold calls | held-out: gold no call | BFCL: call categories | BFCL: irrelevance categories |
+|---|---|---|---|---|
+| B35 − C1tc | +0.20 [+0.03, +0.38] | −0.57 [−0.80, −0.38] | +0.12 [−0.02, +0.25] | −0.55 [−0.75, −0.38] |
+| B4t − C1tc | +0.22 [+0.00, +0.46] | −1.05 [−1.38, −0.72] | +0.61 [+0.34, +0.92] | −1.24 [−1.57, −0.95] |
+| P4t − C1tc | +0.26 [+0.12, +0.41] | −0.71 [−0.97, −0.45] | +0.57 [+0.34, +0.83] | −0.84 [−1.10, −0.59] |
+
+On requests that need a call the cascade reward does what was derived, on the training distribution and on BFCL. On requests that
+need none, plain RL learned to abstain (held-out quick right on them 46.0% → 71.0%; BFCL abstention on irrelevance items 66.0% → 82.8%,
+at the cost of abstaining on 2.5% of call items vs 0.5%), and the cascade-reward arms did not (held-out 44.8 / 48.0 / 56.6%; BFCL
+63.2 / 69.7 / 74.8%, with 0.4–0.7% abstentions on call items). The training reward of abstaining says why (w of the no-call answer
+summed over the 6,000 training requests, points per request): with Qwen3.5-9B as the peer it is +0.05 in all (the peer almost never
+abstains, so an abstention is never accepted); with C1tc-4B it is +2.14 on the 268 no-call requests the default fails, −1.14 on the
+call requests where the peer abstains wrongly and the default is right, +0.01 on the 521 no-call requests the default gets right —
+while plain RL rewards every right abstention (13.2 points per request). Abstention is one behaviour the model learns across
+requests, so its training signal is the sum over requests (the derivation in the 13:0x note), and the cascade's sum is small or
+cancels. This is the in-distribution form of that note's argument: the per-request cascade value is the right weight for what is
+learned request by request (which call), not for a behaviour shared across requests whose cascade value depends on the peer's errors.
+
+**Raw rows (BFCL, seed 1).** Where C1tc abstains rightly and B4t calls: "Can you give me an API call?" → `requests.get(url=
+"https://api.open-meteo.com/...")`; "I need to find out the result when 4 and 5 are added together and then the sum is multiplied by 7"
+→ `mult(number1=25, number2=7)`; "I would like to rent a house." → `Hotels_2_SearchHouse(where_to="City, State")`. Where C1tc
+abstains wrongly and P4t calls rightly: "Would you help me to find a salon in Mill Valley?" → `Services_1_FindProvider(city="Mill
+Valley, CA")`; "I would like to see a movie in Vallejo." → `Movies_1_FindMovies(location="Vallejo, CA")`.
+
+**Note on the 13:0x note's logs.** Its "w rises by about one point" was within the per-window noise (single rounds range −0.027 to
++0.017): on held-out the B arms' cascades gain only +0.08 / +0.18 over the untrained base. Its expectations for P10–P13 came out as
+stated; for held-out it expected P16 to hold, and P16 was refuted.

@@ -4355,3 +4355,17 @@ C1w lost C1's conventions on easy questions (unqualified columns in joins → "a
 refuted), C1 with C1-4B − with Qwen3.5-9B +0.08 [−0.86, +0.93] (P19 refuted), independence within 0.12. Cross term −1.52 (shared base
 wrong query removed by either training) + 0.61 (shared new right query, default wrong) + 0.08. Consequence for TC-RL addendum 2: an
 arm adding the cascade reward to plain RL's (P13, peer C1tc-4B) was pre-registered before any training round.
+
+## 2026-10-30 13:5x UTC: TC-RL addenda 2 / 3: the cascade's own reward loses to plain RL, on BFCL and on the training distribution; it helps on calls and loses abstention
+Qwen3-8B trained on the 6,000 ToolACE requests with the cascade's exact reward c·P_X(y|i)(r − r_D + 0.005 kd) against a fixed peer
+(B35: Qwen3.5-9B, c 9.39; B4t: C1tc-4B, c 8.06) or with r + w (P4t, C1tc-4B). Against C1tc with the same peer, BFCL: −0.43 [−0.67,
+−0.20] / −0.63 [−1.08, −0.19] / −0.26 [−0.61, +0.11] (P10, P11, P13 refuted); 3,549 held-out ToolACE requests (analyze_tcho.py, 4 × 4
+samples, unbiased product estimator): −0.37 [−0.66, −0.10] / −0.83 [−1.27, −0.42] / −0.45 [−0.79, −0.16] (P14–P16 refuted). Split by
+the gold answer: on call requests every arm gains (held-out +0.20 / +0.22 / +0.26, BFCL +0.12 / +0.61 / +0.57); on no-call requests
+every arm loses (held-out −0.57 / −1.05 / −0.71, BFCL −0.55 / −1.24 / −0.84), because plain RL learned to abstain (held-out no-call
+right 46 → 71%; BFCL irrelevance abstention 66 → 83%) and these arms did not (45–57%; 63–75%). Cause: abstention is one behaviour learned
+across requests, so its signal is the sum of its reward; the cascade's sum is +0.05 points per request with Qwen3.5-9B (the peer never
+abstains) and +2.14 − 1.14 with C1tc-4B (right abstentions where the default fails, minus the peer's wrong abstentions where the default
+is right), vs plain RL's 13.2. With SQL's C1w this makes two tasks where weighting the reward by the cascade's value loses to plain
+correctness. The per-request cascade value is the right weight for what is learned request by request (which call), not for shared
+behaviours. Next: the cascade term only within the answer class (calls on tool calls; every query on SQL, which has no abstention).

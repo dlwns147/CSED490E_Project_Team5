@@ -29,7 +29,7 @@ developed on the no-label default does as well or better (tool calls 0.23 vs 1.9
 the default ties the check-matched think at 69–90% of its tokens while the non-thinking query first loses 2.7–5.9 points (SQL-1).
 Trained with plain RL on open data (labels only in training) and checked by another model's quick answer, the non-thinking answer
 beats the no-label default on text-to-SQL (+2.0 utility, BIRD dev) and tool calls (+1.35, BFCL; Qwen3-4B +0.94; with the peer trained too
-+2.60, the two trainings adding without a cross term); trained to gate itself, it learns to defer everything (CV-1, TC-RL).
++2.60, the two trainings adding without a cross term); trained to gate itself, it learns to defer everything, and trained for the cascade's exact reward it loses to plain RL on both tasks (it gives up learned abstention on tool calls; CV-1, TC-RL).
 Where the check is perfect (Lean proofs) the
 rule becomes "sample cheaply, then think"; where it leaks, it bounds label-free self-training as it bounds the recipe.
 
@@ -549,6 +549,8 @@ sub-additive (interaction −0.77 [−1.52, −0.07], CV-P18 refuted), and the t
 P19 refuted); its cross term has the same structure (−1.52 where either training alone removes a wrong query both base models shared,
 +0.61 where both now share a right one the default misses). Shared errors need only one veto, so two trainings that fix the same
 errors overlap; the cross term is positive only where both learn the same right answer on questions the default fails.
+
+**Training for the cascade's own reward loses (TCRL addenda 2 and 3).** With the peer fixed, the deployed cascade's utility is linear in the answering model's distribution, so c · P_X(y|i)(r(y) − r_D(i) + 0.005 kd(i)), computed on the training requests from the peer's samples and the default's outcome, is its exact gradient. Trained with it, Qwen3-8B loses to plain RL with the same peer, on BFCL (Qwen3.5-9B −0.43 [−0.67, −0.20], trained Qwen3-4B −0.63 [−1.08, −0.19]; plain reward plus the cascade term −0.26 [−0.61, +0.11]) and, measured on 3,549 held-out ToolACE requests, on the training distribution too (−0.37, −0.83, −0.45, all intervals below 0). The split by the gold answer locates it: on requests that need a call every arm gains over plain RL (held-out +0.20 to +0.26, BFCL +0.12 to +0.61), on requests that need none every arm loses (−0.55 to −1.24), because plain RL learns to abstain (BFCL irrelevance 66 → 83%) and these arms do not (63–75%). Abstention is one behaviour learned across requests, so what trains it is its reward summed over them: plain RL's is 13.2 points per request, the cascade's +0.05 with Qwen3.5-9B (an abstention is accepted only if the peer abstains, and it almost never does) and +2.14 − 1.14 with the trained 4B (right abstentions where the default fails, minus the peer's wrong abstentions where it is right). With C1w on SQL (§5.11) this is the second task where weighting the reward by the cascade's value loses to plain correctness: the per-request cascade value is the right weight for what is learned request by request, not for a behaviour shared across requests.
 
 ## 6. Baselines on the same harness
 
