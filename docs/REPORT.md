@@ -482,6 +482,15 @@ time, its own short think 60–63%, another model 52–62% (inflated on train by
 or evidence errors, 2402.12243). With tool calls (above) this places the peer check: it pays where answers are short and two
 models' errors rarely coincide, and it is cheap only where the escalation it avoids is long relative to the two cheap answers.
 
+**Why one check, and how much any check can give (SQL-AND, pre-registered offline).** Accepting a passing quick answer changes
+accuracy only on discordant items — +1 where the quick answer is right and the default wrong (3–7% of items here), −1 where it is
+wrong and the default right (7–14%) — and tokens elsewhere. So a cascade can beat its default's accuracy by at most the first share,
+and a check is worth its agreement rates on those two strata, not its average ones. Those are where checks fail together: the peer
+agrees with right quick answers 74–88% of the time where the default is also right but 34–64% where the default fails. A second
+check from yet another family (Nemotron, Llama-3.1-8B) therefore halves the useful agreement along with the leak: against the
+single peer it loses 0.4–0.9 utility on SQL train in all three models and wins only for Qwen3-14B-AWQ on tool calls (+0.6), against
+an independence-based prediction of a gain in all six cells. The single peer is the end of the agreement route.
+
 ## 6. Baselines on the same harness
 
 | task | baseline | its result | ours |

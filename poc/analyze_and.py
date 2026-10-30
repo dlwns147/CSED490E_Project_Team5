@@ -37,10 +37,10 @@ def cascade2(D, NA, X1, X2):
 
 
 def util(rows):
-    """{id: mean utility over seeds}, items with all three seeds"""
+    """{id: mean utility over seeds, in accuracy units (ci() reports points)}, items with all three seeds"""
     acc = {}
     for (i, s), (a, t) in rows.items():
-        acc.setdefault(i, []).append(100 * float(a) - 0.5 * t / 1000)
+        acc.setdefault(i, []).append(float(a) - 0.005 * t / 1000)
     return {i: sum(v) / 3 for i, v in acc.items() if len(v) == 3}
 
 

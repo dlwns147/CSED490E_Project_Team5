@@ -654,3 +654,33 @@ intervals); AND3 1 of 3 (Qwen3-14B-AWQ, where the peer leaks most per point of r
 (PROJECT, REPORT §5.11, PROPOSAL / PROPOSAL_ko). AND3 holds → tool calls' default takes a second check when a third model is served
 (same places). Otherwise reported: a second check costs more right answers than it saves wrong ones, and the single peer stays the
 agreement route's end.
+
+### Results SQL-AND (written 2026-10-30 02:3x UTC)
+`python3.11 poc/analyze_and.py` (results/and.txt, not committed). Script fix after a first run, before deciding: the per-item utility
+was in points while the interval helper multiplies by 100, so the printed differences were 100× too large (signs, interval positions
+and every decision unchanged).
+- **SQL-AND1 refuted (1 / 6).** Joint e on SQL train 20.5 / 23.8 / 24.3% (half the smaller single e: 16.4 / 18.9 / 18.2; independence:
+  11.0 / 14.6 / 14.2); tool calls 9.0 / 7.4 / 8.4% (8.7 / 7.5 / 7.9; independence 3.3 / 2.7 / 2.8).
+- **SQL-AND2 refuted.** Two checks − the single peer on SQL train: −0.93 [−1.52, −0.30], −0.41 [−1.02, +0.20], −0.85 [−1.46, −0.28]
+  (0 / 3); two checks − SB→T→T +0.80 [+0.19, +1.48], +0.79 [+0.08, +1.48], +0.02 [−0.39, +0.43] (2 / 3).
+- **SQL-AND3 refuted (1 / 3).** Tool calls: −0.24 [−0.53, +0.02], +0.59 [+0.27, +0.93] (Qwen3-14B-AWQ), −0.40 [−0.71, −0.06].
+- **SQL-AND4 refuted (1 / 6).** Predicted positive in all six; measured positive only for Qwen3-14B-AWQ on tool calls. SQL dev
+  (reported): +0.20, −0.40, −0.35 (n.s.) against the peer; +0.78, +0.60, +0.87 against SB→T→T (all lower bounds > 0).
+- **Why (exact decomposition, post hoc).** Accepting a passing quick answer changes accuracy only on discordant items: +1 where A is
+  right and the default wrong (2.8–6.6% of items), −1 where A is wrong and the default right (7.1–14.0%); on the rest it changes
+  tokens only. So the accuracy gain is exactly π_RW · r_RW − π_WR · e_WR (agreement rates within those two strata), and no check can
+  lift the cascade's accuracy above the default's by more than π_RW. Agreement depends on difficulty for every check together: the
+  peer agrees with A's right answers 74–88% where the default is also right but 34–64% where the default fails, and with A's wrong
+  answers 25–44% where the default also fails but 11–26% where it succeeds. Averaged (r, e) therefore overstate a check's value
+  (SQL-DV's linear model overpredicted SQL by up to 1.8), and two checks are not independent. The second check roughly halves both
+  discordant rates (r_RW → 9–42%, e_WR → 4–12%); on SQL that removes more gain than loss (Qwen3-8B, train: accuracy gain +1.50 →
+  +0.67 points) and, by accepting fewer answers, saves fewer tokens.
+- **Raw costly leaks read** (Qwen3-8B, SQL train; A wrong, default right, both checks agree: 28 of 3,975 item-seeds; 6 read): 3 output
+  shape conventions ("full name" concatenated where the evidence defines it as two columns), 1 ambiguous question (percentage of tied
+  games), 2 genuine shared errors (a date literal in another format than the database's; CAST(date AS DATE) compared with a year).
+- **Related work.** ABC (2407.02348) defers on disagreement within an ensemble at each tier; here a one-peer agreement is the useful
+  part and a second member costs more right answers than it saves wrong ones, because agreement on both falls with difficulty
+  together (consistent with Kim et al. 2506.07962: errors are correlated across providers, more so among accurate models).
+- **Decision.** AND2 and AND3 refuted → reported only: the single peer stays the agreement route's end. The theory is restated on
+  discordant items (REPORT §5.11): a check's value is set by its agreement where the quick answer and the default differ in
+  correctness, and the accuracy upside of any accept rule is bounded by π_RW.

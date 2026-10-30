@@ -196,7 +196,9 @@ table: `docs/REPORT.md` §5.1):
   saving against T→T (PA1 3 / 3: +0.5 to +1.6 at 63–69% of its tokens) but not significantly better than the default (PA2 1 / 3):
   an option. A model's second sample repeats 87–90% of its wrong answers (Qwen3), another model 52–62%. HO-PA (offline): the peer
   check then the default is the new no-label default on tool calls (2 / 3), not on word problems (0 / 4). Another family
-  (Nemotron) is no less correlated than another Qwen generation (PA4 0 / 3).
+  (Nemotron) is no less correlated than another Qwen generation (PA4 0 / 3). SQL-AND (10-30, offline): a second check from a
+  third family loses to the single peer (SQL train 0 / 3, tool calls 1 / 3): agreement falls with difficulty for all checks
+  together, and accepting gains accuracy only where the quick answer is right and the default wrong (3–7% of items).
 - **Training the quick mode for the cascade (CV-1, 10-29, running)**: every fix so far changed the check, and each stronger check costs
   about a think; CV-1 changes the generator instead. RL (LoRA) on Qwen3-8B's non-thinking mode, rewarded with the whole cascade's
   value (its own answer if it accepts, the same model's think-with-retry if it defers), deciding after seeing its query's result;

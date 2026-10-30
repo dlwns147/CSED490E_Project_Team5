@@ -4276,3 +4276,14 @@ models show no such coupling, so SQL-PA / HO-PA stand. A check enters only throu
 wrong): the linear (r, e) model from A's own rows predicts the 42 cascade gains within 0.66 points on average; the plan view accepts
 too many wrong answers (e 26–44%), the 3B model too few right ones (r 44–67%). Decision: the peer check needs a second model of about
 the same accuracy, from another family before a larger one of the same family; agreement checks must not reuse the generator's seed.
+
+## 2026-10-30 02:3x UTC: SQL-AND (PREREG_SQL.md, offline): a second check from another family does not pay; a check's value lives on the items where the quick answer and the default differ
+Accepting A's passing quick answer only when the peer and then a third model (Nemotron on SQL train, Llama-3.1-8B on tool calls) both
+agree, else SB→T→T: against the single peer −0.93 / −0.41 / −0.85 utility on SQL train (0 / 3 better; AND2 refuted) and −0.24 / +0.59
+/ −0.40 on tool calls (1 / 3; AND3 refuted); the independence-based prediction (+0.1 to +1.6) had the sign right in 1 / 6 (AND4
+refuted), and the joint leak stays at 7–24%, far above the product of the two (AND1 1 / 6). Exact decomposition: accepting changes
+accuracy only where A is right and the default wrong (2.8–6.6% of items: +1) or A wrong and the default right (7.1–14.0%: −1), so the
+cascade's accuracy upside over the default is at most 3–7 points whatever the check. Every check agrees much less with A's right
+answers where the default fails (34–64%) than where it succeeds (74–88%): agreement falls with difficulty for all checks together,
+so stacking checks halves the useful agreement along with the leak. Decision: reported; the single peer remains the agreement
+route's end. Leaks passing both checks are mostly output-shape conventions (3 of 6 read).
