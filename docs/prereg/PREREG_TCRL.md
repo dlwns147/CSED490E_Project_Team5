@@ -259,8 +259,8 @@ is 1.6%), P12 holds for B4t; both arms' quick accuracy 1–3 points below C1tc's
 The input jobs were resharded for speed (1283524 / 1283525 cancelled at 839 / ~700 rows; the rest in 1283546–1283550, tags taq8bp<j>
 / taq35p<j>, merged into taq8b / taq35 before `prep_tcbil.py`; T on the SB-check failures as job tbil_q8bt). No reward file exists yet.
 
-CV addendum 6 (b) came in meanwhile: C1w, a two-weight version of the cascade's gradient on SQL (C1's reward × 2.0 where the default
-fails, × 0.56 where it succeeds), lost to plain C1 (−0.44 [−0.93, −0.00]); it did not move right answers onto the questions the default
+CV addendum 6 (b) came in meanwhile: C1w, a two-weight version of the cascade's gradient on SQL (C1's reward × 1.83 where the base
+T→T fails, × 0.50 where it succeeds), lost to plain C1 (−0.44 [−0.93, −0.00]); it did not move right answers onto the questions the default
 fails and it learned less of the conventions that transfer, on the questions the default already gets right. The exact reward w of
 B35 / B4t also drops the reward for right answers there (it keeps only the saved tokens), so the same failure is possible; what w has
 and C1w lacks is the penalty on wrong answers the peer shares where the default is right. The expectations above are revised (not a
