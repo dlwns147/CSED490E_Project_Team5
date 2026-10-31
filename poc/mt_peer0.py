@@ -5,8 +5,12 @@ rollout (the next seed of the same model, or the same seed of the peer model), a
 every involved instance (BFCL's _compare_instances), and on the end state plus the set of non-error results; against the rollout's
 turn-0 correctness (BFCL's per-turn check: the state after the turn equals the ground truth's; for a non-empty ground truth, a
 non-empty answer whose results contain the ground truth's) and whether the turn showed a visible failure (an error or a repeat).
-Strata RV / RS / WV / WS as in PREREG_MT. Runs on the login node in the grader venv (seconds):
-  /home1/leesangjun/venvs/bfcl/bin/python poc/mt_peer0.py <tag> [peer tag]      (RESTRICT=<tag>: only items that tag has at every seed)"""
+Strata RV / RS / WV / WS as in PREREG_MT. --rescue: also the turn 0 of the thinking arms F (thinks at the turn's first step) and T
+(always) at the same seed, the counterfactual of thinking on a flagged turn: rescue (flagged, N wrong, the arm right) and damage
+(flagged, N right, the arm wrong), and turn-0 accuracy / output tokens of N, the arm, and "N; on an end-state disagreement redo the turn
+with the arm" (the peer's turn-0 tokens counted), over the item-seeds where the arm's row exists. Runs on the login node in the grader
+venv (seconds):
+  /home1/leesangjun/venvs/bfcl/bin/python poc/mt_peer0.py <tag> [peer tag] [--rescue]      (RESTRICT=<tag>: only items that tag has at every seed)"""
 import copy, json, os, re, sys
 from collections import Counter
 
@@ -18,8 +22,20 @@ RES = os.path.join(ROOT, "results", "tc")
 DATA = os.environ.get("MT_ITEMS") or os.path.join(os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nlp_data"), "bfcl", "mt_items.jsonl")
 
 
-def rows(tag):
-    return {s: {r["id"]: r for r in map(json.loads, open(f"{RES}/mt_{tag}_N_s{s}.jsonl"))} for s in (1, 2, 3)}
+def _load(path):
+    """rows of a file that running jobs may still be appending to (a torn last line is skipped)"""
+    out = {}
+    for line in open(path):
+        try:
+            r = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        out[r["id"]] = r
+    return out
+
+
+def rows(tag, arm="N"):
+    return {s: _load(f"{RES}/mt_{tag}_{arm}_s{s}.jsonl") for s in (1, 2, 3)}
 
 
 def run(p, steps, name):
@@ -41,7 +57,10 @@ def same(a, b):
 
 
 def main():
-    tag = sys.argv[1]; ptag = sys.argv[2] if len(sys.argv) > 2 else tag
+    pos = [a for a in sys.argv[1:] if not a.startswith("--")]
+    tag = pos[0]; ptag = pos[1] if len(pos) > 1 else tag
+    XA = {a: rows(tag, a) for a in ("F", "T")} if "--rescue" in sys.argv else {}
+    RC = Counter()
     P = {p["id"]: p for p in map(json.loads, open(DATA))}
     D = rows(tag); E = rows(ptag) if ptag != tag else D
     ids = sorted(set.intersection(*(set(d) for d in list(D.values()) + list(E.values()))))
@@ -61,10 +80,24 @@ def main():
                 ok = bool(steps) and response_checker(mres, gres, 0)["valid"]
             vis = any(any(st.get("err") or []) or st.get("loop") for st in t0)
             good = sorted({r for r in mres if not r.startswith("Error during execution") and '"error"' not in r[:20]})
-            out[key] = (ok, vis, steps, mi, good)
+            out[key] = (ok, vis, steps, mi, good, sum(st["tok"] for st in t0))
         for s in (1, 2, 3):
-            ok, vis, calls, mi, good = out[("m", s)]
-            _, _, pc, pi, pg = out[("m", s % 3 + 1)] if E is D else out[("p", s)]
+            ok, vis, calls, mi, good, tk = out[("m", s)]
+            _, _, pc, pi, pg, ptk = out[("m", s % 3 + 1)] if E is D else out[("p", s)]
+            for a, R in XA.items():   # --rescue: the arm's own turn 0 from the same start
+                if i not in R[s]:
+                    continue
+                x = R[s][i]; t0 = x["turns"][0] if x["turns"] else []
+                st = [z["calls"] for z in t0 if z["calls"]]
+                ai, ares = run(p, st, f"r{a}{s}")
+                aok = same(ai, gi) and not (x["force_quit"] and len(x["turns"]) == 1)
+                if aok and gt:
+                    aok = bool(st) and response_checker(ares, gres, 0)["valid"]
+                fl = not same(mi, pi)
+                atk = sum(z["tok"] for z in t0)
+                RC[(a, "n")] += 1; RC[(a, "okN")] += ok; RC[(a, "okA")] += aok; RC[(a, "tokN")] += tk; RC[(a, "tokA")] += atk
+                RC[(a, "okP")] += aok if fl else ok; RC[(a, "tokP")] += tk + ptk + (atk if fl else 0)
+                RC[(a, "flag", ok)] += fl; RC[(a, "fix" if not ok else "harm", fl)] += (aok != ok)
             k = ("R" if ok else "W") + ("V" if vis else "S")
             C[(k, "n")] += 1
             a = {"calls": calls == pc, "state": same(mi, pi)}
@@ -78,6 +111,13 @@ def main():
     for d in ("calls", "state", "state + results"):
         print(f"  {d}: flags {100 - 100 * C[('RS', d)] / max(1, C[('RS', 'n')]):.1f}% of silent right turns, "
               f"{100 - 100 * C[('WS', d)] / max(1, C[('WS', 'n')]):.1f}% of silent wrong turns")
+    for a in XA:
+        n = max(1, RC[(a, "n")])
+        print(f"  --rescue {a} ({RC[(a, 'n')]} item-seeds): turn-0 right N {100 * RC[(a, 'okN')] / n:.1f}% @ {RC[(a, 'tokN')] / n:.0f} tokens, "
+              f"{a} {100 * RC[(a, 'okA')] / n:.1f}% @ {RC[(a, 'tokA')] / n:.0f}, N -> peer state differs -> {a}: {100 * RC[(a, 'okP')] / n:.1f}% @ "
+              f"{RC[(a, 'tokP')] / n:.0f}; flagged: {RC[(a, 'flag', False)]} wrong N turns ({a} fixes {RC[(a, 'fix', True)]}), "
+              f"{RC[(a, 'flag', True)]} right N turns ({a} breaks {RC[(a, 'harm', True)]}); unflagged wrong N turns {a} would fix: "
+              f"{RC[(a, 'fix', False)]}")
 
 
 if __name__ == "__main__":

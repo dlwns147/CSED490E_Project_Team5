@@ -4626,3 +4626,15 @@ false-confirmation rate belongs to the pair (shared readings), and the selected 
 separate halves from now on; predictions from another model's calibration are not evidence (the account stays an exact decomposition of
 measured gains); no per-pair predictor, since its stratum is too small for a 30-label pilot. Goal link: this fixes how the report states
 any "predicted" cascade gain.
+
+## 2026-10-31 16:4x UTC: MT, exploratory (turn-0 counterfactual): thinking on a turn another model disagrees with does not beat thinking at every turn's first step
+Why: the end-state peer flags half of an agent turn's silent failures (entry 15:1x); before building a two-server arm, does thinking on
+the flagged turns pay? At turn 0 every arm starts from the same state, so F's and T's own turn 0 (same seed) is the counterfactual of
+"redo the turn with thinking" (`poc/mt_peer0.py <N> <peer> --rescue`; Qwen3-8B as N; F / T rows still partial; output tokens of
+turn 0 only, the peer's counted; the 326 items Qwen3.5-9B has at every seed). Peer Qwen3.5-9B: N 61.0% right @ 185 tokens, F 70.0% @
+1,426, N → end state differs → F 69.7% @ 1,145 (F fixes 98 of 272 flagged wrong turns, breaks 13 of 70 flagged right ones; it would
+fix 62 unflagged wrong turns the peer misses); with T instead of F: 71.3% @ 1,457 vs T 72.9% @ 1,938. Peer Qwen3-14B-AWQ (all 1,280
+item-seeds with an F row): 67.4% @ 1,466 vs F 68.9% @ 1,564. A second seed of Qwen3-8B flags too little (65.3% @ 856). At 0.5 points per
+1k tokens the gated policy ties F (69.1 vs 69.3 utility) before counting that the peer re-reads the whole context every turn (the
+agent loop's dominant cost, MT-S). Decision: no online peer arm now; it is revisited only if the main MT result (MT-P1..P5) shows that
+thinking at every turn's first step loses to thinking on visible failures.
