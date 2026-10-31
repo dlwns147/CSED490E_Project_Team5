@@ -4659,3 +4659,21 @@ hurts), TG beats RP at 30 labels in 2 of 4 cells (P5 refuted). Exploratory: agai
 chosen on these cells) every pilot loses (0.17 vs 0.33). Decision: the no-label default stays the rule (now the peer cascade where a
 peer is served); labels, when spent, go to the disagreement problems. Goal link: choosing the policy for a new task costs no labels
 once a cross-family peer is available.
+
+## 2026-10-31 19:3x UTC: MT exploratory (Qwen3-8B, all rows): rolling the turn back before thinking recovers most of E's loss at turn 0, but no cheap-first variant beats always thinking
+Why: in the MT interim (PREREG_MT), the cascade's agent-loop form E (think for one step after a visible failure) lost to always
+thinking (E − T −5.5 utility), mostly on N's *visible* failures (E right 13.0%, T 25.3%), not the silent ones. Unlike a single-shot
+cascade, E escalates from a damaged state and context. Is the fix a rollback (redo the turn from its start in thinking mode, as a
+single-shot cascade reruns the problem)? Related work: rollback of world state with retained reflection (RIR, arXiv 2609.18304;
+trigger and effort not stated in the abstract), per-step effort routers trained on minimal sufficient effort (Ares, 2603.07915);
+neither tests the free check as the trigger with output and input tokens counted. At turn 0 the counterfactual is exact from stored
+rows: the redo of a turn from its start is T's own turn 0 (same start state, context and step seeds; `poc/mt_peer0.py q8b q35
+--rescue`, 1,800 item-seeds, turn-0 output tokens). N 57.6% @ 243 tokens; E 62.8% @ 1,426; N → visible failure → redo the turn with
+T 68.6% @ 1,799; T 71.4% @ 2,090; with F's turn 0 as the redo 65.7% @ 1,524. Rollback beats E's one-step escalation by 5.8 points at
++373 tokens, and recovers 80% of T − N against E's 38%, but it stays 2.8 points below T for 291 fewer tokens (−2.65 utility at 0.5
+per 1k): thinking costs 0.9 utility per turn and is worth 13.8 points, so a cheap first step pays only if its check passes almost no
+wrong turn that thinking would fix. The visible-failure check passes 128 of them at turn 0 (7.1 points; the peer's end-state check
+misses about as many). Decision (written before the Qwen3-14B-AWQ and Qwen3.5-9B rows are complete): no rollback arm is run for
+Qwen3-8B; the same counterfactual is computed for the other two models when their rows land, and a rollback arm (MT-R, pre-registered
+then) is run only for a model whose turn-0 rollback ties or beats T in utility. Goal link: in agent loops the fewest-token exact answer
+starts with thinking for this model; the free check is too weak to gate thinking off.

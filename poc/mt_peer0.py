@@ -5,10 +5,12 @@ rollout (the next seed of the same model, or the same seed of the peer model), a
 every involved instance (BFCL's _compare_instances), and on the end state plus the set of non-error results; against the rollout's
 turn-0 correctness (BFCL's per-turn check: the state after the turn equals the ground truth's; for a non-empty ground truth, a
 non-empty answer whose results contain the ground truth's) and whether the turn showed a visible failure (an error or a repeat).
-Strata RV / RS / WV / WS as in PREREG_MT. --rescue: also the turn 0 of the thinking arms F (thinks at the turn's first step) and T
+Strata RV / RS / WV / WS as in PREREG_MT. --rescue: also the turn 0 of the arms E, F (thinks at the turn's first step) and T
 (always) at the same seed, the counterfactual of thinking on a flagged turn: rescue (flagged, N wrong, the arm right) and damage
 (flagged, N right, the arm wrong), and turn-0 accuracy / output tokens of N, the arm, and "N; on an end-state disagreement redo the turn
-with the arm" (the peer's turn-0 tokens counted), over the item-seeds where the arm's row exists. Runs on the login node in the grader
+with the arm" (the peer's turn-0 tokens counted), and "N; on a visible failure redo the turn from its start with the arm" (MT-R's
+rollback at turn 0, where the redo is the arm's own turn 0: same start state, context and step seeds), over the item-seeds where the
+arm's row exists. Runs on the login node in the grader
 venv (seconds):
   /home1/leesangjun/venvs/bfcl/bin/python poc/mt_peer0.py <tag> [peer tag] [--rescue]      (RESTRICT=<tag>: only items that tag has at every seed)"""
 import copy, json, os, re, sys
@@ -59,7 +61,7 @@ def same(a, b):
 def main():
     pos = [a for a in sys.argv[1:] if not a.startswith("--")]
     tag = pos[0]; ptag = pos[1] if len(pos) > 1 else tag
-    XA = {a: rows(tag, a) for a in ("F", "T")} if "--rescue" in sys.argv else {}
+    XA = {a: rows(tag, a) for a in ("E", "F", "T")} if "--rescue" in sys.argv else {}
     RC = Counter()
     P = {p["id"]: p for p in map(json.loads, open(DATA))}
     D = rows(tag); E = rows(ptag) if ptag != tag else D
@@ -97,6 +99,7 @@ def main():
                 atk = sum(z["tok"] for z in t0)
                 RC[(a, "n")] += 1; RC[(a, "okN")] += ok; RC[(a, "okA")] += aok; RC[(a, "tokN")] += tk; RC[(a, "tokA")] += atk
                 RC[(a, "okP")] += aok if fl else ok; RC[(a, "tokP")] += tk + ptk + (atk if fl else 0)
+                RC[(a, "okV")] += aok if vis else ok; RC[(a, "tokV")] += tk + (atk if vis else 0)   # MT-R: redo the turn from its start
                 RC[(a, "flag", ok)] += fl; RC[(a, "fix" if not ok else "harm", fl)] += (aok != ok)
             k = ("R" if ok else "W") + ("V" if vis else "S")
             C[(k, "n")] += 1
@@ -117,7 +120,8 @@ def main():
               f"{a} {100 * RC[(a, 'okA')] / n:.1f}% @ {RC[(a, 'tokA')] / n:.0f}, N -> peer state differs -> {a}: {100 * RC[(a, 'okP')] / n:.1f}% @ "
               f"{RC[(a, 'tokP')] / n:.0f}; flagged: {RC[(a, 'flag', False)]} wrong N turns ({a} fixes {RC[(a, 'fix', True)]}), "
               f"{RC[(a, 'flag', True)]} right N turns ({a} breaks {RC[(a, 'harm', True)]}); unflagged wrong N turns {a} would fix: "
-              f"{RC[(a, 'fix', False)]}")
+              f"{RC[(a, 'fix', False)]}; N -> visible failure -> redo the turn from its start with {a}: {100 * RC[(a, 'okV')] / n:.1f}% @ "
+              f"{RC[(a, 'tokV')] / n:.0f}")
 
 
 if __name__ == "__main__":
