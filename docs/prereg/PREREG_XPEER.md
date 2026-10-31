@@ -102,3 +102,27 @@ Nemotron-3-Nano (29 / 177) 44.8 vs 41.4%, 5.6 vs 9.6%, ratio 8.0 vs 4.3. XP-P5 s
 cells, its agreement where only the default is right is lower for Nemotron and not for Qwen3-14B-AWQ (P5 fails there). Reported, not
 decided: in all four models gpt-oss-20b as the peer is 0.8–1.2 utility above Qwen3.5-9B / Qwen3-8B as the peer (point estimates; this
 comparison was not pre-registered). XP-P3 / P4 (fresh problems) are decided when jobs 1287120–1287125 land.
+
+## Addendum MAMO (written 2026-10-31 09:0x UTC, before any think row on MAMO; the OptiBench fresh rows are still being generated, none read)
+
+**Why.** XP-P1 / P2 were not shown, so under the rules above the claim can change only for Qwen3-8B, and the only fresh test is on
+OptiBench, the easiest set. A second fresh set from another source decides whether the gpt-oss-20b peer is a property of Qwen3-8B on
+OptiBench-like problems or of the cascade. MAMO (EasyLP 652 + ComplexLP 211; 2405.13144) was used to develop the label-free library
+(FORM) but never in the peer analyses; N's quick programs (formx) and gpt-oss-20b's are stored (3 seeds each), and the library fact the
+think arms will receive is the stored one (the selector reproduces the stored fact source for all 863 × 3 models checked).
+
+**Run.** Qwen3-8B and Qwen3-14B-AWQ, the short think () and the think
+(, 16k), seeds 1–3, all 863 problems (tags q8b / q14a: rows opt_<m>_mamo_formx{tb2000,t}_s<s>.jsonl, new files). Analysis
+ (peers gpt-oss-20b and the other Qwen3 model; there are no Qwen3.5-9B quick programs on MAMO).
+
+- **XP-P6:** Qwen3-8B → gpt-oss-20b → SB→T→T minus SB→T→T on MAMO (863 problems): lower bound > 0.
+- **XP-P7:** the same for Qwen3-14B-AWQ: lower bound > 0.
+- Reported: EasyLP and ComplexLP separately; the strata and their agreement rates; the Qwen3 peer.
+
+**Decision (added; the rules above stand).** P3 and P6 hold → for Qwen3-8B the word-problem claim changes on two fresh problem sets
+(the recipe's word-problem default for Qwen3-8B becomes N → gpt-oss-20b agrees → N, else SB→T→T), stated as model-specific because P1
+was not shown. P4 and P7 hold → the same for Qwen3-14B-AWQ, and with P3 / P6 the claim is stated for both Qwen3 models. P3 or P6
+refuted → the Qwen3-8B gain is not shown out of sample and the word-problem claim stays.
+
+Expected (not a rule): P6 inconclusive (EasyLP is mostly solved by every arm, so gains come from tokens; ComplexLP is small), P7
+inconclusive.

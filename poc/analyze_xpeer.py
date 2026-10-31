@@ -8,7 +8,8 @@ Prediction from N's own rows only (no peer outcome): N's passing programs split 
 (Qwen3-8B), minus the peer's tokens (its mean per call on the calibration N x N's pass rate) and N's.
 --fresh <tag>: N's think arms from results/x3/opt_<tag>_optibench_{formxt,formxtb2000}_s*.jsonl (OptiBench problems outside the third),
 N's and the peer's quick programs from their stored 605-problem formx rows.
-usage: python analyze_xpeer.py [--explore | --models | --fresh <N>:<tag>[,<N>:<tag>]]"""
+--mamo: MAMO (EasyLP + ComplexLP, 863 problems), N = Qwen3-8B / Qwen3-14B-AWQ, peers gpt-oss-20b and the other Qwen3 model.
+usage: python analyze_xpeer.py [--explore | --models | --fresh <N>:<tag>[,<N>:<tag>] | --mamo]"""
 import contextlib, io, os, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -102,7 +103,16 @@ def main():
                 items, q = rows(N, peer, ("optibench",), fresh=tag)
                 g = report(f"fresh {N}<-{peer}", items, q)
                 if peer == "oss20":
-                    print(f"{'':>16}  predicted from the third's TPR / FPR {predict(items, cal):+.2f}")
+                    print(f"{'':>16}  predicted from the third's agreement by stratum {predict(items, cal):+.2f}")
+    if "--mamo" in sys.argv:      # addendum MAMO (XP-P6 / XP-P7): MAMO EasyLP + ComplexLP, N's think arms run for XPEER
+        for N, qwen in (("q8b", "q14a"), ("q14a", "q8b")):
+            for peer in ("oss20", qwen):
+                items, q = rows(N, peer, ("mamo",))
+                report(f"mamo {N}<-{peer}", items, q)
+                for sub in ("mamo_easy", "mamo_complex"):
+                    qs = {i: v for i, v in q.items() if i.split("/", 1)[1].startswith(sub + "-")}
+                    g = ci({i: v[0] - v[1] for i, v in qs.items()})
+                    print(f"{'':>16}  {sub}: cascade - SB->T->T {g[0]:+.2f} [{g[1]:+.2f}, {g[2]:+.2f}] ({len(qs)} problems)")
 
 
 if __name__ == "__main__":
