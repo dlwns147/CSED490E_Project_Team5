@@ -88,3 +88,17 @@ Qwen peer, Qwen3.5-9B). gpt-oss-20b runs on one 24 GB GPU; its tokens (reasoning
 
 Expected (not a rule): P1 holds (+0.5 to +1.5), P2 inconclusive, P3 holds narrowly (OptiBench's third gave +1.65 [+0.26, +3.29]),
 P4 inconclusive, P5 holds.
+
+## Results, part 1: stored rows (XP-P1, XP-P2; 2026-10-31 08:5x UTC; `results/xpeer_models.txt`)
+
+| N | cascade − SB→T→T, peer gpt-oss-20b | predicted | with Qwen3.5-9B as the peer | verdict |
+|---|---|---|---|---|
+| Qwen3-14B-AWQ | +0.83 [−0.24, +1.89] (accuracy +0.77) | +1.50 | +0.04 [−0.87, +0.97] | XP-P1 refuted (not shown) |
+| Nemotron-3-Nano | +0.15 [−0.60, +0.97] (accuracy +0.21) | +0.84 | −0.65 [−1.55, +0.27] | XP-P2 refuted (not shown) |
+
+The stratified transfer overpredicts by 0.67 / 0.69 (by 1.85 on the development cell Qwen3.5-9B). Agreement by stratum (problem-seeds;
+gpt-oss-20b vs Qwen3.5-9B): Qwen3-14B-AWQ only N right (40) 65.0 vs 37.5%, only the default right (137) 10.9 vs 8.8%, ratio 6.0 vs 4.3;
+Nemotron-3-Nano (29 / 177) 44.8 vs 41.4%, 5.6 vs 9.6%, ratio 8.0 vs 4.3. XP-P5 so far: the ratio is higher with gpt-oss-20b in both
+cells, its agreement where only the default is right is lower for Nemotron and not for Qwen3-14B-AWQ (P5 fails there). Reported, not
+decided: in all four models gpt-oss-20b as the peer is 0.8–1.2 utility above Qwen3.5-9B / Qwen3-8B as the peer (point estimates; this
+comparison was not pre-registered). XP-P3 / P4 (fresh problems) are decided when jobs 1287120–1287125 land.
