@@ -64,3 +64,49 @@ Also: always D.
 
 Expected (not a rule): P1 holds (TG/RP ≈ 0.6), P2 holds (≈ 0.5), P3 inconclusive (the default is the best word policy in about half
 the cells), P4 holds, P5 holds.
+
+## Results (2026-10-31 10:4x UTC; `results/al.txt`; 55 s on stored rows; exactness: 0 of 545,442 equal-answer pairs differ in correctness)
+
+Mean regret over cells (utility points), k = 10 / 30 / 100:
+
+| task, menu | design | always D | R (PX) | RP | TG | TG < RP (cells, k = 30) | TG-30 / RP-30 |
+|---|---|---|---|---|---|---|---|
+| word, peer (16) | split-half | 2.00 | 1.35 / 1.10 / 0.91 | 1.31 / 1.08 / 0.91 | 1.07 / **0.91** / 0.90 | 13 / 16 | 0.84 |
+| word, peer | in-sample | 1.78 | 0.89 / 0.47 / 0.02 | 0.82 / 0.45 / 0.02 | 0.45 / **0.08** / 0.00 | 16 / 16 | 0.19 |
+| word, broad | split-half | 2.15 | 2.28 / 1.61 / 1.36 | 2.29 / 1.60 / 1.36 | 1.85 / **1.38** / 1.36 | 13 / 16 | 0.86 |
+| SQL, peer (6) | split-half | 1.26 | 0.70 / 0.67 / 0.56 | 0.78 / 0.69 / 0.57 | 0.67 / **0.52** / 0.27 | 6 / 6 | 0.76 |
+| SQL, peer | in-sample | 1.22 | 0.66 / 0.60 / 0.45 | 0.75 / 0.61 / 0.45 | 0.58 / **0.39** / 0.14 | 6 / 6 | 0.64 |
+| SQL, broad | split-half | 1.26 | 1.68 / 1.13 / 0.77 | 1.76 / 1.15 / 0.77 | 1.23 / **0.87** / 0.51 | 6 / 6 | 0.76 |
+
+| test | result | verdict |
+|---|---|---|
+| AL-P1 word peer: TG ≤ 0.75 × RP and TG < RP in ≥ 12 / 16 | 0.84; 13 / 16 | refuted (the ratio) |
+| AL-P2 SQL peer: TG ≤ 0.75 × RP and TG < RP in ≥ 5 / 6 | 0.76; 6 / 6 | refuted (the ratio, by 0.01) |
+| AL-P3 word peer: TG < always D | 0.91 vs 2.00 | holds (but see below: the menu was chosen on these cells) |
+| AL-P4 broad: TG < RP on both tasks | word 1.38 vs 1.60; SQL 0.87 vs 1.15 | holds |
+| AL-P5 fresh cells | pending (the XPEER lanes) | — |
+
+**Why the ratio failed (reading, not a rule).** The split-half regret has a floor: a pilot that knew every label of its pool still
+picks from half a cell and is scored against the other half's own best (an optimistic maximum), so on the word cells (41–101 problems
+per half) every method converges to about 0.90 at k = 100. TG reaches that floor at k = 30 (0.91; RP-30 1.08, R-30 1.10): above the
+floor, RP leaves 0.18 and TG 0.01. Where the pool is large enough not to cap it (SQL, ~700 problems per half), 30 targeted labels beat
+100 random ones (0.52 vs 0.57 peer menu; 0.87 vs 0.77 broad, where p is 38–54%, does not). In-sample, as PX scored its pilots, TG-30 is
+0.08 against RP-30 0.45 on the word peer menu. The k / p account holds; the 0.75 ratio was the wrong yardstick for a regret with a
+floor, and the prediction stands as refuted.
+
+**Decision (as pre-registered).** P1 and P2 refuted → the targeted pilot is not adopted on these cells and the no-label default stays
+the rule. P3 holds but is not evidence that labels pay: PND and gpt-oss-20b's cascade entered the menu because they won on these same
+cells, so always D is penalised by construction here. The clean test of both questions is on cells nobody has looked at (below).
+
+## Addendum (written 2026-10-31 10:4x UTC, before any fresh XPEER outcome has been read): the targeted pilot on the fresh cells
+
+The four fresh cells (Qwen3-8B / Qwen3-14B-AWQ × OptiBench's other 403 problems / MAMO's 863; `python3.11 poc/analyze_al.py --fresh
+q8b:q8bob,q14a:q14aob --mamo`, peer menu: D, N → the Qwen peer → D, N → gpt-oss-20b → D, PND; split-half, k = 30) decide, besides
+AL-P5 (TG < RP in at least 3 of 4):
+- **AL-P6 (30 targeted labels do the work of 100 random ones):** mean TG-30 ≤ mean RP-100.
+- **AL-P7 (labels pay over the no-label default on new problems):** mean TG-30 < mean always-D regret.
+
+Decision: P6 and P7 hold → the claim about labels changes: 30 labels on the problems where the candidates' answers differ choose the
+peer / policy on fresh problems as well as 100 random labels and better than the no-label default; the recipe's pilot becomes the
+targeted pilot (PROJECT, REPORT, PROPOSAL). P6 holds, P7 refuted → targeting is the efficient way to spend labels, but on these cells
+the default needs none. P6 refuted → the targeted pilot is not adopted.

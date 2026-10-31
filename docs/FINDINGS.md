@@ -4517,3 +4517,15 @@ queries where thinking fails (54.2%). The ratio of these two decisive strata ord
 dropping the year, a boolean for Yes/No). Grading fix: 13–21 fresh questions per seed had lost their gold to timeouts under load; re-graded
 before the decision (no verdict changed). Decision: the Qwen peer stays on SQL; no tool-call run. Next: the word-problem fresh tests
 (XP-P3..P11) when the lanes land.
+
+## 2026-10-31 10:4x UTC: AL (PREREG_AL.md): labelling only where the candidates' answers differ — the k / p account holds, the pre-registered ratio does not
+Purpose: XPEER says the peer must be chosen per model pair and task, and random-label pilots are too noisy for that (PX: 30 labels lose
+1.2–2.0 to selection noise). On an exact-graded task equal answers are equally right, so accuracy differences live only on the
+problems where the candidates' answers differ (share p, known without labels after the arms run on an unlabelled pool); k labels there
+are worth k / p random ones (theory; 0 of 545,442 equal-answer pairs differ in correctness). Offline on stored rows, split-half (pool =
+half a cell, scored on the other half), k = 30: word problems, peer menu (16 cells): targeted 0.91 vs random 1.08 (13 / 16 cells),
+always D 2.00; SQL peer menu (6 cells): 0.52 vs 0.69 (6 / 6). AL-P1 / P2 refuted on their ratio (0.84 / 0.76 against ≤ 0.75): the
+split-half regret has a floor (0.90 on word cells at k = 100, set by choosing from half a cell), which targeting reaches at k = 30;
+on SQL 30 targeted labels beat 100 random ones (0.52 vs 0.57). In-sample (PX's scoring) 0.08 vs 0.45. AL-P3 (TG < always D) holds but
+the menu was chosen on these cells. Decision: not adopted on these cells; the clean test is pre-registered on the four fresh XPEER
+cells (AL-P5..P7: targeted-30 ≤ random-100 and < always D), decided when the lanes land.
