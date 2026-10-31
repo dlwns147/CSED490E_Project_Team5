@@ -4529,3 +4529,23 @@ split-half regret has a floor (0.90 on word cells at k = 100, set by choosing fr
 on SQL 30 targeted labels beat 100 random ones (0.52 vs 0.57). In-sample (PX's scoring) 0.08 vs 0.45. AL-P3 (TG < always D) holds but
 the menu was chosen on these cells. Decision: not adopted on these cells; the clean test is pre-registered on the four fresh XPEER
 cells (AL-P5..P7: targeted-30 ≤ random-100 and < always D), decided when the lanes land.
+
+## 2026-10-31 12:0x UTC: around the peer (stored rows, exploratory and post hoc): five variants checked before spending GPUs; none has room
+Purpose: XPEER's word-problem cascade (Qwen3-8B → gpt-oss-20b agrees → N, PND) is decided on fresh rows soon; before running any
+variant of it on GPUs, each variant's ceiling or exploratory effect was read off stored rows (all post hoc, none pre-registered).
+(1) Agreement exits inside the think anchored on gpt-oss-20b (CONT-A's PRA, `analyze_conta.py q8b --peer oss20`, 376 problems: OptMATH
+has no gpt-oss think rows): passing forced programs that agree with it are right 85.8% (Qwen3.5-9B anchor 76.7%), but PRA − D +1.66
+[−0.59, +4.05] and − the gpt-oss peer cascade +0.45 [−1.59, +2.71]: exits add nothing beyond the cascade. (2) A stronger peer: gpt-oss-20b's
+medium think cut at 2k (1.98k tokens per call vs 0.57k at low effort) gives the same PND accuracy (Qwen3-8B 64.1 vs 63.7%, 376
+problems; PND − D +3.62 vs +3.58; Qwen3-14B-AWQ +2.32 vs +2.81): the cheap answer suffices — the peer pays by being independent where
+the default is right, not by being accurate. (3) A second peer (Qwen3.5-9B) asked only when gpt-oss-20b rejects the short think's
+program: +0.10 to +0.62 over PND in four models. (4) The trained quick model with gpt-oss-20b as the peer: cascade − D +1.70 (RFT-4k)
+/ +1.47 (WP-RL) vs +1.20 untrained; trained − untrained +0.50 [−0.10, +1.14] / +0.27; inside PND +2.74 / +2.47 vs +2.31: training
+adds about half a point, within noise. (5) Contest code (LC-1 rows, four models): a perfect check of the cheap program (N→T gated on
+the hidden tests) ends at utility 43.8 / 49.4 / 41.5 / 60.3 against the check-matched think's 42.5 / 48.6 / 35.3 / 60.9 (Qwen3.5-9B's
+plain N→T already 40.5): no peer check can lift cheap first more than about one point above T→T on LiveCodeBench at λ = 0.5, so no
+differential-testing run. Decision: no GPU run for any variant; the word-problem design stays PND with gpt-oss-20b's low-effort
+answer, decided by XP-P3..P11. The free GPUs go to a new setting for the claim "check every step": multi-turn function calling
+(BFCL v4 multi-turn, where each step's calls run in an environment that reports errors), harness `poc/prep_mt.py`, `poc/run_mt.py`,
+`poc/grade_mt.py` (decoder identical to BFCL's on all 734 ground-truth turns; the ground truth replayed passes BFCL's checker 200 / 200);
+smoke job 1287665 (Qwen3-14B-AWQ, 10 items, arms N / E / F / T) before the pre-registration.

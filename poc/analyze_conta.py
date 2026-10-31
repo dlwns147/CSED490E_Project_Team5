@@ -13,7 +13,7 @@ The peer runs only when N passes (HO-PA). S: greedy forward selection over 1,000
 scored on the other (cross-fitted), as analyze_cont. Tests: CA-P1 RDc - RD, CA-P2 PRA - the stored default SB->T->T, CA-P3 PRA - the
 stored peer cascade N->q35->SB->T->T (analyze_hopa, rows of other runs), CA-P4 the share right of passing forced programs (every cut of
 every think) that agree with the peer's quick program - of those that agree with the latest earlier passing forced program of the same think.
-usage: python analyze_conta.py [tag q8b]"""
+usage: python analyze_conta.py [tag q8b] [--peer q35]   (--peer oss20: XPEER's gpt-oss-20b as the peer and anchor, PREREG_XPEER.md)"""
 import contextlib, io, os, sys, zlib
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -91,21 +91,24 @@ def fit(data, keys, kind):
 
 
 def main():
-    tag = sys.argv[1] if len(sys.argv) > 1 else "q8b"
+    a = sys.argv[1:]
+    peer = a[a.index("--peer") + 1] if "--peer" in a else "q35"
+    a = [x for j, x in enumerate(a) if x != "--peer" and (j == 0 or a[j - 1] != "--peer")]
+    tag = a[0] if a else "q8b"
     data, stored = {}, {}
     for b in BENCH:
-        (T, ids), A, P = load(tag, b), word_rows("q8b", b), word_rows("q35", b)
+        (T, ids), A, P = load(tag, b), word_rows("q8b", b), word_rows(peer, b)
         if not (A and P):
             continue
         ids = [i for i in ids if all(i in A["formx"][s] and i in P["formx"][s] for s in (1, 2, 3))]
         data[b] = (T, A["formx"], P["formx"], ids)
-        R = policies(A, {"q35": P}, same_word)
-        for k in ("SB->T->T", "N->q35->SB->T->T"):
+        R = policies(A, {peer: P}, same_word)
+        for k in ("SB->T->T", f"N->{peer}->SB->T->T"):
             for i, v in per_q(R, k).items():
                 stored.setdefault(k, {})[f"{b}/{i}"] = v
     keys = [(b, i) for b in data for i in data[b][3]]
     data = {b: v[:3] for b, v in data.items()}
-    print(f"=== CONT-A {tag}: {len(keys)} problems with three thinks and both cheap programs")
+    print(f"=== CONT-A {tag}, peer {peer}: {len(keys)} problems with three thinks and both cheap programs")
     if not keys:
         return
     # precision of passing forced programs by what they agree with (every cut of every think)
@@ -152,7 +155,7 @@ def main():
             print(f"  {b}: " + ", ".join(f"{k} {100 * sum(q[k][i][1] for i in jj) / len(jj):.2f}" for k in q if all(i in q[k] for i in jj)))
     out = []
     for name, a, b_ in (("CA-P1 RDc - RD", "RDc", "RD"), ("CA-P2 PRA - stored SB->T->T", "PRA", "SB->T->T"),
-                        ("CA-P3 PRA - stored N->q35->SB->T->T", "PRA", "N->q35->SB->T->T")):
+                        (f"CA-P3 PRA - stored N->{peer}->SB->T->T", "PRA", f"N->{peer}->SB->T->T")):
         jj = [i for i in ids if i in q[a] and i in q[b_]]
         g = ci({i: q[a][i][1] - q[b_][i][1] for i in jj})
         print(f"{name}: utility {g[0]:+.2f} [{g[1]:+.2f}, {g[2]:+.2f}] ({len(jj)} problems)")

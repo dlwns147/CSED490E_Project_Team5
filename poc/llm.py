@@ -105,7 +105,8 @@ def chat_msgs(msgs: list, model: str = "local", temperature: float = 0.7, max_to
         max_tokens=max_tokens, seed=seed, **({"logprobs": True} if logprobs else {}),
         **({"presence_penalty": ts["presence_penalty"]} if "presence_penalty" in ts else {}),
         extra_body={"chat_template_kwargs": {"enable_thinking": think, **_TK}, **_EFF, **({"top_k": int(ts["top_k"])} if "top_k" in ts else {})})
-    text = r.choices[0].message.content or ""
+    msg = r.choices[0].message
+    text = msg.content or ""
     out = {"text": strip_think(text), "finish": r.choices[0].finish_reason,
            "out_tokens": r.usage.completion_tokens, "in_tokens": r.usage.prompt_tokens}
     if not out["text"].strip() and out["finish"] == "stop":   # LC-OSS smoke: a stopped reply with no answer — keep where the think ended
