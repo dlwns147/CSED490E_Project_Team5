@@ -4395,3 +4395,18 @@ value only half the time when programs differ. Greedy is not deterministic in vL
 6.5–7 utility points of tokens on the hard sets (the cheap programs 1.4k), CONT (PREREG_CONT.md, pre-registered 10-30 23:5x) tests the
 free check inside the think: cross-fitted early-exit points, and continuing vs restarting after a failed cut (theory: continuing pays
 only if a failed 2k check lowers the same think's chance of ending right by less than 1 point).
+
+## 2026-10-31 04:1x UTC: TD (PREREG_TD.md): the thinking mode's programs expand the quick mode's coverage a little and weaken its check; its own right programs (RFT) are the better target
+
+Purpose: on word problems the cheap path saves nothing because Qwen3-8B's quick program is rarely right; TD asked whether training
+the quick mode on the thinking mode's right programs (2,000 OptMATH-Train problems, 1,281 examples) reaches problems it never solves,
+against the same number of its own right quick programs (rft). Held-out formx, seeds 1–3, the HO-PA cascade (N → check → Qwen3.5-9B
+agrees → N, else SB→T→T). TD-P1 holds: on the 227 problems no base sample of 16 answers, td's quick right − rft's +1.47 [+0.59,
++2.50] points (2.1% vs 0.6%). P2–P4 refuted: td − rft quick right −6.79 [−9.45, −4.20]; td cascade − SB→T→T −0.41 [−1.12, +0.31];
+td cascade − rft cascade −1.28 [−2.16, −0.41]. rft cascade − SB→T→T +0.87 [−0.08, +1.86], all of it on the problems the base covers
+(+1.54 [+0.65, +2.47]; base-never −0.67, the cheap path's cost, the same for every arm): on word problems training gains by
+sharpening, unlike plain RL on SQL / tool calls (SHARP). Mechanism from the raw programs: td's programs pass more (916 vs 801 base /
+890 rft of 1,428) and are right less when they pass (44.1% vs 53.3% / 56.2%); the training set's thinking programs use CP-SAT and
+GLOP, and the td model writes GLOP 212 times (base 52, rft 9), 74 with integer variables that GLOP relaxes — wrong values that pass
+the check. The quick mode copies the think's solver choice without the reasoning behind it. The training step stays on the model's
+own checked quick programs. Next: WP-RL (on-policy RL, the same problems ×2) lands ~06 UTC; CONT and its agreement-exit addendum.

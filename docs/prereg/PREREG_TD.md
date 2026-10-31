@@ -69,3 +69,35 @@ on the base-never items is reported, and rft, a sharpening method, is expected t
 (the thinking programs are shorter). The container writes `optmath_train/td/` as root, so the two sets are written one level up
 (`$POC_DATA/optmath_train/sft_{td,rft}_q8b.jsonl`; `td_build.py` and `td_lane.sh` changed only in that path). Training and
 held-out runs: jobs 1285851 (td) and 1285852 (rft).
+
+## Results (2026-10-31 04:1x UTC; jobs 1285851 / 1285852; `python3.11 poc/analyze_td.py 16` → results/td.txt)
+
+| | OptiBench third | BWOR | LogiOR | OptMATH | pooled (476) |
+|---|---|---|---|---|---|
+| quick right: base / td / rft | 50.5 / 47.2 / 61.1 | 15.4 / 16.7 / 17.5 | 15.6 / 15.9 / 14.5 | 14.3 / 12.0 / 17.0 | 30.1 / 28.5 / 35.3 |
+| cascade − SB→T→T: base | +0.64 | −0.87 | −0.88 | +0.27 | +0.01 [−0.81, +0.81] |
+| td | −0.28 | −1.04 | −0.79 | +0.21 | −0.41 [−1.12, +0.31] |
+| rft | +1.75 | −0.17 | −0.29 | +1.03 | +0.87 [−0.08, +1.86] |
+
+- **TD-P1 holds:** on the 227 problems no base sample of 16 answers right, td's quick right − rft's +1.47 [+0.59, +2.50] points
+  (2.1% vs 0.6%: 14 vs 4 of 681 problem-seeds).
+- **TD-P2 refuted** (the other way): td − rft −6.79 [−9.45, −4.20] points on all problems; td is below the base (−1.61 [−3.92, +0.84]).
+- **TD-P3 refuted:** td cascade − SB→T→T −0.41 [−1.12, +0.31].
+- **TD-P4 refuted** (the other way): td cascade − rft cascade −1.28 [−2.16, −0.41].
+- Reported: quick tokens base 0.77k, td 0.90k, rft 0.82k. **Decomposition** of cascade − SB→T→T into the two kinds of problem (each
+  part's contribution to the pooled mean): base-never base −0.66, td −0.73, rft −0.67 (the cheap path's cost; the new right answers do
+  not change it); covered base +0.67, td +0.32, rft **+1.54 [+0.65, +2.47]**. On word problems the training gain that reaches the
+  cascade is sharpening on the problems the base covers, unlike plain RL on SQL and tool calls (SHARP: all on base-never items).
+- **Mechanism (raw programs, the 1,428 problem-seeds).** td's programs pass the check more often (916 vs base 801, rft 890) and are
+  right less often when they pass (44.1% vs 53.3% / 56.2%): 512 passing wrong programs vs 374 / 390 — training on the thinking mode's
+  programs raised the leak. The thinking programs of the training set use CP-SAT (588 of 1,281) and GLOP (197) where the quick
+  programs use SCIP (rft set: CP-SAT 344, GLOP 1); the td model carries that choice to the held-out problems: GLOP in 212 programs
+  (base 52, rft 9), 74 of them with integer variables, which GLOP solves as the LP relaxation, printing a wrong value that passes
+  (read: optibench-360 prints 150 for 390 and optibench-285 19 for 20, both GLOP with IntVar where the base used SCIP; 53 of the 60
+  OptiBench problem-seeds the base got right and td lost are passing wrong values). The quick mode copies the think's choice of solver
+  without the reasoning that made it (the think decides integrality first) — the failure Yu et al. (2407.06023) report for math, here
+  with its mechanism. WP-RL's q8bwp1 rows are not in yet (reported in PREREG_WPRL when they are).
+- **Decision (as pre-registered):** P1 holds, P3 refuted → coverage expands, not enough to beat the default (above, with the
+  decomposition); P4 refuted → the thinking programs are not the better training target. The recipe's training step stays training on
+  the model's own checked quick programs (RFT here, plain RL on SQL / tool calls); the thinking mode's programs as SFT targets
+  weaken the free check.
