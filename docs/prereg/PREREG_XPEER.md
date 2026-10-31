@@ -248,3 +248,30 @@ strata: which stratum differs).
 
 Expected (not a rule): XC-P1..P3 inconclusive (the Nemotron result says lineage alone does not lower the costly agreement on SQL;
 gpt-oss-20b's reasoning may), XC-P4 holds in 2 of 3.
+
+## Results, addendum C (2026-10-31 10:4x UTC; `results/xpeer_sql.txt`; jobs 1287322–1287324, no failed request, no truncated reply)
+
+gpt-oss-20b's quick query (low effort, 115–142 output tokens with its reasoning): 54.1% right on BIRD dev seed 1 (Qwen3.5-9B 49.5%,
+Qwen3-8B 46.6%), passes the check on 91%, 41% of the passing ones wrong. Grading note: on the fresh questions the first grading lost
+13–21 questions per seed to gold-query timeouts under load that the Qwen gradings had passed; they were re-graded on a CPU node with 2
+workers (job 1287424) before the numbers below (the change: Qwen3-8B fresh −1.67 unchanged, Qwen3-14B-AWQ −0.82 → −0.89).
+
+| N | N → gpt-oss-20b → D − D | N → Qwen peer → D − D | gpt-oss-20b − Qwen peer (pooled, 2,867–2,868 questions) | verdict |
+|---|---|---|---|---|
+| Qwen3-8B | +0.01 [−0.62, +0.65] | +1.10 [+0.51, +1.74] | −1.09 [−1.71, −0.51] (dev −0.59, fresh −1.67) | XC-P1 refuted |
+| Qwen3-14B-AWQ | +0.59 [+0.02, +1.18] | +1.10 [+0.48, +1.72] | −0.51 [−1.06, +0.04] (dev −0.17, fresh −0.89) | XC-P2 refuted |
+| Qwen3.5-9B | +1.42 [+0.93, +1.90] | +1.08 [+0.52, +1.63] | +0.34 [−0.20, +0.84] (dev +0.24, fresh +0.45) | XC-P3 refuted (not shown) |
+
+**Mechanism (XC-P4: 2 of 3).** Agreement where only the default is right / where only N is right, gpt-oss-20b vs the Qwen peer:
+Qwen3-8B 23.1 / 44.6% vs 17.1 / 54.2% (ratio 1.9 vs 3.2; P4 fails), Qwen3-14B-AWQ 22.2 / 44.2% vs 22.8 / 55.3% (2.0 vs 2.4; holds by
+0.6 points), Qwen3.5-9B 16.1 / 39.1% vs 20.3 / 39.2% (2.4 vs 1.9; holds). The ratio of the two decisive strata orders the two peers
+correctly in all three cells, while accuracy does not: gpt-oss-20b is the most accurate quick model and the worst check for Qwen3-8B.
+On SQL it confirms Qwen3-8B's wrong queries where thinking is right more often than Qwen3.5-9B does, the opposite of word problems
+(4.7% vs 12.3%). Raw (dev seed 1): of 66 wrong Qwen3-8B queries that gpt-oss-20b confirms and Qwen3.5-9B does not, in the first four both
+round a percentage to 2 decimals that BIRD scores unrounded (two), both drop the question's year ("the 2009 Malaysian Grand Prix"),
+and both return a boolean where gold returns 'Yes'/'No'; rounding alone explains little (3% of gpt-oss-20b's confirmed wrong
+queries vs 1% of Qwen3.5-9B's).
+
+**Decision (as pre-registered).** 0 of XC-P1..P3 hold → on SQL the Qwen peer stays, and whatever gpt-oss-20b does on word problems
+is task-specific: a peer's value is its agreement in the two decisive strata of the given model and task, which neither lineage nor
+accuracy predicts. No tool-call run follows from this addendum.

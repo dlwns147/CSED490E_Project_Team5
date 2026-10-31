@@ -4505,3 +4505,15 @@ XC-P1..P3: per N (Qwen3-8B, Qwen3-14B-AWQ, Qwen3.5-9B), gpt-oss-20b − the Qwen
 Jobs xsql_s1–3 (gpt-oss-20b low effort, quick query only, dev + SQL-PA's fresh questions). Scope note for addendum B (offline, stored
 SQL rows): gating the short think's query with the peer adds nothing on SQL (PND − PEER −0.93 to +0.36), where the full think is not
 better than the short think — the condition the stratified account gives. Next: the three XPEER fresh tests land (OptiBench ~13–14 UTC).
+
+## 2026-10-31 10:4x UTC: XPEER addendum C (PREREG_XPEER.md): gpt-oss-20b is not the better peer on SQL — a peer's value is pair- and task-specific
+Purpose: test whether "a cheap model from another lab is the better check" holds beyond word problems, so the recipe could name its
+peer by lineage. gpt-oss-20b (low effort, ~120 tokens per query) on BIRD dev + 1,338 fresh BIRD-train questions, 3 seeds, as the peer
+of Qwen3-8B / Qwen3-14B-AWQ / Qwen3.5-9B. Against the Qwen peer (pooled 2,868 questions): −1.09 [−1.71, −0.51], −0.51 [−1.06, +0.04],
++0.34 [−0.20, +0.84]: XC-P1..P3 refuted (0 / 3). gpt-oss-20b is the most accurate quick SQL model (54.1% vs 49.5% / 46.6%) and the worst
+check for Qwen3-8B: it confirms 23.1% of Qwen3-8B's wrong queries where thinking is right (Qwen3.5-9B 17.1%) and 44.6% of its right
+queries where thinking fails (54.2%). The ratio of these two decisive strata orders the peers correctly in all three cells (XC-P4 holds
+2 / 3 on the one-sided part); accuracy and lineage do not. Raw: shared wrong queries are shared conventions (rounding a percentage,
+dropping the year, a boolean for Yes/No). Grading fix: 13–21 fresh questions per seed had lost their gold to timeouts under load; re-graded
+before the decision (no verdict changed). Decision: the Qwen peer stays on SQL; no tool-call run. Next: the word-problem fresh tests
+(XP-P3..P11) when the lanes land.
