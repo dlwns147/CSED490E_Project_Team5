@@ -2,11 +2,30 @@
 copy that vLLM serves like the base model. Loss on the target only; the prompt is rendered with the chat template, thinking off.
 usage: python sft_lora.py <base model dir> <data.jsonl> <adapter out dir> <merged out dir> [--epochs 2] [--max_len 3072] [--steps N]
 Data-parallel over k GPUs (VER, 10-31): torchrun --nproc_per_node k sft_lora.py ... (one full copy per GPU, the same effective batch of 16;
-rank 0 saves and merges)."""
+rank 0 saves and merges). --tail-loss: the logits of the target positions only (batch 1, the target ends the row; the same loss, without
+the full-vocabulary logits of the prompt, which ran a 3090 out of memory under data parallelism)."""
 import json, os, sys
 
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
+
+
+class TailTrainer(Trainer):
+    """mean cross-entropy over the target tokens of a one-example batch, from the logits of the last positions only"""
+    def __init__(self, *a, **k):
+        super().__init__(*a, **k)
+        self.model_accepts_loss_kwargs = False   # the Trainer divides by the accumulation steps itself
+
+    def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None):
+        labels = inputs["labels"]
+        k = int((labels != -100).sum(1).max()) + 1
+        out = model(input_ids=inputs["input_ids"], attention_mask=inputs["attention_mask"], logits_to_keep=k)
+        if k == 1:   # the target was truncated away (a prompt longer than max_len): no loss, as with the full logits
+            loss = out.logits.sum() * 0.0
+        else:
+            logits, tgt = out.logits[:, :-1].float(), labels[:, -(k - 1):]
+            loss = torch.nn.functional.cross_entropy(logits.reshape(-1, logits.size(-1)), tgt.reshape(-1), ignore_index=-100)
+        return (loss, out) if return_outputs else loss
 
 
 def arg(name, default):
@@ -49,7 +68,7 @@ def main():
                              max_steps=steps, learning_rate=1e-4, lr_scheduler_type="cosine", warmup_ratio=0.03, bf16=True, logging_steps=5,
                              save_strategy="no", report_to=[], remove_unused_columns=False, seed=0,
                              **({"ddp_find_unused_parameters": False} if ws > 1 else {}))
-    Trainer(model=model, args=args, train_dataset=feats, data_collator=collate).train()
+    (TailTrainer if "--tail-loss" in sys.argv else Trainer)(model=model, args=args, train_dataset=feats, data_collator=collate).train()
     if rank > 0:
         return
     model.save_pretrained(ad_out)
