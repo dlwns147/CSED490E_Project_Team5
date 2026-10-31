@@ -1,20 +1,24 @@
 """LCM diagnostic (PREREG_LCM, reported item: calibration): fit on one half (k = 30 labels, the first draw), run the planner on the
 other half and compare, at every stop, the posterior that the returned answer is right with whether it is; also the fitted classes.
-usage: python lcm_calib.py <task> <gen> <peer> <set> [lcm|lcm2]"""
+usage: python lcm_calib.py <task> <gen> <peer> <set> [lcm|lcm2|lcm3]"""
 import json, os, random, sys, zlib
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import lcm  # noqa: E402
 
 task, gen, peer, sset = sys.argv[1:5]
-dep = "labels" if len(sys.argv) > 5 and sys.argv[5] == "lcm2" else None
+var = sys.argv[5] if len(sys.argv) > 5 else "lcm"
+dep = "labels" if var == "lcm2" else None   # lcm3: per-class dependence from the labelled questions, three levels, K up to 5
 Q = lcm.load(task, gen, peer, sset)
 ids = sorted(Q)
 half = {h: [i for i in ids if zlib.crc32(i.encode()) % 2 == h] for h in (0, 1)}
 rng = random.Random(97 * 0 + 7 * 30 + 0)
 lab = set(rng.sample(half[0], 30))
-M, bic = lcm.fit_best({i: Q[i] for i in half[0]}, lab, seed=0, dep=dep)
+M, bic = lcm.fit_best({i: Q[i] for i in half[0]}, lab, seed=0, dep=dep, levels=3 if var == "lcm3" else 2,
+                      Ks=(1, 2, 3, 4, 5) if var == "lcm3" else (1, 2, 3))
 print(f"{task} {sset} {gen}<-{peer} ({sys.argv[5] if len(sys.argv) > 5 else 'lcm'}): K {M.K}, pi {[round(x, 2) for x in M.pi]}, th0 {M.th0}, "
       f"th1 {M.th1}, phi {M.phi}")
+if var == "lcm3":
+    print(f"   th2 {M.th2}")
 for t in lcm.TYPES:
     print(f"   a[{t}] {[round(x, 2) for x in M.a[t]]}  x[{t}] {[round(x, 2) for x in M.x[t]]}")
 Pl = lcm.Planner(M)

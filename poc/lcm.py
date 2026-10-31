@@ -26,7 +26,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TYPES = ("N", "P", "SB", "T")
 REST = {"N": 0, "SB": 0, "T": 0, "P": 1}   # restaurant: 0 the answering model, 1 the peer
-CALLS = (("N", 0), ("P", 1), ("SB", 0), ("T", 0), ("T", 0))   # one seed: quick, peer's quick, short think, think, retry think (next seed)
+MODE = {"N": 0, "SB": 1, "T": 1, "P": 3}   # LCM-3: a restaurant per mode, nested in its model: the answering model's quick mode (0) and
+# its thinking mode (1: the short think is the same think cut at 2k, so SB and T share one); 3 the peer (2 unused)
+CALLS = tuple((t, MODE[t]) for t in ("N", "P", "SB", "T", "T"))   # one seed: quick, peer's quick, short think, think, retry think (next seed)
 GRID = (0.05, 0.1, 0.2, 0.4, 0.8, 1.6, 3.2, 6.4, 12.8, 25.6, 51.2, 1000.0)
 LAM = 0.5   # utility = 100 x right - LAM x ktokens (the project's unit); as a fraction: right - LAM / 100 x ktokens
 
@@ -180,8 +182,64 @@ def crp_logp(sizes, phi):
 
 
 def sig_of(groups):
-    """groups: {gid: [n0, n1]} -> canonical signature"""
-    return tuple(sorted((g[0], g[1]) for g in groups.values()))
+    """groups: {gid: [n per mode N, SB, T, P]} -> canonical signature (the dishes' per-mode counts)"""
+    return tuple(sorted(tuple(g) for g in groups.values()))
+
+
+def collapse(sig4):
+    """per-mode counts -> per-model counts (the two-level franchise of LCM / LCM-2)"""
+    return tuple(sorted((d[0] + d[1] + d[2], d[3]) for d in sig4))
+
+
+@lru_cache(maxsize=2_000_000)
+def crf3_logp(sig4, th0, th1, th2):
+    """LCM-3: log P(labelled partition of wrong answers) under a three-level franchise: question pool (th0) -> model (th1) -> mode
+    (th2); modes N, SB, T in the answering model, P in the peer. Exact: Stirling numbers at the mode and model levels, a CRP over the
+    model-level tables per dish; a DP over dishes keeps the totals the normalisers need"""
+    if not sig4:
+        return 0.0
+    lp = 0.0
+    for r in range(4):
+        n = sum(d[r] for d in sig4)
+        if n:
+            lp += math.lgamma(th2) - math.lgamma(th2 + n)
+    models = ((0, 1, 2), (3,))
+    dist = {(0, 0, 0): 1.0}   # (mode-level tables of model 0, of model 1, model-level tables in all)
+    for d in sig4:
+        per = []   # per model: {(T_md, u_md): weight}
+        for modes in models:
+            w = {0: 1.0}
+            for r in modes:
+                if d[r]:
+                    w2 = {}
+                    for a, va in w.items():
+                        for t in range(1, d[r] + 1):
+                            w2[a + t] = w2.get(a + t, 0.0) + va * stir(d[r], t) * th2 ** t
+                    w = w2
+            wu = {}
+            for T, vT in w.items():
+                if T == 0:
+                    wu[(0, 0)] = wu.get((0, 0), 0.0) + vT
+                    continue
+                for u in range(1, T + 1):
+                    wu[(T, u)] = wu.get((T, u), 0.0) + vT * stir(T, u) * th1 ** u
+            per.append(wu)
+        dist2 = {}
+        for (T0, T1, U), v in dist.items():
+            for (t0, u0), w0 in per[0].items():
+                for (t1, u1), w1 in per[1].items():
+                    ud = u0 + u1
+                    k = (T0 + t0, T1 + t1, U + ud)
+                    dist2[k] = dist2.get(k, 0.0) + v * w0 * w1 * th0 * math.factorial(ud - 1)
+        dist = dist2
+    tot = 0.0
+    for (T0, T1, U), v in dist.items():
+        lg = math.lgamma(th0) - math.lgamma(th0 + U)
+        for T in (T0, T1):
+            if T:
+                lg += math.lgamma(th1) - math.lgamma(th1 + T)
+        tot += v * math.exp(lg)
+    return lp + math.log(tot)
 
 
 # ---------------------------------------------------------------- model
@@ -195,7 +253,14 @@ class Model:
         self.th0 = [GRID[rng.randrange(2, 9)] for _ in range(K)]
         self.th1 = [GRID[rng.randrange(2, 9)] for _ in range(K)]
         self.phi = [0.1] * K   # right answers come in variants (BFCL) with concentration phi
+        self.th2 = [1.0] * K   # LCM-3: the mode level
+        self.levels = 2
         self.tok = {t: 500.0 for t in TYPES}
+
+    def wrong_ll(self, sig4, z):
+        if self.levels == 3:
+            return crf3_logp(sig4, self.th0[z], self.th1[z], self.th2[z])
+        return crf_logp(collapse(sig4), self.th0[z], self.th1[z])
 
     def role_ll(self, t, role, chk, z):
         p = self.a[t][z] if role == "R" else self.x[t][z] if role == "X" else 1.0 - self.a[t][z] - self.x[t][z]
@@ -203,7 +268,7 @@ class Model:
         return math.log(max(p, 1e-12)) + math.log(max(c if chk else 1.0 - c, 1e-12))
 
     def params(self):
-        return self.K * (1 + 2 * len(TYPES) + 3) - 1 + 3 * len(TYPES)
+        return self.K * (1 + 2 * len(TYPES) + 3 + (self.levels == 3)) - 1 + 3 * len(TYPES)
 
 
 def hyps(q, labelled):
@@ -221,7 +286,7 @@ def stats(src, S):
         role = "X" if k is None else "R" if k in S else "W"
         roles.append((t, role, chk))
         if role == "W":
-            groups.setdefault(k, [0, 0])[REST[t]] += 1
+            groups.setdefault(k, [0, 0, 0, 0])[MODE[t]] += 1
         elif role == "R":
             right[k] = right.get(k, 0) + 1
     return roles, tuple(sorted(right.values())), sig_of(groups)
@@ -231,7 +296,7 @@ def dep_from_labels(Q, labels, grid=GRID):
     """LCM-2: the dependence parameters where they are identified, on the labelled questions only (their roles are known): the
     maximum-likelihood (th0, th1) of their wrong-answer partitions and phi of their right variants"""
     sigs = [stats(Q[i]["src"], Q[i]["ys"]) for i in labels]
-    th = max(((a, b) for a in grid for b in grid), key=lambda ab: sum(crf_logp(sig, ab[0], ab[1]) for _, _, sig in sigs))
+    th = max(((a, b) for a in grid for b in grid), key=lambda ab: sum(crf_logp(collapse(sig), ab[0], ab[1]) for _, _, sig in sigs))
     phi = max(PHI, key=lambda f: sum(crp_logp(rs, f) for _, rs, _ in sigs))
     return th[0], th[1], phi
 
@@ -239,11 +304,17 @@ def dep_from_labels(Q, labels, grid=GRID):
 PHI = (0.01, 0.03, 0.1, 0.3, 1.0, 3.0)
 
 
-def fit(Q, labels, K, rng, iters=60, tol=1e-4, grid=GRID, dep=None):
+GRID3 = (0.1, 0.4, 1.6, 6.4, 25.6, 1000.0)
+
+
+def fit(Q, labels, K, rng, iters=60, tol=1e-4, grid=GRID, dep=None, levels=2):
     """EM; Q {id: q}; labels: the ids whose y is revealed; grid: the concentrations allowed (INDEP: only 1000, wrong answers
     almost never coincide, the classical independent-errors model); dep = (th0, th1, phi) fixed for every class (LCM-2: estimated
     on the labelled questions) instead of fitted by EM. Returns (model, log-likelihood)"""
     M = Model(K, rng)
+    M.levels = levels
+    if levels == 3:   # LCM-3: per class, from the labelled questions only (weighted by their class posteriors)
+        M.th0, M.th1, M.th2 = [1.6] * K, [1.6] * K, [1.6] * K
     if len(grid) == 1:
         M.th0, M.th1 = [grid[0]] * K, [grid[0]] * K
     if dep is not None:
@@ -259,11 +330,12 @@ def fit(Q, labels, K, rng, iters=60, tol=1e-4, grid=GRID, dep=None):
         acc_pi = [0.0] * K
         acc_sig = [dict() for _ in range(K)]
         acc_rs = [dict() for _ in range(K)]
+        lab_sig, lab_rs = [dict() for _ in range(K)], [dict() for _ in range(K)]
         ll = 0.0
         for i, H in S.items():
             terms = []
             for h, roles, rs, sig in H:
-                base = [sum(M.role_ll(t, r, c, z) for t, r, c in roles) + crf_logp(sig, M.th0[z], M.th1[z]) + crp_logp(rs, M.phi[z])
+                base = [sum(M.role_ll(t, r, c, z) for t, r, c in roles) + M.wrong_ll(sig, z) + crp_logp(rs, M.phi[z])
                         + math.log(M.pi[z]) for z in range(K)]
                 terms.append(base)
             mx = max(max(b) for b in terms)
@@ -277,6 +349,9 @@ def fit(Q, labels, K, rng, iters=60, tol=1e-4, grid=GRID, dep=None):
                     acc_pi[z] += w
                     acc_sig[z][sig] = acc_sig[z].get(sig, 0.0) + w
                     acc_rs[z][rs] = acc_rs[z].get(rs, 0.0) + w
+                    if i in labels:
+                        lab_sig[z][sig] = lab_sig[z].get(sig, 0.0) + w
+                        lab_rs[z][rs] = lab_rs[z].get(rs, 0.0) + w
                     for t, r, c in roles:
                         acc_a[t][z]["RWX".index(r)] += w
                         acc_c[t][r][0 if c else 1] += w
@@ -289,10 +364,14 @@ def fit(Q, labels, K, rng, iters=60, tol=1e-4, grid=GRID, dep=None):
             for r in "RWX":
                 p, f = acc_c[t][r]
                 M.c[t][r] = (p + 0.5) / (p + f + 1.0)
-        for z in range(K if dep is None else 0):
+        for z in range(K if dep is None and levels == 2 else 0):
             M.th0[z], M.th1[z] = max(((a, b) for a in grid for b in grid),
-                                     key=lambda ab: sum(w * crf_logp(sig, ab[0], ab[1]) for sig, w in acc_sig[z].items()))
+                                     key=lambda ab: sum(w * crf_logp(collapse(sig), ab[0], ab[1]) for sig, w in acc_sig[z].items()))
             M.phi[z] = max(PHI, key=lambda f: sum(w * crp_logp(rs, f) for rs, w in acc_rs[z].items()))
+        for z in range(K if levels == 3 else 0):
+            M.th0[z], M.th1[z], M.th2[z] = max(((a, b, c) for a in GRID3 for b in GRID3 for c in GRID3),
+                                               key=lambda abc: sum(w * crf3_logp(sig, *abc) for sig, w in lab_sig[z].items()))
+            M.phi[z] = max(PHI, key=lambda f: sum(w * crp_logp(rs, f) for rs, w in lab_rs[z].items()))
         if ll - prev < tol * abs(ll):
             break
         prev = ll
@@ -302,14 +381,14 @@ def fit(Q, labels, K, rng, iters=60, tol=1e-4, grid=GRID, dep=None):
 INDEP = (1000.0,)
 
 
-def fit_best(Q, labels, Ks=(1, 2, 3), restarts=3, seed=0, grid=GRID, dep=None):
+def fit_best(Q, labels, Ks=(1, 2, 3), restarts=3, seed=0, grid=GRID, dep=None, levels=2):
     """K by BIC over the fitting questions; the best of a few random starts per K"""
     best = None
     if dep == "labels":
         dep = dep_from_labels(Q, labels, grid)
     for K in Ks:
         for r in range(restarts if K > 1 else 1):
-            M, ll = fit(Q, labels, K, random.Random(1000 * seed + 10 * K + r), grid=grid, dep=dep)
+            M, ll = fit(Q, labels, K, random.Random(1000 * seed + 10 * K + r), grid=grid, dep=dep, levels=levels)
             bic = -2 * ll + M.params() * math.log(len(Q))
             if best is None or bic < best[0]:
                 best = (bic, M, ll)
@@ -350,12 +429,12 @@ class Planner:
                     role = "X" if e[0] == "X" else "R" if e[0] in S else "W"
                     roles.append((t, role, e[1]))
                     if role == "W":
-                        groups.setdefault(e[0], [0, 0])[m] += 1
+                        groups.setdefault(e[0], [0, 0, 0, 0])[m] += 1
                     elif role == "R":
                         right[e[0]] = right.get(e[0], 0) + 1
                 sig, rs = sig_of(groups), tuple(sorted(right.values()))
                 for z in range(M.K):
-                    v = (math.log(M.pi[z]) + sum(M.role_ll(t, ro, c, z) for t, ro, c in roles) + crf_logp(sig, M.th0[z], M.th1[z])
+                    v = (math.log(M.pi[z]) + sum(M.role_ll(t, ro, c, z) for t, ro, c in roles) + M.wrong_ll(sig, z)
                          + crp_logp(rs, M.phi[z]))
                     out[(z, S)] = v; mx = max(mx, v)
         tot = sum(math.exp(v - mx) for v in out.values())
@@ -381,15 +460,15 @@ class Planner:
                     if e[0] in S:
                         right[e[0]] = right.get(e[0], 0) + 1
                     else:
-                        groups.setdefault(e[0], [0, 0])[mm] += 1
+                        groups.setdefault(e[0], [0, 0, 0, 0])[mm] += 1
             nr, phi = sum(right.values()), M.phi[z]
             joinR = [(g, n / (nr + phi)) for g, n in right.items()] + [(new, phi / (nr + phi))]
-            base = crf_logp(sig_of(groups), M.th0[z], M.th1[z])
+            base = M.wrong_ll(sig_of(groups), z)
             joinW = []
             for d in list(groups) + [None]:
                 g2 = {k: list(v) for k, v in groups.items()}
-                g2.setdefault(d if d is not None else "new", [0, 0])[m] += 1
-                joinW.append((d if d is not None else new, math.exp(crf_logp(sig_of(g2), M.th0[z], M.th1[z]) - base)))
+                g2.setdefault(d if d is not None else "new", [0, 0, 0, 0])[m] += 1
+                joinW.append((d if d is not None else new, math.exp(M.wrong_ll(sig_of(g2), z) - base)))
             for chk in (True, False):
                 cx, cr, cw = (M.c[t][r] if chk else 1 - M.c[t][r] for r in "XRW")
                 add(("X", chk), w * x * cx)
@@ -513,7 +592,8 @@ def evaluate(Q, task_desc, reps=3, out=None):
             for r in range(reps_v):
                 rng = random.Random(97 * r + 7 * k + h)
                 lab = set(rng.sample(half[h], min(k, len(half[h])))) if k else set()
-                M, bic = fit_best(fitq, lab, seed=r, grid=grid, dep="labels" if name == "lcm2" else None)
+                M, bic = fit_best(fitq, lab, seed=r, grid=grid, dep="labels" if name == "lcm2" else None,
+                                  levels=3 if name == "lcm3" else 2, Ks=(1, 2, 3, 4, 5) if name == "lcm3" else (1, 2, 3))
                 Pl = Planner(M)
                 for i in ev:
                     rows = [Pl.run(seed_calls(Q[i], s))[:2] for s in (1, 2, 3)]
@@ -536,6 +616,10 @@ def evaluate(Q, task_desc, reps=3, out=None):
                    variants={f"{v[0]}{v[1]}": dict(u=sum(P[v].values()) / len(ids), acc=100 * sum(PA[v].values()) / len(ids),
                                                    ktok=sum(PT[v].values()) / len(ids) / 1000, vs_default=d(P[v], per["cascade"]),
                                                    vs_pilot=d(P[v], pilot), vs_oracle=d(P[v], oracle)) for v in VARIANTS})
+        if ("lcm3", 30, GRID) in VARIANTS and ("lcm2", 30, GRID) in VARIANTS:   # L3-P2, paired on the same label draws
+            rec["lcm3_vs_lcm2"] = d(P[("lcm3", 30, GRID)], P[("lcm2", 30, GRID)])
+            print(f"*** {task_desc} lcm3 - lcm2 (k = 30): {rec['lcm3_vs_lcm2'][0]:+.2f} [{rec['lcm3_vs_lcm2'][1]:+.2f}, "
+                  f"{rec['lcm3_vs_lcm2'][2]:+.2f}]", flush=True)
         if ("lcm2", 30, GRID) in VARIANTS and ("lcm", 30, GRID) in VARIANTS:   # L2-P2, paired on the same label draws
             rec["lcm2_vs_lcm"] = d(P[("lcm2", 30, GRID)], P[("lcm", 30, GRID)])
             print(f"*** {task_desc} lcm2 - lcm (k = 30): {rec['lcm2_vs_lcm'][0]:+.2f} [{rec['lcm2_vs_lcm'][1]:+.2f}, "
