@@ -27,45 +27,50 @@ def acct(name, items):
     print(f"{name:>16}: pass {100*(len(R)+len(W))/n:4.0f}%  right|pass {100*len(R)/max(1,len(R)+len(W)):4.0f}%  G {G:5.1f}  L {L:5.1f}  "
           f"break-even TPR/FPR {rstar:4.2f}  peer TPR {100*tpr:3.0f}% FPR {100*fpr:3.0f}% ratio {tpr/max(1e-9,fpr):4.1f}  "
           f"accept gain {acc_part:+5.2f}  - peer {peer_cost:4.2f} - N {n_cost:4.2f} = {acc_part-peer_cost-n_cost:+5.2f}")
-for kind in ("words", "tc"):
-    H.SAME_FN = H.same_word if kind == "words" else H.same_tc
-    cells = [(b, m) for m in ("q8b", "q14a", "q35") for b in H.BENCH] if kind == "words" else [(sp, m) for m in ("q8b", "q14a", "q35") for sp in ("non-live", "live")]
-    load = H.word_rows if kind == "words" else H.tc_rows
-    per_m = {}
-    for c, m in cells:
-        A, P = load(m, c), load(H.PEER[m], c)
-        if A is None or P is None: continue
-        R = H.policies(A, {"p": P}, H.SAME_FN)
-        for (i, s), r in R.items():
-            f, p = A["formx"][s][i], P["formx"][s][i]
-            dd = r["SB->T->T"]
-            per_m.setdefault(m, []).append((f[0], f[1], f[2], f[0] and H.SAME_FN(f, p), p[2], dd[0], dd[1]))
-    for m, items in per_m.items():
-        acct(f"{kind} {m}", items)
-with contextlib.redirect_stdout(io.StringIO()):
-    import analyze_sqlpa as Q
-for dev in (False, True):
-    tag = {m: m if dev else m + "pa" for m in Q.MODELS}
-    G = {m: Q.grades(tag[m]) for m in Q.MODELS}
-    K = {m: Q.ntok(tag[m]) for m in Q.MODELS if G[m]}
-    for A, P in Q.PEER.items():
-        if not (G[A] and G[P]): continue
-        B = Q.base(tag[A]); items = []
-        for (i, s), v in B.items():
-            n = G[A][s][i]["N"]; o = G[P][s].get(i, {}).get("N", {})
-            ps = n["chk"] == "pass"
-            items.append((ps, bool(n["ok"]), K[A][s][i], ps and o.get("chk") == "pass" and o.get("h") == n["h"], K[P][s].get(i, 0),
-                          v["SB->T->T"][0], v["SB->T->T"][1]))
-        acct(f"sql{'dev' if dev else 'tr'} {A}", items)
-with contextlib.redirect_stdout(io.StringIO()):
-    from analyze_sharp import safe_same, word_k
-for tag in ("q8brft", "q8brft4k", "q8bwp1"):
-    items = []
-    for b in H.BENCH:
-        A, P = H.word_rows("q8b", b), H.word_rows("q35", b)
-        A = dict(A, formx=word_k(tag, b, (1, 2, 3)))
-        for (i, s), r in H.policies(A, {"p": P}, safe_same).items():
-            if i in A["formx"][s] and i in P["formx"][s]:
+def main():
+    for kind in ("words", "tc"):
+        H.SAME_FN = H.same_word if kind == "words" else H.same_tc
+        cells = [(b, m) for m in ("q8b", "q14a", "q35") for b in H.BENCH] if kind == "words" else [(sp, m) for m in ("q8b", "q14a", "q35") for sp in ("non-live", "live")]
+        load = H.word_rows if kind == "words" else H.tc_rows
+        per_m = {}
+        for c, m in cells:
+            A, P = load(m, c), load(H.PEER[m], c)
+            if A is None or P is None: continue
+            R = H.policies(A, {"p": P}, H.SAME_FN)
+            for (i, s), r in R.items():
                 f, p = A["formx"][s][i], P["formx"][s][i]
-                items.append((f[0], f[1], f[2], f[0] and safe_same(f, p), p[2], r["SB->T->T"][0], r["SB->T->T"][1]))
-    acct(f"words {tag}", items)
+                dd = r["SB->T->T"]
+                per_m.setdefault(m, []).append((f[0], f[1], f[2], f[0] and H.SAME_FN(f, p), p[2], dd[0], dd[1]))
+        for m, items in per_m.items():
+            acct(f"{kind} {m}", items)
+    with contextlib.redirect_stdout(io.StringIO()):
+        import analyze_sqlpa as Q
+    for dev in (False, True):
+        tag = {m: m if dev else m + "pa" for m in Q.MODELS}
+        G = {m: Q.grades(tag[m]) for m in Q.MODELS}
+        K = {m: Q.ntok(tag[m]) for m in Q.MODELS if G[m]}
+        for A, P in Q.PEER.items():
+            if not (G[A] and G[P]): continue
+            B = Q.base(tag[A]); items = []
+            for (i, s), v in B.items():
+                n = G[A][s][i]["N"]; o = G[P][s].get(i, {}).get("N", {})
+                ps = n["chk"] == "pass"
+                items.append((ps, bool(n["ok"]), K[A][s][i], ps and o.get("chk") == "pass" and o.get("h") == n["h"], K[P][s].get(i, 0),
+                              v["SB->T->T"][0], v["SB->T->T"][1]))
+            acct(f"sql{'dev' if dev else 'tr'} {A}", items)
+    with contextlib.redirect_stdout(io.StringIO()):
+        from analyze_sharp import safe_same, word_k
+    for tag in ("q8brft", "q8brft4k", "q8bwp1"):
+        items = []
+        for b in H.BENCH:
+            A, P = H.word_rows("q8b", b), H.word_rows("q35", b)
+            A = dict(A, formx=word_k(tag, b, (1, 2, 3)))
+            for (i, s), r in H.policies(A, {"p": P}, safe_same).items():
+                if i in A["formx"][s] and i in P["formx"][s]:
+                    f, p = A["formx"][s][i], P["formx"][s][i]
+                    items.append((f[0], f[1], f[2], f[0] and safe_same(f, p), p[2], r["SB->T->T"][0], r["SB->T->T"][1]))
+        acct(f"words {tag}", items)
+
+
+if __name__ == "__main__":
+    main()
