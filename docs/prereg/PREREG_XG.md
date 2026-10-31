@@ -116,3 +116,26 @@ gpt-oss-20b as the generator, Qwen3.5-9B as the peer; accuracy @ ktokens per que
 (PROJECT, REPORT, PROPOSAL), and critique point 7 is closed for these tasks. The break-even rule predicted the sign in both (P4), and
 the step from all passing answers to the decisive strata held within 21% (P3): the peer's ratio on passing quick answers, measurable
 with N's labels alone, sufficed here.
+
+## Addendum W: the word problems, offline (written 2026-10-31 20:1x UTC, before `analyze_xg.py --word` has been run on gpt-oss-20b)
+
+**Why.** The word-problem peer claim was measured in one direction only: Qwen3-8B answering, gpt-oss-20b checking (XPEER). gpt-oss-20b's
+own word-problem arms are stored (HO-OSB: N = low effort, SB = medium effort cut at 2,000, T = medium; OptiBench third, BWOR,
+LogiOR; no OptMATH think), so the reverse direction needs no run: gpt-oss-20b answering, Qwen3.5-9B's stored quick program as the
+check (Qwen3-8B reported). Cascade, default (SB→T→T), "same answer" (both pass and print the same value) and utility as XPEER
+(`analyze_hopa.policies`, `same_word`); 376 problems × 3 seeds.
+
+**Known now (N's labels and the peer's agreement only; no default outcome read).** 75.4% of gpt-oss-20b's passing low-effort
+programs are right (n_W / n_R = 0.33); Qwen3.5-9B agrees with 77.7% of the right and 40.2% of the wrong ones (ratio 1.94; OptiBench
+1.54 with 55% of wrong programs confirmed, BWOR 4.78, LogiOR 29.7), so the cascade gains iff L / G < 5.9 (Qwen3-8B as peer: 1.89, < 5.8).
+Unlike SQL, gpt-oss's think is worth much on the hard sets (HO-OSB: the 2k think first +6.5 / +8.3 points over low effort first on
+BWOR / LogiOR), so L is large there, while G carries the default's 2–6k tokens saved per accepted program.
+
+**Predictions.**
+- **XG-W1:** N → Qwen3.5-9B → D minus D, pooled over the three sets: lower bound > 0.
+- **XG-W2:** its sign follows the break-even (peer TPR / FPR vs r*), scored only if the interval excludes 0.
+Power: with 376 problems the interval is about ±1.8 wide, so only a gain above ~+1.8 is likely to show. Expected (not a rule):
+inconclusive, positive point estimate (OptiBench carries 54% of the problem-seeds and its default is only 3 points above low effort).
+
+**Decision.** W1 holds: the word-problem claim states the peer check in both directions (a gpt-oss answer checked by a Qwen quick
+program). Upper bound < 0: the word-problem peer check is direction-specific and the claim says so. Otherwise: reported, no change.

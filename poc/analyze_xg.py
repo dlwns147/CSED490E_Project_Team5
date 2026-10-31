@@ -7,7 +7,8 @@ poc/analyze_breakeven.py / analyze_ext.py; SQL keeps the question-seeds whose N 
 Per cell and pooled per task: accuracy / ktokens of N, D, T->T, N->T->T and the cascades; cascade - D (utility, accuracy, ktokens;
 paired 95% intervals over questions, seed means), labelled dominance (accuracy up, tokens down) or a trade with its break-even
 lambda; the break-even accounting (strata, peer TPR / FPR, r*).
-usage: python3.11 poc/analyze_xg.py     (XG_A=<tag> XG_PEERS=<p1,p2>: another generator, the dry run)"""
+usage: python3.11 poc/analyze_xg.py [--word]     (XG_A=<tag> XG_PEERS=<p1,p2>: another generator, the dry run;
+  --word: addendum W, the word problems)"""
 import contextlib, io, json, os, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -20,6 +21,7 @@ with contextlib.redirect_stdout(io.StringIO()):
 
 A = os.environ.get("XG_A", "oss20")   # XG_A=q8b XG_PEERS=q35,q14a: the dry run on a stored Qwen generator
 PEERS = tuple(os.environ.get("XG_PEERS", "q35,q8b").split(","))   # primary first
+WORD = "--word" in sys.argv   # addendum W: the word problems (OptiBench third, BWOR, LogiOR; gpt-oss has no OptMATH think)
 
 
 def sql_cell(dev, P):
@@ -39,16 +41,18 @@ def sql_cell(dev, P):
     return items
 
 
-def tc_cell(split, P):
-    RA, RP = H.tc_rows(A, split), H.tc_rows(P, split)
+def tc_cell(split, P, word=False):
+    """BFCL split, or (word=True, addendum W) the word-problem set `split` with H.word_rows / H.same_word"""
+    load, same = (H.word_rows, H.same_word) if word else (H.tc_rows, H.same_tc)
+    RA, RP = load(A, split), load(P, split)
     if not (RA and RP):
         return None
     items = []
-    for (i, s), r in H.policies(RA, {"p": RP}, H.same_tc).items():
+    for (i, s), r in H.policies(RA, {"p": RP}, same).items():
         f, p = RA["formx"][s][i], RP["formx"][s][i]
         T, T2 = RA["formxt"][s][i], RA["formxt"][s % 3 + 1][i]
         tt = (T[1], T[2]) if T[0] else (T2[1], T[2] + T2[2])
-        items.append(dict(id=f"{split}/{i}", s=s, ps=bool(f[0]), ok=bool(f[1]), tok=f[2], ptok=p[2], agree=bool(H.same_tc(f, p)),
+        items.append(dict(id=f"{split}/{i}", s=s, ps=bool(f[0]), ok=bool(f[1]), tok=f[2], ptok=p[2], agree=bool(same(f, p)),
                           dok=bool(r["SB->T->T"][0]), dtok=r["SB->T->T"][1], tt=tt,
                           ntt=(f[1], f[2]) if f[0] else (tt[0], f[2] + tt[1])))
     return items
@@ -104,8 +108,11 @@ def main():
     verdict = {}
     for P in PEERS:
         print(f"=== generator {A}, peer {P}")
-        for task, cells in (("SQL", [("BIRD dev", lambda: sql_cell(True, P)), ("BIRD-train fresh", lambda: sql_cell(False, P))]),
-                            ("BFCL", [("non-live", lambda: tc_cell("non-live", P)), ("live", lambda: tc_cell("live", P))])):
+        tasks = (("SQL", [("BIRD dev", lambda: sql_cell(True, P)), ("BIRD-train fresh", lambda: sql_cell(False, P))]),
+                 ("BFCL", [("non-live", lambda: tc_cell("non-live", P)), ("live", lambda: tc_cell("live", P))]))
+        if WORD:
+            tasks = (("WORD", [(b, lambda b=b: tc_cell(b, P, word=True)) for b in ("optibench", "bwor", "logior")]),)
+        for task, cells in tasks:
             pooled = []
             for name, f in cells:
                 items = f()
@@ -115,6 +122,15 @@ def main():
             if pooled:
                 verdict[(task, P)] = report(f"{task} pooled", pooled)
     print()
+    if WORD:
+        v = verdict.get(("WORD", PEERS[0]))
+        print(f"*** XG-W1 (word problems, peer {PEERS[0]}): cascade - D lower bound > 0: " + ("rows missing" if v is None else
+              f"{v[0][1] > 0} ({v[0][0]:+.2f} [{v[0][1]:+.2f}, {v[0][2]:+.2f}])"))
+        print(f"*** XG-W2: the sign follows TPR / FPR vs r*: " + ("not scored (inconclusive)" if v is None or v[2] is None else str(v[2])))
+        v = verdict.get(("WORD", PEERS[1]))
+        if v:
+            print(f"    reported: word problems, peer {PEERS[1]}: {v[0][0]:+.2f} [{v[0][1]:+.2f}, {v[0][2]:+.2f}]")
+        return
     for task, k in (("SQL", "XG-P1"), ("BFCL", "XG-P2")):
         v = verdict.get((task, PEERS[0]))
         print(f"*** {k} ({task}, peer {PEERS[0]}): cascade - D lower bound > 0: " + ("rows missing" if v is None else f"{v[0][1] > 0} ({v[0][1]:+.2f})"))
