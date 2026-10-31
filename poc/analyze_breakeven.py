@@ -4,7 +4,8 @@ problem-seeds: n_R / n_W = passing N right / wrong; G = mean utility gain of acc
 default, L = mean loss of accepting a wrong one (utility = 100 x right - 0.5 x ktokens); the break-even r* = n_W L / (n_R G): an
 accept rule gains on the accepted programs only if (share of right ones it accepts) / (share of wrong ones it accepts) > r* (for
 accepts spread evenly over the right and over the wrong ones); then the peer's tokens on every passing N and N's own tokens are paid.
-The printed "= " column is the cascade - default exactly (problem-seed weighted), split into those parts.
+The printed "= " column is the cascade - default exactly (problem-seed weighted), split into those parts. Last: Qwen3-8B's word
+problems with each trained quick program (RFT on 2,000 / 4,000 OptMATH-Train problems, WP-RL's plain RL) as N.
 usage: python analyze_breakeven.py"""
 import sys, contextlib, io, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -56,3 +57,15 @@ for dev in (False, True):
             items.append((ps, bool(n["ok"]), K[A][s][i], ps and o.get("chk") == "pass" and o.get("h") == n["h"], K[P][s].get(i, 0),
                           v["SB->T->T"][0], v["SB->T->T"][1]))
         acct(f"sql{'dev' if dev else 'tr'} {A}", items)
+with contextlib.redirect_stdout(io.StringIO()):
+    from analyze_sharp import safe_same, word_k
+for tag in ("q8brft", "q8brft4k", "q8bwp1"):
+    items = []
+    for b in H.BENCH:
+        A, P = H.word_rows("q8b", b), H.word_rows("q35", b)
+        A = dict(A, formx=word_k(tag, b, (1, 2, 3)))
+        for (i, s), r in H.policies(A, {"p": P}, safe_same).items():
+            if i in A["formx"][s] and i in P["formx"][s]:
+                f, p = A["formx"][s][i], P["formx"][s][i]
+                items.append((f[0], f[1], f[2], f[0] and safe_same(f, p), p[2], r["SB->T->T"][0], r["SB->T->T"][1]))
+    acct(f"words {tag}", items)

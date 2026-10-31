@@ -4458,3 +4458,15 @@ SQL: r* 1.0–1.6 on BIRD train and 1.3–2.3 on dev (the default is often wrong
 default is) and the cost of the cheap answers. Consequence for the method: on word problems a check must exceed ~2.2–2.6 at a cost
 well under 0.6 points — the target VER's trained verifier (one generated token) is tested against. Not a test; an accounting identity
 with the break-even made explicit.
+
+## 2026-10-31 08:4x UTC: RF (PREREG_TD.md addendum RF): one round of RFT on 4,000 problems lands where RL and RFT on 2,000 did — three trainings, one check
+Purpose: decide the recipe's training step on word problems (does one round of RFT do what 63 rounds of RL do, and does the cascade
+then beat the default?). Qwen3-8B, RFT on the first right of 8 quick programs for each of WP-RL's 4,000 OptMATH-Train problems
+(2,534 examples), formx seeds 1–3 on the 476 held-out problems. RF-P1 not shown: cascade − SB→T→T +0.61 [−0.34, +1.55]. RF-P2
+refuted: − RFT on 2,000 −0.26 [−0.84, +0.28] (data plateau). RF-P3 not shown: − WP-RL +0.02 [−0.62, +0.65] (margin −0.5). Quick
+right 35.3 / 35.3 / 34.8% for RFT-2k / RFT-4k / RL (base 30.1%), right | passes 56–57%. The break-even accounting explains why all
+three land within 0.3: each lowers r* (2.17 → 1.94 / 2.02 / 1.82) because more passing programs are right, but the peer lets through
+77–79% of right and 30–31% of wrong passing programs whichever N it checks (ratio 2.5 → 2.6), and its 0.3 + the quick program's 0.4
+points of tokens take half the accepted gain (+1.3–1.6). Decision: the word-problem claim does not change; RFT does not replace RL by
+the rule, though nothing favours RL (+0.02); the recipe on word problems stays training-free and the check is the lever (VER, scoring
+now).

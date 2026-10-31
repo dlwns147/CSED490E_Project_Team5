@@ -140,3 +140,35 @@ RFT (cheaper than RL by about 5× in GPU time here); P3 refuted → on-policy RL
 already at its data plateau.
 
 Expected (not a rule): P1 holds narrowly (+1.0 to +1.5), P2 inconclusive, P3 holds.
+
+### Results RF (2026-10-31 08:4x UTC; `results/rf.txt`)
+
+sft_rft4k_q8b: 2,534 examples (the problems where any of 8 quick programs is right, of 4,000); one epoch, DT's recipe; formx seeds
+1–3 on the 476 problems.
+
+| test | result (95% interval) | verdict |
+|---|---|---|
+| RF-P1 rft4k → peer → SB→T→T − SB→T→T | +0.61 [−0.34, +1.55] utility | refuted (not shown) |
+| RF-P2 rft4k cascade − rft cascade (2,000 problems) | −0.26 [−0.84, +0.28] | refuted |
+| RF-P3 rft4k cascade − WP-RL cascade (margin −0.5) | +0.02 [−0.62, +0.65] | not shown (lower bound 0.12 below the margin) |
+
+| quick program | quick right | tokens | right \| passes | cascade − SB→T→T | base-never / covered |
+|---|---|---|---|---|---|
+| base | 30.1% | 0.77k | 53.3% | +0.01 [−0.81, +0.81] | −0.66 / +0.67 |
+| RFT, 2,000 problems | 35.3% | 0.82k | 56.2% | +0.87 [−0.08, +1.86] | −0.67 / +1.54 |
+| RFT, 4,000 problems | 35.3% | 0.81k | 57.0% | +0.61 [−0.34, +1.55] | −0.59 / +1.19 |
+| RL, 4,000 problems (WP-RL) | 34.8% | 0.81k | 55.4% | +0.59 [−0.32, +1.55] | −0.54 / +1.13 |
+
+Per benchmark (rft4k cascade − SB→T→T): OptiBench third +1.58 (quick right 50.5 → 60.4%), BWOR −0.99, LogiOR −0.57, OptMATH +1.04.
+
+**Break-even accounting (`poc/analyze_breakeven.py`'s decomposition applied to each trained N; it reproduces each cascade's gain
+exactly).** Training lowers the break-even (more passing programs are right): r* 2.17 (base) → 1.94 / 2.02 / 1.82 (RFT-2k / RFT-4k /
+RL). The peer's ratio does not move: TPR 77 / 79 / 78 / 78%, FPR 31 / 30 / 30 / 30% → 2.5 / 2.6 / 2.6 / 2.6. The accepted programs
+gain +0.68 → +1.59 / +1.32 / +1.32, and the peer's (0.3) and the quick program's (0.4) tokens take 0.7 of it on every arm. Three
+training methods, two data sizes and two algorithms land within 0.3 utility of each other because they change the quick program the
+same way (+5 points, all on problems the base already covers) and none changes the check.
+
+**Decision (as pre-registered).** P1 refuted (not shown) → the word-problem claim does not change. P2 refuted → RFT on 2,000 problems
+is already at its data plateau. P3 not shown → by the rule, one round of RFT does not replace on-policy RL in the recipe; the
+comparison itself is inconclusive (RFT − RL +0.02, interval [−0.62, +0.65]; no sign that RL is better), and since WP-RL left the recipe
+on word problems training-free, neither enters it. What remains is the check (VER).
