@@ -74,3 +74,46 @@ typicality, so among agreeing answers confidence should separate right from wron
 **Run.** `poc/score_conf.py` on one RTX 3090 per model (Qwen3-8B, Qwen3-14B-AWQ, Qwen3.5-9B), SQL dev, SQL train-fresh and BFCL,
 3 seeds each (≈ 35k teacher-forced answers per model; a 20-row smoke of SQL dev first, read before the rest is used; the job
 reports the share of answers that re-tokenize to the stored token count, where a gap is mostly whitespace the stored answers lost). Analysis: `poc/analyze_ext.py` (written after this file, before the scores are read).
+
+## Results (written 2026-10-31 20:1x UTC; `results/ext.txt`; jobs 1288814 / 1288815 / 1288886, every stored N answer scored, 98.6–99.9% re-tokenize to the stored count; analysis on a CPU node)
+
+Score c = mean log-prob (primary). Gate − PEER in utility (paired 95% intervals over questions, seed means):
+
+| cell | AUROC passing / agreeing | peer TPR / FPR vs c's TPR at that FPR | CONF@r | CONF* (labels) | AND20 | AND* (labels) | ABC |
+|---|---|---|---|---|---|---|---|
+| BIRD dev, Qwen3-8B | 0.62 / 0.52 | 79 / 25 vs 42 | −3.19 [−4.23, −2.19] | −0.99 [−1.87, −0.14] | −0.31 | −0.05 | −0.57 [−0.92, −0.29] |
+| BIRD dev, Qwen3-14B-AWQ | 0.66 / 0.61 | 78 / 28 vs 52 | −2.63 [−3.67, −1.66] | −1.09 [−1.98, −0.22] | −0.55 | −0.58 | −0.56 [−0.91, −0.26] |
+| BIRD dev, Qwen3.5-9B | 0.72 / 0.64 | 75 / 25 vs 58 | −0.82 [−1.73, +0.10] | −1.25 [−2.13, −0.39] | −0.05 | −0.19 | −0.64 [−0.99, −0.34] |
+| BIRD fresh, Qwen3-8B | 0.63 / 0.56 | 84 / 33 vs 49 | −2.66 [−3.86, −1.45] | −1.96 [−2.89, −1.02] | −0.31 | −0.05 | −0.44 [−0.78, −0.15] |
+| BIRD fresh, Qwen3-14B-AWQ | 0.61 / 0.55 | 84 / 39 vs 57 | −2.57 [−3.66, −1.58] | −1.75 [−2.73, −0.78] | −0.64 | −0.00 | −0.36 [−0.66, −0.11] |
+| BIRD fresh, Qwen3.5-9B | 0.68 / 0.60 | 77 / 39 vs 66 | −0.28 [−1.26, +0.72] | −0.36 [−1.46, +0.70] | +0.01 | +0.08 | −0.22 [−0.46, −0.03] |
+| BFCL non-live, Qwen3-8B | 0.62 / 0.49 | 78 / 33 vs 56 | −1.23 [−1.96, −0.51] | −0.15 [−0.65, +0.42] | −0.02 | −0.19 | −0.05 [−0.16, +0.05] |
+| BFCL non-live, Qwen3-14B-AWQ | 0.71 / 0.60 | 79 / 26 vs 65 | −1.26 [−2.21, −0.30] | +0.45 [−0.31, +1.17] | +0.58 [+0.17, +1.01] | +0.70 [+0.13, +1.29] | −0.08 [−0.21, +0.00] |
+| BFCL non-live, Qwen3.5-9B | 0.68 / 0.54 | 87 / 27 vs 58 | −2.04 [−2.85, −1.24] | −2.90 [−3.71, −2.12] | −0.53 | −0.09 | −0.11 [−0.40, +0.17] |
+| BFCL live, Qwen3-8B | 0.71 / 0.56 | 68 / 16 vs 54 | −0.08 [−0.75, +0.62] | −0.07 [−0.71, +0.60] | −0.07 | −0.10 | −0.21 [−0.44, +0.02] |
+| BFCL live, Qwen3-14B-AWQ | 0.68 / 0.52 | 69 / 17 vs 52 | −1.04 [−1.85, −0.26] | +0.52 [−0.07, +1.12] | +0.06 | +0.48 [+0.05, +0.89] | −0.37 [−0.62, −0.12] |
+| BFCL live, Qwen3.5-9B | 0.56 / 0.41 | 80 / 16 vs 40 | −4.11 [−4.99, −3.23] | −0.91 [−1.43, −0.38] | −0.24 | −0.00 | −0.28 [−0.52, −0.06] |
+
+- **EXT-P1 holds:** AUROC in [0.60, 0.82] in 11 / 12 (BFCL live Qwen3.5-9B 0.56); the peer's point lies above c's ROC in 12 / 12 (c's
+  TPR at the peer's FPR 40–66% against the peer's 68–87%). The theory's numbers held: median AUROC 0.67 (C1: 0.66–0.69), c's TPR at
+  the peer's FPR ≈ 0.54 (predicted 0.53).
+- **EXT-P2 holds:** PEER − CONF@r lower bound > 0 in 9 / 12; CONF@r better in none.
+- **EXT-P3 holds:** the AUROC among agreeing answers is below the unconditional one in 12 / 12, and below 0.5 in two (BFCL non-live
+  Qwen3-8B 0.49, live Qwen3.5-9B 0.41): among answers two models agree on, the more confident ones are not more often right.
+- **EXT-P4 holds:** AND* better in 2 / 12, AND20 in 1 / 12 (all Qwen3-14B-AWQ on BFCL).
+- **EXT-P5 holds:** PEER − CONF* lower bound > −0.5 in 12 / 12; even with labels, the tuned confidence gate is never better and is
+  worse in 6 / 12.
+- **EXT-P6 refuted:** |ABC − PEER| ≤ 0.3 in 6 / 12; ABC is worse in 8 / 12 (−0.22 to −0.64), better in none.
+- Secondary scores (10% quantile, minimum) give the same picture (results/ext.txt).
+- Raw reading (BIRD dev, Qwen3-8B seed 1, passing queries; c's 10th / 90th percentiles −0.043 / −0.0004). The 15 confidently wrong
+  queries the peer rejects are short, typical forms with a column-set or filter mismatch the model is certain of: "which player is the
+  tallest" answered with name *and* height; "cards that cost more" ordered without the MAX filter; the higher-reputation user returned
+  with the reputation column. The 44 unconfident right ones the peer accepts are right queries that copy rare literals from the question
+  ('fine, you win :)', 'Poland Ekstraklasa'): low token log-prob from copying, not doubt. Confidence measures how typical the tokens
+  are, as C1 found on geometry.
+
+**Decision (as pre-registered).** No gate replaces the peer (CONF@r better in 0, CONF* in 0), confidence is not added as a filter
+(AND20 better in 1 of the required 4) or as a labelled variant (AND* in 2 of 4): the peer stays, and the report cites this test as the
+comparison with the standard in-model gate (2404.10136) and with agreement alone (2407.02348). ABC is worse in 8 cells: the free check
+adds 0.2–0.6 utility beyond agreement on executed answers, reported with its sign. The second resident model (critique point 3) is
+the price of a check that confidence cannot replace on these tasks.

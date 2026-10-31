@@ -4711,3 +4711,16 @@ gpt-oss-20b answering OptiBench third / BWOR / LogiOR with Qwen3.5-9B's quick pr
 r* 1.94) but the peer's 0.8k-token program and N's own cost as much, because gpt-oss's default is short (3.4k; Qwen3-8B's 9.1k on the
 same problems). Decision: the word-problem peer claim stays in its measured direction. Goal link: a peer pays where the escalation it
 avoids is long; with a short default the two quick answers cost more than they save.
+
+## 2026-10-31 20:1x UTC: EXT (pre-registered EXT-P1..P6): the peer check beats the standard in-model confidence gate and agreement alone
+Why: the cascade's second resident model is its deployment cost (critique 3), and its comparison was internal only (critique 6). The
+standard one-model gate is the answer's own token confidence (2404.10136); the standard model-free gate is agreement without a check
+(ABC, 2407.02348). Every stored quick answer of Qwen3-8B / 14B-AWQ / 3.5-9B on BIRD dev, the fresh BIRD questions and BFCL (12 cells,
+3 seeds) teacher-forced under its own model. P1–P5 hold, P6 refuted: confidence's AUROC on passing answers 0.56–0.72 (theory from C1:
+≈ 0.68); at the peer's false-positive rate it accepts 40–66% of right answers (peer 68–87%; predicted 0.53); at the peer's accept rate
+it loses 0.8–4.1 utility (significant in 9 / 12, better in none); tuned on labels it is never better (worse in 6); as a second filter
+on agreeing answers better in 1 / 12 — among agreed answers it separates at 0.41–0.64, below chance in two cells. ABC (no check) is
+worse than the peer cascade in 8 / 12 (−0.2 to −0.6): the free check adds a little beyond agreement on executed answers. Raw:
+confidently wrong passing queries are typical forms with a column or filter mismatch the model is sure of; unconfident right ones copy
+rare literals. Decision (pre-registered): the peer stays; REPORT §6 cites both baselines. Goal link: on SQL and tool calls the cheap
+answer is safely kept only when another family's quick answer matches it; the model's certainty is not a substitute.

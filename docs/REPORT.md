@@ -577,9 +577,16 @@ errors overlap; the cross term is positive only where both learn the same right 
 | OptiBench, gpt-oss-20b | majority of 3 thinking runs (self-consistency) | 75.0% @ 6.3k | FF with that vote as fallback 74.6% @ 1.9k |
 | picking 1 of 3 geometry programs (Qwen3-8B) | CodeT / majority vote / MBR-exec | 96.0 / 95.7 / 93.7% | symmetry check 99.7% |
 | CVRP library usage (Qwen3-32B) | BM25 docs / DRoC | 48% / 72% | exact snippet 77% |
+| BIRD + BFCL, 12 model × set cells (Qwen3-8B / 14B-AWQ / 3.5-9B) | in-model confidence gate (mean token log-prob, Gupta et al. 2404.10136) at the peer's accept rate; tuned on labels | loses to the peer cascade in 9 / 12 (−0.8 to −4.1 utility); tuned, never better | peer cascade (EXT) |
+| same 12 cells | agreement without the free check (ABC, 2407.02348) | worse in 8 / 12 (−0.2 to −0.6), never better | peer cascade (EXT) |
 
 A trained 4B specialist leads our best training-free 24 GB recipe on OptiBench by 5.7 points at 8× the tokens; the two compose (cheap
-program first, the specialist only on a visible failure).
+program first, the specialist only on a visible failure). The peer check needs a second resident model; the standard one-model
+alternative, the answer's own token confidence, separates right from wrong passing answers with AUROC 0.56–0.72 and, at the peer's
+false-positive rate, accepts 40–66% of right answers against the peer's 68–87% (EXT, pre-registered; the binormal account predicted
+0.53). Among answers the two models agree on, confidence separates at 0.41–0.64, below chance in two cells: confident answers are
+typical ones (confidently wrong queries return an extra column the model is sure of; right ones copying a rare literal score low),
+and the shared mistakes the peer cannot see are typical too, so confidence adds nothing as a second filter (better in 1 / 12).
 
 ## 6.5 Relation to prior work (what is new here)
 Escalating from a cheap answer to a stronger one when a check fails is established for cascades *between models* (answer consistency,
