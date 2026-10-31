@@ -87,3 +87,7 @@ the smokes before any main row: the no-progress trigger, the overflow rule, the 
 Expected (not a rule, written after the smokes): T − N +3 to +10 accuracy points at 15–20 times N's tokens; E near T's accuracy at
 about half its tokens, so P2 holds for one or two models and P3 for all three; P4 inconclusive; the visible share of N's failures
 80–95% (the smokes: 13 / 14).
+
+*Analysis (written 2026-10-31 12:3x UTC, tested on the smoke rows, before any main row was read): per model `/home1/leesangjun/venvs/bfcl/bin/python
+poc/grade_mt.py <tag>`, then `python3.11 poc/analyze_mt.py > results/mt.txt` (MT-P1..P5 as above; items every arm has at every
+seed). Main jobs 1287864–1287872 submitted 12:3x UTC.*
