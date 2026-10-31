@@ -83,3 +83,35 @@ for every gate; reported: t = 0.5 and per-policy cross-fitted thresholds (test h
 Expected (not a rule): train-dev AUC 0.80–0.88, test AUC 0.70–0.80 (the test problems are harder and from other sources: right |
 passes 53% vs 69% on train-dev); P1 inconclusive (+0.5 to +1.5), P2 refuted (about 0), P3 inconclusive, P4 holds (+0.05 to +0.15),
 P5 inconclusive.
+
+## Results (2026-10-31 08:5x UTC; `results/ver.txt`; job 1286833: training 677 steps, loss 0.146; 4,505 programs scored per verifier, no failed request)
+
+| test | result (95% interval) | verdict |
+|---|---|---|
+| VER-P1 VD(t_dev) − D | −0.89 [−2.12, +0.27] utility (55.2% @ 15.9k vs 53.2% @ 10.0k) | refuted |
+| VER-P2 VN(t_dev) − D | −0.60 [−1.95, +0.75] | refuted |
+| VER-P3 VND(t_dev) − D | −1.18 [−2.98, +0.50] | refuted |
+| VER-P4 pooled test AUC, trained − untrained | +0.026 [−0.004, +0.056] (0.728 vs 0.702) | refuted (lower bound just below 0) |
+| VER-P5 VND trained − untrained | +0.74 [−0.52, +2.03] | refuted |
+
+**Discrimination.** Train-dev (OptMATH-Train problems never trained on): AUC 0.987 trained, 0.875 untrained. Test (the four held-out
+sets): N 0.792 / 0.784, SB 0.727 / 0.703, T 0.684 / 0.645; pooled 0.728 / 0.702 — far below the ~0.85 the theory section said P1 needs.
+The train-dev problems are not near-copies of the training problems (median 33% of their word 8-grams in the closest training
+problem; 4 of 810 above 80%): the verifier learned OptMATH-Train's generator, not the check. Calibration on test: mean V 0.64 on N's
+passing programs, 53% right. t_dev = 0.75 (untrained 0.95); cross-fitted thresholds give the same picture (VN −0.12, VD +0.18, VND
+−1.44, all n.s.). Per benchmark VD gains on LogiOR (+2.6) and loses on OptMATH (−4.0) and BWOR (−2.4).
+
+**Why it fails where the peer does not (XPEER's stratified account, PREREG_XPEER.md).** Split Qwen3-8B's passing quick programs by
+whether N and the default are right. At t_dev the verifier accepts 55.6% of the 36 problem-seeds where only N is right and 28.3% of the
+106 where only the default is right (ratio 2.0); Qwen3.5-9B's agreement is 44.4% / 12.3% (3.6), gpt-oss-20b's 63.9% / 4.7% (13.6). On
+the strata worth only tokens it is like the peer (both right 75.7 vs 80.1%, both wrong 34.0 vs 38.1%). Its precision on accepted
+programs (72.3% right) matches the peer's, but its false accepts fall where thinking would have been right — each costs ~96 utility —
+while the peer's fall where the default fails too. A pooled AUC mixes these strata; what the gate needs is discrimination on the
+problems the default solves and the quick program does not, the subtle formulation errors (read: 14 wrong passing programs at V ≥ 0.9 on seed 1,
+e.g. a job-shop model whose makespan is 6 instead of 5 and a coordinator-staffing model printing 25,000 instead of 11,000: complete,
+plausible formulations whose error is only visible against the statement's details).
+
+**Decision (as pre-registered).** P1–P5 refuted (P4 by a hair) → supervised training on this data does not teach a check that
+transfers: in distribution it is near perfect (0.987), on the held-out benchmarks it adds 0.03 AUC over the untrained model, reported
+with CV-1 (the same conclusion from RL on SQL). The verifier line on word problems stops; the check that remains open is another model
+from another family (XPEER, running).

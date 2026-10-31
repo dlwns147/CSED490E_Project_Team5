@@ -4470,3 +4470,15 @@ three land within 0.3: each lowers r* (2.17 → 1.94 / 2.02 / 1.82) because more
 points of tokens take half the accepted gain (+1.3–1.6). Decision: the word-problem claim does not change; RFT does not replace RL by
 the rule, though nothing favours RL (+0.02); the recipe on word problems stays training-free and the check is the lever (VER, scoring
 now).
+
+## 2026-10-31 08:5x UTC: VER (PREREG_VER.md): a verifier trained with labels is near perfect in distribution and does not transfer; what a check needs is discrimination where the default and the cheap answer disagree
+Purpose: the limit on word problems is the check (WP-RL, RF, CONT); VER trained one (Qwen3-8B + LoRA, 10,821 labelled OptMATH-Train
+programs, one generated token per check) as the gate of the cheap program and of the default's think programs. Train-dev AUC 0.987
+(untrained 0.875); test AUC on the four held-out sets 0.728 (untrained 0.702; VER-P4 +0.026 [−0.004, +0.056], refuted). Every gate
+loses to the default: VD −0.89 [−2.12, +0.27], VN −0.60 [−1.95, +0.75], VND −1.18 [−2.98, +0.50]; trained − untrained VND +0.74 n.s.
+(P1–P5 refuted). Mechanism, in XPEER's strata: at its threshold the verifier accepts 55.6% of Qwen3-8B's passing programs that only
+N gets right and 28.3% of those only the default gets right (ratio 2.0, below the 2.8 that stratum sizes require); Qwen3.5-9B as the
+peer 44.4 / 12.3% (3.6), gpt-oss-20b 63.9 / 4.7% (13.6). Its accepted programs are as often right as the peer's (72.3%), but its false
+accepts fall on problems thinking solves (−96 utility each), the peer's on problems the default fails too. Decision: the verifier line
+on word problems stops (reported with CV-1: neither RL nor supervised labels teach a transferable check here); the open check is a
+model from another family (XPEER).
