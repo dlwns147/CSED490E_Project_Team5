@@ -7,7 +7,7 @@ held-out sets' cheap prompt (run_nlopt.P_FREE):
 Each program runs in the sandbox as run_nlopt does (60 s, 4 GB) and is graded against the gold optimum (run_nlopt.correct).
 Rows: $POC_DATA/optmath_train/td/td_<tag>_p<j>.jsonl = {id, gold, quick: [{code, pred, runs, right, tok}], sb: {...}, t: {...} | null}
 (code only, not the text: the SFT targets are the programs; poc/td_build.py). Resumes.
-usage: TD_SUBSET=j/k POC_BASE_URL=... python td_gen.py <tag> [N 2000]"""
+usage: TD_SUBSET=j/k [TD_FROM=0] [TD_ARMS=quick] POC_BASE_URL=... python td_gen.py <tag> [N 2000]"""
 import json, os, random, sys, zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -40,6 +40,8 @@ def one(p):
     per = r.usage.completion_tokens / G
     for x in quick:
         x["tok"] = round(per)   # vLLM reports the total over the n samples
+    if os.environ.get("TD_ARMS") == "quick":   # RFT data only (PREREG_TD.md addendum RF)
+        return {"id": p["id"], "gold": p["gold"], "quick": quick, "sb": None, "t": None}
     o = budget_chat(q, 2000, max_tokens=8192, temperature=0.7, seed=sd)
     sb = dict(grade(o["text"], p["gold"], o["out_tokens"]), think=o.get("think_tokens"))
     t = None
@@ -54,7 +56,7 @@ def main():
     n = int(sys.argv[2]) if len(sys.argv) > 2 else 2000
     items = [json.loads(l) for l in open(f"{DATA}/optmath_train/wp_train_items.jsonl")]
     random.Random(0).shuffle(items)
-    items = items[:n]
+    items = items[int(os.environ.get("TD_FROM", 0)):n]   # TD_FROM: skip the first problems of the order (addendum RF: 2000 4000)
     j, k = map(int, os.environ.get("TD_SUBSET", "0/1").split("/"))
     items = items[j::k]
     os.makedirs(f"{DATA}/optmath_train/td", exist_ok=True)
@@ -68,7 +70,7 @@ def main():
                 print(tag, j, "request failed, no row:", repr(e)[:200], flush=True)
     R = _rows(path)
     qr = sum(any(x["right"] for x in r["quick"]) for r in R)
-    tr = sum(r["sb"]["right"] or bool(r["t"] and r["t"]["right"]) for r in R)
+    tr = sum(bool(r["sb"] and r["sb"]["right"]) or bool(r["t"] and r["t"]["right"]) for r in R)
     print(tag, j, f"{len(R)} problems: quick right in any of {G} {qr}, thinking right {tr}", flush=True)
 
 

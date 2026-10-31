@@ -109,3 +109,34 @@ base-never problems (65.3% of the 249 covered ones). A perfect quick program (al
 2.1% of the way on the base-never problems; RFT reached about a third of the covered ceiling (+1.54 − base +0.67 of +3.71 − 0.67).
 With this peer, coverage expansion on word problems is capped by what the peer also answers: the bilinear account's term
 P(N right) × P(peer right) is small where the peer is weak — the same cap as on tool calls (P(peer right, default wrong)).
+
+## Addendum RF: RFT on WP-RL's 4,000 problems (written 2026-10-31 04:1x UTC, before any of its rows and before any WP-RL held-out row)
+
+**Why it could change the claim.** TD's result: on word problems training pays by sharpening (RFT's cascade gain is all on the
+problems the base covers, +1.54 [+0.65, +2.47]; total +0.87 [−0.08, +1.86] over the default, not significant). Two open questions
+decide the recipe's training step: (a) does sharpening make the word-problem cascade pay (the claim says it saves nothing there)?
+(b) is on-policy RL needed — WP-RL (plain RL, 63 rounds on 4,000 OptMATH-Train problems, 8 rollouts each, ~14 h on 3 GPUs) — or does
+one round of RFT on the same problems and the same number of samples do as well (~3 h)? Prior work: RFT gains with more distinct
+right samples (2308.01825); expert iteration (ReST-EM, 2312.06585, TMLR) and a rejection-sampling baseline trained only on rewarded
+samples are competitive with GRPO / PPO, GRPO's edge coming mostly from dropping prompts with no right sample (RAFT++, 2504.11343);
+in the project, plain RL on SQL / tool calls (CV-1, TC-RL). New here: the comparison inside a check-gated cascade, with the gain split
+by base coverage (sharpening vs new answers) and the check's precision reported.
+
+**Run.** 8 quick programs per problem for WP-RL's problems 2,001–4,000 (`TD_FROM=2000 TD_ARMS=quick poc/td_gen.py q8bq2 4000`, the
+same prompt, sampling and grading as TD's quick programs); `python3.11 poc/td_build.py q8b --rft-all q8bq2` → sft_rft4k_q8b (per
+problem the first right program of 8, all 4,000 problems, no size matching); the TD lane unchanged (DT's recipe; tag q8brft4k);
+`python3.11 poc/analyze_rf.py` (written and tested before any row: with TD's rows standing in it reproduces TD's numbers).
+
+**Predictions** (476 problems × 3 seeds, paired 95% intervals over problems, utility = accuracy − 0.5 × ktokens):
+- **RF-P1 (the claim):** rft4k → peer → SB→T→T minus SB→T→T: lower bound > 0.
+- **RF-P2 (scale):** rft4k cascade − rft cascade (2,000 problems): lower bound > 0.
+- **RF-P3 (RL needed?):** rft4k cascade − WP-RL's q8bwp1 cascade: lower bound > −0.5 (non-inferior within 0.5 utility points,
+  1,000 tokens per problem); if the lower bound is above 0, RFT wins.
+- Reported: quick right, tokens, right | passes, per benchmark, the base-never / covered split for each arm.
+
+**Decision.** P1 holds → the word-problem claim changes: with the quick program sharpened by one round of RFT, the peer cascade beats
+the default on word problems too (PROJECT / REPORT / PROPOSAL). P3 holds (non-inferior) → the recipe's training step is one round of
+RFT (cheaper than RL by about 5× in GPU time here); P3 refuted → on-policy RL is needed. P2 refuted → the 2,000-problem RFT is
+already at its data plateau.
+
+Expected (not a rule): P1 holds narrowly (+1.0 to +1.5), P2 inconclusive, P3 holds.

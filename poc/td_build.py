@@ -3,7 +3,7 @@ Random(0) sample of the larger). td: per problem the thinking program that is ri
 problem the first of the 8 quick programs that is right (rejection-sampling fine-tuning, RFT 2308.01825, on the model's own quick mode).
 Prompt = run_nlopt.P_FREE (thinking off at training), target = the program in a Python block, as DT (poc/sft_lora.py).
 Writes $POC_DATA/optmath_train/sft_{td,rft}_<tag>.jsonl (td/ is written by the container as root) and prints the coverage table.
-usage: python td_build.py <tag>"""
+usage: python td_build.py <tag> [--rft-all <tag2> ...]"""
 import glob, json, os, random, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -12,7 +12,21 @@ from run_nlopt import P_FREE, _rows  # noqa: E402
 DATA = os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nlp_data")
 
 
+def rft_all(tags):
+    """addendum RF: per problem the first right quick program, over the rows of every tag (no size matching) -> sft_rft4k_<tag 1>"""
+    Q = {r["id"]: r["q"] for r in map(json.loads, open(f"{DATA}/optmath_train/wp_train_items.jsonl"))}
+    R = {r["id"]: r for t in tags for f in sorted(glob.glob(f"{DATA}/optmath_train/td/td_{t}_p*.jsonl")) for r in _rows(f)}
+    S = [{"id": i, "prompt": P_FREE.format(q=Q[i]), "target": "```python\n" + qk["code"].strip() + "\n```"}
+         for i, r in sorted(R.items()) for qk in [next((x for x in r["quick"] if x["right"]), None)] if qk]
+    with open(f"{DATA}/optmath_train/sft_rft4k_{tags[0]}.jsonl", "w") as f:
+        for x in S:
+            f.write(json.dumps(x) + "\n")
+    print(f"{len(R)} problems, quick right in any of 8: {len(S)}; sft_rft4k_{tags[0]}: {len(S)} examples")
+
+
 def main():
+    if "--rft-all" in sys.argv:
+        return rft_all([sys.argv[1]] + sys.argv[sys.argv.index("--rft-all") + 1:])
     tag = sys.argv[1]
     Q = {r["id"]: r["q"] for r in map(json.loads, open(f"{DATA}/optmath_train/wp_train_items.jsonl"))}
     R = [r for f in sorted(glob.glob(f"{DATA}/optmath_train/td/td_{tag}_p*.jsonl")) for r in _rows(f)]
