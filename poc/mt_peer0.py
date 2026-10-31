@@ -100,6 +100,7 @@ def main():
                 RC[(a, "n")] += 1; RC[(a, "okN")] += ok; RC[(a, "okA")] += aok; RC[(a, "tokN")] += tk; RC[(a, "tokA")] += atk
                 RC[(a, "okP")] += aok if fl else ok; RC[(a, "tokP")] += tk + ptk + (atk if fl else 0)
                 RC[(a, "okV")] += aok if vis else ok; RC[(a, "tokV")] += tk + (atk if vis else 0)   # MT-R: redo the turn from its start
+                RC[(a, "vfix" if not ok else "vharm", vis)] += (aok != ok)
                 RC[(a, "flag", ok)] += fl; RC[(a, "fix" if not ok else "harm", fl)] += (aok != ok)
             k = ("R" if ok else "W") + ("V" if vis else "S")
             C[(k, "n")] += 1
@@ -121,7 +122,8 @@ def main():
               f"{RC[(a, 'tokP')] / n:.0f}; flagged: {RC[(a, 'flag', False)]} wrong N turns ({a} fixes {RC[(a, 'fix', True)]}), "
               f"{RC[(a, 'flag', True)]} right N turns ({a} breaks {RC[(a, 'harm', True)]}); unflagged wrong N turns {a} would fix: "
               f"{RC[(a, 'fix', False)]}; N -> visible failure -> redo the turn from its start with {a}: {100 * RC[(a, 'okV')] / n:.1f}% @ "
-              f"{RC[(a, 'tokV')] / n:.0f}")
+              f"{RC[(a, 'tokV')] / n:.0f} ({a} fixes {RC[(a, 'vfix', True)]} / breaks {RC[(a, 'vharm', True)]} visible-failure turns; "
+              f"fixes {RC[(a, 'vfix', False)]} / breaks {RC[(a, 'vharm', False)]} of the rest)")
 
 
 if __name__ == "__main__":

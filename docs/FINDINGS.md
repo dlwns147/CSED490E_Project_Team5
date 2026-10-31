@@ -4672,8 +4672,8 @@ rows: the redo of a turn from its start is T's own turn 0 (same start state, con
 T 68.6% @ 1,799; T 71.4% @ 2,090; with F's turn 0 as the redo 65.7% @ 1,524. Rollback beats E's one-step escalation by 5.8 points at
 +373 tokens, and recovers 80% of T − N against E's 38%, but it stays 2.8 points below T for 291 fewer tokens (−2.65 utility at 0.5
 per 1k): thinking costs 0.9 utility per turn and is worth 13.8 points, so a cheap first step pays only if its check passes almost no
-wrong turn that thinking would fix. The visible-failure check passes 128 of them at turn 0 (7.1 points; the peer's end-state check
-misses about as many). Decision (written before the Qwen3-14B-AWQ and Qwen3.5-9B rows are complete): no rollback arm is run for
+wrong turn that thinking would fix. The visible-failure check passes 90 such turns at turn 0 and spares 38 right turns T would break
+(net 2.9 points; T fixes 272 and breaks 75 of the flagged ones); the peer's end-state check passes 128. Decision (written before the Qwen3-14B-AWQ and Qwen3.5-9B rows are complete): no rollback arm is run for
 Qwen3-8B; the same counterfactual is computed for the other two models when their rows land, and a rollback arm (MT-R, pre-registered
 then) is run only for a model whose turn-0 rollback ties or beats T in utility. Goal link: in agent loops the fewest-token exact answer
 starts with thinking for this model; the free check is too weak to gate thinking off.
