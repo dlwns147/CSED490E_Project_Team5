@@ -1,13 +1,15 @@
-"""MT (docs/prereg/PREREG_MT.md): multi-turn function calling (BFCL v4 multi_turn_base, prompt mode), where the free check is the
-environment's own error message at every step. One arm per run (each arm is its own trajectory: a step changes the state the next step
+"""MT (docs/prereg/PREREG_MT.md): multi-turn function calling (BFCL v4 multi_turn_base / miss_param / miss_func, prompt mode), where
+the free check is what the environment shows at every step (an error, or no progress). One arm per run (each arm is its own trajectory: a step changes the state the next step
 sees). Per item: BFCL's system prompt with the involved classes' function docs, then each turn's user message; within a turn the model
 answers, its calls ([func(arg=value), ...], decoded as BFCL's default_decode_execute_prompting) run in BFCL's own environment
 classes (multi_turn_utils.execute_multi_turn_func_call), each result goes back as a tool message, until the model answers without a
-decodable call (the turn ends) or after 20 steps (BFCL's limit: the item fails). Arms, per step:
+decodable call (the turn ends) or after 20 steps (BFCL's limit: the item fails; so does a conversation that outgrows the context). Arms, per step:
   N  non-thinking (2,048-token cap)
   T  thinking (8,192-token cap)
-  E  the free check at every step: non-thinking, but thinking for the step after any call of the previous step (same turn) returned
-     an error (an "Error during execution" string or a JSON object with an "error" key); the failed calls and errors stay in the context
+  E  the free check at every step: non-thinking, but thinking for the step after a visible failure of the previous step (same turn):
+     a call returned an error (an "Error during execution" string or a JSON object with an "error" key), or the step repeated the
+     previous step's calls with the same results (no progress; added after the smoke, where non-thinking loops ended 4 of 10 items);
+     the failed step and its results stay in the context
   F  thinking for the first step of each turn (the new request), then as E
 Rows (results/tc/mt_<tag>_<arm>_s<seed>.jsonl): per turn, per step {calls, think, tok, err, end}; the item's output tokens; graded
 offline by poc/grade_mt.py (BFCL's multi_turn_checker). Rows resume.
@@ -18,6 +20,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 sys.dont_write_bytecode = True   # the BFCL package is imported read-only from the grader venv (through $POC_DATA/bfcl/pkg)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from llm import chat_msgs  # noqa: E402
+from openai import BadRequestError  # noqa: E402
 from run_nlopt import _rows  # noqa: E402
 
 PD = os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nlp_data")
@@ -103,7 +106,12 @@ def is_err(res):
 
 
 def answer(msgs, think, seed):
-    o = chat_msgs(msgs, think=think, max_tokens=TMAX if think else NMAX, temperature=0.7, seed=seed)
+    try:
+        o = chat_msgs(msgs, think=think, max_tokens=TMAX if think else NMAX, temperature=0.7, seed=seed)
+    except BadRequestError as e:   # the conversation outgrew the context: the item fails, as an inference error fails it in BFCL
+        if "context" not in str(e).lower() and "too long" not in str(e).lower() and "maximum" not in str(e).lower():
+            raise
+        return "", 0, "overflow"
     t = o["text"]
     if "</think>" in t:
         t = t.split("</think>")[-1]
@@ -120,12 +128,16 @@ def run_item(p, tag, arm, seed):
     turns, tok, quit_ = [], 0, False
     for ti, um in enumerate(p["turns"]):
         msgs += um
-        steps, prev_err = [], False   # an error flags the next step of the same request only
+        steps, prev_err = [], False   # a visible failure flags the next step of the same request only
         for k in range(STEPS + 1):
             think = arm == "T" or (arm in ("E", "F") and prev_err) or (arm == "F" and k == 0)
             sd = seed * 100003 + zlib.crc32(f"{p['id']}/{ti}/{k}".encode()) % 99991
             text, n, fin = answer(msgs, think, sd)
             tok += n
+            if fin == "overflow":
+                steps.append({"calls": [], "think": think, "tok": 0, "fin": fin})
+                quit_ = True
+                break
             msgs.append({"role": "assistant", "content": text})
             try:
                 calls = decode(text)
@@ -138,10 +150,14 @@ def run_item(p, tag, arm, seed):
             errs = [is_err(r) for r in res]
             for c, r in zip(calls, res):
                 msgs.append({"role": "tool", "name": c, "content": r})
-            steps.append({"calls": calls, "think": think, "tok": n, "fin": fin, "err": errs, "res": [r[:200] for r in res]})
-            prev_err = any(errs)
+            loop = bool(steps) and steps[-1]["calls"] == calls and steps[-1].get("full") == res
+            steps.append({"calls": calls, "think": think, "tok": n, "fin": fin, "err": errs, "loop": loop, "res": [r[:200] for r in res],
+                          "full": res})
+            prev_err = any(errs) or loop
             if k == STEPS:
                 quit_ = True
+        for st in steps:
+            st.pop("full", None)
         turns.append(steps)
         if quit_:
             break
