@@ -1,4 +1,4 @@
-"""MT exploratory (FINDINGS 2026-10-31 15 UTC): can a peer see the silent failures of an agent turn? At turn 0 every N trajectory of an
+"""MT exploratory (FINDINGS 2026-10-31 15:1x UTC): can a peer see the silent failures of an agent turn? At turn 0 every N trajectory of an
 item starts from the same conversation and the same environment state, so the three seeds of one model are three independent
 non-thinking rollouts of that turn, and another model's rollouts are rollouts of the same turn too. For each rollout and one peer
 rollout (the next seed of the same model, or the same seed of the peer model), agreement on the turn's calls, on the end state of

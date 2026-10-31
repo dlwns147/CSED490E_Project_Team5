@@ -4560,7 +4560,7 @@ the gain is tokens on problems both get right (gpt-oss-20b agrees on 92.8% of th
 3 / 4 cells). Raw: the wrong programs gpt-oss-20b confirms share Qwen3-8B's reading of the statement (a dropped 120-hour total; "40%
 of the transportation" as a share of vehicles). Next: MAMO (XP-P6 decides the Qwen3-8B default), AL-P5..P7 with the MAMO cells.
 
-## 2026-10-31 15:3x UTC: MT, exploratory: another model's end state sees the silent failures of an agent turn; the calls do not, and the same model mostly does not
+## 2026-10-31 15:1x UTC: MT, exploratory: another model's end state sees the silent failures of an agent turn; the calls do not, and the same model mostly does not
 Purpose: the free check of an agent loop (an error, or no progress) sees most failures, but not the silent ones. On Qwen3-8B's
 finished N arm, 85% of wrong item-seeds show a visible failure, and the WS stratum is 12.2% of item-seeds. Reading them, the silent
 failures are semantic: a wrong stock symbol, a tag without its "#", a skipped last call. Free signals in the results do not separate
