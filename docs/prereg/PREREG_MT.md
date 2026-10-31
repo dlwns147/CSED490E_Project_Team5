@@ -91,3 +91,94 @@ about half its tokens, so P2 holds for one or two models and P3 for all three; P
 *Analysis (written 2026-10-31 12:3x UTC, tested on the smoke rows, before any main row was read): per model `/home1/leesangjun/venvs/bfcl/bin/python
 poc/grade_mt.py <tag>`, then `python3.11 poc/analyze_mt.py > results/mt.txt` (MT-P1..P5 as above; items every arm has at every
 seed). Main jobs 1287864–1287872 submitted 12:3x UTC.*
+
+## Addendum (written 2026-10-31 13:5x UTC): input tokens — secondary analysis
+
+**Why it could change the claim.** The primary utility prices output tokens only. In an agent loop every step sends the whole
+conversation again, so the arms also differ in the input tokens they make the server read. In the smoke, replayed (below), the input
+per item was 100–135k tokens against 0.3–5.4k output. N read the most (17.2 steps per item) and T the least (12.8). Counting every
+token, T used fewer than N (105.6k against 135.2k on the 19 common items). If that holds on the main rows, "thinking costs tokens"
+is wrong in agent loops for anyone who pays for input without a cache. The agent-loop row would then have to name its cost model.
+
+**Theory.** Let S be the system prompt and c_k the history at step k, so step k's prompt is S + c_k. K steps then read
+Σ_k (S + c_k) ≥ K·S input tokens, and the total grows quadratically in K because c_k grows with k (as in 2607.21503).
+
+*Without a cache.* Suppose a think costs t output tokens and saves ΔK later steps whose mean prompt is p̄. It lowers the total
+token count iff ΔK·p̄ > t. In the smoke p̄ ≈ 7.8k, so a 0.4–2.6k think pays if it saves 0.05–0.33 of a step.
+
+*With a cache.* Price a cached input token at ρ_c and a new one at ρ, both in output-token units. A step then costs
+ρ_c·p̄ + ρ·n̄, where n̄ ≈ 0.46k is the new input per step in the smoke. At ρ = 0.25 and ρ_c = 0.025 that is about 0.31k
+output-equivalent tokens, so the same think pays only if it saves 1.3–8 steps.
+
+So without a cache, thinking that ends loops lowers the cost. With a cache, output tokens carry the differences between arms, and
+the primary verdicts should stand.
+
+**Prior work (IDs opened 2026-10-31 13:5x UTC).**
+
+| Paper | Relevance |
+|---|---|
+| Kapoor et al., "AI Agents That Matter" (2407.01502) | Agent evaluations should be cost-controlled, in dollars that include input |
+| Cuadron et al. (2502.08235) | Reasoning models over-think in agentic tasks: fewer environment interactions, lower resolution. Here the opposite effect is asked: whether thinking ends loops |
+| "How Do AI Agents Spend Your Money?" (2604.22750) | Cache reads are the largest cost of coding agents |
+| 2607.21503 | Re-sending the history makes cumulative cost quadratic in the conversation length |
+| 2608.22237 | Re-reading observations dominates agent token use |
+
+None of these prices the free-check arms of one model against each other.
+
+**Measure.** `poc/mt_cost.py replay <tag>` (grader venv) replays every trajectory: its calls run again in BFCL's environment
+classes, and every step's prompt is counted with the Qwen3 chat template and tokenizer. The same unit is used for every model;
+Qwen3.5-9B's own tokenizer is not on the login node. Two quantities are kept per step:
+- P_k, the prompt;
+- new_k = P_k − P_(k−1), the part a prefix cache over the previous request does not hold.
+
+Answers are counted as follows:
+- Non-thinking steps count their output tokens minus the stop token, which is exact.
+- Thinking steps count the re-serialized calls. A thinking final text counts only its stored first 300 characters, so long final
+  answers of thinking steps are undercounted. This undercount favours T and F by about 1–3% of input.
+
+`poc/mt_cost.py report` gives every arm's input, new input and total, the tests below, and utilities at four price settings:
+
+| ρ | ρ_c |
+|---|---|
+| 0.25 | 0.025 (cached) |
+| 0.25 | 0.25 (no cache) |
+| 0.1 | 0.01 (cached) |
+| 0.5 | 0.05 (cached) |
+
+Here ρ = 0.25 is a typical API ratio of input to output price, and ρ_c = ρ/10 is a typical cache-read discount. Tested on the smoke
+rows: the replayed results matched the stored ones with 0 mismatches.
+
+**Predictions (secondary).** Paired 95% intervals over items of seed means. Each prediction needs 2 of 3 models.
+- **MT-S1:** T − N input tokens per item: upper bound < 0 (thinking shortens the loop).
+- **MT-S2:** T − N input + output tokens per item: upper bound < 0. Counting every token, always thinking costs less than never
+  thinking.
+- **MT-S3:** E − T input tokens per item: lower bound > 0. The free check saves output tokens, and E re-reads more than T.
+- **MT-S4:** with input priced at ρ = 0.25 and ρ_c = 0.025, the verdicts of MT-P2, MT-P3 and MT-P4 (lower bound > 0) are the same as
+  under the primary utility, for all three tests of the model.
+
+**Decision.**
+- S2 holds: the agent-loop row reports both costs and states that, counting re-read input, thinking at every step costs fewer
+  tokens than never thinking.
+  - If S4 holds, the output-token verdicts stand for a reader with a prefix cache.
+  - Either way, "fewest tokens" for agent loops is stated with its cost model. The claim's cost sentence changes in PROJECT and
+    REPORT, and in PROPOSAL if the agent-loop row enters it.
+- S2 refuted: output tokens stay the measure for agent loops, and input is reported.
+- S4 refuted: the agent-loop verdict depends on the cost model, reported per model.
+
+Expected (from the smoke; not a rule):
+- S1 and S3 hold for all three models.
+- S2 holds for 2 of 3, since T's ~5k extra output is set against a ~30k input saving.
+- S4 holds.
+
+*Disclosure.* This addendum was written after reading the q8b N main grades (13:4x UTC), which had finished for all three seeds:
+- accuracy 16.7% at 0.50k output tokens and 15.8 steps per item;
+- strata RV 10.3%, RS 6.4%, WV 71.1% and WS 12.2% of item-seeds, so 85% of N's wrong item-seeds show a visible failure;
+- 36% of N's wrong item-seeds are force-quit at the 20-step limit.
+
+No main E, F or T row had been graded or replayed. Simple free signals do not separate N's silent failures from its silent successes
+(N rows only, exploratory):
+- a "false" or "not found" status in a result: 11 of 220 WS against 10 of 115 RS;
+- a turn ending in "[]" or empty text: 62 of 220 against 30 of 115.
+
+The silent failures read so far are semantic: a wrong symbol, a missing tag prefix, a skipped last call. The main rows are replayed
+on a CPU node when the runs finish, which takes about 10 minutes.

@@ -289,8 +289,8 @@ accuracy predicts. No tool-call run follows from this addendum.
 With the Qwen peer (pre-registered comparison) on the same problems: Qwen3-8B +0.53 [−0.47, +1.44], Qwen3-14B-AWQ +0.68 [−0.11,
 +1.51]. These 403 problems are easier than the stored third (the default is right 72.4% / 72.7%; on the four stored sets 53–54%), so
 the decisive strata are small: for Qwen3-8B 32 problem-seeds where only N is right and 70 where only the default is right, out of
-1,209. Half of the realised gain is tokens: on the 598 problem-seeds both get right, gpt-oss-20b agrees on 92.8% (the Qwen peer 85.8%),
-and each agreement saves the default's 5k tokens. The stratified prediction overshoots by 0.95 / 0.67 here, as on the stored cells
+1,209. Much of the realised gain is tokens: on the 598 problem-seeds both get right, gpt-oss-20b agrees on 92.8% (the Qwen peer 85.8%),
+and each agreement saves the default's 5k tokens (accuracy +0.58 of the +0.94; the rest is tokens). The stratified prediction overshoots by 0.95 / 0.67 here, as on the stored cells
 (0.67 / 0.69). PND gains less than on the stored rows (+0.77 vs +2.31) because the short think's decisive strata shrink with
 difficulty too: 29 problem-seeds where SB is wrong and T→T right, 21 the reverse.
 

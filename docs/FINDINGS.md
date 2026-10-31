@@ -4555,7 +4555,7 @@ Purpose: decide out of sample whether a cheap answer from another family makes c
 saves nothing there). OptiBench's other 403 problems, thinks run fresh (jobs 1287120–1287125). Qwen3-8B → gpt-oss-20b agrees → N, else
 SB→T→T: +0.94 [+0.19, +1.75] utility over the default (XP-P3 holds; predicted +1.89); Qwen3-14B-AWQ +0.48 [−0.31, +1.29] (XP-P4 not
 shown); the Qwen peer +0.53 / +0.68 (n.s.). PND (the peer also gates the short think) +0.77 [−0.38, +1.95] / +0.51 (XP-P8 / P10 not
-shown → PND not adopted). The set is easy (default 72% right), the decisive strata small (32 / 70 of 1,209 problem-seeds), and half
+shown → PND not adopted). The set is easy (default 72% right), the decisive strata small (32 / 70 of 1,209 problem-seeds), and about a third of
 the gain is tokens on problems both get right (gpt-oss-20b agrees on 92.8% of them, the Qwen peer 85.8%). XP-P5 refuted (2 / 4 and
 3 / 4 cells). Raw: the wrong programs gpt-oss-20b confirms share Qwen3-8B's reading of the statement (a dropped 120-hour total; "40%
 of the transportation" as a share of vehicles). Next: MAMO (XP-P6 decides the Qwen3-8B default), AL-P5..P7 with the MAMO cells.
