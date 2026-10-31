@@ -192,3 +192,23 @@ on two GPUs each with tensor parallel 2, as Qwen3-8B (jobs 1288521–1288526). T
 Rows resume, and no row file had a torn last line. Items in flight were lost and rerun from their first step with the same per-step
 seeds. Rows written on one GPU and on two may differ only as the server's batch nondeterminism already makes them differ. Nothing in
 the analysis changes.
+
+*Interim (written 2026-10-31 19:0x UTC; one model of three, no decision: every prediction needs 2 of 3 models).* Qwen3-8B, 600 items × 3
+seeds, every row (`results/mt_q8b.txt`, `results/mt_cost_q8b.txt`): N 16.7% @ 0.50k output tokens, E 23.7% @ 3.62k, F 29.1% @ 5.21k,
+T 30.8% @ 6.84k. MT-P1 T − N accuracy +14.17 [+11.00, +17.33] (holds); MT-P2 E − T utility −5.50 [−8.66, −2.29] (refuted, and E is
+worse); MT-P3 E − N +5.50 [+3.43, +7.54] (holds); MT-P4 F − E +4.53 [+1.55, +7.41] (holds); MT-P5 holds (85.3% of N's wrong
+item-seeds visible; E − N +8.33 on visible vs +1.49 on silent). Secondary: S1–S4 hold (T − N input −33.0k per item; input + output
+−26.6k; E − T input +19.4k; the P2–P4 verdicts are the same with input priced, cached or not). Where E loses to T (N's strata,
+item-seeds): on N's visible failures (WV, 1,280) E is right on 13.0% and T on 25.3%, on silent failures (WS, 220) 3.2% vs 24.5%,
+while T breaks N's right trajectories more often (RS 115: E 98.3%, T 68.7%; RV 185: 76.2% vs 53.0%). Most of T − E comes from
+visible failures, not from the silent ones the addendum expected: thinking after the environment reports an error recovers half as
+often as thinking from the start.
+
+*Infrastructure note (2026-10-31 19:0x UTC).* The six single-GPU jobs cancelled at 15:08 UTC (1287864/65/67/68/70/71) did not run job.sh's
+cleanup: `scancel` ended the `docker exec` client, not the container, and one container (1287865, Qwen3.5-9B seed 1, node n27) kept
+its server and four clients running outside Slurm until it was removed at 19:06 UTC (a job on that node, `docker rm -f`). Its rows
+went into the same files as the resubmitted job 1288522 (done 17:37 UTC) from another node, and the NAS lost lines under the two
+writers: Qwen3.5-9B seed 1 has 543–566 distinct items per arm (duplicates 72–138, torn lines 31–57; every other model-seed ≤ 4
+duplicates and ≤ 1 torn line). Each surviving row is a complete trajectory under the same protocol and per-step seeds (the loader
+keeps the last row of an item). The missing items are being rerun (job 1289417, rows resume). No other node held a container of the
+cancelled jobs (checked on n20, n24, n25, n27; n26 pending).

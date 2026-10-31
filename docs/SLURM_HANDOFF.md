@@ -182,6 +182,12 @@ unless asked.
   Qwen/Qwen3-32B-AWQ, Qwen/Qwen3-4B, Qwen/Qwen3-1.7B, Qwen/Qwen3.6-35B-A3B-FP8, tangzhy/STORM-Qwen3-4B, CardinalOperations/ORLM-LLaMA-3-8B,
   deepseek-ai/DeepSeek-R1-Distill-Qwen-7B, THU-KEG/AdaptThink-7B-delta0.05, Goedel-LM/Goedel-Prover-V2-8B, deepseek-ai/DeepSeek-Prover-V2-7B.
 
+- **Cancelling a job.sh job leaves its container running (found 10-31 19:0x UTC).** `scancel` kills the `docker exec` client, not the
+  container, and job.sh's cleanup trap does not run, so the server and clients go on outside Slurm (holding a GPU other jobs are then
+  given, and writing into the same result files as any resubmission: the NAS loses lines under two writers). After every `scancel`,
+  remove the container on its node (the job's first log line names the node): `sbatch -J ghostkill -p RTX3090 -w <node> --gres=gpu:1
+  --cpus-per-task=4 -o /home1/leesangjun/out/nlp/%j.out --wrap "docker ps -q --filter name=leesangjun_nlp_<jobid>_ | xargs -r docker rm -f"`.
+
 ## 5. Environment (versions that produced every number)
 - Server: vLLM 0.22.0, torch 2.11.0+cu130 (`/opt/conda`); `VLLM_USE_FLASHINFER_SAMPLER=0` (Blackwell). Qwen3.6 needs
   `--max-num-seqs 64 --language-model-only` (+ `--max-model-len 90000` for 80k thinking).
