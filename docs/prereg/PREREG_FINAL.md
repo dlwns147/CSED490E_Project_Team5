@@ -81,3 +81,8 @@ the same questions.
 **Decision (as pre-registered).** 4 of 5 hold: the SQL claim is confirmed on an untouched benchmark at a 5% family-wise error rate,
 named per generator (Qwen3-8B, Qwen3-14B-AWQ, gpt-oss-20b, and the trained Qwen3-8B quick query; not Qwen3.5-9B with Qwen3-8B as the
 peer). F5 holds, so the CV-1 claim stands beyond BIRD. PROJECT, REPORT and PROPOSAL cite the Spider numbers.
+
+*Sensitivity (written 2026-10-31 23:4x UTC; `results/final_dqs.txt`): the same rows graded on all 2,147 questions with a SQLite that accepts
+double-quoted literals (3.34.1, CPU job 1290642; tags <model>spq, copies of the sp rows): every verdict is unchanged — F1 +0.89
+[+0.11, +1.69], F2 +1.38 [+0.61, +2.24], F3 −0.23 [−0.91, +0.48], F4 +1.35 [+0.73, +1.98], F5 +3.14 [+2.34, +4.00]; 4 of 5 after Holm
+(p 0.013 / 0.0005 / 0.74 / 0.0001 / 0.0001), each holding test dominance, decisive-strata ratios within 27% of the all-passing ones.*
