@@ -406,7 +406,12 @@ default (SB→T→T), is more accurate *and* cheaper than the default for Qwen3-
 tokens) and Qwen3.5-9B (+1.9, utility +2.0 [+1.5, +2.5], 71%), and ties it for Qwen3-14B-AWQ (−0.3 [−0.8, +0.1], 77%); against T→T it
 holds in all three. It becomes the no-label default for tool calls when a second model is served. The same policy saves nothing on
 word problems (utility −0.7 to +0.1 at 101–105% of the default's tokens): there two models' wrong programs coincide 56–67% of the
-time, and the two cheap programs (1–6k tokens together) pass and agree on too few hard problems to pay for themselves.
+time, and the two cheap programs (1–6k tokens together) pass and agree on too few hard problems to pay for themselves. A peer of
+another family changes that for Qwen3-8B (XPEER, pre-registered): with gpt-oss-20b's quick program as the check the cascade beats the
+default on OptiBench's other 403 problems (+0.94 [+0.19, +1.75], one third of it tokens) and on MAMO (+4.37 [+3.34, +5.46]; 79.8% at
+2.11k tokens vs 76.1% at 3.51k), and for Qwen3-14B-AWQ on MAMO only (+4.40; OptiBench +0.48 n.s.). On MAMO any peer pays (the other
+Qwen3 model +3.0 / +4.2) because thinking over-models the short LP statements: an absolute value without a big-M, or a balance written
+as an equality, makes the model infeasible where the quick program's plain reading matches the label.
 
 **Where the check's independence comes from (SQL-DV, pre-registered).** The check enters the cascade only through two rates: how often
 it agrees with A's right answers (r, which saves the escalation) and with A's wrong ones (e, which lets errors through); a linear model

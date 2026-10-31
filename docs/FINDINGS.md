@@ -4638,3 +4638,15 @@ item-seeds with an F row): 67.4% @ 1,466 vs F 68.9% @ 1,564. A second seed of Qw
 1k tokens the gated policy ties F (69.1 vs 69.3 utility) before counting that the peer re-reads the whole context every turn (the
 agent loop's dominant cost, MT-S). Decision: no online peer arm now; it is revisited only if the main MT result (MT-P1..P5) shows that
 thinking at every turn's first step loses to thinking on visible failures.
+
+## 2026-10-31 17:0x UTC: XPEER MAMO (pre-registered XP-P6 / P7): the cross-family peer cascade beats the default on a second fresh set; the Qwen3-8B word-problem default changes
+Why: the word-problem claim said the cheap path saves nothing; XP-P3 (fresh OptiBench, +0.94) needed a second fresh set from another
+source before the default could change. MAMO (863, never used in peer analyses), 3 seeds: N → gpt-oss-20b agrees → N, else SB→T→T
+minus SB→T→T: Qwen3-8B +4.37 [+3.34, +5.46] (79.8% @ 2.11k vs 76.1% @ 3.51k), Qwen3-14B-AWQ +4.40 [+3.29, +5.62] (79.0% @ 1.90k vs
+75.2% @ 3.06k): more accurate and cheaper, at any token price. The other Qwen3 model as the peer gains too (+3.0 / +4.2): on MAMO the
+default's thinking is wrong where the quick program is right on 129 problem-seeds and the reverse on 71 (Qwen3-8B). Raw: the thinks
+over-model short LP statements ("difference at least 50" read as |x4 − x1| ≥ 50 with a binary but no big-M → infeasible; per-hospital
+balance written as an equality while total stock exceeds need → infeasible), or the short think's wrong value is accepted by the
+default where the full think is right. Decision (pre-registered): Qwen3-8B's word-problem default becomes the gpt-oss-20b peer cascade
+(XP-P3 and P6 hold; model-specific, P1 not shown); Qwen3-14B-AWQ's does not change (XP-P4 refuted); PND not adopted (XP-P8 refuted;
+P9 / P11 hold and are reported only). Goal link: the cheap path now pays on word problems for one model, by accuracy on MAMO.

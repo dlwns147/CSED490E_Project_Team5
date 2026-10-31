@@ -356,3 +356,29 @@ transfer bias of +1.6 that no split removes, so predictions from another model's
 stratified account as an exact decomposition of measured gains and states that, across models, the WR false-confirmation rate must be
 measured on the pair itself (it cannot be read from the peer alone). A per-pair term needs labels in a stratum of 5–12% of
 problem-seeds, more than the 30-label pilot gives; no new predictor is pre-registered from this.
+
+## Results, MAMO (XP-P6, P7, P9, P11; 2026-10-31 17:0x UTC; `results/xpeer_mamo.txt`; jobs 1287139–1287141 and the stored Qwen3-14B-AWQ think rows, 863 problems × 3 seeds, every row)
+
+| test | result (95% interval) | verdict |
+|---|---|---|
+| XP-P6 Qwen3-8B: N → gpt-oss-20b → SB→T→T − SB→T→T | +4.37 [+3.34, +5.46] utility (accuracy +3.67 [+2.67, +4.71]); 79.8% @ 2.11k vs 76.1% @ 3.51k | **holds** |
+| XP-P7 Qwen3-14B-AWQ, the same | +4.40 [+3.29, +5.62] (accuracy +3.82); 79.0% @ 1.90k vs 75.2% @ 3.06k | **holds** |
+| XP-P9 Qwen3-8B: PND − D | +4.39 [+3.24, +5.59] | **holds** |
+| XP-P11 Qwen3-14B-AWQ: PND − D | +4.41 [+3.19, +5.70] | **holds** |
+
+The other Qwen3 model as the peer: +3.02 [+2.13, +3.94] (Qwen3-8B) and +4.20 [+3.00, +5.45] (Qwen3-14B-AWQ); EasyLP +2.2 to +3.3,
+ComplexLP +5.5 to +10.0 for every pair. Unlike every other word-problem set, the cascade here is more accurate *and* cheaper than the
+default (dominance at any token price): the default's thinking is wrong where the quick program is right on 129 problem-seeds and the
+reverse on 71 (Qwen3-8B; gpt-oss-20b confirms 107 of the first, 12 of the second). Raw (10 random accepted cases where only N is right):
+the thinking programs over-model the statement. mamo_easy-388 ("the difference between x4 and x1 must be at least 50"): N writes
+x4 − x1 ≥ 50 (45,000, the label); the think writes |x4 − x1| ≥ 50 with a binary but no big-M, which makes both branches infeasible
+("No Best Solution"). mamo_complex-51 (hospitals with surplus stock): N requires stock + inflow − outflow ≥ need; the think requires
+equality for every hospital, infeasible since total stock exceeds total need. Of the other eight, two more are "No Best Solution"
+from both thinks, four are the short think's wrong value (25.01 twice, 16, 12.33 against 26, 18, 13) that the default accepts although
+the full think gets it right, one is the same wrong value from both thinks (4,800 against 3,400), and one a wrong short think followed
+by a capped full think. These are the model's errors, not label errors.
+
+**Decision (as pre-registered).** XP-P3 and XP-P6 hold → for Qwen3-8B the word-problem default becomes N → gpt-oss-20b agrees → N, else
+SB→T→T, stated as specific to Qwen3-8B (P1 not shown). XP-P7 holds but XP-P4 was refuted → Qwen3-14B-AWQ's default does not change.
+XP-P8 was refuted → PND is not adopted for Qwen3-8B whatever XP-P9 shows (addendum B's rule); P9 / P11 are reported only. Reading: the
+fresh OptiBench gain (+0.94) is one third tokens; on MAMO the gain is accuracy, because thinking hurts on these short LP statements.
