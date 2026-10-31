@@ -76,3 +76,56 @@ branches; the think never sees them. Analysis `poc/analyze_cont.py` (written bef
 - P4 holds → continuation and early exit combine; refuted → early exit is applied to a fresh think only.
 
 Expected (not a rule): P1 holds (+0.5 to +2), P2 refuted, P3 holds (D 3–10 points), P4 refuted, P5 inconclusive.
+
+## Addendum A: agreement as the stop signal (written 2026-10-31 01:5x UTC; predictions above unchanged)
+
+Written while the main rows accumulate (103–119 of 202 OptiBench, 14–31 of 82–100 on the other sets per seed so far); only row counts
+were seen, no outcome of any main row. The 4-problem BWOR smoke (tag q8bsmoke, not part of the results) was read earlier. Analysis
+`poc/analyze_conta.py` (written and tested on synthetic rows before any main row was analyzed); run after `analyze_cont.py`, on the
+same rows.
+
+**Why.** CONT's early exit stops at the first forced program that passes, and on word problems a passing program is often wrong
+(stored: right | passes 76 / 62 / 61 / 34%). The project's best label-free signal is agreement between two answers (HO-PA, CC-P2), and
+the peer cascade has already paid for two cheap programs (Qwen3-8B's, N, and Qwen3.5-9B's, the peer) when it escalates to the default.
+**Exploration on stored rows** (other runs; it chose the design, it is not evidence for the predictions): a passing 2,000-token cut
+program that agrees with the peer's quick program is right 85 / 88 / 95 / 36% (OptiBench third / BWOR / LogiOR / OptMATH), with N's
+84 / 79 / 92 / 32%, with neither 36 / 39 / 34 / 27%; requiring agreement before accepting the cut program inside the peer cascade
+gains +2.1 accuracy points at +3.1k tokens (+0.59 [−0.64, +1.78] utility over SB→T→T; LogiOR +2.88, OptMATH −1.43); requiring it of
+the full think as well loses (−0.11): the stricter check pays only if the tokens it adds come back, which exits inside the fresh think can do.
+
+**Theory.** For a problem with right value y* and two answer sources with value distributions a and b (sampled independently given the
+problem), P(right | they agree) = a(y*)b(y*) / Σ_y a(y)b(y): agreement is precise when the wrong values are spread and imprecise
+where the two share a wrong mode (one wrong formulation). Two forced programs of the same think share its prefix, the formulation in
+progress, so their wrong values coincide most; N's quick program shares the model; the peer shares neither. Predicted order of
+precision: the peer ≥ N > the same think's earlier program. The exit value at cut c is CONT's with "passes" replaced by "agrees":
+fewer exits, a smaller leak.
+
+**Prior work (IDs opened 2026-10-31).** Stop sampling once samples agree: Adaptive-Consistency (2305.11860, EMNLP 2023), ESC
+(2401.10480, ICLR 2024); probe the answer at fixed intervals of a think and stop when consecutive probes agree: Dynasor-CoT (Certaindex,
+2412.20993), Answer Convergence (2506.02536). **New here:** the anchor is an answer the cascade already paid for (another model's cheap
+program) rather than the same think's earlier answer, on executed programs with the free check, with cut points fitted under a token
+price; and a test of which anchor is precise, against the theory.
+
+**Policies** (per problem and seed, the thinks of this run; N and the peer = the stored formx rows of the same seed, the peer run only
+when N passes, as HO-PA): **RD** as above; **RDc** = RD whose exits inside the fresh think need the forced program to pass and agree
+with an earlier passing forced program of that think (convergence); **PR0** = N passes and the peer agrees → N, else R0 (reported);
+**PRA** = N passes and the peer agrees → N; else every later program (the cut of think s, the forced programs of think s2 at S) answers
+only if it passes and agrees with an earlier passing answer of the stream (N, the peer, the cut, earlier forced programs); think s2's
+end answers if it passes, then think s3's end; if none passes, the last passing think program. S for RD / RDc / PRA: greedy forward
+selection, cross-fitted, as above.
+
+**Predictions** (same intervals and utility as above):
+- **CA-P1:** RDc − RD: utility lower bound > 0.
+- **CA-P2 (the claim):** PRA − the stored default SB→T→T: utility lower bound > 0.
+- **CA-P3:** PRA − the stored peer cascade N→q35→SB→T→T: utility lower bound > 0.
+- **CA-P4 (the mechanism):** among passing forced programs (every cut of every think), right | agrees with the peer's quick program −
+  right | agrees with the latest earlier passing forced program of the same think: lower bound > 0 (bootstrap over problems).
+- Reported: the precision table by anchor (peer, N, the same think's earlier program, none), the fitted points, per benchmark, PR0.
+
+**Decision.** P2 and P3 hold → on word problems the default becomes the peer cascade with agreement exits (the free check inside the
+think is agreement with answers already paid for; PROJECT / REPORT / PROPOSAL), and the same is pre-registered on SQL. P2 holds, P3
+refuted → reported as a gain over the default only. P4 holds → exits anchor on another model's answer, not on the think's own earlier
+answer (reported against Dynasor-CoT / Answer Convergence); P4 refuted → the theory's independence ordering fails here. P1 holds →
+convergence exits beat pass-only exits inside a think.
+
+Expected (not a rule): P1 refuted, P2 inconclusive (+0.5 to +2), P3 inconclusive, P4 holds (+5 to +15 points).
