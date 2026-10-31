@@ -306,3 +306,30 @@ XP-P4 refuted → Qwen3-14B-AWQ's default does not change, whatever XP-P7 shows.
 not adopted for Qwen3-8B (addendum B's rule), whatever XP-P9 shows; XP-P9 / P11 are still decided and reported. XP-P5 refuted → the
 peer's two decisive agreement rates do not separate it from the Qwen peer in every cell: what separates them on these problems is
 mostly the token stratum (both right), which part 1's stratified prediction already counts but its mechanism statement did not name.
+
+## Addendum CAL: why the stratified prediction overshoots (written 2026-10-31 16:4x UTC, before `poc/analyze_cal.py` has been run)
+
+**Purpose.** Every out-of-sample prediction of the peer cascade overshot by about the same amount: +1.50 vs +0.83, +0.84 vs +0.15
+(stored rows, part 1), +1.89 vs +0.94 and +1.15 vs +0.48 (fresh OptiBench), and CV-P14 +2.35 vs +1.80 on SQL. The review
+(docs/notes/CRITIQUE.md, point 4) named a likely cause, the winner's curse: gpt-oss-20b was picked as the peer, among 7 stored peers, on
+the same rows that gave the calibration agreement rates. The other candidate is a transfer bias: the peer's agreement within a stratum
+depends on the N model, so rates measured on Qwen3-8B's programs do not carry to another model's. The two need different fixes
+(choose and calibrate on separate halves; or a per-model agreement term), and until one is known no predicted number in the report can
+be taken at face value.
+
+**Design (stored rows only; the four stored word-problem sets, 3 seeds).** 200 random half-splits of the problems (seeded). On half A,
+with Qwen3-8B as the calibration N: every stored peer's cascade gain (N → peer agrees → N, else SB→T→T, minus SB→T→T) and its
+agreement rate in each of the four strata of Qwen3-8B's passing programs; the selected peer k* = the one with the largest gain on A.
+On half B, for each target N (Qwen3-8B, Qwen3-14B-AWQ, Qwen3.5-9B, Nemotron-3-Nano) and each peer k ≠ N: the realised gain and the
+XPEER prediction (N's strata on B × the calibration agreement rates from A). Averaged over splits:
+- curse = gain of k* on A − realised gain of k* on B (Qwen3-8B);
+- e_sel(N) = predicted − realised on B for k*; e_all(N) = the same averaged over every peer (no selection).
+
+**Predictions.**
+- CAL-P1: curse ≥ 0.4 utility.
+- CAL-P2: |e_all(N)| ≤ 0.3 for at least 3 of the 4 target models (without selection the account carries across models).
+- CAL-P3: e_sel(N) − e_all(N) ≥ 0.3 for at least 3 of the 3 other target models (selection explains the overshoot).
+
+**Decision.** CAL-P1 and P3 hold, P2 holds → the overshoot is selection: every later prediction chooses on one half and calibrates on
+the other, and the report gives the split-sample numbers. P2 fails with e_all > 0.3 → a transfer bias: predictions from another model's
+calibration are withdrawn from the report, and the account gets a per-model agreement term (to be derived and pre-registered).
