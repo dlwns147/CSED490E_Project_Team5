@@ -136,3 +136,11 @@ rows (sampled: 4 of 879, OptiBench whole), and seed 1's right rates per set were
   greedy gives a fifth of the quick-right gain (+2.0 vs +12.3 points) and none of the cascade gain.
 - **Consequence.** On word problems the cheap path's three levers left are training (WP-RL, running), the thinking mode's programs
   (TD), and the default's own thinking cost (CONT, PREREG_CONT.md) — the last is where most of the tokens are.
+
+**SH-P3 result (2026-10-31 06:3x UTC, `results/sharp_wp.txt`; WP-RL's rows q8bwp1).** Support: 8 of 497 right trained samples
+(1.6%) are on problems no base seed 1–16 answers right — under 5%, holds (SQL 11.7%, tool calls 6.4% did not). Bound: trained
+cascade − sharp_16 cascade −2.47 [−3.62, −1.49] — lower bound ≤ 0, holds: on word problems plain RL is a partial sharpening (it reaches
+a sixth of what sharpening onto 16 base samples would give, +0.59 vs +3.06 over SB→T→T) and adds almost no answers the base never
+gives. The dated note's prediction (gain on the base-never items) is refuted: base-never −0.54 vs base −0.66, covered +1.13 vs +0.67.
+Unlike SQL and tool calls, on word problems RL on OptMATH-Train sharpens and does not expand. Not tested: whether the synthetic
+training problems simply lack the test sets' hard cases (a possible reason, not a finding).

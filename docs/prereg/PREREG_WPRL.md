@@ -57,3 +57,36 @@ training samples, 45–50% of the problems give a mixed group (a gradient); 12.5
 
 Expected (not a rule): P1 holds (+5 to +15 points, mostly fewer crashing programs), P3 holds (+0.5 to +2), P2 inconclusive or holds
 narrowly.
+
+## Results (2026-10-31 06:3x UTC; `results/wprl.txt`, `results/sharp_wp.txt`)
+
+63 rounds (4,000 problems; training rewards 62–79% right in the last rounds), final adapter, formx seeds 1–3 on the 476 problems.
+
+| test | result (95% interval) | verdict |
+|---|---|---|
+| WP-P1 trained quick right − base | +4.69 [+2.66, +6.79] points (30.1% → 34.8%) | **holds** |
+| WP-P2 trained N → Qwen3.5-9B → SB→T→T − SB→T→T | +0.59 [−0.32, +1.55] utility | refuted (not shown) |
+| WP-P3 trained cascade − base cascade | +0.58 [−0.14, +1.29] utility | refuted (not shown) |
+
+Per benchmark (trained cascade − SB→T→T): OptiBench third +2.09 [+0.17, +4.07] (quick right 50.5 → 59.6%), BWOR −1.30, LogiOR −0.63,
+OptMATH +0.23; the training gain is on the easiest set (OptiBench), none on OptMATH (14.3% → 14.3%).
+
+**Reported quantities.** The peer agrees with 77.0% of the base N's right passing programs and 30.7% of its wrong ones; with the trained
+N's, 77.8% and 29.9%: training raises how many passing programs are right (427 → 495 of 1,428 problem-seeds) but not how well the peer
+tells them apart. Accepted wrong where the default is right: 0.91 → 0.84 points; accepted right where the default is wrong: 1.12 →
+1.61. Error coincidence of passing wrong programs with the peer's: 62.2% → 60.1% (HO-PA's measure). Where the gain sits: on the 227
+problems no base sample of 16 answers right, the trained cascade − SB→T→T is −0.54 (base −0.66, the quick program's cost); on the
+covered problems +1.13 (base +0.67): the small gain is sharpening, as RFT's (+1.54 there, PREREG_TD.md). Only 8 of 497 trained right
+samples (1.6%) are on base-never problems (SH-P3, PREREG_SHARP.md).
+
+**Theory check.** Accepting a passing quick program instead of running the default gains +10.0 utility when it is right and loses
+−24.8 when it is wrong (stored rows), so an accept rule pays only above a 2.17 : 1 ratio of right to wrong accepts per program, and
+must also repay the peer's tokens (~1.7k on every passing N). The peer runs at 77.8 / 29.9 = 2.6 : 1 — just past the break-even, so
+the cascade gains little whichever N it checks. With the trained N a perfect check would gain +3.23 [+2.19, +4.43] (base +2.33): the
+training moved the ceiling by +0.9 and the realised gain by +0.6 (n.s.).
+
+**Decision (as pre-registered).** P1 holds, P3 refuted → better quick programs do not move the cascade, and the limit is the check,
+not the quick program: one peer confirms a third of the wrong passing programs (the shared formulation errors), and that ratio does not
+change with training. The recipe on word problems stays training-free; the check is what is now tested (VER, a trained verifier, whose
+break-even is the same 2.17 : 1 but at one generated token instead of the peer's ~1.7k). RF-P3 (RFT on the same 4,000 problems against
+this run) is decided when its evaluation lands; RFT on 2,000 problems already sits at +0.87 [−0.08, +1.86], level with WP-RL.

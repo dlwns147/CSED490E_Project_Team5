@@ -4429,3 +4429,17 @@ is unchanged; no CONT run on SQL / contest code. Next (pre-registered, PREREG_VE
 10,821 passing OptMATH-Train programs (labels in training only) to say whether a printed value is right, used as the gate at every step
 of the cascade. Break-evens computed from stored rows: gating the cut think's program pays if it rejects wrong programs 1.34× as
 often as right ones; gating the cheap program needs 2.17× and must repay the cheap program's cost; ceilings +4.4 / +2.6 (both +5.6).
+
+## 2026-10-31 06:3x UTC: WP-RL (PREREG_WPRL.md) and SH-P3: RL makes the quick program better on word problems but not the cascade — the peer check is at its break-even
+Purpose: the trained-cheap-path recipe (plain RL on the quick answer + another model's agreement + the default) beats the default on
+SQL and tool calls; WP-RL tested it on the project's main task family. Qwen3-8B, GRPO on 4,000 OptMATH-Train problems (63 rounds),
+held-out formx seeds 1–3. WP-P1 holds: quick right +4.69 [+2.66, +6.79] points (30.1 → 34.8%; OptiBench +9.1, OptMATH 0). WP-P2 /
+P3 not shown: cascade − SB→T→T +0.59 [−0.32, +1.55], − base cascade +0.58 [−0.14, +1.29]. Mechanism: the peer agrees with 77.8% of
+the trained N's right passing programs and 29.9% of its wrong ones (base 77.0 / 30.7%): training adds right programs (427 → 495) but
+not discrimination. From stored rows, accepting a passing quick program gains +10.0 utility when right and loses −24.8 when wrong, so
+a check needs > 2.17 right accepts per wrong one and must repay its own tokens; the peer sits at 2.6 : 1 and costs ~1.7k tokens per
+passing program. SH-P3 holds both ways: 1.6% of trained right samples are on base-never problems, and the trained cascade is −2.47
+[−3.62, −1.49] below the base sharpened onto 16 samples — on word problems RL sharpens (gain +1.13 on covered problems vs base +0.67;
+base-never −0.54 vs −0.66), unlike SQL / tool calls where it added answers. WP-RL ≈ RFT on 2,000 problems (+0.87 [−0.08, +1.86]).
+Decision: the recipe on word problems stays training-free; the limit is the check (VER running), and RF-P3 (RFT-4k vs this run)
+lands with td_rft4k.
