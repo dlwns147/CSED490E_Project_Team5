@@ -141,6 +141,8 @@ def main():
               f"{100 * sum(d[i][1] for i in jj) / len(jj):.2f}")
     for b in BENCH:
         jj = [i for i in ids if i.startswith(b + "/")]
+        if not jj:
+            continue
         print(f"  {b}: " + ", ".join(f"{k} {100 * sum(q[k][i][1] for i in jj) / len(jj):.2f}" for k in q if all(i in q[k] for i in jj)))
     # CT-P3: after a failed 2,000-token check, the end of the same think vs the end of a fresh think
     same, fresh = {}, {}
@@ -150,7 +152,7 @@ def main():
             if cut and not ok:
                 same.setdefault(f"{b}/{i}", []).append(float(data[b][0][s][i]["end"]["right"]))
                 fresh.setdefault(f"{b}/{i}", []).append(float(data[b][0][s % 3 + 1][i]["end"]["right"]))
-    dd = {i: sum(fresh[i]) / len(fresh[i]) - sum(same[i]) / len(same[i]) for i in same}
+    dd = {i: sum(fresh[i]) / len(fresh[i]) - sum(same[i]) / len(same[i]) for i in same} or {"none": 0.0}
     g = ci(dd)
     print(f"CT-P3 D (fresh - same end right | failed 2k check): {g[0]:+.2f} [{g[1]:+.2f}, {g[2]:+.2f}] points over {len(dd)} problems "
           f"({sum(len(v) for v in same.values())} problem-seeds); continuation saves 2,000 tokens = {LAM * 2:.1f} utility points each")
