@@ -7,7 +7,7 @@ usage: python cv_eval.py <cv|c1|c2> <tag> <adapter dir> <seed>   (POC_BASE_URL: 
 import json, math, os, sys, urllib.error, urllib.request, zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-os.environ["SQL_SPLIT"] = "dev"
+os.environ["SQL_SPLIT"] = os.environ.get("CV_EVAL_SPLIT", "dev")   # FINAL: CV_EVAL_SPLIT=spider, Spider's test items
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from cv_train import BASE_URL, RES, is_defer, post, prompt1, rows_of, run_query, turn2  # noqa: E402
 from prep_sql import ITEMS, extract  # noqa: E402

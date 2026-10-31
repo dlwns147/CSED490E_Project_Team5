@@ -3,7 +3,8 @@ raw/dev_20251106.json) on the SQLite databases of BIRD's dev.zip (2024-06-27, ex
 Rajkumar et al. (2204.00498): each table's CREATE TABLE statement and its first three rows (values cut at 50 characters), then the
 evidence and the question. Writes $POC_DATA/bird/sql_items.jsonl: id, db_id, difficulty, user (the prompt), gold (the gold query).
 Also the query extraction, the read-only execution and the free check shared by run_sql.py and grade_sql.py (no client imports).
-usage: python prep_sql.py   (SQL_SPLIT=train: CV-1's training items, $POC_DATA/bird/sql_train_items.jsonl)"""
+usage: python prep_sql.py   (SQL_SPLIT=train: CV-1's training items, $POC_DATA/bird/sql_train_items.jsonl; SQL_SPLIT=spider: FINAL's
+  Spider test items, $POC_DATA/bird/sql_spider_items.jsonl, databases through the link bird/spider_databases -> ../spider/test_database)"""
 import hashlib, json, os, re, sqlite3, time
 from concurrent.futures import ProcessPoolExecutor
 
@@ -87,9 +88,24 @@ def main_train():
           sum(len(S[q["db_id"]]) > 14000 for q in Q), "with schemas over 14,000 characters")
 
 
+def main_spider():
+    """FINAL (docs/prereg/PREREG_FINAL.md): Spider's test split (2,147 questions on 40 databases, released by the Spider authors after
+    every SQL decision here; pinned re-host HAL-9001/spider-databases, sha256 0063669…121b, $POC_DATA/spider), the same prompt without
+    the evidence line (Spider has none)"""
+    Q = json.load(open(os.path.join(os.path.dirname(DATA), "spider", "test.json")))
+    S = {db: schema(db) for db in sorted({q["db_id"] for q in Q})}
+    with open(ITEMS, "w") as f:
+        for i, q in enumerate(Q):
+            user = f"{S[q['db_id']]}\n\n-- Question: {q['question'].strip()}\n\n{ASK}"
+            f.write(json.dumps({"id": f"sp{i}", "db_id": q["db_id"], "difficulty": "spider", "user": user, "gold": q["query"]}) + "\n")
+    print(len(Q), "items;", {db: len(s) // 4 for db, s in S.items()}, "(schema, ~tokens)")
+
+
 def main():
     if SPLIT == "train":
         return main_train()
+    if SPLIT == "spider":
+        return main_spider()
     Q = json.load(open(f"{DATA}/raw/dev_20251106.json"))
     S = {db: schema(db) for db in sorted({q["db_id"] for q in Q})}
     with open(f"{DATA}/sql_items.jsonl", "w") as f:
