@@ -212,3 +212,37 @@ writers: Qwen3.5-9B seed 1 has 543–566 distinct items per arm (duplicates 72�
 duplicates and ≤ 1 torn line). Each surviving row is a complete trajectory under the same protocol and per-step seeds (the loader
 keeps the last row of an item). The missing items are being rerun (job 1289417, rows resume). No other node held a container of the
 cancelled jobs (checked on n20, n24, n25, n26, n27; n26 at 19:31 UTC).
+
+## Results MT-P1..P5 (written 2026-10-31 20:0x UTC; Qwen3-8B and Qwen3.5-9B complete, every prediction is decided by them since each needs 2 of 3; Qwen3-14B-AWQ and S1–S3 follow)
+`results/mt_q8b.txt`, `results/mt_q35.txt`, `results/mt_cost_q35.txt`; 600 items × 3 seeds per model, every row (Qwen3.5-9B seed 1
+after the refill and the loader fix, infrastructure note above). Accuracy @ output tokens per item:
+
+| model | N | E | F | T |
+|---|---|---|---|---|
+| Qwen3-8B | 16.7% @ 0.50k | 23.7% @ 3.62k | 29.1% @ 5.21k | 30.8% @ 6.84k |
+| Qwen3.5-9B | 25.0% @ 0.43k | 29.5% @ 0.88k | 38.7% @ 1.73k | 38.0% @ 2.56k |
+
+| test | Qwen3-8B | Qwen3.5-9B | verdict |
+|---|---|---|---|
+| MT-P1 T − N accuracy | +14.17 [+11.00, +17.33] | +13.00 [+10.00, +15.78] | **holds** |
+| MT-P2 E − T utility | −5.50 [−8.66, −2.29] | −7.66 [−10.55, −4.63] | **refuted** (E is worse) |
+| MT-P3 E − N utility | +5.50 [+3.43, +7.54] | +4.27 [+2.58, +6.03] | **holds** |
+| MT-P4 F − E utility | +4.53 [+1.55, +7.41] | +8.74 [+6.05, +11.66] | **holds** |
+| MT-P5 visible share of N's wrong; E − N visible vs silent | 85.3%; +8.33 vs +1.49 | 73.9%; +7.14 vs −1.03 (gap +8.17 [+5.23, +11.01]) | **holds** |
+
+Reported: F − T (not pre-registered as a test) utility −0.96 [−3.52, +1.71] and +1.08 [−1.32, +3.30], at 76% and 68% of T's output
+tokens. Where E loses to T, by N's strata (item-seeds × (T − E right)): Qwen3-8B visible failures WV +157, silent WS +47, N's right
+trajectories RS −34 and RV −43; Qwen3.5-9B WV +127, WS +119, RS −48, RV −44. The addendum's expectation (T − E lives in the silent
+failures) holds for Qwen3.5-9B only; for Qwen3-8B one thinking step after an error rarely repairs the turn (E right on 13.0% of WV,
+T 25.3%). Turn-0 counterfactual of rolling the turn back and redoing it with thinking (exploratory, FINDINGS 10-31 19:3x): Qwen3-8B
+68.6% @ 1.80k vs T 71.4% @ 2.09k; Qwen3.5-9B 70.5% @ 0.55k vs T 73.8% @ 0.81k and F 74.3% @ 0.55k: the rollback beats E and loses to
+thinking from the first step in both. The checks pass wrong turns that thinking fixes (Qwen3.5-9B: 149 at turn 0 for the visible
+failure, 172 for the peer).
+
+**Decision (as pre-registered).** P2 refuted, P3 holds: thinking after a visible failure beats the cheap repair, but always thinking is
+better per token. The agent-loop row reports this with its share of failures; its stated mechanism is corrected: the loss is on visible
+and silent failures alike, because a turn repaired from a damaged state rarely recovers. P4 holds: in agent loops the recipe thinks
+once per new request (F, the agent form of the short think first), which ties always thinking at 68–76% of its output tokens. P1 holds:
+the cheap model with its own repair is not the default. No rollback arm is run (the FINDINGS rule: the turn-0 rollback loses to T for
+both models). Goal link: for agent loops the fewest-token exact answer starts each request with thinking; the free check is a signal
+to keep thinking, not to start.

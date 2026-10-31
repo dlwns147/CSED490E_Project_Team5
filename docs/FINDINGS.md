@@ -4677,3 +4677,17 @@ wrong turn that thinking would fix. The visible-failure check passes 90 such tur
 Qwen3-8B; the same counterfactual is computed for the other two models when their rows land, and a rollback arm (MT-R, pre-registered
 then) is run only for a model whose turn-0 rollback ties or beats T in utility. Goal link: in agent loops the fewest-token exact answer
 starts with thinking for this model; the free check is too weak to gate thinking off.
+
+## 2026-10-31 20:0x UTC: MT (pre-registered MT-P1..P5, decided by Qwen3-8B and Qwen3.5-9B): in agent loops thinking after an error loses to always thinking; thinking at each new request ties it for less
+Why: the recipe's single-shot rule (cheap answer, free check, think on failure) has its most natural agent form in a tool loop, where the
+environment reports an error at every step for free. BFCL v4 multi-turn (base / missing parameter / missing function, 600 items),
+3 seeds. Qwen3-8B: N 16.7% @ 0.50k output tokens, E (think for one step after an error) 23.7% @ 3.62k, F (think at each request's
+first step, then as E) 29.1% @ 5.21k, T (always) 30.8% @ 6.84k; Qwen3.5-9B: 25.0 @ 0.43k, 29.5 @ 0.88k, 38.7 @ 1.73k, 38.0 @ 2.56k.
+P1 (thinking pays), P3 (E beats N), P4 (F beats E, +4.5 / +8.7), P5 (most failures are visible: 85% / 74%) hold; P2 (E beats T) is
+refuted in the other direction (−5.5 [−8.7, −2.3], −7.7 [−10.6, −4.6]). F − T −0.96 [−3.52, +1.71] / +1.08 [−1.32, +3.30] at 76% /
+68% of T's output tokens. Mechanism: E's loss is on N's visible failures as much as the silent ones (Qwen3-8B mostly visible: E
+repairs 13% of them, T gets 25%); the turn-0 rollback counterfactual (entry above) recovers most of it but still loses to thinking
+from the first step. Decision (pre-registered): agent loops get "think once per new request" (the agent form of the short think
+first); the cheap-first step with the error as its check is a boundary of the recipe (REPORT §7, PROJECT §0). Qwen3-14B-AWQ and the
+input-token predictions S1–S3 (Qwen3-8B holds, Qwen3.5-9B refuted: its thinking does not shorten the loop) follow. Goal link: in
+agent loops the cheapest exact answers come from thinking at each request, and a free per-step check does not license skipping it.

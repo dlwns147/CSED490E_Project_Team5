@@ -605,6 +605,12 @@ OR problems and the observation that the cross-model filter removes the harm but
 - **Formal proofs** (miniF2F, Lean 4): a specialized 8B prover proves 180 of 244 statements (Goedel-Prover-V2-8B) vs 133 for Qwen3.6 and
   66 for gpt-oss-20b; facts (a verified similar proof, a lemma toolkit) and repair from compiler errors do not help.
 - **The weakest model's check leak** (Section 5.2).
+- **Agent loops** (BFCL v4 multi-turn, 600 items, MT): the environment's error is a free check at every step, but thinking only after
+  it loses to always thinking (E − T −5.5 and −7.7 utility for Qwen3-8B and Qwen3.5-9B), on visible failures as much as on silent
+  ones: a turn repaired from a damaged state rarely recovers, and even rolling the turn back before thinking stays 2.8–3.3 points
+  below thinking from the start (turn-0 counterfactual). Thinking once at each new request ties always thinking (F − T −0.96
+  [−3.52, +1.71] and +1.08 [−1.32, +3.30]) at 68–76% of its output tokens: the short think first, not the cheap first step, carries
+  over to agent loops.
 
 ## 8. Limitations
 
