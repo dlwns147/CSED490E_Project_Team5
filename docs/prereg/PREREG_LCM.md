@@ -163,3 +163,24 @@ are reported, with the derived planner's gains where its model holds (word probl
 - Calibration (BIRD dev / BFCL live, Qwen3-8B): mean posterior of the returned answer 0.785 / 0.897 against 0.597 / 0.800 right (LCM:
   0.950 / 0.358 against 0.605 / 0.741): the degenerate class is gone, overconfidence on SQL remains.
 **Decision (as pre-registered).** L2-P4 refuted: not adopted; the cascade stays unless LCM-3 (pre-registered above) holds.
+
+## Addendum B: the information limit of the five calls (written 2026-10-31 23:4x UTC, after LCM-2's and LCM-3's Spider cells and 23 of LCM-3's development cells, before `poc/lcm_bound.py` has been run on any cell)
+
+**Why.** Three derived planners (LCM, LCM-2, LCM-3) lose to the hand-set cascade on SQL and tool calls and gain on word problems.
+Either the models are misspecified while there is room to gain (a better model is the work), or there is no room: the five calls
+(quick, the peer's quick, short think, think, retry think) carry no adaptive information the cascade leaves unused, and no decision rule
+can beat it with these calls (new signals are the work). The two are told apart by the best policy under the *known* joint law of the
+calls' outcomes. **Estimator.** The supervised planner: on one half of a cell's questions, with all their labels, the empirical law of
+every partial observation pattern (which calls were made, which answers coincide, the checks, which answers are right); the Bayes-
+optimal stop / call policy under it by dynamic programming; executed on the other half (cross-fitted). Question-seeds reaching a
+pattern unseen on the fitting half are scored with the cascade's outcome (reported; this pulls toward the cascade). Same cells (31
+development + Spider's 4), λ, utility and paired intervals as LCM.
+
+**Predictions.**
+- **B-P1 (room on SQL and tool calls):** supervised planner − cascade: lower bound > 0 in ≥ 8 of the 16 SQL / BFCL development cells.
+- **B-P2 (Spider):** lower bound > 0 in ≥ 2 of 4.
+- **B-P3 (word problems):** lower bound > 0 in ≥ 4 of 15 (small sets, low power).
+
+**Decision.** B-P1 holds while the LCM planners lose: the gap is misspecification, and its size is the target for a better-specified
+model (reported). B-P1 refuted: on SQL and tool calls the cascade is at the information limit of its five calls — the derived-policy
+line is closed there, and further gains need new signals, not a better decision rule.
