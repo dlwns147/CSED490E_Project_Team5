@@ -132,8 +132,63 @@ def gate_report(name, R, st, cal=None):
         print(f"{'':>16}  PD - D predicted from the calibration cell's agreement by stratum {pr:+.2f}")
 
 
+def sql_peer(A, P, dev):
+    """addendum C (SQL): per (set/question, seed) (right, tokens) of D = SB->T->T and N -> P's quick query returns the same rows -> N,
+    else D (P's tokens counted when N passes); A's passing quick queries by (N right, D right): (P agrees, gain of accepting)"""
+    import analyze_sqlpa as S
+    from analyze_cv import base
+    sfx = "" if dev else "pa"
+    GA, GP, KA, KP = S.grades(A + sfx), S.grades(P + sfx), S.ntok(A + sfx), S.ntok(P + sfx)
+    R, st = {"D": {}, "PEER": {}}, {}
+    for (i, s), v in base(A + sfx).items():
+        n, d, k = GA[s][i]["N"], v["SB->T->T"], (f"{'dev' if dev else 'fresh'}/{i}", s)
+        o, kp = GP[s].get(i, {}).get("N", {}), KP[s].get(i, 0)
+        ag = n["chk"] == "pass" and o.get("chk") == "pass" and o.get("h") == n["h"]
+        R["D"][k] = d
+        R["PEER"][k] = (n["ok"], KA[s][i] + kp) if ag else (d[0], KA[s][i] + (kp if n["chk"] == "pass" else 0) + d[1])
+        if n["chk"] == "pass":
+            st.setdefault((bool(n["ok"]), bool(d[0])), []).append((ag, 100 * (float(n["ok"]) - float(d[0])) + H.LAM * d[1] / 1000, kp))
+    return R, st
+
+
+def sql_report(peer="oss20"):
+    """addendum C: the peer on SQL (BIRD dev 1,530 + fresh BIRD-train 1,338 questions, pooled and per set)"""
+    from analyze_cv import per_q as sq
+    for A, qwen in (("q8b", "q35"), ("q14a", "q35"), ("q35", "q8b")):
+        res = {}
+        for P in (peer, qwen):
+            R, st = {"D": {}, "PEER": {}}, {}
+            for dev in (True, False):
+                r, s_ = sql_peer(A, P, dev)
+                for k in R:
+                    R[k].update(r[k])
+                for k, v in s_.items():
+                    st.setdefault(k, []).extend(v)
+            res[P] = ({k: sq(v) for k, v in R.items()}, R, st)
+        Qd = res[peer][0]["D"]
+        for part in ("pooled", "dev", "fresh"):
+            ids = [i for i in Qd if part == "pooled" or i.startswith(part + "/")]
+            line = f"SQL {A} {part} ({len(ids)} questions): D {100 * sum(Qd[i][0] for i in ids) / len(ids):.1f}%"
+            for P in (peer, qwen):
+                Q = res[P][0]["PEER"]
+                g = ci({i: Q[i][1] - Qd[i][1] for i in ids})
+                line += f"; N->{P}->D {100 * sum(Q[i][0] for i in ids) / len(ids):.1f}%, - D {g[0]:+.2f} [{g[1]:+.2f}, {g[2]:+.2f}]"
+            a, b = res[peer][0]["PEER"], res[qwen][0]["PEER"]
+            g = ci({i: a[i][1] - b[i][1] for i in ids})
+            print(line + f"; {peer} - {qwen} {g[0]:+.2f} [{g[1]:+.2f}, {g[2]:+.2f}]")
+        n = len(res[peer][1]["D"])
+        for P in (peer, qwen):
+            st = res[P][2]
+            print(f"{'':>8}{A}<-{P} N's passing queries by (N right, D right): " + "; ".join(
+                f"{k}: {100 * len(v) / n:.1f}%, gain {sum(x[1] for x in v) / len(v):+.1f}, agrees {100 * sum(x[0] for x in v) / len(v):.1f}%"
+                for k, v in sorted(st.items())) + f"; peer tokens per call {sum(x[2] for v in st.values() for x in v) / max(1, sum(map(len, st.values()))):.0f}")
+
+
 def main():
     H.SAME_FN = H.same_word
+    if "--sql" in sys.argv:       # addendum C (XC-P1..P4): gpt-oss-20b as the peer on SQL; `--sql <stand-in peer>` for a smoke
+        a = sys.argv[sys.argv.index("--sql") + 1:]
+        sql_report(a[0] if a and not a[0].startswith("--") else "oss20")
     if "--gate" in sys.argv:      # addendum B, exploratory (stored rows of the four held-out sets): the peer gates SB's program too
         for N in ("q8b", "q35", "q14a", "n3n"):
             for peer in ("oss20", H.PEER[N], "oss120"):

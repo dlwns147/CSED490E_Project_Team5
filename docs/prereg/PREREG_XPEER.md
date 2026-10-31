@@ -197,3 +197,54 @@ Qwen3-8B is decided by XP-P3 / P6 alone.
 
 Expected (not a rule): P8 holds or inconclusive, P9 inconclusive (EasyLP: SB and T→T are mostly right, so the decisive strata are
 small), P10 / P11 inconclusive.
+
+**Note on addendum B (2026-10-31 10:1x UTC; computed after it was written, from stored SQL rows; not a test).** The scope condition was checked
+on the other task with stored think rows, text-to-SQL (SQL-1 dev 1,530 and SQL-PA's fresh 1,338 BIRD-train questions; peer Qwen3.5-9B /
+Qwen3-8B). There the full think is not better than the short think (T→T − D accuracy −0.4 to +0.8), the two decisive strata are equal
+in size (Qwen3-8B fresh 2.9 vs 3.1% of question-seeds), and gating SB adds nothing to the peer cascade: PND − PEER +0.27 / +0.09 /
+−0.93 (fresh; dev −0.24 / +0.25 / +0.36), as the condition says.
+
+## Addendum C: gpt-oss-20b as the peer on text-to-SQL (written 2026-10-31 10:1x UTC, before any gpt-oss-20b SQL row exists)
+
+**Why.** The word-problem result says a peer from another lab agrees far less often with the cheap answer's wrong outputs where the
+default is right (4.7% vs 12.3%). If that is a property of the peer's lineage and not of word problems, it holds on the task where the
+peer cascade already pays with a Qwen peer (SQL-PA, CV-1), and the recipe's check becomes one rule across tasks: another lab's cheap
+model. On SQL the evidence so far points the other way: Nemotron-3-Nano (another lab) was a worse peer than Qwen3.5-9B (pooled over
+the two sets, Qwen3-8B as N: −1.44 [−2.01, −0.90]; `python3.11 poc/analyze_xpeer.py --sql n3n`, the analysis below run with Nemotron in
+place of gpt-oss-20b as its smoke test).
+
+**Theory (stratified account on SQL; Qwen3-8B, both sets pooled, 8,575 question-seeds).** Accepting N's passing query instead of
+SB→T→T gains +100.9 where only N is right (4.9% of question-seeds), −99.4 where only the default is right (10.2%), about +0.5 elsewhere.
+Qwen3.5-9B agrees with 54.2% and 17.1% of those (ratio 3.2; break-even 10.2 × 99.4 / (4.9 × 100.9) = 2.05 plus tokens). If gpt-oss-20b
+agreed on SQL as it does on Qwen3-8B's word problems (63.9 / 4.7%), N → gpt-oss-20b → D would gain about +1.6 over N → Qwen3.5-9B → D
+(+0.5 from the first stratum, +1.3 from the second, −0.15 for its longer reasoning at about 400 tokens); with Nemotron's rates
+(38.0 / 23.1%) it would lose about 1.4.
+
+**Run.** gpt-oss-20b, low reasoning effort, the quick query only (`SQL_ARMS=quick`: SQL-1's prompt, 2k cap including reasoning, the
+same per-question seeds), BIRD dev (1,530, tag oss20) and SQL-PA's fresh BIRD-train questions (1,338, tag oss20pa), seeds 1–3; one RTX
+3090 job per seed: `sbatch -J xsql_s<s> -x n19,n22 poc/slurm/job.sh poc/slurm/lane.sh --seq --vllm '--max-model-len 24576'
+openai/gpt-oss-20b xsql_s<s> 'POC_REASONING_EFFORT=low SQL_ARMS=quick $P poc/run_sql.py oss20 <s>' 'SQL_SPLIT=train
+SQL_IDS=/NAS/SJ/POSTECH/nlp_data/bird/pa_ids.txt POC_REASONING_EFFORT=low SQL_ARMS=quick $P poc/run_sql.py oss20pa <s>' '$P
+poc/grade_sql.py oss20 <s>' 'SQL_SPLIT=train $P poc/grade_sql.py oss20pa <s>'`. Analysis `python3.11 poc/analyze_xpeer.py --sql`.
+N = Qwen3-8B, Qwen3-14B-AWQ (Qwen peer: Qwen3.5-9B) and Qwen3.5-9B (Qwen peer: Qwen3-8B), their stored N / SB / T rows; cascade =
+N → the peer's quick query returns the same rows → N, else SB→T→T; the peer's tokens (reasoning included) counted when N passes.
+
+**Predictions (both sets pooled, 2,867–2,868 questions; paired 95% intervals over questions, seed means; utility).**
+- **XC-P1:** Qwen3-8B, N → gpt-oss-20b → D minus N → Qwen3.5-9B → D: lower bound > 0.
+- **XC-P2:** Qwen3-14B-AWQ, the same: lower bound > 0.
+- **XC-P3:** Qwen3.5-9B, N → gpt-oss-20b → D minus N → Qwen3-8B → D: lower bound > 0.
+- **XC-P4 (mechanism):** in each of the three, gpt-oss-20b agrees less often than the Qwen peer where only the default is right
+  (point estimates, counts reported).
+- Reported: each cascade − D; per set (dev, fresh); the strata; the peer's tokens and its truncated (2k) replies; gpt-oss-20b's own
+  accuracy and leak.
+
+Power (per-question SD of a peer-vs-peer difference on these sets 14–18): standard error ≈ 0.30, so +1.0 is detected with power about
+0.9 and +0.6 with about 0.5.
+
+**Decision.** At least 2 of XC-P1..P3 hold → on SQL the recipe's peer becomes gpt-oss-20b; with XP-P3 the claim "the check is a cheap
+model from another lab" holds on two task types (PROJECT / REPORT / PROPOSAL), and the same peer is pre-registered on tool calls
+(BFCL). 0–1 hold → the Qwen peer stays on SQL, and whatever gpt-oss-20b does on word problems is task-specific (reported with the
+strata: which stratum differs).
+
+Expected (not a rule): XC-P1..P3 inconclusive (the Nemotron result says lineage alone does not lower the costly agreement on SQL;
+gpt-oss-20b's reasoning may), XC-P4 holds in 2 of 3.
