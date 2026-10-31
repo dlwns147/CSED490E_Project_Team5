@@ -25,3 +25,25 @@ interval over questions). Both directions.
 **Decision.** P1 and P3 hold: REPORT and PROJECT lead with the break-even rule as the thesis, with this figure (x against the
 other half's gain, every cell) and the task-type tables in an appendix. P1 refuted: the rule stays a per-task accounting, and the
 report says where it fails to predict.
+
+## Results (written 2026-10-31 20:4x UTC; `results/thesis.txt`, `results/thesis_cells.json`; CPU jobs 1289723 / 1289734)
+
+Process note: the first run (1289720) stopped after 7 cells on a negative r* (L < 0: accepting a wrong passing answer never lost on
+that half); the predictor is now clamped (x = +5 for r* ≤ 0 or a peer that never confirms a wrong answer, −5 for the reverse) — a fix
+made after those 7 cells' full-sample lines had been printed, before any out-of-sample line. The second run printed TH-P1 / P3 but not
+TH-P2's breakdown, which the third run (code added, nothing else changed) prints.
+
+90 cells (4 generators × 3 peers × 8 sets; Spider not yet graded), 180 cell-halves, 73 with the other half's interval excluding 0.
+- **TH-P1 refuted:** the predictor's sign matches the other half's gain in 57 / 73 (78%; required 85%). In sample: 37 / 40.
+- **TH-P3 refuted:** SQL 19 / 20, tool calls 28 / 29, word problems 10 / 24.
+- **TH-P2 refuted:** of the 16 mismatches, 5 are cost-driven as predicted (x > 0, the accept decisions still gain on the other half,
+  the two quick programs' 0.7–1.4 utility outweighs them), 10 are not (x > 0 and the accept decisions themselves lose on the other
+  half), 1 is pessimistic (x < 0, a gain). All but one mismatch are on word problems; the other is BIRD dev with Qwen3-14B-AWQ as the peer.
+- Exploratory (not pre-registered): by the size of the half the predictor is estimated on, 47 / 49 (96%) with ≥ 1,000 question-seeds
+  (BIRD, BFCL) against 10 / 24 below (OptiBench third 6 / 7, BWOR 2 / 5, LogiOR 2 / 10, OptMATH 0 / 2: 82–202 problems per set). Six of
+  the ten accept-driven mismatches have x clamped or ≥ +0.95 from halves of 41–46 problems, where r* rests on a handful of problems in
+  each decisive stratum.
+
+**Decision (as pre-registered).** P1 refuted: the break-even rule stays a per-task accounting, not the report's thesis, and the report
+says where it fails to predict: it predicts the sign out of sample on SQL and tool calls (47 / 49 on the large halves), and not on the
+word-problem sets of 80–200 problems, where half a set does not estimate the decisive strata (exploratory reading of the failure).

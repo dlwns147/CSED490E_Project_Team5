@@ -629,6 +629,12 @@ OR problems and the observation that the cross-model filter removes the harm but
 
 ## 8. Limitations
 
+- **The break-even rule predicts only where the decisive strata are measured on enough problems** (THESIS, pre-registered): over 90
+  stored cells split in halves, the rule's predictor from one half matches the sign of the other half's cascade gain in 19 / 20 SQL and
+  28 / 29 tool-call cases, but in 10 / 24 word-problem cases (78% overall, under the 85% registered); the word-problem sets have 82–202
+  problems, and with halves of about 45 problems the accept decisions themselves flip sign (10 of 16 mismatches). The rule is an
+  accounting per task, used here to explain results, not a test to run on 30 labelled problems.
+
 Several held-out margins are ties within their intervals (reported as such). Gains predicted for the peer cascade from another model's calibration overshot by 0.7–1.9 utility; a split-sample test traces this to the peer's rate of confirming a wrong answer the default gets right, which depends on the model pair (4.7–27.9%) and was low for the pair chosen as the calibration, so such predictions are not used as evidence (XPEER addendum CAL). The comparisons in §5.1–5.4 are against one think; against
 a think given the same check (a retry on a visible failure, built from the next seed's stored think) the cheap end of the recipe trails
 on the hardest word problems (§5.6b). Always-thinking runs at a 16k-token budget (what fits beside the model on a 24 GB GPU); 0.3–7.6% of the stronger models' thinking rows hit it (Qwen3-8B 3–24%). Even counting every capped wrong row as right, no tie or win of the stronger models becomes a significant loss (largest shift −3.4 points; gpt-oss-20b's OptMATH win becomes a tie), and Qwen3-8B's losses only deepen. The development geometry and optimization

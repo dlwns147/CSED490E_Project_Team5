@@ -52,14 +52,24 @@ def stats(items):
     d = lambda x: 100 * (float(x["ok"]) - float(x["dok"])) + XG.H.LAM * x["dtok"] / 1000
     G = sum(map(d, R)) / max(1, len(R)); L = -sum(map(d, W)) / max(1, len(W))
     tpr = sum(x["agree"] for x in R) / max(1, len(R)); fpr = sum(x["agree"] for x in W) / max(1, len(W))
-    rstar = len(W) * L / max(1e-9, len(R) * G) if G > 0 else float("inf")
+    rstar = len(W) * L / max(1e-9, len(R) * G) if G > 0 else float("inf")   # <= 0: every accept gains; inf: none does
     gain = lambda x: (100 * float(x["ok"]) - XG.H.LAM * (x["tok"] + x["ptok"]) / 1000 if x["agree"] else
                       100 * float(x["dok"]) - XG.H.LAM * (x["tok"] + (x["ptok"] if x["ps"] else 0) + x["dtok"]) / 1000) \
         - (100 * float(x["dok"]) - XG.H.LAM * x["dtok"] / 1000)
     pq = XG.per_q(items, lambda x: gain(x) / 100)
     lo = ci(pq) if len(pq) > 1 else (0.0, 0.0, 0.0)
-    x = math.log2(max(1e-6, tpr) / max(1e-6, fpr) / rstar) if rstar not in (0, float("inf")) and fpr > 0 else None
-    return dict(n=len(items), tpr=tpr, fpr=fpr, rstar=rstar, x=x, gain=lo[0], lo=lo[1], hi=lo[2])
+    if not R or not W:
+        x = None
+    elif rstar <= 0 or fpr == 0:
+        x = 5.0    # the accept decisions cannot lose (L <= 0) or the peer never confirms a wrong answer: predict a gain
+    elif rstar == float("inf") or tpr == 0:
+        x = -5.0
+    else:
+        x = max(-5.0, min(5.0, math.log2(tpr / fpr / rstar)))
+    n = max(1, len(items))   # TH-P2: the gain = the accept decisions' part - the two quick answers' tokens (analyze_breakeven.acct)
+    acc = sum(d(x) for x in items if x["agree"]) / n
+    cost = XG.H.LAM * (sum(x["ptok"] for x in items if x["ps"]) + sum(x["tok"] for x in items)) / 1000 / n
+    return dict(n=len(items), tpr=tpr, fpr=fpr, rstar=rstar, x=x, gain=lo[0], lo=lo[1], hi=lo[2], acc=acc, cost=cost)
 
 
 def cells():
@@ -90,7 +100,7 @@ def main():
         S = {h: stats(half[h]) for h in (0, 1)}
         for h in (0, 1):   # predictor on half h, gain on the other half
             out.append(dict(task=task, set=name, gen=g, peer=p, half=h, x=S[h]["x"], gain=S[1 - h]["gain"], lo=S[1 - h]["lo"],
-                            hi=S[1 - h]["hi"], full=full))
+                            hi=S[1 - h]["hi"], acc=S[1 - h]["acc"], cost=S[1 - h]["cost"], full=full))
         print(f"{task:>13} {name:<16} {g:>5} <- {p:<5} n {full['n']:>6}  TPR {100 * full['tpr']:4.0f}% FPR {100 * full['fpr']:4.0f}%  "
               f"r* {full['rstar']:5.2f}  x {fmt(full['x'])}  gain {full['gain']:+.2f} "
               f"[{full['lo']:+.2f}, {full['hi']:+.2f}]", flush=True)
@@ -106,6 +116,14 @@ def main():
     for t in ("SQL", "tool calls", "word problems"):
         v = [r for r in sig if r["task"] == t]
         print(f"    {t}: {sum((r['x'] > 0) == (r['lo'] > 0) for r in v)} / {len(v)}")
+    mis = [r for r in sig if (r["x"] > 0) != (r["lo"] > 0)]
+    kind = lambda r: ("cost" if r["acc"] >= 0 else "accept") if r["x"] > 0 else "pessimistic"
+    print(f"*** TH-P2, the {len(mis)} mismatches: x > 0 and a loss with the accept decisions still gaining (the quick answers' cost) "
+          f"{sum(kind(r) == 'cost' for r in mis)}; x > 0 and the accept decisions losing {sum(kind(r) == 'accept' for r in mis)}; "
+          f"x < 0 and a gain {sum(kind(r) == 'pessimistic' for r in mis)}")
+    for r in mis:
+        print(f"    {r['task']:>13} {r['set']:<16} {r['gen']:>5} <- {r['peer']:<5} half {r['half']}: x {r['x']:+.2f}, other half gain "
+              f"{r['gain']:+.2f} [{r['lo']:+.2f}, {r['hi']:+.2f}] = accept {r['acc']:+.2f} - quick answers {r['cost']:.2f} ({kind(r)})")
 
 
 if __name__ == "__main__":

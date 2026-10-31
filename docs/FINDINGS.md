@@ -4724,3 +4724,13 @@ worse than the peer cascade in 8 / 12 (−0.2 to −0.6): the free check adds a 
 confidently wrong passing queries are typical forms with a column or filter mismatch the model is sure of; unconfident right ones copy
 rare literals. Decision (pre-registered): the peer stays; REPORT §6 cites both baselines. Goal link: on SQL and tool calls the cheap
 answer is safely kept only when another family's quick answer matches it; the model's certainty is not a substitute.
+
+## 2026-10-31 20:4x UTC: THESIS (pre-registered TH-P1..P3, all refuted): the break-even rule predicts the cascade's sign out of sample on SQL and tool calls, not on the small word-problem sets
+Why: the review asked for one thesis tested across tasks. 90 stored cells (4 generators × 3 peers × BIRD dev / fresh, BFCL non-live /
+live, OptiBench third, BWOR, LogiOR, OptMATH), each split in halves: the predictor log2((peer TPR / FPR) / r*) on one half against the
+cascade's gain on the other. Sign agreement 57 / 73 (78%, P1 needed 85%); SQL 19 / 20, tool calls 28 / 29, word problems 10 / 24 (P3);
+of 16 mismatches 10 have the accept decisions themselves losing on the other half, not the predicted cost-driven loss (P2: 5 of 16).
+Exploratory: 47 / 49 when the predictor half has ≥ 1,000 question-seeds, 10 / 24 below (sets of 82–202 problems). Decision: the rule is
+reported as per-task accounting that predicts on large sets, not as the thesis; REPORT §8 says where it fails. Goal link: deciding
+whether a cheap first answer pays needs the decisive strata measured on a few hundred problems; on a 90-problem set the estimate is
+noise.
