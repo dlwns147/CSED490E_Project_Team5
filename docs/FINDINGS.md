@@ -4443,3 +4443,18 @@ passing program. SH-P3 holds both ways: 1.6% of trained right samples are on bas
 base-never −0.54 vs −0.66), unlike SQL / tool calls where it added answers. WP-RL ≈ RFT on 2,000 problems (+0.87 [−0.08, +1.86]).
 Decision: the recipe on word problems stays training-free; the limit is the check (VER running), and RF-P3 (RFT-4k vs this run)
 lands with td_rft4k.
+
+## 2026-10-31 07:3x UTC: one account of where the peer check pays (offline accounting, `poc/analyze_breakeven.py`, results/breakeven.txt)
+Purpose: the peer cascade beats the default on tool calls (2 / 3 models), helps on SQL and saves nothing on word problems; the
+critique's open point is that the project is a collection without one law. Exact decomposition of cascade − SB→T→T per task × model
+(stored rows; problem-seed weighted; it reproduces HO-PA's tool-call cells: +0.85 / −0.35 / +1.99 vs +0.9 / −0.3 / +2.0): accepting a
+right passing quick answer instead of running the default gains G, a wrong one loses L, so the accepted answers pay only if the check's
+TPR / FPR (share of right vs wrong passing answers it lets through) exceeds r* = n_W·L / (n_R·G); then the check's and the quick
+answer's own tokens are paid. Word problems: r* 2.17 / 2.57 (Qwen3-8B / 14B), peer ratio 2.5 / 2.7, margin +0.7 before 0.6–0.7
+points of program tokens → +0.0. Tool calls: r* 2.0 / 4.9 / 2.1, peer ratio 3.8 / 4.0 / 4.6, tokens ≈ 0.03 → +0.85 / −0.35 / +1.99
+(Qwen3-14B is the one cell whose ratio is below its break-even: its default is right so often that a wrong accept costs 59 points).
+SQL: r* 1.0–1.6 on BIRD train and 1.3–2.3 on dev (the default is often wrong too, so a wrong accept costs only 19–31), peer ratio 2.0–3.2
+→ +0.6 to +1.7. The peer's ratio is 2–4.6 everywhere; what differs between tasks is the break-even (how reliable and how expensive the
+default is) and the cost of the cheap answers. Consequence for the method: on word problems a check must exceed ~2.2–2.6 at a cost
+well under 0.6 points — the target VER's trained verifier (one generated token) is tested against. Not a test; an accounting identity
+with the break-even made explicit.
