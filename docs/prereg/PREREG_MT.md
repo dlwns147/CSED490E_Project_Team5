@@ -211,4 +211,4 @@ went into the same files as the resubmitted job 1288522 (done 17:37 UTC) from an
 writers: Qwen3.5-9B seed 1 has 543–566 distinct items per arm (duplicates 72–138, torn lines 31–57; every other model-seed ≤ 4
 duplicates and ≤ 1 torn line). Each surviving row is a complete trajectory under the same protocol and per-step seeds (the loader
 keeps the last row of an item). The missing items are being rerun (job 1289417, rows resume). No other node held a container of the
-cancelled jobs (checked on n20, n24, n25, n27; n26 pending).
+cancelled jobs (checked on n20, n24, n25, n26, n27; n26 at 19:31 UTC).
