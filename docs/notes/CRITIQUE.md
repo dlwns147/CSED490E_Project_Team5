@@ -167,3 +167,17 @@ Problems, most important first:
    - at most three contributions in the report;
    - one main experiment per week, with its decision tree written first;
    - MT only as a test of the thesis, per turn.
+
+## Update 2026-10-31 20:2x UTC: where the 10-31 review's points stand
+- **3 (cost of the second model):** reported with every new peer result (XG: two 24 GB GPUs against one); EXT shows the one-model
+  alternative, the answer's own token confidence, cannot replace the peer (loses in 9 / 12 cells, never wins, not even tuned on labels).
+- **4 (overshooting predictions):** CAL found the cause (pair-specific false confirms on the decisive stratum, plus selection);
+  predictions are now split-sample. XG then predicted signs from N's labels alone, and they held (XG-P3 / P4).
+- **5 (multiplicity, reused sets):** FINAL tests the SQL claim on Spider's test split, untouched, as five tests under Holm (running).
+- **6 (external baselines):** EXT: the in-model confidence gate (2404.10136) and agreement without a check (ABC, 2407.02348) on
+  BIRD and BFCL; the peer cascade beats both.
+- **7 (one model family):** XG: with gpt-oss-20b answering, the peer cascade beats its default on SQL (+1.65) and tool calls (+0.93);
+  agent loops (MT) still rest on Qwen models only.
+- **Agent loops:** tested per turn as the review asked; the cheap step with the error as its check does not carry over (MT), thinking
+  once per request does.
+- Open: 1 (one-page thesis and its figure), 2 (λ-free labels across the old results; new results carry them).
