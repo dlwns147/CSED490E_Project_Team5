@@ -136,7 +136,7 @@ is MAMO, where the old default (SB→T→T) is 4.5 points from the best because 
 candidates' answers differ (30 such labels do the work of 100 random ones), and it beats the old no-label default on these cells.
 
 **Exploratory, after the decision (`results/al_fresh_peero.txt`, `AL_DEFAULT=PEER_o`).** The same four cells scored against the new
-no-label default for Qwen3-8B, the gpt-oss-20b cascade (XPEER, decided an hour ago on these same cells, so this favours it): always
+no-label default for Qwen3-8B, the gpt-oss-20b cascade (XPEER, decided at 17:0x UTC on these same cells, so this favours it): always
 PEER_o regret 0.13 / 0.33 / 0.11 / 0.11 (mean 0.17) against TG-30 0.34 and RP-100 0.33. With a cross-family peer served, no pilot of
 30 or 100 labels beats using the peer cascade without labels. So the rule stays "the no-label default", now the peer cascade where a
 peer is served, and the targeted pilot is how to spend labels when a new task has no validated default.
