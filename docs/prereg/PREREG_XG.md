@@ -139,3 +139,13 @@ inconclusive, positive point estimate (OptiBench carries 54% of the problem-seed
 
 **Decision.** W1 holds: the word-problem claim states the peer check in both directions (a gpt-oss answer checked by a Qwen quick
 program). Upper bound < 0: the word-problem peer check is direction-specific and the claim says so. Otherwise: reported, no change.
+
+### Results, addendum W (written 2026-10-31 20:1x UTC; `results/xg_word.txt`)
+gpt-oss-20b answering, pooled over 376 problems × 3 seeds: N 57.5% @ 0.67k, D 70.9% @ 3.43k, T→T 69.5% @ 4.28k; the cascade with
+Qwen3.5-9B 70.9% @ 4.14k, cascade − D −0.36 [−1.08, +0.38] utility: **XG-W1 refuted (not shown)**; XG-W2 not scored. Qwen3-8B as the
+peer: 70.8% @ 3.95k, −0.35 [−0.85, +0.20]. Per set (Qwen3.5-9B): OptiBench third 76.7% @ 2.18k vs 76.9% @ 2.26k, BWOR 66.7% @ 5.39k vs
+67.1% @ 3.93k, LogiOR 62.0% @ 7.35k vs 61.2% @ 5.54k. The accept decisions gain as the break-even said they would (peer ratio 2.4 >
+r* 1.94: +0.39), and the costs take it back: the peer's quick program (0.42 utility, ≈ 0.8k tokens) and N's (0.34) cost as much,
+because gpt-oss's default is short (3.4k against Qwen3-8B's 9.1k on the same sets) and accuracy-neutral here. Decision (as
+pre-registered): reported, no change; the word-problem peer claim stays in its measured direction (a Qwen answer checked by
+gpt-oss-20b), and the break-even's cost terms are what close the reverse one.

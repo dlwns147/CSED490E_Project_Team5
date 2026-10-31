@@ -4704,3 +4704,10 @@ column, a literal reading against the evidence). BFCL needed the final channel f
 to its undeclared tool channel and returns an empty message (poc/diag_oss_tc.py). Decision (pre-registered): the SQL and tool-call
 claims name two generator families; PROJECT §0, REPORT §5.11, PROPOSAL step 3 (en/ko). Goal link: the cheapest exact answers on
 these tasks come from the quick answer checked by another family's quick answer, whichever family answers.
+
+## 2026-10-31 20:1x UTC: XG addendum W (pre-registered, offline): the reverse direction on word problems does not pay
+gpt-oss-20b answering OptiBench third / BWOR / LogiOR with Qwen3.5-9B's quick program as the check: 70.9% @ 4.14k vs its default
+70.9% @ 3.43k, −0.36 [−1.08, +0.38] (W1 not shown; Qwen3-8B as peer −0.35). The accept decisions gain (+0.39, peer ratio 2.4 above
+r* 1.94) but the peer's 0.8k-token program and N's own cost as much, because gpt-oss's default is short (3.4k; Qwen3-8B's 9.1k on the
+same problems). Decision: the word-problem peer claim stays in its measured direction. Goal link: a peer pays where the escalation it
+avoids is long; with a short default the two quick answers cost more than they save.
