@@ -182,3 +182,13 @@ No main E, F or T row had been graded or replayed. Simple free signals do not se
 
 The silent failures read so far are semantic: a wrong symbol, a missing tag prefix, a skipped last call. The main rows are replayed
 on a CPU node when the runs finish, which takes about 10 minutes.
+
+*Note (2026-10-31 15:1x UTC, infrastructure only):* the Qwen3-14B-AWQ and Qwen3.5-9B jobs were cancelled at 15:1x UTC after 2.5 h and resubmitted
+on two GPUs each with tensor parallel 2, as Qwen3-8B (jobs 1288521–1288526). The reason was throughput:
+- Qwen3-14B-AWQ's KV cache was 64k tokens and 83–99% full, with 31–41% prefix hits and 70–110 generated tokens/s.
+- Qwen3.5-9B had 2.7 GiB of KV cache and 12% prefix hits; it ran 7 of 24 requests at 30–70 tokens/s.
+- Their T arms were at 85 and 244 of 1,800 item-seeds.
+
+Rows resume, and no row file had a torn last line. Items in flight were lost and rerun from their first step with the same per-step
+seeds. Rows written on one GPU and on two may differ only as the server's batch nondeterminism already makes them differ. Nothing in
+the analysis changes.

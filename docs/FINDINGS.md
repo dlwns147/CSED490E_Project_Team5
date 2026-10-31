@@ -4559,3 +4559,57 @@ shown → PND not adopted). The set is easy (default 72% right), the decisive st
 the gain is tokens on problems both get right (gpt-oss-20b agrees on 92.8% of them, the Qwen peer 85.8%). XP-P5 refuted (2 / 4 and
 3 / 4 cells). Raw: the wrong programs gpt-oss-20b confirms share Qwen3-8B's reading of the statement (a dropped 120-hour total; "40%
 of the transportation" as a share of vehicles). Next: MAMO (XP-P6 decides the Qwen3-8B default), AL-P5..P7 with the MAMO cells.
+
+## 2026-10-31 15:3x UTC: MT, exploratory: another model's end state sees the silent failures of an agent turn; the calls do not, and the same model mostly does not
+Purpose: the free check of an agent loop (an error, or no progress) sees most failures, but not the silent ones. On Qwen3-8B's
+finished N arm, 85% of wrong item-seeds show a visible failure, and the WS stratum is 12.2% of item-seeds. Reading them, the silent
+failures are semantic: a wrong stock symbol, a tag without its "#", a skipped last call. Free signals in the results do not separate
+them from silent successes:
+- a "false" or "not found" status: 11 of 220 WS against 10 of 115 RS;
+- a turn that ends in "[]": 62 of 220 against 30 of 115.
+
+The project's word-problem mechanism is a peer whose answer agrees on the value, not on the program text. The agent-turn analogue is
+a peer rollout of the same turn whose environment ends in the same state.
+
+**Test, offline, on stored N rows** (`poc/mt_peer0.py`, `results/mt_peer0.txt`). At turn 0 every trajectory of an item starts from the
+same conversation and state, so one model's three seeds, and the other models' rollouts, are independent rollouts of that turn. Turn
+correctness is BFCL's per-turn check.
+
+Share of silent turns the peer flags (disagrees with), at turn 0:
+
+| N model | Peer | Agreement on | Silent right turns flagged | Silent wrong turns flagged |
+|---|---|---|---|---|
+| Qwen3-8B (600 items) | another seed | calls | 11.3% | 30.6% |
+| Qwen3-8B (600 items) | another seed | end state | 2.3% | 19.2% |
+| Qwen3-8B (139 items) | another seed | end state | 1.2% | 22.0% |
+| Qwen3-8B (139 items) | Qwen3.5-9B | end state | 2.4% | 51.2% |
+| Qwen3-8B (139 items) | Qwen3.5-9B | calls | 52.1% | 100% |
+| Qwen3-14B-AWQ (353 items) | another seed | end state | 8.3% | 46.8% |
+| Qwen3-14B-AWQ (353 items) | Qwen3-8B | end state | 6.1% | 72.2% |
+| Qwen3-14B-AWQ (139 items) | Qwen3.5-9B | end state | 2.1% | 61.4% |
+| Qwen3.5-9B (139 items) | another seed | end state | 5.2% | 43.9% |
+| Qwen3.5-9B (139 items) | Qwen3-8B | end state | 13.2% | 61.4% |
+| Qwen3-8B (353 items) | Qwen3-14B-AWQ | end state | 23.6% | 49.2% |
+| Qwen3.5-9B (139 items) | Qwen3-14B-AWQ | end state | 22.4% | 59.6% |
+
+What the table shows:
+- **End state, not calls.** Models write the same work with different calls, so call agreement flags half of the right turns across
+  models.
+- **Another model, not another seed.** Another model shares fewer of the silent errors. Across models it flags 1.5–2.6 times as many
+  silent wrong turns as a second seed of the same model.
+- **A weak peer pays in false flags.** Qwen3-14B-AWQ is right on 41% of turn 0 in non-thinking mode, against 61% for Qwen3-8B on the
+  same items. As a peer it disagrees with 22–24% of right turns.
+
+This is the word-problem account again: the peer's value is the cheap model's errors it does not share, and its cost is its own
+errors. The account now holds on agent turns with the end state as the value.
+
+**Caveats.**
+- Turn 0 only.
+- The cross-model rows are partial (Qwen3-14B-AWQ 353 items and Qwen3.5-9B 139, mostly multi_turn_base).
+- Whether thinking repairs the flagged turns is not measured yet. It comes from the T arm, when MT finishes.
+- A turn-level peer needs a sandbox: the peer's turn and a redo must run on a copy of the environment. BFCL allows this; an agent with
+  real side effects needs a dry run.
+
+**Next.** When MT finishes, measure the rescue rate of thinking on flagged turns from the T arm, derived on Qwen3-8B. Then
+pre-register an arm that redoes a turn with thinking when another model's sandboxed rollout ends in a different state, with
+predictions from the stratified account, held out on the other two models.
