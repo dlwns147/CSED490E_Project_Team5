@@ -8,10 +8,8 @@ log-prob of every answer token and of the end-of-turn token is read from vLLM's 
 Rows: results/conf/<kind>_<tag>_s<s>.jsonl {id, lp: [answer token log-probs], end: end-of-turn log-prob, rt: the answer re-tokenizes
 to the stored token count}. Rows resume.
 usage: POC_BASE_URL=... python score_conf.py <kind> <tag> [seeds ...]   (CONF_LIMIT=k: the first k rows per seed, the smoke)"""
-import json, os, sys
+import json, os, sys, urllib.request
 from concurrent.futures import ThreadPoolExecutor
-
-import httpx
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from llm import BASE_URL, client  # noqa: E402
@@ -25,9 +23,9 @@ TOK = BASE_URL.rsplit("/v1", 1)[0] + "/tokenize"
 
 
 def tokenize(**kw):
-    r = httpx.post(TOK, json={"model": "local", **kw}, timeout=600)
-    r.raise_for_status()
-    return r.json()["tokens"]
+    req = urllib.request.Request(TOK, data=json.dumps({"model": "local", **kw}).encode(), headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=600) as r:
+        return json.loads(r.read())["tokens"]
 
 
 def score(p, row, end_id):
