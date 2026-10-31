@@ -7,7 +7,7 @@ message, every earlier answer and tool result, the generation prompt); new_k = P
 prefix cache over the previous request does not hold. Answers: non-thinking steps count their output tokens minus the stop token
 (exact); thinking steps count the answer as replayed (calls re-serialized; a final text answer from its stored first 300 characters:
 an undercount for long final answers of thinking steps). A request refused for overflow counts nothing.
-  replay (grader venv):  /home1/leesangjun/venvs/bfcl/bin/python poc/mt_cost.py replay <tag> [arms NTEF] [seeds 1 2 3]
+  replay (grader venv, or /opt/conda/bin/python in the image on a CPU node):  python poc/mt_cost.py replay <tag> [arms NTEF] [seeds 1 2 3]
                          -> results/tc/mt_in_<tag>_<arm>_s<seed>.json {id: {in, new, mis}}
   report:                python3.11 poc/mt_cost.py report [tag ...]
 Utility with input priced (points): 100 x right - 0.5 x (output + rho x new + rho_c x (in - new)) / 1000, rho = 0.25 (input at a
@@ -15,6 +15,7 @@ quarter of the output price), rho_c = rho / 10 (a cached input token at a tenth 
 rho = 0.1 / 0.5."""
 import json, os, re, sys
 
+sys.dont_write_bytecode = True   # BFCL is imported from the grader venv (through $POC_DATA/bfcl/pkg in the image)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 PD = os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nlp_data")
 RES = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "results", "tc")
