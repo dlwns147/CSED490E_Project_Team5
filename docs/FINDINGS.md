@@ -4495,3 +4495,13 @@ problem-seeds). PND is the most accurate policy in all four models. With the Qwe
 as XP-P8..P11 (Qwen3-8B / Qwen3-14B-AWQ on OptiBench's other 403 problems and MAMO; power 0.83 / 0.99 for Qwen3-8B if the exploratory
 effect is real, 0.30 / 0.56 if half) on the rows the XPEER lanes are generating, before any fresh outcome was read. Next: the lanes land
 (OptiBench ~13–14 UTC, MAMO later); decide XP-P3..P11.
+
+## 2026-10-31 10:1x UTC: XPEER addendum C pre-registered: is a peer from another lab the better check on SQL too? (and addendum B's scope on SQL)
+Purpose: if gpt-oss-20b's low agreement with costly wrong answers is a property of its lineage, it should hold on SQL, where the peer
+cascade already pays with a Qwen peer; then the recipe's check is one rule across tasks. Stored rows say the opposite so far: Nemotron
+(another lab) is a worse SQL peer than Qwen3.5-9B (−1.44 [−2.01, −0.90], Qwen3-8B as N, dev + fresh pooled). The stratified account
+predicts +1.6 over the Qwen peer if gpt-oss-20b agrees on SQL as on word problems, −1.4 with Nemotron's rates (realised −1.44).
+XC-P1..P3: per N (Qwen3-8B, Qwen3-14B-AWQ, Qwen3.5-9B), gpt-oss-20b − the Qwen peer > 0 over 2,868 questions (power ≈ 0.9 for +1.0).
+Jobs xsql_s1–3 (gpt-oss-20b low effort, quick query only, dev + SQL-PA's fresh questions). Scope note for addendum B (offline, stored
+SQL rows): gating the short think's query with the peer adds nothing on SQL (PND − PEER −0.93 to +0.36), where the full think is not
+better than the short think — the condition the stratified account gives. Next: the three XPEER fresh tests land (OptiBench ~13–14 UTC).
