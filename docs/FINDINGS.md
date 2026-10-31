@@ -4383,3 +4383,15 @@ Word problems: base pass@1/16 30.6 / 52.3%; base-never items where the default i
 one sample's tokens) is worth +1.15 [+0.38, +2.05] in the cascade and +1.16 [+0.02, +2.41] over SB→T→T, against −0.01 / −0.06 on SQL /
 tool calls, whose samples are near their mode. Next: GREEDY (addendum; q8bg / q35g at T 0, submitted) and TD (the thinking mode's
 programs vs RFT, data generating); SH-P3 note for WP-RL written before its rows.
+
+## 2026-10-31 00:2x UTC: GREEDY (PREREG_SHARP.md addendum): greedy decoding is not the modal answer; the cheap path still saves nothing on word problems
+Qwen3-8B's quick program at T 0 (q8bg; Qwen3.5-9B's as the peer, q35g), the four held-out sets, 3 seeds. Quick right +2.03 [−0.14,
++4.27] over sampled (GR-P1 refuted; the 16-sample mode gives +12.3), greedy N → peer → SB→T→T − SB→T→T +0.25 [−0.54, +1.01] (GR-P2
+refuted), − the sampled-N cascade +0.24 [−0.30, +0.80] (GR-P3 refuted); both greedy +0.45 [−0.49, +1.38]. Greedy's value is the
+16-sample modal value on 57% of problems and right on 72% of those whose mode is right: the most likely token path reaches the modal
+value only half the time when programs differ. Greedy is not deterministic in vLLM bf16 (same program at all three seeds on 165 / 476;
+2506.09501) and repeats (+27% tokens, 50 / 1,428 at the 8,192 cap). Offline, the modal value of k samples at k × the tokens loses
+(−0.96 at k 5, −2.03 at k 8). Decision as registered: greedy is not the mode; word problems keep SB→T→T. Since the default's thinking is
+6.5–7 utility points of tokens on the hard sets (the cheap programs 1.4k), CONT (PREREG_CONT.md, pre-registered 10-30 23:5x) tests the
+free check inside the think: cross-fitted early-exit points, and continuing vs restarting after a failed cut (theory: continuing pays
+only if a failed 2k check lowers the same think's chance of ending right by less than 1 point).

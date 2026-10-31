@@ -118,3 +118,21 @@ sample's tokens (what greedy would give if it found the answer mode) +0.62 / +0.
 only way it could pay. Greedy decodes the most likely token path, not the most frequent value over programs, so GR-P1 is not implied.
 Seen before the analysis (one printout of seed 1's rows, read for repetition): greedy programs reach the 8,192-token cap in 16 of 476
 rows (sampled: 4 of 879, OptiBench whole), and seed 1's right rates per set were on the same lines (q8bg 54.0 / 18.3 / 13.0 / 17.0%).
+
+### Results GREEDY (2026-10-31 00:2x UTC; `analyze_wprl.py q8bg` and `--peer q35g` > results/greedy.txt; q8bg / q35g 476 problems × 3 seeds, no failed requests)
+| | optibench | bwor | logior | optmath | pooled |
+|---|---|---|---|---|---|
+| quick right: sampled / greedy | 50.5 / 54.1% | 15.4 / 17.1% | 15.6 / 13.0% | 14.3 / 17.7% | **GR-P1 +2.03 [−0.14, +4.27]** |
+| greedy N → Qwen3.5-9B → SB→T→T − SB→T→T | +0.80 | −1.06 | −0.05 | +0.49 | **GR-P2 +0.25 [−0.54, +1.01]** |
+| − the sampled-N cascade | +0.15 | −0.20 | +0.83 | +0.22 | **GR-P3 +0.24 [−0.30, +0.80]** |
+| both greedy (peer q35g) − SB→T→T | +0.90 | −0.61 | −0.96 | +1.69 | +0.45 [−0.49, +1.38] |
+| sampled N with the greedy peer − SB→T→T | | | | | +0.71 [−0.22, +1.63] |
+- **GR-P1, P2, P3 refuted.** Decision as registered (P1 refuted): greedy is not the mode here; word problems keep SB→T→T.
+- **Why (raw rows, against the 16 base samples).** Greedy's value equals the modal passing value of the 16 samples on 57% of the 402
+  problems that have one (228); where the mode is right (202) greedy is right on 72% (146) — it finds the most likely token path, which
+  leads to the modal value only half the time when programs differ. Greedy is not deterministic either: the three seeds write the same
+  program on only 165 of 476 problems (bf16 batch non-associativity in vLLM; 2506.09501 measures up to 9 points of greedy variation).
+  It also repeats: 27% more tokens (982 vs 774) and 50 of 1,428 programs reach the 8,192-token cap. Against the offline mode (+1.15),
+  greedy gives a fifth of the quick-right gain (+2.0 vs +12.3 points) and none of the cascade gain.
+- **Consequence.** On word problems the cheap path's three levers left are training (WP-RL, running), the thinking mode's programs
+  (TD), and the default's own thinking cost (CONT, PREREG_CONT.md) — the last is where most of the tokens are.
