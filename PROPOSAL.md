@@ -102,7 +102,7 @@ In Lean (miniF2F, 244 statements, 8 attempts) a specialized prover that fits one
 
 1. **Write a program** for anything that needs exact computation (Section 1).
 2. **Add the missing fact** (findings 1–2): a few lines of exact usage, not a long manual and not extra tools; written by hand, or mined automatically from the model's own checked programs (finding 6).
-3. **Run a free check** (finding 3): the examples in the problem statement, or two different versions that should agree, or the quick answer of a second model from another family (held out on word problems for Qwen3-8B with gpt-oss-20b: more accurate and cheaper than thinking on MAMO, 79.8% at 2.1k tokens vs 76.1% at 3.5k; also a gain on fresh OptiBench problems).
+3. **Run a free check** (finding 3): the examples in the problem statement, or two different versions that should agree, or the quick answer of a second model from another family (held out on word problems for Qwen3-8B with gpt-oss-20b: more accurate and cheaper than thinking on MAMO, 79.8% at 2.1k tokens vs 76.1% at 3.5k; also a gain on fresh OptiBench problems; and with gpt-oss-20b answering and a Qwen model checking, on text-to-SQL and tool calls: 58.7% vs 57.0% on BIRD, 84.8% vs 83.9% on BFCL for fewer tokens).
 4. **Think harder only when the check fails** (finding 4); on word problems, first one cheap repair turn shown the error (held out: more accurate than going straight to thinking on OptiBench and OptMATH for all four models tested, e.g. +6.0 points on OptMATH for Qwen3.5-9B, at fewer tokens; on BWOR / LogiOR it hurt Qwen3-8B, whose repaired programs run but are wrong).
 5. **When the same problem returns with new data, reuse the program that passed** (finding 5).
 

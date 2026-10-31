@@ -76,3 +76,43 @@ unknown); P2 inconclusive (the BFCL sign depends on the gap of D over N, which r
 oss20), fresh SB and T (oss20pa), BFCL N (low effort) and SB / T (tag oss20), then the SQL grading; BFCL graded on the login node
 (`grade_tc.py oss20`). Commands in docs/SLURM_HANDOFF.md. Analysis: `python3.11 poc/analyze_xg.py` (written before this file; dry run
 on Qwen3-8B with `XG_A=q8b XG_PEERS=q35,q14a`).
+
+## Results (written 2026-10-31 20:1x UTC; `results/xg.txt`; jobs 1289314–1289316, no failed request; fresh BIRD graded on a CPU node, 1289485)
+
+gpt-oss-20b as the generator, Qwen3.5-9B as the peer; accuracy @ ktokens per question-seed (the peer's tokens counted):
+
+| cell | N (low effort) | D = SB→T→T (medium) | T→T | cascade | cascade − D utility | accuracy | ktokens |
+|---|---|---|---|---|---|---|---|
+| BIRD dev | 53.0 @ 0.14 | 55.9 @ 0.53 | 55.8 @ 0.54 | 58.0 @ 0.60 | +1.99 [+1.32, +2.71] | +2.03 | +0.07 |
+| BIRD-train fresh | 54.4 @ 0.11 | 58.3 @ 0.38 | 56.8 @ 0.37 | 59.6 @ 0.39 | +1.26 [+0.64, +1.91] | +1.27 | +0.02 |
+| **SQL pooled** | 53.6 @ 0.13 | 57.0 @ 0.46 | 56.3 @ 0.46 | 58.7 @ 0.50 | **+1.65 [+1.20, +2.14]** | +1.67 | +0.05 |
+| BFCL non-live | 88.0 @ 0.06 | 90.9 @ 0.22 | 90.4 @ 0.21 | 91.6 @ 0.18 | +0.74 [+0.20, +1.31] | +0.73 | −0.04 |
+| BFCL live | 76.4 @ 0.05 | 80.0 @ 0.23 | 79.5 @ 0.23 | 81.0 @ 0.22 | +1.03 [+0.63, +1.45] | +1.03 | −0.01 |
+| **BFCL pooled** | 80.5 @ 0.05 | 83.9 @ 0.23 | 83.4 @ 0.22 | 84.8 @ 0.21 | **+0.93 [+0.62, +1.26]** | +0.92 | −0.02 |
+
+- **XG-P1 holds** (SQL +1.65 [+1.20, +2.14]); **XG-P2 holds** (BFCL +0.93 [+0.62, +1.26]).
+- **XG-P3 holds:** decisive-strata ratio / all-passing ratio 3.48 / 2.87 (SQL, +21%) and 3.09 / 3.32 (BFCL, −7%).
+- **XG-P4 holds:** peer TPR / FPR above r* in both tasks (SQL 2.9 vs 1.17; BFCL 3.3 vs 1.24) and both gains positive.
+- Labels: on BFCL dominance in every cell (more accurate, fewer tokens); on SQL a trade only in name: the cascade pays 0.05k more
+  tokens for 1.67 points, so it loses only above λ = 36.6 points per 1k tokens (73 times the utility's price).
+- Peer Qwen3-8B (reported): SQL +0.81 [+0.30, +1.31], BFCL +1.58 [+1.20, +1.98]; every cell positive, the fresh SQL questions
+  inconclusive (+0.32 [−0.40, +1.04]).
+- Theory: the unknown was D's rescue rate on the wrong passing quick queries; it is L ≈ 15.6 (D right on about 16% of them,
+  Qwen generators 22–29%), so L / G = 1.6, far under the bound of 4.0. gpt-oss's medium think adds little over its low effort on
+  SQL (+3.4 points; Qwen 6.5–11) and BFCL (+3.4), so WR is barely larger than RW (SQL 518 vs 428 question-seeds), and the peer
+  accepts 52% of RW against 15% of WR: +224 − 78 = +146 question-seeds, the +1.7 points of accuracy.
+- Arms: SB's think reached the 2,000 cut on 83 / 4,602 dev and 4 / 4,014 fresh question-seeds; capped or empty SQL replies ≤ 1 per
+  arm. On BFCL, empty final messages (no call) are almost all irrelevance items, where no call is right (N 22 / 22, T 322 / 331,
+  SB 337 / 345); 8–9 call-needed items per arm got an empty answer.
+- Raw reading (BIRD dev seed 1, the first 5 question-seeds where gpt-oss's quick query is wrong, the default right and Qwen3.5-9B
+  returns the same rows): the shared errors are typical shortcuts — COUNT(*) over a join where the question counts distinct
+  entities (1283, 1052; 199 counts atoms, not molecules), an extra count column next to the asked-for id (250), and "didn't have any
+  publisher" read as NULL against the evidence's publisher.id = 1 (799). The medium think writes COUNT(DISTINCT …) and follows the
+  evidence.
+- Models resident: gpt-oss-20b (≈ 13 GB) + Qwen3.5-9B (≈ 18 GB), two 24 GB GPUs against one for D; sequential calls N, the peer, then
+  D's one to three on a rejection.
+
+**Decision (as pre-registered).** P1 and P2 hold: the SQL and tool-call claims name two generator families, Qwen3 / 3.5 and gpt-oss
+(PROJECT, REPORT, PROPOSAL), and critique point 7 is closed for these tasks. The break-even rule predicted the sign in both (P4), and
+the step from all passing answers to the decisive strata held within 21% (P3): the peer's ratio on passing quick answers, measurable
+with N's labels alone, sufficed here.

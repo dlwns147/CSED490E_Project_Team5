@@ -500,6 +500,14 @@ check from yet another family (Nemotron, Llama-3.1-8B) therefore halves the usef
 single peer it loses 0.4–0.9 utility on SQL train in all three models and wins only for Qwen3-14B-AWQ on tool calls (+0.6), against
 an independence-based prediction of a gain in all six cells. The single peer is the end of the agreement route.
 
+**Another generator family (XG, pre-registered).** All of the above uses Qwen generators. With gpt-oss-20b answering (its low-effort
+answer as N, its medium-effort SB→T→T as the default) and Qwen3.5-9B's quick answer as the check, the cascade beats the default on
+both tasks: BIRD (dev + fresh, 2,866 questions) 58.7% vs 57.0%, +1.65 [+1.20, +2.14] utility; BFCL (3,482) 84.8% at 0.21k tokens vs
+83.9% at 0.23k, +0.93 [+0.62, +1.26]. The break-even account predicted both signs from quantities measured before the default was
+run, except one: how often the medium think rescues a wrong passing quick answer. For gpt-oss it rarely does (about 16% on SQL, against
+22–29% for the Qwen models), because its medium think adds only 3.4 points over its low effort, so the bound (L / G < 4.0) held with
+room (1.6).
+
 **Training the quick query, not the check (CV-1, pre-registered).** RL (LoRA) on Qwen3-8B's non-thinking mode over 6,000 BIRD-train
 questions, with labels only in training. Rewarded with the cascade's own value (its query if a second turn, shown the query's result,
 says ACCEPT; the same model's think-with-retry otherwise), the model learns to defer everything: on dev it ends exactly at T→T (59.2%,

@@ -4691,3 +4691,16 @@ from the first step. Decision (pre-registered): agent loops get "think once per 
 first); the cheap-first step with the error as its check is a boundary of the recipe (REPORT §7, PROJECT §0). Qwen3-14B-AWQ and the
 input-token predictions S1–S3 (Qwen3-8B holds, Qwen3.5-9B refuted: its thinking does not shorten the loop) follow. Goal link: in
 agent loops the cheapest exact answers come from thinking at each request, and a free per-step check does not license skipping it.
+
+## 2026-10-31 20:1x UTC: XG (pre-registered XG-P1..P4, all hold): the peer cascade beats the default with a non-Qwen generator on SQL and tool calls
+Why: every SQL and tool-call claim rested on Qwen generators (critique point 7). gpt-oss-20b answering (low effort; default SB→T→T at
+medium effort, SB cut at 2,000 with the final channel forced), Qwen3.5-9B's stored quick answer as the check, 3 seeds. BIRD dev +
+fresh: 58.7% @ 0.50k vs the default's 57.0% @ 0.46k, +1.65 [+1.20, +2.14] utility (P1); BFCL: 84.8% @ 0.21k vs 83.9% @ 0.23k, +0.93
+[+0.62, +1.26] (P2, more accurate and cheaper in every cell). The break-even rule's sign held in both (P4), and the peer's ratio on
+the decisive strata stayed within 21% of its ratio on all passing answers (P3), so N's labels alone placed it above r*. The one
+unknown was the default's rescue rate: gpt-oss's medium think rescues ~16% of its wrong passing quick queries (Qwen 22–29%), adding
+only 3.4 points over low effort. Raw: the false confirms are shared shortcuts (COUNT(*) where distinct entities are counted, an extra
+column, a literal reading against the evidence). BFCL needed the final channel forced: through the chat endpoint gpt-oss routes calls
+to its undeclared tool channel and returns an empty message (poc/diag_oss_tc.py). Decision (pre-registered): the SQL and tool-call
+claims name two generator families; PROJECT §0, REPORT §5.11, PROPOSAL step 3 (en/ko). Goal link: the cheapest exact answers on
+these tasks come from the quick answer checked by another family's quick answer, whichever family answers.
