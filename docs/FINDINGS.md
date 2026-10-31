@@ -4410,3 +4410,22 @@ sharpening, unlike plain RL on SQL / tool calls (SHARP). Mechanism from the raw 
 GLOP, and the td model writes GLOP 212 times (base 52, rft 9), 74 with integer variables that GLOP relaxes — wrong values that pass
 the check. The quick mode copies the think's solver choice without the reasoning behind it. The training step stays on the model's
 own checked quick programs. Next: WP-RL (on-policy RL, the same problems ×2) lands ~06 UTC; CONT and its agreement-exit addendum.
+
+## 2026-10-31 05:3x UTC: CONT (PREREG_CONT.md, with addendum A): the free check inside the think does not pay on word problems — its precision, not its placement, is the limit
+Purpose: on word problems the default's thinks (8–14k tokens) are the cost; CONT asked whether checking a program forced every 1,000
+thinking tokens lets the think stop early, whether a failed 2k cut should continue instead of restarting, and (addendum A) whether
+agreement with answers already paid for is a better stop signal. Qwen3-8B, 476 problems × 3 seeds, one think per problem and seed
+with the program forced at every 1k and at the end. All five CT predictions and CA-P1..P3 are not shown: RD − R0 +0.39 [−0.48,
++1.29]; C0 − R0 +0.26 [−0.23, +0.77] (the independence theory predicted +0.37); D (fresh − same end right after a failed cut) +1.29
+[−2.15, +4.72] points, too wide to place against the break-even of 1; CD − stored SB→T→T +1.22 [−0.98, +3.44]; convergence exits
+−0.39; the peer cascade with agreement exits +1.22 / +1.21 over the default / the peer cascade (n.s., more accurate: 55.8% at 12.9k
+tokens). CA-P4 holds: a passing forced program that agrees with the peer's quick program is right 76.7% of the time, with N's 71.9%,
+with the same think's previous program 66.2%, with nothing 25.2% (+10.6 [+6.9, +14.3] peer − same think) — the order the
+independence account predicted; a think's own probes converge on its formulation, right or wrong (against Dynasor-CoT / Answer
+Convergence on math). Hazard: forced programs pass 60–63% of the time from 1k to 4k tokens and are right 64–65% when they pass,
+later ones less (37–40% at 13–15k, the hard problems' thinks), the end program 69.7%. The oracle exit (first right program of the
+think) is +5.8 above R0, the perfect cheap-path check +2.3–2.6: every label-free signal recovers at most a fifth. Decision: the default
+is unchanged; no CONT run on SQL / contest code. Next (pre-registered, PREREG_VER.md): the check itself — Qwen3-8B fine-tuned on
+10,821 passing OptMATH-Train programs (labels in training only) to say whether a printed value is right, used as the gate at every step
+of the cascade. Break-evens computed from stored rows: gating the cut think's program pays if it rejects wrong programs 1.34× as
+often as right ones; gating the cheap program needs 2.17× and must repay the cheap program's cost; ceilings +4.4 / +2.6 (both +5.6).

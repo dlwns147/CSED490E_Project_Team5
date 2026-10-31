@@ -1,6 +1,8 @@
 """DT (docs/prereg/PREREG_DT.md): LoRA fine-tuning of Qwen3-8B on the label-free checked programs (poc/build_sft_data.py), then a merged
 copy that vLLM serves like the base model. Loss on the target only; the prompt is rendered with the chat template, thinking off.
-usage: python sft_lora.py <base model dir> <data.jsonl> <adapter out dir> <merged out dir> [--epochs 2] [--max_len 3072] [--steps N]"""
+usage: python sft_lora.py <base model dir> <data.jsonl> <adapter out dir> <merged out dir> [--epochs 2] [--max_len 3072] [--steps N]
+Data-parallel over k GPUs (VER, 10-31): torchrun --nproc_per_node k sft_lora.py ... (one full copy per GPU, the same effective batch of 16;
+rank 0 saves and merges)."""
 import json, os, sys
 
 import torch
@@ -36,15 +38,20 @@ def main():
                 "labels": torch.tensor([b["labels"] + [-100] * (n - len(b["labels"])) for b in batch]),
                 "attention_mask": torch.tensor([[1] * len(b["input_ids"]) + [0] * (n - len(b["input_ids"])) for b in batch])}
 
-    model = AutoModelForCausalLM.from_pretrained(base, torch_dtype=torch.bfloat16, device_map="auto")
-    model.gradient_checkpointing_enable(); model.enable_input_require_grads(); model.config.use_cache = False
+    rank, ws = int(os.environ.get("LOCAL_RANK", -1)), int(os.environ.get("WORLD_SIZE", 1))
+    model = AutoModelForCausalLM.from_pretrained(base, torch_dtype=torch.bfloat16, device_map={"": rank} if rank >= 0 else "auto")
+    model.gradient_checkpointing_enable(**({"gradient_checkpointing_kwargs": {"use_reentrant": False}} if ws > 1 else {}))
+    model.enable_input_require_grads(); model.config.use_cache = False
     model = get_peft_model(model, LoraConfig(r=16, lora_alpha=32, lora_dropout=0.05, task_type="CAUSAL_LM",
                                              target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]))
     model.print_trainable_parameters()
-    args = TrainingArguments(output_dir=ad_out, per_device_train_batch_size=1, gradient_accumulation_steps=16, num_train_epochs=epochs,
+    args = TrainingArguments(output_dir=ad_out, per_device_train_batch_size=1, gradient_accumulation_steps=max(1, 16 // ws), num_train_epochs=epochs,
                              max_steps=steps, learning_rate=1e-4, lr_scheduler_type="cosine", warmup_ratio=0.03, bf16=True, logging_steps=5,
-                             save_strategy="no", report_to=[], remove_unused_columns=False, seed=0)
+                             save_strategy="no", report_to=[], remove_unused_columns=False, seed=0,
+                             **({"ddp_find_unused_parameters": False} if ws > 1 else {}))
     Trainer(model=model, args=args, train_dataset=feats, data_collator=collate).train()
+    if rank > 0:
+        return
     model.save_pretrained(ad_out)
     merged = model.merge_and_unload()
     merged.config.use_cache = True

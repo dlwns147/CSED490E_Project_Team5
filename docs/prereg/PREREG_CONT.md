@@ -134,3 +134,50 @@ Expected (not a rule): P1 refuted, P2 inconclusive (+0.5 to +2), P3 inconclusive
 the cap most often), 3 hours behind the other sets. Three helper jobs (1286131–1286133, `run_cont.py` with `CONT_REVERSE=1`) take
 its problems in reverse order into `cont_q8b_optmath_s<seed>_rev.jsonl` with the same per-problem seeds; when the two files of a seed
 cover all 100 problems both jobs are cancelled. `analyze_cont.py` reads both files, the main job's row winning where both ran a problem.
+
+## Results (2026-10-31 05:3x UTC; `results/cont.txt`, `results/conta.txt`)
+
+All 476 problems × 3 seeds (OptMATH: main and reverse-helper rows merged, every problem covered). An interim run of both analyses
+(05:2x, OptMATH 97 / 100) was read before the last three problems landed; nothing was changed after it.
+
+| test | utility (95% interval) | verdict |
+|---|---|---|
+| CT-P1 RD − R0 (early exit at the first passing forced program) | +0.39 [−0.48, +1.29] | refuted (not shown) |
+| CT-P2 C0 − R0 (continue the cut think instead of restarting) | +0.26 [−0.23, +0.77] | refuted (not shown) |
+| CT-P3 D = P(fresh end right) − P(same end right) after a failed 2k check | +1.29 [−2.15, +4.72] points | refuted (not shown) |
+| CT-P4 CD − RD | +0.07 [−0.87, +1.08] | refuted |
+| CT-P5 CD − the stored SB→T→T | +1.22 [−0.98, +3.44] | refuted (not shown) |
+| CA-P1 RDc − RD (convergence exits) | −0.39 [−1.29, +0.48] | refuted |
+| CA-P2 PRA − the stored SB→T→T | +1.22 [−0.90, +3.46] | refuted (not shown) |
+| CA-P3 PRA − the stored peer cascade | +1.21 [−0.84, +3.36] | refuted (not shown) |
+| CA-P4 right \| agrees with the peer − right \| agrees with the think's previous passing program | +10.6 [+6.9, +14.3] points | **holds** |
+
+Policies (accuracy @ tokens, utility): R0 53.9% @ 9.90k, 48.90; C0 53.8% @ 9.24k, 49.16; RD 53.9% @ 9.27k, 49.29; CD 53.8% @ 8.86k,
+49.35; PRA 55.8% @ 12.92k, 49.35; **oracle** (the first right program of the think) 60.3% @ 11.20k, **54.69**; stored SB→T→T 53.2%,
+48.13 (R0 replays it within 0.8). Fitted cut points differ between the halves ((5k, 8k, 14k, 15k) vs (3k, 4k, 7k, 10k, 15k)): no
+stable stopping point. Per benchmark the exits gain on BWOR / OptMATH (+1.2 / +1.7 over R0) and lose on LogiOR (−2.2), all n.s.
+
+**Hazard (the mechanism).** A forced program passes the free check 60–63% of the time from 1k to 4k thinking tokens and is right when
+it passes 64–65% of the time; later cuts are less precise, not more (53% at 7–9k, 37–40% at 13–15k: the thinks still running there are
+the hard problems'), and the end program is right 69.7% of the time it passes. So the early program is about as good as the end
+program the think was going to write, and the exit saves only where the think is long, which is where its programs are least precise.
+Precision by anchor (CA-P4, every passing forced program): agrees with the peer's quick program 76.7% right (47% of them), with N's
+71.9% (40%), with the same think's previous passing program 66.2% (68%), with nothing 25.2% (17%) — the order the independence theory
+predicted (peer ≥ N > the same think), and convergence of a think's own probes (Dynasor-CoT / Answer Convergence) is the least precise
+anchor on word problems: the think converges on its formulation, right or wrong. Zero values are not the leak (147 of 2,572 wrong
+passing forced programs print 0).
+
+**Continue vs restart (CT-P2 / P3).** Under independence (D = 0) the theory predicted C0 − R0 = +0.37; the measured +0.26 [−0.23,
++0.77] and D = +1.29 [−2.15, +4.72] points fit both D = 0 and the break-even D = 1: 233 escalated problems are too few to tell
+whether a failed cut predicts its own think's failure. Neither the restart nor the continuation is shown better.
+
+**The gap.** The early-exit oracle sits +5.8 utility above R0, larger than the perfect check on the cheap path (+2.3, PREREG_TD.md
+note, HO-PA ceiling with a perfect peer), and every label-free stop signal recovers at most a fifth of it (+0.4 to +1.2, n.s.): passing
+forced programs are right 60–65% of the time, and agreement lifts that to 72–77% for half of them. The bottleneck is the check's
+precision, not where it is applied.
+
+**Decision (as pre-registered).** P1 refuted → the default does not stop at forced programs; P2 and P3 refuted → neither restart nor
+continuation is shown better at this size, the default keeps restarting (its stored form); CA-P2 / P3 not shown → the peer cascade
+with agreement exits is not adopted; CA-P4 holds → where a cascade anchors an exit on agreement, the anchor is another model's answer,
+not the think's own earlier answer (reported against Dynasor-CoT / Answer Convergence). No CONT run on SQL or contest code (that
+was conditional on P1 and P5). Next: the check itself — a verifier trained with labels on OptMATH-Train (PREREG_VER.md).
