@@ -167,11 +167,11 @@ def seed_budget_chat(prompt, budget, max_tokens=4096, temperature=0.7, seed=None
             "think_tokens": used}
 
 
-def harmony_budget_chat(prompt, budget, max_tokens=4096, temperature=0.7, seed=None, system=None):
+def harmony_budget_chat(prompt, budget, max_tokens=4096, temperature=0.7, seed=None, system=None, cut_note="I will now write the program."):
     """HO-OSB: budget forcing for gpt-oss (POC_HARMONY set). The prompt is the model's chat template rendered by hand (one user turn,
     no tools; the client venv has no transformers) at POC_HARMONY_EFFORT (default medium); the analysis channel runs for at most
     `budget` tokens (<|end|>, id 200007, ends it), then the final channel is forced and the answer generated. system (LC-OSS): a system
-    turn, rendered as the template does, as a developer message ("# Instructions")."""
+    turn, rendered as the template does, as a developer message ("# Instructions"); cut_note as budget_chat (XG: the query / the calls)."""
     import time
     from llm import client
     head = ("<|start|>system<|message|>You are ChatGPT, a large language model trained by OpenAI.\nKnowledge cutoff: 2024-06\n"
@@ -183,7 +183,7 @@ def harmony_budget_chat(prompt, budget, max_tokens=4096, temperature=0.7, seed=N
     r = client.completions.create(model="local", prompt=head, max_tokens=budget, temperature=temperature, top_p=tp, seed=seed,
                                   extra_body={"stop_token_ids": [200007]})
     think_txt, used, cut = r.choices[0].text, r.usage.completion_tokens, r.choices[0].finish_reason == "length"
-    cont = head + think_txt + ("\n\nTime is up; I will now write the program." if cut else "") + "<|end|><|start|>assistant<|channel|>final<|message|>"
+    cont = head + think_txt + (f"\n\nTime is up; {cut_note}" if cut else "") + "<|end|><|start|>assistant<|channel|>final<|message|>"
     r2 = client.completions.create(model="local", prompt=cont, max_tokens=max_tokens, temperature=temperature, top_p=tp, seed=seed)
     return {"text": r2.choices[0].text, "finish": r2.choices[0].finish_reason, "out_tokens": used + r2.usage.completion_tokens,
             "think_tokens": used}

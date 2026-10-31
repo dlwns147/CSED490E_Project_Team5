@@ -15,8 +15,9 @@ RES = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
 LAM = 0.005
 
 
-def base(m="q8b"):
-    """{(id, seed): {policy: (right, tokens)}} for SQL-1's fixed orders, with analyze_sql.cell's question filter"""
+def base(m="q8b", need_r=True):
+    """{(id, seed): {policy: (right, tokens)}} for SQL-1's fixed orders, with analyze_sql.cell's question filter (need_r=False, XG:
+    a generator whose quick rows have no repair R keeps its failing N too)"""
     G, C, T, SB = {}, {}, {}, {}
     for s in (1, 2, 3):
         G[s] = json.load(open(f"{RES}/grades_{m}_s{s}.json")); G[s].pop("_gold_fail", None)
@@ -27,7 +28,7 @@ def base(m="q8b"):
         for i, c in C[s].items():
             g, g2 = G[s].get(i, {}), G[s2].get(i, {})
             if not {"N", "T", "SB"} <= set(g) or not {"N", "T"} <= set(g2) or i not in T[s] or i not in SB[s] or i not in T[s2] \
-                    or i not in C[s2] or (c["c_n"] != "pass" and "R" not in g):
+                    or i not in C[s2] or (need_r and c["c_n"] != "pass" and "R" not in g):
                 continue
             tt, st, t2t = T[s][i]["out_tokens"], SB[s][i]["out_tokens"], T[s2][i]["out_tokens"]
             ft, fs = g["T"]["chk"] != "pass", g["SB"]["chk"] != "pass"

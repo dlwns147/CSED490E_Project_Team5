@@ -9,7 +9,8 @@ The check on T / SB, the grade (BIRD's execution accuracy) and the policies are 
 Items: $POC_DATA/bird/sql_items.jsonl (poc/prep_sql.py). Rows resume. SQL-F: SQL_FACT=card | lib | both adds the fact to every arm's
 prompt (poc/fact_sql.py; lib / both: SQL_LIB=<SQL-1 tag> whose seed s' cheap rows give the library; SQL-FA: SQL_LIB_ADMIT=agree | right | wrong).
 SQL-DV: SQL_VIEW=shuffle (the schema's tables in a per-question random order) | plan (a one-line plan comment before the query) changes
-the prompt of every arm; arm quick = N alone (no S / R), written to the cheap file.
+the prompt of every arm; arm quick = N alone (no S / R), written to the cheap file. XG (gpt-oss as the generator): POC_HARMONY=1 makes SB
+the medium-effort think cut at 2,000 (harmony_budget_chat, as LC-OSS) and skips S; the effort of N / R / T is POC_REASONING_EFFORT.
 usage: python run_sql.py <tag> <seed>     (SQL_SUBSET=i/k: questions i, i+k, ... only — the smoke; SQL_ARMS=think: only those arms;
   SQL_SPLIT=train: BIRD train's items, CV-1; SQL_IDS=<file>: only those ids)"""
 import json, os, random, sys, zlib
@@ -19,12 +20,13 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from llm import chat, chat_msgs  # noqa: E402
 from fact_sql import library, with_fact  # noqa: E402
 from prep_sql import ASK, DATA, ITEMS, check, extract  # noqa: E402
-from run_geo_cross import budget_chat  # noqa: E402
+from run_geo_cross import budget_chat, harmony_budget_chat  # noqa: E402
 from run_nlopt import _rows  # noqa: E402
 
 RES = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "results", "sql")
 TK = int(os.environ.get("SQL_TK", 16000))
 POOL = int(os.environ.get("SQL_POOL", 64))
+HARMONY = bool(os.environ.get("POC_HARMONY"))   # XG: gpt-oss as the generator (SB as LC-OSS; S not asked)
 SELECT = """Here is a text-to-SQL question.
 
 {q}
@@ -71,7 +73,8 @@ def main():
 
     def cheap(p):
         n = chat(p["user"], think=False, max_tokens=2048, temperature=0.7, seed=sd(p))
-        d = chat(SELECT.format(q=p["user"].replace(ASK, "").strip()), think=False, max_tokens=8, temperature=0.7, seed=sd(p))
+        d = ({"text": "", "out_tokens": 0} if HARMONY else
+             chat(SELECT.format(q=p["user"].replace(ASK, "").strip()), think=False, max_tokens=8, temperature=0.7, seed=sd(p)))
         c = check(p["db_id"], extract(n["text"]))
         row = {"id": p["id"], "n_text": n["text"], "n_tok": n["out_tokens"], "n_finish": n["finish"], "c_n": c,
                "s_ans": (d["text"] or "").strip().lower()[:20], "s_tok": d["out_tokens"]}
@@ -92,7 +95,8 @@ def main():
         return "think", {"id": p["id"], "text": o["text"], "out_tokens": o["out_tokens"], "finish": o["finish"]}
 
     def sb(p):
-        o = budget_chat(p["user"], 2000, max_tokens=2048, temperature=0.7, seed=sd(p), cut_note="I will now write the query.")
+        o = (harmony_budget_chat if HARMONY else budget_chat)(p["user"], 2000, max_tokens=2048, temperature=0.7, seed=sd(p),
+                                                              cut_note="I will now write the query.")
         return "sb", {"id": p["id"], "text": o["text"], "out_tokens": o["out_tokens"], "think_tokens": o["think_tokens"], "finish": o["finish"]}
 
     jobs = [(f, p) for p in P for a, f in (("cheap", cheap), ("think", think), ("sb", sb), ("quick", quick)) if a in arms

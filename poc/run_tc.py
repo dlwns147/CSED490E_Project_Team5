@@ -8,13 +8,17 @@ offline: poc/grade_tc.py, poc/analyze_tc.py. Items: $POC_DATA/bfcl/tc_items.json
 SQL-DV (PREREG_SQL.md): TC_VIEW=shuffle (the function docs in a per-item random order; a no-op for one function) | plan (a line
 `# plan: ...` before the calls, removed from n_text and kept as p_text); arm quick = N alone, written to the cheap file.
 TC-RL addendum 2 (PREREG_TCRL.md): TC_ITEMS=<jsonl> another item file (the ToolACE training items); TC_IDS=<file> only those ids.
+XG (gpt-oss as the generator): POC_HARMONY=1 renders every arm by hand (harmony_budget_chat) and forces the final channel after the
+reasoning: N = its reasoning capped at 2,000, T = at 16,000, SB = cut at 2,000 (as LC-OSS); the effort is POC_HARMONY_EFFORT (N low,
+T / SB medium); S is skipped. Through the chat endpoint gpt-oss answered BFCL's prompt-mode requests with an empty final message in
+the XG smoke (13 / 18 quick, 12 / 18 thinking replies).
 usage: python run_tc.py <tag> <seed>     (TC_SUBSET=i/k: items i, i+k, ... only — the smoke; TC_ARMS=think: only those arms — SAMP)"""
 import json, os, random, sys, zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from llm import chat  # noqa: E402
-from run_geo_cross import budget_chat  # noqa: E402
+from run_geo_cross import budget_chat, harmony_budget_chat  # noqa: E402
 from run_nlopt import _rows  # noqa: E402
 
 RES = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "results", "tc")
@@ -25,6 +29,8 @@ right calls? Answer with one word, yes or no.
 Request:
 {q}"""
 
+HARMONY = bool(os.environ.get("POC_HARMONY"))   # XG: gpt-oss as the generator (every arm answers in its final channel; S not asked)
+CUT = "I will now write the function calls."
 MARK = "Here is a list of functions in json format that you can invoke.\n"
 PLAN = ("\n\nBefore the calls, write one line starting with `# plan:` that names the function(s) to use and the values to pass; then "
         "write the calls on the next line.")
@@ -56,8 +62,10 @@ def main():
     sd = lambda p: seed * 1000 + zlib.crc32(p["id"].encode()) % 997
 
     def cheap(p):
-        n = chat(p["user"], system=p["system"], think=False, max_tokens=2048, temperature=0.7, seed=sd(p))
-        d = chat(SELECT.format(q=p["user"]), system=p["system"], think=False, max_tokens=8, temperature=0.7, seed=sd(p))
+        n = (harmony_budget_chat(p["user"], 2000, max_tokens=2048, temperature=0.7, seed=sd(p), cut_note=CUT, system=p["system"]) if HARMONY
+             else chat(p["user"], system=p["system"], think=False, max_tokens=2048, temperature=0.7, seed=sd(p)))
+        d = ({"text": "", "out_tokens": 0} if HARMONY else
+             chat(SELECT.format(q=p["user"]), system=p["system"], think=False, max_tokens=8, temperature=0.7, seed=sd(p)))
         return "cheap", {"id": p["id"], "n_text": n["text"], "n_tok": n["out_tokens"], "n_finish": n["finish"],
                          "s_ans": (d["text"] or "").strip().lower()[:20], "s_tok": d["out_tokens"]}
 
@@ -69,12 +77,13 @@ def main():
                          "p_text": "\n".join(plan), "n_tok": n["out_tokens"], "n_finish": n["finish"]}
 
     def think(p):
-        o = chat(p["user"], system=p["system"], think=True, max_tokens=16000, temperature=0.7, seed=sd(p))
+        o = (harmony_budget_chat(p["user"], 16000, max_tokens=2048, temperature=0.7, seed=sd(p), cut_note=CUT, system=p["system"]) if HARMONY
+             else chat(p["user"], system=p["system"], think=True, max_tokens=16000, temperature=0.7, seed=sd(p)))
         return "think", {"id": p["id"], "text": o["text"], "out_tokens": o["out_tokens"], "finish": o["finish"]}
 
     def sb(p):
-        o = budget_chat(p["user"], 2000, max_tokens=2048, temperature=0.7, seed=sd(p), cut_note="I will now write the function calls.",
-                        system=p["system"])
+        o = (harmony_budget_chat if HARMONY else budget_chat)(p["user"], 2000, max_tokens=2048, temperature=0.7, seed=sd(p),
+                                                              cut_note=CUT, system=p["system"])
         return "sb", {"id": p["id"], "text": o["text"], "out_tokens": o["out_tokens"], "think_tokens": o["think_tokens"], "finish": o["finish"]}
 
     arms = os.environ.get("TC_ARMS", "cheap,think,sb").split(",")
