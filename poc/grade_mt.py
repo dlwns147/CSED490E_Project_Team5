@@ -25,6 +25,19 @@ def grade(r, p, name):
     return {"ok": bool(g["valid"]), "err": g.get("error_type")}
 
 
+def _rows(path):
+    """an arm's rows, one per item (the last row of an item wins; a torn or NUL-filled line from two writers on the NAS is skipped,
+    PREREG_MT infrastructure note 10-31)"""
+    out = {}
+    for line in open(path, errors="replace"):
+        try:
+            r = json.loads(line)
+        except ValueError:
+            continue
+        out[r["id"]] = r
+    return list(out.values())
+
+
 def main():
     tag = sys.argv[1]
     arms = sys.argv[2] if len(sys.argv) > 2 else "NTEF"
@@ -35,7 +48,7 @@ def main():
             f = f"{RES}/mt_{tag}_{a}_s{s}.jsonl"
             if not os.path.exists(f):
                 continue
-            R = [json.loads(l) for l in open(f)]
+            R = _rows(f)
             G = {r["id"]: grade(r, P[r["id"]], f"g_{tag}_{a}_s{s}") for r in R}
             json.dump(G, open(f"{RES}/mt_grades_{tag}_{a}_s{s}.json", "w"))
             n = len(G)

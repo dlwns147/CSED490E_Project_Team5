@@ -17,12 +17,25 @@ ARMS, LAM = "NEFT", 0.5
 SEEDS = [int(x) for x in os.environ.get("MT_SEEDS", "1,2,3").split(",")]
 
 
+def _rows(path):
+    """an arm's rows, one per item (the last row of an item wins; a torn or NUL-filled line from two writers on the NAS is skipped,
+    PREREG_MT infrastructure note 10-31)"""
+    out = {}
+    for line in open(path, errors="replace"):
+        try:
+            r = json.loads(line)
+        except ValueError:
+            continue
+        out[r["id"]] = r
+    return list(out.values())
+
+
 def load(tag, a, s):
     f, g = f"{RES}/mt_{tag}_{a}_s{s}.jsonl", f"{RES}/mt_grades_{tag}_{a}_s{s}.json"
     if not (os.path.exists(f) and os.path.exists(g)):
         return None
     G = json.load(open(g))
-    return {r["id"]: dict(r, ok=G[r["id"]]["ok"], gerr=G[r["id"]]["err"]) for r in map(json.loads, open(f)) if r["id"] in G}
+    return {r["id"]: dict(r, ok=G[r["id"]]["ok"], gerr=G[r["id"]]["err"]) for r in _rows(f) if r["id"] in G}
 
 
 def visible(r):

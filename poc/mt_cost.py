@@ -23,6 +23,19 @@ DATA = os.environ.get("MT_ITEMS") or os.path.join(PD, "bfcl", "mt_items.jsonl")
 TOK = os.path.join(PD, "stage", "Qwen3-14B-AWQ")
 
 
+def _rows(path):
+    """an arm's rows, one per item (the last row of an item wins; a torn or NUL-filled line from two writers on the NAS is skipped,
+    PREREG_MT infrastructure note 10-31)"""
+    out = {}
+    for line in open(path, errors="replace"):
+        try:
+            r = json.loads(line)
+        except ValueError:
+            continue
+        out[r["id"]] = r
+    return list(out.values())
+
+
 def replay(tag, arms, seeds):
     import bfcl_eval.eval_checker.multi_turn_eval.multi_turn_utils as U
     from transformers import AutoTokenizer
@@ -37,7 +50,7 @@ def replay(tag, arms, seeds):
             if not os.path.exists(f):
                 continue
             out, name = {}, f"cost_{tag}_{a}_s{s}"
-            for r in map(json.loads, open(f)):
+            for r in _rows(f):
                 p = P[r["id"]]; cfg, cls = p["initial_config"], p["involved_classes"]
                 U.execute_multi_turn_func_call([], cfg, cls, name, p["id"], long_context=False)
                 if p["id"] not in sysn:
