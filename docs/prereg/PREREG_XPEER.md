@@ -275,3 +275,34 @@ queries vs 1% of Qwen3.5-9B's).
 **Decision (as pre-registered).** 0 of XC-P1..P3 hold → on SQL the Qwen peer stays, and whatever gpt-oss-20b does on word problems
 is task-specific: a peer's value is its agreement in the two decisive strata of the given model and task, which neither lineage nor
 accuracy predicts. No tool-call run follows from this addendum.
+
+## Results, part 2: fresh OptiBench (XP-P3, P4, P5, P8, P10; 2026-10-31 12:3x UTC; `results/xpeer_fresh.txt`; jobs 1287120–1287125, 403 problems × 3 seeds per model, every row)
+
+| test | result (95% interval) | verdict |
+|---|---|---|
+| XP-P3 Qwen3-8B: N → gpt-oss-20b → SB→T→T − SB→T→T | +0.94 [+0.19, +1.75] utility (accuracy +0.58 [−0.17, +1.41]; predicted from the third's strata +1.89) | **holds** |
+| XP-P4 Qwen3-14B-AWQ, the same | +0.48 [−0.31, +1.29] (accuracy +0.08; predicted +1.15) | refuted (not shown) |
+| XP-P8 Qwen3-8B: PND − D | +0.77 [−0.38, +1.95] (73.4% @ 5.57k vs 72.4% @ 4.96k) | refuted (not shown) |
+| XP-P10 Qwen3-14B-AWQ: PND − D | +0.51 [−0.55, +1.55] | refuted (not shown) |
+| XP-P5 (four cells: Qwen3-14B-AWQ and Nemotron stored, Qwen3-8B and Qwen3-14B-AWQ fresh) | agreement where only the default is right below Qwen3.5-9B's: 2 / 4 (10.9 vs 8.8, 5.6 vs 9.6, 8.6 vs 14.3, 11.0 vs 11.0%); ratio above: 3 / 4 (6.0 vs 4.3, 8.0 vs 4.3, 4.7 vs 2.8, 4.3 vs 5.8) | refuted (required in each cell) |
+
+With the Qwen peer (pre-registered comparison) on the same problems: Qwen3-8B +0.53 [−0.47, +1.44], Qwen3-14B-AWQ +0.68 [−0.11,
++1.51]. These 403 problems are easier than the stored third (the default is right 72.4% / 72.7%; on the four stored sets 53–54%), so
+the decisive strata are small: for Qwen3-8B 32 problem-seeds where only N is right and 70 where only the default is right, out of
+1,209. Half of the realised gain is tokens: on the 598 problem-seeds both get right, gpt-oss-20b agrees on 92.8% (the Qwen peer 85.8%),
+and each agreement saves the default's 5k tokens. The stratified prediction overshoots by 0.95 / 0.67 here, as on the stored cells
+(0.67 / 0.69). PND gains less than on the stored rows (+0.77 vs +2.31) because the short think's decisive strata shrink with
+difficulty too: 29 problem-seeds where SB is wrong and T→T right, 21 the reverse.
+
+Raw (the 6 problem-seeds where gpt-oss-20b confirms a wrong Qwen3-8B program that the default gets right): both models share a reading
+of the statement. optibench-109: both drop the 120-hour monthly total and keep only "at most 50 hours on any one activity" (2,600 vs
+the gold 2,400); optibench-349: both read "at most 40% of the transportation by trolleys" as a share of vehicles, not of kg/min (84 vs
+100); optibench-296 / 31 / 577: rounding or an integrality the statement leaves open (36 vs 36.25, 248.33 vs 246, 0 vs 10). Shared
+mistakes are shared readings, as on SQL (addendum C).
+
+**Decision (as pre-registered).** XP-P3 holds; XP-P1 / P2 were not shown → under part 1's rules "the gain is specific to Qwen3-8B with
+this peer"; under the MAMO addendum the word-problem default for Qwen3-8B changes only if XP-P6 holds too (MAMO lanes still running).
+XP-P4 refuted → Qwen3-14B-AWQ's default does not change, whatever XP-P7 shows. XP-P8 refuted → PND is not shown out of sample: it is
+not adopted for Qwen3-8B (addendum B's rule), whatever XP-P9 shows; XP-P9 / P11 are still decided and reported. XP-P5 refuted → the
+peer's two decisive agreement rates do not separate it from the Qwen peer in every cell: what separates them on these problems is
+mostly the token stratum (both right), which part 1's stratified prediction already counts but its mechanism statement did not name.
