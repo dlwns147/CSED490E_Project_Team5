@@ -25,10 +25,10 @@ Commands are in `poc/queues/queue_*<id>*.sh` (old servers, records only) and `po
 | Allocating compute | U1 by failure mechanism vs by difficulty (U1r, U2: facts first, then think only on failure) |
 | Small models (one 24 GB GPU) | SIZE Qwen3-1.7B to 14B and gpt-oss-20b with the recipe, vs Qwen3-32B (SIZE-CC: contest geometry) |
 | Held-out tests | HO unseen OptMATH and OptiBench (+ OB-F facts, WF / WF2 when facts pay), HOG four held-out geometry tasks, HOGC a brute-force view against the check leak (Slurm) |
-| Choosing the policy | MODEL: which policy wins where; 30 labelled problems pick it for a new task |
+| Choosing the policy | MODEL: which policy wins where; 30 labelled problems pick it for a new task; AL labels only where the candidates' answers differ |
 | Facts without a human | X3 (X6-AUTO, X6-VER: the model's own checked program as the fact); X7 held-out MAMO with no hand-written component |
 | Training the quick mode | CV: RL on the non-thinking mode with the cascade's value as the reward (text-to-SQL; controls: plain RL, a gate on frozen drafts); TCRL the same on tool calls (trained peer, the cascade's own reward); WPRL on optimization word problems; SHARP whether that training only sharpens what the base samples (a pre-training bound); TD the thinking mode's programs distilled into the quick mode against RFT |
-| Where the check is applied | CONT the free check inside the think (early exit at forced programs, continue vs restart, agreement exits); VER a verifier trained with labels as the check at every step |
+| Where the check is applied | CONT the free check inside the think (early exit at forced programs, continue vs restart, agreement exits); VER a verifier trained with labels as the check at every step; XPEER which peer is the check (another lab's model; gating the short think too; SQL) |
 | Proofs | PROOF: Lean 4 (miniF2F) with specialized provers vs general models; geometry proofs with AlphaGeometry's engine (IMO-AG-30, JGEX-AG-231) |
 
 - `docs/SLURM_HANDOFF.md` — state of the project and how to continue it on the Slurm server (2026-10-20); `docs/SLURM_PROMPT.md` — the first prompt for that session.
