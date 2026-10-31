@@ -128,3 +128,10 @@ refuted → the Qwen3-8B gain is not shown out of sample and the word-problem cl
 
 Expected (not a rule): P6 inconclusive (EasyLP is mostly solved by every arm, so gains come from tokens; ComplexLP is small), P7
 inconclusive.
+
+**Note on power (2026-10-31 09:0x UTC; computed after part 1, not part of any rule).** Per problem (seed means) the cascade − default difference has a
+standard deviation of 9–13 utility points (Qwen3-8B 9.8, Qwen3.5-9B 12.9, Qwen3-14B-AWQ 11.6, Nemotron 9.0), because only the two rare
+strata move accuracy and each move is ±100. An effect of +0.8 on 476 problems is 1.6 standard errors (power ≈ 35% at 95%): XP-P1 "not
+shown" is what a true +0.8 would usually give, and the predictions above did not state power. The same numbers bound the recipe: 80%
+power for a +1 effect needs 500–1,500 labelled problems (gpt-oss-20b vs the Qwen peer: 500–1,100), so a 30-label pilot (standard error
+1.5–2.4) cannot choose the peer; the peer has to be a fixed rule validated on held-out problems, as XP-P3 / P4 / P6 / P7 do.
