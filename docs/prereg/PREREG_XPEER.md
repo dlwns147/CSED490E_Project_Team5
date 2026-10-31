@@ -111,9 +111,11 @@ OptiBench-like problems or of the cascade. MAMO (EasyLP 652 + ComplexLP 211; 240
 (FORM) but never in the peer analyses; N's quick programs (formx) and gpt-oss-20b's are stored (3 seeds each), and the library fact the
 think arms will receive is the stored one (the selector reproduces the stored fact source for all 863 × 3 models checked).
 
-**Run.** Qwen3-8B and Qwen3-14B-AWQ, the short think () and the think
-(, 16k), seeds 1–3, all 863 problems (tags q8b / q14a: rows opt_<m>_mamo_formx{tb2000,t}_s<s>.jsonl, new files). Analysis
- (peers gpt-oss-20b and the other Qwen3 model; there are no Qwen3.5-9B quick programs on MAMO).
+**Run.** Qwen3-8B and Qwen3-14B-AWQ, the short think (`NLOPT_SET=mamo run_form.py <m> formx <s> --think_budget 2000`) and the think
+(`--tarm --think`, 16k), seeds 1–3, all 863 problems (tags q8b / q14a: rows opt_<m>_mamo_formx{tb2000,t}_s<s>.jsonl, new files). Analysis
+`python3.11 poc/analyze_xpeer.py --mamo` (peers gpt-oss-20b and the other Qwen3 model; there are no Qwen3.5-9B quick programs on MAMO).
+(Text restored 09:0x UTC: a shell heredoc had dropped the three commands in backquotes from the first commit of this addendum; nothing
+else changed, no MAMO think row existed.)
 
 - **XP-P6:** Qwen3-8B → gpt-oss-20b → SB→T→T minus SB→T→T on MAMO (863 problems): lower bound > 0.
 - **XP-P7:** the same for Qwen3-14B-AWQ: lower bound > 0.
