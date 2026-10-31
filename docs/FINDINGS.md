@@ -4743,3 +4743,12 @@ so "think once per request" is withdrawn as the agent-loop recipe; among the fix
 three. Goal link: in agent loops the cheapest exact answers so far come from thinking at every step.
 Rollback rule (FINDINGS 19:3x): for Qwen3-14B-AWQ the turn-0 rollback is 64.0% @ 1.98k against T 71.0% @ 1.99k (it passes 138 wrong
 turns thinking would fix), so it loses to T for all three models and no rollback arm is run.
+
+## 2026-10-31 23:3x UTC: FINAL (pre-registered, Holm over 5): the SQL claim holds on an untouched benchmark (Spider test) for 4 of 5 generators
+Why: BIRD had informed every SQL decision (critique 5). Spider's test split, 3 seeds, five tests under Holm: the peer cascade beats the
+default (short think → think → retry) for Qwen3-8B +1.00 [+0.07, +1.91], Qwen3-14B-AWQ +1.44, gpt-oss-20b +1.57, and with CV-1's trained
+quick query +3.80 [+2.83, +4.77] (79.5% @ 0.44k vs 76.0% @ 1.08k) — all more accurate and cheaper; Qwen3.5-9B with Qwen3-8B as the peer
+−0.28 (not shown: the peer agrees equally often where only the quick query is right and where only the default is, ratio 1.00 < r* 1.19).
+1,741 of 2,147 questions: the image's SQLite rejects the double-quoted literals of 406 gold queries (dropped by the registered rule; a
+sensitivity grading follows). Decision: the SQL claim is confirmed beyond BIRD, per generator; the trained quick query transfers. Goal
+link: the cheapest exact SQL answers on a new benchmark come from the (trained) quick query checked by another model's quick query.

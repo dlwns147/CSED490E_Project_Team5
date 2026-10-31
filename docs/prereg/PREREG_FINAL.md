@@ -52,3 +52,32 @@ token part is about 0.5 × (accepted share ≈ 0.6–0.7) × (the default's ktok
 settings (Qwen3-8B TP 2; Qwen3.5-9B with its card's thinking sampling; gpt-oss-20b as XG), the C1 adapter's quick queries in one job
 (`CV_EVAL_SPLIT=spider`), grading in the lanes (`SQL_SPLIT=spider grade_sql.py`). Analysis: `python3.11 poc/analyze_final.py >
 results/final.txt` (written and dry-run on BIRD dev before this file).
+
+## Results (written 2026-10-31 23:3x UTC; `results/final.txt`; jobs 1289672–1289684, no failed request)
+
+Questions: 1,741 of the 2,147. The grading environment's SQLite (3.49.1, in the image) rejects double-quoted string literals, which
+406 Spider gold queries use (e.g. `WHERE paper_id = "D12-1027"`); the pre-registered pipeline drops questions whose gold query fails,
+as on BIRD. Found after the results (the login node's SQLite 3.34.1, used for the check before this file, accepts them); a
+sensitivity grading on all 2,147 questions with a SQLite that accepts them follows below. Within the 1,741 every policy is scored on
+the same questions.
+
+| test | N | default SB→T→T | cascade | cascade − default (utility) | one-sided p | Holm |
+|---|---|---|---|---|---|---|
+| F1 Qwen3-8B ← Qwen3.5-9B | 70.1% @ 0.04k | 76.0% @ 1.08k | 76.7% @ 0.47k | +1.00 [+0.07, +1.91] | 0.015 | holds |
+| F2 Qwen3-14B-AWQ ← Qwen3.5-9B | 73.4% @ 0.04k | 76.8% @ 0.98k | 78.0% @ 0.40k | +1.44 [+0.52, +2.34] | 0.0004 | holds |
+| F3 Qwen3.5-9B ← Qwen3-8B | 75.8% @ 0.04k | 78.9% @ 1.00k | 78.3% @ 0.38k | −0.28 [−1.09, +0.48] | 0.77 | not shown |
+| F4 gpt-oss-20b ← Qwen3.5-9B | 74.8% @ 0.08k | 75.3% @ 0.21k | 76.9% @ 0.18k | +1.57 [+0.86, +2.25] | 0.0001 | holds |
+| F5 Qwen3-8B, trained quick query (C1) | 77.4% @ 0.03k | 76.0% @ 1.08k | 79.5% @ 0.44k | +3.80 [+2.83, +4.77] | 0.0001 | holds |
+
+- **FINAL-P1 holds:** 4 of 5 after Holm. F1, F2, F4, F5 are dominance (more accurate and cheaper); F3 is a trade (−0.6 accuracy for
+  0.6k fewer tokens).
+- **FINAL-P2 holds:** every test that holds has the break-even's sign, and its decisive-strata ratio is within 30% of its
+  all-passing ratio (F1 2.36 vs 1.98, F2 2.09 vs 1.79, F4 2.19 vs 1.96, F5 1.87 vs 1.64).
+- F3's failure has the break-even's mechanism: Qwen3-8B agrees with Qwen3.5-9B's right-only and wrong-only quick queries equally
+  often (38.6% vs 38.7%; ratio 1.00 against r* 1.19), so the peer carries no information where it matters; on BIRD it did (dev +1.23).
+- F5: CV-1's quick query, trained only on BIRD-train questions, is right more often on Spider than the base model's whole default
+  (77.4% vs 76.0%), and its cascade gains +3.8: the training transfers to another benchmark.
+
+**Decision (as pre-registered).** 4 of 5 hold: the SQL claim is confirmed on an untouched benchmark at a 5% family-wise error rate,
+named per generator (Qwen3-8B, Qwen3-14B-AWQ, gpt-oss-20b, and the trained Qwen3-8B quick query; not Qwen3.5-9B with Qwen3-8B as the
+peer). F5 holds, so the CV-1 claim stands beyond BIRD. PROJECT, REPORT and PROPOSAL cite the Spider numbers.

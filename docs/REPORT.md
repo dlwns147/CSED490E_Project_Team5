@@ -500,6 +500,14 @@ check from yet another family (Nemotron, Llama-3.1-8B) therefore halves the usef
 single peer it loses 0.4–0.9 utility on SQL train in all three models and wins only for Qwen3-14B-AWQ on tool calls (+0.6), against
 an independence-based prediction of a gain in all six cells. The single peer is the end of the agreement route.
 
+**Confirmation on an untouched benchmark (FINAL, pre-registered, Holm over five tests).** On Spider's test split (1,741 questions
+graded; the image's SQLite rejects the double-quoted literals of 406 gold queries), never used for any decision here, the peer cascade
+beats each generator's default in four of five tests, each more accurate and cheaper: Qwen3-8B +1.00 [+0.07, +1.91] (76.7% at 0.47k vs
+76.0% at 1.08k), Qwen3-14B-AWQ +1.44 [+0.52, +2.34], gpt-oss-20b +1.57 [+0.86, +2.25], and with CV-1's trained quick query +3.80
+[+2.83, +4.77] (79.5% at 0.44k vs 76.0% at 1.08k; trained only on BIRD-train). It fails for Qwen3.5-9B with Qwen3-8B as the peer
+(−0.28 [−1.09, +0.48]) by the break-even's mechanism: there the peer agrees as often with the right-only as with the wrong-only quick
+queries (ratio 1.00 against r* 1.19).
+
 **Another generator family (XG, pre-registered).** All of the above uses Qwen generators. With gpt-oss-20b answering (its low-effort
 answer as N, its medium-effort SB→T→T as the default) and Qwen3.5-9B's quick answer as the check, the cascade beats the default on
 both tasks: BIRD (dev + fresh, 2,866 questions) 58.7% vs 57.0%, +1.65 [+1.20, +2.14] utility; BFCL (3,482) 84.8% at 0.21k tokens vs
