@@ -129,3 +129,8 @@ answer (reported against Dynasor-CoT / Answer Convergence); P4 refuted → the t
 convergence exits beat pass-only exits inside a think.
 
 Expected (not a rule): P1 refuted, P2 inconclusive (+0.5 to +2), P3 inconclusive, P4 holds (+5 to +15 points).
+
+**Run note (2026-10-31 03:0x UTC; no outcome seen, predictions unchanged).** OptMATH runs at about 20 problems per hour per seed (its thinks reach
+the cap most often), 3 hours behind the other sets. Three helper jobs (1286131–1286133, `run_cont.py` with `CONT_REVERSE=1`) take
+its problems in reverse order into `cont_q8b_optmath_s<seed>_rev.jsonl` with the same per-problem seeds; when the two files of a seed
+cover all 100 problems both jobs are cancelled. `analyze_cont.py` reads both files, the main job's row winning where both ran a problem.

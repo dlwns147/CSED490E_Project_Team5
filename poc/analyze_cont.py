@@ -27,7 +27,8 @@ ok_ = lambda x: x["status"] == "ok" and x["pred"] not in (None, "NBS")
 
 
 def load(tag, b):
-    T = {s: {r["id"]: r for r in _rows(f"{RES}/cont_{tag}_{b}_s{s}.jsonl")} for s in (1, 2, 3)}
+    # a helper's rows (run_cont.py with CONT_REVERSE) first, so the main job's row wins where both ran a problem
+    T = {s: {r["id"]: r for f in ("_rev", "") for r in _rows(f"{RES}/cont_{tag}_{b}_s{s}{f}.jsonl")} for s in (1, 2, 3)}
     ids = sorted(set.intersection(*(set(v) for v in T.values())))
     return T, ids
 

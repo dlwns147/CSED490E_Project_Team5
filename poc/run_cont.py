@@ -7,7 +7,7 @@ program gets what the think left, and a think that reaches CAP has none).
 Every program runs and is graded as run_form's (60 s, 4 GB). The cut points are token counts of the think under the served tokenizer
 (vLLM /tokenize, /detokenize). Rows: results/x3/cont_<tag>_<set>_s<seed>.jsonl = {id, gold, in_tok, think_tok, think_finish,
 probes: [{at, tok, finish, status, pred, right}], end: {...}}; the think text goes to $POC_DATA/cont/<tag>_<set>_s<seed>.jsonl. Resumes.
-usage: NLOPT_SET=<set> [FORM_SUBSET=0/3] POC_BASE_URL=... python run_cont.py <tag> <seed> [--every 1000] [--cap 16000] [--ctx 24576]"""
+usage: NLOPT_SET=<set> [FORM_SUBSET=0/3] [CONT_REVERSE=1] POC_BASE_URL=... python run_cont.py <tag> <seed> [--every 1000] [--cap 16000] [--ctx 24576]"""
 import json, os, sys, zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -38,6 +38,10 @@ def main():
     os.makedirs(f"{DATA}/cont", exist_ok=True)
     tpath = f"{DATA}/cont/{tag}_{SET}_s{seed}.jsonl"
     done = {r["id"] for r in _rows(path)}
+    main_path = path
+    if os.environ.get("CONT_REVERSE"):   # a helper beside a running job: the problems in reverse order, its own files (analyses merge them)
+        P = P[::-1]; path, tpath = path[:-6] + "_rev.jsonl", tpath[:-6] + "_rev.jsonl"
+        done |= {r["id"] for r in _rows(path)}
 
     def grade(text, gold):
         code = last_block(text or "", ("python", "py", "python3"))
@@ -54,6 +58,8 @@ def main():
         return {"tok": r.usage.completion_tokens, "finish": r.choices[0].finish_reason, **grade(r.choices[0].text, gold)}
 
     def one(p):
+        if path != main_path and p["id"] in {r["id"] for r in _rows(main_path)}:
+            return None                     # the helper met the main job
         q = (P_FREE if FREE else P_MIP).format(q=p["q"])
         s = SEL(p)
         if s:
@@ -79,6 +85,8 @@ def main():
     with ThreadPoolExecutor(int(os.environ.get("CONT_THREADS", 32))) as ex, open(path, "a") as f, open(tpath, "a") as g:
         for fu in as_completed([ex.submit(one, p) for p in P if p["id"] not in done]):
             try:
+                if fu.result() is None:
+                    continue
                 row, txt = fu.result()
                 g.write(json.dumps(txt) + "\n"); g.flush()
                 f.write(json.dumps(row) + "\n"); f.flush()
