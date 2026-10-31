@@ -61,3 +61,11 @@ on SQL and tool calls plain RL's whole cascade gain lies on items the base never
 +0.49 [+0.33, +0.67]), so RL does reach items the quick mode does not sample — it does not only reweight. TD still decides whether the
 thinking mode's programs reach those items further than the model's own right quick programs (P1, P4); the comparison with RL (q8bwp1)
 on the base-never items is reported, and rft, a sharpening method, is expected to gain on the covered items instead (reported).
+
+**Data (2026-10-31 01:5x UTC, before any training or held-out row; predictions unchanged).** `poc/td_gen.py` finished on all 2,000 problems
+(6 shards). Coverage of the training problems (8 quick programs; the cut think, else the full think): both right 1,045, quick only
+236, thinking only 259, neither 460; quick samples right 5,756 / 16,000 (36.0%); the cut think's program right on 822. Sets: td 1,304
+→ 1,281 by the Random(0) sample, rft 1,281 (the smaller); target length (characters) td mean 1,702 / p95 2,688, rft 2,008 / 3,047
+(the thinking programs are shorter). The container writes `optmath_train/td/` as root, so the two sets are written one level up
+(`$POC_DATA/optmath_train/sft_{td,rft}_q8b.jsonl`; `td_build.py` and `td_lane.sh` changed only in that path). Training and
+held-out runs: jobs 1285851 (td) and 1285852 (rft).

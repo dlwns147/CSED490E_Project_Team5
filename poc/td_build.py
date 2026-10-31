@@ -2,7 +2,7 @@
 Random(0) sample of the larger). td: per problem the thinking program that is right (the cut think's, else the full think's); rft: per
 problem the first of the 8 quick programs that is right (rejection-sampling fine-tuning, RFT 2308.01825, on the model's own quick mode).
 Prompt = run_nlopt.P_FREE (thinking off at training), target = the program in a Python block, as DT (poc/sft_lora.py).
-Writes $POC_DATA/optmath_train/td/sft_{td,rft}_<tag>.jsonl and prints the coverage table.
+Writes $POC_DATA/optmath_train/sft_{td,rft}_<tag>.jsonl (td/ is written by the container as root) and prints the coverage table.
 usage: python td_build.py <tag>"""
 import glob, json, os, random, sys
 
@@ -32,7 +32,7 @@ def main():
           f"/{8 * len(R)}; cut think right {sum(r['sb']['right'] for r in R)}")
     for name, S in (("td", td), ("rft", rft)):
         S = random.Random(0).sample(S, n) if len(S) > n else S
-        with open(f"{DATA}/optmath_train/td/sft_{name}_{tag}.jsonl", "w") as f:
+        with open(f"{DATA}/optmath_train/sft_{name}_{tag}.jsonl", "w") as f:
             for x in S:
                 f.write(json.dumps(x) + "\n")
         print(f"sft_{name}: {len(S)} examples")
