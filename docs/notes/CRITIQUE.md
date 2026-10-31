@@ -90,3 +90,80 @@ across instances of one problem, so output tokens stay the main cost axis; table
   recipe on OptiBench for all three models, Qwen3-14B-AWQ on LogiOR with the library; significantly worse: Qwen3-8B on BWOR and held-out geometry.
 - Thinking baseline: Qwen3-14B-AWQ's weak thinking on OptiBench is invented API calls (real), not a harness artifact; cap hits handicap
   always-thinking only where it already wins (Qwen3-8B).
+
+## Review 2026-10-31 15:2x UTC (requested by the user): the project has outgrown its story
+
+**Keep.** Pre-registration with refutations recorded; the HO-CM self-correction, which matched the baseline's check and changed the
+headline; paired intervals; fresh held-out splits; raw outputs read (label errors in OptMATH and MAMO were found this way); and the
+strata decomposition, which predicts a gain before the run.
+
+Problems, most important first:
+
+1. **No single thesis, and the narrative lags the evidence (high).**
+   - The documents are hard to read: the PROJECT §2 claim is one 687-word paragraph, the REPORT abstract has 628 words, and
+     PROPOSAL Finding 4 is one 1,045-word paragraph.
+   - The title "Facts First, Think on Failure" no longer matches the evidence. The best no-label default is short think → think → retry,
+     which thinks first.
+   - The fact did not carry over to SQL's cascade.
+
+   **Fix:** one thesis the project derived several times (CV-1, WP-RL, XPEER, TC-RL). A cheap answer pays only if its check accepts
+   (cheap right, default wrong) at least about 2.2–2.5 times as often as (cheap wrong, default right). Test it in one figure:
+   - x-axis: each cell's measured accept ratio;
+   - y-axis: the gain of cheap-first over the default, across every task type.
+
+   Everything else goes to the appendix.
+
+2. **Effects are small and priced at one arbitrary λ (high).**
+   - λ = 0.5 points per 1k tokens is used about 60 times, and there is no sweep.
+   - Many gains are 0.5–2 points and partly tokens. For example, XPEER's +0.94 contains +0.58 of accuracy.
+
+   **Fix:** label each result as dominance (more accurate and cheaper, which holds for any λ) or as a trade with its break-even λ.
+
+3. **The cost leaves out what cascades add (medium-high).**
+   - A peer needs a second model resident (two GPUs for 8B + 9B), against the one-24 GB-GPU motivation.
+   - The stages add sequential latency.
+   - In agent loops input dominates: 100–135k input tokens per item against 0.3–5.4k output (MT smoke).
+
+   **Fix:** report models resident, sequential calls and input tokens for every multi-call policy.
+
+4. **Strata predictions overshoot every time (medium).**
+   - XPEER predicted +1.89 and observed +0.94; the overshoot is 0.67–0.95 on every cell checked.
+   - CV-P14 predicted +2.35 and observed +1.80.
+   - The TC-RL decomposition was refuted.
+
+   The likely cause is the winner's curse: the peer is chosen on the rows that estimate the strata. **Fix:** estimate the strata on a
+   split that was not used to choose, and add a calibration table.
+
+5. **Many tests, no correction, and held-out sets reused (medium).**
+   - There are 64 pre-registrations with "2 of 3 models" rules.
+   - Some positives sit at the edge, with lower bounds of +0.19 and −0.00.
+   - OptiBench, BWOR, LogiOR and MAMO have informed many decisions.
+
+   **Fix:**
+   - a ledger of every confirmatory test;
+   - a Holm correction over the claims in the abstract;
+   - a record of which decision touched which set;
+   - one untouched set for the final claims.
+
+6. **The newest claims have internal baselines only (medium).** Deferring on disagreement is prior work: ABC (2407.02348), DART
+   (2606.23181), MoT. The free confidence gate (log-probs, self-certainty) was tested only on early geometry.
+
+   **Fix:** at matched tokens, run a confidence gate and an ABC-style cascade on BFCL and BIRD. Claim as new what those methods lack:
+   - the break-even condition;
+   - the RL-trained quick mode;
+   - the finding that training for the cascade's reward unlearns abstention.
+
+7. **Model diversity (medium).** The core three models (Qwen3-8B, Qwen3-14B-AWQ, Qwen3.5-9B) are all Qwen, and the 14B is 4-bit. They
+   carry SQL, tool calls, LiveCodeBench and MT. **Fix:** one non-Qwen generator per task that the report claims, for example
+   gpt-oss-20b on one 3090.
+
+8. **Breadth over depth (process, high).**
+   - 10–15 logged results per day.
+   - Directions closed within a day or two: DT, AL, CONT, VER, WP-RL, RF, TD, SHARP, GREEDY.
+   - The user has asked "easy or incremental?" several times.
+
+   **Fix:**
+   - no new domains;
+   - at most three contributions in the report;
+   - one main experiment per week, with its decision tree written first;
+   - MT only as a test of the thesis, per turn.
