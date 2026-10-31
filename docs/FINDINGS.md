@@ -4482,3 +4482,16 @@ peer 44.4 / 12.3% (3.6), gpt-oss-20b 63.9 / 4.7% (13.6). Its accepted programs a
 accepts fall on problems thinking solves (−96 utility each), the peer's on problems the default fails too. Decision: the verifier line
 on word problems stops (reported with CV-1: neither RL nor supervised labels teach a transferable check here); the open check is a
 model from another family (XPEER).
+
+## 2026-10-31 10:1x UTC: XPEER addendum B pre-registered: the peer checks the short think's program too (exploratory +2.3 for Qwen3-8B; fresh test on the running lanes)
+Purpose: VER showed the largest ceiling on word problems is gating the default's own short-think program (+4.4 with labels), and its
+trained verifier failed because its false accepts fall where thinking is right; gpt-oss-20b's agreement is lowest exactly there. PND =
+N → gpt-oss-20b prints the same value → N; else SB passes and the peer agrees → SB; else T→T (the peer's quick program paid once).
+Exploratory on the 476 stored problems × 3 seeds (`poc/analyze_xpeer.py --gate`, post hoc): PND − D +2.31 [+0.88, +3.74] for
+Qwen3-8B (56.7% @ 12.6k vs 53.2% @ 10.0k; − T→T +1.95 [+1.00, +2.98]), +1.67 [+0.01, +3.26] for Qwen3-14B-AWQ, −1.27 / −1.16 (n.s.)
+for Qwen3.5-9B / Nemotron, whose full think is not better than their short think on the problems the short think passes (stratified
+account: gating SB pays only when (SB wrong, T→T right) outweighs (SB right, T→T wrong), here 4.6 vs 2.9% and 3.6 vs 4.3% of
+problem-seeds). PND is the most accurate policy in all four models. With the Qwen peer it does not pay (+0.55 / +0.39). Pre-registered
+as XP-P8..P11 (Qwen3-8B / Qwen3-14B-AWQ on OptiBench's other 403 problems and MAMO; power 0.83 / 0.99 for Qwen3-8B if the exploratory
+effect is real, 0.30 / 0.56 if half) on the rows the XPEER lanes are generating, before any fresh outcome was read. Next: the lanes land
+(OptiBench ~13–14 UTC, MAMO later); decide XP-P3..P11.

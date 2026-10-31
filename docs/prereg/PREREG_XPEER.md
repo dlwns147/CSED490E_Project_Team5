@@ -135,3 +135,65 @@ strata move accuracy and each move is ±100. An effect of +0.8 on 476 problems i
 shown" is what a true +0.8 would usually give, and the predictions above did not state power. The same numbers bound the recipe: 80%
 power for a +1 effect needs 500–1,500 labelled problems (gpt-oss-20b vs the Qwen peer: 500–1,100), so a 30-label pilot (standard error
 1.5–2.4) cannot choose the peer; the peer has to be a fixed rule validated on held-out problems, as XP-P3 / P4 / P6 / P7 do.
+
+## Addendum B: the peer as the check of every program the default would accept (written 2026-10-31 10:1x UTC; the OptiBench and MAMO think lanes are still running and no fresh outcome has been read, only row counts)
+
+**Why.** VER put the largest ceiling on gating the default's own short-think program, not the cheap one (labels as the check: VD − D
++4.4, VN − D +2.6, both +5.6), and its trained verifier failed there because its false accepts fall where thinking is right. The
+peer's quick program, already paid for when N passes, can check SB's passing program too: **PND** = N → the peer prints the same value
+→ N; else SB → SB passes and the peer prints the same value → SB; else T→T (the peer runs at most once per problem). **PD** = the same
+gate on SB without the N step.
+
+**Theory (stratified, as above).** Rejecting SB's passing program replaces it with T→T. Split SB's passing programs by (SB right,
+T→T right); rejecting gains 100 × (T→T right − SB right) − λ × T→T's ktokens, so PD − D = Σ share × (1 − the peer's agreement) × gain −
+λ × the peer's ktokens × P(SB passes and the peer is not yet paid). With a perfect check the ceiling is the (SB wrong, T→T right) and
+(SB wrong, T→T wrong) strata: Qwen3-8B +3.4, Qwen3-14B-AWQ +3.5, Nemotron +2.3, Qwen3.5-9B +1.1 (its full thinks are 29k tokens, so
+rejecting a wrong program that T→T also gets wrong costs 13.8). The two decisive strata are (SB wrong, T→T right), where the peer must
+disagree, and (SB right, T→T wrong), where it must agree; the second is where SB beats the full think, so gating SB can pay only for a
+model whose full think is better than its short think on the problems the short think passes (shares of problem-seeds: Qwen3-8B 4.6 vs
+2.9%, Qwen3-14B-AWQ 4.6 vs 3.5%, Qwen3.5-9B 3.6 vs 4.3%, Nemotron 4.0 vs 4.7%; the same sign as T→T − D in accuracy: +1.6, +1.2, −0.8,
+−0.7).
+
+**Exploratory (post hoc on the 476 stored problems × 3 seeds; `python3.11 poc/analyze_xpeer.py --gate`, results/xpeer_gate.txt;
+these cells chose the hypothesis).** Accuracy @ ktokens and utility differences (paired 95% intervals):
+
+| N, peer gpt-oss-20b | D | T→T | PEER | PND | PND − D | PND − PEER | PND − T→T |
+|---|---|---|---|---|---|---|---|
+| Qwen3-8B | 53.2% @ 10.0k | 54.8% @ 12.6k | 54.4% @ 10.2k | 56.7% @ 12.6k | +2.31 [+0.88, +3.74] | +1.11 [−0.08, +2.28] | +1.95 [+1.00, +2.98] |
+| Qwen3-14B-AWQ | 54.3% @ 8.6k | 55.5% @ 10.8k | 55.1% @ 8.5k | 57.0% @ 10.6k | +1.67 [+0.01, +3.26] | +0.84 [−0.40, +2.18] | +1.61 [+0.32, +2.88] |
+| Qwen3.5-9B | 57.9% @ 20.2k | 57.1% @ 29.3k | 58.6% @ 19.1k | 58.7% @ 24.3k | −1.27 [−2.87, +0.35] | −2.53 [−3.77, −1.34] | +4.01 [+2.38, +5.61] |
+| Nemotron-3-Nano | 59.6% @ 12.0k | 58.9% @ 16.2k | 59.8% @ 12.1k | 60.5% @ 16.2k | −1.16 [−2.82, +0.61] | −1.31 [−2.81, +0.36] | +1.64 [+0.26, +3.12] |
+
+With the Qwen peer instead, PND − D is +0.55 / +0.39 / −4.69 / −3.16 (n.s. for the Qwen3 models). gpt-oss-120b (a bound; not on one
+RTX 3090): +2.69 [+1.35, +4.07] / +2.60 [+1.09, +4.18] / +1.33 / +0.00. The peer's agreement on SB's passing programs (gpt-oss-20b,
+Qwen3-8B): SB wrong and T→T right 7.7% (65 problem-seeds), SB right and T→T wrong 59.5% (42), both right 86.1%, both wrong 46.2%.
+PND is the most accurate policy in all four models (+0.6 to +3.5 points over D, +1.6 to +2.1 over T→T) at 1.2–1.35 × D's tokens; at
+λ = 0.5 it pays for the two Qwen3 models and not for the two whose full think is not better than their short think. Also tried and
+dropped: gating the full think's program too (else the second think): Qwen3-8B +1.59, Qwen3.5-9B −4.19.
+
+Prior work (IDs opened 2026-10-31): agreement as the deferral rule at every level of a cascade (ABC, 2407.02348); a weaker model's
+answer consistency (CoT vs program samples) as the gate to a stronger model (Yue et al., 2310.03094, ICLR 2024); cross-model consensus
+as a selector, with a shared-error floor (LLM-jury, 2607.10139). In these the escalation is to a larger model. **New here:** the
+escalation is a longer think of the same model, the check is one cheap cross-family program reused at two steps, and the stratified
+account says in advance at which step and for which model the gate pays.
+
+**Predictions (the fresh rows of XP-P3 / P4 / P6 / P7; nothing new is run; PND − D, utility, paired 95% intervals over problems).**
+- **XP-P8:** Qwen3-8B, OptiBench's other 403 problems: lower bound > 0.
+- **XP-P9:** Qwen3-8B, MAMO (863): lower bound > 0.
+- **XP-P10:** Qwen3-14B-AWQ, OptiBench's other 403: lower bound > 0.
+- **XP-P11:** Qwen3-14B-AWQ, MAMO: lower bound > 0.
+- Reported: PD − D, PND − PEER, PND − T→T; SB's strata with the peer's agreement; PD − D predicted from the same model's agreement by
+  stratum on the 476 stored problems; the Qwen3 peer; EasyLP and ComplexLP.
+
+Power (per-problem SD of PND − D on the stored rows: Qwen3-8B 16.0, Qwen3-14B-AWQ 18.4): if the true effect is the exploratory one,
+P8 has power 0.83 and P9 0.99 (P10 0.45, P11 0.76); if it is half of it, 0.30 / 0.56 (0.15 / 0.27).
+
+**Decision (separate from the rules above, which stand for PEER).** P8 and P9 hold → for Qwen3-8B the word-problem default becomes PND:
+the cheap path pays once a cross-family peer checks both cheap steps (the claim changes from "saves nothing" to "more accurate than
+the default and than T→T"; the numbers as measured). P10 and P11 hold as well → stated for both Qwen3 models. The scope rule (gate the
+short think only for a model whose full think beats it on its passing problems, on labelled development rows) is the theory's
+condition, untested out of sample for Qwen3.5-9B and Nemotron. P8 or P9 refuted → PND is not shown out of sample and the default for
+Qwen3-8B is decided by XP-P3 / P6 alone.
+
+Expected (not a rule): P8 holds or inconclusive, P9 inconclusive (EasyLP: SB and T→T are mostly right, so the decisive strata are
+small), P10 / P11 inconclusive.
