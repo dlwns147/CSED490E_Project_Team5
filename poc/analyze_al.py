@@ -151,7 +151,7 @@ def sql_cells(A):
 
 
 def run(title, cells, menus):
-    rng = random.Random(0)
+    rng, d = random.Random(0), int(os.environ.get("AL_DIGITS", 2))   # AL_DIGITS: decimals of the printed regrets
     for (mname, keep), split in [(x, s) for x in menus.items() for s in (True, False)]:
         tot, n = {m: {k: 0.0 for k in KS} for m in ("R", "RP", "TG")}, 0
         dreg, wins = 0.0, {k: 0 for k in KS}
@@ -159,17 +159,17 @@ def run(title, cells, menus):
         print(f"=== {title_}, menu {mname}")
         for name, per in cells:
             per = {i: {s: {p: v[p] for p in keep(v)} for s, v in S.items()} for i, S in per.items()}
-            res, dr, p, b = simulate(name, cell(per), rng, split=split)
+            res, dr, p, b = simulate(name, cell(per), rng, default=os.environ.get("AL_DEFAULT", "D"), split=split)   # AL_DEFAULT: the no-label policy whose regret is printed as "always D"
             n += 1; dreg += dr
             for m in res:
                 for k in KS:
                     tot[m][k] += res[m][k]
             for k in KS:
                 wins[k] += res["TG"][k] < res["RP"][k]
-            print(f"  {name:>18} (p {100 * p:.0f}%, best {b}): always D {dr:.2f} | " + " | ".join(
-                f"{m} " + "/".join(f"{res[m][k]:.2f}" for k in KS) for m in res))
-        print(f"  *** {title_} {mname}: {n} cells; mean regret (k = {'/'.join(map(str, KS))}): always D {dreg / n:.2f} | " + " | ".join(
-            f"{m} " + "/".join(f"{tot[m][k] / n:.2f}" for k in KS) for m in tot)
+            print(f"  {name:>18} (p {100 * p:.0f}%, best {b}): always D {dr:.{d}f} | " + " | ".join(
+                f"{m} " + "/".join(f"{res[m][k]:.{d}f}" for k in KS) for m in res))
+        print(f"  *** {title_} {mname}: {n} cells; mean regret (k = {'/'.join(map(str, KS))}): always D {dreg / n:.{d}f} | " + " | ".join(
+            f"{m} " + "/".join(f"{tot[m][k] / n:.{d}f}" for k in KS) for m in tot)
             + f" | TG < RP in " + "/".join(f"{wins[k]}" for k in KS) + f" of {n} cells | TG-30 / RP-30 {tot['TG'][30] / max(1e-9, tot['RP'][30]):.2f}")
 
 

@@ -84,7 +84,7 @@ Mean regret over cells (utility points), k = 10 / 30 / 100:
 | AL-P2 SQL peer: TG ≤ 0.75 × RP and TG < RP in ≥ 5 / 6 | 0.76; 6 / 6 | refuted (the ratio, by 0.01) |
 | AL-P3 word peer: TG < always D | 0.91 vs 2.00 | holds (but see below: the menu was chosen on these cells) |
 | AL-P4 broad: TG < RP on both tasks | word 1.38 vs 1.60; SQL 0.87 vs 1.15 | holds |
-| AL-P5 fresh cells | pending (the XPEER lanes) | — |
+| AL-P5 fresh cells | see the addendum's results below | — |
 
 **Why the ratio failed (reading, not a rule).** The split-half regret has a floor: a pilot that knew every label of its pool still
 picks from half a cell and is scored against the other half's own best (an optimistic maximum), so on the word cells (41–101 problems
@@ -110,3 +110,33 @@ Decision: P6 and P7 hold → the claim about labels changes: 30 labels on the pr
 peer / policy on fresh problems as well as 100 random labels and better than the no-label default; the recipe's pilot becomes the
 targeted pilot (PROJECT, REPORT, PROPOSAL). P6 holds, P7 refuted → targeting is the efficient way to spend labels, but on these cells
 the default needs none. P6 refuted → the targeted pilot is not adopted.
+
+## Results, addendum: the four fresh cells (2026-10-31 17:1x UTC; `results/al_fresh_all.txt`, and the same run printed to 3 decimals under six hash orders, `results/al_fresh_all3*.txt`)
+
+Split-half, peer menu (D, N → Qwen peer → D, N → gpt-oss-20b → D, PND), regret in utility points:
+
+| cell | always D | RP-30 | RP-100 | TG-30 |
+|---|---|---|---|---|
+| Qwen3-8B, OptiBench's other 403 | 1.09 | 0.43 | 0.48 | 0.47 |
+| Qwen3-14B-AWQ, OptiBench's other 403 | 0.82 | 0.42 | 0.43 | 0.45 |
+| Qwen3-8B, MAMO 863 | 4.47 | 0.45 | 0.22 | 0.16 |
+| Qwen3-14B-AWQ, MAMO 863 | 4.51 | 0.34 | 0.23 | 0.24 |
+
+| test | result | verdict |
+|---|---|---|
+| AL-P5 TG < RP (k = 30) in ≥ 3 of 4 | 2 of 4 (the MAMO cells) | refuted |
+| AL-P6 mean TG-30 ≤ mean RP-100 | 0.333 vs 0.340 (mean of six runs; holds in 6 / 6) | holds, by 0.01 |
+| AL-P7 mean TG-30 < mean always-D | 0.333 vs 2.72 (4 / 4 cells) | holds |
+
+Simulation noise: the regrets are Monte Carlo averages (1,000 splits) whose sampling order follows Python's string hashing, so a
+rerun moves each cell by up to 0.03; P6's margin (0.008) is inside that range in single runs but its sign held in all six. P7's margin
+is MAMO, where the old default (SB→T→T) is 4.5 points from the best because thinking over-models those statements (XPEER MAMO).
+
+**Decision (as pre-registered).** P6 and P7 hold → where labels are spent to choose a policy, the pilot labels the problems where the
+candidates' answers differ (30 such labels do the work of 100 random ones), and it beats the old no-label default on these cells.
+
+**Exploratory, after the decision (`results/al_fresh_peero.txt`, `AL_DEFAULT=PEER_o`).** The same four cells scored against the new
+no-label default for Qwen3-8B, the gpt-oss-20b cascade (XPEER, decided an hour ago on these same cells, so this favours it): always
+PEER_o regret 0.13 / 0.33 / 0.11 / 0.11 (mean 0.17) against TG-30 0.34 and RP-100 0.33. With a cross-family peer served, no pilot of
+30 or 100 labels beats using the peer cascade without labels. So the rule stays "the no-label default", now the peer cascade where a
+peer is served, and the targeted pilot is how to spend labels when a new task has no validated default.

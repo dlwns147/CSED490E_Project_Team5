@@ -4650,3 +4650,12 @@ balance written as an equality while total stock exceeds need → infeasible), o
 default where the full think is right. Decision (pre-registered): Qwen3-8B's word-problem default becomes the gpt-oss-20b peer cascade
 (XP-P3 and P6 hold; model-specific, P1 not shown); Qwen3-14B-AWQ's does not change (XP-P4 refuted); PND not adopted (XP-P8 refuted;
 P9 / P11 hold and are reported only). Goal link: the cheap path now pays on word problems for one model, by accuracy on MAMO.
+
+## 2026-10-31 17:1x UTC: AL fresh cells (pre-registered AL-P5..P7): targeted labels match 100 random ones, but the peer cascade needs none
+Why: if 30 labels placed where the candidate policies' answers differ did the work of hundreds, the pilot could choose the peer per
+cell. Four fresh cells (Qwen3-8B / Qwen3-14B-AWQ × OptiBench's other 403 / MAMO), split-half regret: TG-30 0.333 vs RP-100 0.340 (P6
+holds, by 0.01, in 6 of 6 hash orders of the simulation), TG-30 vs the old default 0.33 vs 2.72 (P7 holds; MAMO, where thinking
+hurts), TG beats RP at 30 labels in 2 of 4 cells (P5 refuted). Exploratory: against the new no-label default (the gpt-oss-20b cascade,
+chosen on these cells) every pilot loses (0.17 vs 0.33). Decision: the no-label default stays the rule (now the peer cascade where a
+peer is served); labels, when spent, go to the disagreement problems. Goal link: choosing the policy for a new task costs no labels
+once a cross-family peer is available.

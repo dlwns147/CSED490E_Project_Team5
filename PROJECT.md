@@ -83,7 +83,7 @@ table: `docs/REPORT.md` §5.1):
   48 cells) the pilot loses 1.29 / 1.96 / 1.77 (contest code / tool calls / instructions) and the no-label default 3.07 / 0.23 / 0.92:
   among ten close policies 30 labels add about two points of selection noise, so they pay only where the default is wrong (contest code,
   where one plain think, 1.24, does as well); 100 labels: 0.25 / 0.74 / 0.82. On 33 cells no pilot had seen (Qwen3-32B-AWQ,
-  Seed-OSS-36B, gpt-oss-20b; PX2) the default loses 0.72, the argmax pilot 1.30, a pilot gated on a paired test 0.79: the default is the rule. On text-to-SQL, pre-registered before any row (SQL-1, 9 cells), the
+  Seed-OSS-36B, gpt-oss-20b; PX2) the default loses 0.72, the argmax pilot 1.30, a pilot gated on a paired test 0.79: the default is the rule. Where labels are spent, label the problems where the candidates' answers differ (AL, 10-31: 30 such labels match 100 random ones on four fresh cells, 0.33 vs 0.34 regret), but with a cross-family peer served the peer cascade without labels does better still (0.17). On text-to-SQL, pre-registered before any row (SQL-1, 9 cells), the
   default loses 0.33, the argmax pilot 2.25; a label-free switch to the check-matched think when the default spends more tokens on 30
   unlabeled questions costs nothing there (0.34); in-sample it closes about 40% of contest code's gap (3.07 → 2.40) but costs
   0.14 on PX2's word cells (0.72 → 0.86): an option for contest-like tasks, not part of the default.
