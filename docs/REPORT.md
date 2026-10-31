@@ -623,9 +623,10 @@ OR problems and the observation that the cross-model filter removes the harm but
 - **Agent loops** (BFCL v4 multi-turn, 600 items, MT): the environment's error is a free check at every step, but thinking only after
   it loses to always thinking (E − T −5.5 and −7.7 utility for Qwen3-8B and Qwen3.5-9B), on visible failures as much as on silent
   ones: a turn repaired from a damaged state rarely recovers, and even rolling the turn back before thinking stays 2.8–3.3 points
-  below thinking from the start (turn-0 counterfactual). Thinking once at each new request ties always thinking (F − T −0.96
-  [−3.52, +1.71] and +1.08 [−1.32, +3.30]) at 68–76% of its output tokens: the short think first, not the cheap first step, carries
-  over to agent loops.
+  below thinking from the start (turn-0 counterfactual). With Qwen3-14B-AWQ, E − T is −12.5. Thinking only at each new request's
+  first step ties always thinking for Qwen3-8B and Qwen3.5-9B (F − T −0.96 [−3.52, +1.71], +1.08 [−1.32, +3.30], at 68–76% of its
+  output tokens) and loses for Qwen3-14B-AWQ (−8.11 [−10.68, −5.49]): no cheaper fixed rule matches thinking at every step for all
+  three models.
 
 ## 8. Limitations
 

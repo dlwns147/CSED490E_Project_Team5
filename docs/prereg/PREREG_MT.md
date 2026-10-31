@@ -246,3 +246,17 @@ once per new request (F, the agent form of the short think first), which ties al
 the cheap model with its own repair is not the default. No rollback arm is run (the FINDINGS rule: the turn-0 rollback loses to T for
 both models). Goal link: for agent loops the fewest-token exact answer starts each request with thinking; the free check is a signal
 to keep thinking, not to start.
+
+## Results, Qwen3-14B-AWQ and the secondary predictions (written 2026-10-31 21:5x UTC; `results/mt_q14a.txt`, `results/mt_cost_q14a.txt`; 597 items with every arm at every seed)
+Qwen3-14B-AWQ: N 12.1% @ 0.52k, E 17.0% @ 2.70k, F 21.9% @ 4.03k, T 31.0% @ 5.71k. MT-P1 +18.93 [+15.91, +22.11], MT-P2 −12.51
+[−15.49, −9.66], MT-P3 +3.82 [+2.04, +5.65], MT-P4 +4.25 [+1.85, +6.80], MT-P5 86.8% visible, gap +6.23 [+3.97, +8.57]: the same
+verdicts as the other two (P1, P3, P4, P5 hold in 3 / 3; P2 refuted in 3 / 3, E worse each time). Secondary: MT-S1 holds (T − N
+input −43.8k per item; 2 of 3, Qwen3.5-9B refuted), MT-S2 holds (−38.6k; 2 / 3), MT-S3 holds (+41.1k; 2 / 3), MT-S4 holds (3 / 3).
+Decision (as pre-registered, S2 holds): the agent-loop row states both costs; counting re-read input, thinking at every step costs
+fewer tokens than never thinking for Qwen3-8B and Qwen3-14B-AWQ (not for Qwen3.5-9B, whose thinking does not shorten the loop), and
+the output-token verdicts stand with a prefix cache (S4).
+
+**Correction (same time).** The results above (20:0x UTC) added, as a reported comparison, that thinking once per new request (F)
+"ties always thinking". For Qwen3-14B-AWQ it does not: F − T −8.11 [−10.68, −5.49] utility, −8.94 accuracy. The pre-registered P4
+(F beats E) holds in 3 / 3; the statement that F is the agent-loop recipe is withdrawn. Among the fixed policies tested, always
+thinking is the best or tied for every model, and no cheaper fixed rule matches it for all three; PROJECT §0 and REPORT §7 now say so.

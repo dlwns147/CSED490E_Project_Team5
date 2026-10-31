@@ -4734,3 +4734,10 @@ Exploratory: 47 / 49 when the predictor half has ≥ 1,000 question-seeds, 10 / 
 reported as per-task accounting that predicts on large sets, not as the thesis; REPORT §8 says where it fails. Goal link: deciding
 whether a cheap first answer pays needs the decisive strata measured on a few hundred problems; on a 90-problem set the estimate is
 noise.
+
+## 2026-10-31 21:5x UTC: MT complete (Qwen3-14B-AWQ): same verdicts; correction — thinking once per request does not tie always thinking for every model
+Qwen3-14B-AWQ: N 12.1% @ 0.52k, E 17.0% @ 2.70k, F 21.9% @ 4.03k, T 31.0% @ 5.71k; E − T −12.5 [−15.5, −9.7] (P2 refuted 3 / 3, E worse
+each time), P1 / P3 / P4 / P5 hold 3 / 3; S1–S3 hold 2 / 3 (counting input, always thinking costs 38.6k fewer tokens per item than
+never thinking here), S4 3 / 3. Correction to the 20:0x entry: F − T is −8.11 [−10.68, −5.49] for this model (ties for the other two),
+so "think once per request" is withdrawn as the agent-loop recipe; among the fixed policies always thinking is best or tied for all
+three. Goal link: in agent loops the cheapest exact answers so far come from thinking at every step.
