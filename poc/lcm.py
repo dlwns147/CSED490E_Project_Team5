@@ -484,7 +484,7 @@ def util(rows):
     return sum(100 * float(r) - LAM * t / 1000 for r, t in rows) / max(1, len(rows))
 
 
-VARIANTS = (("lcm", 0, GRID), ("lcm", 30, GRID), ("indep", 30, INDEP))   # LCM (pre-registered)
+VARIANTS = REGISTERED = (("lcm", 0, GRID), ("lcm", 30, GRID), ("indep", 30, INDEP))   # LCM (pre-registered)
 if os.environ.get("LCM_VARIANTS"):   # LCM-2: e.g. "lcm2:30,lcm2:100" (dependence from the labels)
     VARIANTS = tuple((n, int(k), GRID) for n, k in (v.split(":") for v in os.environ["LCM_VARIANTS"].split(",")))
 
@@ -528,7 +528,7 @@ def evaluate(Q, task_desc, reps=3, out=None):
                                    th0=M.th0, th1=M.th1, tok=M.tok))
                 print(f"{task_desc} {name} k {k} half {h} rep {r}: K {M.K}, patterns {len(Pl.V)}", flush=True)
     d = lambda A, B: ci({i: (A[i] - B[i]) / 100 for i in ids})
-    if ("lcm", 30, GRID) not in VARIANTS:   # LCM-2: the same comparisons for each variant
+    if VARIANTS != REGISTERED:   # LCM-2: the same comparisons for each variant
         rec = dict(task=task_desc, n=len(ids), fixed={f: sum(per[f].values()) / len(ids) for f in FIXED},
                    fixed_acc={f: 100 * sum(acc[f].values()) / len(ids) for f in FIXED},
                    fixed_ktok={f: sum(tok[f].values()) / len(ids) / 1000 for f in FIXED},
