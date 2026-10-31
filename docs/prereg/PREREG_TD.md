@@ -101,3 +101,11 @@ held-out runs: jobs 1285851 (td) and 1285852 (rft).
   decomposition); P4 refuted → the thinking programs are not the better training target. The recipe's training step stays training on
   the model's own checked quick programs (RFT here, plain RL on SQL / tool calls); the thinking mode's programs as SFT targets
   weaken the free check.
+
+**Note (2026-10-31 04:1x UTC, after the results; a bound, not a test).** Why new answers cannot pay much here: in the peer cascade a right quick
+program is accepted only where the peer prints the same value, and Qwen3.5-9B's quick program is right on 12.6% of the 227
+base-never problems (65.3% of the 249 covered ones). A perfect quick program (always right, base tokens) would contribute +2.11
+[+1.06, +3.31] on the base-never problems and +3.71 [+2.56, +5.01] on the covered ones (sum +5.82 = the ceiling above). td reached
+2.1% of the way on the base-never problems; RFT reached about a third of the covered ceiling (+1.54 − base +0.67 of +3.71 − 0.67).
+With this peer, coverage expansion on word problems is capped by what the peer also answers: the bilinear account's term
+P(N right) × P(peer right) is small where the peer is weak — the same cap as on tool calls (P(peer right, default wrong)).
