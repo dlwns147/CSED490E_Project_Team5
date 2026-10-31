@@ -4613,3 +4613,16 @@ errors. The account now holds on agent turns with the end state as the value.
 **Next.** When MT finishes, measure the rescue rate of thinking on flagged turns from the T arm, derived on Qwen3-8B. Then
 pre-register an arm that redoes a turn with thinking when another model's sandboxed rollout ends in a different state, with
 predictions from the stratified account, held out on the other two models.
+
+## 2026-10-31 16:4x UTC: XPEER addendum CAL (pre-registered): the cascade predictions overshoot because the peer's false confirmations are a property of the model pair
+Why: every out-of-sample prediction of the peer cascade overshot by 0.7–1.9 utility, so no predicted number in the report could be
+taken at face value (review point 4). Test (200 half-splits of the 476 stored word problems; choose the peer and calibrate on one half,
+predict and measure on the other): the winner's curse on the chosen peer's gain is +0.32 (P1 ≥ 0.4 refuted); without selection the
+prediction transfers to Qwen3-14B-AWQ / Nemotron / Qwen3-8B within 0.3 but overshoots Qwen3.5-9B by +1.60 (P2 holds 3 / 4); selection
+adds +0.48 / +0.82 / +0.00 (P3 refuted 2 / 3). The split-sample errors reproduce the overshoots seen earlier (+0.75 vs +0.67, +0.69 vs
++0.69, +1.60 vs +1.85). Where: only the stratum where N is wrong and the default right fails to transfer; gpt-oss-20b confirms 4.7% of
+those programs for the calibration N (Qwen3-8B, 5 of 106) but 10.9% / 5.6% / 27.9% for Qwen3-14B-AWQ / Nemotron / Qwen3.5-9B. The
+false-confirmation rate belongs to the pair (shared readings), and the selected pair is a low draw. Decision: choose and calibrate on
+separate halves from now on; predictions from another model's calibration are not evidence (the account stays an exact decomposition of
+measured gains); no per-pair predictor, since its stratum is too small for a 30-label pilot. Goal link: this fixes how the report states
+any "predicted" cascade gain.

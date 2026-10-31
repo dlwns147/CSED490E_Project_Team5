@@ -333,3 +333,26 @@ XPEER prediction (N's strata on B × the calibration agreement rates from A). Av
 **Decision.** CAL-P1 and P3 hold, P2 holds → the overshoot is selection: every later prediction chooses on one half and calibrates on
 the other, and the report gives the split-sample numbers. P2 fails with e_all > 0.3 → a transfer bias: predictions from another model's
 calibration are withdrawn from the report, and the account gets a per-model agreement term (to be derived and pre-registered).
+
+## Results, addendum CAL (2026-10-31 16:4x UTC; `results/cal.txt`, job 1288820; 200 splits of the 476 stored problems, 3 seeds)
+
+| test | result | verdict |
+|---|---|---|
+| CAL-P1 curse ≥ 0.4 | +0.32 (sd 0.86 over splits) | refuted |
+| CAL-P2 \|e_all\| ≤ 0.3 in ≥ 3 of 4 | Qwen3-8B +0.16, Qwen3-14B-AWQ +0.27, Nemotron −0.13, Qwen3.5-9B **+1.60** (3 / 4) | holds |
+| CAL-P3 e_sel − e_all ≥ 0.3 in 3 of 3 | Qwen3-14B-AWQ +0.48, Nemotron +0.82, Qwen3.5-9B +0.00 (2 / 3) | refuted |
+
+e_sel reproduces the overshoots seen on the stored cells: Qwen3-14B-AWQ +0.75 (seen +0.67), Nemotron +0.69 (seen +0.69), Qwen3.5-9B
++1.60 (seen +1.85). Where the error sits (full data, peer gpt-oss-20b, exploratory; `analyze_xpeer.parts` per N against the Qwen3-8B
+calibration): every stratum's contribution transfers within 0.1 except the stratum where N is wrong and the default right (WR). There
+the peer confirms N's wrong program 4.7% of the time for the calibration N (Qwen3-8B; 5 of 106 problem-seeds), but 10.9% for
+Qwen3-14B-AWQ, 5.6% for Nemotron and 27.9% for Qwen3.5-9B; that stratum alone is −1.02 vs −0.44 predicted (Qwen3-14B-AWQ) and −1.26
+vs −0.21 (Qwen3.5-9B). The false-confirmation rate is a property of the (N, peer) pair, its shared readings, not of the peer, and the
+calibration pair is the one selected for a low draw of it.
+
+**Decision.** The rules do not cover this mixed outcome; I decide: (1) selection explains the overshoot for two of three other models
+(+0.5 to +0.8), so later predictions choose the peer on one half and calibrate on the other; (2) for Qwen3.5-9B the overshoot is a
+transfer bias of +1.6 that no split removes, so predictions from another model's calibration are not evidence: the report keeps the
+stratified account as an exact decomposition of measured gains and states that, across models, the WR false-confirmation rate must be
+measured on the pair itself (it cannot be read from the peer alone). A per-pair term needs labels in a stratum of 5–12% of
+problem-seeds, more than the 30-label pilot gives; no new predictor is pre-registered from this.
