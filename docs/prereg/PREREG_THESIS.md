@@ -40,7 +40,7 @@ TH-P2's breakdown, which the third run (code added, nothing else changed) prints
   the two quick programs' 0.7–1.4 utility outweighs them), 10 are not (x > 0 and the accept decisions themselves lose on the other
   half), 1 is pessimistic (x < 0, a gain). All but one mismatch are on word problems; the other is BIRD dev with Qwen3-14B-AWQ as the peer.
 - Exploratory (not pre-registered): by the size of the half the predictor is estimated on, 47 / 49 (96%) with ≥ 1,000 question-seeds
-  (BIRD, BFCL) against 10 / 24 below (OptiBench third 6 / 7, BWOR 2 / 5, LogiOR 2 / 10, OptMATH 0 / 2: 82–202 problems per set). Six of
+  (BIRD, BFCL) against 10 / 24 below (OptiBench third 6 / 7, BWOR 2 / 5, LogiOR 2 / 10, OptMATH 0 / 2: 82–202 problems per set). Five of
   the ten accept-driven mismatches have x clamped or ≥ +0.95 from halves of 41–46 problems, where r* rests on a handful of problems in
   each decisive stratum.
 
