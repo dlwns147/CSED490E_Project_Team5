@@ -4741,3 +4741,5 @@ each time), P1 / P3 / P4 / P5 hold 3 / 3; S1–S3 hold 2 / 3 (counting input, al
 never thinking here), S4 3 / 3. Correction to the 20:0x entry: F − T is −8.11 [−10.68, −5.49] for this model (ties for the other two),
 so "think once per request" is withdrawn as the agent-loop recipe; among the fixed policies always thinking is best or tied for all
 three. Goal link: in agent loops the cheapest exact answers so far come from thinking at every step.
+Rollback rule (FINDINGS 19:3x): for Qwen3-14B-AWQ the turn-0 rollback is 64.0% @ 1.98k against T 71.0% @ 1.99k (it passes 138 wrong
+turns thinking would fix), so it loses to T for all three models and no rollback arm is run.
