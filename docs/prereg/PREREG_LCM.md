@@ -66,3 +66,54 @@ pilot picks on the fitting half (the same label draws); the best fixed policy ch
 
 **Run.** `bash poc/slurm/lcm_cells.sh` (8 CPU jobs, four cells each); per cell `results/lcm/<task>_<set>_<gen>_<peer>.json`; the
 summary `python3.11 poc/analyze_lcm.py` (written before the cells finish).
+
+## Results (written 2026-10-31 22:4x UTC; `results/lcm.txt`, `results/lcm/*.json`; 30 of the 31 cells — the 31st, OptMATH with Qwen3-8B ← gpt-oss-20b, stopped on a loader that wrongly required the peer's think rows, fixed and rerunning as job 1290450; it cannot change any verdict)
+
+Process note: the first submission ran only one cell per job (background processes started outside the repository); the other 24
+were resubmitted unchanged (jobs 1290217–1290222).
+
+| prediction | better / worse (of 30) | verdict |
+|---|---|---|
+| LCM-P1 planner (k = 30) − default cascade | 4 / 13 | **refuted** |
+| LCM-P2 planner − 30-label pilot | 10 / 5 | **refuted** (needed 16 / ≤ 3) |
+| LCM-P3 planner − oracle fixed | 2 / 13 | **refuted** |
+| LCM-P4 planner − independent-errors planner | 1 / 13 | **refuted** (the shared-error model is worse) |
+
+By task: on SQL (8 cells) the planner loses to the default by 0.8–1.7 utility (worse in 7) and spends more tokens (e.g. Qwen3-8B dev
+59.3% @ 2.51k against 59.9% @ 1.39k); on BFCL (8) it loses by 0.3–4.9 (worse in 6); on the word problems (14) it gains in 4
+(LogiOR +4.3 / +5.7 / +10.4, OptiBench Qwen3-8B +2.4), loses in 1 (OptiBench gpt-oss-20b −2.4), the rest inconclusive. k = 0 is worse
+than the default in 11 cells. At any λ (at least as accurate, no more tokens than the best fixed policy): 3 / 30.
+**Diagnosis.** The fitted models have a class in which every call is almost never right and all calls share one wrong answer
+(BFCL live, Qwen3-8B: π 0.66, a ≈ 0.00–0.06 for every call type, θ0 0.2). Unanimous agreement has likelihood Π_t a_t^{n_t} as a right
+answer but tends to 1 as a shared wrong answer when θ0, θ1 → 0, so on unlabelled questions the model explains agreement as a trap; the
+30 labelled questions sit in the other classes and never constrain it (unlabelled data degrading a misspecified generative model,
+Cozman & Cohen, 2003). The independent-errors model cannot do this, which is why it does better (P4). Calibration of the returned
+answers' posteriors on three cells is being computed (jobs 1290445–1290447) for the report.
+**Decision (as pre-registered).** P1 / P2 refuted: not adopted. The failure is an identifiability failure of the dependence
+parameters, addressed by LCM-2 (below), pre-registered separately.
+
+## Addendum LCM-2: the dependence parameters where they are identified (written 2026-10-31 22:4x UTC, after the results above, before any LCM-2 run is read)
+
+**Why and theory.** The roles of a labelled question's calls are known, so its partitions of wrong answers and of right variants
+identify θ0, θ1 and φ directly; on unlabelled questions they are confounded with the right rates (the unanimity argument above).
+LCM-2 estimates (θ0, θ1, φ) by maximum likelihood on the labelled questions only (shared by all classes), and π, a, x and the check
+by EM on all questions, as before. A class can then produce a unanimous wrong answer only at the coincidence rate the labels show,
+which removes the degenerate explanation; nothing else changes (planner, cross-fitting, label draws, comparators). Also run with
+k = 100 labelled questions (reported). Because LCM-2 was designed after seeing LCM's 30 cells, the confirmatory test is on Spider's
+test split (FINAL's untouched questions): Qwen3-8B, Qwen3-14B-AWQ, Qwen3.5-9B and gpt-oss-20b with their peers, once those rows exist.
+
+**Predictions.**
+- **L2-P1 (development cells, the same 31):** LCM-2 (k = 30) − default cascade: lower bound > 0 in ≥ 10, upper bound < 0 in ≤ 5.
+- **L2-P2:** LCM-2 (k = 30) − LCM (k = 30): lower bound > 0 in ≥ 10, upper bound < 0 in ≤ 3.
+- **L2-P3:** LCM-2 (k = 30) − the 30-label pilot: lower bound > 0 in ≥ 12.
+- **L2-P4 (confirmatory, Spider):** LCM-2 (k = 30) − default cascade: lower bound > 0 in ≥ 3 of the 4 Spider cells, upper bound < 0
+  in none.
+- Reported: k = 100; calibration; the fitted θ0 / θ1 / φ; dominance at any λ.
+
+**Decision.** L2-P1 and L2-P4 hold: the derived planner (LCM-2) replaces the hand-set cascade as the method (PROJECT, REPORT,
+PROPOSAL). L2-P4 refuted: the method stays the cascade, and the report gives the identifiability result and where the derived policy
+gains (the word problems) as a finding, not as the method.
+
+**Run.** `LCM_VARIANTS=lcm2:30,lcm2:100 LCM_OUT=results/lcm2 python3 poc/lcm.py <cell>` for the 31 cells (`poc/slurm/lcm_cells.sh`
+with those variables), then the same for the four Spider cells; summary `python3.11 poc/analyze_lcm.py --lcm2` (written before the
+runs are read).

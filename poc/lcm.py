@@ -91,8 +91,14 @@ def load_word(gen, peer, bench):
     with contextlib.redirect_stdout(io.StringIO()):
         import analyze_hopa as H
     from run_nlopt import correct
-    A, P = H.word_rows(gen, bench), H.word_rows(peer, bench)
-    if A is None or P is None:
+    A = H.word_rows(gen, bench)
+    P = {"formx": {}}   # the peer needs only its quick program (gpt-oss-20b has no OptMATH think)
+    for s in (1, 2, 3):
+        R = H._rows(f"{H.XRES}/opt_{peer}_{bench}_formx_s{s}.jsonl")
+        if not R:
+            return None
+        P["formx"][s] = {r["id"]: (H.ok_(r), bool(r["correct"]), r.get("out_tokens") or 0, r.get("pred")) for r in R}
+    if A is None:
         return None
     same = lambda a, b: a == b if "NBS" in (a, b) else correct(a, str(b)) or correct(b, str(a))
     out = {}
@@ -221,14 +227,28 @@ def stats(src, S):
     return roles, tuple(sorted(right.values())), sig_of(groups)
 
 
-def fit(Q, labels, K, rng, iters=60, tol=1e-4, grid=GRID):
+def dep_from_labels(Q, labels, grid=GRID):
+    """LCM-2: the dependence parameters where they are identified, on the labelled questions only (their roles are known): the
+    maximum-likelihood (th0, th1) of their wrong-answer partitions and phi of their right variants"""
+    sigs = [stats(Q[i]["src"], Q[i]["ys"]) for i in labels]
+    th = max(((a, b) for a in grid for b in grid), key=lambda ab: sum(crf_logp(sig, ab[0], ab[1]) for _, _, sig in sigs))
+    phi = max(PHI, key=lambda f: sum(crp_logp(rs, f) for _, rs, _ in sigs))
+    return th[0], th[1], phi
+
+
+PHI = (0.01, 0.03, 0.1, 0.3, 1.0, 3.0)
+
+
+def fit(Q, labels, K, rng, iters=60, tol=1e-4, grid=GRID, dep=None):
     """EM; Q {id: q}; labels: the ids whose y is revealed; grid: the concentrations allowed (INDEP: only 1000, wrong answers
-    almost never coincide, the classical independent-errors model). Returns (model, log-likelihood)"""
+    almost never coincide, the classical independent-errors model); dep = (th0, th1, phi) fixed for every class (LCM-2: estimated
+    on the labelled questions) instead of fitted by EM. Returns (model, log-likelihood)"""
     M = Model(K, rng)
     if len(grid) == 1:
         M.th0, M.th1 = [grid[0]] * K, [grid[0]] * K
+    if dep is not None:
+        M.th0, M.th1, M.phi = [dep[0]] * K, [dep[1]] * K, [dep[2]] * K
     S = {i: [(h,) + stats(q["src"], h) for h in hyps(q, i in labels)] for i, q in Q.items()}
-    PHI = (0.01, 0.03, 0.1, 0.3, 1.0, 3.0)
     for t in TYPES:
         v = [tk for q in Q.values() for tt, _, _, _, _, tk in q["src"] if tt == t]
         M.tok[t] = sum(v) / max(1, len(v))
@@ -269,7 +289,7 @@ def fit(Q, labels, K, rng, iters=60, tol=1e-4, grid=GRID):
             for r in "RWX":
                 p, f = acc_c[t][r]
                 M.c[t][r] = (p + 0.5) / (p + f + 1.0)
-        for z in range(K):
+        for z in range(K if dep is None else 0):
             M.th0[z], M.th1[z] = max(((a, b) for a in grid for b in grid),
                                      key=lambda ab: sum(w * crf_logp(sig, ab[0], ab[1]) for sig, w in acc_sig[z].items()))
             M.phi[z] = max(PHI, key=lambda f: sum(w * crp_logp(rs, f) for rs, w in acc_rs[z].items()))
@@ -282,12 +302,14 @@ def fit(Q, labels, K, rng, iters=60, tol=1e-4, grid=GRID):
 INDEP = (1000.0,)
 
 
-def fit_best(Q, labels, Ks=(1, 2, 3), restarts=3, seed=0, grid=GRID):
+def fit_best(Q, labels, Ks=(1, 2, 3), restarts=3, seed=0, grid=GRID, dep=None):
     """K by BIC over the fitting questions; the best of a few random starts per K"""
     best = None
+    if dep == "labels":
+        dep = dep_from_labels(Q, labels, grid)
     for K in Ks:
         for r in range(restarts if K > 1 else 1):
-            M, ll = fit(Q, labels, K, random.Random(1000 * seed + 10 * K + r), grid=grid)
+            M, ll = fit(Q, labels, K, random.Random(1000 * seed + 10 * K + r), grid=grid, dep=dep)
             bic = -2 * ll + M.params() * math.log(len(Q))
             if best is None or bic < best[0]:
                 best = (bic, M, ll)
@@ -462,7 +484,9 @@ def util(rows):
     return sum(100 * float(r) - LAM * t / 1000 for r, t in rows) / max(1, len(rows))
 
 
-VARIANTS = (("lcm", 0, GRID), ("lcm", 30, GRID), ("indep", 30, INDEP))
+VARIANTS = (("lcm", 0, GRID), ("lcm", 30, GRID), ("indep", 30, INDEP))   # LCM (pre-registered)
+if os.environ.get("LCM_VARIANTS"):   # LCM-2: e.g. "lcm2:30,lcm2:100" (dependence from the labels)
+    VARIANTS = tuple((n, int(k), GRID) for n, k in (v.split(":") for v in os.environ["LCM_VARIANTS"].split(",")))
 
 
 def evaluate(Q, task_desc, reps=3, out=None):
@@ -489,14 +513,14 @@ def evaluate(Q, task_desc, reps=3, out=None):
             for r in range(reps_v):
                 rng = random.Random(97 * r + 7 * k + h)
                 lab = set(rng.sample(half[h], min(k, len(half[h])))) if k else set()
-                M, bic = fit_best(fitq, lab, seed=r, grid=grid)
+                M, bic = fit_best(fitq, lab, seed=r, grid=grid, dep="labels" if name == "lcm2" else None)
                 Pl = Planner(M)
                 for i in ev:
                     rows = [Pl.run(seed_calls(Q[i], s))[:2] for s in (1, 2, 3)]
                     P[v][i] = P[v].get(i, 0.0) + qu(rows) / reps_v
                     PA[v][i] = PA[v].get(i, 0.0) + sum(x for x, _ in rows) / 3 / reps_v
                     PT[v][i] = PT[v].get(i, 0.0) + sum(t for _, t in rows) / 3 / reps_v
-                if name == "lcm" and k:
+                if v == next(u for u in VARIANTS if u[1]):   # the pilot: the first labelled variant's label draws
                     pick = max(FIXED, key=lambda f: sum(per[f][i] for i in lab))
                     for i in ev:
                         pilot[i] = pilot.get(i, 0.0) + per[pick][i] / reps_v
@@ -504,6 +528,26 @@ def evaluate(Q, task_desc, reps=3, out=None):
                                    th0=M.th0, th1=M.th1, tok=M.tok))
                 print(f"{task_desc} {name} k {k} half {h} rep {r}: K {M.K}, patterns {len(Pl.V)}", flush=True)
     d = lambda A, B: ci({i: (A[i] - B[i]) / 100 for i in ids})
+    if ("lcm", 30, GRID) not in VARIANTS:   # LCM-2: the same comparisons for each variant
+        rec = dict(task=task_desc, n=len(ids), fixed={f: sum(per[f].values()) / len(ids) for f in FIXED},
+                   fixed_acc={f: 100 * sum(acc[f].values()) / len(ids) for f in FIXED},
+                   fixed_ktok={f: sum(tok[f].values()) / len(ids) / 1000 for f in FIXED},
+                   oracle=sum(oracle.values()) / len(ids), pilot=sum(pilot.values()) / len(ids), models=models,
+                   variants={f"{v[0]}{v[1]}": dict(u=sum(P[v].values()) / len(ids), acc=100 * sum(PA[v].values()) / len(ids),
+                                                   ktok=sum(PT[v].values()) / len(ids) / 1000, vs_default=d(P[v], per["cascade"]),
+                                                   vs_pilot=d(P[v], pilot), vs_oracle=d(P[v], oracle)) for v in VARIANTS})
+        if ("lcm2", 30, GRID) in VARIANTS and ("lcm", 30, GRID) in VARIANTS:   # L2-P2, paired on the same label draws
+            rec["lcm2_vs_lcm"] = d(P[("lcm2", 30, GRID)], P[("lcm", 30, GRID)])
+            print(f"*** {task_desc} lcm2 - lcm (k = 30): {rec['lcm2_vs_lcm'][0]:+.2f} [{rec['lcm2_vs_lcm'][1]:+.2f}, "
+                  f"{rec['lcm2_vs_lcm'][2]:+.2f}]", flush=True)
+        for name, r in rec["variants"].items():
+            print(f"*** {task_desc} {name}: {r['u']:+.2f} ({r['acc']:.1f}% @ {r['ktok']:.2f}k); vs default {r['vs_default'][0]:+.2f} "
+                  f"[{r['vs_default'][1]:+.2f}, {r['vs_default'][2]:+.2f}]; vs pilot {r['vs_pilot'][0]:+.2f} [{r['vs_pilot'][1]:+.2f}, "
+                  f"{r['vs_pilot'][2]:+.2f}]; vs oracle {r['vs_oracle'][0]:+.2f} [{r['vs_oracle'][1]:+.2f}, {r['vs_oracle'][2]:+.2f}]",
+                  flush=True)
+        if out:
+            json.dump(rec, open(out, "w"))
+        return rec
     main = ("lcm", 30, GRID)
     rec = dict(task=task_desc, n=len(ids), fixed={f: sum(per[f].values()) / len(ids) for f in FIXED},
                fixed_acc={f: 100 * sum(acc[f].values()) / len(ids) for f in FIXED},
@@ -623,8 +667,9 @@ def main():
     Q = load(task, gen, peer, sset)
     if not Q:
         print("rows missing"); return
-    os.makedirs(f"{ROOT}/results/lcm", exist_ok=True)
-    evaluate(Q, f"{task} {sset} {gen}<-{peer}", out=f"{ROOT}/results/lcm/{task}_{sset}_{gen}_{peer}.json")
+    od = os.environ.get("LCM_OUT", f"{ROOT}/results/lcm")
+    os.makedirs(od, exist_ok=True)
+    evaluate(Q, f"{task} {sset} {gen}<-{peer}", out=f"{od}/{task}_{sset}_{gen}_{peer}.json")
 
 
 if __name__ == "__main__":
