@@ -4966,3 +4966,14 @@ showed labels can teach when not to call.
 Decision (registered): the verifier joins the tool-call method; SEL-TC2 (TL's planner with the verifier at its stop vs SEL-TC's
 pipeline) is pre-registered and running. SEL-W (word problems, VER's programs with SEL's loss) is running. Goal link: the stratum the
 cheap checks cannot resolve is now resolved on two task types with labels used only in training.
+
+## 2026-11-01 19:0x UTC: SEL-TC2 (pre-registered): the call policy gathers, the verifier chooses — together 87.7% / 86.6% on BFCL
+Why: SEL-TC's decision — the fitted call policy (TL) and the verifier act on different things (which calls; which answer).
+- At the policy's stop, logit P_policy(answer right | pattern) + β z (β from about 3,100 held-out ToolACE stop sets); 3,837 new texts scored.
+- **P1, P2t, P2b hold.** Combined − policy alone +1.90 / +1.38; − the verifier at the cascade's fallback +0.70 [+0.40, +1.02] (base) /
+  +0.73 [+0.41, +1.07] (trained); − default +2.64 / +3.77 (86.6% at 0.48k, 87.7% at 0.43k vs 83.9% at 0.38k). P2b was expected to fail
+  (the policy alone gains nothing for untrained quick calls).
+- Mechanism: the gains are where the policy runs a full think (27–38% of request-seeds), mostly live requests: more candidates, which
+  the policy's vote could not separate and the verifier can.
+- Open: the policy plans as if its vote decided; a policy that values calls by the verifier's resulting choice is the derived next step.
+Decision (registered): the tool-call method is the fitted policy with the verifier at its stop, for trained and untrained quick calls.

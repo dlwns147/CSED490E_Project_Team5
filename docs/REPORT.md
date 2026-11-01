@@ -679,7 +679,11 @@ already paid for. On tool calls (SEL-TC, pre-registered) the same recipe on 1,26
 BFCL (label-free 0.48) and adds +1.08 / +1.68 over the cascade — more than the call policy fitted on the same held-out requests (−0.11 /
 +1.04) and at no output tokens; the pipeline is 85.8% / 86.9% accurate at 0.27–0.28k tokens against the default's 83.9% at 0.38k. Of
 the answers it changes, most are a right abstention chosen over a call filled with values the request never gave ("Your Starting
-City"); on calls that differ in an optional argument it is at chance.
+City"); on calls that differ in an optional argument it is at chance. The call policy and the verifier are complements (SEL-TC2,
+pre-registered): with the policy deciding which calls to make and the verifier choosing among the answers at its stop (a Bayes rule:
+the policy's log-odds for each answer plus β times the verifier's standardized score), BFCL reaches 87.7% / 86.6% at 0.43k / 0.48k
+tokens (+0.73 / +0.70 over the verifier at the cascade's fallback, +1.38 / +1.90 over the policy alone); the gain is where the policy
+runs a full think on live requests, adding candidates its own vote could not tell apart.
 
 ## 6.5 Relation to prior work (what is new here)
 Escalating from a cheap answer to a stronger one when a check fails is established for cascades *between models* (answer consistency,

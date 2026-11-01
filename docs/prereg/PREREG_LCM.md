@@ -1110,3 +1110,26 @@ the generator's 1,338 fresh BIRD-train questions (labels), β on its fallback ce
 
 **Decision.** P1 holds → the verifier step is part of the SQL method for any of these generators (scope stated per generator where
 P1 fails for one); P1 refuted → the step is stated for Qwen3-8B only, with the generators where it fails and their AUROCs.
+
+## Results of addendum SEL-TC2 (written 2026-11-01 18:5x UTC; `results/lcm_seltc2.log`; job 1296197, 3,837 new texts scored, none failed; raw reading `nlp_data/scratch/seltc2_raw.py`)
+
+| BFCL, N | combined | planner alone | SEL-TC pipeline | cascade | default | combined − planner | combined − SEL-TC pipeline | combined − default |
+|---|---|---|---|---|---|---|---|---|
+| base | 86.6% @ 0.48k | 84.7% @ 0.48k | 85.8% @ 0.28k | 84.8% @ 0.28k | 83.9% @ 0.38k | +1.90 [+1.52, +2.27] | **+0.70 [+0.40, +1.02]** | +2.64 [+2.04, +3.23] |
+| trained | 87.7% @ 0.43k | 86.4% @ 0.43k | 86.9% @ 0.27k | 85.2% @ 0.27k | 83.9% @ 0.38k | +1.38 [+0.97, +1.83] | **+0.73 [+0.41, +1.07]** | +3.77 [+3.03, +4.47] |
+
+(β 1.0 / 1.1 from 3,132 / 3,146 held-out stop sets; unseen planner patterns 14 / 5 of 10,446 request-seeds; SEL-TC pipeline −
+planner +1.20 / +0.64.)
+
+- **SEL-TC2-P1 holds** (+1.90, +1.38). **SEL-TC2-P2t holds** (+0.73). **SEL-TC2-P2b holds** (+0.70), against the expectation: the
+  planner alone gains nothing for the untrained quick calls (−0.1 against the cascade), but with the verifier choosing at its stop it does.
+- **Mechanism:** the planner stops after N and P on 58% of request-seeds and runs a full think (T or the retry at another seed) on
+  about 38% (base) / 27% (trained); the combined policy's gains over SEL-TC's pipeline are on those, almost all live requests (base: 62 + 47 + 18 right for wrong
+  where it ran T / T2, against 24 + 24 + 5 the other way; trained 80 + 35 against 34 + 12). The planner's extra thinks add candidates the
+  verifier can tell apart; alone the planner could only vote among them. They are complements: one gathers, the other chooses.
+- The planner's values ignore the verifier (it plans as if its own vote decided), so the combination is not the policy that plans for
+  the verifier.
+
+**Decision (registered):** P2 holds for both N types → the tool-call method is TL's planner (fitted on held-out training requests) with
+the verifier choosing at its stop, for trained and untrained quick calls: 87.7% / 86.6% at 0.43k / 0.48k tokens against the default's
+83.9% at 0.38k. PROJECT, REPORT and PROPOSAL updated.
