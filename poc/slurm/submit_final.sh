@@ -5,7 +5,7 @@
 # adapter on Qwen3-8B, cheap arm only). Grading: `SQL_SPLIT=spider $P poc/grade_sql.py <tag> <seed>` at the end of each lane.
 #   bash poc/slurm/submit_final.sh [seeds ...]
 # TR (PREREG_LCM addendum TR): FINAL_SPLIT=spiderdev runs the same four generators on Spider's dev split (tags <model>sd, job names
-# tr_*), without the trained adapter.
+# tr_*); the trained adapter's quick query (tr_c1, tag q8bcvc1sd) was added by addendum TR-C1 and submitted on its own.
 cd "$(dirname "$0")/../.."
 X="-x n19,n22,n24,n26"
 SP=${FINAL_SPLIT:-spider}; SPL=SQL_SPLIT=$SP
@@ -20,4 +20,4 @@ for s in ${@:-1 2 3}; do
     "$SPL POC_HARMONY=1 POC_REASONING_EFFORT=low SQL_ARMS=quick \$P poc/run_sql.py oss20$U $s" \
     "$SPL POC_HARMONY=1 POC_REASONING_EFFORT=medium SQL_ARMS=think,sb \$P poc/run_sql.py oss20$U $s" "$SPL \$P poc/grade_sql.py oss20$U $s"
 done
-[ "$SP" = spider ] && sbatch -J fin_c1 $X poc/slurm/job.sh "CV_EVAL_SPLIT=spider bash poc/slurm/cv_eval_lane.sh c1 q8bcvc1sp /NAS/SJ/POSTECH/nlp_data/cv/c1/adapter_final ${*:-1 2 3} && for s in ${*:-1 2 3}; do SQL_SPLIT=spider \$P poc/grade_sql.py q8bcvc1sp \$s; done >> results/sql/run_cv_eval_c1.log 2>&1"
+sbatch -J ${J}_c1 $X poc/slurm/job.sh "CV_EVAL_SPLIT=$SP bash poc/slurm/cv_eval_lane.sh c1 q8bcvc1$U /NAS/SJ/POSTECH/nlp_data/cv/c1/adapter_final ${*:-1 2 3} && for s in ${*:-1 2 3}; do $SPL \$P poc/grade_sql.py q8bcvc1$U \$s; done >> results/sql/run_cv_eval_c1.log 2>&1"

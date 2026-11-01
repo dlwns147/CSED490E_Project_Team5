@@ -39,20 +39,27 @@ def _q(src):
     return {"src": src, "ys": frozenset(k for t, s, k, c, o, tk in src if o and k is not None)}
 
 
-def load_sql(gen, peer, suf):
+def load_sql(gen, peer, suf, nsrc=None):
+    """nsrc (PREREG_LCM addendum TR-C1): the quick query N from another tag (CV-1's trained adapter, e.g. q8bcvc1), SB and T from gen"""
     from analyze_sqlpa import grades, ntok
     from run_nlopt import _rows
     R = os.path.join(ROOT, "results", "sql")
     GA, GP, KP = grades(gen + suf), grades(peer + suf), ntok(peer + suf)
-    if not (GA and GP):
+    GN = grades(nsrc + suf) if nsrc else GA
+    if not (GA and GP and GN):
         return None
-    tok = {(a, s): {r["id"]: r.get("n_tok" if a == "cheap" else "out_tokens") for r in _rows(f"{R}/{gen}{suf}_{a}_s{s}.jsonl")}
+    tok = {(a, s): {r["id"]: r.get("n_tok" if a == "cheap" else "out_tokens")
+                    for r in _rows(f"{R}/{nsrc if nsrc and a == 'cheap' else gen}{suf}_{a}_s{s}.jsonl")}
            for a in ("cheap", "sb", "think") for s in (1, 2, 3)}
     out = {}
     for i in GA[1]:
         src = []
         for s in (1, 2, 3):
-            g, p = GA[s].get(i, {}), GP[s].get(i, {}).get("N")
+            g, p = dict(GA[s].get(i, {})), GP[s].get(i, {}).get("N")
+            if nsrc:
+                g.pop("N", None)
+                if "N" in GN[s].get(i, {}):
+                    g["N"] = GN[s][i]["N"]
             if not {"N", "SB", "T"} <= set(g) or p is None or i not in KP[s] or any(i not in tok[(a, s)] for a in ("cheap", "sb", "think")):
                 break
             for t, a, x in (("N", "cheap", g["N"]), ("SB", "sb", g["SB"]), ("T", "think", g["T"])):
@@ -128,10 +135,10 @@ def load_word(gen, peer, bench, rows=None):
     return out
 
 
-def load(task, gen, peer, sset):
+def load(task, gen, peer, sset, **k):
     if task == "sql":
         sset = {"dev": "", "fresh": "pa", "spider": "sp", "spiderdev": "sd"}.get(sset, sset)
-    return {"sql": load_sql, "tc": load_tc, "word": load_word}[task](gen, peer, sset)
+    return {"sql": load_sql, "tc": load_tc, "word": load_word}[task](gen, peer, sset, **k)
 
 
 # ---------------------------------------------------------------- the two-level Chinese restaurant franchise over wrong answers

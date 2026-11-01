@@ -14,7 +14,10 @@ T, else retry T, the most expensive call; label-free like C3PO, 2511.07396); fix
 question-seed reaching a pattern its planner never saw is scored with the cascade's outcome (counted).
 Addendum TR (--tr): the transfer planner fitted on every labelled SQL set so far (BIRD dev, the fresh BIRD questions, Spider test) with
 those sets' mean tokens per call (nothing from the target), on Spider's dev split, never used before; the four generators.
-usage: python3 lcm_shift.py [--tr]   -> results/lcm_shift.log (results/lcm_tr.log) lines, results/lcm_shift/<cell>.json"""
+Addendum TR-C1 (--tr-c1): the same with CV-1's trained quick query as N (FINAL's F5 cell). --dqs: Spider graded with a SQLite that
+accepts double-quoted literals (FINAL's sensitivity).
+usage: python3 lcm_shift.py [--tr | --tr-c1 [--explore]] [--dqs]   -> results/lcm_shift.log (results/lcm_tr*.log) lines,
+results/lcm_shift/<cell>.json"""
 import contextlib, io, json, math, os, sys, zlib
 from collections import Counter
 
@@ -165,6 +168,7 @@ def run_cell(name, dev, tgt):
                transfer_vs_cascade=d("transfer", "cascade"), reference_vs_cascade=d("reference", "cascade"),
                LS_vs_reference=d("LS", "reference"), pseudo_vs_cascade=d("pseudo", "cascade"), LS_vs_swap=d("LS", "P->SB->T->T"),
                tr_vs_cascade=d("transfer_devtok", "cascade"), tr_vs_default=d("transfer_devtok", "SB->T->T"),
+               cascade_vs_default=d("cascade", "SB->T->T"), cascade_p=pboot({i: U["cascade"][i] - U["SB->T->T"][i] for i in ids}),
                tr_p=pboot({i: U["transfer_devtok"][i] - U["cascade"][i] for i in ids}),
                acc={k: sum(v.values()) / len(ids) for k, v in A.items()}, ktok={k: sum(v.values()) / len(ids) / 1000 for k, v in K.items()},
                tr_acc_vs_cascade=ci({i: (A["transfer_devtok"][i] - A["cascade"][i]) / 100 for i in ids}))
@@ -194,16 +198,18 @@ def pboot(d, B=10000):
 
 
 def main_tr():
-    """addendum TR: Spider dev, the four generators, the planner fitted on BIRD dev + fresh + Spider test with their tokens"""
+    """addendum TR: Spider dev, the four generators, the planner fitted on BIRD dev + fresh + Spider test with their tokens
+    (--dqs: the sensitivity as in FINAL, Spider's rows graded with a SQLite that accepts double-quoted literals, tags <m>spq / <m>sdq)"""
     R = []
+    q = "--dqs" in sys.argv
     for g in ("q8b", "q14a", "q35", "oss20"):
         p = PEER[g]
-        dev = [quiet(lcm.load, "sql", g, p, x) for x in ("dev", "fresh", "spider")]
-        tgt = quiet(lcm.load, "sql", g, p, "spiderdev")
+        dev = [quiet(lcm.load, "sql", g, p, x) for x in ("dev", "fresh", "spq" if q else "spider")]
+        tgt = quiet(lcm.load, "sql", g, p, "sdq" if q else "spiderdev")
         if not tgt or not all(dev):
             print(f"*** sql spiderdev {g}<-{p}: rows missing", flush=True)
             continue
-        r = run_cell(f"sql spiderdev {g}<-{p} (from BIRD + Spider test)", dev, tgt)
+        r = run_cell(f"sql spiderdev{' dqs' if q else ''} {g}<-{p} (from BIRD + Spider test)", dev, tgt)
         f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
         print(f"    TR: transfer (development tokens) - cascade {f(r['tr_vs_cascade'])} (one-sided p {r['tr_p']:.4f}); accuracy "
               f"{f(r['tr_acc_vs_cascade'])}; {r['acc']['transfer_devtok']:.1f}% @ {r['ktok']['transfer_devtok']:.2f}k vs cascade "
@@ -218,7 +224,32 @@ def main_tr():
           + ", ".join(f"{R[j]['task'].split(' (')[0]} {holm[j]:.4f}" for j in range(k)))
 
 
+def main_tr_c1():
+    """addendum TR-C1: CV-1's trained quick query (C1 adapter on Qwen3-8B) as N, the base model's SB and T, Qwen3.5-9B's quick query as
+    P (FINAL's F5 cell) on Spider dev; the planner fitted on BIRD dev and Spider test (not the fresh BIRD-train questions: C1's training
+    pool). --explore: fitted on BIRD dev only and run on Spider test (an already used set: sets the expectation, decides nothing)"""
+    q, ex = "--dqs" in sys.argv, "--explore" in sys.argv
+    sp, sd = ("spq", "sdq") if q else ("spider", "spiderdev")
+    dev = [quiet(lcm.load, "sql", "q8b", "q35", x, nsrc="q8bcvc1") for x in (("dev",) if ex else ("dev", sp))]
+    tgt = quiet(lcm.load, "sql", "q8b", "q35", sp if ex else sd, nsrc="q8bcvc1")
+    name = f"sql {'spider (explore)' if ex else 'spiderdev'}{' dqs' if q else ''} C1q8b<-q35 (from BIRD{'' if ex else ' + Spider test'})"
+    if not tgt or not all(dev):
+        print(f"*** {name}: rows missing", flush=True)
+        return
+    r = run_cell(name, dev, tgt)
+    f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
+    print(f"    TR-C1: cascade - SB->T->T {f(r['cascade_vs_default'])} (one-sided p {r['cascade_p']:.4f}); transfer (development tokens) "
+          f"- cascade {f(r['tr_vs_cascade'])} (one-sided p {r['tr_p']:.4f}); {r['acc']['transfer_devtok']:.1f}% @ "
+          f"{r['ktok']['transfer_devtok']:.2f}k vs cascade {r['acc']['cascade']:.1f}% @ {r['ktok']['cascade']:.2f}k vs SB->T->T "
+          f"{r['acc']['SB->T->T']:.1f}% @ {r['ktok']['SB->T->T']:.2f}k; transfer - SB->T->T {f(r['tr_vs_default'])}", flush=True)
+    if not ex:
+        print(f"*** TR-C1-P1 (cascade - SB->T->T lower bound > 0): {'holds' if r['cascade_vs_default'][1] > 0 else 'refuted'}; "
+              f"TR-C1-P2 (transfer - cascade lower bound > 0): {'holds' if r['tr_vs_cascade'][1] > 0 else 'refuted'}", flush=True)
+
+
 def main():
+    if "--tr-c1" in sys.argv:
+        return main_tr_c1()
     if "--tr" in sys.argv:
         return main_tr()
     R = []

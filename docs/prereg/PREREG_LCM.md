@@ -398,3 +398,39 @@ nothing from Spider dev enters. It is then executed on Spider dev. A pattern it 
 - **TR-P1 refuted:** the cascade stays SQL's method. The Spider-test gains are read as the third use of an already-used set.
 
 Expected (not a rule): TR-P1 holds, 3–4 of 4.
+
+## Addendum TR-C1: the trained quick query on Spider dev (written 2026-11-01 05:1x UTC, before any Spider-dev row of the trained adapter exists)
+
+**Why.** SQL's strongest result is CV-1's trained quick query in the peer cascade (FINAL F5, Spider test: +3.80 over the default).
+TR asks whether a policy fitted on the task's labelled benchmarks beats the hand-set cascade on a benchmark never used, but only for
+the base generators. If TR-P1 holds, SQL's method would be "trained quick query + fitted policy", and that combination has not been
+tested on an untouched set. Spider dev is untouched for the trained adapter too, so one more lane (the adapter's quick query, about 60
+tokens per question) gives (1) F5 on a second untouched benchmark and (2) TR with the trained quick query.
+
+**Run.** `cv_eval_lane.sh` with C1's adapter on Spider dev (`CV_EVAL_SPLIT=spiderdev`, tag q8bcvc1sd, seeds 1–3; the `tr_c1` line of
+`poc/slurm/submit_final.sh`), graded in the container as every TR row. Cell as F5: N = C1's quick query, SB and T = base Qwen3-8B
+(q8bsd), P = Qwen3.5-9B's quick query (q35sd). The planner is fitted on the labelled C1 rows of BIRD dev and Spider test (not the fresh
+BIRD-train questions, which are C1's training pool) with those sets' mean tokens per call. Analysis: `python3 poc/lcm_shift.py --tr-c1`
+(`--dqs`: the double-quote sensitivity, as FINAL).
+
+**Exploration on an already used set (sets the expectation, decides nothing; `results/lcm_tr_c1_explore.log`).** Fitted on BIRD dev's
+C1 rows only and run on Spider test: transfer − cascade +0.35 [−0.15, +0.86]; the reference (Spider test's own labels, cross-fitted)
+− cascade +0.81 [+0.17, +1.49]; cascade − SB→T→T +3.80 [+2.83, +4.77]. With the trained quick query the room above the cascade is
+small, as on the base generators.
+
+**Predictions** (paired 95% intervals over questions, seed means, utility = 100 × right − 0.5 × ktokens):
+- **TR-C1-P1** (F5 on a second untouched benchmark): cascade − SB→T→T, lower bound > 0.
+- **TR-C1-P2:** transfer − cascade, lower bound > 0.
+- Reported: accuracy and tokens; transfer − SB→T→T; the reference; the double-quote sensitivity.
+- **Power.** About 820 gradable questions (215 of 1,034 gold queries fail in the container's SQLite). P1: a true +3.8 with a
+  half-width ≈ 1.4 clears 0 with probability > 0.99. P2: a true +0.35 with a half-width ≈ 0.75 clears 0 with probability ≈ 0.2, so
+  P2 is expected to fail even if the planner's small gain is real; it can pass only if the gain on Spider dev is ≈ 0.8 or more.
+
+**Decision.**
+- **P1 holds:** the trained quick query's gain is confirmed on two untouched benchmarks (Spider test and dev); PROJECT §2, REPORT and
+  PROPOSAL cite both. **P1 refuted:** F5 is reported as one benchmark only.
+- **P2 holds (with TR-P1):** SQL's method is the trained quick query with the fitted policy. **P2 refuted:** with the trained quick
+  query the hand-set cascade stays the method (its room above the cascade is within the noise of an ~800-question set), whatever TR-P1
+  decides for the base generators.
+
+Expected (not a rule): P1 holds; P2 refuted.
