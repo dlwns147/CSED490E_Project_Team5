@@ -4917,3 +4917,18 @@ Bradley–Terry on the gate logit, CV-1's turn 2 with the result rows), checkpoi
 fallback; prediction AUROC 0.68–0.78 on BIRD dev (GradeSQL, 2606.30851: a 7B outcome verifier gains +1.95 over majority voting on BIRD
 dev with 32 samples). Goal link: exact answers at no extra output tokens need a discriminator at the one stratum where the cheap
 checks disagree; this rules out the label-free one at this model size and names the AUROC a trained one must reach.
+
+## 2026-11-01 14:4x UTC: MT-V (pre-registered): the per-turn vote over sandboxed rollouts loses to thinking at every step; MT-B's turn-0 room was a labelling artifact (correction)
+Why: MT-B found +7 to +8 utility at turn 0 for a planner that votes over the end states of the quick, peer and thinking turns; MT-V ran
+that vote online at every turn (sandboxed rollouts, policy fitted on one half's turn-0 labels).
+- **MT-V1 / V2 refuted:** V − T utility −2.80 [−5.66, +0.25] (Qwen3-8B), −3.24 [−5.96, −0.61] (Qwen3.5-9B); accuracy −1.78 / −2.78; V
+  costs 1.30× / 1.36× T's output tokens (2.6–2.7 rollouts per turn, a thinking rollout on 73% / 98% of turns).
+- **Correction to MT-B:** the planner code counts an answer group right when any of its calls is right, which is exact for SQL and
+  single-turn calls (0 mixed groups in 37,633) but not for BFCL multi-turn, where the grader also checks execution responses and empty
+  turns: at turn 0, 22–29% of item-seeds have an end state shared by a right and a wrong call. With the committed rollout's own label,
+  MT-B's planner − T is −0.62 / −9.43 / −3.88 (was +7.18 / +7.81 / +8.02): MT-B1 is refuted, and thinking at every step is at the
+  information limit of the turn's signals, as MT-B's refuted branch states. MT-V's secondary (labels the vote needs) is withdrawn.
+- Lesson for the method: an answer key is a valid unit for agreement only where the grade is a function of it; end state is not one
+  for agent turns, whose responses are graded too.
+Decision (registered): reported; agent loops stay "think at every step". Goal link: no cheaper exact policy exists for agent loops
+with these signals; the method's savings are on single-shot tasks with a free check.

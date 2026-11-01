@@ -25,12 +25,13 @@ def main():
         da = ci({i: (acc["V"][i] - acc["T"][i]) / 100 for i in ids})
         votes = [v for s in (1, 2, 3) for i in ids for v in D[("V", s)][i].get("votes", [])]
         quick = sum(v["commit"] in (0, 1) for v in votes) / max(1, len(votes))
+        nothink = sum(set(v["calls"]) <= {0, 1} for v in votes) / max(1, len(votes))   # no thinking rollout run at that turn
         fb = sum(v["fallback"] for v in votes) / max(1, len(votes))
         roll = sum(len(v["calls"]) for v in votes) / max(1, len(votes))
         print(f"=== {tag} ({len(ids)} items x 3 seeds): V {sum(acc['V'].values()) / len(ids):.1f}% @ {tok['V']:.2f}k; "
               f"T {sum(acc['T'].values()) / len(ids):.1f}% @ {tok['T']:.2f}k")
         print(f"    V - T utility {du[0]:+.2f} [{du[1]:+.2f}, {du[2]:+.2f}]; accuracy {da[0]:+.2f} [{da[1]:+.2f}, {da[2]:+.2f}]; "
-              f"turns committed without thinking {100 * quick:.1f}%; rollouts per turn {roll:.2f}; fallback {100 * fb:.1f}%")
+              f"turns committing a quick rollout {100 * quick:.1f}%, with no thinking rollout {100 * nothink:.1f}%; rollouts per turn {roll:.2f}; fallback {100 * fb:.1f}%")
         v1 += du[1] > 0; v2 += da[1] > 0
     print(f"*** MT-V1 (utility, both models): {v1} / {len(tags)} -> {'holds' if v1 == len(tags) else 'refuted'}; "
           f"MT-V2 (accuracy): {v2} / {len(tags)} -> {'holds' if v2 == len(tags) else 'refuted'}")

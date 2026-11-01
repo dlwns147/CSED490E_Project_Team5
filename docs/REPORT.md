@@ -692,7 +692,10 @@ OR problems and the observation that the cross-model filter removes the harm but
   below thinking from the start (turn-0 counterfactual). With Qwen3-14B-AWQ, E − T is −12.5. Thinking only at each new request's
   first step ties always thinking for Qwen3-8B and Qwen3.5-9B (F − T −0.96 [−3.52, +1.71], +1.08 [−1.32, +3.30], at 68–76% of its
   output tokens) and loses for Qwen3-14B-AWQ (−8.11 [−10.68, −5.49]): no cheaper fixed rule matches thinking at every step for all
-  three models.
+  three models. A per-turn vote over the end states of quick, peer and thinking rollouts in a sandbox (MT-V, pre-registered) loses too
+  (−2.80 [−5.66, +0.25] and −3.24 [−5.96, −0.61] utility at 1.3× the tokens). Its offline turn-0 room (+7 to +8) was an artifact of
+  counting an end state right when any turn reaching it was right: BFCL also grades each turn's responses, and in 22–29% of turn-0
+  item-seeds one end state is reached by a right and a wrong turn; with the committed turn's own label the room is −0.6 to −9.4.
 
 ## 8. Limitations
 

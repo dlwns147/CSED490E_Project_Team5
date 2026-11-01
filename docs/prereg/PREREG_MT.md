@@ -326,3 +326,28 @@ labelled items: k = 10: +1.97 / +2.44 / +2.60 (Qwen3-8B / Qwen3-14B-AWQ / Qwen3.
 +4.76 / +5.15 / +5.53 (15 of 15 draws > 0); k = 100: +5.61 / +6.75 / +6.60; all ≈ 300: +7.18 / +7.81 / +8.02. A 30-item pilot buys
 about two thirds of the gain; the policy is cheap in labels because the patterns it acts on (do the quick and the peer's end states
 agree; which thinking rollouts share a state) are few and frequent.
+
+## Results of addendum MT-V, and a correction to MT-B (written 2026-11-01 14:4x UTC; `results/mtv.txt`, `poc/analyze_mtv.py`; all 600 items × seeds 1–3 for both models; post-mortem `nlp_data/scratch/mtb_relabel.py`)
+
+| model (peer) | V | T | V − T utility | V − T accuracy | quick rollout committed | turns with no thinking rollout | rollouts per turn |
+|---|---|---|---|---|---|---|---|
+| Qwen3-8B (Qwen3.5-9B) | 29.1% @ 8.89k | 30.8% @ 6.84k | −2.80 [−5.66, +0.25] | −1.78 [−4.61, +1.33] | 92.9% | 27.3% | 2.59 |
+| Qwen3.5-9B (Qwen3-8B) | 35.2% @ 3.47k | 38.0% @ 2.56k | −3.24 [−5.96, −0.61] | −2.78 [−5.50, −0.17] | 90.0% | 2.0% | 2.71 |
+
+- **MT-V1 refuted** (0 of 2), **MT-V2 refuted** (0 of 2). Per category, V − T accuracy: Qwen3-8B base −3.1, missing function +0.7,
+  missing parameter −2.9; Qwen3.5-9B base −5.5, missing function −2.8, missing parameter 0.0. V costs 1.30× / 1.36× T's output tokens.
+- The first printing of `analyze_mtv.py` called the share of turns whose committed rollout is the quick or the peer's "turns committed
+  without thinking"; most of those turns also ran a thinking rollout (the vote commits the first rollout of the winning end state).
+  Fixed: both shares are printed (table).
+- **Why the turn-0 room did not carry: it was not there.** MT-B grouped calls by end state and counted a group right when *any* of
+  its calls was right (`lcm_bound.full`, written for SQL and single-turn calls, where rightness is a function of the answer: 0 mixed
+  groups in 37,633 checked on BIRD dev, Spider test, the fresh BIRD-train questions and BFCL live / non-live). In BFCL multi-turn it is not: the grader also checks each turn's
+  execution responses and empty turns, and two rollouts that end in the same state (a read-only call changes no state) can be right
+  and wrong. At turn 0, 22.4% / 29.3% / 23.8% of item-seeds (Qwen3-8B / Qwen3-14B-AWQ / Qwen3.5-9B) have an end state shared by a
+  right and a wrong call (14–20% of same-state call pairs). Online, V commits one rollout of the group, the first in call order.
+  Refitting and scoring MT-B's planner with the committed rollout's own label: planner − T at turn 0 −0.62 [−3.43, +2.38] / −9.43
+  [−12.47, −6.21] / −3.88 [−6.10, −1.67] (was +7.18 / +7.81 / +8.02); with a group right only if all its calls are, −13 to −18.
+  **MT-B1, correctly measured, is refuted (0 of 3)**, and by MT-B's own rule: at turn 0 thinking is at the information limit of these
+  signals, and "think at every step" is the agent-loop rule by that bound. MT-V's online loss is the same fact over whole trajectories.
+- **Decision (as pre-registered, V2 refuted):** reported; the agent-loop method stays "think at every step". The MT-V secondary
+  (labels needed by the vote policy) was computed with the same grouping and is withdrawn.
