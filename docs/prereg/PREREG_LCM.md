@@ -894,3 +894,42 @@ already paid for); the verifier's prefill tokens per question-seed reported.
   fallback is not pursued further: the measured AUROCs (0.46–0.70) sit where the validated bound gives +0.0 to +1.0 on Spider and
   nothing on BIRD and BFCL. Addendum SEL (labels in training only) was pre-registered on the raw-case mechanism, not as this branch's
   follow-up.
+
+## Addendum SEL-TC: the same verifier on tool calls (written 2026-11-01 14:5x UTC, before any SEL-TC training step or score; the Qwen3-8B quick-call pool on the ToolACE training requests is being generated)
+
+**Why.** RV on BFCL: half of the (right, wrong) fallback pairs are a right abstention against a wrong call that copies the
+request's values, and both label-free scores prefer the call (AUROC 0.48–0.49). Whether to call at all is what TC-RL's training
+taught (live irrelevance +18.5), so labels can teach a verifier the same. ToolRM (2509.11963) trains Bradley–Terry outcome reward
+models on tool calls (with irrelevance data): 82% pairwise accuracy on BFCL-derived pairs for its smallest model; in its best-of-32
+on BFCL with Qwen3-8B the reward model gains +2.5 over greedy but stays below majority voting. Here it is tested where the cascade's
+cheap agreement failed, at no extra output tokens, against the bound. Run in parallel with SEL (SQL), independent of its outcome.
+
+**Training pool** (ToolACE training labels only). TC-RL's 6,000 training requests (`toolace/tc_train_ids.txt`); candidates: Qwen3-8B
+quick calls × seeds 1–4 (tag taq8b, new) and its short think × seed 1 (taq8b, stored from TC-RL addendum 2), Qwen3.5-9B quick calls
+× seeds 1–4 (taq35, stored); passing = `tc_reward.check`, answers keyed by `tc_reward.canon`, right = `tc_reward.right` (agrees with
+BFCL's checker on 99.8%). Requests with a right and a wrong passing answer; per answer one text (drawn per epoch), ≤ 8 per request.
+
+**Verifier.** As SEL (Qwen3-8B + LoRA r 16, `tc_train.py --orm`): context = BFCL's system prompt with the functions and the request,
+the candidate's text as the answer, then "Are these function calls (or no call) the right response to the request? Reply ACCEPT or
+DEFER."; s = logit(ACCEPT) − logit(DE); per-request mean over (right, wrong) pairs of log(1 + exp(s_w − s_r)); batch 16, lr 5e-5,
+2 epochs, adapters every 25 steps. **Checkpoint:** the highest within-question AUROC on the cascade's mixed fallback sets of the 3,549
+held-out ToolACE requests (TRT's set; N base and trained pooled).
+
+**Selector.** As SEL: logit π(calls | set structure) + β z, π and β fitted on the held-out ToolACE fallback sets of the same N type
+(TL's fitting set); elsewhere the cascade. **Cells:** BFCL (non-live + live, 3,482 requests) × N base (Qwen3-8B) or trained (C1tc).
+
+**Predictions** (paired 95% intervals over requests):
+- **SEL-TC-P1:** verifier AUROC − rev AUROC, lower bound > 0 for both N types.
+- **SEL-TC-P2b / P2t (decision):** the fitted selector − cascade, lower bound > 0 (each N type on its own).
+- **SEL-TC-P3 (theory):** the cross-fitted Bayes gain within 0.7 of the bound at the verifier's AUROC, both N types.
+- **SEL-TC-P4:** BFCL's AUROC within 0.05 of the held-out ToolACE AUROC, both N types.
+- Expected: AUROC 0.70–0.85 on held-out ToolACE, 0.65–0.80 on BFCL (other APIs and request styles); gains +0.3 to +2 (the room on
+  BFCL is mostly live: +4.6 / +6.7).
+
+**Decision.**
+- SEL-TC-P2 holds for an N type and its point gain exceeds the fitted call policy's on BFCL for that type (TL: trained +1.04, base
+  −0.11) → the verifier is added to the tool-call method; how it combines with the call policy (the verifier's score as one more
+  observation of the planner) is pre-registered next. P2 holds but below TL → reported as an alternative, the method unchanged.
+- P2 refuted with AUROC ≥ 0.75 → the prior from ToolACE does not transfer; stated (as SEL's second branch).
+- P2 refuted with AUROC < 0.75 → a verifier trained on ToolACE does not reach the bound on BFCL at this size; stated with ToolRM's
+  contrast.
