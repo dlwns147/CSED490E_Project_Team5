@@ -1033,3 +1033,61 @@ P = gpt-oss-20b's quick program, d = N's SB→T→T (XPEER's cells), seeds 1–3
   stated with SEL's contrast (SQL's wrong passing answers differ by conventions a verifier can learn).
 - P4 holds → label-free selection pays on word problems (unlike SQL and tool calls, RV); if V0 is also the chosen arm, the step needs
   no training.
+
+## Results of addendum SEL-TC (written 2026-11-01 18:4x UTC; `results/lcm_seltc_val.log`, `results/lcm_seltc.log`; training job 1294857, 160 steps on the 1,267 of 6,000 ToolACE training requests with a right and a wrong passing answer, 3,861 answers; scoring job 1294858, every candidate scored, none failed; whole pipeline and raw cases `nlp_data/scratch/seltc_full.py`)
+
+**Checkpoint** (held-out ToolACE, pooled within-question AUROC over 791 requests): s25 0.707, s50 0.753, s75 0.779, s100 0.486, s125
+0.771, **s150 0.793 [0.767, 0.817] (chosen)**, final 0.786; the untrained model 0.487. s100 is at chance between two checkpoints at
+0.77–0.78 although its training pairs were ordered 84% right at that step and its scores are not truncated (10 of 6,104 zeros);
+unexplained, and discarded by the registered choice.
+
+| cell (N) | verifier AUROC | rev | verifier − rev | selector − cascade | cross-fitted Bayes | bound | verifier alone |
+|---|---|---|---|---|---|---|---|
+| BFCL, base | 0.837 [0.814, 0.859] | 0.475 | +0.362 [+0.322, +0.401] | **+1.08 [+0.78, +1.41]** | +1.02 [+0.73, +1.33] | +1.49 | +0.60 [+0.09, +1.13] |
+| BFCL, trained (C1tc) | 0.800 [0.775, 0.824] | 0.487 | +0.313 [+0.272, +0.354] | **+1.68 [+1.17, +2.24]** | +1.63 [+1.10, +2.20] | +2.36 | +0.99 [+0.30, +1.68] |
+
+(β 1.1 / 1.2; 2,833 / 2,892 fallback request-seeds; no unseen structure; prefill 808 / 822 tokens per request-seed, no output tokens.)
+
+- **SEL-TC-P1 holds**, **SEL-TC-P2b holds**, **SEL-TC-P2t holds**, **SEL-TC-P4 holds** (|0.837 − 0.798| = 0.039, |0.800 − 0.784| = 0.016).
+  **SEL-TC-P3 refuted** (1 of 2: base 0.47 from the bound, trained 0.73 — the bound overstates by 0.5–0.7 here as on SQL).
+  AUROC on BFCL exceeded the expected 0.65–0.80; gains inside +0.3 to +2.
+- **The whole pipeline against the default SB→T→T** (same rows, not a registered prediction): base 85.8% at 0.28k tokens vs 83.9% at
+  0.38k, +1.94 [+1.41, +2.46] (the cascade alone +0.85); trained 86.9% at 0.27k, +3.04 [+2.34, +3.72] (the cascade alone +1.35). TL's
+  fitted call policy reached 86.4% at 1.6–1.9× the cascade's tokens; two trained quick models 86.5% at 0.27k.
+- **Where it changes the answer:** base 128 right for wrong, 15 wrong for right (82 of the 128 by choosing a right abstention); trained
+  294 / 118 — abstentions 223 / 54, calls 71 / 64. The verifier learned when not to call: it rejects calls filled with placeholder values
+  ("Your Starting City", "City, State") or values the request never gave; its losses are abstentions where a call passing the user's
+  words on was right (`answer_question(statement=...)`) and calls differing in one optional argument, where it is at chance.
+- Note: SEL's and SEL-TC's scoring jobs appended the untrained model's scores to one file at the same time; one line is malformed (one
+  untrained score lost; the untrained model is only reported). Later jobs write in turn.
+
+**Decision (registered):** SEL-TC-P2 holds for both N types and the point gains exceed the fitted call policy's on BFCL (base +1.08 vs
+TL −0.11; trained +1.68 vs +1.04) → the verifier is added to the tool-call method; its combination with the call policy is pre-registered
+next (addendum SEL-TC2).
+
+## Addendum SEL-TC2: the call policy and the verifier together on tool calls (written 2026-11-01 18:4x UTC, before any new score; 15,356 scoring requests built, 11,519 already scored by SEL-TC; the analysis was run only on synthetic scores)
+
+**Why.** The two act on different things. TL's planner (fitted on the held-out ToolACE requests' labels) decides which calls to make
+— where the trained quick answer and the peer disagree it runs a full think to break the tie, at 1.6–1.9× the cascade's tokens — and
+outputs the answer group its labels favour for the observed pattern; the verifier reads the answers. They combine as a Bayes rule at the
+planner's stop: logit P_planner(group right | pattern) + β z. Whether the planner's extra calls still pay once the verifier chooses, and
+whether the verifier adds to the planner, decides the tool-call method.
+
+**Policy.** TL's transfer planner (`Supervised` on the 3,549 held-out ToolACE requests × 3 seeds, their mean tokens per call). Where it
+stops with ≥ 2 passing answer groups and every one is scored: the group with the highest logit((r + 0.5) / (n + 1)) + β z (r, n the
+planner's counts for the group and the pattern; z = the verifier's mean score over the group's calls, centred in the set, divided by the
+pooled within-set SD of the held-out stop sets); β by likelihood on the held-out stop sets (grid 0–4). Elsewhere the planner's own
+choice; a pattern the planner never saw takes SEL-TC's outcome (counted). Verifier: SEL-TC's checkpoint s150, no new training. New
+scores: the 3,837 passing texts outside RV's cells (mostly the planner's extra thinks), job `seltc2`.
+
+**Predictions** (BFCL, paired 95% intervals over requests):
+- **SEL-TC2-P1 (the verifier adds to the planner):** combined − planner alone, lower bound > 0 for both N types.
+- **SEL-TC2-P2t / P2b (the planner adds to the verifier):** combined − SEL-TC's pipeline (cascade + verifier), lower bound > 0, each N
+  type on its own.
+- Expected: P1 holds (+0.8 to +1.8, the verifier's gain at the planner's stop sets); P2t uncertain (0 to +0.8: the planner's vote for the
+  trained quick answer overlaps with the selector's structural prior, and its extra thinks cost 0.15–0.2k tokens); P2b refuted (TL gained
+  nothing for the untrained quick calls).
+
+**Decision.** P2 holds for an N type → the tool-call method for it is the planner with the verifier at its stop; refuted → the cascade
+with the verifier at its fallback (SEL-TC's pipeline), which needs no planner and no extra calls; PROJECT, REPORT and PROPOSAL state
+the tool-call method accordingly.

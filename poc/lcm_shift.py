@@ -793,22 +793,29 @@ def main_sel():
 TC_HO_N = {None: "hoq8b", "q8btcc1": "hoq8btcc1"}   # SEL-TC: the held-out ToolACE quick calls of each N type
 
 
-def tc_items(sset, nsrc):
-    """SEL-TC: (questions, [(id, seed, {key: [right, calls, [raw texts], [RV texts]]}, fallback right)]) on RV's fallback question-seeds;
-    sset bfcl (non-live + live, RV's texts too) or tcho (the 3,549 held-out ToolACE requests, TRT's set)"""
+def tc_texts(sset, nsrc):
+    """{(call type, seed, id): the raw text} of a tool-call cell's calls N, P, SB, T (tcho: the held-out ToolACE rows; else BFCL)"""
     from run_nlopt import _rows
     R = os.path.join(lcm.ROOT, "results", "tc")
     if sset == "tcho":
-        D, X = quiet(lcm.load_tcho, TC_HO_N[nsrc]), {}
         src = (("N", TC_HO_N[nsrc], "cheap", "n_text"), ("P", "hoq35", "cheap", "n_text"), ("SB", "hoq8b", "sb", "text"),
                ("T", "hoq8b", "think", "text"))
+    else:
+        src = (("N", nsrc or "q8b", "cheap", "n_text"), ("P", "q35", "cheap", "n_text"), ("SB", "q8b", "sb", "text"),
+               ("T", "q8b", "think", "text"))
+    return {(t, s, r["id"]): (r.get(fld) or "").strip() for t, tag, a, fld in src for s in (1, 2, 3) for r in _rows(f"{R}/{tag}_{a}_s{s}.jsonl")}
+
+
+def tc_items(sset, nsrc):
+    """SEL-TC: (questions, [(id, seed, {key: [right, calls, [raw texts], [RV texts]]}, fallback right)]) on RV's fallback question-seeds;
+    sset bfcl (non-live + live, RV's texts too) or tcho (the 3,549 held-out ToolACE requests, TRT's set)"""
+    if sset == "tcho":
+        D, X = quiet(lcm.load_tcho, TC_HO_N[nsrc]), {}
     else:
         k = {"nsrc": nsrc} if nsrc else {}
         D = {**quiet(lcm.load, "tc", "q8b", "q35", "non-live", **k), **quiet(lcm.load, "tc", "q8b", "q35", "live", **k)}
         X = rv_texts("tc", "bfcl", nsrc)
-        src = (("N", nsrc or "q8b", "cheap", "n_text"), ("P", "q35", "cheap", "n_text"), ("SB", "q8b", "sb", "text"),
-               ("T", "q8b", "think", "text"))
-    W = {(t, s, r["id"]): (r.get(fld) or "").strip() for t, tag, a, fld in src for s in (1, 2, 3) for r in _rows(f"{R}/{tag}_{a}_s{s}.jsonl")}
+    W = tc_texts(sset, nsrc)
     out = []
     for i, q in D.items():
         for s in (1, 2, 3):
@@ -1137,7 +1144,153 @@ def main_sel_w():
           f"{'holds' if all(x[1] > 0 for x in p5) else 'refuted'}")
 
 
+def tc2_cells(sset, nsrc):
+    """SEL-TC2: (requests, {(id, seed): the five calls' texts}) — N, P, SB, T and the retry T (T at the next seed), as lcm.seed_calls"""
+    if sset == "tcho":
+        D = quiet(lcm.load_tcho, TC_HO_N[nsrc])
+    else:
+        k = {"nsrc": nsrc} if nsrc else {}
+        D = {**quiet(lcm.load, "tc", "q8b", "q35", "non-live", **k), **quiet(lcm.load, "tc", "q8b", "q35", "live", **k)}
+    W = tc_texts(sset, nsrc)
+    X = {(i, s): [W.get((t, ss, i), "") for t, ss in (("N", s), ("P", s), ("SB", s), ("T", s), ("T", s % 3 + 1))] for i in D for s in (1, 2, 3)}
+    return D, X
+
+
+def main_sel_build_tc2():
+    """addendum SEL-TC2: every passing text of the five calls on request-seeds with >= 2 distinct passing answers -> sel_req_tc2.jsonl"""
+    req = {}
+    for sset in ("tcho", "bfcl"):
+        for nsrc in (None, RV_N["tc"]):
+            D, X = tc2_cells(sset, nsrc)
+            m = 0
+            for i, q in D.items():
+                for s in (1, 2, 3):
+                    sc = lcm.seed_calls(q, s)
+                    keys = {c[0] for c in sc if c[1] and c[0] is not None}
+                    if len(keys) < 2:
+                        continue
+                    m += 1
+                    for j, c in enumerate(sc):
+                        if c[1] and c[0] is not None:
+                            h = rv_key("tc", sset, i, "sel", X[(i, s)][j])
+                            req[h] = {"h": h, "task": "tc", "sset": sset, "id": i, "kind": "sel", "text": X[(i, s)][j]}
+            print(f"SEL-TC2 build {sset} {nsrc or 'base'}: {len(D)} requests, {m} request-seeds with >= 2 passing answers; "
+                  f"scoring requests so far {len(req)}", flush=True)
+    with open(os.path.join(lcm.ROOT, "results", "conf", "sel_req_tc2.jsonl"), "w") as f:
+        for r in req.values():
+            f.write(json.dumps(r) + "\n")
+    print(f"SEL-TC2 build: {len(req)} requests -> results/conf/sel_req_tc2.jsonl")
+
+
+def tc2_run(P, sc, txt, S, sset, i, beta=None, sd=1.0):
+    """the planner P on one request-seed; at its stop, where >= 2 passing answers were seen and every one is scored, the answer with
+    the highest logit P(right | pattern) + beta z (z: the verifier's mean score over the answer's calls, centred in the set, / sd);
+    beta None: the planner's own choice. Returns (right, tokens, seen, the scored stop set or None)"""
+    from lcm_bound import project
+    obs, right = full(sc)
+    calls, tok = frozenset(), 0
+    while True:
+        pat, rt = project(obs, right, calls)
+        if pat not in P.n:
+            return None
+        P.value(pat)
+        kind, arg = P.act[pat]
+        if kind != "stop":
+            calls = calls | {arg}; tok += sc[arg][3]; continue
+        G = {}
+        for j in sorted(calls):
+            e = pat[j]
+            if e is not None and e[0] != "X" and e[1]:
+                G.setdefault(e[0], []).append(j)
+        C = None
+        if len(G) >= 2:
+            sv = {g: [S.get(rv_key("tc", sset, i, "sel", txt[j])) for j in js] for g, js in G.items()}
+            if all(v is not None for x in sv.values() for v in x):
+                n = P.n[pat]
+                C = [{"g": g, "lp": math.log((P.r.get((pat, g), 0) + 0.5) / (n + 1) / max(1e-3, 1 - (P.r.get((pat, g), 0) + 0.5) / (n + 1))),
+                      "s": sum(v["s"] for v in x) / len(x), "r": g in rt} for g, x in sv.items()]
+        if beta is None or C is None:
+            return ((arg in rt) if arg is not None else False), tok, True, C
+        mu = sum(c["s"] for c in C) / len(C)
+        c = max(C, key=lambda c: c["lp"] + beta * (c["s"] - mu) / sd)
+        return c["r"], tok, True, C
+
+
+def main_sel_tc2():
+    """addendum SEL-TC2 (--sel-tc2 <verifier name>): TL's planner (fitted on the held-out ToolACE requests) with the verifier choosing at
+    its stop, against the planner alone, SEL-TC's pipeline (the cascade with the verifier at its fallback) and the default, on BFCL"""
+    from analyze_ho3 import ci
+    from run_nlopt import _rows
+    nm = sys.argv[sys.argv.index("--sel-tc2") + 1]
+    S = {r["h"]: r for r in _rows(os.path.join(lcm.ROOT, "results", "conf", f"sel_scores_{nm}.jsonl"))}
+    f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
+    U = lambda r, t: 100 * float(r) - LAM * t / 1000
+    R = {}
+    for nsrc in (None, RV_N["tc"]):
+        name = "trained" if nsrc else "base"
+        Dh, Xh = tc2_cells("tcho", nsrc)
+        sch = [(i, s, lcm.seed_calls(q, s)) for i, q in Dh.items() for s in (1, 2, 3)]
+        tok = [sum(sc[j][3] for _, _, sc in sch) / len(sch) for j in range(5)]
+        P = Supervised([full(sc) for _, _, sc in sch], tok)
+        sets = [x[3] for i, s, sc in sch for x in [tc2_run(P, sc, Xh[(i, s)], S, "tcho", i)] if x and x[3]]
+        dv = [c["s"] - sum(d["s"] for d in C) / len(C) for C in sets for c in C]
+        sd = (sum(x * x for x in dv) / max(1, len(dv))) ** 0.5 or 1.0
+
+        def ll(b):
+            t = 0.0
+            for C in sets:
+                mu = sum(c["s"] for c in C) / len(C)
+                for c in C:
+                    z = c["lp"] + b * (c["s"] - mu) / sd
+                    t += -math.log1p(math.exp(-z)) if c["r"] else -math.log1p(math.exp(min(z, 700)))
+            return t
+        beta = max((b / 10 for b in range(0, 41)), key=ll)
+        # SEL-TC's pipeline on BFCL: the cascade, the fitted selector at its fallback (as main_sel_tc)
+        _, raw_ho, ho, _ = tc_sel_items("tcho", nsrc, S)
+        choose, beta1 = sel_fit([(i, s, [{"r": c[0], "calls": c[1], "s": 0.0} for c in cand.values()], dr) for i, s, cand, dr in raw_ho], ho)
+        _, _, it, _ = tc_sel_items("bfcl", nsrc, S)
+        selc = {(x[0], x[1]): choose(x) for x in it}
+        Db, Xb = tc2_cells("bfcl", nsrc)
+        ids = sorted(Db)
+        acc, kt, Uq, unseen, nset = Counter(), Counter(), {k: Counter() for k in ("comb", "plan", "sel", "cascade", "default")}, 0, 0
+        for i in ids:
+            for s in (1, 2, 3):
+                sc = lcm.seed_calls(Db[i], s)
+                rc, tc_ = lcm.fixed("cascade", sc)
+                c = selc.get((i, s))
+                rs = c["r"] if c else rc
+                out = {"cascade": (rc, tc_), "sel": (rs, tc_), "default": lcm.fixed("SB->T->T", sc)}
+                a = tc2_run(P, sc, Xb[(i, s)], S, "bfcl", i, beta, sd)
+                b = tc2_run(P, sc, Xb[(i, s)], S, "bfcl", i)
+                if a is None:   # a pattern the planner never saw: SEL-TC's outcome
+                    unseen += 1; out["comb"] = out["plan"] = (rs, tc_)
+                else:
+                    out["comb"], out["plan"] = a[:2], b[:2]; nset += a[3] is not None
+                for k, (r, t) in out.items():
+                    acc[k] += r; kt[k] += t; Uq[k][i] += U(r, t) / 300
+        n = 3 * len(ids)
+        d = lambda x, y: ci({i: Uq[x][i] - Uq[y][i] for i in ids})
+        R[name] = r = {k: d("comb", k) for k in ("plan", "sel", "cascade", "default")}
+        r["sel_vs_plan"] = d("sel", "plan")
+        print(f"    SEL-TC2 BFCL {name}: beta {beta:.1f} (sd {sd:.2f}, {len(sets)} held-out stop sets); " + "; ".join(
+            f"{k} {100 * acc[k] / n:.1f}% at {kt[k] / n / 1000:.2f}k" for k in ("comb", "plan", "sel", "cascade", "default")) +
+            f"; planner stops with a scored set on {nset}, unseen patterns {unseen} of {n}", flush=True)
+        print(f"    SEL-TC2 BFCL {name}: combined - planner {f(r['plan'])}; combined - SEL-TC pipeline {f(r['sel'])}; combined - cascade "
+              f"{f(r['cascade'])}; combined - default {f(r['default'])}; SEL-TC pipeline - planner {f(r['sel_vs_plan'])}", flush=True)
+    if len(R) < 2:
+        print("*** not every cell present, not decided"); return
+    p1 = [R[k]["plan"][1] > 0 for k in ("base", "trained")]
+    print(f"*** SEL-TC2-P1 (combined - planner lower bound > 0, both N types): {p1} -> {'holds' if all(p1) else 'refuted'}")
+    for k in ("trained", "base"):
+        print(f"*** SEL-TC2-P2{k[0]} ({k}: combined - SEL-TC pipeline lower bound > 0): {f(R[k]['sel'])} -> "
+              f"{'holds' if R[k]['sel'][1] > 0 else 'refuted'}")
+
+
 def main():
+    if "--sel-build-tc2" in sys.argv:
+        return main_sel_build_tc2()
+    if "--sel-tc2" in sys.argv:
+        return main_sel_tc2()
     if "--sel-build-w" in sys.argv:
         return main_sel_build_w()
     if "--sel-w" in sys.argv or "--sel-val-w" in sys.argv:
