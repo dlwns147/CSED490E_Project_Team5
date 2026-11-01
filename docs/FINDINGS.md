@@ -4997,3 +4997,21 @@ to the generator it was trained with.
   (Qwen3-14B-AWQ, Llama-3.1-8B, Nemotron, gpt-oss-20b, Qwen3-4B, the plan view) adds a right candidate where none of N, P, d had one in
   0.9–3.3% of BIRD dev fallback cells (+0.3 to +1.0 points of room, of which the verifier takes about half); not run.
 Decision (registered): SQL method unchanged (cascade + verifier at its fallback).
+
+## 2026-11-01 22:0x UTC: SEL-W (pre-registered): a trained verifier does not choose among word-problem programs — the trained-verifier line on word problems closes
+Why: SEL's verifier pays on SQL and tool calls; the word cascade leaves +2.2 to +3.8 points of room at the same place. SEL-W trained the
+within-question verifier on VER's OptMATH-Train programs (1,029 problems) to ask whether VER failed by its pointwise loss.
+- Target AUROC 0.62–0.69 (V2), V2 − VER's pointwise adapter −0.025 [−0.071, +0.022] (P1 refuted); selection − cascade +0.41 / +0.46 /
+  −0.00 / +1.16, one significant (P2, P4, P5 refuted); the bound predicts the small gains (P3 holds, 4 of 4).
+- Not transfer: 0.60 on OptMATH, the training programs' own kind; the untrained model does as well on every set.
+- Raw cases: wrong values are transcriptions and readings particular to each problem (a diet table read as diagonal, 120 employees'
+  hours for a 60-person department, a 9 × 9 capacity matrix off in a few cells; two-sided vs one-sided difference, either-or minimum
+  production). SQL's wrong answers recur as conventions (output columns), which is what a verifier can learn from labels.
+- A 2k-token thinking review (HO-VR's stored verdicts) flags 76% of N's wrong programs in these cells but 41% of its right ones; "keep N
+  if it says CORRECT" loses to d in 6 of 6 development cells.
+- Baselines from stored rows: self-consistency over 16 quick answers stops at 48.8% on BIRD dev (pass@16 52.9%, which bounds best-of-16
+  with any verifier) and 77.9% on BFCL, against 61.1% and 86.6% for the pipelines. A label-free verifier would train on plurality labels
+  that are right in 44.7% of the pool's multi-answer questions (outvoted right answers in 420); not run.
+Decision (registered): the word method stays XPEER's cascade; PROJECT, REPORT, PROPOSAL state the boundary. Next (pre-registered,
+running: smoke 1296550, then 1296551): SEL-PW, a pairwise verifier at the SQL fallback against SEL's pointwise one on the same
+candidates, backbone, data and loss — whether seeing the alternative raises the AUROC that the bound says limits the gain.

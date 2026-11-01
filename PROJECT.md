@@ -77,7 +77,7 @@ training requests (no labels beyond the training data), for trained and untraine
 never significantly worse), with a trained verifier choosing at its stop (SEL-TC, SEL-TC2: 87.7% / 86.6% at 0.43k / 0.48k tokens vs the
 default's 83.9% at 0.38k for trained / untrained quick calls; the policy alone 86.4% / 84.7%); on SQL, the cascade with a trained verifier choosing where the peer disagrees and two or three answers
 pass (SEL, 11-01: selection − cascade +1.18 / +2.01 / +0.94 on BIRD dev / Spider test / Spider dev with the untrained quick query,
-+0.87 / +1.51 / +2.04 with the trained one; whole pipeline − default +1.75 / +2.93 / +1.87 and +2.86 / +5.24 / +4.57).** In agent
++0.87 / +1.51 / +2.04 with the trained one; whole pipeline − default +1.75 / +2.93 / +1.87 and +2.86 / +5.24 / +4.57).** On word problems the same verifier, trained on 1,029 OptMATH-Train problems, does not choose (SEL-W, 11-01: AUROC 0.62–0.69 on OptiBench's other 403 and MAMO, 0.60 even on OptMATH, no better than the untrained model; selection − cascade +0.0 to +1.2, 1 of 4 significant): a wrong passing program differs from the right one by a number or a constraint misread in that problem, not by a recurring convention; the word method stays XPEER's cascade. Sampling more quick answers is no substitute (stored rows): 16 quick queries voted reach 48.8% on BIRD dev (a right one among them 52.9%) and 77.9% on BFCL, against the pipelines' 61.1% and 86.6%. In agent
 loops the error check does not pay: thinking at every step is best (MT).
 
 **Restated 2026-10-25 (HO-CM):** the comparisons below were against *one* think given the same fact. Given the same free check too —

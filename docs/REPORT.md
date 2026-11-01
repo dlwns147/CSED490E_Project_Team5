@@ -637,6 +637,8 @@ errors overlap; the cross term is positive only where both learn the same right 
 | CVRP library usage (Qwen3-32B) | BM25 docs / DRoC | 48% / 72% | exact snippet 77% |
 | BIRD + BFCL, 12 model × set cells (Qwen3-8B / 14B-AWQ / 3.5-9B) | in-model confidence gate (mean token log-prob, Gupta et al. 2404.10136) at the peer's accept rate; tuned on labels | loses to the peer cascade in 9 / 12 (−0.8 to −4.1 utility); tuned, never better | peer cascade (EXT) |
 | same 12 cells | agreement without the free check (ABC, 2407.02348) | worse in 8 / 12 (−0.2 to −0.6), never better | peer cascade (EXT) |
+| BIRD dev, Qwen3-8B | self-consistency: plurality of 16 quick queries (best-of-16 with any verifier, GradeSQL's method, is bounded by the 52.9% of questions with a right one among them) | 48.8% @ 1.15k | cascade + verifier 61.1% @ 1.39k (SEL) |
+| BFCL, Qwen3-8B | self-consistency: plurality of 16 quick calls (a right one among them: 79.8%) | 77.9% @ 0.43k | call policy + verifier 86.6% @ 0.48k (SEL-TC2) |
 
 A trained 4B specialist leads our best training-free 24 GB recipe on OptiBench by 5.7 points at 8× the tokens; the two compose (cheap
 program first, the specialist only on a visible failure). The peer check needs a second resident model; the standard one-model
@@ -685,7 +687,7 @@ City"); on calls that differ in an optional argument it is at chance. The call p
 pre-registered): with the policy deciding which calls to make and the verifier choosing among the answers at its stop (a Bayes rule:
 the policy's log-odds for each answer plus β times the verifier's standardized score), BFCL reaches 87.7% / 86.6% at 0.43k / 0.48k
 tokens (+0.73 / +0.70 over the verifier at the cascade's fallback, +1.38 / +1.90 over the policy alone); the gain is where the policy
-runs a full think on live requests, adding candidates its own vote could not tell apart.
+runs a full think on live requests, adding candidates its own vote could not tell apart. On word problems the recipe does not carry (SEL-W, pre-registered): a verifier trained the same way on 1,029 OptMATH-Train problems orders right above wrong passing values at 0.62–0.69 on OptiBench's other 403 and MAMO and at 0.60 on OptMATH itself, no better than the untrained model or VER's pointwise adapter, and its selection adds +0.0 to +1.2 (1 of 4 cells significant). Its wrong values are transcriptions (a nutrient table read as diagonal, 120 employees' hours given to a 60-person department, a few cells of a 9 × 9 capacity matrix) and readings of one constraint (a two-sided against a one-sided difference; either-or minimum production), each particular to its problem, where SQL's are conventions that recur; a 2k-token thinking review does not tell them apart either (it flags 41% of the right programs in these cells). Self-consistency is not the alternative it is elsewhere: one model's samples repeat its mistakes, so 16 voted quick queries stop at 48.8% on BIRD dev and 16 quick calls at 77.9% on BFCL (table above).
 
 ## 6.5 Relation to prior work (what is new here)
 Escalating from a cheap answer to a stronger one when a check fails is established for cascades *between models* (answer consistency,
