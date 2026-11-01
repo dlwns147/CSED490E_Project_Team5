@@ -88,12 +88,13 @@ def load_tc(gen, peer, split):
     return out
 
 
-def load_word(gen, peer, bench):
+def load_word(gen, peer, bench, rows=None):
+    """rows: the answering model's arms if not its own stored ones (addendum LS: OptiBench's other 403 problems, think arms under q8bob)"""
     import contextlib, io
     with contextlib.redirect_stdout(io.StringIO()):
         import analyze_hopa as H
     from run_nlopt import correct
-    A = H.word_rows(gen, bench)
+    A = rows if rows is not None else H.word_rows(gen, bench)
     P = {"formx": {}}   # the peer needs only its quick program (gpt-oss-20b has no OptMATH think)
     for s in (1, 2, 3):
         R = H._rows(f"{H.XRES}/opt_{peer}_{bench}_formx_s{s}.jsonl")

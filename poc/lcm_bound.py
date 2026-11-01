@@ -43,23 +43,27 @@ def project(obs, right, calls):
 
 
 class Supervised:
-    def __init__(self, rows, tok):
-        """rows: (obs, right) per question-seed of the fitting half; tok: mean tokens per call index"""
+    def __init__(self, rows, tok, w=None):
+        """rows: (obs, right) per question-seed of the fitting half; tok: mean tokens per call index; w: a weight per row (addendum
+        LS: importance weights of the labelled rows of other problem sets; rows of weight 0 are left out)"""
         self.n, self.nxt, self.r, self.tok = {}, {}, {}, tok
         C = len(tok)
-        for obs, right in rows:
+        for k, (obs, right) in enumerate(rows):
+            wt = 1 if w is None else w[k]
+            if wt <= 0:
+                continue
             for r in range(C + 1):
                 for calls in itertools.combinations(range(C), r):
                     cs = frozenset(calls)
                     pat, rt = project(obs, right, cs)
-                    self.n[pat] = self.n.get(pat, 0) + 1
+                    self.n[pat] = self.n.get(pat, 0) + wt
                     for g in rt:
-                        self.r[(pat, g)] = self.r.get((pat, g), 0) + 1
+                        self.r[(pat, g)] = self.r.get((pat, g), 0) + wt
                     for j in range(C):
                         if j not in cs:
                             nxt, _ = project(obs, right, cs | {j})
                             self.nxt.setdefault((pat, j), {})
-                            self.nxt[(pat, j)][nxt] = self.nxt[(pat, j)].get(nxt, 0) + 1
+                            self.nxt[(pat, j)][nxt] = self.nxt[(pat, j)].get(nxt, 0) + wt
         self.V, self.act = {}, {}
 
     def stop(self, pat):

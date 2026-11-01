@@ -280,3 +280,54 @@ Judge says yes to 53–56% of passing quick queries on BIRD (2.5k input tokens p
 peer (−1.8 to −2.6), and as an extra signal it does not lift the limit. On SQL the information limit holds for a verification signal
 too at these model sizes; the method's SQL part is final as the cascade (FINAL), and the remaining room in this project is where the
 fixed rule fits the model badly (word problems, a weak peer; addendum B).
+
+## Addendum LS: the derived policy on a new problem set with no label from it (written 2026-11-01 03:5x UTC, before `poc/lcm_shift.py` has scored any policy on any cell; the target loaders were run only to count questions: OptiBench's other 403 and MAMO's 863 for both models)
+
+**What B's room is (exploratory, on B's own development cells, computed 2026-11-01 03:5x UTC; not evidence for what follows).** On the
+three word cells where B's planner beats the cascade (Qwen3-8B ← gpt-oss-20b: LogiOR +11.4, OptMATH +6.6, OptiBench +4.1), the
+in-sample planner calls the peer first and mostly answers with it: gpt-oss-20b's quick program is right more often than Qwen3-8B's
+quick program and short think (LogiOR 43% vs 16% / 28%; OptiBench 67% vs 50% / 64%). The fixed policy "gpt-oss-20b's quick program if
+it runs, else Qwen3-8B's SB→T→T" reaches B's planner there (planner − the best fixed policy chosen on the other half, now including that
+one: +0.93 [−1.59, +3.63], +0.95 [−2.65, +4.76], −1.52 [−3.37, +0.27]; BWOR −5.26). So on these cells the room is which model of the
+pair answers, not an adaptive use of the calls. Where the peer is weak (Qwen3.5-9B ← Qwen3-8B) the room is adaptive (planner − best of
+the same fixed policies: BFCL live +4.48 [+3.49, +5.42], non-live +1.39 [+0.29, +2.47], LogiOR +4.49, OptMATH +5.51): it votes the
+quick, peer and short-think answers before thinking and abstains where a 24k-token think rarely pays. Either way B's planner used every
+label of the half it was fitted on; LCM showed that without labels the law it needs is not identified. This addendum tests whether
+labels from *other* problem sets of the same kind can replace them.
+
+**Method (derived; `poc/lcm_shift.py`).** Let c be a question-seed's correctness vector (which of N, P, SB, T, retry T are right) and o
+its full observation (the checks and which answers coincide). Assumption (label shift): P(o | c) is the same on every problem set of a
+kind; only the prior π(c) moves (a harder or easier set). Then π on a new set is identified from its unlabelled observations when the
+columns P(· | c) are linearly independent (Saerens, Latinne & Decaestecker 2002, EM; Lipton, Wang & Smola 2018, BBSE), P(o | c) comes
+from the labelled development sets, and the development rows reweighted by π_new(c) / π_dev(c) are a sample of the new set's joint law,
+on which B's planner is solved (LS). LCM's no-label setting is not identified because it must learn P(o | c) itself; here it is
+borrowed. Cross-fitted over halves of the target (crc32(id) mod 2): π and the calls' mean tokens from one half's unlabelled
+question-seeds (all five calls run; their tokens are reported as the one-time cost of the estimation sample), policies act on the other.
+Compared: the cascade (Qwen3-8B's adopted word default since XPEER), SB→T→T, T→T; *transfer* (the development rows unweighted, target
+tokens); *reference* (B's planner on the target half's own labels, the limit LS tries to reach without them); *pseudo-labels* (B's
+planner on the target half with "right" = T's answer, else the retry's: label-free, as C3PO, 2511.07396, uses the strongest model as
+the reference); the fixed P→SB→T→T above (reported, post hoc). Related: label shift is identified from unlabelled data given
+class-conditionals (Saerens 2002; Lipton 2018; Garg et al. 2020, RLLS); cascades and routers are fitted with target labels (FrugalGPT,
+2305.05176; AutoMix, 2310.12963) or with the strongest model as the label (C3PO); none borrows the law of agreement patterns from
+labelled sets of another source to fit a cascade on an unlabelled one, and none states when that is identified.
+
+**Cells.** Primary (the confirmatory test): Qwen3-8B and Qwen3-14B-AWQ, peer gpt-oss-20b, development sets OptiBench's third, BWOR,
+LogiOR, OptMATH (pooled), targets OptiBench's other 403 problems and MAMO's 863 (XPEER's fresh runs; neither was used by LCM, B, or the
+observation above): 4 cells. Reported, not decided: tool calls (BFCL live from non-live and back) and SQL (Spider from BIRD dev +
+fresh), the four generators with their pre-registered peers (12 cells).
+
+**Predictions** (paired 95% intervals over problems, seed means, utility = 100 × right − 0.5 × ktokens):
+- **LS-P1:** LS − cascade: lower bound > 0 in ≥ 3 of the 4 primary cells.
+- **LS-P2:** LS − transfer: lower bound > 0 in ≥ 2 of 4.
+- Reported: reference − cascade (the room with labels) and the share of it LS reaches; pseudo-labels; the EM diagnostics (rank of
+  [P(o | c)], target observations never seen in development, log-likelihood with the adapted vs the development prior); the 12
+  secondary cells.
+
+**Decision.** LS-P1 holds → a derived policy needs no label from a new problem set: labels from other sets of the same kind plus the
+new set's unlabelled calls; PROJECT §2 / REPORT replace "a fitted policy needs labels" with that, stated with the label-shift
+assumption and the estimation sample's cost; LS-P2 says whether the prior adaptation is part of it or plain transfer suffices.
+LS-P1 refuted → on new sets the room is not reached without their labels; the derived-policy claim stays "needs labels of the target",
+with the room it leaves (reference − cascade) reported.
+
+Expected (not a rule): LS-P1 2–3 of 4 (MAMO is easy, so the cascade leaves little there); LS-P2 refuted (the role of the peer, the
+main room, transfers without adaptation).
