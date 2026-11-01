@@ -2,7 +2,8 @@
 T, SB): the extracted query runs read-only on the question's database (30 s); chk = 'pass' (no error, at least one row) or what the
 check saw; ok = its set of result rows equals the gold query's; h = a hash of that set (agreement between two queries). Questions whose
 gold query fails or times out are listed under "_gold_fail" and left out of the analysis.
-usage: python grade_sql.py <tag> [seeds]   -> results/sql/grades_<tag>_s<seed>.json (resumes)"""
+usage: python grade_sql.py <tag> [seeds]   -> results/sql/grades_<tag>_s<seed>.json (resumes; SQL_REGRADE=shared grades again the
+questions whose gold string is shared by several databases)"""
 import hashlib, json, os, sys
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
@@ -23,10 +24,12 @@ def digest(rows):
 
 
 def grade(key, db, gold, sql):
-    if gold not in _GOLD:
+    # the cache is keyed by database too: Spider repeats a gold string on several databases (fixed 2026-11-01; before, a worker could
+    # compare with another database's gold rows: 7 Spider-test and 4 Spider-dev questions, none on BIRD; SQL_REGRADE re-grades them)
+    if (db, gold) not in _GOLD:
         rows, err = execute(db, extract(gold))
-        _GOLD[gold] = None if err else rowset(rows)
-    g = _GOLD[gold]
+        _GOLD[(db, gold)] = None if err else rowset(rows)
+    g = _GOLD[(db, gold)]
     if g is None:
         return key, None
     rows, err = execute(db, sql)
@@ -46,6 +49,12 @@ def main():
                  "T": {r["id"]: r.get("text") for r in _rows(f"{RES}/{tag}_think_s{s}.jsonl")},
                  "SB": {r["id"]: r.get("text") for r in _rows(f"{RES}/{tag}_sb_s{s}.jsonl")}}
         fail = set(G.get("_gold_fail", []))
+        if os.environ.get("SQL_REGRADE") == "shared":   # questions whose gold string also belongs to another database: graded again
+            dbs = {}
+            for r in I.values():
+                dbs.setdefault(r["gold"], set()).add(r["db_id"])
+            for i in [i for i, r in I.items() if len(dbs[r["gold"]]) > 1]:
+                G.pop(i, None); fail.discard(i)
         todo = [((i, a), I[i]["db_id"], I[i]["gold"], extract(x)) for a, R in texts.items() for i, x in R.items()
                 if i not in fail and a not in G.get(i, {})]
         todo.sort(key=lambda t: t[2])   # one worker meets the same gold query in a row (its cache)

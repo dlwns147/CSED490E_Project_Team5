@@ -86,3 +86,11 @@ peer). F5 holds, so the CV-1 claim stands beyond BIRD. PROJECT, REPORT and PROPO
 double-quoted literals (3.34.1, CPU job 1290642; tags <model>spq, copies of the sp rows): every verdict is unchanged — F1 +0.89
 [+0.11, +1.69], F2 +1.38 [+0.61, +2.24], F3 −0.23 [−0.91, +0.48], F4 +1.35 [+0.73, +1.98], F5 +3.14 [+2.34, +4.00]; 4 of 5 after Holm
 (p 0.013 / 0.0005 / 0.74 / 0.0001 / 0.0001), each holding test dominance, decisive-strata ratios within 27% of the all-passing ones.*
+
+*Correction (written 2026-11-01 06:3x UTC; `results/final.txt`, `results/final_dqs.txt` rerun, pre-fix copies `*_prefix.txt`): the grader cached
+gold rows by the gold string only, and Spider repeats a gold string on several databases, so 7 of these questions could be compared
+with another database's gold rows (found in TR's raw grades; PREREG_LCM, results of addenda TR / TR-C1). Fixed and regraded. Every
+verdict is unchanged, 4 of 5 after Holm: F1 +0.92 [+0.01, +1.84] (p 0.0225 against Holm's 0.025: holds, by less), F2 +1.42 [+0.50,
++2.31], F3 −0.36 [−1.16, +0.39], F4 +1.47 [+0.76, +2.16], F5 +3.73 [+2.75, +4.72] (79.6% at 0.44k vs 76.2% at 1.08k); sensitivity on all
+2,147: +0.86 / +1.35 / −0.26 / +1.25 / +3.11, 4 of 5. F5 is confirmed on a second untouched benchmark, Spider dev: +2.53 [+1.44, +3.69]
+(PREREG_LCM addendum TR-C1).*

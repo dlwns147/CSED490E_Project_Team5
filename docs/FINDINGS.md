@@ -4807,3 +4807,28 @@ Results:
 Decision: LS not adopted. Next: a confirmatory test of plain transfer on a benchmark never used (addendum TR, Spider dev). Goal link: if
 a policy fitted once on one benchmark's labels beats the hand-set cascade on new benchmarks of the task, the method needs no labels
 where it is deployed.
+
+## 2026-11-01 06:3x UTC: TR / TR-C1 (pre-registered): a policy fitted on public benchmarks does not beat the cascade on an untouched SQL benchmark; the trained quick query's gain holds there; a grader bug fixed
+Why: if a policy fitted once on a task's labelled benchmarks beat the hand-set cascade on a new benchmark, the method would need no
+labels where it is deployed ("labels once per task"). Test: Spider's dev split (1,034 questions on 20 databases, never used), four
+generators, the policy fitted on BIRD dev + fresh BIRD questions + Spider test; addendum TR-C1 adds CV-1's trained quick query.
+- **Grader bug (found reading raw grades, fixed first):** gold rows were cached by query string only, and Spider repeats a gold string on
+  several databases, so 4 Spider-dev and 7 Spider-test questions could be compared with another database's gold. Cache keyed by
+  database, those questions regraded, every Spider analysis rerun. FINAL's verdicts are unchanged (4 of 5 after Holm; F1 +0.92
+  [+0.01, +1.84] now clears Holm's 0.025 by less, p 0.0225; F5 +3.73). Other Spider numbers move by ≤ 0.1.
+- **TR-P1 refuted** (0 of 4): transfer − cascade +0.20 / +0.02 / +0.60 / +0.20, none below 0, at 1.4–3.7× the cascade's tokens; even
+  Spider dev's own labels give no room (reference −0.6 to −0.7). The transferred policy's Spider-test gains (+0.6 to +1.0, LS, a reused
+  set) did not reappear. B (BIRD dev), the Spider-dev reference and TR now agree: for base generators on SQL the cascade is at the
+  information limit of its calls.
+- **TR-C1-P1 holds:** the trained quick query in the cascade beats the default on Spider dev, +2.53 [+1.44, +3.69] (76.0% at 0.54k vs
+  73.8% at 1.13k), a second untouched benchmark after Spider test (+3.73).
+- **TR-C1-P2 holds** (+0.99 [+0.23, +1.83], p 0.006; sensitivity +0.69 [+0.05, +1.29]), but by the registered rule it changes the
+  method only with TR-P1, which failed. Mechanism (traced): once trained, the quick query is as accurate as the base model's short
+  think (74.1% vs 73.6%). So when the peer disagrees, the policy runs one full think as a referee and keeps whichever quick answer it
+  matches, instead of taking the short think. Fitted on BIRD dev only, it gained +0.24 n.s. on Spider test, so the size is unsettled.
+- Post hoc (reported, no rule): with the trained quick query, thinking only when its own check fails (N→T→T) ties the peer cascade on
+  both Spider splits (+0.25 [−0.73, +1.26], −0.19 [−1.78, +1.49]) and loses 3.4 points on BIRD dev. The peer is needed where the quick
+  query's check leaks most (BIRD), not on the easier Spider.
+Decision: the cascade stays SQL's method; "a fitted policy needs labels" stays; the trained quick query's gain is confirmed on two
+untouched benchmarks. Goal link: the cheapest exact SQL answers on a new benchmark come from a quick query trained for correctness,
+checked by another model's quick query; a policy derived from the same calls adds nothing reliable for untrained generators.

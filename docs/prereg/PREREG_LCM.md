@@ -434,3 +434,55 @@ small, as on the base generators.
   decides for the base generators.
 
 Expected (not a rule): P1 holds; P2 refuted.
+
+### Results, addenda TR and TR-C1 (written 2026-11-01 06:3x UTC; `results/lcm_tr.log`, `results/lcm_tr_dqs.log`, `results/lcm_tr_c1.log`, `results/lcm_tr_c1_dqs.log`; GPU jobs 1291449–1291460 and 1291632, analysis CPU jobs 1291940–1291942; no failed request)
+
+**A grading bug found and fixed before these verdicts.** Reading the raw grades: identical result sets were graded right in one seed
+and wrong in another (sd1000, "How many singers are there?"). `grade_sql.py` cached the gold rows by the gold query string only, and
+Spider repeats a gold string on several databases (`singer` and `concert_singer` both have a `singer` table), so a worker could
+compare a query with another database's gold rows. It affects 4 Spider-dev and 7 Spider-test questions and no BIRD question. The cache
+is now keyed by database too; those questions were graded again in every Spider tag (`SQL_REGRADE=shared`), and every Spider analysis
+was rerun (pre-fix logs kept as `*_prefix`). Every number below is after the fix. FINAL's verdicts are unchanged (its correction is
+appended to PREREG_FINAL). LS's reported Spider cells move by ≤ 0.1 (transfer − cascade +1.01 / +0.60 / +0.81 / +0.69), and B on
+Spider by ≤ 0.1 (+0.46 to +0.81).
+
+Spider dev: 819 of 1,034 questions graded (the container's SQLite rejects 215 gold queries' double-quoted literals; the sensitivity
+grades 1,032).
+
+| generator ← peer | transfer − cascade | transfer vs cascade | reference − cascade | transfer − SB→T→T | sensitivity: transfer − cascade |
+|---|---|---|---|---|---|
+| Qwen3-8B ← Qwen3.5-9B | +0.20 [−0.63, +1.04] | 74.8% @ 0.98k vs 74.4% @ 0.57k | −0.66 [−1.63, +0.32] | +1.13 [−0.12, +2.46] | −0.10 [−0.89, +0.61] |
+| Qwen3-14B-AWQ ← Qwen3.5-9B | +0.02 [−0.82, +0.83] | 76.0% @ 0.91k vs 75.8% @ 0.47k | −0.69 [−1.67, +0.34] | +1.45 [+0.07, +2.94] | −0.15 [−0.91, +0.56] |
+| Qwen3.5-9B ← Qwen3-8B | +0.60 [−0.44, +1.67] | 75.6% @ 1.61k vs 74.4% @ 0.44k | −0.64 [−1.40, +0.14] | +1.83 [+0.77, +2.94] | +0.12 [−0.82, +1.02] |
+| gpt-oss-20b ← Qwen3.5-9B | +0.20 [−0.49, +0.92] | 74.8% @ 0.30k vs 74.5% @ 0.21k | −0.63 [−1.36, +0.15] | +1.51 [+0.46, +2.52] | +0.28 [−0.34, +0.89] |
+| C1 (trained quick query) ← Qwen3.5-9B | +0.99 [+0.23, +1.83] | 77.2% @ 0.91k vs 76.0% @ 0.54k | −0.10 [−1.07, +0.84] | +3.53 [+2.21, +4.99] | +0.69 [+0.05, +1.29] |
+
+- **TR-P1 refuted:** transfer − cascade has a lower bound > 0 in 0 of 4 (Holm-adjusted one-sided p 0.87 / 0.87 / 0.55 / 0.87), and
+  none is worse. The fitted policy spends more tokens for at most a point of accuracy (Qwen3.5-9B +1.2 points at 3.7× the tokens).
+  Even a policy fitted on half of Spider dev's own labels does not beat the cascade (reference −0.6 to −0.7 in all four).
+- **TR-C1-P1 holds:** with CV-1's trained quick query the cascade beats the default, +2.53 [+1.44, +3.69] (76.0% at 0.54k vs 73.8%
+  at 1.13k: more accurate and cheaper; sensitivity +2.51 [+1.54, +3.54]). This is F5 on a second untouched benchmark, smaller than on
+  Spider test (+3.73).
+- **TR-C1-P2 holds:** transfer − cascade +0.99 [+0.23, +1.83], one-sided p 0.006 (Holm over the five TR tests 0.031); sensitivity
+  +0.69 [+0.05, +1.29] (p 0.015). What the policy does differently (traced per question-seed, post hoc):
+  - The gain comes from the question-seeds where the trained quick query passes and the peer returns other rows (7% of all). There the
+    cascade runs the default, which takes the base model's short think when it passes. The policy instead runs one full think and
+    keeps the quick query if the think agrees (+0.56 of the +0.99).
+  - Where the quick query fails, the policy keeps the peer's query if the think agrees with it (+0.25).
+  - Training makes the quick query as accurate as the base model's short think and full think (on Spider dev 74.1% vs 73.6% and
+    73.8%), so falling back to the short think when the peer disagrees throws away an answer as good as the fallback. The full think
+    serves better as a referee between the two quick answers.
+  - On Spider test, fitted on BIRD dev's C1 rows only, the same policy gained +0.24 [−0.27, +0.73] (exploration above), so the
+    size of this gain is not settled.
+
+**Decision (as pre-registered).**
+- TR-P1 is refuted, so the hand-set cascade stays SQL's method for the base generators; the Spider-test gains of the transferred policy
+  (+0.6 to +1.0, LS) were the third use of a used set and do not reappear on Spider dev. "A fitted policy needs labels" stays; "labels
+  once per task" is not supported on SQL. With this, three tests agree that on SQL the cascade is at the information limit of its
+  calls for base generators: B (BIRD dev, 1 of 8 cells), the Spider-dev reference (0 of 4) and TR (0 of 4).
+- TR-C1-P1 holds: the trained quick query's gain is confirmed on two untouched benchmarks (Spider test +3.73, Spider dev +2.53);
+  PROJECT §2, REPORT and PROPOSAL cite both.
+- TR-C1-P2 holds, but the rule changed the method only "with TR-P1", which is refuted. So the cascade stays the method with the
+  trained quick query too. The result is reported as what the derived policy does once the quick query is trained: the think becomes
+  the referee between the two quick answers. Whether that fallback should replace SB→T→T for trained quick queries is a question for a
+  benchmark not yet used (none is left on the cluster; KaggleDBQA, 272 questions, is too small for a one-point effect).

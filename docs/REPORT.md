@@ -502,11 +502,14 @@ an independence-based prediction of a gain in all six cells. The single peer is 
 
 **Confirmation on an untouched benchmark (FINAL, pre-registered, Holm over five tests).** On Spider's test split (1,741 questions
 graded; the image's SQLite rejects the double-quoted literals of 406 gold queries), never used for any decision here, the peer cascade
-beats each generator's default in four of five tests, each more accurate and cheaper: Qwen3-8B +1.00 [+0.07, +1.91] (76.7% at 0.47k vs
-76.0% at 1.08k), Qwen3-14B-AWQ +1.44 [+0.52, +2.34], gpt-oss-20b +1.57 [+0.86, +2.25], and with CV-1's trained quick query +3.80
-[+2.83, +4.77] (79.5% at 0.44k vs 76.0% at 1.08k; trained only on BIRD-train). It fails for Qwen3.5-9B with Qwen3-8B as the peer
-(−0.28 [−1.09, +0.48]) by the break-even's mechanism: there the peer agrees as often with the right-only as with the wrong-only quick
-queries (ratio 1.00 against r* 1.19).
+beats each generator's default in four of five tests, each more accurate and cheaper: Qwen3-8B +0.92 [+0.01, +1.84] (76.9% at 0.47k vs
+76.2% at 1.08k), Qwen3-14B-AWQ +1.42 [+0.50, +2.31], gpt-oss-20b +1.47 [+0.76, +2.16], and with CV-1's trained quick query +3.73
+[+2.75, +4.72] (79.6% at 0.44k vs 76.2% at 1.08k; trained only on BIRD-train). It fails for Qwen3.5-9B with Qwen3-8B as the peer
+(−0.36 [−1.16, +0.39]) by the break-even's mechanism: there the peer agrees as often with the right-only as with the wrong-only quick
+queries (ratio 0.97 against r* 1.21). On Spider's dev split, a second untouched benchmark, the trained quick query's cascade again
+beats the default, +2.53 [+1.44, +3.69] (76.0% at 0.54k vs 73.8% at 1.13k; TR-C1). (Numbers after a grader fix: gold rows had been
+cached by query string, and Spider repeats a gold string on several databases; 7 test and 4 dev questions were regraded, no verdict
+changed.)
 
 **Is the hand-set rule the best these calls allow? (LCM, LCM-2, LCM-3, B; pre-registered.)** The cascade's order, budget and peer rule
 are fixed by hand. The principled alternative is to model what every call returns on a question — latent question classes, right
@@ -517,13 +520,19 @@ of the three model versions). The first version fails by an identifiability argu
 a right answer but tends to 1 as a shared wrong one, so unlabelled data explain unanimity as a trap (a degenerate class held 66% of
 BFCL live); estimating the dependence only where it is identified, on the labelled questions, and separating the quick and thinking
 modes fixes the degeneracy and calibration on BFCL but not on SQL. The bound settles why: a planner that knows the joint law of the
-five calls (all labels of half the questions, cross-fitted) gains over the cascade in 1 of 8 BIRD cells and by +0.5 to +0.9 on Spider.
+five calls (all labels of half the questions, cross-fitted) gains over the cascade in 1 of 8 BIRD cells and by +0.5 to +0.8 on Spider test.
 On SQL the cascade is at the information limit of its calls; the room is where its fixed rule fits the model badly — Qwen3.5-9B's tool
 calls (+3.2 / +4.5) and the hard word-problem sets (up to +11). The word-problem room is which model of the pair answers (gpt-oss-20b's
 quick program is right more often than Qwen3-8B's), and on two fresh sets (OptiBench's other 403 problems, MAMO) it almost vanishes even
 with their own labels (−0.3 to +1.4). Fitting the planner on *other* sets' labels does about as well as on half of the target's own
 (13 of 16 cells); re-weighting those labels to the target's unlabelled calls under a label-shift assumption adds nothing and hurts on
-tool calls, whose splits differ in more than the prior (LS, pre-registered: refuted).
+tool calls, whose splits differ in more than the prior (LS, pre-registered: refuted). Fitted once on BIRD and Spider test and run on
+Spider's dev split, never used, the planner does not beat the cascade for any of four generators (TR, pre-registered: +0.02 to +0.60,
+none significant, at 1.4–3.7× its tokens), and even Spider dev's own labels give no room: for untrained generators on SQL the cascade
+is where these calls stop. With the trained quick query the transferred planner does gain (+0.99 [+0.23, +1.83]): the quick query is
+then as accurate as the short think (74.1% vs 73.6%), and where the peer disagrees the planner lets a full think choose between the two
+quick answers instead of falling back to the short think. Fitted on BIRD alone it gained +0.24 (n.s.) on Spider test, and the
+registered rule kept the cascade.
 
 **Another generator family (XG, pre-registered).** All of the above uses Qwen generators. With gpt-oss-20b answering (its low-effort
 answer as N, its medium-effort SB→T→T as the default) and Qwen3.5-9B's quick answer as the check, the cascade beats the default on
