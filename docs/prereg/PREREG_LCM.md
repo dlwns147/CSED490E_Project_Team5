@@ -655,3 +655,75 @@ Analysis `python3 poc/lcm_shift.py --tl4`.
 - **P1 refuted:** the fitted call policy is stated for Qwen3-8B only; for Qwen3-4B the cascade stays, and the stratum accuracies are
   read to say whether the mechanism (a trained quick answer as accurate as the thinks where the peer disagrees) was absent or present
   without a gain.
+
+## Addendum RV: telling apart two disagreeing passing answers by the channel score log p(question | answer) (written 2026-11-01 10:4x UTC, before any reviewer or coder score exists; `lcm_shift.py --rv-build` only listed the candidate texts, and `nlp_data/scratch/rv_bound.py` → `results/rv_bound.txt` used stored labels and no score)
+
+**Why.** The exploratory oracle room (FINDINGS, 11-01 09:3x) puts 8–11 points above the cascade, mostly where N and P both pass and
+differ. Where the cascade falls back after a passing quick answer, N, P and the fallback d (SB if it passes, else T, else the retry T),
+all already paid for, give ≥ 2 distinct passing answers on 16–32% of question-seeds. Always choosing a right one there would add +5.0
+(BIRD dev), +5.5 (Spider test), +5.7 (Spider dev), +4.6 / +6.7 (BFCL live, base / trained quick answer) at no output-token cost. Every
+label-free signal tried so far gated one answer across questions (own confidence, EXT: AUROC 0.56–0.72; a 9B judge, J: 0.61–0.72) or
+was trained (VER: no transfer). None contrasted two answers to the same question.
+
+**Theory (derived before any score; `results/rv_bound.txt`).**
+1. Within-question contrast. A score s(c, q) = f(q) + g(c, q): a gate is judged across questions, where the question term f
+   (difficulty, length) dominates; choosing between two answers to the same question uses g only. A signal weak as a gate can still
+   choose.
+2. Why the channel direction. For one model, log p(c | q) = log p(q | c) + log p(c) − log p(q). Between two answers to one question the
+   last term cancels, so the direct (coder) score = the channel (reviewer) score + the answer's typicality log p(c). EXT's raw reading:
+   confidently wrong passing queries are typical forms with a column or filter mismatch, so wrong answers win on typicality. The channel
+   score drops that term and asks whether the answer accounts for every part of the question (a missing filter makes the question's
+   words less likely). This is the noisy-channel argument (Min et al., ACL 2022, for prompting) and Coder-Reviewer reranking (Zhang et
+   al., ICML 2023: p(x | y) p(y | x) beats p(y | x) by up to 17 points on six code sets, among samples of one model). Related checks by
+   back-translation (round-trip critique, VLDB 2025; GBV-SQL, 2509.12612) generate the question and ask a judge, which costs output
+   tokens; none scores p(question | answer) between two models' answers inside a cascade, and none is on tool calls.
+3. How good it must be. The fallback d is right on 62–89% of the two-answer mixed sets (it often agrees with N or P: two votes) and
+   27–78% of the three-answer ones, so a choice must beat a strong prior. With an equal-variance Gaussian score of within-question
+   AUROC A and, as a best case, the structural prior (which calls returned which answer) known per cell, the Bayes selector gains
+   (points over all question-seeds) at A = 0.6 / 0.7 / 0.8: BIRD dev +0.1 / +0.7 / +1.8; Spider test +1.2 / +1.9 / +3.0; Spider dev
+   +0.3 / +1.1 / +2.4; BFCL live +0.1 / +0.6 / +1.6 (base), +1.1 / +2.0 / +3.4 (trained); BFCL non-live < +0.6 at A ≤ 0.8. The
+   parameter-free rule R1 (most votes among N, P, d; ties by the score) gains less: at A = 0.7, BIRD dev −0.03 / +0.3 (base / trained),
+   Spider test +0.5 / +0.8, Spider dev +0.5 / +0.5, BFCL live −0.3 / +1.6; it needs A ≈ 0.8 for ≥ +0.9 on BIRD dev and BFCL live base.
+
+**Scores (no new answers).** Qwen3-8B (the resident generator, no adapter), raw text without the chat template, Coder-Reviewer's
+inverted prompt (`poc/score_conf.py rv`):
+- rev (channel): SQL: the schema (with BIRD's external knowledge), "-- SQLite query:" and the candidate, "-- The question this query
+  answers:", then the question; the summed log-prob of the question's tokens (the same tokens for every candidate of a question). Tool
+  calls: the functions as JSON, "# Function calls made" and the graded calls one per line as name(arg=value, ...), "# The user request
+  these calls answer:", then the request.
+- cod (direct): the original order (schema or functions, the question or request, then the candidate); the mean log-prob of the
+  candidate's tokens.
+- An answer (agreement key: SQL's result rows, the tool calls) returned by several calls with different SQL texts gets the mean over
+  its texts.
+- 24,704 requests, one RTX 3090, max length 20,480.
+
+**Cells.** 4 targets (BIRD dev, Spider test, Spider dev, BFCL = non-live + live) × N base (Qwen3-8B's quick answer) or trained (C1 /
+C1tc); P = Qwen3.5-9B's quick answer; SB, T = Qwen3-8B. The question-seeds where N passed, P did not return N's answer, and N, P, d
+give ≥ 2 distinct passing answers: 1,437 / 1,287, 936 / 807, 506 / 442, 2,833 / 2,892 (base / trained).
+
+**Measures** (`python3 poc/lcm_shift.py --rv`).
+- Within-question AUROC on the mixed sets (≥ 1 right and ≥ 1 wrong distinct answer): per question-seed the share of (right, wrong)
+  pairs the score orders correctly (ties ½), averaged per question, CI by resampling questions; rev, cod and rev − cod.
+- R1 − cascade (the primary policy): most votes among N, P, d, ties by rev; elsewhere the cascade. The cascade already makes all
+  three calls on these question-seeds, so the output tokens are identical and the utility difference is 100 × the accuracy
+  difference. The reviewer's prefill tokens are reported per question-seed.
+- Reported: votes with ties by cod; rev alone; the cross-fitted Bayes selector (logit of the structural prior + β × standardized rev,
+  fitted on one crc32 half and applied to the other) next to the Gaussian bound at the measured AUROC.
+
+**Predictions** (paired 95% intervals over questions):
+- **RV-P1 (channel vs direct):** rev − cod within-question AUROC, lower bound > 0 in ≥ 6 of 8 cells.
+- **RV-P2b / RV-P2t (decision; base / trained):** R1 − cascade lower bound > 0 in ≥ 2 of 4 targets, upper bound < 0 in none.
+- **RV-P3 (theory):** the cross-fitted Bayes gain lies within 0.7 points of the Gaussian bound at the measured AUROC in ≥ 6 of 8 cells.
+- Expected from the gates measured so far (0.56–0.72 across questions): rev's within-question AUROC 0.60–0.75. With the bound, P2t
+  holds only if A ≥ 0.7 on Spider and BFCL; P2b needs A ≈ 0.8 and is expected to be refuted.
+- Power: R1 changes the answer only on the mixed sets (9–21% of question-seeds); half-widths ≈ 0.6–1.0 points per target.
+
+**Decision.**
+- P2 holds for an N type → R1 becomes the cascade's last step for that type (one prefill per extra candidate, no extra output);
+  PROJECT, REPORT and PROPOSAL updated.
+- P2 refuted and rev's AUROC ≥ 0.75 on ≥ 2 targets → the Bayes selector with priors fitted on the training split (as TL) is
+  pre-registered next.
+- rev's AUROC < 0.7 on every target → the selection direction is closed for label-free scoring by a model of this size: by the bound,
+  the room above the cascade needs a within-question AUROC of 0.75–0.8 to give ≥ +1, and none of four signal families (own
+  confidence, a judge, a transferred verifier, the channel score) reaches it; REPORT states the bound and the measured AUROCs.
+- Otherwise (0.7–0.75, P2 refuted): stated as measured, no follow-up.

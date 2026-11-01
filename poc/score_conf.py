@@ -7,7 +7,12 @@ log-prob of every answer token and of the end-of-turn token is read from vLLM's 
   tc    = BFCL single-turn, TC-1 rows (results/tc/<tag>_cheap_s<s>.jsonl; BFCL's system prompt + the request)
 Rows: results/conf/<kind>_<tag>_s<s>.jsonl {id, lp: [answer token log-probs], end: end-of-turn log-prob, rt: the answer re-tokenizes
 to the stored token count}. Rows resume.
-usage: POC_BASE_URL=... python score_conf.py <kind> <tag> [seeds ...]   (CONF_LIMIT=k: the first k rows per seed, the smoke)"""
+  rv    = PREREG_LCM addendum RV: channel (reviewer) and direct (coder) scores of the candidate answers in results/conf/rv_req.jsonl
+          (written by lcm_shift.py --rv-build), raw text under the plain LM (no chat template), Coder-Reviewer's inverted prompt (Zhang
+          et al. 2023): rev = the question / request after the schema or functions and the candidate, cod = the candidate after the
+          question. Rows {h, s: summed target log-prob, n: target tokens, pre: prompt tokens} -> results/conf/rv_scores.jsonl
+usage: POC_BASE_URL=... python score_conf.py <kind> <tag> [seeds ...]   (CONF_LIMIT=k: the first k rows per seed, the smoke)
+       POC_BASE_URL=... python score_conf.py rv   (CONF_LIMIT=k: the first k requests)"""
 import json, os, sys, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 
@@ -43,7 +48,68 @@ def score(p, row, end_id):
     return {"id": row["id"], "lp": lp[:-1], "end": lp[-1], "rt": len(ans) + 1 == row.get("n_tok")}
 
 
+RV_ITEMS = {("sql", "dev"): f"{PD}/bird/sql_items.jsonl", ("sql", "spider"): f"{PD}/bird/sql_spider_items.jsonl",
+            ("sql", "spiderdev"): f"{PD}/bird/sql_spiderdev_items.jsonl", ("tc", "bfcl"): f"{PD}/bfcl/tc_items.jsonl"}
+ASK = "Write one SQLite query that answers the question. Return only the query in a ```sql block."
+
+
+def rv_prompt(task, p, kind, text):
+    """(context, target) as raw text. SQL: prep_sql's prompt is <schema>\n\n[-- External knowledge: <ev>\n]-- Question: <q>\n\n<ASK>;
+    tool calls: the functions as JSON, the request, the graded calls one per line as name(arg=value, ...)"""
+    if task == "sql":
+        body = p["user"][:-len(ASK) - 2]
+        assert p["user"].endswith("\n\n" + ASK), p["id"]
+        i = body.rfind("\n-- Question: ")
+        q, pre = body[i + len("\n-- Question: "):], body[:i]
+        j = pre.rfind("\n\n-- External knowledge: ")
+        schema, ev = (pre[:j], pre[j + len("\n\n-- External knowledge: "):]) if j >= 0 else (pre.rstrip("\n"), None)
+        head = schema + "\n\n" + (f"-- External knowledge: {ev}\n" if ev is not None else "")
+        if kind == "rev":
+            return head + f"-- SQLite query:\n{text}\n-- The question this query answers:", " " + q.strip()
+        return head + f"-- Question: {q.strip()}\n-- SQLite query:\n", text
+    fn = json.dumps(p["functions"], indent=2)
+    if kind == "rev":
+        return f"# Available functions\n{fn}\n\n# Function calls made\n{text}\n\n# The user request these calls answer:", " " + p["user"].strip()
+    return f"# Available functions\n{fn}\n\n# User request: {p['user'].strip()}\n\n# Function calls made\n", text
+
+
+def score_rv(row, P):
+    ctx, tgt = rv_prompt(row["task"], P[(row["task"], row["sset"])][row["id"]], row["kind"], row["text"])
+    a, b = tokenize(prompt=ctx, add_special_tokens=False), tokenize(prompt=tgt, add_special_tokens=False)
+    ids = a + b
+    r = client.completions.create(model="local", prompt=ids, max_tokens=1, temperature=0, extra_body={"prompt_logprobs": 0})
+    plp = r.choices[0].prompt_logprobs
+    lp = []
+    for pos in range(len(a), len(ids)):
+        d = plp[pos] or {}
+        e = d.get(str(ids[pos]), d.get(ids[pos]))
+        lp.append(e["logprob"] if isinstance(e, dict) else e.logprob)
+    return {"h": row["h"], "s": round(sum(lp), 4), "n": len(lp), "pre": len(ids)}
+
+
+def main_rv():
+    P = {k: {p["id"]: p for p in map(json.loads, open(f))} for k, f in RV_ITEMS.items()}
+    out = f"{ROOT}/results/conf/rv_scores.jsonl"
+    done = {r["h"] for r in _rows(out)}
+    rows = [r for r in _rows(f"{ROOT}/results/conf/rv_req.jsonl") if r["h"] not in done]
+    if os.environ.get("CONF_LIMIT"):
+        rows = rows[:int(os.environ["CONF_LIMIT"])]
+    n, err = 0, 0
+    with open(out, "a") as f, ThreadPoolExecutor(int(os.environ.get("CONF_POOL", 32))) as ex:
+        futs = [ex.submit(score_rv, r, P) for r in rows]
+        for fu in futs:
+            try:
+                f.write(json.dumps(fu.result()) + "\n"); f.flush(); n += 1
+            except Exception as e:
+                err += 1; print("rv request failed, no row:", repr(e)[:200], flush=True)
+            if (n + err) % 1000 == 0:
+                print(f"rv: {n + err}/{len(rows)}", flush=True)
+    print(f"rv: {n} requests scored, {err} failed", flush=True)
+
+
 def main():
+    if sys.argv[1] == "rv":
+        return main_rv()
     kind, tag = sys.argv[1], sys.argv[2]
     seeds = [int(x) for x in sys.argv[3:]] or [1, 2, 3]
     P = {p["id"]: p for p in map(json.loads, open(ITEMS[kind]))}

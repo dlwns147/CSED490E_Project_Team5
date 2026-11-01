@@ -15,7 +15,9 @@ question-seed reaching a pattern its planner never saw is scored with the cascad
 Addendum TR (--tr): the transfer planner fitted on every labelled SQL set so far (BIRD dev, the fresh BIRD questions, Spider test) with
 those sets' mean tokens per call (nothing from the target), on Spider's dev split, never used before; the four generators.
 Addendum TR-C1 (--tr-c1): the same with CV-1's trained quick query as N (FINAL's F5 cell). Addendum TRT (--trt): tool calls, the
-policy fitted on BFCL and run on 3,549 held-out ToolACE requests, base and trained (TC-RL) quick calls. --dqs: Spider graded with a SQLite that
+policy fitted on BFCL and run on 3,549 held-out ToolACE requests, base and trained (TC-RL) quick calls. Addendum RV (--rv-build,
+then score_conf.py rv on a GPU, then --rv): where the cascade falls back after a passing quick answer, choose among the distinct passing
+answers of N, P and the fallback by their votes, ties by the channel (reviewer) score log p(question | answer). --dqs: Spider graded with a SQLite that
 accepts double-quoted literals (FINAL's sensitivity).
 usage: python3 lcm_shift.py [--tr | --tr-c1 [--explore]] [--dqs]   -> results/lcm_shift.log (results/lcm_tr*.log) lines,
 results/lcm_shift/<cell>.json"""
@@ -343,7 +345,218 @@ def main_tl4():
                   f"{'holds' if R[(name, 'BFCL')]['tr_vs_cascade'][1] > 0 else 'refuted'}")
 
 
+# ---------------------------------------------------------------- addendum RV
+RV_T = (("sql", "dev", "BIRD dev"), ("sql", "spider", "Spider test"), ("sql", "spiderdev", "Spider dev"), ("tc", "bfcl", "BFCL"))
+RV_N = {"sql": "q8bcvc1", "tc": "q8btcc1"}   # the trained quick answers (C1, C1tc); base = Qwen3-8B's own quick answers
+
+
+def rv_key(task, sset, i, kind, text):
+    import hashlib
+    return hashlib.sha1(json.dumps([task, sset, i, kind, text]).encode()).hexdigest()[:20]
+
+
+def rv_texts(task, sset, nsrc):
+    """{(call type, seed, id): the answer's text}: SQL the extracted query (prep_sql.extract), tool calls the graded calls"""
+    from run_nlopt import _rows
+    R, out = os.path.join(lcm.ROOT, "results", task), {}
+    if task == "sql":
+        from prep_sql import extract
+        suf = {"dev": "", "spider": "sp", "spiderdev": "sd"}[sset]
+        for t, tag, a, fld in (("N", nsrc or "q8b", "cheap", "n_text"), ("P", "q35", "cheap", "n_text"), ("SB", "q8b", "sb", "text"),
+                               ("T", "q8b", "think", "text")):
+            for s in (1, 2, 3):
+                for r in _rows(f"{R}/{tag}{suf}_{a}_s{s}.jsonl"):
+                    out[(t, s, r["id"])] = extract(r.get(fld) or "")
+        return out
+    from analyze_tc import load
+
+    def show(calls):   # the graded calls (a JSON list of JSON {name: args} strings) one per line as name(arg=value, ...)
+        try:
+            L = [json.loads(x) if isinstance(x, str) else x for x in json.loads(calls)]
+            return "\n".join(f"{n}({', '.join(f'{k}={json.dumps(v)}' for k, v in a.items())})" for c in L for n, a in c.items()) or "(no call)"
+        except Exception:
+            return str(calls)
+    for t, tag, arm in (("N", nsrc or "q8b", "N"), ("P", "q35", "N"), ("SB", "q8b", "SB"), ("T", "q8b", "T")):
+        for s in (1, 2, 3):
+            for i, g in load(tag, s)[0].items():
+                if arm in g and g[arm].get("calls") is not None:
+                    out[(t, s, i)] = show(g[arm]["calls"])
+    return out
+
+
+def rv_items(task, sset, nsrc):
+    """(questions, [(id, seed, {answer key: [right, (calls returning it), [texts]]}, fallback right)]): the cascade's question-seeds where
+    N passed, P did not return the same answer, and N, P and the fallback d (SB if it passes, else T, else the retry T) give >= 2
+    distinct passing answers"""
+    k = {"nsrc": nsrc} if nsrc else {}
+    if task == "sql":
+        D = quiet(lcm.load, "sql", "q8b", "q35", sset, **k)
+    else:
+        nl, lv = quiet(lcm.load, "tc", "q8b", "q35", "non-live", **k), quiet(lcm.load, "tc", "q8b", "q35", "live", **k)
+        assert not set(nl) & set(lv)
+        D = {**nl, **lv}
+    X, out = rv_texts(task, sset, nsrc), []
+    for i, q in D.items():
+        for s in (1, 2, 3):
+            N, P, SB, T, T2 = lcm.seed_calls(q, s)
+            if not N[1] or (P[1] and P[0] is not None and P[0] == N[0]):
+                continue
+            dn, d, dk = ("SB", SB, ("SB", s)) if SB[1] else (("T", T, ("T", s)) if T[1] else ("T2", T2, ("T", s % 3 + 1)))
+            cand = {}
+            for nm, x, tk in (("N", N, ("N", s)), ("P", P, ("P", s)), (dn, d, dk)):
+                if x[1] and x[0] is not None:
+                    c = cand.setdefault(x[0], [bool(x[2]), (), []])
+                    c[1] += (nm,); c[2].append(X[(tk[0], tk[1], i)])
+            if len(cand) >= 2:
+                out.append((i, s, cand, bool(d[2])))
+    return D, out
+
+
+def main_rv_build():
+    req = {}
+    for task, sset, tname in RV_T:
+        for nsrc in (None, RV_N[task]):
+            D, items = rv_items(task, sset, nsrc)
+            for i, s, cand, dr in items:
+                for r, calls, texts in cand.values():
+                    for t in set(texts):
+                        for kind in ("rev", "cod"):
+                            h = rv_key(task, sset, i, kind, t)
+                            req[h] = {"h": h, "task": task, "sset": sset, "id": i, "kind": kind, "text": t}
+            print(f"RV build {tname} {nsrc or 'base'}: {len(D)} questions, {len(items)} multi-answer fallback question-seeds "
+                  f"({100 * len(items) / (3 * len(D)):.1f}%); requests so far {len(req)}", flush=True)
+    od = os.path.join(lcm.ROOT, "results", "conf")
+    os.makedirs(od, exist_ok=True)
+    with open(f"{od}/rv_req.jsonl", "w") as f:
+        for r in req.values():
+            f.write(json.dumps(r) + "\n")
+    print(f"RV build: {len(req)} requests -> results/conf/rv_req.jsonl")
+
+
+def rv_gauss(items, A, reps=20, seed=0):
+    """PREREG_LCM addendum RV, theory: gain (points over all question-seeds, given len(items) of n) of the Bayes selector with the
+    in-cell structural prior and a score of within-item AUROC A (equal-variance Gaussian), and of R1 (votes, ties by the score)"""
+    import random
+    from statistics import NormalDist
+    rng, dp = random.Random(seed), (math.sqrt(2) * NormalDist().inv_cdf(A) if A > 0.5 else 0.0)
+    cnt, rt = Counter(), Counter()
+    for _, _, cand, _ in items:
+        st = tuple(sorted(v[1] for v in cand.values()))
+        for r, calls, _ in cand.values():
+            cnt[(st, calls)] += 1; rt[(st, calls)] += r
+    g = g1 = 0.0
+    for _, _, cand, dr in items:
+        st = tuple(sorted(v[1] for v in cand.values()))
+        for _ in range(reps):
+            best = b1 = None
+            for r, calls, _ in cand.values():
+                p = min(max(rt[(st, calls)] / cnt[(st, calls)], 1e-3), 1 - 1e-3)
+                x = rng.gauss(dp if r else 0.0, 1.0)
+                lr = math.exp(dp * x - dp * dp / 2)
+                post = p * lr / (p * lr + 1 - p)
+                best = max(best or (-1, 0), (post, r)); b1 = max(b1 or ((-1, -1e9), 0), ((len(calls), x), r))
+            g += (best[1] - dr) / reps; g1 += (b1[1] - dr) / reps
+    return g, g1
+
+
+def main_rv():
+    """addendum RV: within-item AUROC of the channel score (rev) and the direct score (cod) on the mixed candidate sets; R1 (votes, ties
+    by rev) against the cascade; the cross-fitted Bayes selector (structural prior + beta x standardized rev, fitted on one crc32 half)
+    against the Gaussian bound at the measured AUROC"""
+    from analyze_ho3 import ci
+    from run_nlopt import _rows
+    S = {r["h"]: r for r in _rows(os.path.join(lcm.ROOT, "results", "conf", "rv_scores.jsonl"))}
+    f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
+    g = lambda v: f"{v[0]:.3f} [{v[1]:.3f}, {v[2]:.3f}]"
+    R = {}
+    for task, sset, tname in RV_T:
+        for name, nsrc in (("base", None), ("trained", RV_N[task])):
+            D, items = rv_items(task, sset, nsrc)
+            miss, pre = 0, 0
+            for i, s, cand, dr in items:
+                for c in cand.values():
+                    rv, cd = [S.get(rv_key(task, sset, i, "rev", t)) for t in c[2]], [S.get(rv_key(task, sset, i, "cod", t)) for t in c[2]]
+                    if any(x is None for x in rv + cd):
+                        miss += 1; c.append(None); c.append(None); continue
+                    c.append(sum(x["s"] for x in rv) / len(rv)); c.append(sum(x["s"] / max(1, x["n"]) for x in cd) / len(cd))
+                    pre += sum(x["pre"] for x in rv)
+            items = [it for it in items if all(c[3] is not None for c in it[2].values())]
+            auc = {"rev": {}, "cod": {}, "diff": {}}
+            r1, r1c, rmax, dd = Counter(), Counter(), Counter(), Counter()
+            nseed = Counter()
+            for i, s, cand, dr in items:
+                C = list(cand.values())
+                pos, neg = [c for c in C if c[0]], [c for c in C if not c[0]]
+                if pos and neg:
+                    a = {j: sum((p[j] > n[j]) + 0.5 * (p[j] == n[j]) for p in pos for n in neg) / (len(pos) * len(neg)) for j in (3, 4)}
+                    for key, v in (("rev", a[3]), ("cod", a[4]), ("diff", a[3] - a[4])):
+                        auc[key].setdefault(i, []).append(v)
+                r1[i] += max(C, key=lambda c: (len(c[1]), c[3]))[0] - dr
+                r1c[i] += max(C, key=lambda c: (len(c[1]), c[4]))[0] - dr
+                rmax[i] += max(C, key=lambda c: c[3])[0] - dr
+            A = {k: tuple(y / 100 for y in ci({i: sum(v) / len(v) for i, v in x.items()})) for k, x in auc.items()}   # fractions
+            ids = sorted(D)
+            r1ci = ci({i: r1[i] / 3 for i in ids}); r1cci = ci({i: r1c[i] / 3 for i in ids}); rmci = ci({i: rmax[i] / 3 for i in ids})
+            # cross-fitted Bayes: logit pi(structure, calls) + beta x z, z = (rev - item mean) / sd, fitted on the other crc32 half
+            bay = Counter()
+            for h in (0, 1):
+                fit = [it for it in items if zlib.crc32(it[0].encode()) % 2 == h]
+                dev = [(c[3] - sum(x[3] for x in it[2].values()) / len(it[2])) for it in fit for c in it[2].values()]
+                sd = (sum(x * x for x in dev) / max(1, len(dev))) ** 0.5 or 1.0
+                cnt, rt = Counter(), Counter()
+                for it in fit:
+                    st = tuple(sorted(v[1] for v in it[2].values()))
+                    for c in it[2].values():
+                        cnt[(st, c[1])] += 1; rt[(st, c[1])] += c[0]
+                lg = lambda st, c: math.log(min(max((rt[(st, c[1])] + 0.5) / (cnt[(st, c[1])] + 1), 1e-3), 1 - 1e-3) /
+                                            (1 - min(max((rt[(st, c[1])] + 0.5) / (cnt[(st, c[1])] + 1), 1e-3), 1 - 1e-3)))
+
+                def ll(beta):
+                    t = 0.0
+                    for it in fit:
+                        st, mu = tuple(sorted(v[1] for v in it[2].values())), sum(x[3] for x in it[2].values()) / len(it[2])
+                        for c in it[2].values():
+                            z = lg(st, c) + beta * (c[3] - mu) / sd
+                            t += -math.log1p(math.exp(-z)) if c[0] else -math.log1p(math.exp(z))
+                    return t
+                beta = max((b / 10 for b in range(0, 41)), key=ll)
+                for it in items:
+                    if zlib.crc32(it[0].encode()) % 2 == h:
+                        continue
+                    st, mu = tuple(sorted(v[1] for v in it[2].values())), sum(x[3] for x in it[2].values()) / len(it[2])
+                    if any(cnt[(st, c[1])] == 0 for c in it[2].values()):
+                        continue   # a structure the fitting half never saw: the cascade's answer
+                    bay[it[0]] += max(it[2].values(), key=lambda c: lg(st, c) + beta * (c[3] - mu) / sd)[0] - it[3]
+            byci = ci({i: bay[i] / 3 for i in ids})
+            pb, p1 = rv_gauss(items, A["rev"][0])
+            n = 3 * len(ids)
+            R[(name, tname)] = dict(A=A, r1=r1ci, bayes=byci, bound=(100 * pb / n, 100 * p1 / n))
+            print(f"    RV {tname} {name}: {len(ids)} questions, {len(items)} multi-answer fallback question-seeds ({100 * len(items) / n:.1f}%), "
+                  f"missing scores {miss}; within-item AUROC rev {g(A['rev'])}, cod {g(A['cod'])}, rev - cod {g(A['diff'])} "
+                  f"({len(auc['rev'])} questions with a mixed set); R1 (votes, ties by rev) - cascade {f(r1ci)} (votes, ties by cod "
+                  f"{f(r1cci)}; rev alone {f(rmci)}); cross-fitted Bayes - cascade {f(byci)}; Gaussian bound at the measured AUROC: Bayes "
+                  f"{100 * pb / n:+.2f}, R1 {100 * p1 / n:+.2f}; reviewer prefill {pre / n:.0f} tokens per question-seed", flush=True)
+    for name, tag in (("base", "RV-P2b"), ("trained", "RV-P2t")):
+        X = [R[(name, t)] for _, _, t in RV_T if (name, t) in R]
+        if len(X) < 4:
+            print(f"*** {tag}: {len(X)} of 4 targets present, not decided"); continue
+        up, down = sum(r["r1"][1] > 0 for r in X), sum(r["r1"][2] < 0 for r in X)
+        print(f"*** {tag} ({name}: R1 - cascade lower bound > 0 in >= 2 of 4, upper bound < 0 in none): {up} above, {down} below -> "
+              f"{'holds' if up >= 2 and down == 0 else 'refuted'}")
+    if len(R) == 8:
+        p1 = sum(r["A"]["diff"][1] > 0 for r in R.values())
+        p3 = sum(abs(r["bayes"][0] - r["bound"][0]) <= 0.7 for r in R.values())
+        hi = [f"{t} {nm}" for (nm, t), r in R.items() if r["A"]["rev"][0] >= 0.75]
+        print(f"*** RV-P1 (rev - cod within-item AUROC lower bound > 0 in >= 6 of 8): {p1} -> {'holds' if p1 >= 6 else 'refuted'}")
+        print(f"*** RV-P3 (cross-fitted Bayes within 0.7 of the Gaussian bound in >= 6 of 8): {p3} -> {'holds' if p3 >= 6 else 'refuted'}")
+        print(f"*** cells with rev AUROC >= 0.75: {hi or 'none'}")
+
+
 def main():
+    if "--rv-build" in sys.argv:
+        return main_rv_build()
+    if "--rv" in sys.argv:
+        return main_rv()
     if "--tl4" in sys.argv:
         return main_tl4()
     if "--tl" in sys.argv:
