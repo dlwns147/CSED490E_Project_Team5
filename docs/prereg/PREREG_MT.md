@@ -303,7 +303,7 @@ items (`poc/mt_policy.py`, all their turn-0 labels) and applied to the items of 
 half never showed: the always-think baseline). The committed rollout's steps and environment continue the conversation; the row is
 graded as any arm's (BFCL's per-turn state and response checks). Costs: every rollout's output tokens; input tokens reported (each
 rollout re-reads the context, mostly a shared prefix). Assumes a resettable environment and a second resident model (two GPUs).
-**Smoke (seed 1, 6 items, not part of the results):** every item ran; the policy committed the quick or the peer's turn on 13 of 21
+**Smoke (seed 1, 6 items, not part of the results):** every item ran; the policy committed the quick or the peer's turn on 19 of 21
 turns; output tokens 24.6k per item against T's 10.2k on the same items (the policy was fitted on turn 0, where contexts are short).
 **Run.** Qwen3-8B (peer Qwen3.5-9B) and Qwen3.5-9B (peer Qwen3-8B), all 600 items, seeds 1–3, one two-GPU job per model and seed
 (`poc/slurm/vote_lane.sh`, 24 clients); compared with the stored T arm (same items, seeds and step seeds).
