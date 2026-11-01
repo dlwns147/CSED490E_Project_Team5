@@ -532,7 +532,14 @@ none significant, at 1.4–3.7× its tokens), and even Spider dev's own labels g
 is where these calls stop. With the trained quick query the transferred planner does gain (+0.99 [+0.23, +1.83]). Where the peer disagrees, the trained quick
 query is right as often as the fallback thinks (46.9% vs 48.9% / 49.3%; untrained 34.1%), so the planner lets a full think break the
 tie between the two quick answers instead of falling back to the short think. Fitted on BIRD alone it gained +0.24 (n.s.) on Spider test, and the
-registered rule kept the cascade.
+registered rule kept the cascade. On tool calls, pre-registered with the method decision tied to it (TRT), the policy fitted on all of
+BFCL and run on 3,549 held-out ToolACE requests beats the cascade with the trained quick calls (+0.54 [+0.14, +0.96]; 72.7% at 0.74k
+tokens vs 72.0% at 0.39k) and not with the base ones (−0.29 [−0.66, +0.08]), and the stratum splits the same way (base 31.0% right
+against SB 44.0% / T 42.2%; trained 41.2% against 44.6% / 42.2%). So for trained quick answers the method is the policy fitted once on
+the task's public benchmarks, for untrained ones the cascade; the gain is small and costs 1.7–1.9× the cascade's tokens. This is the
+case Jitkrittum et al. (NeurIPS 2023) analyse: the optimal deferral rule depends on both models' correctness, and deferring whenever the first
+is in doubt is right only while the later model is better on those inputs; training the first model ends that on the disagreement
+stratum.
 
 **Another generator family (XG, pre-registered).** All of the above uses Qwen generators. With gpt-oss-20b answering (its low-effort
 answer as N, its medium-effort SB→T→T as the default) and Qwen3.5-9B's quick answer as the check, the cascade beats the default on

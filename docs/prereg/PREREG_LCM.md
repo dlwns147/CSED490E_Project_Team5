@@ -533,3 +533,27 @@ tokens per call, nothing from ToolACE; run on the held-out requests (`python3 po
 - P2 is read only as the untrained control: it holding would mean the split by training is not the mechanism.
 
 Expected (not a rule): P1 holds (+0.5 to +1.5), P2 refuted.
+
+### Results of addendum TRT (written 2026-11-01 08:3x UTC; `results/lcm_trt.log`, all 3,549 requests × seeds 1–3)
+
+| quick calls (N) | transfer − cascade | transfer | cascade | SB→T→T | reference − cascade | stratum: N / SB / T right |
+|---|---|---|---|---|---|---|
+| trained (C1tc) | **+0.54 [+0.14, +0.96]**, p 0.0036 | 72.7% @ 0.74k | 72.0% @ 0.39k | 70.8% @ 0.48k | +0.16 [−0.26, +0.58] | 41.2% / 44.6% / 42.2% (3,824) |
+| base | −0.29 [−0.66, +0.08], p 0.93 | 71.4% @ 0.83k | 71.5% @ 0.39k | 70.8% @ 0.48k | −0.94 [−1.37, −0.52] | 31.0% / 44.0% / 42.2% (3,830) |
+
+- **TRT-P1 holds** (+0.54 [+0.14, +0.96]). The size is about half the BFCL exploration's (+0.98) and below the +1.0 the power was
+  computed for; it buys 0.7 points of accuracy at 1.9× the cascade's tokens.
+- **TRT-P2 refuted**, as expected (−0.29 [−0.66, +0.08]).
+- Mechanism, reported: where N passes and P differs, the base quick calls are 13 points below SB (more than 5, as expected); the
+  trained ones are 3.4 below SB (the expectation was within 3) and 1.0 below T. The direction holds; the trained gap is just outside the
+  stated band.
+- The target's own labels (reference, cross-fitted on half the requests) do not beat the cascade for either (+0.16 / −0.94): the room
+  here is about half a point, and the BFCL-fitted policy reaches it.
+- Cascade − SB→T→T: +1.25 [+0.80, +1.69] trained, +0.76 [+0.26, +1.26] base: on held-out training-distribution requests the peer
+  cascade beats the default for both, as on BFCL.
+
+**Decision (by the rule above).** P1 holds. With TR-C1-P2 (SQL, Spider dev, +0.99 [+0.23, +1.83]) the split by training is now seen
+on two tasks on data never used for the question. The method for trained quick answers becomes the policy fitted once on the task's
+public labelled benchmarks; the cascade stays the method for untrained ones. Stated with it: the gain is small (+0.5 to +1.0 utility,
+0.7–1.2 points of accuracy) and costs 1.7–1.9× the cascade's tokens; on Spider test, fitted on BIRD dev alone, it was +0.24 n.s.
+PROJECT §2, REPORT and PROPOSAL change.

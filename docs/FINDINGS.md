@@ -4832,3 +4832,24 @@ generators, the policy fitted on BIRD dev + fresh BIRD questions + Spider test; 
 Decision: the cascade stays SQL's method; "a fitted policy needs labels" stays; the trained quick query's gain is confirmed on two
 untouched benchmarks. Goal link: the cheapest exact SQL answers on a new benchmark come from a quick query trained for correctness,
 checked by another model's quick query; a policy derived from the same calls adds nothing reliable for untrained generators.
+
+## 2026-11-01 08:3x UTC: TRT (pre-registered): once the quick answer is trained, a policy fitted on public benchmarks beats the cascade on a second task
+Why: TR-C1 found, on SQL only, that a policy fitted on other benchmarks beats the hand-set cascade when the quick query is trained and
+not when it is untrained. If that holds on a second task on data never used for it, the best call policy depends on whether the quick
+answer is trained, and the method changes for trained ones. Test: tool calls, the policy fitted on all of BFCL (non-live + live) and
+run on the 3,549 held-out ToolACE requests (never used for a call policy), Qwen3-8B base vs TC-RL's trained quick calls, Qwen3.5-9B
+as the peer, Qwen3-8B's SB and T run fresh, seeds 1–3.
+- **TRT-P1 holds:** trained quick calls, transfer − cascade +0.54 [+0.14, +0.96] (p 0.004; 72.7% at 0.74k vs 72.0% at 0.39k).
+- **TRT-P2 refuted, as expected:** base quick calls −0.29 [−0.66, +0.08].
+- Mechanism, the same as on SQL: where the quick calls pass and the peer disagrees, base ones are right 31.0% of the time against
+  SB 44.0% / T 42.2%, trained ones 41.2% against 44.6% / 42.2%. An untrained quick answer there should be replaced; a trained one is
+  worth a vote, and the fitted policy uses it.
+- Size: about half the BFCL exploration's (+0.98) and at 1.9× the cascade's tokens; the target's own labels give no more (+0.16).
+- Related work: Jitkrittum et al. (NeurIPS 2023, "When does confidence-based cascade deferral suffice?") show the optimal two-model
+  deferral rule needs both models' correctness, and deferring on the first model alone fails when the later model is not uniformly
+  better. Here training the first model is what makes the later one no longer uniformly better on the disagreement stratum. Cascade-
+  aware training (Wang et al. 2024, arXiv 2406.00060) instead adapts the small model to the cascade; on our tasks training for the
+  cascade's reward lost to plain RL (TCRL 2/3, C1w), and refitting the rule after plain training is what pays.
+Decision (registered rule): for trained quick answers the method becomes the policy fitted once on the task's public labelled
+benchmarks; the cascade stays for untrained ones. Goal link: training the quick answer for correctness and then refitting how its
+calls are combined gives the cheapest exact answers on new data; the gain is small (+0.5 to +1.0) and token-costly.
