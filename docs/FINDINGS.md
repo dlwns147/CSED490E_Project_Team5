@@ -4952,3 +4952,17 @@ queries; the right one is among them in 60% of these BIRD dev cells, d is right 
 Decision (registered): the verifier's selection is the SQL cascade's last step for base and trained N; PROJECT, REPORT, PROPOSAL
 updated; SEL-TC (tool calls) running. Goal link: exact answers at no extra output tokens — the one stratum the cheap checks could not
 resolve is now resolved with labels used only in training, and the SQL claim moves from "an option" to "beats the default".
+
+## 2026-11-01 18:4x UTC: SEL-TC (pre-registered): the same verifier on tool calls chooses right abstentions over invented calls; +1.08 / +1.68 over the cascade, more than the fitted call policy
+Why: RV on BFCL — label-free scores prefer a wrong call that copies the request's values over a right abstention (AUROC 0.48); TC-RL
+showed labels can teach when not to call.
+- Qwen3-8B + LoRA, SEL's pairwise loss on 1,267 ToolACE training requests with a right and a wrong passing answer; checkpoint by
+  held-out ToolACE AUROC (s150, 0.793; untrained 0.487; s100 an unexplained chance-level checkpoint the choice discarded).
+- **P1, P2b, P2t, P4 hold; P3 refuted** (trained cell 0.73 from the bound). BFCL AUROC 0.837 / 0.800 (base / trained quick calls),
+  selector − cascade +1.08 [+0.78, +1.41] / +1.68 [+1.17, +2.24], both above TL's fitted policy (−0.11 / +1.04), no output tokens.
+- Whole pipeline − default: +1.94 [+1.41, +2.46] (85.8% at 0.28k vs 83.9% at 0.38k) / +3.04 [+2.34, +3.72] (86.9% at 0.27k).
+- Mechanism: of the changed answers, right abstentions over placeholder-filled calls dominate (base 82 of 128 gains; trained 223 vs 54);
+  on calls differing in an optional argument it is at chance (trained 71 vs 64).
+Decision (registered): the verifier joins the tool-call method; SEL-TC2 (TL's planner with the verifier at its stop vs SEL-TC's
+pipeline) is pre-registered and running. SEL-W (word problems, VER's programs with SEL's loss) is running. Goal link: the stratum the
+cheap checks cannot resolve is now resolved on two task types with labels used only in training.

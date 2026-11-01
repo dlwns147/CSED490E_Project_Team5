@@ -33,7 +33,8 @@ beats the no-label default on text-to-SQL (+2.0 utility, BIRD dev) and tool call
 Where the cheap checks disagree and two or three passing SQL queries remain, a verifier trained on BIRD-train labels for the
 within-question contrast chooses among them (AUROC 0.82 on BIRD dev; label-free scores 0.50) and adds +0.9 to +2.0 in all six cells at
 no output tokens, as a pre-registered bound predicted from its AUROC; with it the untrained peer cascade also beats the default on SQL
-(61.1% at 1.39k tokens vs 59.5% at 1.68k on BIRD dev; Spider test 78.9% at 0.47k vs 76.2% at 1.08k; SEL).
+(61.1% at 1.39k tokens vs 59.5% at 1.68k on BIRD dev; Spider test 78.9% at 0.47k vs 76.2% at 1.08k; SEL). The same recipe on tool
+calls (ToolACE training labels, BFCL) adds +1.08 / +1.68 over the cascade, mostly by choosing a right abstention (SEL-TC).
 Where the check is perfect (Lean proofs) the
 rule becomes "sample cheaply, then think"; where it leaks, it bounds label-free self-training as it bounds the recipe.
 
@@ -674,7 +675,11 @@ verifier learned is partly BIRD's output convention — on (right, wrong) pairs 
 right, as "fewer columns first" would — and partly content: on pairs with the same columns it still orders 71–75% right on BIRD dev
 and Spider dev (61–62% on Spider test). Unlike GradeSQL's gain from 32 samples, more candidates are not the lever here: 13 more
 stored quick queries per fallback add a right candidate in only 1.5% of the cells, so the room is in the answers the cascade has
-already paid for.
+already paid for. On tool calls (SEL-TC, pre-registered) the same recipe on 1,267 ToolACE training requests reaches 0.84 / 0.80 on
+BFCL (label-free 0.48) and adds +1.08 / +1.68 over the cascade — more than the call policy fitted on the same held-out requests (−0.11 /
++1.04) and at no output tokens; the pipeline is 85.8% / 86.9% accurate at 0.27–0.28k tokens against the default's 83.9% at 0.38k. Of
+the answers it changes, most are a right abstention chosen over a call filled with values the request never gave ("Your Starting
+City"); on calls that differ in an optional argument it is at chance.
 
 ## 6.5 Relation to prior work (what is new here)
 Escalating from a cheap answer to a stronger one when a check fails is established for cascades *between models* (answer consistency,
