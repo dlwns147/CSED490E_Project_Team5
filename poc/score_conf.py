@@ -134,7 +134,10 @@ def main_sel():
         rows = [r for r in req if r["sset"] == sset]
         with ThreadPoolExecutor(8) as ex:
             res = dict(zip([r["h"] for r in rows], ex.map(lambda r: run_query(P[sset][r["id"]]["db_id"], r["text"], 30.0), rows)))
-        print(f"sel {sset}: {len(rows)} queries run, {sum(v[0] == 'pass' for v in res.values())} pass", flush=True)
+        bad = [r for r in rows if res[r["h"]][0] != "pass"]   # every candidate passed its 30 s check once: again alone, 120 s
+        for r in bad:
+            res[r["h"]] = run_query(P[sset][r["id"]]["db_id"], r["text"], 120.0)
+        print(f"sel {sset}: {len(rows)} queries run, {sum(v[0] == 'pass' for v in res.values())} pass ({len(bad)} run again alone)", flush=True)
         for nm in names:
             out = f"{ROOT}/results/conf/sel_scores_{nm}.jsonl"
             done = {r["h"] for r in _rows(out)}

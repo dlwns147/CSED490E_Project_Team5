@@ -4,6 +4,15 @@ State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Tea
 (/NAS/SJ/POSTECH/nlp, 8 × RTX PRO 6000 Blackwell, GPUs 0–3) was stopped on 2026-10-20 04:2x UTC; no job is running there.
 
 ## 0. Status on the Slurm cluster (updated 2026-10-27 16:3x UTC)
+- **Running (11-01 13 UTC; PREREG_LCM.md addenda RV2 and SEL):** RV2 = Qwen3.5-9B's channel scores, job 1293926 (`rv_q35`: lane.sh
+  `--vllm '--max-model-len 20480 --language-model-only --max-num-seqs 32 --max-num-batched-tokens 1056' --frac 0.88` Qwen/Qwen3.5-9B, `CONF_LIMIT=40
+  RV_KINDS=rev RV_SUFFIX=_q35 $P poc/score_conf.py rv && RV_KINDS=rev RV_SUFFIX=_q35 $P poc/score_conf.py rv`; the first try 1293239 died of
+  OOM in prompt log-probs over Qwen3.5's vocabulary with 2k-token prefill chunks); then `python3.11 poc/lcm_shift.py --rv > results/lcm_rv2.log`.
+  SEL = a verifier trained for the within-question contrast: pool jobs 1293989 / 1293990 (`selpool_q`, `selpool_sb`: `SQL_SPLIT=train
+  SQL_IDS=$POC_DATA/bird/sel_train_ids.txt SQL_ARMS=quick|sb run_sql.py q8bpool <s>`), then the chain 1294109 `sel_pool` (CPU, `cv_train.py orm
+  $POC_DATA/cv/sel --pool-only`) → 1294110 `sel_train` (`cv_train.py orm $POC_DATA/cv/sel`, log results/sql/run_cv_train_orm.log) → 1294111
+  `sel_score` (`poc/slurm/cv_eval_lane.sh orm $POC_DATA/cv/sel`: validation scores of every adapter, `lcm_shift.py --sel-val` choice, target
+  scores, `lcm_shift.py --sel` > results/lcm_sel.log). Each step runs after the previous ends (afterany): check each log.
 - **Done 10-25 → 10-27 (PREREG_HO / _HON / _DT / _MODEL; FINDINGS has one entry each):** HO-N4 (Nemotron-3-Nano, a new family:
   a leaky model), HO-SB / SB2 / SB3 / P4 (a 2k-token think first, full thinking on a visible failure, is the fix for leaky models and the
   best no-label default), HO-CM (with the check given to thinking too, the best policy is short think → think → retry), HO-SB4 (the first

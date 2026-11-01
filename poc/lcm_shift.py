@@ -743,6 +743,8 @@ def main_sel():
             _, _, itr, _ = sel_items(sset, nsrc, SR, "rev")
             ids, n = sorted(D), 3 * len(D)
             a, ar = sel_auc(it), sel_auc(itr)
+            if not a:
+                print(f"    SEL {tname} {name}: no scored mixed set (missing scores {miss})", flush=True); continue
             A = ci(a)
             dA = ci({i: a[i] - ar[i] for i in a if i in ar})
             sel, r1, alone, cross, unseen = Counter(), Counter(), Counter(), Counter(), 0
@@ -770,6 +772,8 @@ def main_sel():
                   f"structure keep d) - cascade {f(r['sel'])}; cross-fitted Bayes {f(r['cross'])}; bound at the measured AUROC Bayes "
                   f"{100 * pb / n:+.2f}, R1 {100 * p1 / n:+.2f}; R1 with the verifier {f(c3(r1))}; verifier alone {f(c3(alone))}; "
                   f"verifier prefill {pre:.0f} tokens per question-seed", flush=True)
+    if len(R) < 6:
+        print(f"*** {len(R)} of 6 cells present, not decided"); return
     for name, tag in (("base", "SEL-P2b"), ("trained", "SEL-P2t")):
         X = [R[(name, t)] for _, t in SEL_T]
         up, down = sum(r["sel"][1] > 0 for r in X), sum(r["sel"][2] < 0 for r in X)
