@@ -1091,3 +1091,22 @@ scores: the 3,837 passing texts outside RV's cells (mostly the planner's extra t
 **Decision.** P2 holds for an N type → the tool-call method for it is the planner with the verifier at its stop; refuted → the cascade
 with the verifier at its fallback (SEL-TC's pipeline), which needs no planner and no extra calls; PROJECT, REPORT and PROPOSAL state
 the tool-call method accordingly.
+
+## Addendum SEL-G: SEL's verifier at the other generators' SQL fallback (written 2026-11-01 18:5x UTC, before any of their candidates is scored; 17,698 requests built, 5,090 already scored by SEL; the analysis was run only on synthetic scores)
+
+**Why.** SEL's verifier was trained on Qwen3-8B's and Qwen3.5-9B's candidates and tested where Qwen3-8B generates. The SQL claim
+covers other generators (XG, FINAL: Qwen3-14B-AWQ, Qwen3.5-9B, gpt-oss-20b), whose fallback cells hold as much room (+4.2 to +7.8 points:
+a right passing query among N, P, d that d misses; stored rows). Whether the selection step is part of the SQL method for any generator
+or only Qwen3-8B's is the claim's scope; gpt-oss-20b writes queries in another family's style the verifier never saw.
+
+**Cells.** Generators Qwen3-14B-AWQ (peer Qwen3.5-9B), Qwen3.5-9B (peer Qwen3-8B), gpt-oss-20b (peer Qwen3.5-9B) — the pre-registered
+peers (PEER); N, SB, T the generator's own; BIRD dev, Spider test, Spider dev. Verifier: SEL's checkpoint s125, no new training. π on
+the generator's 1,338 fresh BIRD-train questions (labels), β on its fallback cells of the 343 held-out-database ones, as SEL.
+
+**Predictions** (paired 95% intervals over questions):
+- **SEL-G-P1 (decision):** selector − cascade, lower bound > 0 in ≥ 2 of 3 targets and upper bound < 0 in none, for ≥ 2 of 3 generators.
+- **SEL-G-P2:** BIRD dev within-question AUROC ≥ 0.70 for every generator.
+- Expected: AUROC 0.72–0.82 for the Qwen generators, 0.65–0.80 for gpt-oss-20b; gains +1 to +3 (the room is larger than Qwen3-8B's).
+
+**Decision.** P1 holds → the verifier step is part of the SQL method for any of these generators (scope stated per generator where
+P1 fails for one); P1 refuted → the step is stated for Qwen3-8B only, with the generators where it fails and their AUROCs.

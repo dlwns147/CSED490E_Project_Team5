@@ -355,15 +355,16 @@ def rv_key(task, sset, i, kind, text):
     return hashlib.sha1(json.dumps([task, sset, i, kind, text]).encode()).hexdigest()[:20]
 
 
-def rv_texts(task, sset, nsrc):
-    """{(call type, seed, id): the answer's text}: SQL the extracted query (prep_sql.extract), tool calls the graded calls"""
+def rv_texts(task, sset, nsrc, gen="q8b", peer="q35"):
+    """{(call type, seed, id): the answer's text}: SQL the extracted query (prep_sql.extract), tool calls the graded calls; gen / peer
+    (SQL, addendum SEL-G): the generator whose quick query, short think and think are N, SB, T, and the peer"""
     from run_nlopt import _rows
     R, out = os.path.join(lcm.ROOT, "results", task), {}
     if task == "sql":
         from prep_sql import extract
         suf = {"dev": "", "spider": "sp", "spiderdev": "sd", "fresh": "pa"}[sset]   # fresh: SEL's validation questions
-        for t, tag, a, fld in (("N", nsrc or "q8b", "cheap", "n_text"), ("P", "q35", "cheap", "n_text"), ("SB", "q8b", "sb", "text"),
-                               ("T", "q8b", "think", "text")):
+        for t, tag, a, fld in (("N", nsrc or gen, "cheap", "n_text"), ("P", peer, "cheap", "n_text"), ("SB", gen, "sb", "text"),
+                               ("T", gen, "think", "text")):
             for s in (1, 2, 3):
                 for r in _rows(f"{R}/{tag}{suf}_{a}_s{s}.jsonl"):
                     out[(t, s, r["id"])] = extract(r.get(fld) or "")
@@ -384,18 +385,18 @@ def rv_texts(task, sset, nsrc):
     return out
 
 
-def rv_items(task, sset, nsrc):
+def rv_items(task, sset, nsrc, gen="q8b", peer="q35"):
     """(questions, [(id, seed, {answer key: [right, (calls returning it), [texts]]}, fallback right)]): the cascade's question-seeds where
     N passed, P did not return the same answer, and N, P and the fallback d (SB if it passes, else T, else the retry T) give >= 2
     distinct passing answers"""
     k = {"nsrc": nsrc} if nsrc else {}
     if task == "sql":
-        D = quiet(lcm.load, "sql", "q8b", "q35", sset, **k)
+        D = quiet(lcm.load, "sql", gen, peer, sset, **k)
     else:
         nl, lv = quiet(lcm.load, "tc", "q8b", "q35", "non-live", **k), quiet(lcm.load, "tc", "q8b", "q35", "live", **k)
         assert not set(nl) & set(lv)
         D = {**nl, **lv}
-    X, out = rv_texts(task, sset, nsrc), []
+    X, out = rv_texts(task, sset, nsrc, gen, peer), []
     for i, q in D.items():
         for s in (1, 2, 3):
             N, P, SB, T, T2 = lcm.seed_calls(q, s)
@@ -637,9 +638,9 @@ def main_sel_build():
     print(f"SEL build: {len(req)} requests -> results/conf/sel_req.jsonl")
 
 
-def sel_items(sset, nsrc, S, kind="sel"):
+def sel_items(sset, nsrc, S, kind="sel", gen="q8b", peer="q35"):
     """RV's items with each candidate as {r: right, calls, s: its mean score over its texts}; items missing a score are dropped"""
-    D, items = rv_items("sql", sset, nsrc)
+    D, items = rv_items("sql", sset, nsrc, gen, peer)
     out, miss = [], 0
     for i, sd, cand, dr in items:
         C = []
@@ -1286,7 +1287,104 @@ def main_sel_tc2():
               f"{'holds' if R[k]['sel'][1] > 0 else 'refuted'}")
 
 
+SELG_GEN = ("q14a", "q35", "oss20")   # addendum SEL-G: other generators of the SQL cascade, each with its pre-registered peer (PEER)
+
+
+def main_sel_build_g():
+    """addendum SEL-G: the candidates of the other generators' SQL fallback cells -> results/conf/sel_req_g.jsonl"""
+    req, val = {}, sel_val_ids()
+    for gen in SELG_GEN:
+        for sset in ("fresh",) + tuple(x for x, _ in SEL_T):
+            D, items = rv_items("sql", sset, None, gen, PEER[gen])
+            for i, s, cand, dr in items:
+                if sset == "fresh" and i not in val:
+                    continue
+                for r, calls, texts in cand.values():
+                    for t in set(texts):
+                        h = rv_key("sql", sset, i, "sel", t)
+                        req[h] = {"h": h, "task": "sql", "sset": sset, "id": i, "kind": "sel", "text": t}
+            print(f"SEL-G build {gen}<-{PEER[gen]} {sset}: {len(items)} multi-answer fallback question-seeds; requests so far {len(req)}",
+                  flush=True)
+    with open(os.path.join(lcm.ROOT, "results", "conf", "sel_req_g.jsonl"), "w") as f:
+        for r in req.values():
+            f.write(json.dumps(r) + "\n")
+    print(f"SEL-G build: {len(req)} requests -> results/conf/sel_req_g.jsonl")
+
+
+def main_sel_g():
+    """addendum SEL-G (--sel-g <SEL's checkpoint>): SEL's verifier and selector (pi on the generator's fresh questions, beta on the
+    held-out-database ones) at the SQL fallback of Qwen3-14B-AWQ, Qwen3.5-9B and gpt-oss-20b (SEL-G-P1, P2)"""
+    from analyze_ho3 import ci
+    from run_nlopt import _rows
+    nm = sys.argv[sys.argv.index("--sel-g") + 1]
+    S = {r["h"]: r for r in _rows(os.path.join(lcm.ROOT, "results", "conf", f"sel_scores_{nm}.jsonl"))}
+    val = sel_val_ids()
+    g = lambda v: f"{v[0]:.3f} [{v[1]:.3f}, {v[2]:.3f}]"
+    f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
+    U = lambda r, t: 100 * float(r) - LAM * t / 1000
+    R = {}
+    for gen in SELG_GEN:
+        peer = PEER[gen]
+        _, _, fr, _ = sel_items("fresh", None, S, "sel", gen, peer)
+        fval = [x for x in fr if x[0] in val]
+        _, allfr = rv_items("sql", "fresh", None, gen, peer)
+        choose, beta = sel_fit([(i, s, [{"r": c[0], "calls": c[1], "s": 0.0} for c in cand.values()], dr) for i, s, cand, dr in allfr], fval)
+        av = ci(sel_auc(fval)) if fval else (float("nan"),) * 3
+        for sset, tname in SEL_T:
+            D, raw, it, miss = sel_items(sset, None, S, "sel", gen, peer)
+            ids, n = sorted(D), 3 * len(D)
+            a = sel_auc(it)
+            if not a:
+                print(f"    SEL-G {tname} {gen}: no scored mixed set (missing {miss})", flush=True); continue
+            A = ci(a)
+            sel, cross, pipe, casc, unseen, ch = Counter(), Counter(), Counter(), Counter(), 0, {}
+            for x in it:
+                c = choose(x)
+                unseen += c is None
+                sel[x[0]] += (c["r"] if c else x[3]) - x[3]
+                ch[(x[0], x[1])] = c["r"] if c else x[3]
+            for h in (0, 1):
+                half = [x for x in it if zlib.crc32(x[0].encode()) % 2 == h]
+                chh, _ = sel_fit(half, half)
+                for x in it:
+                    if zlib.crc32(x[0].encode()) % 2 != h:
+                        c = chh(x)
+                        cross[x[0]] += (c["r"] if c else x[3]) - x[3]
+            acc = tok = acc0 = tok0 = 0
+            for i, q in D.items():
+                for sd in (1, 2, 3):
+                    sc = lcm.seed_calls(q, sd)
+                    r, t = lcm.fixed("cascade", sc); r0, t0 = lcm.fixed("SB->T->T", sc)
+                    r2 = ch.get((i, sd), r)
+                    pipe[i] += (U(r2, t) - U(r0, t0)) / 300; casc[i] += (U(r, t) - U(r0, t0)) / 300
+                    acc += r2; tok += t; acc0 += r0; tok0 += t0
+            c3 = lambda d: ci({i: d[i] / 3 for i in ids})
+            pb, _ = rv_gauss(raw, A[0] / 100)
+            R[(gen, tname)] = r = dict(A=A, sel=c3(sel), cross=c3(cross), bound=100 * pb / n)
+            print(f"    SEL-G {tname} {gen}<-{peer}: {len(raw)} fallback question-seeds of {n}, missing scores {miss}; AUROC {g([x / 100 for x in A])} "
+                  f"(held-out-database fresh {av[0] / 100:.3f}); selector (beta {beta:.1f}; {unseen} unseen structures keep d) - cascade "
+                  f"{f(r['sel'])}; cross-fitted Bayes {f(r['cross'])}; bound {100 * pb / n:+.2f}; pipeline {100 * acc / n:.1f}% at "
+                  f"{tok / n / 1000:.2f}k vs SB->T->T {100 * acc0 / n:.1f}% at {tok0 / n / 1000:.2f}k: pipeline - SB->T->T {f(ci(pipe))} "
+                  f"(cascade alone {f(ci(casc))})", flush=True)
+    if len(R) < 3 * len(SELG_GEN):
+        print(f"*** {len(R)} of {3 * len(SELG_GEN)} cells present, not decided"); return
+    hold = []
+    for gen in SELG_GEN:
+        X = [R[(gen, t)] for _, t in SEL_T]
+        up, down = sum(r["sel"][1] > 0 for r in X), sum(r["sel"][2] < 0 for r in X)
+        hold.append(up >= 2 and down == 0)
+        print(f"    SEL-G-P1 {gen}: {up} above, {down} below -> {'holds' if hold[-1] else 'refuted'}")
+    print(f"*** SEL-G-P1 (selector - cascade lower bound > 0 in >= 2 of 3 targets and upper < 0 in none, for >= 2 of 3 generators): "
+          f"{sum(hold)} of 3 -> {'holds' if sum(hold) >= 2 else 'refuted'}")
+    p2 = [R[(gen, "BIRD dev")]["A"][0] / 100 for gen in SELG_GEN]
+    print(f"*** SEL-G-P2 (BIRD dev AUROC >= 0.70 for every generator): {[round(x, 3) for x in p2]} -> {'holds' if min(p2) >= 0.70 else 'refuted'}")
+
+
 def main():
+    if "--sel-build-g" in sys.argv:
+        return main_sel_build_g()
+    if "--sel-g" in sys.argv:
+        return main_sel_g()
     if "--sel-build-tc2" in sys.argv:
         return main_sel_build_tc2()
     if "--sel-tc2" in sys.argv:
