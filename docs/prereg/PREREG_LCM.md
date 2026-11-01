@@ -235,3 +235,12 @@ peer, two more peers' quick queries, SB, T, retry T) against the same planner ov
 **Decision.** B2-P1 holds: more peers carry information the cascade cannot use; a multi-peer policy (its size reported, with the extra
 resident models as its cost) is the next method step. Refuted: quick queries of other models do not lift SQL's limit, and the cascade
 with one peer is where these signals stop.
+
+### Results, addendum B2 (written 2026-11-01 00:4x UTC; `results/lcm_bound_b2.log`; CPU job 1290891)
+Seven-call planner (N, three peers' quick queries, SB, T, retry T) − five-call planner: −2.71 to +0.18; better in 0 of 12, worse in 6
+(all four fresh-question cells, −1.8 to −2.7, and gpt-oss-20b dev −2.45, Qwen3-14B-AWQ Spider −0.87). Seven-call planner − cascade:
+better in 1 of 12 (Spider Qwen3-8B +1.09 [+0.11, +2.08]), worse in 5. **B2-P1 and B2-P2 refuted.** Reading: the supervised planner is
+estimated from the patterns of 1,300–1,700 labelled questions per half; with two more calls the patterns multiply and the estimate
+gets worse out of sample, so whatever information the extra quick queries carry is not usable at these sample sizes (the same caveat
+makes B an estimate of the limit, not the limit). **Decision (as pre-registered).** Other models' quick queries do not lift SQL's
+limit here; the one-peer cascade is where these signals stop. A new signal for SQL has to be of another kind than one more quick answer.

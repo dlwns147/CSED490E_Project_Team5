@@ -4767,3 +4767,9 @@ development cells and +0.5 to +0.9 on Spider — the cascade is at the informati
 tool calls (+3.2 / +4.5) and word problems (up to +11), where LCM-3 gains (+2.7 to +10.1 in five word cells). Decision: the cascade
 stays the method; on SQL further gains need new signals, not a better decision rule. Goal link: the cheapest exact SQL answers are
 already what these five calls allow; a derived policy pays only where the fixed rule fits the model badly.
+
+## 2026-11-01 00:4x UTC: B2 (pre-registered): more peers' quick queries do not lift SQL's limit
+The supervised planner over seven calls (two more models' quick queries) does worse out of sample than over five in 6 of 12 SQL cells
+and better in none; against the cascade it gains in 1 of 12. With 1,300–1,700 labelled questions per half the extra calls add
+patterns faster than information. Decision: the one-peer cascade is where quick-answer signals stop on SQL; a new signal has to be of
+another kind.
