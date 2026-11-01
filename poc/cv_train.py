@@ -15,7 +15,11 @@ SEL_POOL's stored candidates on the questions of SEL_IDS, run once (--pool-only,
 the distinct passing results, right = gold result; questions with a right and a wrong one. Score s = logit(ACCEPT) - logit(DE) after
 turn 2 (the query as the answer, then its result); loss per question = mean over (right, wrong) result pairs of log(1 + exp(s_w - s_r)),
 two passes (scores without gradient, then the exact gradient); adapters every --save steps.
-usage: /opt/conda/bin/python cv_train.py <cv|c1|c1w|c2|orm> <out dir> [--questions 6000] [--batch 64] [--group 8] [--lr 2e-5] [--smoke N]
+pw (PREREG_LCM.md addendum SEL-PW): the same pool and questions, a pairwise verifier: one user turn holds the question's prompt without
+its instruction, two passing queries with their results (as turn 2 shows them) and "Which query answers the question? Reply A or B.";
+s = logit(A) - logit(B) of the next token; per question up to --pairs (right, wrong) result pairs drawn per epoch, each shown in both
+orders, loss = mean of log(1 + exp(-y s)), y = +1 where A is the right one; one pass (the contexts' losses are independent).
+usage: /opt/conda/bin/python cv_train.py <cv|c1|c1w|c2|orm|pw> <out dir> [--questions 6000] [--batch 64] [--group 8] [--lr 2e-5] [--smoke N]
   (POC_BASE_URL: a vLLM server started with --enable-lora and VLLM_ALLOW_RUNTIME_LORA_UPDATING=True; SQL_SPLIT=train is set here)"""
 import hashlib, json, math, os, random, sqlite3, sys, time, urllib.request
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
@@ -62,6 +66,23 @@ def turn2(n, cols, first):
     rows = "\n".join("\t".join(r)[:300] for r in first)
     return (f"Running your query returned {n} row{'' if n == 1 else 's'}. The first {len(first)}:\n" + "\t".join(cols)[:300] + f"\n{rows}\n\n"
             "Does this result answer the question? Reply ACCEPT or DEFER.")
+
+
+PW_ASK = "Which query answers the question? Reply A or B."
+
+
+def pw_prompt(user, a, b):
+    """addendum SEL-PW: the question's prompt without its instruction, then two candidate queries, each with its result as turn 2 shows
+    it, then PW_ASK; a, b = (query, column names, row count, first 5 rows)"""
+    from prep_sql import ASK
+    body = user[:-len(ASK)].rstrip() if user.endswith(ASK) else user.rstrip()
+
+    def show(t, x):
+        q, cols, n, first = x
+        rows = "\n".join("\t".join(r)[:300] for r in first)
+        return (f"Query {t}:\n```sql\n{q}\n```\nIt returned {n} row{'' if n == 1 else 's'}. The first {len(first)}:\n"
+                + "\t".join(cols)[:300] + f"\n{rows}")
+    return f"{body}\n\nTwo SQLite queries were written for this question.\n\n{show('A', a)}\n\n{show('B', b)}\n\n{PW_ASK}"
 
 
 def run_query(db, sql, timeout):
@@ -352,11 +373,80 @@ def main_orm(out):
     print("done", out, step, "steps", flush=True)
 
 
+def main_pw(out):
+    """addendum SEL-PW: the pairwise verifier (see the docstring)"""
+    os.makedirs(out, exist_ok=True)
+    C = sel_pool(out, int(os.environ.get("CV_WORKERS", 4)))
+    B, lr, ep, save, smoke, K = arg("--batch", 16), arg("--lr", 5e-5), arg("--epochs", 2), arg("--save", 25), arg("--smoke", 0), arg("--pairs", 4)
+    items = {p["id"]: p for p in map(json.loads, open(ITEMS)) if p["id"] in C}
+    Q = []
+    for i, cs in C.items():
+        g = {}
+        for q, c, h, cols, n, first in cs:
+            if c == "pass":
+                g.setdefault(h, []).append((q, cols, n, first))
+        r = [h for h in g if h == items[i]["gold_h"]]
+        w = [h for h in g if h != items[i]["gold_h"]]
+        if r and w:
+            Q.append((i, {h: g[h] for h in r}, {h: g[h] for h in w}))
+    Q.sort()
+    random.Random(0).shuffle(Q)
+    Q = Q[:smoke or len(Q)]
+    print(f"pw: {len(Q)} questions with a right and a wrong passing result (of {len(C)}); up to {K} pairs per question in both orders; "
+          f"batch {B}, lr {lr}, epochs {ep}", flush=True)
+    pol = Policy(arg("--base", "/SSD/huggingface/Qwen/Qwen3-8B"), lr)
+    pol.acc, pol.de = pol.tok.convert_tokens_to_ids("A"), pol.tok.convert_tokens_to_ids("B")
+    assert None not in (pol.acc, pol.de) and pol.acc != pol.de and pol.tok.unk_token_id not in (pol.acc, pol.de), (pol.acc, pol.de)
+    torch = pol.torch
+    log = open(f"{out}/log.jsonl", "a")
+    step = 0
+    for e in range(ep):
+        rng = random.Random(1000 + e)
+        order = Q[:]
+        rng.shuffle(order)
+        for a0 in range(0, len(order), B):
+            t0, st = time.time(), {"loss": 0.0, "ok": 0.0, "q": 0, "ctx": 0}
+            batch = order[a0:a0 + B]
+            for i, R, W in batch:
+                p = items[i]
+                prs = [(hr, hw) for hr in R for hw in W]
+                prs = rng.sample(prs, min(K, len(prs)))
+                ctxs, y = [], []
+                for hr, hw in prs:
+                    xr, xw = rng.choice(R[hr]), rng.choice(W[hw])
+                    for A, Bq, lab in ((xr, xw, 1.0), (xw, xr, -1.0)):
+                        ctxs.append(pol.ids([{"role": "user", "content": pw_prompt(p["user"], A, Bq)}])); y.append(lab)
+                from prep_sql import ASK
+                body = p["user"][:-len(ASK)].rstrip() if p["user"].endswith(ASK) else p["user"].rstrip()
+                P = pol.ids([{"role": "user", "content": body}])
+                kv = pol.prefix(P[:-1])
+                for sub, x in pol.gate_p(kv, P, ctxs, logit=True):
+                    yy = torch.tensor([y[b] for b in sub], device="cuda")
+                    lo = torch.nn.functional.softplus(-yy * x)
+                    (lo.sum() / len(ctxs) / len(batch)).backward()
+                    st["loss"] += lo.detach().sum().item() / len(ctxs)
+                    st["ok"] += ((yy * x.detach() > 0).float() + 0.5 * (x.detach() == 0).float()).sum().item() / len(ctxs)
+                st["q"] += 1; st["ctx"] += len(ctxs)
+                del kv
+            pol.step()
+            step += 1
+            rec = {"step": step, "epoch": e + 1, "questions": st["q"], "contexts": st["ctx"], "loss": st["loss"] / st["q"],
+                   "ctx_acc": st["ok"] / st["q"], "t": round(time.time() - t0)}
+            log.write(json.dumps(rec) + "\n"); log.flush()
+            print(json.dumps(rec), flush=True)
+            if step % save == 0:
+                pol.model.save_pretrained(f"{out}/adapter_s{step}")
+    pol.model.save_pretrained(f"{out}/adapter_final")
+    print("done", out, step, "steps", flush=True)
+
+
 def main():
     arm, out = sys.argv[1], sys.argv[2]
-    assert arm in ("cv", "c1", "c1w", "c2", "orm"), arm
+    assert arm in ("cv", "c1", "c1w", "c2", "orm", "pw"), arm
     if arm == "orm":
         return main_orm(out)
+    if arm == "pw":
+        return main_pw(out)
     nq, B, G, lr, smoke = arg("--questions", 6000), arg("--batch", 64), arg("--group", 8), arg("--lr", 2e-5), arg("--smoke", 0)
     base = arg("--base", "/SSD/huggingface/Qwen/Qwen3-8B")
     os.makedirs(out, exist_ok=True)

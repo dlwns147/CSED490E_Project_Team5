@@ -6,6 +6,31 @@
 # `local`) scores the fresh held-out-database candidates; the best adapter by that AUROC (lcm_shift.py --sel-val) and `local` then score the
 # targets, and lcm_shift.py --sel decides. SEL_PREFIX names the adapters (default sel; the smoke: another prefix and SEL_LOCAL=0).
 # poc/slurm/cv_eval_lane.sh orm-tc <out dir>: the same for addendum SEL-TC (held-out ToolACE for the choice, BFCL; prefix seltc).
+# poc/slurm/cv_eval_lane.sh pw <out dir>: addendum SEL-PW — train the pairwise verifier (cv_train.py pw on SEL's pool, copied), then every
+# adapter and the untrained model (local) score the fresh held-out-database pairs (results/conf/sel_req_pw.jsonl, lcm_shift.py
+# --sel-build-pw), lcm_shift.py --sel-val-pw chooses, the choice and local score the targets, lcm_shift.py --sel-pw decides.
+# PW_SMOKE=1: 32 questions, 2 steps (1 epoch), prefix selpwsmk, 30 requests per name and set.
+#   sbatch -J selpw -x n19,n22,n24,n26 poc/slurm/job.sh "bash poc/slurm/cv_eval_lane.sh pw /NAS/SJ/POSTECH/nlp_data/cv/selpw"
+if [ "$1" = pw ]; then
+  out=$2
+  if [ "${PW_SMOKE:-0}" = 1 ]; then pre=selpwsmk tr="--smoke 32 --epochs 1 --save 2" lim=30; else pre=selpw tr="" lim=1000000000; fi
+  mkdir -p $out; [ -f $out/pool.jsonl ] || cp /NAS/SJ/POSTECH/nlp_data/cv/sel/pool.jsonl $out/ || exit 1
+  [ -f $out/adapter_final/adapter_config.json ] || /opt/conda/bin/python poc/cv_train.py pw $out $tr >> results/sql/run_${pre}_train.log 2>&1 \
+    || exit 1
+  mods="" names=""
+  for d in $out/adapter_*; do n=${pre}_${d##*/adapter_}; mods="$mods $n=$d"; names="$names,$n"; done
+  export VLLM_ALLOW_RUNTIME_LORA_UPDATING=True
+  S=$(bash poc/start_server.sh /SSD/huggingface/Qwen/Qwen3-8B $PORT 0 0.90 ${pre}_${SLURM_JOB_ID} --max-model-len 16384 --enable-lora \
+    --max-lora-rank 16 --max-loras 4 --max-cpu-loras 16 --max-num-seqs 64 --lora-modules $mods) || exit 1
+  export POC_BASE_URL=http://127.0.0.1:$PORT/v1 SEL_REQ=sel_req_pw.jsonl
+  SEL_SSETS=fresh CONF_LIMIT=$lim /opt/conda/bin/python poc/score_conf.py sel local$names >> results/run_${pre}_score.log 2>&1 || { kill $S; exit 1; }
+  best=$(/opt/conda/bin/python poc/lcm_shift.py --sel-val-pw local$names | tee -a results/lcm_${pre}_val.log \
+    | sed -n 's/^\*\*\* SEL-PW checkpoint[^:]*: //p')
+  echo "[$pre $(date -u '+%F %T')] chosen: $best" >> results/run_${pre}_score.log
+  SEL_SSETS=dev,spider,spiderdev CONF_LIMIT=$lim /opt/conda/bin/python poc/score_conf.py sel $best,local >> results/run_${pre}_score.log 2>&1
+  /opt/conda/bin/python poc/lcm_shift.py --sel-pw $best > results/lcm_${pre}.log 2>&1
+  kill $S; sleep 10; exit 0
+fi
 if [ "$1" = orm-tc ]; then
   out=$2 pre=${SEL_PREFIX:-seltc}
   mods="" names=""

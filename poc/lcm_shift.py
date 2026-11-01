@@ -791,6 +791,200 @@ def main_sel():
     print(f"*** cross-fitted Bayes lower bound > 0 in {cr} of 6 cells")
 
 
+def main_sel_build_pw():
+    """addendum SEL-PW: every ordered pair of distinct passing answers in SEL's cells, one query per answer (the first call's in the order
+    N, P, d) -> results/conf/sel_req_pw.jsonl (text = query A, text2 = query B)"""
+    req, val = {}, sel_val_ids()
+    for sset in ("fresh",) + tuple(x for x, _ in SEL_T):
+        for nsrc in (None, RV_N["sql"]):
+            D, items = rv_items("sql", sset, nsrc)
+            for i, s, cand, dr in items:
+                if sset == "fresh" and i not in val:
+                    continue
+                reps = [texts[0] for r, calls, texts in cand.values()]
+                for a in reps:
+                    for b in reps:
+                        if a != b:
+                            h = rv_key("sql", sset, i, "pw", [a, b])
+                            req[h] = {"h": h, "task": "sql", "sset": sset, "id": i, "kind": "pw", "text": a, "text2": b}
+            print(f"SEL-PW build {sset} {nsrc or 'base'}: {len(items)} multi-answer fallback question-seeds; requests so far {len(req)}",
+                  flush=True)
+    with open(os.path.join(lcm.ROOT, "results", "conf", "sel_req_pw.jsonl"), "w") as f:
+        for r in req.values():
+            f.write(json.dumps(r) + "\n")
+    print(f"SEL-PW build: {len(req)} requests -> results/conf/sel_req_pw.jsonl")
+
+
+def pw_items(sset, nsrc, S, gen="q8b", peer="q35"):
+    """sel_items for SEL-PW: candidate a's s = the mean over the other candidates b of (s(a, b) - s(b, a)) / 2, the order-debiased
+    log-odds that a is the right one of the two; pre = the prefill of the ordered pairs a heads (summed over a: every pair once)"""
+    D, items = rv_items("sql", sset, nsrc, gen, peer)
+    out, miss = [], 0
+    for i, sd, cand, dr in items:
+        V = list(cand.values())
+        reps = [v[2][0] for v in V]
+        C = []
+        for a in range(len(V)):
+            d, pre = [], 0
+            for b in range(len(V)):
+                if a != b:
+                    x, y = S.get(rv_key("sql", sset, i, "pw", [reps[a], reps[b]])), S.get(rv_key("sql", sset, i, "pw", [reps[b], reps[a]]))
+                    if x is None or y is None:
+                        d = None; break
+                    d.append((x["s"] - y["s"]) / 2); pre += x.get("pre", 0)
+            if d is None:
+                C = None; break
+            C.append({"r": V[a][0], "calls": V[a][1], "s": sum(d) / len(d), "pre": pre})
+        if C is None:
+            miss += 1; continue
+        out.append((i, sd, C, dr))
+    return D, items, out, miss
+
+
+def ncols(q):
+    """the number of top-level items in the query's first SELECT list (string literals blanked; SEL's mechanism split)"""
+    import re
+    q = re.sub(r"'[^']*'", "''", q)
+    m = re.search(r"\bselect\b", q, re.I)
+    if not m:
+        return 0
+    d, n, i = 0, 1, m.end()
+    while i < len(q):
+        ch = q[i]
+        if ch == "(":
+            d += 1
+        elif ch == ")":
+            d -= 1
+        elif d == 0 and ch == ",":
+            n += 1
+        elif d == 0 and re.match(r"\s(from)\b", q[i:i + 6], re.I):
+            break
+        i += 1
+    return n
+
+
+def main_sel_pw():
+    """addendum SEL-PW. --sel-val-pw n1,n2,...: pooled within-question AUROC of each pairwise checkpoint (and the untrained model, local,
+    reported) on the fresh held-out-database questions and the choice. --sel-pw <name>: the targets, against SEL's pointwise verifier
+    (sel_s125) on the same question-seeds (SEL-PW-P1..P4)"""
+    from analyze_ho3 import ci
+    from run_nlopt import _rows
+    cd = os.path.join(lcm.ROOT, "results", "conf")
+    load = lambda nm: {r["h"]: r for r in _rows(os.path.join(cd, f"sel_scores_{nm}.jsonl"))}
+    val = sel_val_ids()
+    g = lambda v: f"{v[0] / 100:.3f} [{v[1] / 100:.3f}, {v[2] / 100:.3f}]"
+    f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
+    if "--sel-val-pw" in sys.argv:
+        best = None
+        for nm in sys.argv[sys.argv.index("--sel-val-pw") + 1].split(","):
+            S, pooled, per = load(nm), {}, {}
+            for nsrc in (None, RV_N["sql"]):
+                _, _, it, miss = pw_items("fresh", nsrc, S)
+                a = sel_auc([x for x in it if x[0] in val])
+                per[nsrc or "base"] = ci(a) if a else (float("nan"),) * 3
+                for i, v in a.items():
+                    pooled.setdefault(i, []).append(v)
+            if not pooled:
+                print(f"SEL-PW val {nm}: no scored mixed set", flush=True); continue
+            pa = ci({i: sum(v) / len(v) for i, v in pooled.items()})
+            print(f"SEL-PW val {nm}: AUROC base {g(per['base'])}, trained {g(per['q8bcvc1'])}, pooled {g(pa)} ({len(pooled)} questions)",
+                  flush=True)
+            if nm != "local" and (best is None or pa[0] > best[1]):
+                best = (nm, pa[0])
+        print(f"*** SEL-PW checkpoint (highest pooled held-out-database AUROC): {best[0]}")
+        return
+    nm = sys.argv[sys.argv.index("--sel-pw") + 1]
+    S, ST = load(nm), load("sel_s125")
+    SL = load("local") if os.path.exists(os.path.join(cd, "sel_scores_local.jsonl")) else {}
+    R, pool = {}, {}
+    for nsrc in (None, RV_N["sql"]):
+        name = "trained" if nsrc else "base"
+        Dp, allfr = rv_items("sql", "fresh", nsrc)
+        prior = [(i, s, [{"r": c[0], "calls": c[1], "s": 0.0} for c in cand.values()], dr) for i, s, cand, dr in allfr]
+        cw, bw = sel_fit(prior, [x for x in pw_items("fresh", nsrc, S)[2] if x[0] in val])
+        ct, bt = sel_fit(prior, [x for x in sel_items("fresh", nsrc, ST)[2] if x[0] in val])
+        for sset, tname in SEL_T:
+            D, raw, itw, missw = pw_items(sset, nsrc, S)
+            _, _, itt, misst = sel_items(sset, nsrc, ST)
+            kw, kt = {(x[0], x[1]): x for x in itw}, {(x[0], x[1]): x for x in itt}
+            keys = sorted(set(kw) & set(kt))
+            if not keys:
+                print(f"    SEL-PW {tname} {name}: no scored question-seed (missing pairwise {missw}, pointwise {misst})", flush=True); continue
+            itw, itt = [kw[k] for k in keys], [kt[k] for k in keys]
+            aw, at = sel_auc(itw), sel_auc(itt)
+            Aw, At = ci(aw), ci(at)
+            dA = {i: aw[i] - at[i] for i in aw if i in at}
+            ids, n = sorted(D), 3 * len(D)
+            sw, stt, cross, unseen = Counter(), Counter(), Counter(), 0
+            for x in itw:
+                c = cw(x); unseen += c is None
+                sw[x[0]] += (c["r"] if c else x[3]) - x[3]
+            for x in itt:
+                c = ct(x)
+                stt[x[0]] += (c["r"] if c else x[3]) - x[3]
+            for h in (0, 1):
+                half = [x for x in itw if zlib.crc32(x[0].encode()) % 2 == h]
+                ch, _ = sel_fit(half, half)
+                for x in itw:
+                    if zlib.crc32(x[0].encode()) % 2 != h:
+                        c = ch(x)
+                        cross[x[0]] += (c["r"] if c else x[3]) - x[3]
+            c3 = lambda d: ci({i: d.get(i, 0) / 3 for i in ids})
+            pb, _ = rv_gauss(raw, Aw[0] / 100)
+            txt = {(i, s): [v[2][0] for v in cand.values()] for i, s, cand, _ in raw}
+            mech = {"same": {}, "diff": {}}   # per question: pairwise - pointwise ordering of (right, wrong) pairs, by output columns
+            for (xw, xt) in zip(itw, itt):
+                nc = [ncols(t) for t in txt[(xw[0], xw[1])]]
+                Cw, Ct = xw[2], xt[2]
+                for a in range(len(Cw)):
+                    for b in range(len(Cw)):
+                        if Cw[a]["r"] and not Cw[b]["r"]:
+                            o = lambda C: (C[a]["s"] > C[b]["s"]) + 0.5 * (C[a]["s"] == C[b]["s"])
+                            mech["same" if nc[a] == nc[b] else "diff"].setdefault((name, xw[0]), []).append((o(Cw), o(Ct)))
+            al = ""
+            if SL:
+                _, _, itl, _ = pw_items(sset, nsrc, SL)
+                if itl:
+                    al = f"; untrained pairwise {ci(sel_auc(itl))[0] / 100:.3f}"
+            pre_w = sum(c["pre"] for x in itw for c in x[2]) / n
+            pre_t = sum(c["pre"] for x in itt for c in x[2]) / n
+            R[(name, tname)] = r = dict(Aw=Aw, At=At, dA=ci(dA), sw=c3(sw), st=c3(stt), d=c3({i: sw[i] - stt[i] for i in ids}),
+                                        cross=c3(cross), bound=100 * pb / n, mech=mech)
+            for k, v in (("dA", {(tname, i): x for i, x in dA.items()}), ("d", {(tname, i): (sw[i] - stt[i]) / 3 for i in ids})):
+                pool.setdefault((name, k), {}).update(v)
+            print(f"    SEL-PW {tname} {name}: {len(raw)} multi-answer fallback question-seeds, {len(keys)} scored by both (missing pairwise "
+                  f"{missw}, pointwise {misst}); within-question AUROC pairwise {g(Aw)}, pointwise {g(At)}, pairwise - pointwise "
+                  f"{g(ci(dA))}{al}; selector - cascade pairwise (beta {bw:.1f}; {unseen} unseen structures keep d) {f(r['sw'])}, pointwise "
+                  f"(beta {bt:.1f}) {f(r['st'])}; pairwise - pointwise selector {f(r['d'])}; cross-fitted Bayes (pairwise) "
+                  f"{f(r['cross'])}; bound at the pairwise AUROC {100 * pb / n:+.2f}; prefill per question-seed pairwise {pre_w:.0f}, "
+                  f"pointwise {pre_t:.0f} tokens", flush=True)
+    if len(R) < 6:
+        print(f"*** {len(R)} of 6 cells present, not decided"); return
+    p1, p2 = [], []
+    for name in ("base", "trained"):
+        dA, d = ci(pool[(name, "dA")]), ci(pool[(name, "d")])
+        print(f"    SEL-PW {name}, three targets pooled: pairwise - pointwise AUROC {g(dA)}; pairwise - pointwise selector {f(d)}")
+        p1.append(dA[1] > 0); p2.append((d[1] > 0, d[2] < 0))
+    print(f"*** SEL-PW-P1 (pairwise - pointwise AUROC, targets pooled, lower bound > 0 for both N types): {p1} -> "
+          f"{'holds' if all(p1) else 'refuted'}")
+    up, down = sum(a for a, _ in p2), sum(b for _, b in p2)
+    print(f"*** SEL-PW-P2 (pairwise - pointwise selector, targets pooled per N type: lower bound > 0 in >= 1 of 2, upper bound < 0 in none): "
+          f"{up} above, {down} below -> {'holds' if up >= 1 and down == 0 else 'refuted'}")
+    M = {k: {} for k in ("same", "diff")}
+    for name in ("base", "trained"):
+        for k in M:
+            M[k].update(R[(name, "BIRD dev")]["mech"][k])
+    md = {k: ci({q: sum(a - b for a, b in v) / len(v) for q, v in M[k].items()}) for k in M}
+    ns = {k: sum(len(v) for v in M[k].values()) for k in M}
+    print(f"    SEL-PW BIRD dev (right, wrong) pairs, pairwise - pointwise ordering, per question, N types pooled: same output columns "
+          f"{f(md['same'])} ({ns['same']} pairs), different {f(md['diff'])} ({ns['diff']} pairs)")
+    p3 = md["same"][0] >= 3 and md["same"][1] > 0 and abs(md["diff"][0]) <= 3
+    print(f"*** SEL-PW-P3 (same-column pairs >= +3 points with lower bound > 0, different-column pairs within 3): -> {'holds' if p3 else 'refuted'}")
+    p4 = sum(abs(r["cross"][0] - r["bound"]) <= 0.7 for r in R.values())
+    print(f"*** SEL-PW-P4 (cross-fitted Bayes within 0.7 of the bound at the pairwise AUROC in >= 4 of 6): {p4} -> "
+          f"{'holds' if p4 >= 4 else 'refuted'}")
+
+
 TC_HO_N = {None: "hoq8b", "q8btcc1": "hoq8btcc1"}   # SEL-TC: the held-out ToolACE quick calls of each N type
 
 
@@ -1613,6 +1807,10 @@ def main_sel_2():
 
 
 def main():
+    if "--sel-build-pw" in sys.argv:
+        return main_sel_build_pw()
+    if "--sel-pw" in sys.argv or "--sel-val-pw" in sys.argv:
+        return main_sel_pw()
     if "--sel-build-2" in sys.argv:
         return main_sel_build_2()
     if "--sel-2" in sys.argv:

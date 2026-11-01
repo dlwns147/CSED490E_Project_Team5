@@ -17,6 +17,8 @@ to the stored token count}. Rows resume.
           <name> (the server started with --enable-lora --lora-modules <name>=<dir>); s = logit(ACCEPT) - logit(DE) of the next token from
           the top-20 log-probs (a token outside them gets the 20th's log-prob). Rows {h, s, c: the check, pre: prompt tokens} ->
           results/conf/sel_scores_<name>.jsonl; SEL_SSETS=fresh: only the validation requests
+          SEL-PW (SEL_REQ=sel_req_pw.jsonl, kind pw): an ordered pair of queries (text, text2), both run, shown as cv_train.pw_prompt;
+          s = logit(A) - logit(B) from the top-20 log-probs, rows -> the same file pattern
 usage: POC_BASE_URL=... python score_conf.py <kind> <tag> [seeds ...]   (CONF_LIMIT=k: the first k rows per seed, the smoke)
        POC_BASE_URL=... python score_conf.py rv   (CONF_LIMIT=k: the first k requests)
        POC_BASE_URL=... python score_conf.py sel <name>[,<name> ...]"""
@@ -137,12 +139,14 @@ def main_sel():
         rows = [r for r in req if r["sset"] == sset]
         if sset in SEL_SPLIT:
             prep_sql.SPLIT = SEL_SPLIT[sset]
+            qs = sorted({(r["id"], t) for r in rows for t in (r["text"], r.get("text2")) if t is not None})   # SEL-PW: both queries
             with ThreadPoolExecutor(8) as ex:
-                res = dict(zip([r["h"] for r in rows], ex.map(lambda r: run_query(P[sset][r["id"]]["db_id"], r["text"], 30.0), rows)))
-            bad = [r for r in rows if res[r["h"]][0] != "pass"]   # every candidate passed its 30 s check once: again alone, 120 s
-            for r in bad:
-                res[r["h"]] = run_query(P[sset][r["id"]]["db_id"], r["text"], 120.0)
-            print(f"sel {sset}: {len(rows)} queries run, {sum(v[0] == 'pass' for v in res.values())} pass ({len(bad)} run again alone)",
+                rq = dict(zip(qs, ex.map(lambda x: run_query(P[sset][x[0]]["db_id"], x[1], 30.0), qs)))
+            bad = [x for x in qs if rq[x][0] != "pass"]   # every candidate passed its 30 s check once: again alone, 120 s
+            for x in bad:
+                rq[x] = run_query(P[sset][x[0]]["db_id"], x[1], 120.0)
+            res = {r["h"]: rq[(r["id"], r["text"])] for r in rows}
+            print(f"sel {sset}: {len(qs)} queries run, {sum(v[0] == 'pass' for v in rq.values())} pass ({len(bad)} run again alone)",
                   flush=True)
         else:
             if sset in SEL_ITEMS:
@@ -163,6 +167,15 @@ def main_sel():
                     lse = lambda w: math.log(sum(math.exp(v) for k, v in top if k.strip().lower() == w) or math.exp(lo))
                     return {"h": r["h"], "s": round(lse("yes") - lse("no"), 4), "c": c, "pre": o.usage.prompt_tokens}
                 p = P[sset][r["id"]]
+                if r.get("kind") == "pw":
+                    from cv_train import pw_prompt
+                    c2, _, cols2, n2, first2 = rq[(r["id"], r["text2"])]
+                    o = client.chat.completions.create(model=nm, messages=[{"role": "user", "content": pw_prompt(
+                        p["user"], (r["text"], cols, n, first), (r["text2"], cols2, n2, first2))}], max_tokens=1, temperature=0, logprobs=True,
+                        top_logprobs=20, extra_body={"chat_template_kwargs": {"enable_thinking": False}})
+                    top = {t.token: t.logprob for t in o.choices[0].logprobs.content[0].top_logprobs}
+                    lo = min(top.values())
+                    return {"h": r["h"], "s": round(top.get("A", lo) - top.get("B", lo), 4), "c": [c, c2], "pre": o.usage.prompt_tokens}
                 if sset in SEL_SPLIT:
                     m = [{"role": "user", "content": p["user"]}, {"role": "assistant", "content": f"```sql\n{r['text']}\n```"},
                          {"role": "user", "content": turn2(n, cols, first)}]
@@ -176,7 +189,7 @@ def main_sel():
                 return {"h": r["h"], "s": round(top.get("ACCEPT", lo) - top.get("DE", lo), 4), "c": c, "pre": o.usage.prompt_tokens}
             n, err = 0, 0
             with open(out, "a") as f, ThreadPoolExecutor(int(os.environ.get("CONF_POOL", 32))) as ex:
-                for fu in [ex.submit(one, r) for r in rows if r["h"] not in done][:int(os.environ.get("CONF_LIMIT", 10 ** 9))]:
+                for fu in [ex.submit(one, r) for r in [r for r in rows if r["h"] not in done][:int(os.environ.get("CONF_LIMIT", 10 ** 9))]]:
                     try:
                         f.write(json.dumps(fu.result()) + "\n"); f.flush(); n += 1
                     except Exception as e:

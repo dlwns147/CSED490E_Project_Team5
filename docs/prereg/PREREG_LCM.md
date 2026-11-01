@@ -1226,3 +1226,107 @@ the planner never saw takes SEL's outcome. Compared with SEL's pipeline (the cas
   on SQL (B, TL), and most of what it would add, the verifier already takes from the three answers the cascade paid for.
 - **Decision (registered):** SEL's pipeline (the cascade with the verifier at its fallback) stays the SQL method. With SEL-TC2 the
   rule is: gather more answers only where answers are cheap relative to the room they open (tool calls), else choose among those paid for.
+
+## Results of addendum SEL-W (written 2026-11-01 22:0x UTC; `results/lcm_selw_val.log`, `results/lcm_selw.log`; job 1296091: 130 training steps on the 1,029 of 4,000 OptMATH-Train problems with a right and a wrong passing value, 2,516 values; every candidate scored, none failed; raw cases `nlp_data/scratch/selw_raw.py`, `selw_who.py`, `selw_size.py`, `selw_perset.py`, `selw_review.py`)
+
+**Choices on the development sets** (pooled within-question AUROC, 156 problems): V0 (untrained) 0.654 [0.591, 0.714], V1 (VER's
+pointwise adapter) 0.666 [0.605, 0.726]; V2's checkpoints s25 0.682, **s50 0.702 [0.642, 0.760] (chosen)**, s75 0.683, s100 0.694,
+s125 0.693, final 0.699. The method's arm: V2.
+
+| target, N | AUROC V0 / V1 / V2 | V2 selector − cascade | V0 selector − cascade | the prior alone − cascade | cross-fitted (V2) | bound (V2) | pipeline − SB→T→T (cascade alone) |
+|---|---|---|---|---|---|---|---|
+| OptiBench's other 403, Qwen3-8B | 0.661 / 0.638 / 0.693 | +0.41 [−0.41, +1.24] | +0.50 [−0.33, +1.32] | +0.08 | +0.25 | +0.84 | +1.36 [+0.25, +2.51] (+0.94) |
+| MAMO, Qwen3-8B | 0.648 / 0.703 / 0.620 | +0.46 [−0.15, +1.08] | +0.50 [−0.15, +1.12] | +0.19 | +0.12 | +0.80 | +4.83 [+3.63, +6.06] (+4.37) |
+| OptiBench's other 403, Qwen3-14B-AWQ | 0.643 / 0.653 / 0.638 | −0.00 [−1.16, +1.24] | +0.17 [−0.99, +1.32] | −0.25 | −0.00 | +0.48 | +0.48 [−0.85, +1.91] (+0.48) |
+| MAMO, Qwen3-14B-AWQ | 0.686 / 0.675 / 0.664 | +1.16 [+0.19, +2.12] | +1.16 [+0.15, +2.16] | +0.85 | +1.31 | +1.49 | +5.56 [+4.10, +7.15] (+4.40) |
+
+(158–253 multi-answer fallback problem-seeds per cell, none missing a score; β 0.4–0.5; the verifier's prefill 235–255 tokens per
+problem-seed.)
+
+- **SEL-W-P1 refuted:** V2 − V1 target AUROC, pooled, −0.025 [−0.071, +0.022]. **P2 refuted** (1 of 4 above, 0 below). **P3 holds**
+  (4 of 4 within 0.7 of the bound). **P4 refuted** (1 of 4). **P5 refuted** (selector − the prior alone +0.29 [−0.13, +0.76] for
+  Qwen3-8B, +0.29 [−0.05, +0.63] for Qwen3-14B-AWQ). The target AUROCs (0.62–0.70) fell below the expected 0.68–0.82 for every arm.
+- **It is not transfer:** per set, V2 orders right above wrong at 0.60 on OptMATH, the benchmark of its own training programs' kind
+  (V1 0.71, V0 0.57), 0.72 / 0.77 / 0.81 on OptiBench's third / BWOR / LogiOR, about what the untrained model does there (0.69 / 0.73 /
+  0.80). Training pairs reached 94–100% (memorised). A single forward pass does not learn this contrast from 1,029 problems at all, on
+  the training distribution or off it.
+- **What the wrong passing values are** (`selw_raw.py`; V2 puts a wrong value first in 30 of 107 mixed OptiBench cells and 66 of 167
+  MAMO cells for Qwen3-8B): data transcription (gpt-oss-20b's diet program keeps each food's main nutrient only; the carpenter department
+  given all 120 employees' hours instead of 60; two 9 × 9 capacity matrices that differ in a few cells) and readings of a constraint
+  (|x − 2y| ≤ 500 against a one-sided limit; "at least 1,000 cars of a type if it is produced" as either-or against ≥ 1,000 of each).
+  Checking either needs the numbers or the statement re-read, not a convention: unlike SQL's wrong queries (extra output columns, which
+  a verifier learns at 79–94%), nothing recurs across problems. Pair accuracy falls only weakly with the problem's size (targets: 71% on
+  problems with ≤ 15 numbers, 53–66% above; the development sets show no trend) and with the size of the two programs' difference.
+- **Who is right in the cells** (`selw_who.py`): on the development sets N's value is right in 2–13% of the cells, so the choice is
+  between gpt-oss-20b's quick program and N's think; on MAMO N is right in 25%. A 2k-token thinking review of N's program (HO-VR's stored
+  verdicts, `selw_review.py`) flags 76% of N's wrong programs in these cells but also 41% of its right ones (13 of 32), and "N if the
+  review says CORRECT, else d" loses to d in all 6 development cells: thinking does not tell these values apart either.
+
+**Decision (registered, P1 refuted):** on word problems the loss is not what limits the verifier; with VER, the trained-verifier line
+on word problems closes. The contrast with SQL: SQL's wrong passing answers differ by conventions a verifier learns once (output
+columns, the join key), word problems' by transcriptions and readings specific to each problem. The word method stays XPEER's cascade
+(N → gpt-oss-20b's quick program agrees → N, else SB→T→T).
+
+**Baselines from stored rows (exploratory, decides nothing; `nlp_data/scratch/sql_vote.py`, `tc_vote.py`):** self-consistency over the
+quick answer, the standard alternative to thinking, saturates far below the method. Plurality of k of Qwen3-8B's 16 stored quick
+queries on BIRD dev: k = 1 46.0% at 0.07k tokens, k = 4 47.7% at 0.29k, k = 16 48.8% at 1.15k; a right query is among the 16 in only
+52.9% of questions, so best-of-16 with any verifier (GradeSQL's method at this generator) is ≤ 52.9%, against the SQL pipeline's
+61.1% at 1.39k. On BFCL: k = 16 77.9% at 0.43k (a right call among them 79.8%), against the tool-call pipeline's 86.6% at 0.48k
+(untrained quick calls). Samples of one model repeat its mistakes; the peer and the think add the answers sampling never reaches.
+
+**A label-free verifier is closed by its labels (stored rows, `nlp_data/scratch/sel_pseudo.py`):** on SEL's training pool, the
+questions with ≥ 2 distinct passing results (1,923 of 4,431) would need pseudo-labels; the plurality of the 11 pooled samples is right
+in 44.7% of those it labels (1,666), and in 420 of them the right result is present but outvoted; the result both Qwen generations
+produce most is right in 52.5%. A verifier trained on these would learn the models' shared conventions, which is what it must
+correct; not run.
+
+## Addendum SEL-PW: does the verifier choose better when it sees the alternative? (written 2026-11-01 22:0x UTC, before any pairwise training step or score; 14,478 ordered-pair requests built, the analysis run only on synthetic scores, `nlp_data/scratch/selpw_dry.py`)
+
+**Why.** Across SEL, SEL-TC, SEL-G and SEL-W the gain of choosing at the fallback is predicted by the bound at the verifier's
+within-question AUROC (P3 held in 5 of 6, 4 of 4 cells), so the AUROC is the lever: at 0.82 on BIRD dev the bound gives +2.1 of a
++5.0 room. SEL's pointwise verifier scores each query alone, s(a) = g(a, q), and orders a pair by g(a) − g(b). Where the two queries
+return different columns it is right 79–94% of the time, on pairs with the same columns 71–75% (BIRD dev, Spider dev) and 61–62%
+(Spider test): its errors are content (COUNT(DISTINCT) in a percentage, INTERSECT read as OR, a join through the wrong key). Whether a
+query is right often shows only against the alternative (the two differ in DISTINCT, and the question says "different"); a pairwise
+score s(a, b) can use the difference, a pointwise one must judge each query in full. Pointwise is the special case s(a, b) =
+g(a) − g(b). Related: CHASE-SQL (2410.01943) selects with a fine-tuned pairwise model, XiYan-SQL (2411.08599) listwise, R3-SQL (ACL
+2026) combines pairwise preferences with a pointwise utility, GradeSQL (2606.30851) pointwise; Pairwise RM (2501.13007) reports
+pairwise above pointwise reward models on MATH. No study holds the candidates, the backbone, the training questions and the loss
+fixed and changes only whether the verifier sees the alternative; pairwise selection is called costly for many candidates, but at the
+cascade's fallback there are two or three (2 or 6 ordered pairs).
+
+**Verifier.** Qwen3-8B + LoRA r 16 (CV-1's `Policy`), trained on SEL's pool and questions (the 1,320 BIRD-train questions with a right
+and a wrong passing result; labels of BIRD train only). Context (one user turn, `cv_train.pw_prompt`): the question's prompt without
+its instruction, "Two SQLite queries were written for this question.", query A and its result as turn 2 shows it (row count, columns,
+first 5 rows), the same for query B, "Which query answers the question? Reply A or B." s(a, b) = logit(A) − logit(B) of the next token.
+Per question and epoch up to 4 (right, wrong) result pairs are drawn (one query per result), each shown in both orders; loss = the
+mean of log(1 + exp(−y s)), y = +1 where A is right; batch 16 questions, lr 5e-5, 2 epochs, adapters every 25 steps (`cv_train.py pw`).
+At a fallback cell each answer is represented by the first call's query (order N, P, d), and answer a gets z-input
+s(a) = mean over the other answers b of (s(a, b) − s(b, a)) / 2 (order-debiased); the selector is SEL's (logit π(calls | structure)
++ β z, π and β fitted on the fresh BIRD-train questions as SEL). **Checkpoint:** the highest pooled within-question AUROC on the
+fresh questions of the 16 held-out training databases (as SEL; the untrained model with the same prompt, `local`, is reported).
+
+**Cells.** SEL's: BIRD dev, Spider test, Spider dev × N base (Qwen3-8B) or trained (C1); P = Qwen3.5-9B; SB, T = Qwen3-8B. The
+comparison is SEL's pointwise verifier (sel_s125) on the same question-seeds. Output tokens unchanged; prefill reported (pairwise:
+one prefill per ordered pair).
+
+**Predictions** (paired 95% intervals over questions):
+- **SEL-PW-P1 (the contrast helps):** pairwise − pointwise within-question AUROC, the three targets pooled, lower bound > 0 for both N
+  types.
+- **SEL-PW-P2 (decision):** pairwise selector − pointwise selector, the three targets pooled per N type, lower bound > 0 for at least
+  one N type and upper bound < 0 for none.
+- **SEL-PW-P3 (mechanism):** on BIRD dev's (right, wrong) pairs with the same number of output columns, pairwise − pointwise ordering
+  ≥ +3 points with lower bound > 0 (per question, N types pooled), and within ±3 points on pairs whose columns differ (the convention
+  both already see).
+- **SEL-PW-P4 (theory):** the pairwise selector's cross-fitted Bayes gain within 0.7 of the bound at its AUROC in ≥ 4 of 6 cells.
+- Expected: AUROC −0.03 to +0.05 against the pointwise 0.72–0.82 (the pairwise model sees twice the text from the same 1,320 questions;
+  whether 4 pairs per question are enough is open); selector difference −0.3 to +0.8. P2 is uncertain: a +0.03 AUROC moves the bound by
+  about +0.3.
+
+**Decision.**
+- P2 holds → the pairwise verifier replaces the pointwise one at the SQL fallback; PROJECT, REPORT and PROPOSAL updated; the same
+  change on tool calls (SEL-TC's pool) and on word problems (where single programs are not told apart, SEL-W, and a pairwise view
+  localises the difference) is pre-registered next.
+- P2 refuted, P1 holds → the contrast separates better but not enough to change the choice at two or three answers; stated.
+- P1 refuted → at this data size the verifier gains nothing from seeing the alternative; the pointwise verifier stays, stated against
+  CHASE-SQL / R3-SQL's claims (which change the candidates, the backbone or the data along with the format).
