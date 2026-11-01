@@ -13,6 +13,10 @@ State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Tea
   $POC_DATA/cv/sel --pool-only`) → 1294110 `sel_train` (`cv_train.py orm $POC_DATA/cv/sel`, log results/sql/run_cv_train_orm.log) → 1294111
   `sel_score` (`poc/slurm/cv_eval_lane.sh orm $POC_DATA/cv/sel`: validation scores of every adapter, `lcm_shift.py --sel-val` choice, target
   scores, `lcm_shift.py --sel` > results/lcm_sel.log). Each step runs after the previous ends (afterany): check each log.
+  SEL-TC (tool calls): pool job 1294810 (`taq8b_pool`: `TC_ITEMS=$POC_DATA/toolace/tc_train_items.jsonl TC_IDS=.../tc_train_ids.txt
+  TC_ARMS=quick run_tc.py taq8b <s>`, s 1–4; SB s1 was stored), then 1294857 `seltc_train` (`tc_train.py $POC_DATA/cv/seltc --orm`, log
+  results/tc/run_tc_train_orm.log) → 1294858 `seltc_score` (`cv_eval_lane.sh orm-tc $POC_DATA/cv/seltc`; requests
+  results/conf/sel_req_tc.jsonl from `lcm_shift.py --sel-build-tc`; `--sel-val-tc`, then `--sel-tc` > results/lcm_seltc.log).
 - **Done 10-25 → 10-27 (PREREG_HO / _HON / _DT / _MODEL; FINDINGS has one entry each):** HO-N4 (Nemotron-3-Nano, a new family:
   a leaky model), HO-SB / SB2 / SB3 / P4 (a 2k-token think first, full thinking on a visible failure, is the fix for leaky models and the
   best no-label default), HO-CM (with the check given to thinking too, the best policy is short think → think → retry), HO-SB4 (the first
