@@ -45,6 +45,18 @@ every step, so a visibly failed think is retried (HO-CM).
 
 ## 2. Main claim and where it stands
 
+**Where it stands, 2026-11-01 (one paragraph; details below).** On tasks whose answer can be executed (text-to-SQL, tool calls), the
+cheapest exact answers come from the quick answer, its free check, and a second model's quick answer: keep the quick answer when it
+passes and the other model returns the same result, else run the default (short think → think → retry). It beats that default, more
+accurate and cheaper, for Qwen and gpt-oss generators (BIRD, BFCL; XG), and on a benchmark never used for any decision (Spider test,
+4 of 5 tests under Holm; FINAL), and a quick query trained for correctness on BIRD makes it larger there (+3.8). It beats the standard
+one-model alternative, the answer's own token confidence, and agreement without the check (EXT). Two analyses bound it: a Bayes-optimal
+policy that knows the joint law of the five calls gains at most about a point over the cascade on SQL (B), so the cascade is at the
+information limit of its calls there, and more models' quick answers do not lift that limit (B2); and with no labels, unanimous
+agreement cannot be told from a shared mistake (LCM), which is why the second model must come from elsewhere and why a fitted policy
+needs labels. Where the fixed rule fits the model badly (hard word problems, a weak peer) a derived policy gains (up to +10). In agent
+loops the error check does not pay: thinking at every step is best (MT).
+
 **Restated 2026-10-25 (HO-CM):** the comparisons below were against *one* think given the same fact. Given the same free check too —
 think again when its program visibly fails (T→T) — thinking gains +2.5 to +12.3 points on the hard word problems at 105–164% of its
 tokens, and is more accurate than every cheap-first policy there for every model (e.g. gpt-oss-20b BWOR: fact-first −10.2 [−16.7,
