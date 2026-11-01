@@ -220,3 +220,18 @@ misspecification (they reach none of the small SQL room and lose more), and on S
 over the cascade with these five calls, and the derived planners do not reach it; on word problems and on Qwen3.5-9B's tool calls,
 where the cascade's fixed rule fits badly and there is room (B: up to +11), they gain (LCM-3: five word-problem cells +2.7 to +10.1,
 Qwen3.5-9B BFCL +1.2 / +1.7), which is reported as a finding, not adopted, since its confirmatory test (Spider) was on SQL.
+
+## Addendum B2: does a new signal lift SQL's information limit? (written 2026-11-01 00:4x UTC, before `lcm_bound.py --peers` has been run)
+
+**Why.** B says that on SQL no decision rule over the five calls gains much over the cascade; gains need new signals. The cheapest new
+signals already stored are two more models' quick queries on the same questions and seeds (Qwen3-8B, Qwen3-14B-AWQ, Qwen3.5-9B,
+gpt-oss-20b answer every SQL question at every seed). Earlier fixed rules that added a second peer lost (SQL-AND: a second check
+halves the useful agreement), but a fixed rule is not the limit. **Test.** B's supervised planner over seven calls (N, the cascade's
+peer, two more peers' quick queries, SB, T, retry T) against the same planner over the five, cross-fitted, on the 12 SQL cells
+(four generators × BIRD dev, the fresh questions, Spider; every peer row exists).
+**Predictions.**
+- **B2-P1:** seven-call planner − five-call planner: lower bound > 0 in ≥ 6 of 12.
+- **B2-P2:** seven-call planner − cascade: lower bound > 0 in ≥ 6 of 12.
+**Decision.** B2-P1 holds: more peers carry information the cascade cannot use; a multi-peer policy (its size reported, with the extra
+resident models as its cost) is the next method step. Refuted: quick queries of other models do not lift SQL's limit, and the cascade
+with one peer is where these signals stop.
