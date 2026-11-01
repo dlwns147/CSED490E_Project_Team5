@@ -70,10 +70,20 @@ def load_sql(gen, peer, suf, nsrc=None):
     return out
 
 
-def load_tc(gen, peer, split):
+def load_tc(gen, peer, split, nsrc=None):
+    """nsrc: the quick calls N from another tag (TC-RL's trained adapter, q8btcc1), SB and T from gen"""
     from analyze_tc import DATA, NONLIVE, load
     cats = {x["id"]: x["cat"] for x in (json.loads(l) for l in open(DATA))}
     DA, DP = {s: load(gen, s) for s in (1, 2, 3)}, {s: load(peer, s) for s in (1, 2, 3)}
+    if nsrc:
+        DN = {s: load(nsrc, s) for s in (1, 2, 3)}
+        if any(v is None for v in DN.values()):
+            return None
+        for s in (1, 2, 3):
+            G, C, T, SB = DA[s]
+            G = {i: {**{k: v for k, v in g.items() if k != "N"}, **({"N": DN[s][0][i]["N"]} if "N" in DN[s][0].get(i, {}) else {})}
+                 for i, g in G.items()}
+            DA[s] = (G, DN[s][1], T, SB)
     if any(v is None for v in list(DA.values()) + list(DP.values())):
         return None
     key = lambda x: None if x["chk"] == "fail" else json.dumps(x["calls"], sort_keys=True)
