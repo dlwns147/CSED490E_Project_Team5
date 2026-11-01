@@ -4987,3 +4987,10 @@ Why: SEL was trained on Qwen3-8B / Qwen3.5-9B candidates and tested at Qwen3-8B'
 - Pipeline − default +1.00 to +4.39 in every cell; Qwen3.5-9B on Spider test, where the cascade alone lost (−0.36), now gains (+1.00).
 Decision (registered): the verifier step is part of the SQL method for all four generators. Goal link: the selection step is not tied
 to the generator it was trained with.
+
+## 2026-11-01 19:4x UTC: SEL2 (pre-registered): on SQL the call policy adds nothing once the verifier chooses — the cascade with the verifier stays
+- TL's SQL planner with SEL's verifier at its stop − SEL's pipeline: −0.34 to +0.25 in all six cells (none significant), at 1.6–1.8× the
+  tokens; the verifier still adds +0.8 to +1.4 to the planner (P1b / P1t refuted).
+- Contrast with tool calls (SEL-TC2, +0.7): SQL thinks cost 1–2k tokens against 0.3k, and the extra answers raise accuracy by at most
+  +0.7. Gather more answers only where they are cheap relative to the room they open; else choose among those already paid for.
+Decision (registered): SQL method unchanged (cascade + verifier at its fallback).

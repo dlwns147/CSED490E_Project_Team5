@@ -1208,3 +1208,21 @@ the planner never saw takes SEL's outcome. Compared with SEL's pipeline (the cas
   (+1.00 [+0.08, +1.91]).
 - **Decision (registered):** the verifier step is part of the SQL method for every generator tested (Qwen3-8B, Qwen3-14B-AWQ,
   Qwen3.5-9B, gpt-oss-20b); PROJECT, REPORT and PROPOSAL state the scope.
+
+## Results of addendum SEL2 (written 2026-11-01 19:4x UTC; `results/lcm_sel2.log`; job 1296255, 3,725 new queries scored, none failed)
+
+| target, N | combined | planner alone | SEL's pipeline | default | combined − SEL's pipeline | combined − planner |
+|---|---|---|---|---|---|---|
+| BIRD dev, base | 61.8% @ 2.33k | 60.3% @ 2.33k | 61.1% @ 1.39k | 59.5% @ 1.68k | +0.25 [−0.67, +1.12] | +1.44 [+0.94, +1.96] |
+| Spider test, base | 78.8% @ 0.79k | 78.0% @ 0.79k | 78.9% @ 0.47k | 76.2% @ 1.08k | −0.18 [−0.68, +0.31] | +0.80 [+0.46, +1.17] |
+| Spider dev, base | 75.8% @ 1.05k | 74.9% @ 1.05k | 75.4% @ 0.57k | 73.8% @ 1.13k | +0.17 [−0.64, +0.97] | +0.85 [+0.33, +1.38] |
+| BIRD dev, trained | 62.4% @ 2.27k | 61.4% @ 2.27k | 62.2% @ 1.36k | 59.5% @ 1.68k | −0.17 [−0.92, +0.58] | +1.07 [+0.63, +1.53] |
+| Spider test, trained | 81.1% @ 0.74k | 80.2% @ 0.74k | 81.2% @ 0.44k | 76.2% @ 1.08k | −0.17 [−0.63, +0.35] | +0.94 [+0.56, +1.38] |
+| Spider dev, trained | 77.9% @ 0.98k | 76.6% @ 0.98k | 78.1% @ 0.54k | 73.8% @ 1.13k | −0.34 [−1.12, +0.43] | +1.34 [+0.73, +2.08] |
+
+- **SEL2-P1b and P1t refuted** (0 above, 0 below in each). The verifier again adds to the planner (+0.80 to +1.44), but the planner's
+  extra calls add nothing to the verifier: its thinks buy −0.2 to +0.7 accuracy points at +0.3 to +0.9k tokens, and on SQL a think costs
+  1–2k tokens (on tool calls 0.3k), so the answers it adds are not worth their price. The planner's own gain over the cascade is small
+  on SQL (B, TL), and most of what it would add, the verifier already takes from the three answers the cascade paid for.
+- **Decision (registered):** SEL's pipeline (the cascade with the verifier at its fallback) stays the SQL method. With SEL-TC2 the
+  rule is: gather more answers only where answers are cheap relative to the room they open (tool calls), else choose among those paid for.
