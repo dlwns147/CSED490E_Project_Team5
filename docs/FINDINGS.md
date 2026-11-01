@@ -4993,4 +4993,7 @@ to the generator it was trained with.
   tokens; the verifier still adds +0.8 to +1.4 to the planner (P1b / P1t refuted).
 - Contrast with tool calls (SEL-TC2, +0.7): SQL thinks cost 1–2k tokens against 0.3k, and the extra answers raise accuracy by at most
   +0.7. Gather more answers only where they are cheap relative to the room they open; else choose among those already paid for.
+- Cheap candidates do not open room either (stored rows, exploratory, `nlp_data/scratch/third_cov.py`): a third model's quick query
+  (Qwen3-14B-AWQ, Llama-3.1-8B, Nemotron, gpt-oss-20b, Qwen3-4B, the plan view) adds a right candidate where none of N, P, d had one in
+  0.9–3.3% of BIRD dev fallback cells (+0.3 to +1.0 points of room, of which the verifier takes about half); not run.
 Decision (registered): SQL method unchanged (cascade + verifier at its fallback).
