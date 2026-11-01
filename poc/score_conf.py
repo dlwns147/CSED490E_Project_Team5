@@ -120,32 +120,44 @@ def main_rv():
 SEL_ITEMS = {"dev": f"{PD}/bird/sql_items.jsonl", "spider": f"{PD}/bird/sql_spider_items.jsonl",
              "spiderdev": f"{PD}/bird/sql_spiderdev_items.jsonl", "fresh": f"{PD}/bird/sql_train_items.jsonl"}
 SEL_SPLIT = {"dev": "dev", "spider": "spider", "spiderdev": "spiderdev", "fresh": "train"}   # prep_sql's database directories
+SEL_ITEMS.update({"bfcl": f"{PD}/bfcl/tc_items.jsonl", "tcho": f"{PD}/toolace/tc_train_items.jsonl"})   # SEL-TC: BFCL; held-out ToolACE
 
 
 def main_sel():
+    """SEL (SQL ssets) and SEL-TC (bfcl, tcho: SEL_REQ=sel_req_tc.jsonl; the request, the calls' text, tc_train.TC_ASK; nothing run)"""
     import prep_sql
     from cv_train import run_query, turn2
     names = sys.argv[2].split(",")
     ssets = os.environ.get("SEL_SSETS", "fresh,dev,spider,spiderdev").split(",")
-    req = [r for r in _rows(f"{ROOT}/results/conf/sel_req.jsonl") if r["sset"] in ssets]
+    req = [r for r in _rows(f"{ROOT}/results/conf/{os.environ.get('SEL_REQ', 'sel_req.jsonl')}") if r["sset"] in ssets]
     P = {k: {p["id"]: p for p in map(json.loads, open(SEL_ITEMS[k]))} for k in ssets}
     for sset in ssets:   # run_query reads prep_sql.SPLIT: one split at a time
-        prep_sql.SPLIT = SEL_SPLIT[sset]
         rows = [r for r in req if r["sset"] == sset]
-        with ThreadPoolExecutor(8) as ex:
-            res = dict(zip([r["h"] for r in rows], ex.map(lambda r: run_query(P[sset][r["id"]]["db_id"], r["text"], 30.0), rows)))
-        bad = [r for r in rows if res[r["h"]][0] != "pass"]   # every candidate passed its 30 s check once: again alone, 120 s
-        for r in bad:
-            res[r["h"]] = run_query(P[sset][r["id"]]["db_id"], r["text"], 120.0)
-        print(f"sel {sset}: {len(rows)} queries run, {sum(v[0] == 'pass' for v in res.values())} pass ({len(bad)} run again alone)", flush=True)
+        if sset in SEL_SPLIT:
+            prep_sql.SPLIT = SEL_SPLIT[sset]
+            with ThreadPoolExecutor(8) as ex:
+                res = dict(zip([r["h"] for r in rows], ex.map(lambda r: run_query(P[sset][r["id"]]["db_id"], r["text"], 30.0), rows)))
+            bad = [r for r in rows if res[r["h"]][0] != "pass"]   # every candidate passed its 30 s check once: again alone, 120 s
+            for r in bad:
+                res[r["h"]] = run_query(P[sset][r["id"]]["db_id"], r["text"], 120.0)
+            print(f"sel {sset}: {len(rows)} queries run, {sum(v[0] == 'pass' for v in res.values())} pass ({len(bad)} run again alone)",
+                  flush=True)
+        else:
+            from tc_train import TC_ASK
+            res = {r["h"]: ("pass", None, [], 0, []) for r in rows}
         for nm in names:
             out = f"{ROOT}/results/conf/sel_scores_{nm}.jsonl"
             done = {r["h"] for r in _rows(out)}
 
             def one(r):
                 c, _, cols, n, first = res[r["h"]]
-                m = [{"role": "user", "content": P[sset][r["id"]]["user"]}, {"role": "assistant", "content": f"```sql\n{r['text']}\n```"},
-                     {"role": "user", "content": turn2(n, cols, first)}]
+                p = P[sset][r["id"]]
+                if sset in SEL_SPLIT:
+                    m = [{"role": "user", "content": p["user"]}, {"role": "assistant", "content": f"```sql\n{r['text']}\n```"},
+                         {"role": "user", "content": turn2(n, cols, first)}]
+                else:
+                    m = ([{"role": "system", "content": p["system"]}] if p.get("system") else []) + [
+                        {"role": "user", "content": p["user"]}, {"role": "assistant", "content": r["text"]}, {"role": "user", "content": TC_ASK}]
                 o = client.chat.completions.create(model=nm, messages=m, max_tokens=1, temperature=0, logprobs=True, top_logprobs=20,
                                                    extra_body={"chat_template_kwargs": {"enable_thinking": False}})
                 top = {t.token: t.logprob for t in o.choices[0].logprobs.content[0].top_logprobs}

@@ -790,7 +790,163 @@ def main_sel():
     print(f"*** cross-fitted Bayes lower bound > 0 in {cr} of 6 cells")
 
 
+TC_HO_N = {None: "hoq8b", "q8btcc1": "hoq8btcc1"}   # SEL-TC: the held-out ToolACE quick calls of each N type
+
+
+def tc_items(sset, nsrc):
+    """SEL-TC: (questions, [(id, seed, {key: [right, calls, [raw texts], [RV texts]]}, fallback right)]) on RV's fallback question-seeds;
+    sset bfcl (non-live + live, RV's texts too) or tcho (the 3,549 held-out ToolACE requests, TRT's set)"""
+    from run_nlopt import _rows
+    R = os.path.join(lcm.ROOT, "results", "tc")
+    if sset == "tcho":
+        D, X = quiet(lcm.load_tcho, TC_HO_N[nsrc]), {}
+        src = (("N", TC_HO_N[nsrc], "cheap", "n_text"), ("P", "hoq35", "cheap", "n_text"), ("SB", "hoq8b", "sb", "text"),
+               ("T", "hoq8b", "think", "text"))
+    else:
+        k = {"nsrc": nsrc} if nsrc else {}
+        D = {**quiet(lcm.load, "tc", "q8b", "q35", "non-live", **k), **quiet(lcm.load, "tc", "q8b", "q35", "live", **k)}
+        X = rv_texts("tc", "bfcl", nsrc)
+        src = (("N", nsrc or "q8b", "cheap", "n_text"), ("P", "q35", "cheap", "n_text"), ("SB", "q8b", "sb", "text"),
+               ("T", "q8b", "think", "text"))
+    W = {(t, s, r["id"]): (r.get(fld) or "").strip() for t, tag, a, fld in src for s in (1, 2, 3) for r in _rows(f"{R}/{tag}_{a}_s{s}.jsonl")}
+    out = []
+    for i, q in D.items():
+        for s in (1, 2, 3):
+            N, P, SB, T, T2 = lcm.seed_calls(q, s)
+            if not N[1] or (P[1] and P[0] is not None and P[0] == N[0]):
+                continue
+            dn, d, dk = ("SB", SB, ("SB", s)) if SB[1] else (("T", T, ("T", s)) if T[1] else ("T2", T2, ("T", s % 3 + 1)))
+            cand = {}
+            for nm, x, tk in (("N", N, ("N", s)), ("P", P, ("P", s)), (dn, d, dk)):
+                if x[1] and x[0] is not None:
+                    c = cand.setdefault(x[0], [bool(x[2]), (), [], []])
+                    c[1] += (nm,); c[2].append(W[(tk[0], tk[1], i)]); c[3].append(X.get((tk[0], tk[1], i)))
+            if len(cand) >= 2:
+                out.append((i, s, cand, bool(d[2])))
+    return D, out
+
+
+def main_sel_build_tc():
+    """addendum SEL-TC: the candidates to score -> results/conf/sel_req_tc.jsonl (held-out ToolACE for the checkpoint and beta; BFCL)"""
+    req = {}
+    for sset in ("tcho", "bfcl"):
+        for nsrc in (None, RV_N["tc"]):
+            D, items = tc_items(sset, nsrc)
+            for i, s, cand, dr in items:
+                for r, calls, texts, _ in cand.values():
+                    for t in set(texts):
+                        h = rv_key("tc", sset, i, "sel", t)
+                        req[h] = {"h": h, "task": "tc", "sset": sset, "id": i, "kind": "sel", "text": t}
+            print(f"SEL-TC build {sset} {nsrc or 'base'}: {len(D)} requests, {len(items)} multi-answer fallback request-seeds; "
+                  f"scoring requests so far {len(req)}", flush=True)
+    with open(os.path.join(lcm.ROOT, "results", "conf", "sel_req_tc.jsonl"), "w") as f:
+        for r in req.values():
+            f.write(json.dumps(r) + "\n")
+    print(f"SEL-TC build: {len(req)} requests -> results/conf/sel_req_tc.jsonl")
+
+
+def tc_sel_items(sset, nsrc, S, rev=None):
+    """tc_items with each candidate as sel_items' dict (s: the verifier's mean score over its raw texts; rev: RV's channel score)"""
+    D, raw = tc_items(sset, nsrc)
+    out, miss = [], 0
+    for i, sd, cand, dr in raw:
+        C = []
+        for r, calls, texts, shows in cand.values():
+            x = [S.get(rv_key("tc", sset, i, "sel", t)) for t in texts]
+            y = [rev.get(rv_key("tc", "bfcl", i, "rev", t)) for t in shows] if rev is not None else []
+            if any(v is None for v in x) or any(v is None for v in y):
+                C = None; break
+            C.append({"r": r, "calls": calls, "s": sum(v["s"] for v in x) / len(x), "pre": sum(v.get("pre", 0) for v in x),
+                      "rev": sum(v["s"] for v in y) / len(y) if y else None})
+        if C is None:
+            miss += 1; continue
+        out.append((i, sd, C, dr))
+    return D, [(i, s, {k: [v[0], v[1]] for k, v in c.items()}, dr) for i, s, c, dr in raw], out, miss
+
+
+def main_sel_tc():
+    """addendum SEL-TC. --sel-val-tc n1,n2,...: within-question AUROC of each checkpoint on the held-out ToolACE fallback sets (N types
+    pooled) and the choice; --sel-tc <name>: BFCL (SEL-TC-P1..P4)"""
+    from analyze_ho3 import ci
+    from run_nlopt import _rows
+    cd = os.path.join(lcm.ROOT, "results", "conf")
+    load = lambda nm: {r["h"]: r for r in _rows(os.path.join(cd, f"sel_scores_{nm}.jsonl"))}
+    g = lambda v: f"{v[0]:.3f} [{v[1]:.3f}, {v[2]:.3f}]"
+    f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
+    if "--sel-val-tc" in sys.argv:
+        best = None
+        for nm in sys.argv[sys.argv.index("--sel-val-tc") + 1].split(","):
+            S, per = load(nm), {}
+            for nsrc in (None, RV_N["tc"]):
+                _, _, it, miss = tc_sel_items("tcho", nsrc, S)
+                for i, v in sel_auc(it).items():
+                    per.setdefault(nsrc or "base", {})[i] = v; per.setdefault("pooled", {}).setdefault(i, []).append(v)
+            if not per.get("pooled"):
+                print(f"SEL-TC val {nm}: no scored mixed set", flush=True); continue
+            pa = ci({i: sum(v) / len(v) for i, v in per["pooled"].items()})
+            print(f"SEL-TC val {nm}: AUROC base {ci(per['base'])[0] / 100:.3f}, trained {ci(per['q8btcc1'])[0] / 100:.3f}, pooled "
+                  f"{g([x / 100 for x in pa])} ({len(per['pooled'])} requests)", flush=True)
+            if nm != "local" and (best is None or pa[0] > best[1]):
+                best = (nm, pa[0])
+        print(f"*** SEL-TC checkpoint (highest pooled held-out ToolACE AUROC): {best[0]}")
+        return
+    nm = sys.argv[sys.argv.index("--sel-tc") + 1]
+    S, SR = load(nm), {r["h"]: r for r in _rows(os.path.join(cd, "rv_scores.jsonl"))}
+    R = {}
+    for nsrc in (None, RV_N["tc"]):
+        name = "trained" if nsrc else "base"
+        _, raw_ho, ho, _ = tc_sel_items("tcho", nsrc, S)
+        prior = [(i, s, [{"r": c[0], "calls": c[1], "s": 0.0} for c in cand.values()], dr) for i, s, cand, dr in raw_ho]
+        choose, beta = sel_fit(prior, ho)
+        av = ci(sel_auc(ho))
+        D, raw, it, miss = tc_sel_items("bfcl", nsrc, S, SR)
+        ids, n = sorted(D), 3 * len(D)
+        a = sel_auc(it)
+        ar = sel_auc([(i, s, [dict(c, s=c["rev"]) for c in C], dr) for i, s, C, dr in it])
+        A, dA = ci(a), ci({i: a[i] - ar[i] for i in a if i in ar})
+        sel, r1, alone, cross, unseen = Counter(), Counter(), Counter(), Counter(), 0
+        for x in it:
+            i, _, C, dr = x
+            c = choose(x)
+            unseen += c is None
+            sel[i] += (c["r"] if c else dr) - dr
+            r1[i] += max(C, key=lambda c: (len(c["calls"]), c["s"]))["r"] - dr
+            alone[i] += max(C, key=lambda c: c["s"])["r"] - dr
+        for h in (0, 1):
+            half = [x for x in it if zlib.crc32(x[0].encode()) % 2 == h]
+            ch, _ = sel_fit(half, half)
+            for x in it:
+                if zlib.crc32(x[0].encode()) % 2 != h:
+                    c = ch(x)
+                    cross[x[0]] += (c["r"] if c else x[3]) - x[3]
+        c3 = lambda d: ci({i: d[i] / 3 for i in ids})
+        pb, p1 = rv_gauss(raw, A[0] / 100)
+        pre = sum(c["pre"] for x in it for c in x[2]) / n
+        R[name] = r = dict(A=A, dA=dA, sel=c3(sel), cross=c3(cross), bound=100 * pb / n, val=av)
+        print(f"    SEL-TC BFCL {name}: {len(raw)} multi-answer fallback request-seeds, missing scores {miss}; within-question AUROC verifier "
+              f"{g([x / 100 for x in A])} (rev {ci(ar)[0] / 100:.3f}; verifier - rev {g([x / 100 for x in dA])}; held-out ToolACE "
+              f"{av[0] / 100:.3f}); fitted selector (beta {beta:.1f}; {unseen} with an unseen structure keep d) - cascade {f(r['sel'])}; "
+              f"cross-fitted Bayes {f(r['cross'])}; bound Bayes {100 * pb / n:+.2f}, R1 {100 * p1 / n:+.2f}; R1 with the verifier "
+              f"{f(c3(r1))}; verifier alone {f(c3(alone))}; verifier prefill {pre:.0f} tokens per request-seed", flush=True)
+    if len(R) < 2:
+        print(f"*** {len(R)} of 2 cells present, not decided"); return
+    for name in ("base", "trained"):
+        r = R[name]
+        print(f"*** SEL-TC-P2{name[0]} (fitted selector - cascade lower bound > 0): {f(r['sel'])} -> {'holds' if r['sel'][1] > 0 else 'refuted'}")
+    p1 = [R[nm2]["dA"][1] > 0 for nm2 in ("base", "trained")]
+    print(f"*** SEL-TC-P1 (verifier - rev AUROC lower bound > 0, both N types): {p1} -> {'holds' if all(p1) else 'refuted'}")
+    p3 = sum(abs(r["cross"][0] - r["bound"]) <= 0.7 for r in R.values())
+    print(f"*** SEL-TC-P3 (cross-fitted Bayes within 0.7 of the bound, both): {p3} of 2 -> {'holds' if p3 == 2 else 'refuted'}")
+    p4 = [abs(R[nm2]["A"][0] - R[nm2]["val"][0]) / 100 for nm2 in ("base", "trained")]
+    print(f"*** SEL-TC-P4 (BFCL AUROC within 0.05 of held-out ToolACE's, both): {[round(x, 3) for x in p4]} -> "
+          f"{'holds' if max(p4) <= 0.05 else 'refuted'}")
+
+
 def main():
+    if "--sel-build-tc" in sys.argv:
+        return main_sel_build_tc()
+    if "--sel-tc" in sys.argv or "--sel-val-tc" in sys.argv:
+        return main_sel_tc()
     if "--sel-build" in sys.argv:
         return main_sel_build()
     if "--sel" in sys.argv or "--sel-val" in sys.argv:
