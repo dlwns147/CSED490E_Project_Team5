@@ -244,3 +244,22 @@ estimated from the patterns of 1,300–1,700 labelled questions per half; with t
 gets worse out of sample, so whatever information the extra quick queries carry is not usable at these sample sizes (the same caveat
 makes B an estimate of the limit, not the limit). **Decision (as pre-registered).** Other models' quick queries do not lift SQL's
 limit here; the one-peer cascade is where these signals stop. A new signal for SQL has to be of another kind than one more quick answer.
+
+## Addendum J: a signal of another kind — another model judging the quick query (written 2026-11-01 00:4x UTC, before any judge row exists)
+
+**Why.** B and B2: on SQL the cascade is at the information limit of its calls and more quick answers do not lift it; a new signal must
+be of another kind. A judge sees the question, the quick query and what running it returned, and says whether it answers the
+question — verification instead of a second generation. Related: LLM judges of text-to-SQL correctness without gold reach AUROC
+0.72–0.78 with GPT-4o-class models and 0.82 for a two-provider ensemble, beating self-consistency (What Predicts Correctness in
+Text-to-SQL?, arXiv 2607.06799); it does not ask whether a judge adds to an execution check and a peer, at matched cost, nor bound it.
+**Run.** Qwen3.5-9B as the judge (`poc/judge_sql.py`, thinking off, one token, P(yes) from the log-probs; only passing quick queries
+are judged) of Qwen3-8B's and Qwen3-14B-AWQ's stored quick queries on BIRD dev and Spider (4 cells, 3 seeds). **Analysis.** B's
+supervised planner over six calls (N, the peer's quick query, the judge's verdict on N as a non-answer observation, SB, T, retry T)
+against the five (`lcm_bound.py --judge q35`); the judge's AUROC on passing N; the judge cascade (N if it passes and the judge says
+yes, else SB→T→T). Costs: the judge's output is one token; its input (≈ the quick query's prompt plus the result) is reported.
+**Predictions.**
+- **J-P1:** six-call planner − five-call planner: lower bound > 0 in ≥ 2 of 4.
+- **J-P2:** the judge's AUROC on passing quick queries ≥ 0.70 in ≥ 3 of 4.
+- Reported: the judge cascade against the peer cascade; input tokens.
+**Decision.** J-P1 holds: a judge is a new signal that lifts SQL's limit, and the cascade with a judge (its rule derived by the
+planner) is pre-registered on Spider next. Refuted: at these model sizes a judge adds nothing usable to the execution check and the peer.

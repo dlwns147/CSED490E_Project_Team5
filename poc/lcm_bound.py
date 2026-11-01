@@ -7,7 +7,8 @@ executed on the other half (cross-fitting both ways). A question-seed that reach
 scored with the cascade's own outcome (counted and reported; it can only pull the planner toward the cascade). It is an estimate of the information limit of these five calls: if it cannot beat the cascade,
 no model-based planner can, and the cascade has used what the calls carry.
 usage: python3 lcm_bound.py <task> <generator> <peer> <set>   -> results/lcm_bound/<task>_<set>_<generator>_<peer>.json
-  B2: python3 lcm_bound.py sql <generator> - <dev|fresh|spider> --peers p1,p2,p3   (the first peer is the cascade's)"""
+  B2: python3 lcm_bound.py sql <generator> - <dev|fresh|spider> --peers p1,p2,p3   (the first peer is the cascade's)
+  J: python3 lcm_bound.py sql <generator> <peer> <dev|spider> --judge <name>   (poc/judge_sql.py's rows)"""
 import itertools, json, os, sys, zlib
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -117,8 +118,81 @@ def extra_calls(gen, peers, sset):
     return out
 
 
+def main_judge(gen, peer, sset, name):
+    """addendum J: the supervised planner over N, P, the judge's verdict on N (J; a non-answer observation, yes / no as its bit),
+    SB, T, retry T, against the same planner without J (B) and the cascade; the judge's AUROC on passing N"""
+    from analyze_ho3 import ci
+    from run_nlopt import _rows
+    suf = {"dev": "", "fresh": "pa", "spider": "sp"}[sset]
+    Q = lcm.load("sql", gen, peer, sset)
+    J = {s: {r["id"]: r for r in _rows(os.path.join(lcm.ROOT, "results", "sql", f"judge_{name}_{gen}{suf}_s{s}.jsonl"))} for s in (1, 2, 3)}
+    ids = sorted(i for i in Q if all(i in J[s] for s in (1, 2, 3)))
+    calls = {}
+    for i in ids:
+        calls[i] = {}
+        for s in (1, 2, 3):
+            N, P, SB, T, T2 = lcm.seed_calls(Q[i], s)
+            v = J[s][i]["verdict"]
+            calls[i][s] = [N, P, (None, bool(v), False, 1), SB, T, T2]
+    pos = [J[s][i]["p_yes"] for i in ids for s in (1, 2, 3) if J[s][i]["p_yes"] is not None and lcm.seed_calls(Q[i], s)[0][2]]
+    neg = [J[s][i]["p_yes"] for i in ids for s in (1, 2, 3) if J[s][i]["p_yes"] is not None and not lcm.seed_calls(Q[i], s)[0][2]]
+    allv = sorted([(v, 1) for v in pos] + [(v, 0) for v in neg])
+    rank = {}; k = 0
+    while k < len(allv):
+        j = k
+        while j < len(allv) and allv[j][0] == allv[k][0]:
+            j += 1
+        for t in range(k, j):
+            rank[t] = (k + j - 1) / 2 + 1
+        k = j
+    rsum = sum(rank[t] for t, (v, lab) in enumerate(allv) if lab)
+    auc = (rsum - len(pos) * (len(pos) + 1) / 2) / max(1, len(pos) * len(neg))
+    half = {h: [i for i in ids if zlib.crc32(i.encode()) % 2 == h] for h in (0, 1)}
+    five = lambda sc: [sc[0], sc[1], sc[3], sc[4], sc[5]]
+    U = {"judge": {}, "five": {}, "cascade": {}, "judge_cascade": {}}
+    for h in (0, 1):
+        for nm, sel in (("judge", lambda sc: sc), ("five", five)):
+            rows = [full(sel(calls[i][s])) for i in half[h] for s in (1, 2, 3)]
+            C = len(sel(calls[half[h][0]][1]))
+            tok = [sum(sel(calls[i][s])[j][3] for i in half[h] for s in (1, 2, 3)) / (3 * len(half[h])) for j in range(C)]
+            S = Supervised(rows, tok)
+            for i in half[1 - h]:
+                u = 0.0
+                for s in (1, 2, 3):
+                    ok, t, seen = S.run(sel(calls[i][s]))
+                    if not seen:
+                        ok, t = lcm.fixed("cascade", five(calls[i][s]))
+                    u += 100 * float(ok) - LAM * t / 1000
+                U[nm][i] = u / 3
+        for i in half[1 - h]:
+            c = jc = 0.0
+            for s in (1, 2, 3):
+                sc = calls[i][s]
+                r, t = lcm.fixed("cascade", five(sc)); c += 100 * float(r) - LAM * t / 1000
+                N, SB, T, T2 = sc[0], sc[3], sc[4], sc[5]   # the judge cascade: N if it passes and the judge says yes, else SB->T->T
+                if N[1] and sc[2][1]:
+                    r2, t2 = N[2], N[3] + 1
+                else:
+                    r2, t2 = lcm.fixed("SB->T->T", five(sc)); t2 += N[3] + (1 if N[1] else 0)
+                jc += 100 * float(r2) - LAM * t2 / 1000
+            U["cascade"][i], U["judge_cascade"][i] = c / 3, jc / 3
+    d = lambda a, b: ci({i: (U[a][i] - U[b][i]) / 100 for i in ids})
+    rec = dict(task=f"sql {sset} {gen}<-{peer} judge {name}", n=len(ids), auroc=auc, **{k: sum(v.values()) / len(ids) for k, v in U.items()},
+               judge_vs_five=d("judge", "five"), judge_vs_cascade=d("judge", "cascade"), jcas_vs_cascade=d("judge_cascade", "cascade"))
+    f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
+    print(f"*** {rec['task']} ({len(ids)} questions): judge AUROC on passing N {auc:.3f}; planner with the judge {rec['judge']:+.2f}, "
+          f"without {rec['five']:+.2f}, cascade {rec['cascade']:+.2f}, judge cascade {rec['judge_cascade']:+.2f}; with - without "
+          f"{f(rec['judge_vs_five'])}; with - cascade {f(rec['judge_vs_cascade'])}; judge cascade - cascade {f(rec['jcas_vs_cascade'])}",
+          flush=True)
+    od = os.path.join(lcm.ROOT, "results", "lcm_bound")
+    os.makedirs(od, exist_ok=True)
+    json.dump(rec, open(f"{od}/judge_{name}_sql_{sset}_{gen}.json", "w"))
+
+
 def main():
     task, gen, peer, sset = sys.argv[1:5]
+    if "--judge" in sys.argv:   # addendum J
+        return main_judge(gen, peer, sset, sys.argv[sys.argv.index("--judge") + 1])
     if "--peers" in sys.argv:   # B2: the bound with more peers' quick queries (SQL)
         return main_b2(gen, sys.argv[sys.argv.index("--peers") + 1].split(","), sset)
     Q = lcm.load(task, gen, peer, sset)
