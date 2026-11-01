@@ -11,6 +11,7 @@ to the stored token count}. Rows resume.
           (written by lcm_shift.py --rv-build), raw text under the plain LM (no chat template), Coder-Reviewer's inverted prompt (Zhang
           et al. 2023): rev = the question / request after the schema or functions and the candidate, cod = the candidate after the
           question. Rows {h, s: summed target log-prob, n: target tokens, pre: prompt tokens} -> results/conf/rv_scores.jsonl
+          (RV_SUFFIX=_q35: the peer Qwen3.5-9B's scores, rv_scores_q35.jsonl, addendum RV2)
 usage: POC_BASE_URL=... python score_conf.py <kind> <tag> [seeds ...]   (CONF_LIMIT=k: the first k rows per seed, the smoke)
        POC_BASE_URL=... python score_conf.py rv   (CONF_LIMIT=k: the first k requests)"""
 import json, os, sys, urllib.request
@@ -89,9 +90,10 @@ def score_rv(row, P):
 
 def main_rv():
     P = {k: {p["id"]: p for p in map(json.loads, open(f))} for k, f in RV_ITEMS.items()}
-    out = f"{ROOT}/results/conf/rv_scores.jsonl"
+    out = f"{ROOT}/results/conf/rv_scores{os.environ.get('RV_SUFFIX', '')}.jsonl"   # RV2: RV_SUFFIX=_q35 under Qwen3.5-9B
     done = {r["h"] for r in _rows(out)}
-    rows = [r for r in _rows(f"{ROOT}/results/conf/rv_req.jsonl") if r["h"] not in done]
+    kinds = os.environ.get("RV_KINDS", "rev,cod").split(",")   # RV2: rev only
+    rows = [r for r in _rows(f"{ROOT}/results/conf/rv_req.jsonl") if r["h"] not in done and r["kind"] in kinds]
     if os.environ.get("CONF_LIMIT"):
         rows = rows[:int(os.environ["CONF_LIMIT"])]
     n, err = 0, 0

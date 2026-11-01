@@ -442,14 +442,16 @@ def rv_gauss(items, A, reps=20, seed=0):
     cnt, rt = Counter(), Counter()
     for _, _, cand, _ in items:
         st = tuple(sorted(v[1] for v in cand.values()))
-        for r, calls, _ in cand.values():
+        for c in cand.values():
+            r, calls = c[0], c[1]
             cnt[(st, calls)] += 1; rt[(st, calls)] += r
     g = g1 = 0.0
     for _, _, cand, dr in items:
         st = tuple(sorted(v[1] for v in cand.values()))
         for _ in range(reps):
             best = b1 = None
-            for r, calls, _ in cand.values():
+            for c in cand.values():
+                r, calls = c[0], c[1]
                 p = min(max(rt[(st, calls)] / cnt[(st, calls)], 1e-3), 1 - 1e-3)
                 x = rng.gauss(dp if r else 0.0, 1.0)
                 lr = math.exp(dp * x - dp * dp / 2)
@@ -462,10 +464,14 @@ def rv_gauss(items, A, reps=20, seed=0):
 def main_rv():
     """addendum RV: within-item AUROC of the channel score (rev) and the direct score (cod) on the mixed candidate sets; R1 (votes, ties
     by rev) against the cascade; the cross-fitted Bayes selector (structural prior + beta x standardized rev, fitted on one crc32 half)
-    against the Gaussian bound at the measured AUROC"""
+    against the Gaussian bound at the measured AUROC. RV2 (when results/conf/rv_scores_q35.jsonl exists): the peer's (Qwen3.5-9B's)
+    channel score and the sum of both models' within-question standardized channel scores"""
     from analyze_ho3 import ci
     from run_nlopt import _rows
+    from statistics import NormalDist
     S = {r["h"]: r for r in _rows(os.path.join(lcm.ROOT, "results", "conf", "rv_scores.jsonl"))}
+    S2 = {r["h"]: r for r in _rows(os.path.join(lcm.ROOT, "results", "conf", "rv_scores_q35.jsonl"))}
+    Z = NormalDist()
     f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
     g = lambda v: f"{v[0]:.3f} [{v[1]:.3f}, {v[2]:.3f}]"
     R = {}
@@ -476,9 +482,11 @@ def main_rv():
             for i, s, cand, dr in items:
                 for c in cand.values():
                     rv, cd = [S.get(rv_key(task, sset, i, "rev", t)) for t in c[2]], [S.get(rv_key(task, sset, i, "cod", t)) for t in c[2]]
+                    r2 = [S2.get(rv_key(task, sset, i, "rev", t)) for t in c[2]]
                     if any(x is None for x in rv + cd):
-                        miss += 1; c.append(None); c.append(None); continue
+                        miss += 1; c.extend([None, None, None]); continue
                     c.append(sum(x["s"] for x in rv) / len(rv)); c.append(sum(x["s"] / max(1, x["n"]) for x in cd) / len(cd))
+                    c.append(sum(x["s"] for x in r2) / len(r2) if S2 and all(r2) else None)   # c[5]: the peer's channel score
                     pre += sum(x["pre"] for x in rv)
             items = [it for it in items if all(c[3] is not None for c in it[2].values())]
             auc = {"rev": {}, "cod": {}, "diff": {}}
@@ -531,6 +539,44 @@ def main_rv():
             pb, p1 = rv_gauss(items, A["rev"][0])
             n = 3 * len(ids)
             R[(name, tname)] = dict(A=A, r1=r1ci, bayes=byci, bound=(100 * pb / n, 100 * p1 / n))
+            it2 = [it for it in items if all(c[5] is not None for c in it[2].values())]
+            if S2 and it2:   # RV2: z = (score - question mean) / pooled sd per model (label-free), sum of the two models' z
+                sd = {}
+                for j in (3, 5):
+                    dv = [c[j] - sum(x[j] for x in it[2].values()) / len(it[2]) for it in it2 for c in it[2].values()]
+                    sd[j] = (sum(x * x for x in dv) / len(dv)) ** 0.5 or 1.0
+                for it in it2:
+                    mu = {j: sum(x[j] for x in it[2].values()) / len(it[2]) for j in (3, 5)}
+                    for c in it[2].values():
+                        c.append((c[3] - mu[3]) / sd[3] + (c[5] - mu[5]) / sd[5])   # c[6]
+                au2 = {"q35": {}, "sum": {}, "sum-rev": {}}
+                r2s = Counter(); zz = {True: [], False: []}
+                for i, s, cand, dr in it2:
+                    C = list(cand.values())
+                    pos, neg = [c for c in C if c[0]], [c for c in C if not c[0]]
+                    mu = {j: sum(x[j] for x in C) / len(C) for j in (3, 5)}
+                    for c in C:
+                        zz[c[0]].append(((c[3] - mu[3]) / sd[3], (c[5] - mu[5]) / sd[5]))
+                    if pos and neg:
+                        a = {j: sum((p[j] > q_[j]) + 0.5 * (p[j] == q_[j]) for p in pos for q_ in neg) / (len(pos) * len(neg)) for j in (3, 5, 6)}
+                        for key, v in (("q35", a[5]), ("sum", a[6]), ("sum-rev", a[6] - a[3])):
+                            au2[key].setdefault(i, []).append(v)
+                    r2s[i] += max(C, key=lambda c: (len(c[1]), c[6]))[0] - dr
+                A2 = {k: tuple(y / 100 for y in ci({i: sum(v) / len(v) for i, v in x.items()})) for k, x in au2.items()}
+                num = den1 = den2 = 0.0   # within-class correlation of the two models' standardized deviations
+                for cl, L in zz.items():
+                    if len(L) < 2:
+                        continue
+                    m1, m2 = sum(a for a, _ in L) / len(L), sum(b for _, b in L) / len(L)
+                    num += sum((a - m1) * (b - m2) for a, b in L); den1 += sum((a - m1) ** 2 for a, _ in L); den2 += sum((b - m2) ** 2 for _, b in L)
+                rho = num / math.sqrt(den1 * den2) if den1 and den2 else float("nan")
+                dpr = lambda a: math.sqrt(2) * Z.inv_cdf(min(max(a, 1e-6), 1 - 1e-6))
+                pred = Z.cdf((dpr(A["rev"][0]) + dpr(A2["q35"][0])) / math.sqrt(2 + 2 * rho) / math.sqrt(2))
+                r2ci = ci({i: r2s[i] / 3 for i in ids})
+                R[(name, tname)].update(A2=A2, r2=r2ci, pred=pred)
+                print(f"    RV2 {tname} {name}: {len(it2)} of {len(items)} question-seeds scored by both; within-question AUROC Qwen3.5-9B rev "
+                      f"{g(A2['q35'])}, sum {g(A2['sum'])}, sum - Qwen3-8B rev {g(A2['sum-rev'])}; within-class correlation {rho:.2f}, "
+                      f"predicted sum AUROC {pred:.3f}; R1 with the sum - cascade {f(r2ci)}", flush=True)
             print(f"    RV {tname} {name}: {len(ids)} questions, {len(items)} multi-answer fallback question-seeds ({100 * len(items) / n:.1f}%), "
                   f"missing scores {miss}; within-item AUROC rev {g(A['rev'])}, cod {g(A['cod'])}, rev - cod {g(A['diff'])} "
                   f"({len(auc['rev'])} questions with a mixed set); R1 (votes, ties by rev) - cascade {f(r1ci)} (votes, ties by cod "
@@ -550,6 +596,17 @@ def main_rv():
         print(f"*** RV-P1 (rev - cod within-item AUROC lower bound > 0 in >= 6 of 8): {p1} -> {'holds' if p1 >= 6 else 'refuted'}")
         print(f"*** RV-P3 (cross-fitted Bayes within 0.7 of the Gaussian bound in >= 6 of 8): {p3} -> {'holds' if p3 >= 6 else 'refuted'}")
         print(f"*** cells with rev AUROC >= 0.75: {hi or 'none'}")
+    if S2 and sum("A2" in r for r in R.values()) == 8:
+        q1 = sum(r["A2"]["sum-rev"][1] > 0 for r in R.values())
+        q3 = sum(abs(r["A2"]["sum"][0] - r["pred"]) <= 0.03 for r in R.values())
+        print(f"*** RV2-P1 (sum - Qwen3-8B rev within-question AUROC lower bound > 0 in >= 6 of 8): {q1} -> {'holds' if q1 >= 6 else 'refuted'}")
+        print(f"*** RV2-P3 (sum AUROC within 0.03 of the prediction from the two AUROCs and their correlation in >= 6 of 8): {q3} -> "
+              f"{'holds' if q3 >= 6 else 'refuted'}")
+        for name, tag in (("base", "RV2-P2b"), ("trained", "RV2-P2t")):
+            X = [R[(name, t)] for _, _, t in RV_T]
+            up, down = sum(r["r2"][1] > 0 for r in X), sum(r["r2"][2] < 0 for r in X)
+            print(f"*** {tag} ({name}: R1 with the sum - cascade lower bound > 0 in >= 2 of 4, upper bound < 0 in none): {up} above, "
+                  f"{down} below -> {'holds' if up >= 2 and down == 0 else 'refuted'}")
 
 
 def main():

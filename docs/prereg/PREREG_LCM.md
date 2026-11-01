@@ -756,3 +756,28 @@ control's failure widens the statement: on tool calls the fitted policy replaces
 Over the 8 fit / target pairs on tool calls (2 generators × trained / base × 2 directions) it is better in 6 and never significantly
 worse (untrained Qwen3-8B: −0.11 BFCL, −0.29 held-out ToolACE). The "trained vs untrained" split stated after TRT / TL is a
 Qwen3-8B fact, not the rule.
+
+## Addendum RV2: the two resident models' channel scores together (written 2026-11-01 11:4x UTC, before any score of RV or RV2 has been read; the analysis code was run only on random scores)
+
+**Why.** By RV's bound the room above the cascade needs a within-question AUROC of 0.75–0.8. The project's central measurement is that
+another family's errors differ from the generator's own (a second sample of the same Qwen3 model repeats 79–90% of its wrong answers on
+SQL and tool calls, another Qwen generation 33–62%). If two channel scores' errors are independent given which answer is right, their
+standardized sum is sharper: with d'_k = √2 Φ⁻¹(A_k) and within-class correlation ρ, d'_sum = (d'_1 + d'_2) / √(2 + 2ρ) and
+AUROC_sum = Φ(d'_sum / √2). Two scores of AUROC 0.70 give 0.77 at ρ = 0 and 0.73 at ρ = 0.5. Both models are already resident (the
+generator and the peer), so the cost is one more prefill per candidate.
+
+**Scores.** Qwen3.5-9B's rev on RV's requests (`RV_KINDS=rev RV_SUFFIX=_q35 score_conf.py rv`, one RTX 3090, `--language-model-only`,
+max length 20,480). Per model z = (rev − the question's mean over its candidates) / the pooled within-question SD of the cell (no
+label); sum = z(Qwen3-8B) + z(Qwen3.5-9B). Analysis: the same `lcm_shift.py --rv` (RV2 lines).
+
+**Predictions** (same cells, intervals and rules as RV):
+- **RV2-P1:** sum − Qwen3-8B rev, within-question AUROC lower bound > 0 in ≥ 6 of 8 cells.
+- **RV2-P2b / RV2-P2t:** R1 with the sum (votes, ties by the sum) − cascade, lower bound > 0 in ≥ 2 of 4 targets, upper bound < 0 in
+  none.
+- **RV2-P3 (theory):** the sum's AUROC lies within 0.03 of the prediction from the two measured AUROCs and their within-class
+  correlation in ≥ 6 of 8 cells.
+- Expected: ρ 0.3–0.6 (two Qwen generations share pretraining data), so +0.01 to +0.04 AUROC over the better single score; P1 hinges
+  on ρ.
+
+**Decision.** RV2-P2 holds for an N type → R1 with the sum is the cascade's last step for that type (two prefills per extra candidate).
+Otherwise RV's decision rule applies with the larger of rev's and the sum's AUROC.
