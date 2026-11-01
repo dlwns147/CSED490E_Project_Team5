@@ -1186,3 +1186,25 @@ the planner never saw takes SEL's outcome. Compared with SEL's pipeline (the cas
 
 **Decision.** P1 holds for an N type → the SQL method for it is the planner with the verifier at its stop; refuted → SEL's pipeline
 (cascade + verifier at its fallback) stays.
+
+## Results of addendum SEL-G (written 2026-11-01 19:2x UTC; `results/lcm_selg.log`; job 1296216, 12,608 new candidates scored, none failed)
+
+| generator ← peer | target | AUROC | selector − cascade | pipeline vs SB→T→T | pipeline − SB→T→T (cascade alone) |
+|---|---|---|---|---|---|
+| Qwen3-14B-AWQ ← Qwen3.5-9B | BIRD dev | 0.790 | **+1.07 [+0.26, +1.87]** | 59.2% @ 1.19k vs 57.3% @ 1.50k | +2.07 [+0.86, +3.27] (+1.00) |
+| | Spider test | 0.733 | **+1.61 [+0.98, +2.24]** | 79.8% @ 0.40k vs 77.0% @ 0.98k | +3.03 [+1.93, +4.13] (+1.42) |
+| | Spider dev | 0.788 | **+1.10 [+0.24, +2.08]** | 76.9% @ 0.47k vs 74.6% @ 1.05k | +2.53 [+1.13, +3.96] (+1.43) |
+| Qwen3.5-9B ← Qwen3-8B | BIRD dev | 0.828 | **+1.57 [+0.96, +2.20]** | 60.6% @ 1.69k vs 58.0% @ 2.19k | +2.80 [+1.74, +3.88] (+1.23) |
+| | Spider test | 0.741 | **+1.36 [+0.84, +1.88]** | 79.8% @ 0.38k vs 79.1% @ 1.00k | +1.00 [+0.08, +1.91] (−0.36) |
+| | Spider dev | 0.794 | **+1.14 [+0.41, +1.95]** | 75.6% @ 0.44k vs 73.5% @ 1.04k | +2.37 [+1.08, +3.64] (+1.23) |
+| gpt-oss-20b ← Qwen3.5-9B | BIRD dev | 0.777 | **+2.40 [+1.26, +3.53]** | 60.4% @ 0.60k vs 55.9% @ 0.53k | +4.39 [+3.03, +5.81] (+1.99) |
+| | Spider test | 0.762 | **+2.66 [+1.78, +3.56]** | 79.6% @ 0.18k vs 75.5% @ 0.21k | +4.13 [+2.93, +5.34] (+1.47) |
+| | Spider dev | 0.760 | **+1.63 [+0.61, +2.73]** | 76.1% @ 0.21k vs 73.2% @ 0.22k | +2.94 [+1.60, +4.28] (+1.31) |
+
+- **SEL-G-P1 holds** (3 of 3 generators, every cell above). **SEL-G-P2 holds** (BIRD dev 0.790 / 0.828 / 0.777). The verifier, trained
+  on two Qwen models' candidates, orders another family's queries (gpt-oss-20b) at 0.76–0.78 and gains most there (+1.6 to +2.7: its
+  fallback has the most room). Held-out-database fresh AUROCs (0.78–0.80) again match BIRD dev within 0.04.
+- Where the peer cascade alone did not beat the default (Qwen3.5-9B on Spider test, −0.36; FINAL), the pipeline with the verifier does
+  (+1.00 [+0.08, +1.91]).
+- **Decision (registered):** the verifier step is part of the SQL method for every generator tested (Qwen3-8B, Qwen3-14B-AWQ,
+  Qwen3.5-9B, gpt-oss-20b); PROJECT, REPORT and PROPOSAL state the scope.

@@ -4978,3 +4978,12 @@ Why: SEL-TC's decision — the fitted call policy (TL) and the verifier act on d
 - Planning for the verifier (SEL-TC3, pre-registered, offline: the stop value of a pattern = the verifier's leave-one-out accuracy there)
   does not pay: +0.07 [−0.27, +0.41] / −0.15 [−0.36, +0.06], at +0.23k / +0.30k tokens — it buys thinks on noisy pattern estimates.
 Decision (registered): the tool-call method is the fitted policy with the verifier at its stop, for trained and untrained quick calls.
+
+## 2026-11-01 19:2x UTC: SEL-G (pre-registered): the SQL verifier works unchanged for every generator tested
+Why: SEL was trained on Qwen3-8B / Qwen3.5-9B candidates and tested at Qwen3-8B's fallback; the SQL claim covers four generators.
+- SEL's checkpoint, π on each generator's fresh questions, β on its held-out-database ones; no new training.
+- **P1 holds** (9 of 9 cells above: +1.07 to +1.61 Qwen3-14B-AWQ, +1.14 to +1.57 Qwen3.5-9B, +1.63 to +2.66 gpt-oss-20b), **P2 holds**
+  (BIRD dev AUROC 0.79 / 0.83 / 0.78; gpt-oss-20b's other-family queries 0.76–0.78).
+- Pipeline − default +1.00 to +4.39 in every cell; Qwen3.5-9B on Spider test, where the cascade alone lost (−0.36), now gains (+1.00).
+Decision (registered): the verifier step is part of the SQL method for all four generators. Goal link: the selection step is not tied
+to the generator it was trained with.
