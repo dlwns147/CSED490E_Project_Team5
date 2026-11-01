@@ -13,7 +13,9 @@ decodable call (the turn ends) or after 20 steps (BFCL's limit: the item fails; 
   F  thinking for the first step of each turn (the new request), then as E
 Rows (results/tc/mt_<tag>_<arm>_s<seed>.jsonl): per turn, per step {calls, think, tok, err, end}; the item's output tokens; graded
 offline by poc/grade_mt.py (BFCL's multi_turn_checker). Rows resume.
-usage: python run_mt.py <tag> <arm N|T|E|F> <seed>     (MT_SUBSET=i/k: items i, i+k, ... only — the smoke; MT_WORKERS, default 8)"""
+  V  (MT-V, PREREG_MT addendum MT-V) per turn, sandboxed rollouts of the quick turn, the peer's quick turn (another model's server,
+     POC_PEER_URL) and two thinking turns, made and committed by the per-turn policy learned on the other half's turn 0 (MT_POLICY)
+usage: python run_mt.py <tag> <arm N|T|E|F|V> <seed>     (MT_SUBSET=i/k: items i, i+k, ... only — the smoke; MT_WORKERS, default 8)"""
 import ast, copy, json, os, re, sys, zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -120,6 +122,132 @@ def answer(msgs, think, seed):
     return t.strip(), o["out_tokens"], o["finish"]
 
 
+def _inst(name, pid, c):
+    return re.sub(r"[-./:]", "_", f"{name}_{pid}_{c}_instance")
+
+
+def run_turn(p, msgs, name, ti, think, seed, cli, lc):
+    """MT-V: one turn from msgs on the instances under `name` (a sandbox copy); -> (new messages, steps, out tokens, quit, visible)"""
+    cfg, cls = p["initial_config"], p["involved_classes"]
+    msgs = list(msgs); start = len(msgs)
+    steps, tok, quit_, vis = [], 0, False, False
+    for k in range(STEPS + 1):
+        sd = seed * 100003 + zlib.crc32(f"{p['id']}/{ti}/{k}".encode()) % 99991
+        try:
+            o = chat_msgs(msgs, think=think, max_tokens=TMAX if think else NMAX, temperature=0.7, seed=sd, client_=cli)
+            text, n, fin = o["text"], o["out_tokens"], o["finish"]
+            if "</think>" in text:
+                text = text.split("</think>")[-1]
+            if "<think>" in text:
+                text = ""
+            text = text.strip()
+        except BadRequestError as e:
+            if "context" not in str(e).lower() and "too long" not in str(e).lower() and "maximum" not in str(e).lower():
+                raise
+            steps.append({"calls": [], "think": think, "tok": 0, "fin": "overflow"}); return msgs[start:], steps, tok, True, True
+        tok += n
+        msgs.append({"role": "assistant", "content": text})
+        try:
+            calls = decode(text)
+        except Exception:
+            calls = []
+        if not calls:
+            steps.append({"calls": [], "think": think, "tok": n, "fin": fin, "text": text[:300]})
+            break
+        res, _ = U.execute_multi_turn_func_call(calls, cfg, cls, name, p["id"], long_context=lc)
+        errs = [is_err(r) for r in res]
+        for c, r in zip(calls, res):
+            msgs.append({"role": "tool", "name": c, "content": r})
+        loop = bool(steps) and steps[-1]["calls"] == calls and steps[-1].get("full") == res
+        steps.append({"calls": calls, "think": think, "tok": n, "fin": fin, "err": errs, "loop": loop, "res": [r[:200] for r in res], "full": res})
+        vis = vis or any(errs) or loop
+        if k == STEPS:
+            quit_ = True; vis = True
+    for st in steps:
+        st.pop("full", None)
+    return msgs[start:], steps, tok, quit_, vis
+
+
+def run_item_vote(p, tag, seed):
+    """MT-V: per turn, rollouts of the quick turn (N), the peer's quick turn (P), the thinking turn (T) and a second thinking turn (T at
+    the next seed) on sandbox copies of the committed environment, made and committed as the turn-0 policy learned on the other half
+    of the items says (mt_policy.py); the committed turn's steps are the row's turn (graded as any arm's)."""
+    import copy
+    from bfcl_eval.eval_checker.multi_turn_eval.multi_turn_checker import _compare_instances
+    pol = _policy(p["id"])
+    name = f"{tag}_V_s{seed}"
+    cfg, cls, lc = p["initial_config"], p["involved_classes"], "long_context" in p["cat"]
+    U.execute_multi_turn_func_call([], cfg, cls, name, p["id"], long_context=lc)
+    msgs = [{"role": "system", "content": p["system"]}]
+    turns, votes, tok, quit_ = [], [], 0, False
+    spec = [(False, seed, None), (False, seed, PEER), (True, seed, None), (True, seed % 3 + 1, None)]   # N, P, T, T2
+    for ti, um in enumerate(p["turns"]):
+        msgs += um
+        cand, obs, reps, made, fallback = {}, [None] * 4, [], [], False
+        while True:
+            key = repr(tuple(_canon(obs)))
+            act = pol.get(key)
+            if act is None:   # a pattern the fitting half never showed: the always-think baseline (T, else commit T's state)
+                fallback = True
+                act = ["call", 2] if obs[2] is None else ["stop", _canon(obs)[2][0]]
+            if act[0] == "stop":
+                g = act[1]
+                cobs = _canon(obs)
+                j = next(j for j in range(4) if cobs[j] is not None and cobs[j][0] == g)
+                break
+            j = act[1]; think, sd, cli = spec[j]
+            cname = f"{name}_t{ti}_c{j}"
+            for c in cls:   # sandbox: a deep copy of the committed instances
+                U.__dict__[_inst(cname, p["id"], c)] = copy.deepcopy(U.__dict__[_inst(name, p["id"], c)])
+            new, steps, n, q, vis = run_turn(p, msgs, cname, ti, think, sd, cli, lc)
+            tok += n; made.append(j)
+            state = {c: U.__dict__[_inst(cname, p["id"], c)] for c in cls}
+            g = next((gi for gi, r in enumerate(reps) if all(_compare_instances(state[c], r[c])[0] for c in cls)), None)
+            if g is None:
+                reps.append(state); g = len(reps) - 1
+            cand[j] = (new, steps, q, state)
+            obs[j] = (g, not vis)
+        new, steps, q, state = cand[j]
+        for c in cls:   # commit the chosen rollout's environment
+            U.__dict__[_inst(name, p["id"], c)] = state[c]
+        for jj in cand:
+            for c in cls:
+                U.__dict__.pop(_inst(f"{name}_t{ti}_c{jj}", p["id"], c), None)
+        msgs += new
+        turns.append(steps)
+        votes.append({"calls": made, "commit": j, "pattern": repr(tuple(_canon(obs))), "fallback": fallback})
+        if q:
+            quit_ = True
+            break
+    for c in cls:
+        U.__dict__.pop(_inst(name, p["id"], c), None)
+    return {"id": p["id"], "cat": p["cat"], "arm": "V", "seed": seed, "turns": turns, "tok": tok, "force_quit": quit_, "votes": votes,
+            "n_think": sum(s["think"] for t in turns for s in t), "n_steps": sum(len(t) for t in turns)}
+
+
+def _canon(obs):
+    """lcm_bound.project's canonical form: groups relabelled by first appearance in call order"""
+    m, out = {}, []
+    for e in obs:
+        if e is None or e[0] == "X":
+            out.append(e)
+        else:
+            m.setdefault(e[0], len(m)); out.append((m[e[0]], e[1]))
+    return out
+
+
+PEER, _POL = None, {}
+
+
+def _policy(pid):
+    """the policy fitted on the other half of the items (crc32(id) mod 2)"""
+    h = 1 - zlib.crc32(pid.encode()) % 2
+    if h not in _POL:
+        f = os.environ["MT_POLICY"].replace("{h}", str(h))
+        _POL[h] = json.load(open(f))["policy"]
+    return _POL[h]
+
+
 def run_item(p, tag, arm, seed):
     name = f"{tag}_{arm}_s{seed}"
     cfg, cls, lc = p["initial_config"], p["involved_classes"], "long_context" in p["cat"]
@@ -169,7 +297,11 @@ def run_item(p, tag, arm, seed):
 
 def main():
     tag, arm, seed = sys.argv[1], sys.argv[2], int(sys.argv[3])
-    assert arm in ("N", "T", "E", "F")
+    assert arm in ("N", "T", "E", "F", "V")
+    if arm == "V":   # MT-V: the peer's server (POC_PEER_URL) and the policy files (MT_POLICY, with {h} for the fitting half)
+        global PEER
+        from openai import OpenAI
+        PEER = OpenAI(base_url=os.environ["POC_PEER_URL"], api_key="none", timeout=float(os.environ.get("POC_TIMEOUT", 3600)))
     P = [json.loads(l) for l in open(DATA)]
     if os.environ.get("MT_SUBSET"):
         i, k = map(int, os.environ["MT_SUBSET"].split("/")); P = P[i::k]
@@ -179,7 +311,7 @@ def main():
     todo = [p for p in P if p["id"] not in done]
     print(f"MT {tag} {arm} s{seed}: {len(todo)} of {len(P)} items to run", flush=True)
     with ThreadPoolExecutor(int(os.environ.get("MT_WORKERS", 8))) as ex, open(path, "a") as f:
-        fs = {ex.submit(run_item, p, tag, arm, seed): p["id"] for p in todo}
+        fs = {(ex.submit(run_item_vote, p, tag, seed) if arm == "V" else ex.submit(run_item, p, tag, arm, seed)): p["id"] for p in todo}
         for j, fu in enumerate(as_completed(fs)):
             try:
                 r = fu.result()

@@ -293,3 +293,25 @@ limit of these signals, and "think at every step" is the agent-loop rule by that
 output tokens of one think), for a per-turn policy that runs turns in a resettable copy of the environment and commits the end state
 the calls agree on. That becomes the agent-loop method question; it is pre-registered as an online arm (every turn, not only the first)
 before it is run.
+
+## Addendum MT-V: the per-turn vote online (written 2026-11-01 02:0x UTC, after a 6-item smoke, before any main row)
+
+**Method (arm V, `poc/run_mt.py`).** At every turn, rollouts of the quick turn (N), the peer's quick turn (P, another model's server),
+the thinking turn (T) and a second thinking turn (T at the next seed) on sandbox copies of the committed environment (deep copies of
+BFCL's instances), made and committed as MT-B's supervised planner says: the policy is solved on the turn-0 dumps of one half of the
+items (`poc/mt_policy.py`, all their turn-0 labels) and applied to the items of the other half, at every turn (patterns the fitting
+half never showed: the always-think baseline). The committed rollout's steps and environment continue the conversation; the row is
+graded as any arm's (BFCL's per-turn state and response checks). Costs: every rollout's output tokens; input tokens reported (each
+rollout re-reads the context, mostly a shared prefix). Assumes a resettable environment and a second resident model (two GPUs).
+**Smoke (seed 1, 6 items, not part of the results):** every item ran; the policy committed the quick or the peer's turn on 13 of 21
+turns; output tokens 24.6k per item against T's 10.2k on the same items (the policy was fitted on turn 0, where contexts are short).
+**Run.** Qwen3-8B (peer Qwen3.5-9B) and Qwen3.5-9B (peer Qwen3-8B), all 600 items, seeds 1–3, one two-GPU job per model and seed
+(`poc/slurm/vote_lane.sh`, 24 clients); compared with the stored T arm (same items, seeds and step seeds).
+**Predictions (paired 95% intervals over items, seed means).**
+- **MT-V1:** V − T utility (output tokens): lower bound > 0 for both models.
+- **MT-V2:** V − T accuracy: lower bound > 0 for both models.
+- Reported: tokens (output; input with ρ = 0.25 cached / not cached as MT-S); the share of turns committed without thinking; the
+  fallback rate; per-category accuracy.
+**Decision.** V1 holds for both: the agent-loop method becomes the per-turn vote over sandboxed rollouts with the derived policy
+(PROJECT, REPORT). V2 holds but V1 not: a trade, reported with its break-even λ. V2 refuted: the turn-0 room does not carry into whole
+trajectories; reported.
