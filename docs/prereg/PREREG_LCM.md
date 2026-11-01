@@ -488,3 +488,48 @@ grades 1,032).
   trained quick query too. The result is reported as what the derived policy does once the quick query is trained: the think becomes
   the referee between the two quick answers. Whether that fallback should replace SB→T→T for trained quick queries is a question for a
   benchmark not yet used (none is left on the cluster; KaggleDBQA, 272 questions, is too small for a one-point effect).
+
+## Addendum TRT: does training the quick answer make the derived policy pay — tool calls, fitted on BFCL, run on held-out ToolACE (written 2026-11-01 06:4x UTC, before any new SB / T row of these requests exists)
+
+**Why.** TR and TR-C1 split cleanly by whether the quick answer is trained. For untrained generators a policy fitted on public
+benchmarks adds nothing over the hand-set cascade (TR 0 of 4; even the target's own labels give no room). With CV-1's trained quick
+query it gains (+0.99 [+0.23, +1.83]). The traced mechanism: where the quick answer passes its check and the peer disagrees, an
+untrained quick answer is far less accurate than the fallback thinks, so replacing it is right. A trained one is about as accurate
+(Spider dev 46.9% vs 48.9% / 49.3%), so it is worth a vote, and the policy lets a full think break the tie. On tool calls (BFCL,
+already used, exploration only, `results/tc_trained_explore.log`) the same holds:
+- In that stratum, the untrained quick calls are right 53.5% of the time on live against SB 67.0% / T 66.4%, and the trained ones
+  65.7% against 66.5% / 66.6%.
+- The policy fitted on non-live and run on live gains over the cascade only with the trained quick calls: +0.98 [+0.30, +1.68]
+  (reference +1.52), against −0.83 [−1.58, −0.12] untrained.
+- Non-live is near its ceiling for both (+0.2).
+If this holds on a second task on requests never used for it, the claim changes: training the quick answer moves the best call policy
+from "replace on disagreement" (the cascade) to "vote", and a policy fitted once on the task's public benchmarks captures it.
+
+**Set.** The 3,549 held-out ToolACE requests of TC-RL addendum 3 (`$POC_DATA/toolace/tc_ho_ids.txt`; training distribution of the
+trained adapter, never trained on). They were used only to compare training rewards by the cascade's value (TCRL-P14..P16), never
+for a call policy. Stored: quick calls of Qwen3-8B base (hoq8b), of TC-RL's trained adapter (hoq8btcc1) and of Qwen3.5-9B (hoq35),
+seeds 1–4; Qwen3-8B's SB seed 1. **New runs:** Qwen3-8B's SB seeds 2–3 and T seeds 1–3 on all requests (`TC_ITEMS=…/toolace/
+tc_train_items.jsonl TC_IDS=…/tc_ho_ids.txt TC_ARMS=think,sb run_tc.py hoq8b <seed>`, TP 2 as the held-out runs, max length 20,480 for
+T's 16k cap). Seeds 1–3 of every call; graded with `tc_reward` (check, canonical calls, right) as `analyze_tcho.py`; loader `lcm.load_tcho`.
+
+**Policy.** B's supervised planner fitted on every BFCL row (non-live + live, all labels) of the same call set, with BFCL's mean
+tokens per call, nothing from ToolACE; run on the held-out requests (`python3 poc/lcm_shift.py --trt`). Compared with the cascade
+(N passes and P makes the same calls → N, else SB→T→T) and SB→T→T.
+
+**Predictions** (paired 95% intervals over requests, seed means, utility = 100 × right − 0.5 × ktokens):
+- **TRT-P1 (trained quick calls, C1tc ← Qwen3.5-9B):** transfer − cascade, lower bound > 0.
+- **TRT-P2 (base quick calls, Qwen3-8B ← Qwen3.5-9B):** transfer − cascade, lower bound > 0. Expected refuted.
+- Reported: accuracy and tokens; the reference (own labels, cross-fitted); the stratum accuracies (N passes, P differs: N vs SB vs
+  T), with the mechanism's direction expected: the trained quick calls within 3 points of SB, the base ones more than 5 below.
+- **Power.** BFCL live's half-width was ≈ 0.7 on 2,242 requests; on 3,549 ≈ 0.55. A true +1.0 clears 0 with probability ≈ 0.9; a
+  true +0.5 with ≈ 0.4.
+
+**Decision.**
+- **P1 holds:** with TR-C1-P2 (SQL, Spider dev) this makes two tasks on data never used for the question. The claim: once the quick
+  answer is trained, the best call policy is no longer the hand-set cascade, and a policy fitted once on the task's public benchmarks
+  captures the change. The method for trained quick answers becomes that policy, with the cascade kept for untrained ones. PROJECT
+  §2, REPORT and PROPOSAL change.
+- **P1 refuted:** the trained-quick finding stays one cell on SQL; the cascade stays the method everywhere.
+- P2 is read only as the untrained control: it holding would mean the split by training is not the mechanism.
+
+Expected (not a rule): P1 holds (+0.5 to +1.5), P2 refuted.

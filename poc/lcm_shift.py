@@ -14,7 +14,8 @@ T, else retry T, the most expensive call; label-free like C3PO, 2511.07396); fix
 question-seed reaching a pattern its planner never saw is scored with the cascade's outcome (counted).
 Addendum TR (--tr): the transfer planner fitted on every labelled SQL set so far (BIRD dev, the fresh BIRD questions, Spider test) with
 those sets' mean tokens per call (nothing from the target), on Spider's dev split, never used before; the four generators.
-Addendum TR-C1 (--tr-c1): the same with CV-1's trained quick query as N (FINAL's F5 cell). --dqs: Spider graded with a SQLite that
+Addendum TR-C1 (--tr-c1): the same with CV-1's trained quick query as N (FINAL's F5 cell). Addendum TRT (--trt): tool calls, the
+policy fitted on BFCL and run on 3,549 held-out ToolACE requests, base and trained (TC-RL) quick calls. --dqs: Spider graded with a SQLite that
 accepts double-quoted literals (FINAL's sensitivity).
 usage: python3 lcm_shift.py [--tr | --tr-c1 [--explore]] [--dqs]   -> results/lcm_shift.log (results/lcm_tr*.log) lines,
 results/lcm_shift/<cell>.json"""
@@ -247,7 +248,36 @@ def main_tr_c1():
               f"TR-C1-P2 (transfer - cascade lower bound > 0): {'holds' if r['tr_vs_cascade'][1] > 0 else 'refuted'}", flush=True)
 
 
+def main_trt():
+    """addendum TRT: the policy fitted on BFCL (non-live + live, all labels, their tokens) and run on 3,549 held-out ToolACE requests,
+    for Qwen3-8B's base quick calls and TC-RL's trained ones (q8btcc1), Qwen3.5-9B's quick calls as P, Qwen3-8B's SB and T"""
+    R = {}
+    for name, nsrc, ntag in (("base", None, "hoq8b"), ("C1tc", "q8btcc1", "hoq8btcc1")):
+        k = {"nsrc": nsrc} if nsrc else {}
+        dev = [quiet(lcm.load, "tc", "q8b", "q35", x, **k) for x in ("non-live", "live")]
+        tgt = quiet(lcm.load_tcho, ntag)
+        if not tgt or not all(dev):
+            print(f"*** toolace held-out {name}: rows missing", flush=True)
+            continue
+        r = R[name] = run_cell(f"toolace-ho {name}q8b<-q35 (from BFCL)", dev, tgt)
+        f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
+        print(f"    TRT {name}: transfer (development tokens) - cascade {f(r['tr_vs_cascade'])} (one-sided p {r['tr_p']:.4f}); "
+              f"{r['acc']['transfer_devtok']:.1f}% @ {r['ktok']['transfer_devtok']:.2f}k vs cascade {r['acc']['cascade']:.1f}% @ "
+              f"{r['ktok']['cascade']:.2f}k vs SB->T->T {r['acc']['SB->T->T']:.1f}% @ {r['ktok']['SB->T->T']:.2f}k; cascade - SB->T->T "
+              f"{f(r['cascade_vs_default'])}", flush=True)
+        S = [lcm.seed_calls(q, s) for q in tgt.values() for s in (1, 2, 3)]
+        st = [sc for sc in S if sc[0][1] and not (sc[1][1] and sc[1][0] == sc[0][0])]
+        print(f"    stratum N passes, P differs ({len(st)} question-seeds): N right {100 * sum(sc[0][2] for sc in st) / len(st):.1f}%, SB "
+              f"{100 * sum(sc[2][2] for sc in st) / len(st):.1f}%, T {100 * sum(sc[3][2] for sc in st) / len(st):.1f}%", flush=True)
+    if "C1tc" in R:
+        print(f"*** TRT-P1 (trained: transfer - cascade lower bound > 0): {'holds' if R['C1tc']['tr_vs_cascade'][1] > 0 else 'refuted'}")
+    if "base" in R:
+        print(f"*** TRT-P2 (base: transfer - cascade lower bound > 0): {'holds' if R['base']['tr_vs_cascade'][1] > 0 else 'refuted'}")
+
+
 def main():
+    if "--trt" in sys.argv:
+        return main_trt()
     if "--tr-c1" in sys.argv:
         return main_tr_c1()
     if "--tr" in sys.argv:

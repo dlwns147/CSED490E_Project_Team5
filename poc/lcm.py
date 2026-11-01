@@ -105,6 +105,35 @@ def load_tc(gen, peer, split, nsrc=None):
     return out
 
 
+def load_tcho(ntag, peer="hoq35", dtag="hoq8b"):
+    """PREREG_LCM addendum TRT: the 3,549 held-out ToolACE requests (TC-RL addendum 3's set) with all five calls, seeds 1-3: N from
+    <ntag>_cheap (hoq8b base, hoq8btcc1 trained), P from the peer's quick calls, SB and T from Qwen3-8B (dtag); the free check, the
+    agreement key and the grade from tc_reward (check, canon, right), as analyze_tcho.py"""
+    from run_nlopt import _rows
+    from tc_reward import canon, check, right
+    R = os.path.join(ROOT, "results", "tc")
+    D = os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nlp_data")
+    items = {p["id"]: p for p in map(json.loads, open(f"{D}/toolace/tc_train_items.jsonl"))}
+    ids = open(f"{D}/toolace/tc_ho_ids.txt").read().split()
+    rows = {(t, s): {r["id"]: r for r in _rows(f"{R}/{tag}_{a}_s{s}.jsonl")}
+            for t, tag, a in (("N", ntag, "cheap"), ("P", peer, "cheap"), ("SB", dtag, "sb"), ("T", dtag, "think")) for s in (1, 2, 3)}
+    out = {}
+    for i in ids:
+        p, src = items[i], []
+        for s in (1, 2, 3):
+            if any(i not in rows[(t, s)] for t in ("N", "P", "SB", "T")):
+                break
+            for t in ("N", "P", "SB", "T"):
+                r = rows[(t, s)][i]
+                x = r.get("n_text") if t in ("N", "P") else r.get("text")
+                tk = r.get("n_tok") if t in ("N", "P") else r.get("out_tokens")
+                ok = bool(x) and check(x, p["functions"])
+                src.append((t, s, canon(x) if ok else None, ok, bool(x) and right(x, p["gold"], p["functions"]), tk or 0))
+        else:
+            out[i] = _q(src)
+    return out
+
+
 def load_word(gen, peer, bench, rows=None):
     """rows: the answering model's arms if not its own stored ones (addendum LS: OptiBench's other 403 problems, think arms under q8bob)"""
     import contextlib, io
