@@ -263,3 +263,20 @@ yes, else SB→T→T). Costs: the judge's output is one token; its input (≈ th
 - Reported: the judge cascade against the peer cascade; input tokens.
 **Decision.** J-P1 holds: a judge is a new signal that lifts SQL's limit, and the cascade with a judge (its rule derived by the
 planner) is pre-registered on Spider next. Refuted: at these model sizes a judge adds nothing usable to the execution check and the peer.
+
+### Results, addendum J (written 2026-11-01 01:3x UTC; `results/run_judge_q35.log`, `results/lcm_bound_judge.log`; jobs 1290913, CPU)
+
+| cell | judge AUROC on passing N | six-call − five-call planner | judge cascade − peer cascade |
+|---|---|---|---|
+| BIRD dev, Qwen3-8B | 0.709 | −0.13 [−0.73, +0.48] | −2.61 [−3.58, −1.64] |
+| BIRD dev, Qwen3-14B-AWQ | 0.721 | +0.08 [−0.56, +0.72] | −1.83 [−2.82, −0.91] |
+| Spider, Qwen3-8B | 0.624 | −0.17 [−0.70, +0.36] | −2.44 [−3.38, −1.45] |
+| Spider, Qwen3-14B-AWQ | 0.612 | −0.87 [−1.39, −0.36] | −1.95 [−2.83, −1.06] |
+
+Judge says yes to 53–56% of passing quick queries on BIRD (2.5k input tokens per judgement) and 76–77% on Spider (0.9k).
+- **J-P1 refuted** (0 of 4); **J-P2 refuted** (AUROC ≥ 0.70 in 2 of 4; on Spider 0.61–0.62, at the level 2607.06799 reports for
+  fine-tuned verifiers on unseen schemas, 0.66, and below its GPT-4o-class judges).
+**Decision (as pre-registered).** A 9B judge adds nothing usable to the execution check and the peer: as a gate it is worse than the
+peer (−1.8 to −2.6), and as an extra signal it does not lift the limit. On SQL the information limit holds for a verification signal
+too at these model sizes; the method's SQL part is final as the cascade (FINAL), and the remaining room in this project is where the
+fixed rule fits the model badly (word problems, a weak peer; addendum B).

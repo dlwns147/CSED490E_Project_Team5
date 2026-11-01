@@ -4773,3 +4773,9 @@ The supervised planner over seven calls (two more models' quick queries) does wo
 and better in none; against the cascade it gains in 1 of 12. With 1,300–1,700 labelled questions per half the extra calls add
 patterns faster than information. Decision: the one-peer cascade is where quick-answer signals stop on SQL; a new signal has to be of
 another kind.
+
+## 2026-11-01 01:3x UTC: J (pre-registered): a 9B judge of the quick query does not lift SQL's limit
+Qwen3.5-9B judging Qwen3-8B's and Qwen3-14B-AWQ's passing quick queries (question, query, result rows; yes / no): AUROC 0.71 / 0.72 on
+BIRD dev, 0.61 / 0.62 on Spider; as a gate 1.8–2.6 utility worse than the peer's agreement; as a sixth signal in the supervised planner
+−0.87 to +0.08. Decision: verification by a model of this size is not the new signal SQL needs; the SQL method is final as the peer
+cascade. Goal link: on SQL the cheapest exact answers are what the quick query, its check and one peer allow.
