@@ -4882,3 +4882,17 @@ agreement patterns (B, ≤ ~1 point), a 9B judge that sees the result rows (J) a
 all fail to reach it, so the open problem of the executable tasks is a discriminator between two disagreeing passing answers that
 transfers across benchmarks. Training the quick answer moves that stratum's balance (Spider test: quick vs peer right 23.7 / 51.5%
 untrained, 47.9 / 30.3% trained), which is the vote TRT / TL measured.
+
+## 2026-11-01 11:4x UTC: TL4 (pre-registered): the tool-call call policy fitted on training requests holds for Qwen3-4B, trained and untrained alike
+Why: TRT / TL made the fitted call policy the tool-call method for trained quick answers, all on Qwen3-8B. Same test with Qwen3-4B
+answering (C1tc-4B trained or base Qwen3-4B; peer Qwen3.5-9B), fitted on the 3,549 held-out ToolACE requests and run on BFCL.
+- **TL4-P1 holds:** trained, transfer − cascade +0.81 [+0.39, +1.26] (87.3% at 0.43k vs 86.4% at 0.26k); reverse +0.50.
+- **TL4-P2 (the control) also holds:** base +1.18 [+0.68, +1.70] (86.6% at 0.66k vs 85.2% at 0.27k); reverse +0.83.
+- Reading by stratum (exploratory): trained 4B gains from the vote where the peer disagrees (+0.51), like trained Qwen3-8B. Base 4B
+  gains most where the quick calls and the peer's **agree** (+0.61): the fitted policy checks those agreements with a think (93.2% →
+  94.4%), i.e. the base 4B shares mistakes with the peer often enough (Kim et al., ICML 2025, correlated errors). Base Qwen3-8B gains
+  nowhere; its agreements are trusted, as the cascade does.
+Decision (registered): the recipe from one training set holds for two generators. Widened: on tool calls the policy fitted on held-out
+training requests replaces the cascade for trained and untrained quick answers (better in 6 of 8 fit / target pairs, never
+significantly worse; untrained Qwen3-8B −0.11 / −0.29). The trained / untrained split was a Qwen3-8B fact. Goal link: on tool calls
+the cheapest exact answers come from a call policy fitted on the training data's own labels, whatever the generator and its training.

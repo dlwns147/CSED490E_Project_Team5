@@ -727,3 +727,32 @@ give ≥ 2 distinct passing answers: 1,437 / 1,287, 936 / 807, 506 / 442, 2,833 
   the room above the cascade needs a within-question AUROC of 0.75–0.8 to give ≥ +1, and none of four signal families (own
   confidence, a judge, a transferred verifier, the channel score) reaches it; REPORT states the bound and the measured AUROCs.
 - Otherwise (0.7–0.75, P2 refuted): stated as measured, no follow-up.
+
+## Results of addendum TL4 (written 2026-11-01 11:4x UTC; `results/lcm_tl4.log`, reading `results/tl4_mech.txt`)
+
+| N (Qwen3-4B) | BFCL, fitted on held-out ToolACE: transfer − cascade | accuracy @ tokens (cascade) | reverse: ToolACE held-out, fitted on BFCL | cascade − SB→T→T (BFCL) | stratum N passes, P differs: N / SB / T |
+|---|---|---|---|---|---|
+| trained (C1tc-4B) | **+0.81 [+0.39, +1.26]** (p 0.0001) | 87.3% @ 0.43k (86.4% @ 0.26k) | +0.50 [+0.18, +0.81] | +0.94 | 68.6 / 74.3 / 74.5% |
+| base | **+1.18 [+0.68, +1.70]** (p < 0.0001) | 86.6% @ 0.66k (85.2% @ 0.27k) | +0.83 [+0.34, +1.29] | −0.22 | 52.2 / 75.2 / 75.6% |
+
+- **TL4-P1 holds.** **TL4-P2, the control, also holds**, against the expectation. The mechanism prediction (trained within 3 points of
+  SB) is refuted too: 5.7 below.
+- Reading (exploratory, `nlp_data/scratch/tl4_mech.py`: the fitted policy against the cascade by stratum of the first two calls, in
+  utility points over all BFCL question-seeds):
+  - trained 4B: the gain is the vote where N and P differ (+0.51) and where P fails (+0.17), as for trained Qwen3-8B (+0.47, +0.52).
+  - base 4B: the largest part is where N and P **agree** (+0.61). The fitted policy does not accept an agreement; it adds a think
+    (P-N-T in 91%), lifting those question-seeds from 93.2% to 94.4% at +0.33k. Smaller parts: the vote where they differ (+0.32), N
+    fails (+0.26).
+  - base Qwen3-8B: no stratum gains (−0.15 to +0.09); its agreements are trusted as the cascade does (P-N 100%).
+- So the gain does not come from training as such. It comes from wherever the hand-set cascade is wrong for that generator, which a
+  policy fitted on the training split's labels finds: a trained quick answer is worth a vote (both generators), and an untrained 4B
+  quick answer that agrees with the peer is still wrong often enough to be checked by a think. The second is the shared-error case
+  (Kim et al., ICML 2025, "Correlated Errors in Large Language Models": models agree on the same wrong answer in most cases where both
+  err). With Qwen3-4B as the answering model, the cascade does not even beat SB→T→T (−0.22).
+
+**Decision (by the rule above).** P1 holds: the tool-call recipe from one training set (train the quick calls, check with the peer,
+combine the calls with the policy fitted on held-out training requests) holds for two generators; PROJECT and REPORT say so. The
+control's failure widens the statement: on tool calls the fitted policy replaces the cascade for trained and untrained quick answers.
+Over the 8 fit / target pairs on tool calls (2 generators × trained / base × 2 directions) it is better in 6 and never significantly
+worse (untrained Qwen3-8B: −0.11 BFCL, −0.29 held-out ToolACE). The "trained vs untrained" split stated after TRT / TL is a
+Qwen3-8B fact, not the rule.

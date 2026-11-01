@@ -544,8 +544,14 @@ the quick answer's training split (1,338 unused BIRD-train questions; the held-o
 carries on tool calls (BFCL +1.04 [+0.60, +1.49], equal to what BFCL's own labels give; base −0.11) and not on SQL (BIRD dev −0.43,
 Spider test +0.39, Spider dev +0.39; refuted, 1 of 4 cells). On SQL the trained quick query's gain from any fitted policy is one
 significant fit / target pair in five, and the room above the cascade is a property of the target (Spider test +0.7 / +0.8 with its
-own labels for trained and base alike, BIRD dev none), not of training. The method for trained quick answers is therefore the fitted
-policy on tool calls, fitted on held-out training requests, and the cascade on SQL.
+own labels for trained and base alike, BIRD dev none), not of training. The same test with Qwen3-4B answering (TL4, pre-registered)
+holds for the trained quick calls (BFCL +0.81 [+0.39, +1.26]) and also for the untrained ones, the intended control (+1.18 [+0.68,
++1.70]). By stratum, the trained 4B gains from the vote where the peer disagrees, as Qwen3-8B does; the untrained 4B gains most where
+its quick calls and the peer's agree (+0.61 of the +1.18): the fitted policy checks those agreements with a think (93.2% → 94.4% right
+there), the shared-error case of Kim et al. (ICML 2025). So the fitted policy corrects whatever the hand-set cascade gets wrong for a
+generator, and training is one such case. The method on tool calls is the policy fitted on held-out training requests, for trained and
+untrained quick answers (better in 6 of 8 fit / target pairs, never significantly worse: untrained Qwen3-8B −0.11 / −0.29); on SQL,
+the cascade.
 
 **Another generator family (XG, pre-registered).** All of the above uses Qwen generators. With gpt-oss-20b answering (its low-effort
 answer as N, its medium-effort SB→T→T as the default) and Qwen3.5-9B's quick answer as the check, the cascade beats the default on
