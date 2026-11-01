@@ -1183,7 +1183,7 @@ def main_sel_build_tc2():
     print(f"SEL-TC2 build: {len(req)} requests -> results/conf/sel_req_tc2.jsonl")
 
 
-def tc2_run(P, sc, txt, S, sset, i, beta=None, sd=1.0):
+def tc2_run(P, sc, txt, S, sset, i, beta=None, sd=1.0, task="tc"):
     """the planner P on one request-seed; at its stop, where >= 2 passing answers were seen and every one is scored, the answer with
     the highest logit P(right | pattern) + beta z (z: the verifier's mean score over the answer's calls, centred in the set, / sd);
     beta None: the planner's own choice. Returns (right, tokens, seen, the scored stop set or None)"""
@@ -1205,7 +1205,7 @@ def tc2_run(P, sc, txt, S, sset, i, beta=None, sd=1.0):
                 G.setdefault(e[0], []).append(j)
         C = None
         if len(G) >= 2:
-            sv = {g: [S.get(rv_key("tc", sset, i, "sel", txt[j])) for j in js] for g, js in G.items()}
+            sv = {g: [S.get(rv_key(task, sset, i, "sel", txt[j])) for j in js] for g, js in G.items()}
             if all(v is not None for x in sv.values() for v in x):
                 n = P.n[pat]
                 C = [{"g": g, "lp": math.log((P.r.get((pat, g), 0) + 0.5) / (n + 1) / max(1e-3, 1 - (P.r.get((pat, g), 0) + 0.5) / (n + 1))),
@@ -1505,7 +1505,118 @@ def main_sel_tc3():
           f"{'holds' if up == 2 else 'refuted'}")
 
 
+def sql2_cells(sset, nsrc):
+    """addendum SEL2: (questions, {(id, seed): the five calls' extracted queries}) of the SQL cascade (Qwen3-8B, peer Qwen3.5-9B)"""
+    D = quiet(lcm.load, "sql", "q8b", "q35", sset, **({"nsrc": nsrc} if nsrc else {}))
+    W = rv_texts("sql", sset, nsrc)
+    return D, {(i, s): [W.get((t, ss, i), "") for t, ss in (("N", s), ("P", s), ("SB", s), ("T", s), ("T", s % 3 + 1))]
+               for i in D for s in (1, 2, 3)}
+
+
+def main_sel_build_2():
+    """addendum SEL2: every passing query of the five calls on question-seeds with >= 2 distinct passing results (the fresh questions on
+    the held-out databases, BIRD dev, Spider test, Spider dev; both N types) -> results/conf/sel_req_2.jsonl"""
+    req, val = {}, sel_val_ids()
+    for sset in ("fresh",) + tuple(x for x, _ in SEL_T):
+        for nsrc in (None, RV_N["sql"]):
+            D, X = sql2_cells(sset, nsrc)
+            m = 0
+            for i, q in D.items():
+                if sset == "fresh" and i not in val:
+                    continue
+                for s in (1, 2, 3):
+                    sc = lcm.seed_calls(q, s)
+                    if len({c[0] for c in sc if c[1] and c[0] is not None}) < 2:
+                        continue
+                    m += 1
+                    for j, c in enumerate(sc):
+                        if c[1] and c[0] is not None:
+                            h = rv_key("sql", sset, i, "sel", X[(i, s)][j])
+                            req[h] = {"h": h, "task": "sql", "sset": sset, "id": i, "kind": "sel", "text": X[(i, s)][j]}
+            print(f"SEL2 build {sset} {nsrc or 'base'}: {m} question-seeds with >= 2 passing results; requests so far {len(req)}", flush=True)
+    with open(os.path.join(lcm.ROOT, "results", "conf", "sel_req_2.jsonl"), "w") as f:
+        for r in req.values():
+            f.write(json.dumps(r) + "\n")
+    print(f"SEL2 build: {len(req)} requests -> results/conf/sel_req_2.jsonl")
+
+
+def main_sel_2():
+    """addendum SEL2 (--sel-2 <SEL's checkpoint>): TL's SQL planner (fitted on the 1,338 fresh BIRD-train questions' labels) with SEL's
+    verifier choosing at its stop (beta, sd from the stop sets of the 343 held-out-database fresh questions), against SEL's pipeline
+    (the cascade with the verifier at its fallback), the planner alone and the default, on BIRD dev, Spider test and Spider dev"""
+    from analyze_ho3 import ci
+    from run_nlopt import _rows
+    nm = sys.argv[sys.argv.index("--sel-2") + 1]
+    S = {r["h"]: r for r in _rows(os.path.join(lcm.ROOT, "results", "conf", f"sel_scores_{nm}.jsonl"))}
+    val = sel_val_ids()
+    f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
+    U = lambda r, t: 100 * float(r) - LAM * t / 1000
+    R = {}
+    for nsrc in (None, RV_N["sql"]):
+        name = "trained" if nsrc else "base"
+        Df, Xf = sql2_cells("fresh", nsrc)
+        sch = [(i, s, lcm.seed_calls(q, s)) for i, q in Df.items() for s in (1, 2, 3)]
+        tok = [sum(sc[j][3] for _, _, sc in sch) / len(sch) for j in range(5)]
+        P = Supervised([full(sc) for _, _, sc in sch], tok)
+        sets = [x[3] for i, s, sc in sch if i in val for x in [tc2_run(P, sc, Xf[(i, s)], S, "fresh", i, task="sql")] if x and x[3]]
+        dv = [c["s"] - sum(d["s"] for d in C) / len(C) for C in sets for c in C]
+        sd = (sum(x * x for x in dv) / max(1, len(dv))) ** 0.5 or 1.0
+
+        def ll(b):
+            t = 0.0
+            for C in sets:
+                mu = sum(c["s"] for c in C) / len(C)
+                for c in C:
+                    z = c["lp"] + b * (c["s"] - mu) / sd
+                    t += -math.log1p(math.exp(-z)) if c["r"] else -math.log1p(math.exp(min(z, 700)))
+            return t
+        beta = max((b / 10 for b in range(0, 41)), key=ll)
+        # SEL's pipeline: the cascade with SEL's fresh-fitted selector at its fallback (as main_sel)
+        _, _, fr, _ = sel_items("fresh", nsrc, S)
+        _, allfr = rv_items("sql", "fresh", nsrc)
+        choose, _ = sel_fit([(i, s, [{"r": c[0], "calls": c[1], "s": 0.0} for c in cand.values()], dr) for i, s, cand, dr in allfr],
+                            [x for x in fr if x[0] in val])
+        for sset, tname in SEL_T:
+            _, _, it, _ = sel_items(sset, nsrc, S)
+            selc = {(x[0], x[1]): choose(x) for x in it}
+            D, X = sql2_cells(sset, nsrc)
+            ids = sorted(D)
+            acc, kt, Uq, unseen, nset = Counter(), Counter(), {k: Counter() for k in ("comb", "plan", "sel", "default")}, 0, 0
+            for i in ids:
+                for s in (1, 2, 3):
+                    sc = lcm.seed_calls(D[i], s)
+                    rc, tc_ = lcm.fixed("cascade", sc)
+                    c = selc.get((i, s))
+                    out = {"sel": (c["r"] if c else rc, tc_), "default": lcm.fixed("SB->T->T", sc)}
+                    a = tc2_run(P, sc, X[(i, s)], S, sset, i, beta, sd, task="sql")
+                    b = tc2_run(P, sc, X[(i, s)], S, sset, i, task="sql")
+                    if a is None:   # a pattern the planner never saw: SEL's outcome
+                        unseen += 1; out["comb"] = out["plan"] = out["sel"]
+                    else:
+                        out["comb"], out["plan"] = a[:2], b[:2]; nset += a[3] is not None
+                    for k, (r, t) in out.items():
+                        acc[k] += r; kt[k] += t; Uq[k][i] += U(r, t) / 300
+            n = 3 * len(ids)
+            d = lambda x, y: ci({i: Uq[x][i] - Uq[y][i] for i in ids})
+            R[(name, tname)] = r = {k: d("comb", k) for k in ("plan", "sel", "default")}
+            print(f"    SEL2 {tname} {name}: beta {beta:.1f} (sd {sd:.2f}, {len(sets)} held-out-database stop sets); " + "; ".join(
+                f"{k} {100 * acc[k] / n:.1f}% at {kt[k] / n / 1000:.2f}k" for k in ("comb", "plan", "sel", "default")) +
+                f"; scored stop sets {nset}, unseen {unseen} of {n}; combined - planner {f(r['plan'])}; combined - SEL's pipeline "
+                f"{f(r['sel'])}; combined - default {f(r['default'])}", flush=True)
+    if len(R) < 6:
+        print(f"*** {len(R)} of 6 cells present, not decided"); return
+    for name in ("base", "trained"):
+        X = [R[(name, t)]["sel"] for _, t in SEL_T]
+        up, down = sum(x[1] > 0 for x in X), sum(x[2] < 0 for x in X)
+        print(f"*** SEL2-P1{name[0]} ({name}: combined - SEL's pipeline lower bound > 0 in >= 2 of 3, upper < 0 in none): {up} above, "
+              f"{down} below -> {'holds' if up >= 2 and down == 0 else 'refuted'}")
+
+
 def main():
+    if "--sel-build-2" in sys.argv:
+        return main_sel_build_2()
+    if "--sel-2" in sys.argv:
+        return main_sel_2()
     if "--sel-tc3" in sys.argv:
         return main_sel_tc3()
     if "--sel-build-g" in sys.argv:

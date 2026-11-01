@@ -1164,3 +1164,25 @@ fit); stated either way.
   tokens per request-seed) for +0.3 / +0.0 accuracy points: the held-out patterns' verifier accuracies promise more than the extra
   answers deliver on BFCL, so the value recursion buys thinks on estimation noise, as the prediction's caveat said.
 - **Decision (registered):** SEL-TC2's combination stays the tool-call method (fewer tokens, one fit).
+
+## Addendum SEL2: the SQL call policy with the verifier at its stop (written 2026-11-01 19:0x UTC, before any new score; 13,889 requests built, about 4,900 new; the analysis was run only on synthetic scores)
+
+**Why.** On tool calls the fitted call policy and the verifier are complements (SEL-TC2: the policy's extra thinks give the verifier
+answers to choose from, +0.70 / +0.73 over the verifier at the cascade's fallback, although the policy alone gained nothing for the
+untrained quick calls). On SQL the fitted policy alone was not reliable (TL: 1 of 5 fit / target pairs), and the bound B says the calls'
+outcomes leave about a point above the cascade; whether the verifier turns the policy's extra calls into accuracy on SQL decides whether
+the SQL method needs the policy.
+
+**Policy.** TL's SQL planner (`Supervised` on the 1,338 fresh BIRD-train questions × 3 seeds, their mean tokens per call), with SEL's
+verifier (s125) choosing at its stop where ≥ 2 passing results are seen (SEL-TC2's rule: the planner's log-odds + β z), β and SD from the
+stop sets of the 343 held-out-database fresh questions (the other fresh questions sit on the verifier's training databases). A pattern
+the planner never saw takes SEL's outcome. Compared with SEL's pipeline (the cascade with SEL's fresh-fitted selector at its fallback).
+
+**Predictions** (paired 95% intervals over questions; BIRD dev, Spider test, Spider dev):
+- **SEL2-P1b / P1t:** combined − SEL's pipeline, lower bound > 0 in ≥ 2 of 3 targets and upper bound < 0 in none, for the untrained /
+  trained quick query.
+- Expected: 0 to +0.8, at 1.5–1.7× SEL's tokens; uncertain (SQL's thinks are long, 1–2k tokens, so the policy's extra thinks cost more
+  per answer than on tool calls).
+
+**Decision.** P1 holds for an N type → the SQL method for it is the planner with the verifier at its stop; refuted → SEL's pipeline
+(cascade + verifier at its fallback) stays.
