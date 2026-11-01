@@ -4872,3 +4872,13 @@ Decision (registered): the fitted policy needs labelled calls near the deploymen
 quick answers on tool calls, the policy fitted on held-out training requests (no labels beyond the training data); on SQL and for
 untrained quick answers, the cascade. Goal link: on tool calls the whole recipe (trained quick answer, peer, call policy) comes from
 one labelled training set; on SQL the hand-set cascade is as good as any policy these calls allow.
+
+## 2026-11-01 09:3x UTC: exploratory (stored rows, decides nothing): where the room left above the cascade is — telling apart disagreeing candidates
+`nlp_data/scratch/oracle_room.py` → `results/oracle_room.txt`. An oracle that picks a right call whenever one of the five is right is
+8–11 points above the cascade in every cell (BIRD dev Qwen3-8B 70.9% vs 59.9%, with C1 71.7 vs 61.3; Spider test 86.7 vs 76.9, C1 87.7
+vs 79.6; BFCL live 89.3 vs 80.0, C1tc 90.4 vs 80.5). Most of it sits where the quick answer and the peer both pass and differ (15–28%
+of question-seeds): there one of the two is right 53–77% of the time and the cascade's fallback 42–62%. The supervised planner over
+agreement patterns (B, ≤ ~1 point), a 9B judge that sees the result rows (J) and a verifier trained with labels (VER, word problems)
+all fail to reach it, so the open problem of the executable tasks is a discriminator between two disagreeing passing answers that
+transfers across benchmarks. Training the quick answer moves that stratum's balance (Spider test: quick vs peer right 23.7 / 51.5%
+untrained, 47.9 / 30.3% trained), which is the vote TRT / TL measured.
