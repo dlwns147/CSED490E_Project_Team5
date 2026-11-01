@@ -4975,5 +4975,6 @@ Why: SEL-TC's decision — the fitted call policy (TL) and the verifier act on d
   (the policy alone gains nothing for untrained quick calls).
 - Mechanism: the gains are where the policy runs a full think (27–38% of request-seeds), mostly live requests: more candidates, which
   the policy's vote could not separate and the verifier can.
-- Open: the policy plans as if its vote decided; a policy that values calls by the verifier's resulting choice is the derived next step.
+- Planning for the verifier (SEL-TC3, pre-registered, offline: the stop value of a pattern = the verifier's leave-one-out accuracy there)
+  does not pay: +0.07 [−0.27, +0.41] / −0.15 [−0.36, +0.06], at +0.23k / +0.30k tokens — it buys thinks on noisy pattern estimates.
 Decision (registered): the tool-call method is the fitted policy with the verifier at its stop, for trained and untrained quick calls.

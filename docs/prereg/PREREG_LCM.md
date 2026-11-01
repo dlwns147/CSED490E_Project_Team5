@@ -1152,3 +1152,15 @@ SD as SEL-TC2, no new score.
 
 **Decision.** P1 holds → the tool-call planner becomes verifier-aware; refuted → SEL-TC2's combination stays (fewer tokens, no second
 fit); stated either way.
+
+## Results of addendum SEL-TC3 (written 2026-11-01 19:0x UTC; `results/lcm_seltc3.log`, offline)
+
+| BFCL, N | verifier-aware planner | SEL-TC2's combination | default | verifier-aware − combination |
+|---|---|---|---|---|
+| base | 86.9% @ 0.78k | 86.6% @ 0.48k | 83.9% @ 0.38k | +0.07 [−0.27, +0.41] |
+| trained | 87.7% @ 0.66k | 87.7% @ 0.43k | 83.9% @ 0.38k | −0.15 [−0.36, +0.06] |
+
+- **SEL-TC3-P1 refuted** (0 of 2 above, 0 below). Planning for the verifier makes the planner think on more requests (+0.23k / +0.30k
+  tokens per request-seed) for +0.3 / +0.0 accuracy points: the held-out patterns' verifier accuracies promise more than the extra
+  answers deliver on BFCL, so the value recursion buys thinks on estimation noise, as the prediction's caveat said.
+- **Decision (registered):** SEL-TC2's combination stays the tool-call method (fewer tokens, one fit).
