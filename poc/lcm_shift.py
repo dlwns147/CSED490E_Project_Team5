@@ -12,7 +12,9 @@ Policies: LS (reweighted development rows); transfer (the development rows unwei
 half's own labels: needs the labels LS does without); pseudo-labels (B's planner on the target half with "right" = the answer of
 T, else retry T, the most expensive call; label-free like C3PO, 2511.07396); fixed cascade, SB->T->T, T->T and P->SB->T->T. A
 question-seed reaching a pattern its planner never saw is scored with the cascade's outcome (counted).
-usage: python3 lcm_shift.py   -> results/lcm_shift.log lines, results/lcm_shift/<cell>.json"""
+Addendum TR (--tr): the transfer planner fitted on every labelled SQL set so far (BIRD dev, the fresh BIRD questions, Spider test) with
+those sets' mean tokens per call (nothing from the target), on Spider's dev split, never used before; the four generators.
+usage: python3 lcm_shift.py [--tr]   -> results/lcm_shift.log (results/lcm_tr.log) lines, results/lcm_shift/<cell>.json"""
 import contextlib, io, json, math, os, sys, zlib
 from collections import Counter
 
@@ -124,39 +126,48 @@ def run_cell(name, dev, tgt):
     dev_rows = [full(sc) for sc in devsc]
     dev_oc = [(full(sc)[0], cls(sc)) for sc in devsc]
     ids = sorted(tgt); half = {h: [i for i in ids if zlib.crc32(i.encode()) % 2 == h] for h in (0, 1)}
-    POL = ("LS", "transfer", "reference", "pseudo")
+    POL = ("LS", "transfer", "reference", "pseudo", "transfer_devtok")
+    dev_tok = [sum(sc[j][3] for sc in devsc) / len(devsc) for j in range(5)]
     FIX = ("cascade", "SB->T->T", "T->T", "P->SB->T->T")
-    U = {k: {} for k in POL + FIX}; unseen = Counter(); diag = []
+    U = {k: {} for k in POL + FIX}; A = {k: {} for k in POL + FIX}; K = {k: {} for k in POL + FIX}; unseen = Counter(); diag = []
     for h in (0, 1):
         sc_h = [lcm.seed_calls(tgt[i], s) for i in half[h] for s in (1, 2, 3)]
         tok = [sum(sc[j][3] for sc in sc_h) / len(sc_h) for j in range(5)]
         pi, pdev, miss, rank, ncls, ll_a, ll_d = em_prior(dev_oc, [full(sc)[0] for sc in sc_h])
         w = [pi[c] / pdev[c] for _, c in dev_oc]
         P = {"LS": Supervised(dev_rows, tok, w), "transfer": Supervised(dev_rows, tok),
-             "reference": Supervised([full(sc) for sc in sc_h], tok), "pseudo": Supervised([pseudo(sc) for sc in sc_h], tok)}
+             "reference": Supervised([full(sc) for sc in sc_h], tok), "pseudo": Supervised([pseudo(sc) for sc in sc_h], tok),
+             "transfer_devtok": Supervised(dev_rows, dev_tok)}
         diag.append(dict(half=h, unseen_obs=miss, rank=rank, classes=ncls, ll_adapted=ll_a, ll_dev=ll_d,
                          pi_right_T=sum(v for c, v in pi.items() if c[3]), pdev_right_T=sum(v for c, v in pdev.items() if c[3]),
                          pi_right_N=sum(v for c, v in pi.items() if c[0]), pdev_right_N=sum(v for c, v in pdev.items() if c[0]),
                          estimation_ktok=sum(tok) / 1000))
         for i in half[1 - h]:
-            acc = Counter()
+            acc, ra, ka = Counter(), Counter(), Counter()
             for s in (1, 2, 3):
                 sc = lcm.seed_calls(tgt[i], s)
+                out = {}
                 for k, S in P.items():
                     ok, t, seen = S.run(sc)
                     if not seen:
                         ok, t = lcm.fixed("cascade", sc); unseen[k] += 1
-                    acc[k] += u(ok, t)
+                    out[k] = (ok, t)
                 for f in FIX:
-                    acc[f] += u(*fixed(f, sc))
+                    out[f] = fixed(f, sc)
+                for k, (ok, t) in out.items():
+                    acc[k] += u(ok, t); ra[k] += float(ok); ka[k] += t
             for k in POL + FIX:
-                U[k][i] = acc[k] / 3
+                U[k][i], A[k][i], K[k][i] = acc[k] / 3, 100 * ra[k] / 3, ka[k] / 3
     m = {k: sum(v.values()) / len(ids) for k, v in U.items()}
     d = lambda a, b: ci({i: (U[a][i] - U[b][i]) / 100 for i in ids})
     rec = dict(task=name, n=len(ids), mean=m, unseen=dict(unseen), diag=diag,
                LS_vs_cascade=d("LS", "cascade"), LS_vs_transfer=d("LS", "transfer"), LS_vs_default=d("LS", "SB->T->T"),
                transfer_vs_cascade=d("transfer", "cascade"), reference_vs_cascade=d("reference", "cascade"),
-               LS_vs_reference=d("LS", "reference"), pseudo_vs_cascade=d("pseudo", "cascade"), LS_vs_swap=d("LS", "P->SB->T->T"))
+               LS_vs_reference=d("LS", "reference"), pseudo_vs_cascade=d("pseudo", "cascade"), LS_vs_swap=d("LS", "P->SB->T->T"),
+               tr_vs_cascade=d("transfer_devtok", "cascade"), tr_vs_default=d("transfer_devtok", "SB->T->T"),
+               tr_p=pboot({i: U["transfer_devtok"][i] - U["cascade"][i] for i in ids}),
+               acc={k: sum(v.values()) / len(ids) for k, v in A.items()}, ktok={k: sum(v.values()) / len(ids) / 1000 for k, v in K.items()},
+               tr_acc_vs_cascade=ci({i: (A["transfer_devtok"][i] - A["cascade"][i]) / 100 for i in ids}))
     f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
     room = m["reference"] - m["cascade"]
     print(f"*** {name} ({len(ids)} questions): " + ", ".join(f"{k} {v:+.2f}" for k, v in m.items()), flush=True)
@@ -175,7 +186,41 @@ def run_cell(name, dev, tgt):
     return rec
 
 
+def pboot(d, B=10000):
+    """one-sided bootstrap p-value of mean(d) <= 0 over questions (as analyze_final.pvalue: resample questions)"""
+    import random
+    ids = sorted(d); n = len(ids); rng = random.Random(0)
+    return sum(sum(d[rng.choice(ids)] for _ in range(n)) / n <= 0 for _ in range(B)) / B
+
+
+def main_tr():
+    """addendum TR: Spider dev, the four generators, the planner fitted on BIRD dev + fresh + Spider test with their tokens"""
+    R = []
+    for g in ("q8b", "q14a", "q35", "oss20"):
+        p = PEER[g]
+        dev = [quiet(lcm.load, "sql", g, p, x) for x in ("dev", "fresh", "spider")]
+        tgt = quiet(lcm.load, "sql", g, p, "spiderdev")
+        if not tgt or not all(dev):
+            print(f"*** sql spiderdev {g}<-{p}: rows missing", flush=True)
+            continue
+        r = run_cell(f"sql spiderdev {g}<-{p} (from BIRD + Spider test)", dev, tgt)
+        f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
+        print(f"    TR: transfer (development tokens) - cascade {f(r['tr_vs_cascade'])} (one-sided p {r['tr_p']:.4f}); accuracy "
+              f"{f(r['tr_acc_vs_cascade'])}; {r['acc']['transfer_devtok']:.1f}% @ {r['ktok']['transfer_devtok']:.2f}k vs cascade "
+              f"{r['acc']['cascade']:.1f}% @ {r['ktok']['cascade']:.2f}k; - SB->T->T {f(r['tr_vs_default'])}", flush=True)
+        R.append(r)
+    k = len(R); order = sorted(range(k), key=lambda j: R[j]["tr_p"]); holm = {}; run = 0.0
+    for rank, j in enumerate(order):
+        run = max(run, min(1.0, (k - rank) * R[j]["tr_p"])); holm[j] = run
+    n_lo = sum(r["tr_vs_cascade"][1] > 0 for r in R)
+    print(f"\n*** TR-P1 transfer - cascade on Spider dev: lower bound > 0 in {n_lo} of {k} (needs >= 3) -> "
+          f"{'holds' if n_lo >= 3 else 'refuted'}; worse (upper bound < 0) in {sum(r['tr_vs_cascade'][2] < 0 for r in R)}; Holm-adjusted p: "
+          + ", ".join(f"{R[j]['task'].split(' (')[0]} {holm[j]:.4f}" for j in range(k)))
+
+
 def main():
+    if "--tr" in sys.argv:
+        return main_tr()
     R = []
     for name, dev, tgt, prim in cells():
         if not tgt or not all(dev):

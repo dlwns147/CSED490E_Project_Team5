@@ -130,7 +130,7 @@ def load_word(gen, peer, bench, rows=None):
 
 def load(task, gen, peer, sset):
     if task == "sql":
-        sset = {"dev": "", "fresh": "pa", "spider": "sp"}.get(sset, sset)
+        sset = {"dev": "", "fresh": "pa", "spider": "sp", "spiderdev": "sd"}.get(sset, sset)
     return {"sql": load_sql, "tc": load_tc, "word": load_word}[task](gen, peer, sset)
 
 

@@ -366,3 +366,35 @@ claim, because two fresh sets show almost no room. And labels from other sets of
 target's own (plain transfer at or within 0.2 of the reference in 13 of 16 cells, 0.8–1.5 below in three), so "a fitted policy needs
 labels *of the target*" is not supported either. Whether plain transfer beats the cascade on a
 new benchmark is the next confirmatory question (addendum TR).
+
+## Addendum TR: one policy per task, fitted on labelled benchmarks, on a benchmark never used (written 2026-11-01 04:0x UTC, before any Spider-dev row exists; the items were built from Spider's dev.json and nothing else was read)
+
+**Why.** LS: a planner fitted on other sets' labels matches one fitted on half of the target's own (13 of 16 cells). In reported cells
+it beats the hand-set cascade in 8 of 12, including Spider test from BIRD's labels in 4 of 4 (+0.7 to +1.1, about the room Spider's own
+labels give). Those cells reuse Spider test. The question is whether a policy fitted on the task's labelled benchmarks beats the
+cascade on a benchmark never used. If so, the policy is derived once per task rather than per deployment. SQL's method would then move
+from the hand-set cascade to the derived policy at B's information limit, with no label of the new benchmark. Tool calls and word
+problems have no fresh set with all five calls stored; Spider dev costs about 12 lanes of 45 minutes.
+
+**Run.** Spider's dev split (1,034 questions on 20 databases, disjoint from Spider test's 40; from the official `spider_data.zip`,
+`SQL_SPLIT=spiderdev`, ids sd<i>). SQL-1's arms exactly as FINAL: `FINAL_SPLIT=spiderdev bash poc/slurm/submit_final.sh`, tags
+<m>sd, for Qwen3-8B, Qwen3-14B-AWQ, Qwen3.5-9B and gpt-oss-20b, seeds 1–3. Each generator's pre-registered peer comes from the same runs
+(q8b←q35, q14a←q35, q35←q8b, oss20←q35). Analysis: `python3 poc/lcm_shift.py --tr`. B's supervised planner is fitted on every labelled
+row of BIRD dev, the fresh BIRD questions and Spider test (each generator with its peer), using those sets' mean tokens per call;
+nothing from Spider dev enters. It is then executed on Spider dev. A pattern it never saw takes the cascade's outcome (counted).
+
+**Predictions** (paired 95% intervals over questions, seed means, utility = 100 × right − 0.5 × ktokens):
+- **TR-P1:** transfer − cascade, utility: lower bound > 0 in ≥ 3 of the 4 generators. Holm-adjusted one-sided p-values over the four
+  are reported.
+- Reported: accuracy and tokens of both; transfer − SB→T→T; the reference (Spider dev's own labels, cross-fitted: the room with labels);
+  LS; unseen patterns; gold queries the container's SQLite rejects (as in FINAL).
+- **Power.** On Spider test the gains were +0.7 to +1.1, with half-widths ≈ 0.5 on 1,741 questions. On ≈ 1,000 questions the half-width
+  is ≈ 0.7, so a true +0.9 clears 0 with probability ≈ 0.7 per cell, and TR-P1 has ≈ 0.65 power if all four effects are +0.9.
+
+**Decision.**
+- **TR-P1 holds:** SQL's method becomes the planner derived from the task's labelled public benchmarks, deployed with no label of the new
+  benchmark. PROJECT §2, REPORT and PROPOSAL restate "a fitted policy needs labels" as "labels once per task, from public benchmarks". The
+  cascade stays as the planner's readable approximation, and what the planner does differently is reported.
+- **TR-P1 refuted:** the cascade stays SQL's method. The Spider-test gains are read as the third use of an already-used set.
+
+Expected (not a rule): TR-P1 holds, 3–4 of 4.
