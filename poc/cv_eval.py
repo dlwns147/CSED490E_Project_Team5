@@ -34,7 +34,9 @@ def main():
     P = [json.loads(l) for l in open(ITEMS)]
     if os.environ.get("SQL_SUBSET"):   # the smoke
         i, k = map(int, os.environ["SQL_SUBSET"].split("/")); P = P[i::k]
-    base = {r["id"]: r for r in rows_of(f"{RES}/q8b_cheap_s{seed}.jsonl")} if arm == "c2" else {}
+    if os.environ.get("SQL_IDS"):   # PREREG_LCM addendum TL: only these ids (the fresh BIRD-train questions, bird/pa_ids.txt), as run_sql.py
+        keep = set(open(os.environ["SQL_IDS"]).read().split()); P = [p for p in P if p["id"] in keep]
+    base ={r["id"]: r for r in rows_of(f"{RES}/q8b_cheap_s{seed}.jsonl")} if arm == "c2" else {}
     path = f"{RES}/{tag}_cheap_s{seed}.jsonl"
     done = {r["id"] for r in rows_of(path)}
     sd = lambda p: seed * 1000 + zlib.crc32(p["id"].encode()) % 997

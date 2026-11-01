@@ -557,3 +557,43 @@ on two tasks on data never used for the question. The method for trained quick a
 public labelled benchmarks; the cascade stays the method for untrained ones. Stated with it: the gain is small (+0.5 to +1.0 utility,
 0.7–1.2 points of accuracy) and costs 1.7–1.9× the cascade's tokens; on Spider test, fitted on BIRD dev alone, it was +0.24 n.s.
 PROJECT §2, REPORT and PROPOSAL change.
+
+## Addendum TL: does the fitted policy need benchmark labels, or do the training split's own held-out labels suffice? (written 2026-11-01 08:4x UTC, before any trained quick query on the fresh BIRD-train questions exists and before any TL cell is computed)
+
+**Why.** TRT made the fitted policy the method for trained quick answers, fitted "once on the task's public labelled benchmarks". That
+needs the deployed model's quick, short-think and think calls on a labelled benchmark, and both confirmations (Spider dev, held-out
+ToolACE) were fitted on benchmarks near the target. Whoever trains the quick answer already holds labelled questions of the training
+split. If the policy fitted on held-out questions of that split carries to the task's benchmarks, the recipe needs no labels beyond the
+training set: train the quick answer on part of it, fit the call policy on the rest, deploy anywhere on the task. Jitkrittum et al.
+(NeurIPS 2023) name distribution shift between where a post-hoc deferral rule is fitted and where it runs as a case where it fails;
+training split → benchmark is exactly that shift (BIRD train → Spider; ToolACE → BFCL), so the outcome is open.
+
+**Sets.**
+- Fitting (training split, held out from training): SQL, the 1,338 fresh BIRD-train questions (`$POC_DATA/bird/pa_ids.txt`; none of
+  C1's 6,000 training questions, overlap checked 0; TR-C1's text called them "C1's training pool", meaning the split); tool calls,
+  the 3,549 held-out ToolACE requests (TRT's set).
+- Targets (the task's benchmarks): BIRD dev (1,530), Spider test (2,147), Spider dev (1,034), BFCL (non-live + live, 3,482, one set).
+- **New run:** C1's quick query on the fresh questions (`CV_EVAL_SPLIT=train SQL_IDS=…/pa_ids.txt cv_eval_lane.sh c1 q8bcvc1pa
+  <C1 adapter> 1 2 3`, graded `SQL_SPLIT=train grade_sql.py q8bcvc1pa <s>`); `cv_eval.py` gains the `SQL_IDS` filter. Every other call
+  is stored (base Qwen3-8B q8bpa / SB / T, Qwen3.5-9B q35pa; the targets' rows of TR-C1, FINAL and TRT). No pa question shares its gold
+  string with another database, so the grader fix does not touch the stored pa grades.
+
+**Policy.** B's supervised planner fitted on every labelled row of the fitting set (N, P, SB, T of seeds 1–3) with that set's mean
+tokens per call, nothing from the target; run on each target (`python3 poc/lcm_shift.py --tl`; `--dqs` for Spider's double-quote
+sensitivity). Cell as TR-C1 / TRT: N = the trained quick answer (C1 on SQL, C1tc on tool calls) or the base one, P = Qwen3.5-9B's quick
+answer, SB and T = base Qwen3-8B.
+
+**Predictions** (paired 95% intervals over questions, seed means, utility = 100 × right − 0.5 × ktokens; four primary cells: BIRD dev,
+Spider test, Spider dev, BFCL):
+- **TL-P1 (trained quick answers):** transfer − cascade, lower bound > 0 in at least 2 of the 4 cells and upper bound < 0 in none.
+- **TL-P2 (base quick answers):** the same. Expected refuted (TR, TRT-P2): the control for the split by training.
+- Reported: accuracy and tokens; the reference (each target's own labels, cross-fitted); the double-quote sensitivity on Spider.
+- **Power.** Half-widths about 0.6 (BIRD dev), 0.5 (Spider test), 0.8 (Spider dev), 0.4 (BFCL). At the +0.5 to +1.0 seen when fitted
+  on benchmarks, each cell clears 0 with probability about 0.4–0.9, so a true carry-over passes 2 of 4 with probability ≈ 0.7; a policy
+  hurt by the shift shows as cells below 0.
+
+**Decision.**
+- **P1 holds:** the recipe for trained quick answers needs no labels beyond the training split's: the call policy is fitted on its
+  held-out questions and deployed on the task's benchmarks. PROJECT §2, REPORT and PROPOSAL state the recipe that way.
+- **P1 refuted:** the fitted policy needs labelled calls from data near the deployment (a public benchmark of the task), stated as a
+  cost of the method; with any cell below 0, the shift from the training split is named as the reason, as Jitkrittum et al. predict.

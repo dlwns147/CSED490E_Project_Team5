@@ -275,7 +275,48 @@ def main_trt():
         print(f"*** TRT-P2 (base: transfer - cascade lower bound > 0): {'holds' if R['base']['tr_vs_cascade'][1] > 0 else 'refuted'}")
 
 
+def main_tl():
+    """addendum TL: the policy fitted only on held-out questions of the trained quick answer's training split (SQL: the 1,338 fresh
+    BIRD-train questions, C1's quick query as q8bcvc1pa; tool calls: the 3,549 held-out ToolACE requests) and run on the task's
+    benchmarks (BIRD dev, Spider test, Spider dev; BFCL non-live + live as one set), trained (C1 / C1tc) and base quick answers.
+    --dqs: Spider graded by the host's SQLite (spq / sdq), as FINAL's sensitivity"""
+    q = "--dqs" in sys.argv
+    f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
+    R = {}
+    for name, nsql, ntc, ntag in (("trained", "q8bcvc1", "q8btcc1", "hoq8btcc1"), ("base", None, None, "hoq8b")):
+        ks = {"nsrc": nsql} if nsql else {}
+        kt = {"nsrc": ntc} if ntc else {}
+        cells = [("sql", "BIRD-train fresh", [quiet(lcm.load, "sql", "q8b", "q35", "fresh", **ks)], t,
+                  quiet(lcm.load, "sql", "q8b", "q35", x, **ks)) for t, x in (("BIRD dev", "dev"), ("Spider test", "spq" if q else "spider"),
+                                                                                ("Spider dev", "sdq" if q else "spiderdev"))]
+        nl, lv = quiet(lcm.load, "tc", "q8b", "q35", "non-live", **kt), quiet(lcm.load, "tc", "q8b", "q35", "live", **kt)
+        bf = None
+        if nl and lv:
+            assert not set(nl) & set(lv)
+            bf = {**nl, **lv}
+        cells.append(("tc", "ToolACE held-out", [quiet(lcm.load_tcho, ntag)], "BFCL", bf))
+        for task, src, dev, tname, tgt in cells:
+            cn = f"{task} {tname}{' dqs' if q and tname.startswith('Spider') else ''} {name} (from {src})"
+            if not tgt or not all(dev):
+                print(f"*** {cn}: rows missing", flush=True)
+                continue
+            r = R[(name, tname)] = run_cell(cn, dev, tgt)
+            print(f"    TL {name} {tname}: transfer (training-split tokens) - cascade {f(r['tr_vs_cascade'])} (one-sided p {r['tr_p']:.4f}); "
+                  f"{r['acc']['transfer_devtok']:.1f}% @ {r['ktok']['transfer_devtok']:.2f}k vs cascade {r['acc']['cascade']:.1f}% @ "
+                  f"{r['ktok']['cascade']:.2f}k vs SB->T->T {r['acc']['SB->T->T']:.1f}% @ {r['ktok']['SB->T->T']:.2f}k", flush=True)
+    for name, tag in (("trained", "TL-P1"), ("base", "TL-P2")):
+        X = [R[(name, t)] for t in ("BIRD dev", "Spider test", "Spider dev", "BFCL") if (name, t) in R]
+        if len(X) < 4:
+            print(f"*** {tag}: {len(X)} of 4 cells present, not decided")
+            continue
+        up, down = sum(r["tr_vs_cascade"][1] > 0 for r in X), sum(r["tr_vs_cascade"][2] < 0 for r in X)
+        print(f"*** {tag} ({name}: transfer - cascade lower bound > 0 in >= 2 of 4, upper bound < 0 in none): {up} above, {down} below -> "
+              f"{'holds' if up >= 2 and down == 0 else 'refuted'}")
+
+
 def main():
+    if "--tl" in sys.argv:
+        return main_tl()
     if "--trt" in sys.argv:
         return main_trt()
     if "--tr-c1" in sys.argv:
