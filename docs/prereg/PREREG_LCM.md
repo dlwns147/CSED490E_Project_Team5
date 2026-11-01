@@ -980,3 +980,56 @@ base and trained N: N → peer → SB→T→T, and where N passed, the peer diff
 answer with the highest logit π(calls | structure) + β z. One prefill per candidate (shared prompt), no output tokens; labels of BIRD
 train only, the checkpoint and β from held-out training databases. PROJECT, REPORT and PROPOSAL updated. The tool-call recipe
 (addendum SEL-TC) was pre-registered at 14:5x UTC and is running.
+
+## Addendum SEL-W: the within-question verifier on word problems (written 2026-11-01 18:1x UTC, before any SEL-W training step or score; the 3,496 scoring requests are built from stored rows, and the analysis was run only on synthetic scores)
+
+**Why.** SEL holds on SQL. The word-problem cascade (N → gpt-oss-20b's quick program agrees → N, else SB→T→T; Qwen3-8B's default since
+XPEER) leaves room at the same place: where N passed, gpt-oss-20b printed another value and N, P and d give ≥ 2 distinct passing
+values (9.6–31.7% of problem-seeds), a right value is among them in 43–75% of these cells and d is right in 19–65%: +2.6 / +3.8 points
+on MAMO (Qwen3-8B / Qwen3-14B-AWQ), +2.7 / +2.2 on OptiBench's other 403 problems (stored rows, `nlp_data/scratch/fb_room.py`).
+VER trained a pointwise verifier on Qwen3-8B's OptMATH-Train programs; as a gate across problems it did not transfer (held-out AUC
+0.728, untrained 0.702). Read as a within-question selector on VER's stored scores (Qwen3-8B's N / SB / T programs on the four
+development sets, 117 problems with a right and a wrong passing value) it is no better than the untrained model either: 0.736 vs 0.730
+(`nlp_data/scratch/ver_within.py`). RV's theory 1: a score f(q) + g(c, q) chooses with g only; a pointwise loss spends the adapter on f
+(which problems are hard — VER learned OptMATH-Train's generator), the pairwise within-question loss trains g alone. SEL's pairwise
+verifier transferred from BIRD to Spider (0.72–0.80). SEL-W asks whether the objective, not the data, made that difference: VER's own
+programs, SEL's loss. Related: GenRM (2408.15240) and LEVER (2302.08468) rank candidates with trained verifiers; optimization modeling
+trains generators from solver outcomes (SIRL, 2505.11792; 2604.00442) rather than a selector; none compares pointwise and within-question
+training of one verifier on the same programs for transfer, or uses it only where a cheap cross-model check failed.
+
+**Arms.** V0: Qwen3-8B with VER's prompt, untrained (label-free). V1: VER's adapter (pointwise SFT on these programs,
+`optmath_train/td/adapter_ver_v1`). V2: Qwen3-8B + LoRA r 16 trained as SEL on the stored Qwen3-8B OptMATH-Train programs of VER's
+training problems (td rows q8b / q8bq2: 8 quick programs, the cut think's, the full think's; crc32(id) % 10 ≠ 0): passing programs
+grouped by printed value (`run_nlopt.correct` either way), problems with a right and a wrong value (about 1,030), context = VER's
+prompt, s = logit(yes) − logit(no), per problem the mean over (right, wrong) value pairs of log(1 + exp(s_w − s_r)), ≤ 8 values, one
+program per value drawn per epoch; batch 16, lr 5e-5, 2 epochs, adapters every 25 steps (`wp_train.py --orm`). Every arm's score:
+log P(yes) − log P(no) of the first answer token, case variants summed (VER's p_yes as log-odds; `score_conf.py sel`, task word).
+
+**Choices on the development sets** (OptiBench's third, BWOR, LogiOR, OptMATH, whose labels made every earlier choice): V2's
+checkpoint = the highest within-question AUROC on their fallback sets (both N types pooled); the method's arm = the highest of V0 / V1 /
+V2 by that AUROC; π (the structural prior) and β fitted on the four development fallback sets of the same N type.
+
+**Targets** (no choice uses them): OptiBench's other 403 problems (XPEER's fresh run) and MAMO (863) × N ∈ {Qwen3-8B, Qwen3-14B-AWQ};
+P = gpt-oss-20b's quick program, d = N's SB→T→T (XPEER's cells), seeds 1–3. Output tokens unchanged; prefill reported.
+
+**Predictions** (paired 95% intervals over problems):
+- **SEL-W-P1 (the objective):** V2 − V1 within-question AUROC on the targets (per problem, both sets and N types pooled), lower bound > 0.
+- **SEL-W-P2 (decision):** the chosen arm's selector − cascade, lower bound > 0 in ≥ 2 of 4 cells, upper bound < 0 in none.
+- **SEL-W-P3 (theory):** the chosen arm's cross-fitted Bayes gain within 0.7 of the Gaussian bound at its measured AUROC in ≥ 3 of 4.
+- **SEL-W-P4 (label-free):** V0's selector − cascade, lower bound > 0 in ≥ 2 of 4, upper bound < 0 in none.
+- **SEL-W-P5 (the score's share):** the chosen arm's selector − the development prior alone (β = 0), both targets pooled per N type,
+  lower bound > 0 for both N types.
+- Expected: V0 and V1 0.68–0.76 on the targets, V2 0.74–0.82; the bound at AUROC 0.75 gives +1.1 / +1.3 (Qwen3-8B; ob403 / MAMO) and
+  +0.9 / +2.1 (Qwen3-14B-AWQ). P2 is uncertain on ob403 (158–161 cells), and part of any gain may be the prior (who proposed the
+  value), which LS found does not travel between word sets — P5 separates it.
+
+**Decision.**
+- P2 holds → the chosen arm's selection becomes the word cascade's last step for Qwen3-8B; for Qwen3-14B-AWQ (default SB→T→T) the
+  default becomes cascade + selection only if pipeline − SB→T→T has a lower bound > 0 on both targets; PROJECT, REPORT and PROPOSAL
+  updated (the selection step then holds on two task types).
+- P2 refuted, P1 holds → the within-question objective transfers better than the pointwise one but not enough to pay at two or three
+  candidates; stated.
+- P1 refuted → on word problems the loss is not what limits transfer; with VER, the trained-verifier line on word problems closes,
+  stated with SEL's contrast (SQL's wrong passing answers differ by conventions a verifier can learn).
+- P4 holds → label-free selection pays on word problems (unlike SQL and tool calls, RV); if V0 is also the chosen arm, the step needs
+  no training.

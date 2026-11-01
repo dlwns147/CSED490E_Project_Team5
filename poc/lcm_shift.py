@@ -942,7 +942,206 @@ def main_sel_tc():
           f"{'holds' if max(p4) <= 0.05 else 'refuted'}")
 
 
+SELW_T = (("ob403", "OptiBench's other 403"), ("mamo", "MAMO"))   # SEL-W's targets; DEV_WORD fits the checkpoint, the arm, pi and beta
+SELW_N = ("q8b", "q14a")
+
+
+def w_items(gen, sset):
+    """SEL-W: (problems, [(id, seed, {key: [right, calls, [VER prompts]]}, fallback right)]) on the word cascade's fallback problem-seeds
+    (N passed, gpt-oss-20b's quick program printed another value, >= 2 distinct passing values among N, P and d); sset a development
+    set (DEV_WORD), ob403 (OptiBench's other 403 problems, XPEER's fresh run) or mamo"""
+    from run_nlopt import RES, _rows, problems
+    from ver_build import prompt
+    b = "optibench" if sset == "ob403" else sset
+    D = quiet(ob403, gen, "oss20") if sset == "ob403" else quiet(lcm.load, "word", gen, "oss20", sset)
+    Q = {p["id"]: p["q"] for p in quiet(problems, b)}
+    th = gen + "ob" if sset == "ob403" else gen
+    W = {(t, s, r["id"]): prompt(Q[r["id"]], r.get("code"), r.get("pred"))
+         for t, tag, a in (("N", gen, "formx"), ("P", "oss20", "formx"), ("SB", th, "formxtb2000"), ("T", th, "formxt"))
+         for s in (1, 2, 3) for r in _rows(f"{RES}/opt_{tag}_{b}_{a}_s{s}.jsonl") if r["id"] in D}
+    out = []
+    for i, q in D.items():
+        for s in (1, 2, 3):
+            N, P, SB, T, T2 = lcm.seed_calls(q, s)
+            if not N[1] or (P[1] and P[0] is not None and P[0] == N[0]):
+                continue
+            dn, d, dk = ("SB", SB, ("SB", s)) if SB[1] else (("T", T, ("T", s)) if T[1] else ("T2", T2, ("T", s % 3 + 1)))
+            cand = {}
+            for nm, x, tk in (("N", N, ("N", s)), ("P", P, ("P", s)), (dn, d, dk)):
+                if x[1] and x[0] is not None:
+                    c = cand.setdefault(x[0], [bool(x[2]), (), []])
+                    c[1] += (nm,); c[2].append(W[(tk[0], tk[1], i)])
+            if len(cand) >= 2:
+                out.append((i, s, cand, bool(d[2])))
+    return D, out
+
+
+def main_sel_build_w():
+    """addendum SEL-W: the candidates to score -> results/conf/sel_req_w.jsonl (the development sets, then ob403 and MAMO)"""
+    req = {}
+    for sset in DEV_WORD + tuple(x for x, _ in SELW_T):
+        for gen in SELW_N:
+            D, items = w_items(gen, sset)
+            for i, s, cand, dr in items:
+                for r, calls, texts in cand.values():
+                    for t in set(texts):
+                        h = rv_key("word", sset, i, "selw", t)
+                        req[h] = {"h": h, "task": "word", "sset": sset, "id": i, "kind": "selw", "text": t}
+            print(f"SEL-W build {sset} {gen}: {len(D)} problems, {len(items)} multi-answer fallback problem-seeds "
+                  f"({100 * len(items) / max(1, 3 * len(D)):.1f}%); scoring requests so far {len(req)}", flush=True)
+    with open(os.path.join(lcm.ROOT, "results", "conf", "sel_req_w.jsonl"), "w") as f:
+        for r in req.values():
+            f.write(json.dumps(r) + "\n")
+    print(f"SEL-W build: {len(req)} requests -> results/conf/sel_req_w.jsonl")
+
+
+def w_sel_items(gen, sset, S):
+    """w_items with each candidate as sel_items' dict (s: the verifier's mean score over its programs); problem keys '<sset>/<id>'"""
+    D, raw = w_items(gen, sset)
+    out, miss = [], 0
+    for i, sd, cand, dr in raw:
+        C = []
+        for r, calls, texts in cand.values():
+            x = [S.get(rv_key("word", sset, i, "selw", t)) for t in texts]
+            if any(v is None for v in x):
+                C = None; break
+            C.append({"r": r, "calls": calls, "s": sum(v["s"] for v in x) / len(x), "pre": sum(v.get("pre", 0) for v in x)})
+        if C is None:
+            miss += 1; continue
+        out.append((f"{sset}/{i}", sd, C, dr))
+    return D, [(f"{sset}/{i}", s, c, dr) for i, s, c, dr in raw], out, miss
+
+
+def main_sel_w():
+    """addendum SEL-W. --sel-val-w n1,n2,...: within-question AUROC of each checkpoint on the development sets' fallback sets (both N
+    types pooled) and the choice; --sel-w <V2's checkpoint>: the arms V0 (local: Qwen3-8B with VER's prompt, untrained), V1 (ver_v1:
+    VER's pointwise adapter) and V2, the arm with the highest development AUROC, the targets (SEL-W-P1..P4)"""
+    from analyze_ho3 import ci
+    from run_nlopt import _rows
+    cd = os.path.join(lcm.ROOT, "results", "conf")
+    load = lambda nm: {r["h"]: r for r in _rows(os.path.join(cd, f"sel_scores_{nm}.jsonl"))}
+    g = lambda v: f"{v[0]:.3f} [{v[1]:.3f}, {v[2]:.3f}]"
+    f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
+
+    def dev(S, gen):   # (prior items: every development fallback set with its labels, scored items)
+        pr, it = [], []
+        for b in DEV_WORD:
+            _, raw, x, _ = w_sel_items(gen, b, S)
+            pr += [(i, s, [{"r": c[0], "calls": c[1], "s": 0.0} for c in cand.values()], dr) for i, s, cand, dr in raw]; it += x
+        return pr, it
+
+    def dev_auc(S):
+        per = {}
+        for gen in SELW_N:
+            for i, v in sel_auc(dev(S, gen)[1]).items():
+                per.setdefault(gen, {})[i] = v; per.setdefault("pooled", {}).setdefault(i, []).append(v)
+        return per, ci({i: sum(v) / len(v) for i, v in per.get("pooled", {}).items()}) if per.get("pooled") else None
+    if "--sel-val-w" in sys.argv:
+        best = None
+        for nm in sys.argv[sys.argv.index("--sel-val-w") + 1].split(","):
+            per, pa = dev_auc(load(nm))
+            if pa is None:
+                print(f"SEL-W val {nm}: no scored mixed set", flush=True); continue
+            print(f"SEL-W val {nm}: AUROC q8b {ci(per['q8b'])[0] / 100:.3f}, q14a {ci(per['q14a'])[0] / 100:.3f}, pooled "
+                  f"{g([x / 100 for x in pa])} ({len(per['pooled'])} problems)", flush=True)
+            if nm not in ("local", "ver_v1") and (best is None or pa[0] > best[1]):
+                best = (nm, pa[0])
+        print(f"*** SEL-W checkpoint (highest pooled development AUROC): {best[0]}")
+        return
+    v2 = sys.argv[sys.argv.index("--sel-w") + 1]
+    arms = (("V0", "local"), ("V1", "ver_v1"), ("V2", v2))
+    SS = {a: load(nm) for a, nm in arms}
+    dA = {a: dev_auc(SS[a])[1] for a, _ in arms}
+    for a, nm in arms:
+        print(f"SEL-W development AUROC {a} ({nm}): {g([x / 100 for x in dA[a]])}", flush=True)
+    chosen = max((a for a, _ in arms), key=lambda a: dA[a][0])
+    print(f"*** SEL-W arm (highest pooled development AUROC): {chosen}", flush=True)
+    R, Aq = {}, {}
+    for a, nm in arms:
+        for gen in SELW_N:
+            prior, fit = dev(SS[a], gen)
+            choose, beta = sel_fit(prior, fit)
+            choose0, _ = sel_fit(prior, [])   # beta 0: the development prior alone (who proposed which answer), no score
+            for sset, tname in SELW_T:
+                D, raw, it, miss = w_sel_items(gen, sset, SS[a])
+                ids, n = [f"{sset}/{i}" for i in sorted(D)], 3 * len(D)
+                au = sel_auc(it)
+                Aq[(a, gen, sset)] = au
+                if not au:
+                    print(f"    SEL-W {tname} {gen} {a}: no scored mixed set (missing scores {miss})", flush=True); continue
+                A = ci(au)
+                sel, alone, cross, pipe, casc, unseen = Counter(), Counter(), Counter(), Counter(), Counter(), 0
+                ch, prio = {}, Counter()
+                for x in it:
+                    i, sd, C, dr = x
+                    c, c0 = choose(x), choose0(x)
+                    unseen += c is None
+                    sel[i] += (c["r"] if c else dr) - dr
+                    prio[i] += (c0["r"] if c0 else dr) - dr
+                    alone[i] += max(C, key=lambda c: c["s"])["r"] - dr
+                    ch[(i, sd)] = c["r"] if c else dr
+                for h in (0, 1):
+                    half = [x for x in it if zlib.crc32(x[0].encode()) % 2 == h]
+                    chh, _ = sel_fit(half, half)
+                    for x in it:
+                        if zlib.crc32(x[0].encode()) % 2 != h:
+                            c = chh(x)
+                            cross[x[0]] += (c["r"] if c else x[3]) - x[3]
+                U = lambda r, t: 100 * float(r) - lcm.LAM * t / 1000
+                acc = tok = acc0 = tok0 = 0
+                for i, q in D.items():
+                    k = f"{sset}/{i}"
+                    for sd in (1, 2, 3):
+                        sc = lcm.seed_calls(q, sd)
+                        r, t = lcm.fixed("cascade", sc)
+                        r0, t0 = lcm.fixed("SB->T->T", sc)
+                        r2 = ch.get((k, sd), r)
+                        pipe[k] += (U(r2, t) - U(r0, t0)) / 300; casc[k] += (U(r, t) - U(r0, t0)) / 300
+                        acc += r2; tok += t; acc0 += r0; tok0 += t0
+                c3 = lambda d: ci({i: d[i] / 3 for i in ids})
+                pb, p1 = rv_gauss(raw, A[0] / 100)
+                pre = sum(c["pre"] for x in it for c in x[2]) / n
+                R[(a, gen, sset)] = r = dict(A=A, sel=c3(sel), cross=c3(cross), bound=100 * pb / n, d0={k: sel[k] - prio[k] for k in ids})
+                print(f"    SEL-W {tname} {gen} {a}: {len(raw)} multi-answer fallback problem-seeds of {n}, missing scores {miss}; "
+                      f"within-question AUROC {g([x / 100 for x in A])}; fitted selector (beta {beta:.1f}; {unseen} with an unseen structure "
+                      f"keep d) - cascade {f(r['sel'])}; the prior alone - cascade {f(c3(prio))}; selector - the prior alone "
+                      f"{f(c3(r['d0']))}; cross-fitted Bayes {f(r['cross'])}; bound Bayes {100 * pb / n:+.2f}, R1 "
+                      f"{100 * p1 / n:+.2f}; verifier alone {f(c3(alone))}; pipeline {100 * acc / n:.1f}% at {tok / n / 1000:.2f}k vs "
+                      f"SB->T->T {100 * acc0 / n:.1f}% at {tok0 / n / 1000:.2f}k: pipeline - SB->T->T {f(ci(pipe))} (cascade alone "
+                      f"{f(ci(casc))}); verifier prefill {pre:.0f} tokens per problem-seed", flush=True)
+    cells = [(gen, sset) for gen in SELW_N for sset, _ in SELW_T]
+    if any((a, gen, sset) not in R for a, _ in arms for gen, sset in cells):
+        print("*** not every cell present, not decided"); return
+    d12 = {}
+    for gen, sset in cells:
+        A1, A2 = Aq[("V1", gen, sset)], Aq[("V2", gen, sset)]
+        for i in A2:
+            if i in A1:
+                d12.setdefault(i, []).append(A2[i] - A1[i])
+    p1 = ci({i: sum(v) / len(v) for i, v in d12.items()})
+    print(f"*** SEL-W-P1 (V2 - V1 within-question AUROC on the targets, pooled, lower bound > 0): {g([x / 100 for x in p1])} -> "
+          f"{'holds' if p1[1] > 0 else 'refuted'}")
+    for tag, a in (("SEL-W-P2", chosen), ("SEL-W-P4", "V0")):
+        X = [R[(a, gen, sset)] for gen, sset in cells]
+        up, down = sum(r["sel"][1] > 0 for r in X), sum(r["sel"][2] < 0 for r in X)
+        print(f"*** {tag} ({a}: fitted selector - cascade lower bound > 0 in >= 2 of 4, upper bound < 0 in none): {up} above, "
+              f"{down} below -> {'holds' if up >= 2 and down == 0 else 'refuted'}")
+    p3 = sum(abs(R[(chosen, gen, sset)]["cross"][0] - R[(chosen, gen, sset)]["bound"]) <= 0.7 for gen, sset in cells)
+    print(f"*** SEL-W-P3 ({chosen}: cross-fitted Bayes within 0.7 of the bound in >= 3 of 4): {p3} -> {'holds' if p3 >= 3 else 'refuted'}")
+    p5 = []
+    for gen in SELW_N:   # the score's own share: selector - the prior alone, both targets pooled per N type
+        d = {k: v for sset, _ in SELW_T for k, v in R[(chosen, gen, sset)]["d0"].items()}
+        p5.append(ci({k: v / 3 for k, v in d.items()}))
+        print(f"    SEL-W {gen} {chosen}: selector - the prior alone, both targets pooled {f(p5[-1])}")
+    print(f"*** SEL-W-P5 ({chosen}: selector - the prior alone, pooled per N type, lower bound > 0 for both): "
+          f"{'holds' if all(x[1] > 0 for x in p5) else 'refuted'}")
+
+
 def main():
+    if "--sel-build-w" in sys.argv:
+        return main_sel_build_w()
+    if "--sel-w" in sys.argv or "--sel-val-w" in sys.argv:
+        return main_sel_w()
     if "--sel-build-tc" in sys.argv:
         return main_sel_build_tc()
     if "--sel-tc" in sys.argv or "--sel-val-tc" in sys.argv:

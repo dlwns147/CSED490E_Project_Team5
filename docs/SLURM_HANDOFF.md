@@ -17,6 +17,11 @@ State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Tea
   TC_ARMS=quick run_tc.py taq8b <s>`, s 1–4; SB s1 was stored), then 1294857 `seltc_train` (`tc_train.py $POC_DATA/cv/seltc --orm`, log
   results/tc/run_tc_train_orm.log) → 1294858 `seltc_score` (`cv_eval_lane.sh orm-tc $POC_DATA/cv/seltc`; requests
   results/conf/sel_req_tc.jsonl from `lcm_shift.py --sel-build-tc`; `--sel-val-tc`, then `--sel-tc` > results/lcm_seltc.log).
+- **Running (11-01 18 UTC; PREREG_LCM.md addendum SEL-W):** the within-question verifier on word problems, one GPU per job: the smoke
+  `sbatch -J selwsmk -x n19,n22,n24,n26 poc/slurm/job.sh "SELW_SMOKE=1 bash poc/slurm/ver_lane.sh --selw /NAS/SJ/POSTECH/nlp_data/cv/selw_smoke"`,
+  then (afterok) `sbatch -J selw ... "bash poc/slurm/ver_lane.sh --selw /NAS/SJ/POSTECH/nlp_data/cv/selw"`: `wp_train.py --orm` (log
+  results/x3/run_selw_train.log), the server with ver_v1 and every adapter, `score_conf.py sel` on `results/conf/sel_req_w.jsonl` (built by
+  `lcm_shift.py --sel-build-w`), `--sel-val-w` > results/lcm_selw_val.log, targets, `--sel-w` > results/lcm_selw.log.
 - **Done 10-25 → 10-27 (PREREG_HO / _HON / _DT / _MODEL; FINDINGS has one entry each):** HO-N4 (Nemotron-3-Nano, a new family:
   a leaky model), HO-SB / SB2 / SB3 / P4 (a 2k-token think first, full thinking on a visible failure, is the fix for leaky models and the
   best no-label default), HO-CM (with the check given to thinking too, the best policy is short think → think → retry), HO-SB4 (the first

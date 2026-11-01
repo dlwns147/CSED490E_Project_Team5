@@ -20,7 +20,7 @@ to the stored token count}. Rows resume.
 usage: POC_BASE_URL=... python score_conf.py <kind> <tag> [seeds ...]   (CONF_LIMIT=k: the first k rows per seed, the smoke)
        POC_BASE_URL=... python score_conf.py rv   (CONF_LIMIT=k: the first k requests)
        POC_BASE_URL=... python score_conf.py sel <name>[,<name> ...]"""
-import json, os, sys, urllib.request
+import json, math, os, sys, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -124,13 +124,15 @@ SEL_ITEMS.update({"bfcl": f"{PD}/bfcl/tc_items.jsonl", "tcho": f"{PD}/toolace/tc
 
 
 def main_sel():
-    """SEL (SQL ssets) and SEL-TC (bfcl, tcho: SEL_REQ=sel_req_tc.jsonl; the request, the calls' text, tc_train.TC_ASK; nothing run)"""
+    """SEL (SQL ssets) and SEL-TC (bfcl, tcho: SEL_REQ=sel_req_tc.jsonl; the request, the calls' text, tc_train.TC_ASK; nothing run);
+    SEL-W (word sets, SEL_REQ=sel_req_w.jsonl: the request's text is VER's whole prompt; s = log P(yes) - log P(no), case variants
+    summed, as ver_score.py's p_yes in log-odds)"""
     import prep_sql
     from cv_train import run_query, turn2
     names = sys.argv[2].split(",")
     ssets = os.environ.get("SEL_SSETS", "fresh,dev,spider,spiderdev").split(",")
     req = [r for r in _rows(f"{ROOT}/results/conf/{os.environ.get('SEL_REQ', 'sel_req.jsonl')}") if r["sset"] in ssets]
-    P = {k: {p["id"]: p for p in map(json.loads, open(SEL_ITEMS[k]))} for k in ssets}
+    P = {k: {p["id"]: p for p in map(json.loads, open(SEL_ITEMS[k]))} for k in ssets if k in SEL_ITEMS}
     for sset in ssets:   # run_query reads prep_sql.SPLIT: one split at a time
         rows = [r for r in req if r["sset"] == sset]
         if sset in SEL_SPLIT:
@@ -143,7 +145,8 @@ def main_sel():
             print(f"sel {sset}: {len(rows)} queries run, {sum(v[0] == 'pass' for v in res.values())} pass ({len(bad)} run again alone)",
                   flush=True)
         else:
-            from tc_train import TC_ASK
+            if sset in SEL_ITEMS:
+                from tc_train import TC_ASK
             res = {r["h"]: ("pass", None, [], 0, []) for r in rows}
         for nm in names:
             out = f"{ROOT}/results/conf/sel_scores_{nm}.jsonl"
@@ -151,6 +154,14 @@ def main_sel():
 
             def one(r):
                 c, _, cols, n, first = res[r["h"]]
+                if r.get("task") == "word":
+                    o = client.chat.completions.create(model=nm, messages=[{"role": "user", "content": r["text"]}], max_tokens=1,
+                                                       temperature=0, logprobs=True, top_logprobs=20,
+                                                       extra_body={"chat_template_kwargs": {"enable_thinking": False}})
+                    top = [(t.token, t.logprob) for t in o.choices[0].logprobs.content[0].top_logprobs]
+                    lo = min(v for _, v in top)
+                    lse = lambda w: math.log(sum(math.exp(v) for k, v in top if k.strip().lower() == w) or math.exp(lo))
+                    return {"h": r["h"], "s": round(lse("yes") - lse("no"), 4), "c": c, "pre": o.usage.prompt_tokens}
                 p = P[sset][r["id"]]
                 if sset in SEL_SPLIT:
                     m = [{"role": "user", "content": p["user"]}, {"role": "assistant", "content": f"```sql\n{r['text']}\n```"},
