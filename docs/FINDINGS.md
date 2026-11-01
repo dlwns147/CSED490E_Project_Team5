@@ -4853,3 +4853,22 @@ as the peer, Qwen3-8B's SB and T run fresh, seeds 1–3.
 Decision (registered rule): for trained quick answers the method becomes the policy fitted once on the task's public labelled
 benchmarks; the cascade stays for untrained ones. Goal link: training the quick answer for correctness and then refitting how its
 calls are combined gives the cheapest exact answers on new data; the gain is small (+0.5 to +1.0) and token-costly.
+
+## 2026-11-01 09:3x UTC: TL (pre-registered): the training split's own labels suffice for the call policy on tool calls, not on SQL
+Why: TRT made the fitted call policy the method for trained quick answers, fitted on a public labelled benchmark. If held-out
+questions of the training split suffice, the recipe needs no labels beyond the training data. Test: the policy fitted only on the
+1,338 unused BIRD-train questions (C1's quick query run on them, new) or the 3,549 held-out ToolACE requests, run on BIRD dev, Spider
+test, Spider dev and BFCL; rule: lower bound > 0 in ≥ 2 of 4, none below.
+- **TL-P1 refuted** (trained, 1 of 4): BIRD dev −0.43 [−1.28, +0.31], Spider test +0.39 [−0.04, +0.82], Spider dev +0.39
+  [−0.34, +1.20], **BFCL +1.04 [+0.60, +1.49]** (86.4% at 0.43k vs 85.2% at 0.27k). **TL-P2 refuted** (base, 1 of 4; Spider test
+  +1.01 [+0.47, +1.56], BFCL −0.11).
+- Tool calls: the training split's labels reach what BFCL's own labels give (+1.01), and the split by training holds a third time.
+- SQL: the trained quick query's gain from a fitted policy is one significant fit / target pair in five (Spider dev +0.99 in TR-C1).
+  The room above the cascade belongs to the target set: Spider test +0.70 / +0.81 with its own labels for trained / base, BIRD dev
+  none (−0.34); so on SQL the vote mechanism is not what decides the gain. The trained quick query is right 59% of the time on the
+  fresh BIRD-train questions and 40–43% on BIRD dev, and the policy fitted where it is reliable over-spends on BIRD dev (2.27k vs
+  1.36k tokens for the same 61.3%): the shift Jitkrittum et al. (NeurIPS 2023) name for post-hoc deferral rules.
+Decision (registered): the fitted policy needs labelled calls near the deployment in general. Narrowed method statement: for trained
+quick answers on tool calls, the policy fitted on held-out training requests (no labels beyond the training data); on SQL and for
+untrained quick answers, the cascade. Goal link: on tool calls the whole recipe (trained quick answer, peer, call policy) comes from
+one labelled training set; on SQL the hand-set cascade is as good as any policy these calls allow.

@@ -539,7 +539,13 @@ against SB 44.0% / T 42.2%; trained 41.2% against 44.6% / 42.2%). So for trained
 the task's public benchmarks, for untrained ones the cascade; the gain is small and costs 1.7–1.9× the cascade's tokens. This is the
 case Jitkrittum et al. (NeurIPS 2023) analyse: the optimal deferral rule depends on both models' correctness, and deferring whenever the first
 is in doubt is right only while the later model is better on those inputs; training the first model ends that on the disagreement
-stratum.
+stratum. Whether the policy needs benchmark labels was tested next (TL, pre-registered): fitted only on held-out questions of
+the quick answer's training split (1,338 unused BIRD-train questions; the held-out ToolACE requests) and run on the benchmarks, it
+carries on tool calls (BFCL +1.04 [+0.60, +1.49], equal to what BFCL's own labels give; base −0.11) and not on SQL (BIRD dev −0.43,
+Spider test +0.39, Spider dev +0.39; refuted, 1 of 4 cells). On SQL the trained quick query's gain from any fitted policy is one
+significant fit / target pair in five, and the room above the cascade is a property of the target (Spider test +0.7 / +0.8 with its
+own labels for trained and base alike, BIRD dev none), not of training. The method for trained quick answers is therefore the fitted
+policy on tool calls, fitted on held-out training requests, and the cascade on SQL.
 
 **Another generator family (XG, pre-registered).** All of the above uses Qwen generators. With gpt-oss-20b answering (its low-effort
 answer as N, its medium-effort SB→T→T as the default) and Qwen3.5-9B's quick answer as the check, the cascade beats the default on

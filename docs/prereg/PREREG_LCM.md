@@ -597,3 +597,32 @@ Spider test, Spider dev, BFCL):
   held-out questions and deployed on the task's benchmarks. PROJECT §2, REPORT and PROPOSAL state the recipe that way.
 - **P1 refuted:** the fitted policy needs labelled calls from data near the deployment (a public benchmark of the task), stated as a
   cost of the method; with any cell below 0, the shift from the training split is named as the reason, as Jitkrittum et al. predict.
+
+### Results of addendum TL (written 2026-11-01 09:3x UTC; `results/lcm_tl.log`, `results/lcm_tl_dqs.log`; C1's quick query on the 1,338 fresh questions, 3 seeds, all rows)
+
+Fitted only on the training split's held-out questions; transfer (training-split tokens) − cascade, paired 95% intervals; Spider cells
+as FINAL's primary grading (questions whose gold runs in the container: 1,741 / 819), the double-quote sensitivity in brackets.
+
+| target | trained quick answer | base quick answer | reference − cascade (target's own labels), trained / base |
+|---|---|---|---|
+| BIRD dev (1,530) | −0.43 [−1.28, +0.31] (61.3% @ 2.27k vs 61.3% @ 1.36k) | −0.04 [−0.86, +0.79] | −0.34 / −0.55 |
+| Spider test (1,741; dqs 2,147) | +0.39 [−0.04, +0.82] (dqs +0.31) | **+1.01 [+0.47, +1.56]** (dqs +0.88) | +0.70 / +0.81 |
+| Spider dev (819; dqs 1,032) | +0.39 [−0.34, +1.20] (dqs +0.16) | +0.29 [−0.60, +1.23] (dqs −0.02) | −0.10 / −0.66 |
+| BFCL (3,482) | **+1.04 [+0.60, +1.49]** (86.4% @ 0.43k vs 85.2% @ 0.27k) | −0.11 [−0.43, +0.21] | +1.01 / +0.23 |
+
+- **TL-P1 refuted** (1 of 4 above 0, none below). **TL-P2 refuted** (1 of 4), as expected.
+- By task, reported: on tool calls the training split's labels reach the room the target's own labels show (BFCL +1.04 vs reference
+  +1.01), and the split by training holds a third time (base −0.11). On SQL no cell shows the trained quick answer's gain: BIRD dev has
+  no room even for its own labels (−0.34), and where there is room (Spider test, +0.70 / +0.81) it is there for the base quick answer
+  as much as for the trained one (the base cell is the one significant SQL cell, as LS's +0.6 to +1.0 on that set).
+- The fitted model's diagnostics show the shift: on the fresh BIRD-train questions the trained quick query is right 59% of the time,
+  on BIRD dev 40–43%; the policy fitted where it is reliable over-spends on BIRD dev (2.27k vs 1.36k tokens for the same accuracy).
+
+**Decision (by the rule above).** P1 refuted: the fitted policy cannot be fitted on the training split alone in general; it needs
+labelled calls from data near the deployment, stated as a cost of the method. No cell is below 0, so the shift is not named as a harm.
+Stated with it, from all fits so far: on tool calls the training split suffices (BFCL +1.04 here, held-out ToolACE +0.54 from BFCL in
+TRT); on SQL the trained quick answer's gain from a fitted policy is one significant cell in five fit / target pairs (Spider dev +0.99
+in TR-C1; +0.24 on Spider test from BIRD dev; −0.43 / +0.39 / +0.39 here), and SQL's small room above the cascade is a
+property of the target set, not of training. The method statement is therefore narrowed: for trained quick answers on tool calls, the
+policy fitted on the training split's held-out labels; on SQL, the cascade, with a fitted policy an option only where labelled calls
+near the deployment exist.
