@@ -439,7 +439,7 @@ def rv_gauss(items, A, reps=20, seed=0):
     in-cell structural prior and a score of within-item AUROC A (equal-variance Gaussian), and of R1 (votes, ties by the score)"""
     import random
     from statistics import NormalDist
-    rng, dp = random.Random(seed), (math.sqrt(2) * NormalDist().inv_cdf(A) if A > 0.5 else 0.0)
+    rng, dp = random.Random(seed), (math.sqrt(2) * NormalDist().inv_cdf(min(A, 0.999)) if A > 0.5 else 0.0)   # A = 1 (a tiny smoke) clamped
     cnt, rt = Counter(), Counter()
     for _, _, cand, _ in items:
         st = tuple(sorted(v[1] for v in cand.values()))
