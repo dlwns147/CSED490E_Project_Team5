@@ -1133,3 +1133,22 @@ planner +1.20 / +0.64.)
 **Decision (registered):** P2 holds for both N types → the tool-call method is TL's planner (fitted on held-out training requests) with
 the verifier choosing at its stop, for trained and untrained quick calls: 87.7% / 86.6% at 0.43k / 0.48k tokens against the default's
 83.9% at 0.38k. PROJECT, REPORT and PROPOSAL updated.
+
+## Addendum SEL-TC3: a planner that plans for the verifier (written 2026-11-01 19:0x UTC, offline on SEL-TC2's scores, before the analysis has been run on them; run only on synthetic scores)
+
+**Why.** SEL-TC2's planner values each call as if its own vote ended the request, so it calls a think where its vote gains, not where
+the verifier would. With the verifier choosing at the stop, the stop's reward is the verifier's accuracy given what has been seen; the
+Bayes planner over the same patterns with that reward values a call by what the verifier then does with the extra answer. Derivation:
+in TL's planner (dynamic programming over observed patterns, value = P(right) − λ·tokens), replace the stop value of every pattern with ≥ 2
+passing answers by the mean, over the fitting rows reaching that pattern, of whether the verifier's choice there is right (the
+counts-based log-odds of each answer + β z, with the row's own label left out of the counts, else a rare pattern's label makes its
+choice right in-sample and draws the planner to rare patterns). Nothing else changes: the same rows (held-out ToolACE), tokens, β and
+SD as SEL-TC2, no new score.
+
+**Prediction (BFCL, paired 95% intervals over requests).**
+- **SEL-TC3-P1:** the verifier-aware planner − SEL-TC2's combination, lower bound > 0 for both N types.
+- Expected: 0 to +0.5, at more tokens; uncertain, because the stop values are per-pattern means (tens to hundreds of rows) that the
+  value recursion can exploit where they are noisy.
+
+**Decision.** P1 holds → the tool-call planner becomes verifier-aware; refuted → SEL-TC2's combination stays (fewer tokens, no second
+fit); stated either way.

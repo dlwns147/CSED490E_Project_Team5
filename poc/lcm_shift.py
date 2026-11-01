@@ -1380,7 +1380,134 @@ def main_sel_g():
     print(f"*** SEL-G-P2 (BIRD dev AUROC >= 0.70 for every generator): {[round(x, 3) for x in p2]} -> {'holds' if min(p2) >= 0.70 else 'refuted'}")
 
 
+def tc3_choice(P, pat, rt, calls, txt, S, sset, i, beta, sd, loo=False):
+    """SEL-TC3: whether the verifier's choice at a pattern (calls made) is right — logit of the planner's count rate + beta z over the
+    passing answer groups seen; None where fewer than two are seen or a score is missing. loo: on a fitting row, the counts without the
+    row itself (else a rare pattern's own label would make the choice right in-sample and pull the planner toward rare patterns)"""
+    G = {}
+    for j in sorted(calls):
+        e = pat[j]
+        if e is not None and e[0] != "X" and e[1]:
+            G.setdefault(e[0], []).append(j)
+    if len(G) < 2:
+        return None
+    sv = {g: [S.get(rv_key("tc", sset, i, "sel", txt[j])) for j in js] for g, js in G.items()}
+    if any(v is None for x in sv.values() for v in x):
+        return None
+    n, C = P.n.get(pat, 0) - loo, []
+    for g, x in sv.items():
+        q = (P.r.get((pat, g), 0) - (loo and g in rt) + 0.5) / (n + 1)
+        C.append((math.log(q / max(1e-3, 1 - q)), sum(v["s"] for v in x) / len(x), g in rt))
+    mu = sum(c[1] for c in C) / len(C)
+    return max(C, key=lambda c: c[0] + beta * (c[1] - mu) / sd)[2]
+
+
+class VSupervised(Supervised):
+    """SEL-TC3: the planner whose stop value, where >= 2 passing answers are seen, is the accuracy of the verifier's choice on its fitting
+    rows (not its own vote's), so it values a call by what the verifier then does with the extra answer"""
+
+    def __init__(self, items, tok, X, S, sset, beta, sd):
+        import itertools
+        from lcm_bound import project
+        super().__init__([full(sc) for _, _, sc in items], tok)
+        self.vr, self.vn = {}, {}
+        for i, s, sc in items:
+            obs, right = full(sc)
+            for r in range(len(tok) + 1):
+                for calls in itertools.combinations(range(len(tok)), r):
+                    cs = frozenset(calls)
+                    pat, rt = project(obs, right, cs)
+                    v = tc3_choice(self, pat, rt, cs, X[(i, s)], S, sset, i, beta, sd, loo=True)
+                    if v is not None:
+                        self.vn[pat] = self.vn.get(pat, 0) + 1; self.vr[pat] = self.vr.get(pat, 0) + v
+
+    def stop(self, pat):
+        if self.vn.get(pat):
+            return self.vr[pat] / self.vn[pat], "V"
+        return super().stop(pat)
+
+
+def tc3_run(P, sc, txt, S, sset, i, beta, sd):
+    """VSupervised on one request-seed: (right, tokens) or None for a pattern it never saw"""
+    from lcm_bound import project
+    obs, right = full(sc)
+    calls, tok = frozenset(), 0
+    while True:
+        pat, rt = project(obs, right, calls)
+        if pat not in P.n:
+            return None
+        P.value(pat)
+        kind, arg = P.act[pat]
+        if kind != "stop":
+            calls = calls | {arg}; tok += sc[arg][3]; continue
+        if arg == "V":
+            v = tc3_choice(P, pat, rt, calls, txt, S, sset, i, beta, sd)
+            if v is not None:
+                return v, tok
+            arg = Supervised.stop(P, pat)[1]
+        return ((arg in rt) if arg is not None else False), tok
+
+
+def main_sel_tc3():
+    """addendum SEL-TC3 (--sel-tc3 <verifier name>): the verifier-aware planner (VSupervised, fitted on the held-out ToolACE requests,
+    SEL-TC2's beta and sd) against SEL-TC2's combination and the default on BFCL"""
+    from analyze_ho3 import ci
+    from run_nlopt import _rows
+    nm = sys.argv[sys.argv.index("--sel-tc3") + 1]
+    S = {r["h"]: r for r in _rows(os.path.join(lcm.ROOT, "results", "conf", f"sel_scores_{nm}.jsonl"))}
+    f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
+    U = lambda r, t: 100 * float(r) - LAM * t / 1000
+    R = {}
+    for nsrc in (None, RV_N["tc"]):
+        name = "trained" if nsrc else "base"
+        Dh, Xh = tc2_cells("tcho", nsrc)
+        sch = [(i, s, lcm.seed_calls(q, s)) for i, q in Dh.items() for s in (1, 2, 3)]
+        tok = [sum(sc[j][3] for _, _, sc in sch) / len(sch) for j in range(5)]
+        P = Supervised([full(sc) for _, _, sc in sch], tok)
+        sets = [x[3] for i, s, sc in sch for x in [tc2_run(P, sc, Xh[(i, s)], S, "tcho", i)] if x and x[3]]
+        dv = [c["s"] - sum(d["s"] for d in C) / len(C) for C in sets for c in C]
+        sd = (sum(x * x for x in dv) / max(1, len(dv))) ** 0.5 or 1.0
+
+        def ll(b):
+            t = 0.0
+            for C in sets:
+                mu = sum(c["s"] for c in C) / len(C)
+                for c in C:
+                    z = c["lp"] + b * (c["s"] - mu) / sd
+                    t += -math.log1p(math.exp(-z)) if c["r"] else -math.log1p(math.exp(min(z, 700)))
+            return t
+        beta = max((b / 10 for b in range(0, 41)), key=ll)
+        V = VSupervised(sch, tok, Xh, S, "tcho", beta, sd)
+        Db, Xb = tc2_cells("bfcl", nsrc)
+        ids = sorted(Db)
+        acc, kt, Uq, unseen = Counter(), Counter(), {k: Counter() for k in ("v", "comb", "default")}, 0
+        for i in ids:
+            for s in (1, 2, 3):
+                sc = lcm.seed_calls(Db[i], s)
+                a = tc2_run(P, sc, Xb[(i, s)], S, "bfcl", i, beta, sd)
+                b = tc3_run(V, sc, Xb[(i, s)], S, "bfcl", i, beta, sd)
+                if a is None or b is None:   # a pattern a planner never saw: the cascade's outcome for both
+                    unseen += 1; a = b = lcm.fixed("cascade", sc)
+                out = {"v": b[:2], "comb": a[:2], "default": lcm.fixed("SB->T->T", sc)}
+                for k, (r, t) in out.items():
+                    acc[k] += r; kt[k] += t; Uq[k][i] += U(r, t) / 300
+        n = 3 * len(ids)
+        d = lambda x, y: ci({i: Uq[x][i] - Uq[y][i] for i in ids})
+        R[name] = r = {"comb": d("v", "comb"), "default": d("v", "default")}
+        print(f"    SEL-TC3 BFCL {name}: beta {beta:.1f}; verifier-aware planner {100 * acc['v'] / n:.1f}% at {kt['v'] / n / 1000:.2f}k, "
+              f"SEL-TC2's combination {100 * acc['comb'] / n:.1f}% at {kt['comb'] / n / 1000:.2f}k, default {100 * acc['default'] / n:.1f}% "
+              f"at {kt['default'] / n / 1000:.2f}k; verifier-aware - combination {f(r['comb'])}; - default {f(r['default'])}; unseen {unseen}",
+              flush=True)
+    if len(R) < 2:
+        print("*** not every cell present, not decided"); return
+    up, down = sum(R[k]["comb"][1] > 0 for k in R), sum(R[k]["comb"][2] < 0 for k in R)
+    print(f"*** SEL-TC3-P1 (verifier-aware planner - SEL-TC2's combination, lower bound > 0 for both N types): {up} above, {down} below -> "
+          f"{'holds' if up == 2 else 'refuted'}")
+
+
 def main():
+    if "--sel-tc3" in sys.argv:
+        return main_sel_tc3()
     if "--sel-build-g" in sys.argv:
         return main_sel_build_g()
     if "--sel-g" in sys.argv:
