@@ -4752,3 +4752,18 @@ quick query +3.80 [+2.83, +4.77] (79.5% @ 0.44k vs 76.0% @ 1.08k) — all more a
 1,741 of 2,147 questions: the image's SQLite rejects the double-quoted literals of 406 gold queries (dropped by the registered rule; a
 sensitivity grading follows). Decision: the SQL claim is confirmed beyond BIRD, per generator; the trained quick query transfers. Goal
 link: the cheapest exact SQL answers on a new benchmark come from the (trained) quick query checked by another model's quick query.
+
+## 2026-11-01 00:4x UTC: LCM / LCM-2 / LCM-3 / B (pre-registered): a Bayes-optimal call policy from a fitted answer model does not beat the hand-set cascade on SQL — and on SQL nothing can by much
+Why: the user ruled out heuristics, and the cascade is one (fixed order, fixed budget, fixed peer rule). A generative model of every
+call's answer (latent question classes; right answers in variants; wrong answers shared through a Chinese restaurant franchise — a
+model repeats its own mistakes more than another shares them; the check) fitted on unlabelled runs plus 30 labels, and the Bayes-optimal
+adaptive policy over the five calls by dynamic programming (`poc/lcm.py`). LCM refuted (worse than the cascade in 13 of 30 cells):
+unanimity has likelihood Π a as a right answer but tends to 1 as a shared wrong answer, so unlabelled data explain agreement as a trap
+(a degenerate class, BFCL live π 0.66 with every right rate ≈ 0) — identifiability fails without labels (Cozman & Cohen 2003's
+degradation). LCM-2 (dependence from labelled questions only) removed the degeneracy but stayed overconfident on SQL; LCM-3 (per-class
+dependence, three levels: quick / thinking / peer, K ≤ 5) improved over LCM-2 and still lost on Spider (0 of 4 better, 2 worse). The
+bound (B): a planner that knows the joint law of the five calls (cross-fitted, all labels) gains over the cascade in 1 of 8 SQL
+development cells and +0.5 to +0.9 on Spider — the cascade is at the information limit of its calls on SQL; the room is on Qwen3.5-9B's
+tool calls (+3.2 / +4.5) and word problems (up to +11), where LCM-3 gains (+2.7 to +10.1 in five word cells). Decision: the cascade
+stays the method; on SQL further gains need new signals, not a better decision rule. Goal link: the cheapest exact SQL answers are
+already what these five calls allow; a derived policy pays only where the fixed rule fits the model badly.

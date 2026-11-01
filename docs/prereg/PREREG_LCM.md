@@ -206,3 +206,17 @@ The room that exists is where the cascade's fixed rule is badly matched to the m
 its pre-registered peer, Qwen3-8B, is the weak check) and the word problems (LogiOR, OptMATH, up to +11); there the LCM planners
 recovered part of it (LCM-2 on Qwen3.5-9B BFCL +1.4 / +3.3; LogiOR +4.6 to +10.1). So the derived planners failed for two reasons:
 misspecification (they reach none of the small SQL room and lose more), and on SQL there was little room to reach.
+
+## Results LCM-3 (written 2026-11-01 00:4x UTC; `results/lcm3.txt`, `results/lcm3/*.json`; jobs 1290567–1290574, Spider 1290635)
+
+- **L3-P1 refuted:** better than the default in 7 of 31, worse in 9 (SQL worse in 4 of 8, −0.4 to −2.2; BFCL better for Qwen3.5-9B
+  +1.18 / +1.73, worse for Qwen3-8B and Qwen3-14B-AWQ; word problems better in 5: LogiOR +5.36 / +10.10, OptMATH +4.29 / +5.01,
+  OptiBench +2.74; worse in 1, OptiBench gpt-oss-20b −2.02).
+- **L3-P2 refuted:** better than LCM-2 in 8, worse in 4 (on Spider better in 3 of 4, +0.48 to +1.08).
+- **L3-P3 refuted:** calibration gap 0.215 on BIRD dev (0.790 vs 0.575 right; K = 5), 0.009 on BFCL live (0.773 vs 0.782).
+- **L3-P4 refuted (confirmatory, Spider):** better than the default in 0 of 4, worse in 2 (Qwen3-14B-AWQ −1.03, Qwen3.5-9B −0.86;
+  gpt-oss-20b +0.07, Qwen3-8B −0.72).
+**Decision (as pre-registered).** Not adopted; the cascade stays. With addendum B: on SQL there is at most about one point to gain
+over the cascade with these five calls, and the derived planners do not reach it; on word problems and on Qwen3.5-9B's tool calls,
+where the cascade's fixed rule fits badly and there is room (B: up to +11), they gain (LCM-3: five word-problem cells +2.7 to +10.1,
+Qwen3.5-9B BFCL +1.2 / +1.7), which is reported as a finding, not adopted, since its confirmatory test (Spider) was on SQL.
