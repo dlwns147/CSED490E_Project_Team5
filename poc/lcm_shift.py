@@ -314,7 +314,38 @@ def main_tl():
               f"{'holds' if up >= 2 and down == 0 else 'refuted'}")
 
 
+def main_tl4():
+    """addendum TL4: TL's tool-call cell with Qwen3-4B as the generator (N = C1tc-4B q4btcc1 or base q4b, SB and T = base Qwen3-4B,
+    P = Qwen3.5-9B): fitted on the 3,549 held-out ToolACE requests, run on BFCL (primary); the reverse direction reported"""
+    f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
+    R = {}
+    for name, nsrc, ntag in (("trained", "q4btcc1", "hoq4btcc1"), ("base", None, "hoq4b")):
+        k = {"nsrc": nsrc} if nsrc else {}
+        nl, lv = quiet(lcm.load, "tc", "q4b", "q35", "non-live", **k), quiet(lcm.load, "tc", "q4b", "q35", "live", **k)
+        ho = quiet(lcm.load_tcho, ntag, dtag="hoq4b")
+        if not (nl and lv and ho):
+            print(f"*** {name}: rows missing", flush=True)
+            continue
+        assert not set(nl) & set(lv)
+        bf = {**nl, **lv}
+        for tname, dev, tgt in (("BFCL", [ho], bf), ("ToolACE held-out", [nl, lv], ho)):
+            r = R[(name, tname)] = run_cell(f"tc {tname} q4b {name} (from {'ToolACE held-out' if tname == 'BFCL' else 'BFCL'})", dev, tgt)
+            S = [lcm.seed_calls(q, s) for q in tgt.values() for s in (1, 2, 3)]
+            st = [sc for sc in S if sc[0][1] and not (sc[1][1] and sc[1][0] == sc[0][0])]
+            print(f"    TL4 {name} {tname}: transfer - cascade {f(r['tr_vs_cascade'])} (one-sided p {r['tr_p']:.4f}); "
+                  f"{r['acc']['transfer_devtok']:.1f}% @ {r['ktok']['transfer_devtok']:.2f}k vs cascade {r['acc']['cascade']:.1f}% @ "
+                  f"{r['ktok']['cascade']:.2f}k vs SB->T->T {r['acc']['SB->T->T']:.1f}% @ {r['ktok']['SB->T->T']:.2f}k; cascade - SB->T->T "
+                  f"{f(r['cascade_vs_default'])}; stratum N passes, P differs ({len(st)}): N {100 * sum(sc[0][2] for sc in st) / len(st):.1f}%, "
+                  f"SB {100 * sum(sc[2][2] for sc in st) / len(st):.1f}%, T {100 * sum(sc[3][2] for sc in st) / len(st):.1f}%", flush=True)
+    for name, tag in (("trained", "TL4-P1"), ("base", "TL4-P2")):
+        if (name, "BFCL") in R:
+            print(f"*** {tag} ({name} Qwen3-4B, BFCL from held-out ToolACE: transfer - cascade lower bound > 0): "
+                  f"{'holds' if R[(name, 'BFCL')]['tr_vs_cascade'][1] > 0 else 'refuted'}")
+
+
 def main():
+    if "--tl4" in sys.argv:
+        return main_tl4()
     if "--tl" in sys.argv:
         return main_tl()
     if "--trt" in sys.argv:

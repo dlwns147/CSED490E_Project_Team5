@@ -626,3 +626,32 @@ in TR-C1; +0.24 on Spider test from BIRD dev; −0.43 / +0.39 / +0.39 here), and
 property of the target set, not of training. The method statement is therefore narrowed: for trained quick answers on tool calls, the
 policy fitted on the training split's held-out labels; on SQL, the cascade, with a fitted policy an option only where labelled calls
 near the deployment exist.
+
+## Addendum TL4: the tool-call recipe from one training set, with Qwen3-4B as the generator (written 2026-11-01 09:3x UTC, before any Qwen3-4B row on the held-out ToolACE requests except C1tc-4B's stored quick calls, and before any TL4 cell is computed)
+
+**Why.** After TRT and TL the tool-call method is: train the quick calls with plain RL on ToolACE, check them with Qwen3.5-9B's quick
+calls, and combine the calls with a policy fitted on held-out training requests — no labels beyond the training data. Every piece of
+that rests on one generator (Qwen3-8B). TC-RL addendum 1 trained Qwen3-4B with the identical recipe (C1tc-4B), so the same test on a
+second generator costs only Qwen3-4B's base calls on the held-out requests. If it fails there, the method statement is narrowed to
+Qwen3-8B.
+
+**Run.** Base Qwen3-4B's quick, short-think and think calls on the 3,549 held-out ToolACE requests, seeds 1–3 (`TC_ITEMS=…/toolace/
+tc_train_items.jsonl TC_IDS=…/tc_ho_ids.txt run_tc.py hoq4b <seed>`, one GPU, max length 20,480, as TRT). Stored: C1tc-4B's quick
+calls there (hoq4btcc1), Qwen3.5-9B's (hoq35), and on BFCL q4b (quick, SB, T), q4btcc1 (quick), q35.
+
+**Cells.** N = C1tc-4B's quick calls (trained) or base Qwen3-4B's (base); P = Qwen3.5-9B's quick calls; SB, T = base Qwen3-4B.
+Primary: the policy fitted on the held-out ToolACE requests (all labels, their mean tokens per call) and run on BFCL (non-live + live,
+3,482). Reported: the reverse (fitted on BFCL, run on the held-out requests, as TRT), the references, the stratum accuracies.
+Analysis `python3 poc/lcm_shift.py --tl4`.
+
+**Predictions** (paired 95% intervals over requests, seed means, utility = 100 × right − 0.5 × ktokens):
+- **TL4-P1 (trained):** transfer − cascade on BFCL, lower bound > 0.
+- **TL4-P2 (base):** the same; expected refuted (the control).
+- Mechanism, reported: where N passes and P differs, the trained quick calls within 3 points of SB, the base ones more than 5 below.
+- Power: BFCL's half-width ≈ 0.45; at Qwen3-8B's +1.04 the test passes with probability ≈ 0.99, at +0.5 ≈ 0.5.
+
+**Decision.**
+- **P1 holds:** the tool-call recipe from one training set holds for two generators; PROJECT and REPORT say so.
+- **P1 refuted:** the fitted call policy is stated for Qwen3-8B only; for Qwen3-4B the cascade stays, and the stratum accuracies are
+  read to say whether the mechanism (a trained quick answer as accurate as the thinks where the peer disagrees) was absent or present
+  without a gain.
