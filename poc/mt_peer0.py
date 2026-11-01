@@ -12,7 +12,9 @@ with the arm" (the peer's turn-0 tokens counted), and "N; on a visible failure r
 rollback at turn 0, where the redo is the arm's own turn 0: same start state, context and step seeds), over the item-seeds where the
 arm's row exists. Runs on the login node in the grader
 venv (seconds):
-  /home1/leesangjun/venvs/bfcl/bin/python poc/mt_peer0.py <tag> [peer tag] [--rescue]      (RESTRICT=<tag>: only items that tag has at every seed)"""
+  /home1/leesangjun/venvs/bfcl/bin/python poc/mt_peer0.py <tag> [peer tag] [--rescue] [--dump]      (RESTRICT=<tag>: only items that tag has at every seed;
+  --dump, MT-B: results/tc/mt_turn0_<tag>.json, per item-seed the turn-0 calls N, peer N, T, next-seed T as (end-state group, no visible
+  failure, right, tokens))"""
 import copy, json, os, re, sys
 from collections import Counter
 
@@ -62,6 +64,8 @@ def main():
     pos = [a for a in sys.argv[1:] if not a.startswith("--")]
     tag = pos[0]; ptag = pos[1] if len(pos) > 1 else tag
     XA = {a: rows(tag, a) for a in ("E", "F", "T")} if "--rescue" in sys.argv else {}
+    DUMP = {} if "--dump" in sys.argv else None   # MT-B: per item-seed the turn-0 calls N, peer N, T, next-seed T
+    TT = rows(tag, "T") if DUMP is not None else None
     RC = Counter()
     P = {p["id"]: p for p in map(json.loads, open(DATA))}
     D = rows(tag); E = rows(ptag) if ptag != tag else D
@@ -83,6 +87,26 @@ def main():
             vis = any(any(st.get("err") or []) or st.get("loop") for st in t0)
             good = sorted({r for r in mres if not r.startswith("Error during execution") and '"error"' not in r[:20]})
             out[key] = (ok, vis, steps, mi, good, sum(st["tok"] for st in t0))
+        if DUMP is not None and all(i in TT[s] for s in (1, 2, 3)):
+            tout = {}
+            for s in (1, 2, 3):
+                x = TT[s][i]; t0 = x["turns"][0] if x["turns"] else []
+                st = [z["calls"] for z in t0 if z["calls"]]
+                ai, ares = run(p, st, f"t{s}")
+                aok = same(ai, gi) and not (x["force_quit"] and len(x["turns"]) == 1)
+                if aok and gt:
+                    aok = bool(st) and response_checker(ares, gres, 0)["valid"]
+                tout[s] = (aok, any(any(z.get("err") or []) or z.get("loop") for z in t0), ai, sum(z["tok"] for z in t0))
+            for s in (1, 2, 3):
+                cs = [out[("m", s)], out[("m", s % 3 + 1)] if E is D else out[("p", s)]]
+                cs = [(c[0], c[1], c[3], c[5]) for c in cs] + [tout[s], tout[s % 3 + 1]]
+                reps, obs = [], []
+                for ok_, vis_, inst, tk_ in cs:   # end states as answers: the first earlier call with the same end state
+                    g = next((k for k, r in enumerate(reps) if same(inst, r)), None)
+                    if g is None:
+                        reps.append(inst); g = len(reps) - 1
+                    obs.append((f"s{g}", not vis_, bool(ok_), tk_))
+                DUMP[f"{i}/{s}"] = obs
         for s in (1, 2, 3):
             ok, vis, calls, mi, good, tk = out[("m", s)]
             _, _, pc, pi, pg, ptk = out[("m", s % 3 + 1)] if E is D else out[("p", s)]
@@ -108,6 +132,9 @@ def main():
             a["state + results"] = a["state"] and good == pg
             for d, v in a.items():
                 C[(k, d)] += v
+    if DUMP is not None:
+        json.dump(DUMP, open(os.path.join(RES, f"mt_turn0_{tag}.json"), "w"))
+        print(f"dumped {len(DUMP)} item-seeds")
     print(f"=== {tag} N, peer {ptag if ptag != tag else 'another seed'}: turn 0, {len(ids)} items x 3 seeds")
     for k in ("RV", "RS", "WV", "WS"):
         n = max(1, C[(k, "n")])

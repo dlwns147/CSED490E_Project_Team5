@@ -260,3 +260,19 @@ the output-token verdicts stand with a prefix cache (S4).
 "ties always thinking". For Qwen3-14B-AWQ it does not: F − T −8.11 [−10.68, −5.49] utility, −8.94 accuracy. The pre-registered P4
 (F beats E) holds in 3 / 3; the statement that F is the agent-loop recipe is withdrawn. Among the fixed policies tested, always
 thinking is the best or tied for every model, and no cheaper fixed rule matches it for all three; PROJECT §0 and REPORT §7 now say so.
+
+## Addendum MT-B: is thinking at every step the information limit of a turn's signals? (written 2026-11-01 01:3x UTC, before the dump below exists)
+
+**Why.** In agent loops every cheap-first rule lost to thinking at every step (P2 refuted 3 / 3; the rollback counterfactual lost for
+all three models). Is that a property of the rules or of the signals? The SQL analysis (PREREG_LCM addendum B) answers the same
+question with a planner that knows the joint law of the calls. At turn 0 every trajectory starts from the same state, so a turn's calls
+are comparable: the quick turn (N), the peer's quick turn (Qwen3.5-9B; Qwen3-8B for Qwen3.5-9B), the thinking turn (T) and a second
+thinking turn (T at the next seed), each with its end state (BFCL's instance comparison), its visible failure (an error or a repeat;
+the free check) and whether it is right (BFCL's per-turn check). It assumes the environment can be reset to the turn's start (a
+sandbox), as the rollback arm did. **Analysis.** `mt_peer0.py --dump` writes these four calls per item-seed; the supervised planner
+(cross-fitted halves, all labels of the fitting half; end states as answers, "no visible failure" as the check; utility 100 × right −
+0.5 × ktokens of turn 0) against always thinking at turn 0 (T), and the rules tested before.
+**Prediction.** **MT-B1:** planner − T at turn 0: lower bound > 0 in ≥ 2 of the 3 models.
+**Decision.** MT-B1 holds: there is room below always thinking that a derived per-turn policy could take (with a resettable
+environment); its size is reported and it becomes the agent-loop method question. Refuted: at turn 0 thinking is at the information
+limit of these signals, and "think at every step" is the agent-loop rule by that bound, not by habit.
