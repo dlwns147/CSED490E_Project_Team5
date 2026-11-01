@@ -107,6 +107,8 @@ def main_rv():
             if (n + err) % 1000 == 0:
                 print(f"rv: {n + err}/{len(rows)}", flush=True)
     print(f"rv: {n} requests scored, {err} failed", flush=True)
+    if err:   # the smoke gates the full run (`smoke && full`): RV2's first server died of OOM in prompt log-probs and every request failed
+        sys.exit(1)
 
 
 def main():
