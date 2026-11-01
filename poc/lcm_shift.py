@@ -361,7 +361,7 @@ def rv_texts(task, sset, nsrc):
     R, out = os.path.join(lcm.ROOT, "results", task), {}
     if task == "sql":
         from prep_sql import extract
-        suf = {"dev": "", "spider": "sp", "spiderdev": "sd"}[sset]
+        suf = {"dev": "", "spider": "sp", "spiderdev": "sd", "fresh": "pa"}[sset]   # fresh: SEL's validation questions
         for t, tag, a, fld in (("N", nsrc or "q8b", "cheap", "n_text"), ("P", "q35", "cheap", "n_text"), ("SB", "q8b", "sb", "text"),
                                ("T", "q8b", "think", "text")):
             for s in (1, 2, 3):
@@ -609,7 +609,188 @@ def main_rv():
                   f"{down} below -> {'holds' if up >= 2 and down == 0 else 'refuted'}")
 
 
+SEL_T = (("dev", "BIRD dev"), ("spider", "Spider test"), ("spiderdev", "Spider dev"))
+
+
+def sel_val_ids():
+    return set(open(os.path.join(os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nlp_data"), "bird", "sel_val_ids.txt")).read().split())
+
+
+def main_sel_build():
+    """addendum SEL: the candidates to score -> results/conf/sel_req.jsonl (RV's SQL cells, and the fresh questions on the held-out
+    databases for the checkpoint and beta)"""
+    req, val = {}, sel_val_ids()
+    for sset in ("fresh",) + tuple(x for x, _ in SEL_T):
+        for nsrc in (None, RV_N["sql"]):
+            D, items = rv_items("sql", sset, nsrc)
+            for i, s, cand, dr in items:
+                if sset == "fresh" and i not in val:
+                    continue
+                for r, calls, texts in cand.values():
+                    for t in set(texts):
+                        h = rv_key("sql", sset, i, "sel", t)
+                        req[h] = {"h": h, "task": "sql", "sset": sset, "id": i, "kind": "sel", "text": t}
+            print(f"SEL build {sset} {nsrc or 'base'}: {len(items)} multi-answer fallback question-seeds; requests so far {len(req)}", flush=True)
+    with open(os.path.join(lcm.ROOT, "results", "conf", "sel_req.jsonl"), "w") as f:
+        for r in req.values():
+            f.write(json.dumps(r) + "\n")
+    print(f"SEL build: {len(req)} requests -> results/conf/sel_req.jsonl")
+
+
+def sel_items(sset, nsrc, S, kind="sel"):
+    """RV's items with each candidate as {r: right, calls, s: its mean score over its texts}; items missing a score are dropped"""
+    D, items = rv_items("sql", sset, nsrc)
+    out, miss = [], 0
+    for i, sd, cand, dr in items:
+        C = []
+        for r, calls, texts in cand.values():
+            x = [S.get(rv_key("sql", sset, i, kind, t)) for t in texts]
+            C.append(None if any(v is None for v in x) else {"r": r, "calls": calls, "s": sum(v["s"] for v in x) / len(x),
+                                                             "pre": sum(v.get("pre", 0) for v in x)})
+        if any(c is None for c in C):
+            miss += 1; continue
+        out.append((i, sd, C, dr))
+    return D, items, out, miss
+
+
+def sel_auc(items):
+    """{question: mean over its mixed question-seeds of the share of (right, wrong) pairs the score orders correctly}"""
+    a = {}
+    for i, _, C, _ in items:
+        pos, neg = [c["s"] for c in C if c["r"]], [c["s"] for c in C if not c["r"]]
+        if pos and neg:
+            a.setdefault(i, []).append(sum((p > n) + 0.5 * (p == n) for p in pos for n in neg) / (len(pos) * len(neg)))
+    return {i: sum(v) / len(v) for i, v in a.items()}
+
+
+def sel_fit(prior, fit):
+    """the Bayes selector: logit pi(calls | set structure) from `prior`, z = (s - question mean) / pooled within-question sd and beta
+    (grid 0-4, maximum likelihood) from `fit`; returns choose(item) -> the chosen candidate or None (a structure never seen)"""
+    st = lambda C: tuple(sorted(c["calls"] for c in C))
+    cnt, rt = Counter(), Counter()
+    for _, _, C, _ in prior:
+        for c in C:
+            cnt[(st(C), c["calls"])] += 1; rt[(st(C), c["calls"])] += c["r"]
+
+    def lg(S, c):
+        q = min(max((rt[(S, c["calls"])] + 0.5) / (cnt[(S, c["calls"])] + 1), 1e-3), 1 - 1e-3)
+        return math.log(q / (1 - q))
+    mu = lambda C: sum(c["s"] for c in C) / len(C)
+    dv = [c["s"] - mu(C) for _, _, C, _ in fit for c in C]
+    sd = (sum(x * x for x in dv) / max(1, len(dv))) ** 0.5 or 1.0
+
+    def ll(beta):
+        t = 0.0
+        for _, _, C, _ in fit:
+            for c in C:
+                z = lg(st(C), c) + beta * (c["s"] - mu(C)) / sd
+                t += -math.log1p(math.exp(-z)) if c["r"] else -math.log1p(math.exp(z))
+        return t
+    beta = max((b / 10 for b in range(0, 41)), key=ll)
+
+    def choose(it):
+        C = it[2]
+        if any(cnt[(st(C), c["calls"])] == 0 for c in C):
+            return None
+        return max(C, key=lambda c: lg(st(C), c) + beta * (c["s"] - mu(C)) / sd)
+    return choose, beta
+
+
+def main_sel():
+    """addendum SEL. --sel-val n1,n2,...: within-question AUROC of each checkpoint's scores on the fresh held-out-database questions
+    (N base and trained pooled) and the choice. --sel <name>: the targets (SEL-P1..P4)."""
+    from analyze_ho3 import ci
+    from run_nlopt import _rows
+    cd = os.path.join(lcm.ROOT, "results", "conf")
+    load = lambda nm: {r["h"]: r for r in _rows(os.path.join(cd, f"sel_scores_{nm}.jsonl"))}
+    val = sel_val_ids()
+    g = lambda v: f"{v[0]:.3f} [{v[1]:.3f}, {v[2]:.3f}]"
+    f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
+    if "--sel-val" in sys.argv:
+        best = None
+        for nm in sys.argv[sys.argv.index("--sel-val") + 1].split(","):
+            S, per = load(nm), {}
+            for nsrc in (None, RV_N["sql"]):
+                _, _, it, miss = sel_items("fresh", nsrc, S)
+                it = [x for x in it if x[0] in val]
+                a = sel_auc(it)
+                per[nsrc or "base"] = ci(a) if a else (float("nan"),) * 3
+                for i, v in a.items():
+                    per.setdefault("pooled", {}).setdefault(i, []).append(v)
+            if not per.get("pooled"):
+                print(f"SEL val {nm}: no scored mixed set", flush=True); continue
+            pa = ci({i: sum(v) / len(v) for i, v in per["pooled"].items()})
+            print(f"SEL val {nm}: AUROC base {g([x / 100 for x in per['base']])}, trained {g([x / 100 for x in per['q8bcvc1']])}, "
+                  f"pooled {g([x / 100 for x in pa])} ({len(per['pooled'])} questions)", flush=True)
+            if nm != "local" and (best is None or pa[0] > best[1]):   # the untrained model is reported, not chosen
+                best = (nm, pa[0])
+        print(f"*** SEL checkpoint (highest pooled held-out-database AUROC): {best[0]}")
+        return
+    nm = sys.argv[sys.argv.index("--sel") + 1]
+    S = load(nm)
+    SR = {r["h"]: r for r in _rows(os.path.join(cd, "rv_scores.jsonl"))}
+    R = {}
+    for nsrc in (None, RV_N["sql"]):
+        name = "trained" if nsrc else "base"
+        _, _, fr, _ = sel_items("fresh", nsrc, S)
+        fval = [x for x in fr if x[0] in val]
+        Dp, allfr = rv_items("sql", "fresh", nsrc)   # the prior: every fresh question (labels only, no score needed)
+        prior = [(i, s, [{"r": c[0], "calls": c[1], "s": 0.0} for c in cand.values()], dr) for i, s, cand, dr in allfr]
+        choose, beta = sel_fit(prior, fval)
+        av = ci(sel_auc(fval))
+        for sset, tname in SEL_T:
+            D, raw, it, miss = sel_items(sset, nsrc, S)
+            _, _, itr, _ = sel_items(sset, nsrc, SR, "rev")
+            ids, n = sorted(D), 3 * len(D)
+            a, ar = sel_auc(it), sel_auc(itr)
+            A = ci(a)
+            dA = ci({i: a[i] - ar[i] for i in a if i in ar})
+            sel, r1, alone, cross, unseen = Counter(), Counter(), Counter(), Counter(), 0
+            for x in it:
+                i, _, C, dr = x
+                c = choose(x)
+                unseen += c is None
+                sel[i] += (c["r"] if c else dr) - dr
+                r1[i] += max(C, key=lambda c: (len(c["calls"]), c["s"]))["r"] - dr
+                alone[i] += max(C, key=lambda c: c["s"])["r"] - dr
+            for h in (0, 1):   # RV's cross-fitted Bayes on the target's own halves
+                half = [x for x in it if zlib.crc32(x[0].encode()) % 2 == h]
+                ch, _ = sel_fit(half, half)
+                for x in it:
+                    if zlib.crc32(x[0].encode()) % 2 != h:
+                        c = ch(x)
+                        cross[x[0]] += (c["r"] if c else x[3]) - x[3]
+            c3 = lambda d: ci({i: d[i] / 3 for i in ids})
+            pb, p1 = rv_gauss(raw, A[0] / 100)
+            pre = sum(c["pre"] for x in it for c in x[2]) / n
+            R[(name, tname)] = r = dict(A=A, dA=dA, sel=c3(sel), cross=c3(cross), bound=100 * pb / n, val=av)
+            print(f"    SEL {tname} {name}: {len(raw)} multi-answer fallback question-seeds, missing scores {miss}; within-question AUROC "
+                  f"verifier {g([x / 100 for x in A])} (rev {ci(ar)[0] / 100:.3f}; verifier - rev {g([x / 100 for x in dA])}; held-out-"
+                  f"database fresh {av[0] / 100:.3f}); fresh-fitted selector (beta {beta:.1f}; {unseen} question-seeds with an unseen "
+                  f"structure keep d) - cascade {f(r['sel'])}; cross-fitted Bayes {f(r['cross'])}; bound at the measured AUROC Bayes "
+                  f"{100 * pb / n:+.2f}, R1 {100 * p1 / n:+.2f}; R1 with the verifier {f(c3(r1))}; verifier alone {f(c3(alone))}; "
+                  f"verifier prefill {pre:.0f} tokens per question-seed", flush=True)
+    for name, tag in (("base", "SEL-P2b"), ("trained", "SEL-P2t")):
+        X = [R[(name, t)] for _, t in SEL_T]
+        up, down = sum(r["sel"][1] > 0 for r in X), sum(r["sel"][2] < 0 for r in X)
+        print(f"*** {tag} ({name}: fresh-fitted selector - cascade lower bound > 0 in >= 2 of 3, upper bound < 0 in none): {up} above, "
+              f"{down} below -> {'holds' if up >= 2 and down == 0 else 'refuted'}")
+    p1 = [R[(nm2, "BIRD dev")]["dA"][1] > 0 for nm2 in ("base", "trained")]
+    print(f"*** SEL-P1 (verifier - rev AUROC lower bound > 0 on BIRD dev for both N types): {p1} -> {'holds' if all(p1) else 'refuted'}")
+    p3 = sum(abs(r["cross"][0] - r["bound"]) <= 0.7 for r in R.values())
+    print(f"*** SEL-P3 (cross-fitted Bayes within 0.7 of the bound in >= 4 of 6): {p3} -> {'holds' if p3 >= 4 else 'refuted'}")
+    p4 = [abs(R[(nm2, "BIRD dev")]["A"][0] - R[(nm2, "BIRD dev")]["val"][0]) / 100 for nm2 in ("base", "trained")]
+    print(f"*** SEL-P4 (BIRD dev AUROC within 0.05 of the held-out-database fresh AUROC, both N types): differences "
+          f"{[round(x, 3) for x in p4]} -> {'holds' if max(p4) <= 0.05 else 'refuted'}")
+    cr = sum(R[(nm2, t)]["cross"][1] > 0 for nm2 in ("base", "trained") for _, t in SEL_T)
+    print(f"*** cross-fitted Bayes lower bound > 0 in {cr} of 6 cells")
+
+
 def main():
+    if "--sel-build" in sys.argv:
+        return main_sel_build()
+    if "--sel" in sys.argv or "--sel-val" in sys.argv:
+        return main_sel()
     if "--rv-build" in sys.argv:
         return main_rv_build()
     if "--rv" in sys.argv:

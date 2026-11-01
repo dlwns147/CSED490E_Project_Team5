@@ -10,9 +10,14 @@ v(x) - LAM * (k_quick + c(x)), with v / c the base model's T->T on that training
 c1w (PREREG_CV.md addendum 6): as c1, the reward weighted by what a right query is worth to the peer-check cascade:
   CV_W0 where the base model's T->T is wrong, CV_W1 where it is right (default 0.532 / 0.146: the peer's agreement rates on RW / WR
   on SQL-PA's train questions), normalised to mean 1 over the training questions.
-usage: /opt/conda/bin/python cv_train.py <cv|c1|c1w|c2> <out dir> [--questions 6000] [--batch 64] [--group 8] [--lr 2e-5] [--smoke N]
+orm (PREREG_LCM.md addendum SEL): no sampling, no server; a verifier trained with labels for the within-question contrast. The pool:
+SEL_POOL's stored candidates on the questions of SEL_IDS, run once (--pool-only, a CPU job; cached in <out>/pool.jsonl); per question
+the distinct passing results, right = gold result; questions with a right and a wrong one. Score s = logit(ACCEPT) - logit(DE) after
+turn 2 (the query as the answer, then its result); loss per question = mean over (right, wrong) result pairs of log(1 + exp(s_w - s_r)),
+two passes (scores without gradient, then the exact gradient); adapters every --save steps.
+usage: /opt/conda/bin/python cv_train.py <cv|c1|c1w|c2|orm> <out dir> [--questions 6000] [--batch 64] [--group 8] [--lr 2e-5] [--smoke N]
   (POC_BASE_URL: a vLLM server started with --enable-lora and VLLM_ALLOW_RUNTIME_LORA_UPDATING=True; SQL_SPLIT=train is set here)"""
-import hashlib, json, os, random, sqlite3, sys, time, urllib.request
+import hashlib, json, math, os, random, sqlite3, sys, time, urllib.request
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 
 os.environ.setdefault("SQL_SPLIT", "train")
@@ -217,8 +222,8 @@ class Policy:
             lp = torch.cat([checkpoint(logp, h[:, a:a + HEADC], tgt[:, a:a + HEADC], use_reentrant=False) for a in range(0, T, HEADC)], 1)
             yield sub, (lp * m).sum(-1)
 
-    def gate_p(self, kv, P, ctxs):
-        """P(ACCEPT) against DEFER's first token at the end of each turn-2 context, with gradient, in chunks"""
+    def gate_p(self, kv, P, ctxs, logit=False):
+        """P(ACCEPT) against DEFER's first token at the end of each turn-2 context, with gradient, in chunks (logit: their log-odds)"""
         torch = self.torch
         l = 0
         for x in zip(P[:-1], *ctxs):
@@ -231,16 +236,127 @@ class Policy:
             last = torch.stack([h[b, len(s) - 1] for b, s in enumerate(part)])
             del h   # the two logits only: the softmax over {ACCEPT, DE} needs nothing else
             lg = torch.nn.functional.linear(last, self.head.weight[[self.acc, self.de]]).float()
-            yield sub, torch.softmax(lg, -1)[:, 0]
+            yield sub, (lg[:, 0] - lg[:, 1]) if logit else torch.softmax(lg, -1)[:, 0]
 
     def step(self):
         self.torch.nn.utils.clip_grad_norm_([p for p in self.model.parameters() if p.requires_grad], 1.0)
         self.opt.step(); self.opt.zero_grad(set_to_none=True)
 
 
+SEL_POOL = [(f"q8bpool_cheap_s{s}", "n_text") for s in (1, 2, 3, 4)] + [("q8bpool_sb_s1", "text")] + \
+    [(f"tsq35_cheap_s{s}", "n_text") for s in (1, 2, 3, 4)] + [(f"q8btrain_think_s{s}", "text") for s in (1, 2)]
+
+
+def sel_pool(out, workers):
+    """{id: [(query, check, result hash, columns, row count, first rows)]}: every distinct stored query of the pool on SEL_IDS, run once"""
+    path = f"{out}/pool.jsonl"
+    if os.path.exists(path):
+        return {r["id"]: r["c"] for r in rows_of(path)}
+    keep = set(open(os.environ.get("SEL_IDS", f"{os.path.dirname(ITEMS)}/sel_train_ids.txt")).read().split())
+    db = {p["id"]: p["db_id"] for p in map(json.loads, open(ITEMS)) if p["id"] in keep}
+    Q = {i: [] for i in db}
+    for f, fld in SEL_POOL:
+        rows = rows_of(f"{RES}/{f}.jsonl")
+        print(f"pool {f}: {sum(r['id'] in Q for r in rows)} rows", flush=True)
+        for r in rows:
+            q = extract(r.get(fld) or "") if r["id"] in Q else ""
+            if q.strip() and q not in Q[r["id"]]:
+                Q[r["id"]].append(q)
+    jobs = [(i, q) for i, qs in Q.items() for q in qs]
+    print(f"pool: {len(jobs)} distinct queries on {len(Q)} questions, {workers} workers", flush=True)
+    with ProcessPoolExecutor(workers) as ex:
+        res = list(ex.map(run_query, [db[i] for i, _ in jobs], [q for _, q in jobs], [10.0] * len(jobs), chunksize=16))
+    C = {}
+    for (i, q), r in zip(jobs, res):
+        C.setdefault(i, []).append([q, *r])
+    with open(path, "w") as f:
+        for i, c in C.items():
+            f.write(json.dumps({"id": i, "c": c}) + "\n")
+    return C
+
+
+def main_orm(out):
+    """addendum SEL: the verifier (see the docstring)"""
+    os.makedirs(out, exist_ok=True)
+    C = sel_pool(out, int(os.environ.get("CV_WORKERS", 4)))
+    if "--pool-only" in sys.argv:
+        return
+    B, lr, ep, save, smoke = arg("--batch", 16), arg("--lr", 5e-5), arg("--epochs", 2), arg("--save", 25), arg("--smoke", 0)
+    items = {p["id"]: p for p in map(json.loads, open(ITEMS)) if p["id"] in C}
+    Q = []
+    for i, cs in C.items():
+        g = {}
+        for q, c, h, cols, n, first in cs:
+            if c == "pass":
+                g.setdefault(h, []).append((q, cols, n, first))
+        r = [h for h in g if h == items[i]["gold_h"]]
+        w = [h for h in g if h != items[i]["gold_h"]]
+        if r and w:
+            Q.append((i, {h: g[h] for h in r}, {h: g[h] for h in w}))
+    Q.sort()
+    random.Random(0).shuffle(Q)
+    Q = Q[:smoke or len(Q)]
+    print(f"orm: {len(Q)} questions with a right and a wrong passing result (of {len(C)}), {sum(len(r) + len(w) for _, r, w in Q)} "
+          f"results; batch {B}, lr {lr}, epochs {ep}", flush=True)
+    pol = Policy(arg("--base", "/SSD/huggingface/Qwen/Qwen3-8B"), lr)
+    torch = pol.torch
+    log = open(f"{out}/log.jsonl", "a")
+    step = 0
+    for e in range(ep):
+        rng = random.Random(1000 + e)
+        order = Q[:]
+        rng.shuffle(order)
+        for a in range(0, len(order), B):
+            t0, st = time.time(), {"loss": 0.0, "pairs_ok": 0.0, "q": 0, "cands": 0}
+            batch = order[a:a + B]
+            for i, R, W in batch:
+                p = items[i]
+                hs = [(h, True) for h in R] + [(h, False) for h in W]
+                if len(hs) > 8:   # at most 8 results: one right, one wrong, the rest drawn
+                    rest = hs[1:len(R)] + hs[len(R) + 1:]
+                    hs = [hs[0], hs[len(R)]] + rng.sample(rest, 6)
+                msgs1 = [{"role": "user", "content": p["user"]}]
+                ctxs, lab = [], []
+                for h, ok in hs:
+                    q, cols, n, first = rng.choice((R if ok else W)[h])
+                    ctxs.append(pol.ids(msgs1 + [{"role": "assistant", "content": f"```sql\n{q}\n```"},
+                                                 {"role": "user", "content": turn2(n, cols, first)}]))
+                    lab.append(ok)
+                P = pol.ids(msgs1)
+                kv = pol.prefix(P[:-1])
+                s = [0.0] * len(ctxs)
+                with torch.no_grad():
+                    for sub, x in pol.gate_p(kv, P, ctxs, logit=True):
+                        for b, v in zip(sub, x.tolist()):
+                            s[b] = v
+                pr = [(r, w) for r in range(len(s)) if lab[r] for w in range(len(s)) if not lab[w]]
+                g = [0.0] * len(s)
+                for r, w in pr:
+                    sg = 1.0 / (1.0 + math.exp(s[r] - s[w]))   # d/d(s_w - s_r) of log(1 + exp(s_w - s_r))
+                    g[w] += sg / len(pr) / len(batch); g[r] -= sg / len(pr) / len(batch)
+                    st["loss"] += math.log1p(math.exp(s[w] - s[r])) / len(pr) if s[w] - s[r] < 30 else (s[w] - s[r]) / len(pr)
+                    st["pairs_ok"] += ((s[r] > s[w]) + 0.5 * (s[r] == s[w])) / len(pr)
+                for sub, x in pol.gate_p(kv, P, ctxs, logit=True):
+                    (torch.tensor([g[b] for b in sub], device="cuda") * x).sum().backward()
+                st["q"] += 1; st["cands"] += len(s)
+                del kv
+            pol.step()
+            step += 1
+            rec = {"step": step, "epoch": e + 1, "questions": st["q"], "candidates": st["cands"], "loss": st["loss"] / st["q"],
+                   "pair_acc": st["pairs_ok"] / st["q"], "t": round(time.time() - t0)}
+            log.write(json.dumps(rec) + "\n"); log.flush()
+            print(json.dumps(rec), flush=True)
+            if step % save == 0:
+                pol.model.save_pretrained(f"{out}/adapter_s{step}")
+    pol.model.save_pretrained(f"{out}/adapter_final")
+    print("done", out, step, "steps", flush=True)
+
+
 def main():
     arm, out = sys.argv[1], sys.argv[2]
-    assert arm in ("cv", "c1", "c1w", "c2"), arm
+    assert arm in ("cv", "c1", "c1w", "c2", "orm"), arm
+    if arm == "orm":
+        return main_orm(out)
     nq, B, G, lr, smoke = arg("--questions", 6000), arg("--batch", 64), arg("--group", 8), arg("--lr", 2e-5), arg("--smoke", 0)
     base = arg("--base", "/SSD/huggingface/Qwen/Qwen3-8B")
     os.makedirs(out, exist_ok=True)

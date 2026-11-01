@@ -781,3 +781,90 @@ label); sum = z(Qwen3-8B) + z(Qwen3.5-9B). Analysis: the same `lcm_shift.py --rv
 
 **Decision.** RV2-P2 holds for an N type → R1 with the sum is the cascade's last step for that type (two prefills per extra candidate).
 Otherwise RV's decision rule applies with the larger of rev's and the sum's AUROC.
+
+## Results of addendum RV (written 2026-11-01 13:1x UTC; `results/lcm_rv.log`, all 24,664 requests scored, none failed; raw cases `nlp_data/scratch/rv_raw.py`)
+
+| cell (base / trained N) | rev AUROC | cod AUROC | rev − cod | R1 − cascade | Bayes, cross-fitted | bound at rev's AUROC |
+|---|---|---|---|---|---|---|
+| BIRD dev, base | 0.510 [0.470, 0.551] | 0.510 | −0.001 [−0.061, +0.062] | −1.18 [−1.83, −0.52] | +0.00 [−0.13, +0.13] | +0.04 |
+| BIRD dev, trained | 0.502 [0.459, 0.547] | 0.568 | −0.066 [−0.132, −0.000] | −0.70 [−1.35, −0.09] | −0.09 [−0.31, +0.11] | +0.14 |
+| Spider test, base | 0.632 [0.585, 0.677] | 0.419 | +0.213 [+0.144, +0.281] | +0.33 [−0.08, +0.71] | +0.90 [+0.08, +1.72] | +1.39 |
+| Spider test, trained | 0.591 [0.538, 0.641] | 0.497 | +0.093 [+0.019, +0.166] | +0.52 [+0.17, +0.88] | +1.07 [+0.38, +1.78] | +0.96 |
+| Spider dev, base | 0.682 [0.620, 0.742] | 0.480 | +0.202 [+0.104, +0.300] | +0.20 [−0.45, +0.94] | +0.12 [−0.49, +0.77] | +1.02 |
+| Spider dev, trained | 0.590 [0.520, 0.655] | 0.553 | +0.037 [−0.067, +0.135] | +0.45 [−0.16, +1.14] | +0.49 [−0.53, +1.59] | +0.65 |
+| BFCL, base | 0.475 [0.442, 0.506] | 0.320 | +0.155 [+0.117, +0.194] | −2.09 [−2.63, −1.59] | −0.01 [−0.07, +0.03] | +0.08 |
+| BFCL, trained | 0.487 [0.456, 0.518] | 0.363 | +0.124 [+0.089, +0.161] | −0.43 [−0.85, −0.02] | −0.21 [−0.62, +0.21] | +0.32 |
+
+- **RV-P1 refuted** (rev − cod lower bound > 0 in 5 of 8: all of Spider test and BFCL, Spider dev base). **RV-P2b refuted** (0 above,
+  2 below), **RV-P2t refuted** (1 above, 2 below). **RV-P3 holds** (7 of 8 within 0.7; Spider dev base 0.90 off): the Gaussian bound
+  predicts what a selector at a measured within-question AUROC gains. No cell reaches rev AUROC 0.75 (highest 0.682); rev is below
+  0.7 on every target.
+- **Raw cases.** BFCL: 1,138 of the 2,163 (right, wrong) pairs are a right abstention (rendered as the one token `none`) against a
+  wrong call. rev ranks the abstention first in 33% of them, cod in none (−6 to −15 nats per token): a wrong call that copies the
+  request's values (`mult(number1=25, number2=7)` on an irrelevance request) explains the request better than no call. Call against
+  call: rev 0.55, cod 0.58. BIRD dev: the wrong passing query answers the same question in words and differs by a convention the
+  question does not fix — extra output columns (`c.name, c.location, c.country` for a circuit's name), `OR` without parentheses
+  before an `AND`, the date taken from another table (`yearmonth` instead of `transactions_1k`). Reconstructing the question cannot
+  see these; on Spider, whose questions name their outputs more literally, rev reaches 0.59–0.68.
+- **Decision:** deferred to RV2 by its rule ("RV's decision rule applies with the larger of rev's and the sum's AUROC").
+
+## Addendum SEL: a verifier trained for the within-question contrast, at the SQL cascade's fallback (written 2026-11-01 13:1x UTC, before any candidate of the training pool exists, before any training step, and before RV2's scores are complete)
+
+**Why.** RV: label-free scoring by a model of the generator's size does not separate disagreeing passing answers (rev 0.48–0.68),
+and RV-P3 confirmed that the bound predicts a selector's gain from its within-question AUROC (7 of 8 within 0.7). By the bound the
+room (+5.0 BIRD dev, +5.5 Spider test, +5.7 Spider dev) needs AUROC ≈ 0.75–0.8 for +1.2 to +3. The raw cases say what is missing: on
+BIRD the wrong passing query differs by conventions (output columns, precedence, which table holds a date) that a question's
+likelihood cannot see but that labels can teach. The project's rule is labels only in training (C1).
+Prior trained checks here failed for other reasons: VER (word problems) was trained as a gate across questions and did not transfer
+across benchmarks (train-dev AUC 0.987, held-out 0.728); CV-1's in-model gate was trained on the cascade's reward and learned to
+defer. Neither was trained for the within-question contrast, which is the quantity the bound needs (RV theory 1: a score
+f(q) + g(c, q) chooses with g only).
+Related: GradeSQL (arXiv 2606.30851; Qwen2.5-7B + LoRA yes / no outcome reward model on ~30k balanced BIRD-train candidates, N = 32
+samples of OmniSQL-7B: BIRD dev +1.95 and Spider test +2.00 over majority voting); LEVER (2302.08468, a verifier with execution
+results); CHASE-SQL (2410.01943, a fine-tuned pairwise selector); ToolRM (2509.11963, Bradley–Terry outcome reward models for tool
+calls; Qwen3-8B best-of-32 on BFCL +2.5 over greedy but below majority voting). None places the verifier only where a cheap
+agreement check failed, prices it in tokens, or predicts its gain from its AUROC before the test.
+
+**Training pool** (labels of BIRD train only). Questions: CV-1's 6,000 training questions minus those on 16 held-out databases (the
+first databases in crc32 order until they hold ≥ 25% of the 1,338 fresh questions): 4,431 questions on 50 databases
+(`bird/sel_train_ids.txt`). Candidates: Qwen3-8B quick query × seeds 1–4 and SB × seed 1 (tag q8bpool), Qwen3.5-9B quick query ×
+seeds 1–4 (stored: tag tsq35, the SQL cascade-reward inputs of 10-30), the stored Qwen3-8B thinks (q8btrain seeds 1, 2); run (10 s, as CV-1), right = the result equals the gold
+result. Used: questions with ≥ 1 right and ≥ 1 wrong distinct passing result; per result one query (drawn per epoch), at most 8
+results per question.
+
+**Verifier.** Qwen3-8B + LoRA (r 16, CV-1's `Policy`). Context = the question's prompt, the query as the assistant's answer (the
+extracted SQL in a ```sql block), then CV-1's turn 2 (row count, columns, first 5 rows; "Does this result answer the question? Reply
+ACCEPT or DEFER."). Score s = logit(ACCEPT) − logit(DE) of the next token. Loss per question: the mean over its (right, wrong) result
+pairs of log(1 + exp(s_wrong − s_right)), the smooth surrogate of the within-question AUROC (Bradley–Terry); questions weigh equally.
+Batch 16 questions, lr 5e-5, 2 epochs, adapters every 25 steps. **Checkpoint choice (labels of training data only):** the highest
+within-question AUROC on the cascade's mixed fallback sets of the 343 fresh questions on the 16 held-out databases
+(`bird/sel_val_ids.txt`; N base and trained pooled). These databases are unseen in training, as BIRD dev's and Spider's are.
+
+**Selector.** On each question-seed where N passed, P did not match and N, P, d give ≥ 2 distinct passing answers (RV's cells):
+argmax over the candidates of logit π(calls | set structure) + β z, z = (s − the question's mean) / the pooled within-question SD of
+the fitting cell; π and β fitted on the fresh questions (π on all 1,338, β by likelihood on the 343 held-out-database questions) of the
+same N type, as TL fits the call policy on the training split. Elsewhere the cascade. Output tokens unchanged (all candidates are
+already paid for); the verifier's prefill tokens per question-seed reported.
+
+**Cells.** BIRD dev, Spider test, Spider dev × N base (Qwen3-8B) or trained (C1); P = Qwen3.5-9B; SB, T = Qwen3-8B (RV's SQL cells).
+
+**Predictions** (paired 95% intervals over questions):
+- **SEL-P1 (labels teach what reconstruction misses):** verifier AUROC − rev AUROC on BIRD dev, lower bound > 0 for both N types.
+- **SEL-P2b / SEL-P2t (decision; base / trained):** the fresh-fitted selector − cascade, lower bound > 0 in ≥ 2 of 3 targets, upper
+  bound < 0 in none.
+- **SEL-P3 (theory):** the cross-fitted Bayes gain (RV's, fitted on one half of the target) lies within 0.7 of the bound at the
+  verifier's measured AUROC in ≥ 4 of 6 cells.
+- **SEL-P4 (honest validation):** BIRD dev's AUROC lies within 0.05 of the held-out-database fresh AUROC for both N types.
+- Expected: AUROC 0.68–0.78 on BIRD dev (unseen databases, the benchmark of the training data), 0.62–0.72 on Spider (no Spider
+  training data, unlike GradeSQL); bound gains +0.6 to +1.7 on BIRD dev, +1.0 to +2.3 on Spider. P2 is uncertain on Spider, where
+  the fresh BIRD prior may not fit (TL: SQL refits held in 1 of 5).
+
+**Decision.**
+- SEL-P2 holds for an N type → the trained verifier's selection becomes the SQL cascade's last step for that type (one prefill per
+  candidate, schema shared, no extra output); PROJECT, REPORT and PROPOSAL updated; the same recipe on tool calls (ToolACE pool,
+  BFCL target) is pre-registered next.
+- SEL-P2 refuted but the cross-fitted Bayes lower bound > 0 on ≥ 2 targets → the verifier separates but the training-split prior does
+  not transfer; stated, and the prior's transfer is the next question (no new training).
+- SEL-P2 refuted and BIRD dev AUROC < 0.7 → a verifier trained on 50 BIRD-train databases does not reach what the bound needs at
+  the cascade's two or three candidates; selection at the fallback is closed at this model size on SQL, and REPORT states the
+  measured AUROCs with GradeSQL's contrast (its gain comes from 32 samples per question, not from three).

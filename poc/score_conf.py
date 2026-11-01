@@ -12,8 +12,14 @@ to the stored token count}. Rows resume.
           et al. 2023): rev = the question / request after the schema or functions and the candidate, cod = the candidate after the
           question. Rows {h, s: summed target log-prob, n: target tokens, pre: prompt tokens} -> results/conf/rv_scores.jsonl
           (RV_SUFFIX=_q35: the peer Qwen3.5-9B's scores, rv_scores_q35.jsonl, addendum RV2)
+  sel   = PREREG_LCM addendum SEL: the trained verifier's score of the candidate queries in results/conf/sel_req.jsonl (lcm_shift.py
+          --sel-build): each query is run on its database (30 s) and shown as CV-1's turn 2 (cv_train.turn2) under the LoRA adapter
+          <name> (the server started with --enable-lora --lora-modules <name>=<dir>); s = logit(ACCEPT) - logit(DE) of the next token from
+          the top-20 log-probs (a token outside them gets the 20th's log-prob). Rows {h, s, c: the check, pre: prompt tokens} ->
+          results/conf/sel_scores_<name>.jsonl; SEL_SSETS=fresh: only the validation requests
 usage: POC_BASE_URL=... python score_conf.py <kind> <tag> [seeds ...]   (CONF_LIMIT=k: the first k rows per seed, the smoke)
-       POC_BASE_URL=... python score_conf.py rv   (CONF_LIMIT=k: the first k requests)"""
+       POC_BASE_URL=... python score_conf.py rv   (CONF_LIMIT=k: the first k requests)
+       POC_BASE_URL=... python score_conf.py sel <name>[,<name> ...]"""
 import json, os, sys, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 
@@ -111,7 +117,52 @@ def main_rv():
         sys.exit(1)
 
 
+SEL_ITEMS = {"dev": f"{PD}/bird/sql_items.jsonl", "spider": f"{PD}/bird/sql_spider_items.jsonl",
+             "spiderdev": f"{PD}/bird/sql_spiderdev_items.jsonl", "fresh": f"{PD}/bird/sql_train_items.jsonl"}
+SEL_SPLIT = {"dev": "dev", "spider": "spider", "spiderdev": "spiderdev", "fresh": "train"}   # prep_sql's database directories
+
+
+def main_sel():
+    import prep_sql
+    from cv_train import run_query, turn2
+    names = sys.argv[2].split(",")
+    ssets = os.environ.get("SEL_SSETS", "fresh,dev,spider,spiderdev").split(",")
+    req = [r for r in _rows(f"{ROOT}/results/conf/sel_req.jsonl") if r["sset"] in ssets]
+    P = {k: {p["id"]: p for p in map(json.loads, open(SEL_ITEMS[k]))} for k in ssets}
+    for sset in ssets:   # run_query reads prep_sql.SPLIT: one split at a time
+        prep_sql.SPLIT = SEL_SPLIT[sset]
+        rows = [r for r in req if r["sset"] == sset]
+        with ThreadPoolExecutor(8) as ex:
+            res = dict(zip([r["h"] for r in rows], ex.map(lambda r: run_query(P[sset][r["id"]]["db_id"], r["text"], 30.0), rows)))
+        print(f"sel {sset}: {len(rows)} queries run, {sum(v[0] == 'pass' for v in res.values())} pass", flush=True)
+        for nm in names:
+            out = f"{ROOT}/results/conf/sel_scores_{nm}.jsonl"
+            done = {r["h"] for r in _rows(out)}
+
+            def one(r):
+                c, _, cols, n, first = res[r["h"]]
+                m = [{"role": "user", "content": P[sset][r["id"]]["user"]}, {"role": "assistant", "content": f"```sql\n{r['text']}\n```"},
+                     {"role": "user", "content": turn2(n, cols, first)}]
+                o = client.chat.completions.create(model=nm, messages=m, max_tokens=1, temperature=0, logprobs=True, top_logprobs=20,
+                                                   extra_body={"chat_template_kwargs": {"enable_thinking": False}})
+                top = {t.token: t.logprob for t in o.choices[0].logprobs.content[0].top_logprobs}
+                lo = min(top.values())
+                return {"h": r["h"], "s": round(top.get("ACCEPT", lo) - top.get("DE", lo), 4), "c": c, "pre": o.usage.prompt_tokens}
+            n, err = 0, 0
+            with open(out, "a") as f, ThreadPoolExecutor(int(os.environ.get("CONF_POOL", 32))) as ex:
+                for fu in [ex.submit(one, r) for r in rows if r["h"] not in done][:int(os.environ.get("CONF_LIMIT", 10 ** 9))]:
+                    try:
+                        f.write(json.dumps(fu.result()) + "\n"); f.flush(); n += 1
+                    except Exception as e:
+                        err += 1; print("sel request failed, no row:", repr(e)[:200], flush=True)
+            print(f"sel {nm} {sset}: {n} scored, {err} failed", flush=True)
+            if err:
+                sys.exit(1)
+
+
 def main():
+    if sys.argv[1] == "sel":
+        return main_sel()
     if sys.argv[1] == "rv":
         return main_rv()
     kind, tag = sys.argv[1], sys.argv[2]
