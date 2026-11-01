@@ -4779,3 +4779,12 @@ Qwen3.5-9B judging Qwen3-8B's and Qwen3-14B-AWQ's passing quick queries (questio
 BIRD dev, 0.61 / 0.62 on Spider; as a gate 1.8–2.6 utility worse than the peer's agreement; as a sixth signal in the supervised planner
 −0.87 to +0.08. Decision: verification by a model of this size is not the new signal SQL needs; the SQL method is final as the peer
 cascade. Goal link: on SQL the cheapest exact answers are what the quick query, its check and one peer allow.
+
+## 2026-11-01 01:3x UTC: MT-B (pre-registered): in agent loops there is room below always thinking — a vote over end states of sandboxed turns
+At turn 0 (every trajectory starts from the same state) a planner that knows the joint law of four turn rollouts — the quick turn, the
+peer's quick turn, two thinking turns — and commits an end state gains +7.2 / +7.8 / +8.0 utility over always thinking (79–82% vs
+71–74% right, 1.4–1.6× the output tokens). It runs the two quick turns first, commits when their end states agree, and otherwise adds
+thinking turns and commits the shared end state. Unlike SQL, where the cascade is at its calls' limit (PREREG_LCM B), agent turns carry
+unused information: agreement between end states of turns run from the same start. Decision: an online arm that does this at every turn
+in a resettable environment is the next agent-loop method (pre-registered before it runs). Related: RIR (rollback, 2609.18304), pass^k
+in τ-bench (all rollouts must succeed, not a vote); no study found commits a voted end state per turn.

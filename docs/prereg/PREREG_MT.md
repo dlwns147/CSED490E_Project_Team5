@@ -276,3 +276,20 @@ sandbox), as the rollback arm did. **Analysis.** `mt_peer0.py --dump` writes the
 **Decision.** MT-B1 holds: there is room below always thinking that a derived per-turn policy could take (with a resettable
 environment); its size is reported and it becomes the agent-loop method question. Refuted: at turn 0 thinking is at the information
 limit of these signals, and "think at every step" is the agent-loop rule by that bound, not by habit.
+
+### Results MT-B (written 2026-11-01 01:3x UTC; `results/mtb.txt`, `poc/analyze_mtb.py`; dumps `results/tc/mt_turn0_<tag>.json`)
+
+| model (turn 0, 600 items × 3 seeds) | supervised planner | T | T→T | rollback | peer rule | planner − T |
+|---|---|---|---|---|---|---|
+| Qwen3-8B | 79.1% @ 2.96k | 71.4% @ 2.09k | 72.9% @ 3.43k | 68.6% @ 1.80k | 68.9% @ 1.68k | +7.18 [+5.19, +9.24] |
+| Qwen3-14B-AWQ | 79.3% @ 3.10k | 71.0% @ 1.99k | 72.1% @ 3.33k | 64.0% @ 1.97k | 60.3% @ 1.58k | +7.81 [+5.81, +9.99] |
+| Qwen3.5-9B | 82.1% @ 1.33k | 73.8% @ 0.81k | 74.7% @ 1.03k | 70.5% @ 0.54k | 69.4% @ 0.77k | +8.02 [+6.14, +9.90] |
+
+- **MT-B1 holds** (3 of 3). What the planner does: it runs the quick turn and the peer's quick turn first and commits when their end
+  states agree (Qwen3-8B: 41% of item-seeds stop there with the quick turn's state); otherwise it adds one or two thinking turns and
+  commits the end state the calls share (e.g. "N P T2 → the state N and T2 share"). The gain is a vote over end states of turns run
+  from the same start, not one better think (T→T gains only +0.5 to +0.8).
+**Decision (as pre-registered).** There is room below always thinking (+7 to +8 utility at turn 0, more accurate at 1.4–1.6× the
+output tokens of one think), for a per-turn policy that runs turns in a resettable copy of the environment and commits the end state
+the calls agree on. That becomes the agent-loop method question; it is pre-registered as an online arm (every turn, not only the first)
+before it is run.
