@@ -508,6 +508,19 @@ beats each generator's default in four of five tests, each more accurate and che
 (−0.28 [−1.09, +0.48]) by the break-even's mechanism: there the peer agrees as often with the right-only as with the wrong-only quick
 queries (ratio 1.00 against r* 1.19).
 
+**Is the hand-set rule the best these calls allow? (LCM, LCM-2, LCM-3, B; pre-registered.)** The cascade's order, budget and peer rule
+are fixed by hand. The principled alternative is to model what every call returns on a question — latent question classes, right
+answers in variants, wrong answers shared through a two-level Chinese restaurant franchise (a model repeats its own mistakes more often
+than another model shares them), the check — fit it on unlabelled runs plus 30 labels, and act Bayes-optimally over the five calls (quick,
+the peer's quick, short think, think, retry) by dynamic programming. It does not beat the cascade on SQL (Spider: 0 of 4 better for any
+of the three model versions). The first version fails by an identifiability argument: an answer every call gives has likelihood Π a as
+a right answer but tends to 1 as a shared wrong one, so unlabelled data explain unanimity as a trap (a degenerate class held 66% of
+BFCL live); estimating the dependence only where it is identified, on the labelled questions, and separating the quick and thinking
+modes fixes the degeneracy and calibration on BFCL but not on SQL. The bound settles why: a planner that knows the joint law of the
+five calls (all labels of half the questions, cross-fitted) gains over the cascade in 1 of 8 BIRD cells and by +0.5 to +0.9 on Spider.
+On SQL the cascade is at the information limit of its calls; the room is where its fixed rule fits the model badly — Qwen3.5-9B's tool
+calls (+3.2 / +4.5) and the hard word-problem sets (up to +11), where the fitted planner gains up to +10.
+
 **Another generator family (XG, pre-registered).** All of the above uses Qwen generators. With gpt-oss-20b answering (its low-effort
 answer as N, its medium-effort SB→T→T as the default) and Qwen3.5-9B's quick answer as the check, the cascade beats the default on
 both tasks: BIRD (dev + fresh, 2,866 questions) 58.7% vs 57.0%, +1.65 [+1.20, +2.14] utility; BFCL (3,482) 84.8% at 0.21k tokens vs
