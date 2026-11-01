@@ -868,3 +868,29 @@ already paid for); the verifier's prefill tokens per question-seed reported.
 - SEL-P2 refuted and BIRD dev AUROC < 0.7 → a verifier trained on 50 BIRD-train databases does not reach what the bound needs at
   the cascade's two or three candidates; selection at the fallback is closed at this model size on SQL, and REPORT states the
   measured AUROCs with GradeSQL's contrast (its gain comes from 32 samples per question, not from three).
+
+## Results of addendum RV2, and RV's decision (written 2026-11-01 14:2x UTC; `results/lcm_rv2.log`, all 12,346 Qwen3.5-9B requests scored after a resubmission, job 1293926; the first job 1293239 ran out of memory after 6 smoke requests, which are kept)
+
+| cell (base / trained N) | Qwen3.5-9B rev AUROC | sum AUROC | sum − Qwen3-8B rev | within-class ρ | predicted sum | R1 with the sum − cascade |
+|---|---|---|---|---|---|---|
+| BIRD dev, base | 0.565 [0.526, 0.605] | 0.554 | +0.044 [+0.016, +0.074] | 0.82 | 0.539 | −1.05 [−1.70, −0.44] |
+| BIRD dev, trained | 0.539 [0.497, 0.582] | 0.522 | +0.020 [−0.008, +0.050] | 0.81 | 0.522 | −0.76 [−1.42, −0.15] |
+| Spider test, base | 0.633 [0.586, 0.678] | 0.639 | +0.007 [−0.024, +0.039] | 0.80 | 0.640 | +0.52 [+0.13, +0.90] |
+| Spider test, trained | 0.590 [0.541, 0.636] | 0.607 | +0.016 [−0.016, +0.048] | 0.81 | 0.595 | +0.65 [+0.33, +1.03] |
+| Spider dev, base | 0.699 [0.638, 0.756] | 0.704 | +0.022 [−0.020, +0.065] | 0.74 | 0.703 | +0.33 [−0.33, +1.06] |
+| Spider dev, trained | 0.647 [0.584, 0.710] | 0.596 | +0.006 [−0.040, +0.052] | 0.77 | 0.626 | +0.49 [−0.16, +1.22] |
+| BFCL, base | 0.379 [0.348, 0.409] | 0.457 | −0.018 [−0.036, +0.001] | 0.74 | 0.421 | −2.19 [−2.75, −1.68] |
+| BFCL, trained | 0.387 [0.357, 0.417] | 0.466 | −0.021 [−0.039, −0.002] | 0.77 | 0.433 | −0.44 [−0.85, −0.04] |
+
+- **RV2-P1 refuted** (1 of 8). **RV2-P2b / RV2-P2t refuted** (1 above, 2 below each: Spider test gains, BIRD dev and BFCL lose).
+  **RV2-P3 refuted** (5 of 8 within 0.03; the misses are BFCL, where the scores are not Gaussian — a right abstention against a wrong
+  call is a separate cluster — and Spider dev trained, 0.030).
+- **The premise failed, not the formula:** the within-class correlation of the two models' channel scores is 0.74–0.82, not the
+  expected 0.3–0.6. The two generations share far less of their answers' errors (another Qwen generation repeats 33–62% of the
+  generator's wrong answers) than of their scores' errors: how well a candidate's text predicts the question is a property of the
+  text that any language model of this size reads alike. At ρ ≈ 0.8 a second score adds at most ~0.02 AUROC, as measured.
+- **RV's decision, by RV2's rule (the larger of rev's and the sum's AUROC):** the largest is 0.704 (Spider dev, base, the sum), so
+  not every target is below 0.7, and with P2 refuted the branch is "stated as measured, no follow-up". Label-free selection at the
+  fallback is not pursued further: the measured AUROCs (0.46–0.70) sit where the validated bound gives +0.0 to +1.0 on Spider and
+  nothing on BIRD and BFCL. Addendum SEL (labels in training only) was pre-registered on the raw-case mechanism, not as this branch's
+  follow-up.

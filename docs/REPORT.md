@@ -641,6 +641,19 @@ false-positive rate, accepts 40–66% of right answers against the peer's 68–8
 typical ones (confidently wrong queries return an extra column the model is sure of; right ones copying a rare literal score low),
 and the shared mistakes the peer cannot see are typical too, so confidence adds nothing as a second filter (better in 1 / 12).
 
+Where the cascade falls back after a passing quick answer, the quick answer, the peer's and the fallback often give two or three
+distinct passing answers (16–32% of question-seeds), and always choosing a right one would add 5–7 points at no output-token cost.
+Choosing needs a within-question contrast, not a gate. For a selector whose score separates right from wrong answers to the same
+question with AUROC A, an equal-variance Gaussian bound gives its gain before any selector is built; pre-registered, it predicted the
+measured gain within 0.7 points in 7 of 8 cells (RV-P3), and it says the room needs A ≈ 0.75–0.8 for +1.2 to +3. The channel score
+log p(question | answer) (the reviewer of Coder-Reviewer reranking, Zhang et al. 2023) reaches 0.50–0.51 on BIRD dev, 0.59–0.68 on
+Spider and 0.48–0.49 on BFCL (RV), and adding the peer model's own channel score does not help: the two models' scores correlate
+0.74–0.82 within class, far more than their answers' errors (RV2). On BFCL a wrong call that copies the request's values explains the
+request better than a right abstention; on BIRD the wrong passing query differs from the right one by conventions the question does
+not fix (extra output columns, operator precedence, which table holds a date). Label-free selection at this model size therefore
+stays below what the bound needs; a verifier trained on BIRD-train labels for this contrast (SEL, as GradeSQL's outcome verifier,
+arXiv 2606.30851, but used only where the cascade's checks disagree) is the pre-registered test of whether labels close the gap.
+
 ## 6.5 Relation to prior work (what is new here)
 Escalating from a cheap answer to a stronger one when a check fails is established for cascades *between models* (answer consistency,
 ICLR 2024; AutoMix's self-verification, NeurIPS 2024; self-generated tests for code), and learned "when to think" switches exist

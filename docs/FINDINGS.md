@@ -4896,3 +4896,24 @@ Decision (registered): the recipe from one training set holds for two generators
 training requests replaces the cascade for trained and untrained quick answers (better in 6 of 8 fit / target pairs, never
 significantly worse; untrained Qwen3-8B −0.11 / −0.29). The trained / untrained split was a Qwen3-8B fact. Goal link: on tool calls
 the cheapest exact answers come from a call policy fitted on the training data's own labels, whatever the generator and its training.
+
+## 2026-11-01 14:2x UTC: RV / RV2 (pre-registered): a model's score of the question given each answer does not choose between disagreeing passing answers; a second model's score adds nothing (ρ ≈ 0.8); a trained verifier (SEL) is pre-registered
+Why: the room above the cascade (+5.0 to +6.7) sits where N, P and the fallback give ≥ 2 distinct passing answers, all already paid
+for. RV scored each candidate by Qwen3-8B's log p(question | answer) (the channel direction of Coder-Reviewer, 2211.16490) and
+p(answer | question); RV2 added Qwen3.5-9B's channel score.
+- Within-question AUROC of the channel score: BIRD dev 0.51 / 0.50 (base / trained N), Spider test 0.63 / 0.59, Spider dev 0.68 /
+  0.59, BFCL 0.48 / 0.49; none ≥ 0.75. The vote rule with it loses on BIRD dev (−1.18, −0.70) and BFCL (−2.09, −0.43) and gains only on
+  Spider test (+0.52 trained). RV-P1 / P2b / P2t refuted; **RV-P3 holds (7 of 8):** the Gaussian bound predicts a selector's gain from
+  its within-question AUROC, so the AUROC needed is known before a selector is built (0.75–0.8 for +1.2 to +3).
+- RV2: the two models' scores correlate 0.74–0.82 within class (expected 0.3–0.6), so their sum gains ≤ +0.04 AUROC (RV2-P1 / P2
+  refuted; the formula itself was right in 5 of 8). Two generations share far fewer wrong answers (33–62%) than scoring errors.
+- Mechanism (raw cases): on BFCL half of the (right, wrong) pairs are a right abstention against a wrong call; a call that copies the
+  request's values explains the request better than no call, so both directions prefer it (channel 33%, direct 0%). On BIRD the wrong
+  passing query answers the same question in words and differs by a convention (extra output columns, `OR` precedence, which table
+  holds the date) the question's likelihood cannot see.
+Decision (registered, RV2's rule): label-free selection at the fallback stated as measured, no follow-up. Next (pre-registered,
+addendum SEL): labels in training only — Qwen3-8B + LoRA trained on BIRD-train candidates for the within-question contrast (pairwise
+Bradley–Terry on the gate logit, CV-1's turn 2 with the result rows), checkpoint chosen on 16 held-out databases, used only at the
+fallback; prediction AUROC 0.68–0.78 on BIRD dev (GradeSQL, 2606.30851: a 7B outcome verifier gains +1.95 over majority voting on BIRD
+dev with 32 samples). Goal link: exact answers at no extra output tokens need a discriminator at the one stratum where the cheap
+checks disagree; this rules out the label-free one at this model size and names the AUROC a trained one must reach.
