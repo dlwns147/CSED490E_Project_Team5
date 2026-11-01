@@ -4788,3 +4788,22 @@ thinking turns and commits the shared end state. Unlike SQL, where the cascade i
 unused information: agreement between end states of turns run from the same start. Decision: an online arm that does this at every turn
 in a resettable environment is the next agent-loop method (pre-registered before it runs). Related: RIR (rollback, 2609.18304), pass^k
 in τ-bench (all rollouts must succeed, not a vote); no study found commits a voted end state per turn.
+
+## 2026-11-01 04:0x UTC: LS (pre-registered): labels from other problem sets instead of the target's — prior adaptation refuted, B's word-problem room withdrawn
+Why: the project's derived policy needs labels (LCM: without them unanimity cannot be told from a shared mistake), and B's planner
+gained up to +11 on hard word problems. Two questions: what was that room, and can labels from other sets of the same kind replace the
+target's (label shift: borrow P(observation | which calls are right), estimate the new set's prior by EM from its unlabelled calls)?
+Results:
+- The room on Qwen3-8B's word cells was which model answers: gpt-oss-20b's quick program is right more often than Qwen3-8B's (LogiOR
+  43% vs 16%), and "its program first" matches the planner there (post hoc).
+- On two fresh sets (OptiBench's other 403, MAMO; Qwen3-8B and Qwen3-14B-AWQ) the room is almost gone even with the targets' own labels
+  (reference − cascade −0.26 to +1.40, against +4 to +11 on the development cells). B's "up to +10" is withdrawn as a general claim.
+- LS − cascade: significant in 2 of 4 (MAMO +1.28 / +0.62), never worse: **LS-P1 refuted**. LS − plain transfer: 0 of 4, and −0.75 to
+  −1.02 in 4 of 8 BFCL cells, where P(o | c) itself differs between splits: **LS-P2 refuted**; prior adaptation is not adopted.
+- Plain transfer of the planner (no target label) matched half of the target's own labels in 13 of 16 cells. In reported cells it beat
+  the cascade in 8 of 12, including Spider from BIRD's labels in 4 of 4 (+0.7 to +1.1) and Qwen3.5-9B's tool calls both ways
+  (+3.7 / +4.3). Spider's test split is reused here, so this is not a claim.
+- Pseudo-labels from the think's answer (C3PO-style) lose in 9 of 16 cells (−0.4 to −5.2).
+Decision: LS not adopted. Next: a confirmatory test of plain transfer on a benchmark never used (addendum TR, Spider dev). Goal link: if
+a policy fitted once on one benchmark's labels beats the hand-set cascade on new benchmarks of the task, the method needs no labels
+where it is deployed.

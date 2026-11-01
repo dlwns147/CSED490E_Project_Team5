@@ -331,3 +331,38 @@ with the room it leaves (reference − cascade) reported.
 
 Expected (not a rule): LS-P1 2–3 of 4 (MAMO is easy, so the cascade leaves little there); LS-P2 refuted (the role of the peer, the
 main room, transfers without adaptation).
+
+### Results, addendum LS (written 2026-11-01 04:0x UTC; `results/lcm_shift.log`, `results/lcm_shift/*.json`; CPU job 1291404)
+
+| target cell (peer gpt-oss-20b) | cascade | LS − cascade | LS − transfer | reference − cascade (target's own labels) | LS − P→SB→T→T |
+|---|---|---|---|---|---|
+| OptiBench other 403, Qwen3-8B | 70.84 | +0.27 [−0.85, +1.30] | +0.05 [−0.63, +0.75] | −0.26 [−1.42, +0.90] | −0.30 [−1.63, +0.97] |
+| MAMO 863, Qwen3-8B | 78.74 | **+1.28 [+0.55, +2.04]** | +0.38 [−0.03, +0.79] | +0.28 [−0.74, +1.25] | −0.37 [−1.23, +0.53] |
+| OptiBench other 403, Qwen3-14B-AWQ | 71.05 | +0.77 [−0.22, +1.82] | +0.81 [−0.11, +1.91] | +1.40 [+0.37, +2.50] | −0.20 [−1.64, +1.23] |
+| MAMO 863, Qwen3-14B-AWQ | 78.04 | **+0.62 [+0.15, +1.19]** | −0.20 [−1.18, +0.78] | +0.45 [−0.72, +1.61] | −1.37 [−2.64, −0.17] |
+
+- **LS-P1 refuted** (2 of 4; never worse). **LS-P2 refuted** (0 of 4).
+- **Little room on the fresh sets, even with their labels.** The reference (B's planner on half of the target's own labels) beats the
+  cascade by −0.26 to +1.40 (significant once), against +4.1 to +11.4 on B's development cells. B's word-problem room belonged to the
+  hard development sets (LogiOR, OptMATH), not to the pair: "up to +10" does not generalise.
+- **Without a target label, the planner does as well as with half of them.** LS − reference: +0.54, +1.00, −0.63, +0.17; plain transfer
+  likewise. Labels from other sets of the same kind were worth about as much as the target's own here.
+- **The prior adaptation adds nothing, and hurts where the assumption fails.** LS − transfer within ±0.8 on word problems, and −0.75 to
+  −1.02 in 4 of the 8 BFCL cells: non-live and live differ in P(o | c), not only in π. The adapted log-likelihood gains 0.2–0.6 nats
+  per observation on the word sets and only 0.1–0.2 on BFCL. The matrix [P(o | c)] had full rank (32) in every cell; 0–5% of target
+  observations were never seen in development.
+- **Reported cells (not decided):** plain transfer beats the cascade in 8 of 12 and loses in 1 (Qwen3-8B BFCL live, −0.89). Spider from
+  BIRD's labels gains in 4 of 4 (+0.69 to +1.10), as much as half of Spider's own labels give (+0.50 to +0.91). Qwen3.5-9B's tool calls
+  (the weak-peer room) gain in both directions (+3.66 from non-live to live, +4.25 back; references +4.48 / +3.19). LS gains in 6 of 12.
+  Spider's test split was FINAL's confirmatory set and is now used a third time, so none of this is a claim.
+- **Pseudo-labels** (T's answer as the label, as C3PO uses its strongest model) lose to the cascade in 9 of 16 cells (−0.4 to −5.2): a
+  think's answer is a poor label for when to skip thinking.
+- **Post hoc:** "gpt-oss-20b's program first" (P→SB→T→T) is at or above LS on all four fresh word cells (+0.2 to +1.4): the observation
+  in this addendum's preamble holds on new sets as a property of this pair. It is a hand-chosen rule and is not adopted.
+
+**Decision (as pre-registered).** LS-P1 refuted: the label-shift planner is not shown to beat the cascade on new word-problem sets, and
+the prior adaptation is not part of any method. Two corrections follow. B's "up to +10 on hard word problems" is withdrawn as a general
+claim, because two fresh sets show almost no room. And labels from other sets of the same task did about as well as half of the
+target's own (plain transfer at or within 0.2 of the reference in 13 of 16 cells, 0.8–1.5 below in three), so "a fitted policy needs
+labels *of the target*" is not supported either. Whether plain transfer beats the cascade on a
+new benchmark is the next confirmatory question (addendum TR).

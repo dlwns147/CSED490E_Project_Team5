@@ -519,7 +519,11 @@ BFCL live); estimating the dependence only where it is identified, on the labell
 modes fixes the degeneracy and calibration on BFCL but not on SQL. The bound settles why: a planner that knows the joint law of the
 five calls (all labels of half the questions, cross-fitted) gains over the cascade in 1 of 8 BIRD cells and by +0.5 to +0.9 on Spider.
 On SQL the cascade is at the information limit of its calls; the room is where its fixed rule fits the model badly — Qwen3.5-9B's tool
-calls (+3.2 / +4.5) and the hard word-problem sets (up to +11), where the fitted planner gains up to +10.
+calls (+3.2 / +4.5) and the hard word-problem sets (up to +11). The word-problem room is which model of the pair answers (gpt-oss-20b's
+quick program is right more often than Qwen3-8B's), and on two fresh sets (OptiBench's other 403 problems, MAMO) it almost vanishes even
+with their own labels (−0.3 to +1.4). Fitting the planner on *other* sets' labels does about as well as on half of the target's own
+(13 of 16 cells); re-weighting those labels to the target's unlabelled calls under a label-shift assumption adds nothing and hurts on
+tool calls, whose splits differ in more than the prior (LS, pre-registered: refuted).
 
 **Another generator family (XG, pre-registered).** All of the above uses Qwen generators. With gpt-oss-20b answering (its low-effort
 answer as N, its medium-effort SB→T→T as the default) and Qwen3.5-9B's quick answer as the check, the cascade beats the default on

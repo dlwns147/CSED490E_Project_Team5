@@ -54,7 +54,9 @@ one-model alternative, the answer's own token confidence, and agreement without 
 policy that knows the joint law of the five calls gains at most about a point over the cascade on SQL (B), so the cascade is at the
 information limit of its calls there, and more models' quick answers do not lift that limit (B2); and with no labels, unanimous
 agreement cannot be told from a shared mistake (LCM), which is why the second model must come from elsewhere and why a fitted policy
-needs labels. Where the fixed rule fits the model badly (hard word problems, a weak peer) a derived policy gains (up to +10). In agent
+needs labels. A derived policy gains where the fixed rule fits the model badly: with a weak peer (Qwen3.5-9B's tool calls, +3.2 /
++4.5). On the hard word problems the earlier "up to +10" was which model of the pair answers, and it did not reappear on two fresh sets
+(LS, 11-01); labels from other sets of the same task did about as well as the target's own there (a confirmatory test is pending). In agent
 loops the error check does not pay: thinking at every step is best (MT).
 
 **Restated 2026-10-25 (HO-CM):** the comparisons below were against *one* think given the same fact. Given the same free check too —
