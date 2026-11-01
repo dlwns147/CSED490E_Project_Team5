@@ -30,6 +30,10 @@ the default ties the check-matched think at 69–90% of its tokens while the non
 Trained with plain RL on open data (labels only in training) and checked by another model's quick answer, the non-thinking answer
 beats the no-label default on text-to-SQL (+2.0 utility, BIRD dev) and tool calls (+1.35, BFCL; Qwen3-4B +0.94; with the peer trained too
 +2.60, the two trainings adding without a cross term); trained to gate itself, it learns to defer everything, and trained for the cascade's exact reward it loses to plain RL on both tasks (it gives up learned abstention on tool calls; CV-1, TC-RL).
+Where the cheap checks disagree and two or three passing SQL queries remain, a verifier trained on BIRD-train labels for the
+within-question contrast chooses among them (AUROC 0.82 on BIRD dev; label-free scores 0.50) and adds +0.9 to +2.0 in all six cells at
+no output tokens, as a pre-registered bound predicted from its AUROC; with it the untrained peer cascade also beats the default on SQL
+(61.1% at 1.39k tokens vs 59.5% at 1.68k on BIRD dev; Spider test 78.9% at 0.47k vs 76.2% at 1.08k; SEL).
 Where the check is perfect (Lean proofs) the
 rule becomes "sample cheaply, then think"; where it leaks, it bounds label-free self-training as it bounds the recipe.
 
@@ -529,7 +533,7 @@ with their own labels (−0.3 to +1.4). Fitting the planner on *other* sets' lab
 tool calls, whose splits differ in more than the prior (LS, pre-registered: refuted). Fitted once on BIRD and Spider test and run on
 Spider's dev split, never used, the planner does not beat the cascade for any of four generators (TR, pre-registered: +0.02 to +0.60,
 none significant, at 1.4–3.7× its tokens), and even Spider dev's own labels give no room: for untrained generators on SQL the cascade
-is where these calls stop. With the trained quick query the transferred planner does gain (+0.99 [+0.23, +1.83]). Where the peer disagrees, the trained quick
+is where these calls stop (a new signal, a trained verifier at the fallback, moves it: SEL, Section 6). With the trained quick query the transferred planner does gain (+0.99 [+0.23, +1.83]). Where the peer disagrees, the trained quick
 query is right as often as the fallback thinks (46.9% vs 48.9% / 49.3%; untrained 34.1%), so the planner lets a full think break the
 tie between the two quick answers instead of falling back to the short think. Fitted on BIRD alone it gained +0.24 (n.s.) on Spider test, and the
 registered rule kept the cascade. On tool calls, pre-registered with the method decision tied to it (TRT), the policy fitted on all of
@@ -653,6 +657,24 @@ request better than a right abstention; on BIRD the wrong passing query differs 
 not fix (extra output columns, operator precedence, which table holds a date). Label-free selection at this model size therefore
 stays below what the bound needs; a verifier trained on BIRD-train labels for this contrast (SEL, as GradeSQL's outcome verifier,
 arXiv 2606.30851, but used only where the cascade's checks disagree) is the pre-registered test of whether labels close the gap.
+
+**Labels close it (SEL, pre-registered).** Qwen3-8B with a LoRA adapter (r 16) reads each candidate as CV-1's turn 2 does (the query,
+then its row count, columns and first rows) and is trained on 1,320 BIRD-train questions with a right and a wrong passing candidate
+(from Qwen3-8B's and Qwen3.5-9B's quick queries and Qwen3-8B's thinks) to rank right above wrong: the pairwise Bradley–Terry loss
+on logit(ACCEPT) − logit(DEFER), the smooth surrogate of the within-question AUROC the bound needs. The checkpoint is chosen on 16
+training databases held out of training (0.75; the untrained model 0.60). On the test sets it reaches 0.82 / 0.76 on BIRD dev (base /
+trained quick query; the channel score 0.51 / 0.50) and 0.72–0.80 on Spider, and a selector that adds its standardized score to the
+structural prior of who proposed each answer (both fitted on held-out BIRD-train questions) beats the cascade in all six cells:
++1.18 / +2.01 / +0.94 on BIRD dev / Spider test / Spider dev with the untrained quick query, +0.87 / +1.51 / +2.04 with the trained one,
+at no output tokens (one prefill per candidate). The bound at the measured AUROC predicted the cross-fitted gain within 0.7 points in
+5 of 6 cells. The whole pipeline now beats the default for the untrained quick query too (+1.75 [+0.65, +2.85] on BIRD dev, 61.1% at
+1.39k tokens vs 59.5% at 1.68k; +2.93 on Spider test; +1.87 on Spider dev), which the peer cascade alone did not (SQL-PA), and with the
+trained quick query it reaches 62.2% at 1.36k tokens on BIRD dev and 81.2% at 0.44k on Spider test (default 76.2% at 1.08k). What the
+verifier learned is partly BIRD's output convention — on (right, wrong) pairs that return different numbers of columns it orders 79–94%
+right, as "fewer columns first" would — and partly content: on pairs with the same columns it still orders 71–75% right on BIRD dev
+and Spider dev (61–62% on Spider test). Unlike GradeSQL's gain from 32 samples, more candidates are not the lever here: 13 more
+stored quick queries per fallback add a right candidate in only 1.5% of the cells, so the room is in the answers the cascade has
+already paid for.
 
 ## 6.5 Relation to prior work (what is new here)
 Escalating from a cheap answer to a stronger one when a check fails is established for cascades *between models* (answer consistency,

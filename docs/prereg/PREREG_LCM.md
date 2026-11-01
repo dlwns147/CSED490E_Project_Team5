@@ -933,3 +933,50 @@ held-out ToolACE requests (TRT's set; N base and trained pooled).
 - P2 refuted with AUROC ≥ 0.75 → the prior from ToolACE does not transfer; stated (as SEL's second branch).
 - P2 refuted with AUROC < 0.75 → a verifier trained on ToolACE does not reach the bound on BFCL at this size; stated with ToolRM's
   contrast.
+
+## Results of addendum SEL (written 2026-11-01 17:5x UTC; `results/lcm_sel_val.log`, `results/lcm_sel.log`; training job 1294110, 166 steps on the 1,320 of 4,431 pool questions with a right and a wrong passing result, 3,397 results; scoring job 1294111, every candidate scored, none failed; raw cases `nlp_data/scratch/sel_raw.py`, `sel_cols.py`, the whole pipeline `sel_full.py`, extra samples `selk_cov.py`)
+
+**Checkpoint** (held-out databases, pooled within-question AUROC over 98 questions): s25 0.572, s50 0.682, s75 0.707, s100 0.690,
+**s125 0.752 [0.677, 0.819] (chosen)**, s150 0.740, final 0.736; the untrained Qwen3-8B 0.604.
+
+| cell (N) | verifier AUROC | rev | verifier − rev | selector − cascade | cross-fitted Bayes | bound | verifier alone |
+|---|---|---|---|---|---|---|---|
+| BIRD dev, base | 0.819 [0.788, 0.849] | 0.510 | +0.309 [+0.257, +0.362] | **+1.18 [+0.54, +1.87]** | +1.24 [+0.76, +1.76] | +2.10 | +0.76 [−0.15, +1.70] |
+| Spider test, base | 0.737 [0.693, 0.777] | 0.632 | +0.105 [+0.043, +0.166] | **+2.01 [+1.38, +2.62]** | +1.95 [+1.17, +2.74] | +2.31 | +1.78 [+0.90, +2.68] |
+| Spider dev, base | 0.797 [0.742, 0.847] | 0.682 | +0.115 [+0.029, +0.197] | **+0.94 [+0.20, +1.75]** | +2.04 [+1.10, +3.13] | +2.65 | +2.12 [+0.81, +3.46] |
+| BIRD dev, trained (C1) | 0.763 [0.726, 0.798] | 0.502 | +0.260 [+0.202, +0.319] | **+0.87 [+0.15, +1.57]** | +0.85 [+0.37, +1.31] | +1.39 | +0.07 [−0.96, +1.02] |
+| Spider test, trained | 0.716 [0.671, 0.761] | 0.591 | +0.125 [+0.058, +0.193] | **+1.51 [+0.90, +2.18]** | +1.63 [+0.90, +2.37] | +2.05 | +1.63 [+0.80, +2.49] |
+| Spider dev, trained | 0.785 [0.731, 0.839] | 0.590 | +0.194 [+0.106, +0.287] | **+2.04 [+1.14, +3.05]** | +2.20 [+1.18, +3.30] | +2.64 | +2.16 [+0.90, +3.42] |
+
+(β 0.8 base / 0.7 trained, fitted on the held-out-database fresh questions; 0–8 question-seeds per cell with a structure the prior
+never saw keep d; the verifier's prefill 2,085 / 1,943 tokens per question-seed on BIRD dev, 462–655 on Spider, no output tokens.)
+
+- **SEL-P1 holds** (verifier − rev on BIRD dev +0.309 / +0.260). **SEL-P2b holds** (3 of 3 above, 0 below). **SEL-P2t holds** (3 of
+  3, 0 below). **SEL-P3 holds** (5 of 6 within 0.7; the miss is BIRD dev base, cross-fitted +1.24 against the bound's +2.10; every
+  cross-fitted gain lies below its bound). **SEL-P4 holds** (|0.819 − 0.770| = 0.049, |0.763 − 0.743| = 0.020; the base cell 0.001 inside
+  the line). The expected AUROCs were exceeded on Spider (0.72–0.80 against 0.62–0.72) and for base N on BIRD dev (0.82 against
+  0.68–0.78); the gains fell inside the expected ranges except Spider dev base (+0.94, below +1.0).
+- **The whole SQL pipeline against the default SB→T→T** (computed from the same rows, not a registered prediction; paired over
+  questions): base N 61.1% at 1.39k tokens vs 59.5% at 1.68k on BIRD dev, +1.75 [+0.65, +2.85] (the cascade alone +0.58 [−0.27,
+  +1.43]); Spider test 78.9% at 0.47k vs 76.2% at 1.08k, +2.93 [+1.75, +4.07] (+0.92); Spider dev 75.4% at 0.57k vs 73.8% at 1.13k,
+  +1.87 [+0.61, +3.21] (+0.93). Trained N: 62.2% at 1.36k, +2.86 [+1.73, +4.14] (+1.99, CV-1's P8 reproduced); 81.2% at 0.44k, +5.24
+  [+4.02, +6.48] (+3.73); 78.1% at 0.54k, +4.57 [+3.17, +6.20] (+2.53). With the verifier the untrained quick query's peer cascade
+  beats the default on SQL in 3 of 3 sets, which SQL-PA's PA2 (1 / 3) did not.
+- **Where it changes the answer** (fresh-fitted selector against d): BIRD dev base 98 right for wrong, 44 wrong for right (80 / 35
+  by choosing the peer's query); Spider test base 131 / 26; trained N 101 / 61 and 120 / 41 (mostly by keeping the trained N's query).
+- **What it learned** (raw cases, `sel_cols.py`): on the 29–42% of (right, wrong) pairs whose queries return a different number of
+  columns, the verifier orders 79–94% right and "fewer columns first" 71–98%: BIRD's convention of returning only what is asked
+  (no helper COUNT or sort column), which Spider shares. On the 58–71% of pairs with the same columns it orders 71–75% right on BIRD
+  dev and Spider dev and 61–62% on Spider test: content beyond the convention (the join key, a filter the question states, DISTINCT
+  in a count), weaker on Spider's style. Its losses are logic it misses where it prefers the shorter query (COUNT(DISTINCT) in a
+  percentage, INTERSECT read as OR, a join through the wrong key).
+- **More candidates would not help** (stored rows, `selk_cov.py`): adding 13 more of Qwen3-8B's stored quick queries (seeds 4–16) to
+  the 1,437 BIRD dev base cells raises the share holding a right passing query from 60.4% to 61.9% (+0.48 points of room at ~980
+  output tokens per cell); the room is in the three answers the cascade already paid for. GradeSQL's gain from 32 samples of another
+  generator has no counterpart at this generator.
+
+**Decision (registered, SEL-P2 holds for both N types):** the trained verifier's selection becomes the SQL cascade's last step for
+base and trained N: N → peer → SB→T→T, and where N passed, the peer differed and N, P and d give ≥ 2 distinct passing answers, the
+answer with the highest logit π(calls | structure) + β z. One prefill per candidate (shared prompt), no output tokens; labels of BIRD
+train only, the checkpoint and β from held-out training databases. PROJECT, REPORT and PROPOSAL updated. The tool-call recipe
+(addendum SEL-TC) was pre-registered at 14:5x UTC and is running.

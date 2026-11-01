@@ -4932,3 +4932,23 @@ that vote online at every turn (sandboxed rollouts, policy fitted on one half's 
   for agent turns, whose responses are graded too.
 Decision (registered): reported; agent loops stay "think at every step". Goal link: no cheaper exact policy exists for agent loops
 with these signals; the method's savings are on single-shot tasks with a free check.
+
+## 2026-11-01 17:5x UTC: SEL (pre-registered): a verifier trained on BIRD-train labels chooses among the cascade's disagreeing passing queries; with it the peer cascade beats the default on SQL in 3 of 3 sets
+Why: RV / RV2 left +5 to +6 points of room at the SQL fallback (N passed, the peer differed, N, P and d give ≥ 2 distinct passing
+queries; the right one is among them in 60% of these BIRD dev cells, d is right in 44%) that label-free scores cannot take (AUROC
+0.50–0.70); the validated bound named the AUROC needed (0.75–0.8).
+- Qwen3-8B + LoRA r16, pairwise Bradley–Terry on logit(ACCEPT) − logit(DE) after CV-1's turn 2 (the query's result rows), 1,320
+  BIRD-train questions on 50 databases, checkpoint by AUROC on 16 held-out training databases (0.752; untrained 0.604).
+- **SEL-P1–P4 hold.** Within-question AUROC 0.82 / 0.76 on BIRD dev (base / trained N; label-free rev 0.51 / 0.50), 0.72–0.80 on
+  Spider. Selector − cascade: base +1.18 / +2.01 / +0.94 (BIRD dev / Spider test / Spider dev), trained +0.87 / +1.51 / +2.04, all
+  lower bounds > 0, no output tokens; the cross-fitted gain within 0.7 of the bound in 5 of 6 (the bound again predicts before testing).
+- Whole pipeline − default SB→T→T: base +1.75 [+0.65, +2.85] on BIRD dev (61.1% at 1.39k vs 59.5% at 1.68k), +2.93 / +1.87 on Spider;
+  trained N +2.86 / +5.24 / +4.57 (62.2% at 1.36k; 81.2% at 0.44k vs 76.2% at 1.08k).
+- Mechanism: on pairs that return different column counts (29–42%) it learned BIRD's "return only what is asked" convention (as
+  "fewer columns first"); on same-column pairs it still orders 71–75% right on BIRD dev / Spider dev (61–62% Spider test): join keys,
+  stated filters, DISTINCT. Losses: logic it misses while preferring the shorter query.
+- More candidates are not the lever: 13 more stored quick queries per cell add a right candidate in 1.5% of cells (60.4% → 61.9%) at
+  ~980 output tokens; the room is in the three answers already paid for (unlike GradeSQL's 32 samples, 2606.30851).
+Decision (registered): the verifier's selection is the SQL cascade's last step for base and trained N; PROJECT, REPORT, PROPOSAL
+updated; SEL-TC (tool calls) running. Goal link: exact answers at no extra output tokens — the one stratum the cheap checks could not
+resolve is now resolved with labels used only in training, and the SQL claim moves from "an option" to "beats the default".

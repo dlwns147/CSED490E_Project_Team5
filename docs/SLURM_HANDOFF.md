@@ -4,7 +4,7 @@ State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Tea
 (/NAS/SJ/POSTECH/nlp, 8 × RTX PRO 6000 Blackwell, GPUs 0–3) was stopped on 2026-10-20 04:2x UTC; no job is running there.
 
 ## 0. Status on the Slurm cluster (updated 2026-10-27 16:3x UTC)
-- **Running (11-01 13 UTC; PREREG_LCM.md addenda RV2 and SEL):** RV2 = Qwen3.5-9B's channel scores, job 1293926 (`rv_q35`: lane.sh
+- **Running (11-01 13 UTC; PREREG_LCM.md addenda RV2 and SEL; RV2 done 14:2x UTC, SEL done 17:5x UTC: P1–P4 hold, results in PREREG_LCM):** RV2 = Qwen3.5-9B's channel scores, job 1293926 (`rv_q35`: lane.sh
   `--vllm '--max-model-len 20480 --language-model-only --max-num-seqs 32 --max-num-batched-tokens 1056' --frac 0.88` Qwen/Qwen3.5-9B, `CONF_LIMIT=40
   RV_KINDS=rev RV_SUFFIX=_q35 $P poc/score_conf.py rv && RV_KINDS=rev RV_SUFFIX=_q35 $P poc/score_conf.py rv`; the first try 1293239 died of
   OOM in prompt log-probs over Qwen3.5's vocabulary with 2k-token prefill chunks); then `python3.11 poc/lcm_shift.py --rv > results/lcm_rv2.log`.
