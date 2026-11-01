@@ -4823,9 +4823,9 @@ generators, the policy fitted on BIRD dev + fresh BIRD questions + Spider test; 
 - **TR-C1-P1 holds:** the trained quick query in the cascade beats the default on Spider dev, +2.53 [+1.44, +3.69] (76.0% at 0.54k vs
   73.8% at 1.13k), a second untouched benchmark after Spider test (+3.73).
 - **TR-C1-P2 holds** (+0.99 [+0.23, +1.83], p 0.006; sensitivity +0.69 [+0.05, +1.29]), but by the registered rule it changes the
-  method only with TR-P1, which failed. Mechanism (traced): once trained, the quick query is as accurate as the base model's short
-  think (74.1% vs 73.6%). So when the peer disagrees, the policy runs one full think as a referee and keeps whichever quick answer it
-  matches, instead of taking the short think. Fitted on BIRD dev only, it gained +0.24 n.s. on Spider test, so the size is unsettled.
+  method only with TR-P1, which failed. Mechanism (traced): where the quick query passes and the peer disagrees, the trained quick
+  query is right as often as the fallback thinks (46.9% vs 48.9% / 49.3%; untrained 34.1%). So the policy runs one full think to break
+  the tie between the two quick answers, instead of replacing them with the short think. Fitted on BIRD dev only, it gained +0.24 n.s. on Spider test, so the size is unsettled.
 - Post hoc (reported, no rule): with the trained quick query, thinking only when its own check fails (N→T→T) ties the peer cascade on
   both Spider splits (+0.25 [−0.73, +1.26], −0.19 [−1.78, +1.49]) and loses 3.4 points on BIRD dev. The peer is needed where the quick
   query's check leaks most (BIRD), not on the easier Spider.

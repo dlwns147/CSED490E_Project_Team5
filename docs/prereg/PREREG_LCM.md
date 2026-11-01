@@ -469,9 +469,11 @@ grades 1,032).
     cascade runs the default, which takes the base model's short think when it passes. The policy instead runs one full think and
     keeps the quick query if the think agrees (+0.56 of the +0.99).
   - Where the quick query fails, the policy keeps the peer's query if the think agrees with it (+0.25).
-  - Training makes the quick query as accurate as the base model's short think and full think (on Spider dev 74.1% vs 73.6% and
-    73.8%), so falling back to the short think when the peer disagrees throws away an answer as good as the fallback. The full think
-    serves better as a referee between the two quick answers.
+  - Why: on the question-seeds where the quick query passes and the peer disagrees, the base quick query is right 34.1% of the time,
+    against 50.2% for the short think and 50.4% for the think, so falling back is right. The trained one is right 46.9%, against
+    48.9% / 49.3%: as good as the fallback. Its answer is then worth a vote, and the think breaks the tie between the two quick
+    answers instead of replacing them. Same pattern on Spider test (48.5% vs 46.4% / 48.6%; base 26.3%) and BIRD dev (34.7% vs 43.4% /
+    43.0%; base 26.9%).
   - On Spider test, fitted on BIRD dev's C1 rows only, the same policy gained +0.24 [−0.27, +0.73] (exploration above), so the
     size of this gain is not settled.
 

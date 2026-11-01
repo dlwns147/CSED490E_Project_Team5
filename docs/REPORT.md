@@ -529,9 +529,9 @@ with their own labels (−0.3 to +1.4). Fitting the planner on *other* sets' lab
 tool calls, whose splits differ in more than the prior (LS, pre-registered: refuted). Fitted once on BIRD and Spider test and run on
 Spider's dev split, never used, the planner does not beat the cascade for any of four generators (TR, pre-registered: +0.02 to +0.60,
 none significant, at 1.4–3.7× its tokens), and even Spider dev's own labels give no room: for untrained generators on SQL the cascade
-is where these calls stop. With the trained quick query the transferred planner does gain (+0.99 [+0.23, +1.83]): the quick query is
-then as accurate as the short think (74.1% vs 73.6%), and where the peer disagrees the planner lets a full think choose between the two
-quick answers instead of falling back to the short think. Fitted on BIRD alone it gained +0.24 (n.s.) on Spider test, and the
+is where these calls stop. With the trained quick query the transferred planner does gain (+0.99 [+0.23, +1.83]). Where the peer disagrees, the trained quick
+query is right as often as the fallback thinks (46.9% vs 48.9% / 49.3%; untrained 34.1%), so the planner lets a full think break the
+tie between the two quick answers instead of falling back to the short think. Fitted on BIRD alone it gained +0.24 (n.s.) on Spider test, and the
 registered rule kept the cascade.
 
 **Another generator family (XG, pre-registered).** All of the above uses Qwen generators. With gpt-oss-20b answering (its low-effort
