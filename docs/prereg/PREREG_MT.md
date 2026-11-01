@@ -315,3 +315,14 @@ turns; output tokens 24.6k per item against T's 10.2k on the same items (the pol
 **Decision.** V1 holds for both: the agent-loop method becomes the per-turn vote over sandboxed rollouts with the derived policy
 (PROJECT, REPORT). V2 holds but V1 not: a trade, reported with its break-even λ. V2 refuted: the turn-0 room does not carry into whole
 trajectories; reported.
+
+*MT-V secondary (written 2026-11-01 02:3x UTC, before it is computed): how many labelled items the vote policy needs, offline at turn 0.* The
+supervised planner of MT-B fitted on k labelled items of the fitting half (k = 10, 30, 100, all ≈ 300; 5 random draws each, seeds
+reported) and evaluated cross-fitted on the other half against always thinking (T). Reported, no rule; it says whether MT-V's policy
+(fitted on ≈ 300 items' turn-0 labels) could be bought with a pilot of the size used elsewhere in the project (30).
+
+*MT-V secondary, result (written 2026-11-01 02:3x UTC; `results/mtv_labels.txt`).* Turn-0 vote policy − always thinking, mean over 5 draws of the
+labelled items: k = 10: +1.97 / +2.44 / +2.60 (Qwen3-8B / Qwen3-14B-AWQ / Qwen3.5-9B; 4 of 15 draws with a lower bound > 0); k = 30:
++4.76 / +5.15 / +5.53 (15 of 15 draws > 0); k = 100: +5.61 / +6.75 / +6.60; all ≈ 300: +7.18 / +7.81 / +8.02. A 30-item pilot buys
+about two thirds of the gain; the policy is cheap in labels because the patterns it acts on (do the quick and the peer's end states
+agree; which thinking rollouts share a state) are few and frequent.
