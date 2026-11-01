@@ -17,6 +17,9 @@ State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Tea
   TC_ARMS=quick run_tc.py taq8b <s>`, s 1–4; SB s1 was stored), then 1294857 `seltc_train` (`tc_train.py $POC_DATA/cv/seltc --orm`, log
   results/tc/run_tc_train_orm.log) → 1294858 `seltc_score` (`cv_eval_lane.sh orm-tc $POC_DATA/cv/seltc`; requests
   results/conf/sel_req_tc.jsonl from `lcm_shift.py --sel-build-tc`; `--sel-val-tc`, then `--sel-tc` > results/lcm_seltc.log).
+- **Running (11-01 18:5x UTC; PREREG_LCM.md addendum SEL-G):** job 1296216 `selg`: one server with SEL's adapter s125 scores
+  `results/conf/sel_req_g.jsonl` (`lcm_shift.py --sel-build-g`; the SQL fallback cells of Qwen3-14B-AWQ, Qwen3.5-9B, gpt-oss-20b), then
+  `lcm_shift.py --sel-g sel_s125` > results/lcm_selg.log.
 - **Running (11-01 18:4x UTC; PREREG_LCM.md addendum SEL-TC2):** job 1296197 `seltc2`: one server with SEL-TC's adapter s150 scores
   `results/conf/sel_req_tc2.jsonl` (`lcm_shift.py --sel-build-tc2`; 3,837 new texts), then `lcm_shift.py --sel-tc2 seltc_s150` >
   results/lcm_seltc2.log. SEL-TC done 18:2x UTC (P1/P2/P4 hold, P3 refuted).
