@@ -122,7 +122,8 @@ def main_rv():
 SEL_ITEMS = {"dev": f"{PD}/bird/sql_items.jsonl", "spider": f"{PD}/bird/sql_spider_items.jsonl",
              "spiderdev": f"{PD}/bird/sql_spiderdev_items.jsonl", "fresh": f"{PD}/bird/sql_train_items.jsonl"}
 SEL_SPLIT = {"dev": "dev", "spider": "spider", "spiderdev": "spiderdev", "fresh": "train"}   # prep_sql's database directories
-SEL_ITEMS.update({"bfcl": f"{PD}/bfcl/tc_items.jsonl", "tcho": f"{PD}/toolace/tc_train_items.jsonl"})   # SEL-TC: BFCL; held-out ToolACE
+SEL_ITEMS.update({"bfcl": f"{PD}/bfcl/tc_items.jsonl", "tcho": f"{PD}/toolace/tc_train_items.jsonl",   # SEL-TC: BFCL; held-out ToolACE;
+                  "ace": f"{PD}/acebench/tc_items.jsonl"})   # addendum ACE: ACEBench
 
 
 def main_sel():
