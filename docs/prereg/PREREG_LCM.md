@@ -1868,3 +1868,52 @@ Run: `prep_tctrain.py --ace` (done: 973 items, 150 with no call, every gold answ
 `ace_q35` (lane.sh, Qwen3.5-9B, TC_ARMS=cheap, seeds 1–3), all with TC_ITEMS=$POC_DATA/acebench/tc_items.jsonl; then the scoring
 job (cv_eval_lane.sh score-tc, both verifiers) and `lcm_shift.py --sel-tc2ab selab2_s450 --set ace` (code written while the runs go,
 run only after the scoring; its BFCL path unchanged).
+
+### Results of addendum ACE (written 2026-11-02 16:5x UTC; jobs 1301955–1301959 generation, 973 rows × 15 files, 0 failed requests; 1302224 / 1302225 scoring, 4,252 texts; results/lcm_ace.log)
+
+| N type | default | cascade | SEL-TC | SEL-TC2 | AB2 | **TC2-AB** |
+|---|---|---|---|---|---|---|
+| base Qwen3-8B | 74.0% @ 0.49k | 74.6% @ 0.38k | 75.4% @ 0.38k | 76.5% @ 0.71k | 78.7% @ 0.38k | **78.6% @ 0.71k** |
+| C1tc | 74.0% @ 0.49k | 75.1% @ 0.37k | 77.3% @ 0.37k | 78.5% @ 0.63k | 79.6% @ 0.37k | **79.5% @ 0.63k** |
+
+Utility differences, paired 95% intervals over requests (base / C1tc):
+- **ACE-P1 holds:** TC2-AB − default +4.44 [+2.93, +6.10] / +5.38 [+3.89, +6.98].
+- **ACE-P2 holds:** TC2-AB − cascade +3.81 [+2.71, +4.98] / +4.26 [+3.10, +5.49]; − SEL-TC's pipeline +2.99 [+1.90, +4.17] /
+  +2.06 [+1.06, +3.12].
+- **ACE-P3 holds:** TC2-AB − SEL-TC2 +2.09 [+1.23, +3.05] / +0.96 [+0.17, +1.82]; the verifier swap alone (TC2-new − SEL-TC2)
+  −0.00 / −0.07.
+- **ACE-P4 holds:** on the 150 requests that need no call TC2-AB is right +15.8 / +9.1 points more often than SEL-TC2; no call
+  offered at 2,657 / 2,628 of 2,919 stops, chosen at 154 / 116.
+- Reported, not registered: TC2-AB − AB2 −0.24 [−0.97, +0.51] / −0.23 [−1.00, +0.49] (BFCL: +0.47 [+0.09, +0.86] / +0.03). The
+  call policy's extra thinks, which paid on BFCL for the base quick calls, do not pay here: AB2 is as accurate at half the tokens.
+
+Against the expectations: every difference is larger than expected (default ≈ +3.5 / +4.1, cascade ≈ +2.6 / +2.7, SEL-TC2 ≈ +0.4
+/ +0.1). The last one was wrong in its argument: I scaled BFCL's no-call gain by the share of requests that need no call (15% vs
+32%), but what matters is whether the calls the policy makes already abstain there. On ACEBench's incomplete and error-param
+requests the quick calls almost never do (base 0% / 4%, the peer 0% / 1%; C1tc 31% / 17%) and the thinks only sometimes (34–39% /
+16–27%), so wherever the policy stops without an abstaining call the offered "[]" is the only right answer in the set.
+
+Raw cases (`$POC_DATA/scratch/tc2ab_raw.py selab2_s450 ace`, `ace_raw.py`, `tc2ab_headroom.py ace`):
+- Per category, TC2-AB vs SEL-TC2 (base): special incomplete 84.0% vs 49.3%, error-param 26.0% vs 17.3%, irrelevant 100% vs 96.0%;
+  the twelve normal categories within ±1.3 points except preference 57.0% vs 60.4% (C1tc: incomplete 82.7 vs 60.7, error-param
+  24.7 vs 23.3, irrelevant 100 vs 96.0, preference 55.8 vs 57.8).
+- No call chosen wrongly on 81 / 69 normal request-seeds, of which SEL-TC2 was right on 8 / 5: the verifier answers no call
+  mostly where every call is wrong anyway. The costly ones are preference items, where the five calls fill the user's profile
+  values differently: all disagree, and the planner's log-odds of "no call is right" at a five-way disagreement (fitted on
+  held-out ToolACE: −1.21, against −2.8 to −3.7 for each call) outweighs the verifier's score term (median +0.12).
+- Error-param requests (a negative weight, a malformed id) stay the weakest: most calls, the thinks included (they abstain on
+  16–27%), pass the invalid value on, and the verifier scores such calls above "[]".
+- Left (share of request-seeds): a right answer in the stop set not chosen 9.7% / 9.5% (no call right 4.6 / 4.8, mostly
+  error-param; a call right 5.1 / 4.7), no right answer among the five calls 9.2% / 9.3%, a right passing answer among calls the
+  policy did not make 2.4% / 1.6%. On BFCL: 6.3–6.7%, 4.5%.
+- Format: every arm's calls decode (pass rate 97–98% for Qwen3-8B, 90% for the peer); the strict grade (multiset equality,
+  ACEBench's checker also rejects extra arguments but compares strings after removing spaces and punctuation) applies to all arms.
+
+Related work: ACEBench's authors report the special categories as the weakest for most models (2501.12851); Relign (2412.04141,
+ICML 2025) and When2Call (2504.18851) train the generator to defer or ask when parameters are missing; here no generator is changed —
+the abstention comes from the choice step, with "[]" offered at no output tokens. ToolRM (2510.26167, Findings ACL 2026) reports
+Best-of-16 on ACEBench's normal split only (+1.3 to +3.8 with a 4B policy), without the special categories where this gain is.
+
+**Decision (registered).** P1 and P2 hold → the tool-call claim is stated on two benchmarks, one never used for a decision (REPORT,
+PROJECT, PROPOSAL in both languages). P3 holds with its point ≥ 0 in both N types → TC2-AB stays the method; reported with it: on
+ACEBench the call policy's thinks add nothing over AB2 (same accuracy, half the tokens), so the policy's part is a BFCL result.

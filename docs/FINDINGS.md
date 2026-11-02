@@ -5130,3 +5130,25 @@ the retrained verifier (selab2_s450), the two should add.
   refuted would have been wrong). Left: a right answer in the stop set not chosen 6.7 / 6.3% (about half of sampled irrelevance
   misses have a call that looks right — BFCL label convention), no right answer among the five calls 4.5%.
 Decision (registered): P1 holds → TC2-AB is the tool-call method; PROJECT, REPORT, PROPOSAL (both languages) updated.
+
+## 2026-11-02 16:5x UTC: ACE (pre-registered): the tool-call method holds on ACEBench, a benchmark never used for a decision
+Why: every tool-call choice since SEL-TC was tested on BFCL's 3,482 requests (six pre-registered looks); the method needed a test
+where nothing was chosen. ACEBench (2501.12851, MIT), 973 English single-call requests (12 normal categories, 150 special ones
+where no call is right), BFCL's prompt, nothing refitted (planner, β, verifiers as fitted on held-out ToolACE).
+- TC2-AB 78.6% / 79.5% at 0.71k / 0.63k tokens vs the default's 74.0% at 0.49k (base / C1tc quick calls): − default +4.44 [+2.93,
+  +6.10] / +5.38 [+3.89, +6.98] (P1 holds), − cascade +3.81 / +4.26 (P2 holds), − SEL-TC2 +2.09 [+1.23, +3.05] / +0.96 [+0.17,
+  +1.82] (P3 holds), +15.8 / +9.1 points on the no-call requests (P4 holds). All larger than expected; the no-call part was
+  mispredicted (+0.4 / +0.1) by scaling with the share of no-call requests, where what matters is that the quick calls almost
+  never abstain on incomplete / error-param requests (0–4%), so the offered "[]" is often the only right answer in the set.
+- The gain is in special-incomplete (84.0% vs 49.3%), error-param (26.0 vs 17.3) and irrelevant (100 vs 96.0); the normal
+  categories hold within ±1.3 except preference (−3.4: the five calls fill profile values differently, the planner's no-call
+  prior at a five-way disagreement outweighs the verifier). Wrong no-call answers fall where every call is wrong anyway (81 / 69,
+  SEL-TC2 right on 8 / 5).
+- Not registered: AB2 (verifier with "[]" at the cascade's fallback, no call policy) is as accurate at half the tokens (TC2-AB −
+  AB2 −0.24 / −0.23, n.s.; BFCL +0.47 / +0.03): the call policy's extra thinks are a BFCL result.
+- Left: a right answer in the stop set not chosen 9.5–9.7% (error-param calls the verifier prefers to "[]"), no right answer among
+  the five calls 9.2–9.3%.
+Related: Relign (2412.04141), When2Call (2504.18851) train the generator to defer; ToolRM (2510.26167) reports Best-of-16 on
+ACEBench's normal split only. Decision (registered): the tool-call claim is stated on BFCL and ACEBench; TC2-AB stays the method.
+Goal link: exact tool calls at the fewest tokens — the cheapest pipeline that holds out on both benchmarks is the quick calls, the
+peer and the verifier with "no call" among its choices.
