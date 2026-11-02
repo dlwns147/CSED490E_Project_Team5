@@ -1416,3 +1416,50 @@ SEL-TC's pointwise verifier (seltc_s150) on the same request-seeds. Output token
 Run: smoke `PW_SMOKE=1 bash poc/slurm/cv_eval_lane.sh pw-tc $POC_DATA/cv/selpwtc_smoke`, then (afterok) `bash poc/slurm/cv_eval_lane.sh
 pw-tc $POC_DATA/cv/selpwtc` (logs results/tc/run_selpwtc_train.log, results/run_selpwtc_score.log; results/lcm_selpwtc_val.log,
 results/lcm_selpwtc.log).
+
+## Addendum SEL-PW-W: the pairwise verifier on word problems (written 2026-11-02 01:0x UTC, before any pairwise word training step or score; 3,760 ordered-pair requests built (1,592 development, 2,168 target), the analysis run only on synthetic scores, `nlp_data/scratch/selpww_dry.py`)
+
+**Why.** SEL-PW's decision registers this test. SEL-W's verifier (SEL's loss on VER's programs, one program at a time) does not order
+right above wrong passing values on word problems (0.62–0.69 on the targets, 0.60 even on OptMATH, no better than untrained): a wrong
+value comes from a number or a constraint misread in that problem. Judged alone, a program must be checked against the whole statement;
+side by side, the two formulations differ in a few places, and the question becomes which reading of the statement is right there.
+On SQL the same change raised the AUROC most where the one-at-a-time verifier transferred worst. Related: Pairwise RM (2501.13007)
+reports a pairwise judge above pointwise reward models on MATH; neither it nor GenRM / LEVER holds the programs, backbone, data and loss
+fixed and changes only the format, and none is used only where a cheap cross-model check failed.
+
+**Verifier.** Qwen3-8B + LoRA r 16 (`wp_train.py --pw`) on SEL-W's pool and problems: the 1,029 OptMATH-Train problems (VER's training
+problems) with a right and a wrong passing value (1.45 (right, wrong) value pairs per problem); per problem and epoch up to 4 pairs, one
+program per value drawn, each pair in both orders. Context (`ver_build.pw_prompt`): the problem, "Two Python programs were written for
+this problem.", Program A with its printed value, Program B with its value, "Which value is the correct optimal objective value of the
+problem exactly as stated? Compare the two formulations with the statement where they differ: the decision variables and whether they
+must be integers, every constraint and its numbers, and the objective. Reply A or B."; s(a, b) = logit(A) − logit(B); loss
+log(1 + exp(−y s)); batch 16, lr 5e-5, 2 epochs, adapters every 25 steps. At a fallback cell each value is represented by the first
+call's program (order N, P, d); z-input s(a) = the mean over the other values of (s(a, b) − s(b, a)) / 2. **Checkpoint:** the highest
+pooled within-question AUROC on the four development sets' fallback sets (OptiBench's third, BWOR, LogiOR, OptMATH; both N types), as
+SEL-W; π and β fitted there per N type.
+
+**Targets** (no choice uses them): SEL-W's — OptiBench's other 403 problems and MAMO × N ∈ {Qwen3-8B, Qwen3-14B-AWQ}; P = gpt-oss-20b's
+quick program, d = N's SB→T→T; seeds 1–3. The comparison is SEL-W's V2 (selw_s50: the same loss and programs, one at a time) on the same
+problem-seeds; the untrained model with the pairwise prompt is scored on the targets and reported. Output tokens unchanged; prefill
+reported.
+
+**Predictions** (paired 95% intervals over problems):
+- **SEL-PW-W-P1:** pairwise − V2 within-question AUROC, the four target cells pooled, lower bound > 0.
+- **SEL-PW-W-P2 (decision):** pairwise selector − cascade, lower bound > 0 in ≥ 2 of 4 cells, upper bound < 0 in none (SEL-W-P2's rule;
+  pairwise − V2 selector reported).
+- **SEL-PW-W-P3 (mechanism):** on the targets' (right, wrong) pairs whose programs differ in ≤ 28 lines (the median, from the programs
+  alone, before any score), pairwise − V2 ordering ≥ +5 points with lower bound > 0 (per problem); the other half reported.
+- **SEL-PW-W-P4 (theory):** cross-fitted Bayes within 0.7 of the bound at the pairwise AUROC in ≥ 3 of 4 cells.
+- Expected: AUROC +0.00 to +0.08 over V2's 0.62–0.69; the bound at 0.75 gives +0.9 to +2.1, so P2 needs about 0.75 and is unlikely; a
+  one-token judgment may not resolve a misread constraint even side by side.
+
+**Decision.**
+- P2 holds → the pairwise choice becomes the word cascade's last step for Qwen3-8B; for Qwen3-14B-AWQ only if pipeline − SB→T→T has a
+  lower bound > 0 on both targets (SEL-W's rule); PROJECT, REPORT, PROPOSAL updated (the selection step then holds on all three task
+  types).
+- P2 refuted, P1 holds → seeing the alternative separates word programs better but not enough to choose at two or three values; stated.
+- P1 refuted → the word boundary stands as SEL-W left it, now for both formats; stated.
+
+Run: smoke `PW_SMOKE=1 bash poc/slurm/ver_lane.sh --selpww $POC_DATA/cv/selpww_smoke`, then (afterok) `bash poc/slurm/ver_lane.sh
+--selpww $POC_DATA/cv/selpww` (logs results/x3/run_selpww_train.log, results/run_selpww_score.log; results/lcm_selpww_val.log,
+results/lcm_selpww.log; the untrained model's scores in results/conf/sel_scores_localw.jsonl, `SEL_ALIAS`).

@@ -31,6 +31,17 @@ def prompt(q, code, pred):
     return VER_PROMPT.format(q=q.strip(), code=(code or "").strip(), out=fmt(pred))
 
 
+PW_W_PROMPT = ("{q}\n\nTwo Python programs were written for this problem.\n\nProgram A:\n```python\n{ca}\n```\nIt ran and printed the value "
+               "{oa}.\n\nProgram B:\n```python\n{cb}\n```\nIt ran and printed the value {ob}.\n\nWhich value is the correct optimal objective "
+               "value of the problem exactly as stated? Compare the two formulations with the statement where they differ: the decision "
+               "variables and whether they must be integers, every constraint and its numbers, and the objective. Reply A or B.")
+
+
+def pw_prompt(q, a, b):
+    """PREREG_LCM addendum SEL-PW-W: two passing programs (code, printed value) in one prompt; the next token is A or B"""
+    return PW_W_PROMPT.format(q=q.strip(), ca=(a[0] or "").strip(), oa=fmt(a[1]), cb=(b[0] or "").strip(), ob=fmt(b[1]))
+
+
 def main():
     name = sys.argv[1]
     arg = lambda k, d: int(sys.argv[sys.argv.index(k) + 1]) if k in sys.argv else d

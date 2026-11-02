@@ -1313,17 +1313,18 @@ SELW_T = (("ob403", "OptiBench's other 403"), ("mamo", "MAMO"))   # SEL-W's targ
 SELW_N = ("q8b", "q14a")
 
 
-def w_items(gen, sset):
+def w_items(gen, sset, raw=False):
     """SEL-W: (problems, [(id, seed, {key: [right, calls, [VER prompts]]}, fallback right)]) on the word cascade's fallback problem-seeds
     (N passed, gpt-oss-20b's quick program printed another value, >= 2 distinct passing values among N, P and d); sset a development
-    set (DEV_WORD), ob403 (OptiBench's other 403 problems, XPEER's fresh run) or mamo"""
+    set (DEV_WORD), ob403 (OptiBench's other 403 problems, XPEER's fresh run) or mamo; raw (SEL-PW-W): (problem, code, value) in place
+    of each VER prompt"""
     from run_nlopt import RES, _rows, problems
     from ver_build import prompt
     b = "optibench" if sset == "ob403" else sset
     D = quiet(ob403, gen, "oss20") if sset == "ob403" else quiet(lcm.load, "word", gen, "oss20", sset)
     Q = {p["id"]: p["q"] for p in quiet(problems, b)}
     th = gen + "ob" if sset == "ob403" else gen
-    W = {(t, s, r["id"]): prompt(Q[r["id"]], r.get("code"), r.get("pred"))
+    W = {(t, s, r["id"]): (Q[r["id"]], r.get("code"), r.get("pred")) if raw else prompt(Q[r["id"]], r.get("code"), r.get("pred"))
          for t, tag, a in (("N", gen, "formx"), ("P", "oss20", "formx"), ("SB", th, "formxtb2000"), ("T", th, "formxt"))
          for s in (1, 2, 3) for r in _rows(f"{RES}/opt_{tag}_{b}_{a}_s{s}.jsonl") if r["id"] in D}
     out = []
@@ -1378,6 +1379,183 @@ def w_sel_items(gen, sset, S):
         out.append((f"{sset}/{i}", sd, C, dr))
     return D, [(f"{sset}/{i}", s, c, dr) for i, s, c, dr in raw], out, miss
 
+
+PWW_SPLIT = 28   # SEL-PW-W-P3: the median number of differing program lines over the targets' (right, wrong) pairs, fixed before any score
+
+
+def main_sel_build_pww():
+    """addendum SEL-PW-W: every ordered pair of distinct passing values in SEL-W's cells, one program per value (the first call's in the
+    order N, P, d), as one prompt (ver_build.pw_prompt) -> results/conf/sel_req_pww.jsonl (the development sets, then ob403 and MAMO)"""
+    from ver_build import pw_prompt
+    req = {}
+    for sset in DEV_WORD + tuple(x for x, _ in SELW_T):
+        for gen in SELW_N:
+            D, items = w_items(gen, sset, raw=True)
+            for i, s, cand, dr in items:
+                reps = [v[2][0] for v in cand.values()]
+                for a in reps:
+                    for b in reps:
+                        if a != b:
+                            t = pw_prompt(a[0], a[1:], b[1:])
+                            h = rv_key("word", sset, i, "pw", t)
+                            req[h] = {"h": h, "task": "word", "sset": sset, "id": i, "kind": "pw", "text": t}
+            print(f"SEL-PW-W build {sset} {gen}: {len(items)} multi-answer fallback problem-seeds; requests so far {len(req)}", flush=True)
+    with open(os.path.join(lcm.ROOT, "results", "conf", "sel_req_pww.jsonl"), "w") as f:
+        for r in req.values():
+            f.write(json.dumps(r) + "\n")
+    print(f"SEL-PW-W build: {len(req)} requests -> results/conf/sel_req_pww.jsonl")
+
+
+def pww_items(gen, sset, S):
+    """w_sel_items for SEL-PW-W: candidate a's s = the mean over the other candidates b of (s(a, b) - s(b, a)) / 2 (as pw_items); also
+    each candidate's representative program (code)"""
+    from ver_build import pw_prompt
+    D, raw = w_items(gen, sset, raw=True)
+    out, miss = [], 0
+    for i, sd, cand, dr in raw:
+        V = list(cand.values())
+        reps = [v[2][0] for v in V]
+        C = []
+        for a in range(len(V)):
+            d, pre = [], 0
+            for b in range(len(V)):
+                if a != b:
+                    x = S.get(rv_key("word", sset, i, "pw", pw_prompt(reps[a][0], reps[a][1:], reps[b][1:])))
+                    y = S.get(rv_key("word", sset, i, "pw", pw_prompt(reps[b][0], reps[b][1:], reps[a][1:])))
+                    if x is None or y is None:
+                        d = None; break
+                    d.append((x["s"] - y["s"]) / 2); pre += x.get("pre", 0)
+            if d is None:
+                C = None; break
+            C.append({"r": V[a][0], "calls": V[a][1], "s": sum(d) / len(d), "pre": pre, "code": reps[a][1] or ""})
+        if C is None:
+            miss += 1; continue
+        out.append((f"{sset}/{i}", sd, C, dr))
+    return D, [(f"{sset}/{i}", s, {k: [v[0], v[1]] for k, v in c.items()}, dr) for i, s, c, dr in raw], out, miss
+
+
+def main_sel_pww():
+    """addendum SEL-PW-W. --sel-val-pww n1,n2,...: pooled within-question AUROC of each pairwise checkpoint on the development sets'
+    fallback sets and the choice; --sel-pww <name>: the targets against SEL-W's V2 (selw_s50, the same loss and programs one at a time)
+    on the same problem-seeds (SEL-PW-W-P1..P4)"""
+    import difflib
+    from analyze_ho3 import ci
+    from run_nlopt import _rows
+    cd = os.path.join(lcm.ROOT, "results", "conf")
+    load = lambda nm: {r["h"]: r for r in _rows(os.path.join(cd, f"sel_scores_{nm}.jsonl"))}
+    g = lambda v: f"{v[0] / 100:.3f} [{v[1] / 100:.3f}, {v[2] / 100:.3f}]"
+    f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
+
+    def dev(S, gen, fn):   # (prior items: every development fallback set with its labels, scored items)
+        pr, it = [], []
+        for b in DEV_WORD:
+            _, raw, x, _ = fn(gen, b, S)
+            pr += [(i, s, [{"r": c[0], "calls": c[1], "s": 0.0} for c in cand.values()], dr) for i, s, cand, dr in raw]; it += x
+        return pr, it
+    if "--sel-val-pww" in sys.argv:
+        best = None
+        for nm in sys.argv[sys.argv.index("--sel-val-pww") + 1].split(","):
+            S, pooled, per = load(nm), {}, {}
+            for gen in SELW_N:
+                a = sel_auc(dev(S, gen, pww_items)[1])
+                per[gen] = ci(a) if a else (float("nan"),) * 3
+                for i, v in a.items():
+                    pooled.setdefault(i, []).append(v)
+            if not pooled:
+                print(f"SEL-PW-W val {nm}: no scored mixed set", flush=True); continue
+            pa = ci({i: sum(v) / len(v) for i, v in pooled.items()})
+            print(f"SEL-PW-W val {nm}: AUROC q8b {g(per['q8b'])}, q14a {g(per['q14a'])}, pooled {g(pa)} ({len(pooled)} problems)", flush=True)
+            if nm != "local" and (best is None or pa[0] > best[1]):
+                best = (nm, pa[0])
+        print(f"*** SEL-PW-W checkpoint (highest pooled development AUROC): {best[0]}")
+        return
+    nm = sys.argv[sys.argv.index("--sel-pww") + 1]
+    S, ST = load(nm), load("selw_s50")
+    SL = load("localw") if os.path.exists(os.path.join(cd, "sel_scores_localw.jsonl")) else {}   # the untrained model (SEL_ALIAS local=localw)
+    R, pool, mech = {}, {}, {"small": {}, "large": {}}
+    U = lambda r, t: 100 * float(r) - lcm.LAM * t / 1000
+    for gen in SELW_N:
+        cw, bw = sel_fit(*dev(S, gen, pww_items))
+        ct, bt = sel_fit(*dev(ST, gen, w_sel_items))
+        for sset, tname in SELW_T:
+            D, raw, itw, missw = pww_items(gen, sset, S)
+            _, _, itt, misst = w_sel_items(gen, sset, ST)
+            kw, kt = {(x[0], x[1]): x for x in itw}, {(x[0], x[1]): x for x in itt}
+            keys = sorted(set(kw) & set(kt))
+            if not keys:
+                print(f"    SEL-PW-W {tname} {gen}: no scored problem-seed (missing pairwise {missw}, pointwise {misst})", flush=True); continue
+            itw, itt = [kw[k] for k in keys], [kt[k] for k in keys]
+            aw, at = sel_auc(itw), sel_auc(itt)
+            Aw, At = ci(aw), ci(at)
+            dA = {i: aw[i] - at[i] for i in aw if i in at}
+            ids, n = [f"{sset}/{i}" for i in sorted(D)], 3 * len(D)
+            sw, stt, cross, pipe, unseen, ch = Counter(), Counter(), Counter(), Counter(), 0, {}
+            for x in itw:
+                c = cw(x); unseen += c is None
+                sw[x[0]] += (c["r"] if c else x[3]) - x[3]
+                ch[(x[0], x[1])] = c["r"] if c else x[3]
+            for x in itt:
+                c = ct(x)
+                stt[x[0]] += (c["r"] if c else x[3]) - x[3]
+            for h in (0, 1):
+                half = [x for x in itw if zlib.crc32(x[0].encode()) % 2 == h]
+                chh, _ = sel_fit(half, half)
+                for x in itw:
+                    if zlib.crc32(x[0].encode()) % 2 != h:
+                        c = chh(x)
+                        cross[x[0]] += (c["r"] if c else x[3]) - x[3]
+            for i, q in D.items():   # the whole pipeline (cascade + pairwise choice) against Qwen's default SB->T->T
+                k = f"{sset}/{i}"
+                for sd in (1, 2, 3):
+                    sc = lcm.seed_calls(q, sd)
+                    r, t = lcm.fixed("cascade", sc)
+                    r0, t0 = lcm.fixed("SB->T->T", sc)
+                    pipe[k] += (U(ch.get((k, sd), r), t) - U(r0, t0)) / 300
+            for xw in itw:   # (right, wrong) pairs by how many program lines differ (difflib), split at PWW_SPLIT
+                Cw, Ct = xw[2], kt[(xw[0], xw[1])][2]
+                for a in range(len(Cw)):
+                    for b in range(len(Cw)):
+                        if Cw[a]["r"] and not Cw[b]["r"]:
+                            nd = sum(1 for l in difflib.ndiff(Cw[a]["code"].splitlines(), Cw[b]["code"].splitlines()) if l[:2] in ("+ ", "- "))
+                            o = lambda C: (C[a]["s"] > C[b]["s"]) + 0.5 * (C[a]["s"] == C[b]["s"])
+                            mech["small" if nd <= PWW_SPLIT else "large"].setdefault(xw[0], []).append((o(Cw), o(Ct)))
+            c3 = lambda d: ci({i: d.get(i, 0) / 3 for i in ids})
+            pb, _ = rv_gauss(raw, Aw[0] / 100)
+            al = ""
+            if SL:
+                _, _, itl, _ = pww_items(gen, sset, SL)
+                if itl:
+                    al = f"; untrained pairwise {ci(sel_auc(itl))[0] / 100:.3f}"
+            pre_w = sum(c["pre"] for x in itw for c in x[2]) / n
+            pre_t = sum(c["pre"] for x in itt for c in x[2]) / n
+            R[(gen, sset)] = r = dict(Aw=Aw, At=At, dA=ci(dA), sw=c3(sw), st=c3(stt), d=c3({i: sw[i] - stt[i] for i in ids}),
+                                      cross=c3(cross), bound=100 * pb / n, pipe=ci({i: pipe[i] for i in ids}))
+            pool.setdefault("dA", {}).update({(gen, i): v for i, v in dA.items()})
+            print(f"    SEL-PW-W {tname} {gen}: {len(raw)} multi-answer fallback problem-seeds of {n}, {len(keys)} scored by both (missing "
+                  f"pairwise {missw}, pointwise {misst}); within-question AUROC pairwise {g(Aw)}, pointwise (V2) {g(At)}, pairwise - V2 "
+                  f"{g(r['dA'])}{al}; selector - cascade pairwise (beta {bw:.1f}; {unseen} unseen structures keep d) {f(r['sw'])}, V2 (beta "
+                  f"{bt:.1f}) {f(r['st'])}; pairwise - V2 selector {f(r['d'])}; cross-fitted Bayes (pairwise) {f(r['cross'])}; bound at the "
+                  f"pairwise AUROC {100 * pb / n:+.2f}; pipeline - SB->T->T {f(r['pipe'])}; prefill per problem-seed pairwise {pre_w:.0f}, "
+                  f"V2 {pre_t:.0f} tokens", flush=True)
+    cells = [(gen, sset) for gen in SELW_N for sset, _ in SELW_T]
+    if any(c not in R for c in cells):
+        print(f"*** {len(R)} of 4 cells present, not decided"); return
+    p1 = ci(pool["dA"])
+    print(f"*** SEL-PW-W-P1 (pairwise - V2 within-question AUROC, the four cells pooled, lower bound > 0): {g(p1)} -> "
+          f"{'holds' if p1[1] > 0 else 'refuted'}")
+    up, down = sum(R[c]["sw"][1] > 0 for c in cells), sum(R[c]["sw"][2] < 0 for c in cells)
+    print(f"*** SEL-PW-W-P2 (pairwise selector - cascade lower bound > 0 in >= 2 of 4, upper bound < 0 in none): {up} above, {down} below "
+          f"-> {'holds' if up >= 2 and down == 0 else 'refuted'}")
+    md = {k: ci({q: sum(a - b for a, b in v) / len(v) for q, v in M.items()}) if M else (float("nan"),) * 3 for k, M in mech.items()}
+    ns = {k: sum(len(v) for v in M.values()) for k, M in mech.items()}
+    print(f"    SEL-PW-W (right, wrong) pairs, pairwise - V2 ordering, per problem, the four cells pooled: <= {PWW_SPLIT} lines differ "
+          f"{f(md['small'])} ({ns['small']} pairs), more {f(md['large'])} ({ns['large']} pairs)")
+    p3 = md["small"][0] >= 5 and md["small"][1] > 0
+    print(f"*** SEL-PW-W-P3 (pairs whose programs differ in <= {PWW_SPLIT} lines: pairwise - V2 ordering >= +5 points, lower bound > 0): -> "
+          f"{'holds' if p3 else 'refuted'}")
+    p4 = sum(abs(R[c]["cross"][0] - R[c]["bound"]) <= 0.7 for c in cells)
+    print(f"*** SEL-PW-W-P4 (cross-fitted Bayes within 0.7 of the bound at the pairwise AUROC in >= 3 of 4): {p4} -> "
+          f"{'holds' if p4 >= 3 else 'refuted'}")
 
 def main_sel_w():
     """addendum SEL-W. --sel-val-w n1,n2,...: within-question AUROC of each checkpoint on the development sets' fallback sets (both N
@@ -1972,6 +2150,10 @@ def main_sel_2():
 
 
 def main():
+    if "--sel-build-pww" in sys.argv:
+        return main_sel_build_pww()
+    if "--sel-pww" in sys.argv or "--sel-val-pww" in sys.argv:
+        return main_sel_pww()
     if "--sel-build-pwtc" in sys.argv:
         return main_sel_build_pwtc()
     if "--sel-pwtc" in sys.argv or "--sel-val-pwtc" in sys.argv:

@@ -11,7 +11,9 @@ programs (td rows q8b / q8bq2: 8 quick, the cut think, the full think), VER's tr
 programs grouped by value (run_nlopt.correct either way), problems with a right and a wrong value; context = VER's prompt
 (ver_build.prompt), score s = logit(yes) - logit(no) of the first answer token, per problem the mean over (right, wrong) value pairs of
 log(1 + exp(s_w - s_r)); at most 8 values per problem, one program per value drawn per epoch.
-       /opt/conda/bin/python wp_train.py <out dir> --orm [--batch 16] [--lr 5e-5] [--epochs 2] [--save 25] [--smoke N]"""
+       /opt/conda/bin/python wp_train.py <out dir> --orm [--batch 16] [--lr 5e-5] [--epochs 2] [--save 25] [--smoke N]
+--pw (addendum SEL-PW-W): the same pool and problems, the pairwise verifier (two programs in one prompt, ver_build.pw_prompt; A or B).
+       /opt/conda/bin/python wp_train.py <out dir> --pw [--pairs 4] [--batch 16] [--lr 5e-5] [--epochs 2] [--save 25] [--smoke N]"""
 import json, os, random, re, sys, time
 from concurrent.futures import ThreadPoolExecutor
 
@@ -48,13 +50,11 @@ def grade(text, gold):
     return pred is not None, correct(pred, gold)
 
 
-def main_orm(out):
-    """addendum SEL-W: the word-problem verifier (see the docstring)"""
-    import glob, math, zlib
-    from ver_build import passes, prompt
+def word_pool():
+    """SEL-W / SEL-PW-W: (problem texts, [(id, [right value groups], [wrong value groups])]); a group = [value, right, [programs]]"""
+    import glob, zlib
+    from ver_build import passes
     D = os.path.dirname(ITEMS)
-    B, lr, ep, save, smoke = arg("--batch", 16), arg("--lr", 5e-5), arg("--epochs", 2), arg("--save", 25), arg("--smoke", 0)
-    os.makedirs(out, exist_ok=True)
     Qt = {p["id"]: p["q"] for p in map(json.loads, open(ITEMS))}
     R = {r["id"]: r for t in ("q8b", "q8bq2") for f in sorted(glob.glob(f"{D}/td/td_{t}_p*.jsonl")) for r in map(json.loads, open(f))}
     same = lambda a, b: correct(a, str(b)) or correct(b, str(a))
@@ -73,6 +73,16 @@ def main_orm(out):
             k[2].append(x)
         if any(y[1] for y in g) and not all(y[1] for y in g):
             Q.append((i, [y for y in g if y[1]], [y for y in g if not y[1]]))
+    return Qt, R, Q
+
+
+def main_orm(out):
+    """addendum SEL-W: the word-problem verifier (see the docstring)"""
+    import math
+    from ver_build import prompt
+    B, lr, ep, save, smoke = arg("--batch", 16), arg("--lr", 5e-5), arg("--epochs", 2), arg("--save", 25), arg("--smoke", 0)
+    os.makedirs(out, exist_ok=True)
+    Qt, R, Q = word_pool()
     random.Random(0).shuffle(Q)
     Q = Q[:smoke or len(Q)]
     print(f"orm-w: {len(Q)} problems with a right and a wrong passing value (of {len(R)}), {sum(len(r) + len(w) for _, r, w in Q)} "
@@ -130,10 +140,68 @@ def main_orm(out):
     print("done", out, step, "steps", flush=True)
 
 
+def main_pw(out):
+    """addendum SEL-PW-W: the pairwise word verifier — SEL-W's pool and problems, up to --pairs (right, wrong) value pairs per problem
+    and epoch, one program per value drawn, each pair in both orders (ver_build.pw_prompt), loss log(1 + exp(-y s)),
+    s = logit(A) - logit(B)"""
+    from ver_build import pw_prompt
+    B, lr, ep, save, smoke, K = arg("--batch", 16), arg("--lr", 5e-5), arg("--epochs", 2), arg("--save", 25), arg("--smoke", 0), arg("--pairs", 4)
+    os.makedirs(out, exist_ok=True)
+    Qt, R, Q = word_pool()
+    random.Random(0).shuffle(Q)
+    Q = Q[:smoke or len(Q)]
+    print(f"pw-w: {len(Q)} problems with a right and a wrong passing value (of {len(R)}); up to {K} pairs per problem in both orders; "
+          f"batch {B}, lr {lr}, epochs {ep}", flush=True)
+    pol = Policy(arg("--base", "/SSD/huggingface/Qwen/Qwen3-8B"), lr)
+    pol.acc, pol.de = pol.tok.convert_tokens_to_ids("A"), pol.tok.convert_tokens_to_ids("B")
+    assert None not in (pol.acc, pol.de) and pol.acc != pol.de and pol.tok.unk_token_id not in (pol.acc, pol.de), (pol.acc, pol.de)
+    torch = pol.torch
+    log = open(f"{out}/log.jsonl", "a")
+    step = 0
+    for e in range(ep):
+        rng = random.Random(1000 + e)
+        order = Q[:]
+        rng.shuffle(order)
+        for a0 in range(0, len(order), B):
+            t0, st = time.time(), {"loss": 0.0, "ok": 0.0, "q": 0, "ctx": 0}
+            batch = order[a0:a0 + B]
+            for i, Rg, Wg in batch:
+                prs = [(yr, yw) for yr in Rg for yw in Wg]
+                prs = rng.sample(prs, min(K, len(prs)))
+                ctxs, y = [], []
+                for yr, yw in prs:
+                    xr, xw = rng.choice(yr[2]), rng.choice(yw[2])
+                    for A, Bp, lab in ((xr, xw, 1.0), (xw, xr, -1.0)):
+                        ctxs.append(pol.ids([{"role": "user", "content": pw_prompt(Qt[i], (A["code"], A["pred"]), (Bp["code"], Bp["pred"]))}]))
+                        y.append(lab)
+                P = pol.ids([{"role": "user", "content": Qt[i].strip()}])   # the shared prefix: the problem statement
+                kv = pol.prefix(P[:-1])
+                for sub, x in pol.gate_p(kv, P, ctxs, logit=True):
+                    yy = torch.tensor([y[b] for b in sub], device="cuda")
+                    lo = torch.nn.functional.softplus(-yy * x)
+                    (lo.sum() / len(ctxs) / len(batch)).backward()
+                    st["loss"] += lo.detach().sum().item() / len(ctxs)
+                    st["ok"] += ((yy * x.detach() > 0).float() + 0.5 * (x.detach() == 0).float()).sum().item() / len(ctxs)
+                st["q"] += 1; st["ctx"] += len(ctxs)
+                del kv
+            pol.step()
+            step += 1
+            rec = {"step": step, "epoch": e + 1, "problems": st["q"], "contexts": st["ctx"], "loss": st["loss"] / st["q"],
+                   "ctx_acc": st["ok"] / st["q"], "t": round(time.time() - t0)}
+            log.write(json.dumps(rec) + "\n"); log.flush()
+            print(json.dumps(rec), flush=True)
+            if step % save == 0:
+                pol.model.save_pretrained(f"{out}/adapter_s{step}")
+    pol.model.save_pretrained(f"{out}/adapter_final")
+    print("done", out, step, "steps", flush=True)
+
+
 def main():
     out = sys.argv[1]
     if "--orm" in sys.argv:
         return main_orm(out)
+    if "--pw" in sys.argv:
+        return main_pw(out)
     nq, B, G, lr, smoke = arg("--questions", 4000), arg("--batch", 64), arg("--group", 8), arg("--lr", 2e-5), arg("--smoke", 0)
     base = arg("--base", "/SSD/huggingface/Qwen/Qwen3-8B")
     os.makedirs(out, exist_ok=True)

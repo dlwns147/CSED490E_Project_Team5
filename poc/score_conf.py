@@ -127,7 +127,8 @@ SEL_ITEMS.update({"bfcl": f"{PD}/bfcl/tc_items.jsonl", "tcho": f"{PD}/toolace/tc
 
 def main_sel():
     """SEL (SQL ssets) and SEL-TC (bfcl, tcho: SEL_REQ=sel_req_tc.jsonl; the request, the calls' text, tc_train.TC_ASK; nothing run);
-    SEL-PW / SEL-PW-TC (kind pw: text and text2 in one turn, cv_train.pw_prompt / tc_train.tc_pw_prompt; s = logit(A) - logit(B));
+    SEL-PW / SEL-PW-TC (kind pw: text and text2 in one turn, cv_train.pw_prompt / tc_train.tc_pw_prompt; s = logit(A) - logit(B);
+    SEL-PW-W: task word, kind pw, the text is the whole pairwise prompt);
     SEL-W (word sets, SEL_REQ=sel_req_w.jsonl: the request's text is VER's whole prompt; s = log P(yes) - log P(no), case variants
     summed, as ver_score.py's p_yes in log-odds)"""
     import prep_sql
@@ -153,8 +154,9 @@ def main_sel():
             if sset in SEL_ITEMS:
                 from tc_train import TC_ASK
             res = {r["h"]: ("pass", None, [], 0, []) for r in rows}
+        alias = dict(x.split("=") for x in os.environ.get("SEL_ALIAS", "").split(",") if x)   # e.g. local=localw: another file per job
         for nm in names:
-            out = f"{ROOT}/results/conf/sel_scores_{nm}.jsonl"
+            out = f"{ROOT}/results/conf/sel_scores_{alias.get(nm, nm)}.jsonl"
             done = {r["h"] for r in _rows(out)}
 
             def one(r):
@@ -165,6 +167,9 @@ def main_sel():
                                                        extra_body={"chat_template_kwargs": {"enable_thinking": False}})
                     top = [(t.token, t.logprob) for t in o.choices[0].logprobs.content[0].top_logprobs]
                     lo = min(v for _, v in top)
+                    if r.get("kind") == "pw":   # SEL-PW-W: the text is the whole pairwise prompt (ver_build.pw_prompt)
+                        tp = dict(top)
+                        return {"h": r["h"], "s": round(tp.get("A", lo) - tp.get("B", lo), 4), "c": c, "pre": o.usage.prompt_tokens}
                     lse = lambda w: math.log(sum(math.exp(v) for k, v in top if k.strip().lower() == w) or math.exp(lo))
                     return {"h": r["h"], "s": round(lse("yes") - lse("no"), 4), "c": c, "pre": o.usage.prompt_tokens}
                 p = P[sset][r["id"]]
