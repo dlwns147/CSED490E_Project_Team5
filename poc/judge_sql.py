@@ -91,8 +91,11 @@ def rm_judge(msg, seed):
         return {"choice": None, "out_tokens": 0, "in_tokens": 0, "finish": f"error {str(e)[:80]}"}
     t = (c["message"].get("content") or "").rsplit("</think>", 1)[-1]
     m = re.search(r"<choice>\s*([12])\s*</choice>", t)
-    return {"choice": int(m.group(1)) if m else None, "out_tokens": r["usage"]["completion_tokens"],
-            "in_tokens": r["usage"]["prompt_tokens"], "finish": c.get("finish_reason")}
+    o = {"choice": int(m.group(1)) if m else None, "out_tokens": r["usage"]["completion_tokens"],
+         "in_tokens": r["usage"]["prompt_tokens"], "finish": c.get("finish_reason")}
+    if os.environ.get("RM_KEEP_TEXT"):   # raw-case reading: the judge's whole output
+        o["text"] = c["message"].get("content") or ""
+    return o
 
 
 def main_tc_pair():
