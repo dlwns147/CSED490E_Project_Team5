@@ -1763,7 +1763,8 @@ def tc2_run(P, sc, txt, S, sset, i, beta=None, sd=1.0, task="tc", ab=False):
                 n = P.n[pat]
                 lg = lambda k: math.log((k + 0.5) / (n + 1) / max(1e-3, 1 - (k + 0.5) / (n + 1)))
                 C = [{"g": g, "lp": lg(P.none.get(pat, 0) if g == "AB" else P.r.get((pat, g), 0)), "s": sum(v["s"] for v in x) / len(x),
-                      "r": ab_none_right(sset, i) if g == "AB" else g in rt, "t": AB_TEXT if g == "AB" else txt[G[g][0]]}
+                      "r": ab_none_right(sset, i) if g == "AB" else g in rt, "t": AB_TEXT if g == "AB" else txt[G[g][0]],
+                      "k": AB_TEXT if g == "AB" else sc[G[g][0]][0]}
                      for g, x in sv.items()]
         if beta is None or C is None:
             return ((arg in rt) if arg is not None else False), tok, True, C
@@ -2566,6 +2567,13 @@ def main_sel_2():
 RM_SSETS = ("tcho", "bfcl", "ace")
 
 
+def rm_id(e):
+    """SEL-RM: an answer's identity across seeds and N types (a stop set's group ids are per request-seed): "AB" for any no-call
+    answer, else a hash of its canonical calls"""
+    import hashlib
+    return "AB" if e["g"] == "AB" or ab_is_none(e["k"]) else hashlib.sha1(repr(e["k"]).encode()).hexdigest()[:12]
+
+
 def main_rm_build():
     """addendum SEL-RM (--rm-build): every distinct unordered pair of answers in TC2-AB's stop sets (selab2_s450, the no-call answer
     offered) with >= 2 answers, per request (seeds and N types pooled), on held-out ToolACE, BFCL and ACEBench ->
@@ -2585,9 +2593,9 @@ def main_rm_build():
                         x = tc2_run(P, lcm.seed_calls(D[i], s), X[(i, s)], S, sset, i, b, sd, ab=True)
                         if x is None or not x[3] or len(x[3]) < 2:
                             continue
-                        ks = sorted(str(e["g"]) for e in x[3])
+                        ks = sorted(rm_id(e) for e in x[3])
                         for e in x[3]:
-                            txt.setdefault((i, str(e["g"])), e["t"])
+                            txt.setdefault((i, rm_id(e)), e["t"])
                         for a in range(len(ks)):
                             for c in range(a + 1, len(ks)):
                                 pairs.setdefault((i, ks[a], ks[c]), None)
@@ -2608,7 +2616,7 @@ def rm_set(J, sset, i, C):
     """SEL-RM: per member of a stop set, w = the share of its judgments (both orders, against every other member) that choose it (an
     unparseable choice counts one half), the judgments' output tokens, and pref(a, b) = the share of the pair's two judgments choosing
     a; None if a judgment is missing"""
-    ks = [str(e["g"]) for e in C]
+    ks = [rm_id(e) for e in C]
     win, tok, pref = Counter(), 0, {}
     for a in range(len(ks)):
         for c in range(a + 1, len(ks)):
@@ -2656,7 +2664,7 @@ def main_sel_rm():
                 if x and x[3] and len(x[3]) >= 2:
                     w = rm_set(J, "tcho", i, x[3])
                     if w:
-                        fit.append([(e["lp"], e["s"], w[0][str(e["g"])], e["r"]) for e in x[3]])
+                        fit.append([(e["lp"], e["s"], w[0][rm_id(e)], e["r"]) for e in x[3]])
         dw = [c[2] - sum(d[2] for d in C) / len(C) for C in fit for c in C]
         sdw = (sum(v * v for v in dw) / max(1, len(dw))) ** 0.5 or 1.0
 
@@ -2693,7 +2701,7 @@ def main_sel_rm():
                         else:
                             W, jtok, pref = w
                             cnt["judged"] += 1
-                            g = lambda e: str(e["g"])
+                            g = rm_id
                             rm = max(C, key=lambda e: (W[g(e)], e["lp"]))
                             ms, mw = sum(e["s"] for e in C) / len(C), sum(W[g(e)] for e in C) / len(C)
                             cb = max(C, key=lambda e: e["lp"] + b2 * (e["s"] - ms) / sd + g2 * (W[g(e)] - mw) / sdw)
@@ -2712,8 +2720,7 @@ def main_sel_rm():
                             for e in C:   # right-vs-wrong pairs: the judge's preference and our score's ordering
                                 for e2 in C:
                                     if e["r"] and not e2["r"]:
-                                        kind = "cc" if "AB" not in (e["g"], e2["g"]) and not ab_is_none(e["g"]) and not ab_is_none(e2["g"]) else \
-                                            ("nr" if e["g"] == "AB" or ab_is_none(e["g"]) else "cr")
+                                        kind = "cc" if "AB" not in (g(e), g(e2)) else ("nr" if g(e) == "AB" else "cr")
                                         od[kind + "_rm"][0] += pref[(g(e), g(e2))]; od[kind + "_rm"][1] += 1
                                         od[kind + "_s"][0] += 1.0 if e["s"] > e2["s"] else 0.5 if e["s"] == e2["s"] else 0.0; od[kind + "_s"][1] += 1
                     for k, (r, t) in out.items():

@@ -1973,3 +1973,8 @@ A format check on TRBench-BFCL prompts comes first (no judgment of our sets).
   published reasoning reward model too; reported in REPORT's prior-work comparison (RM and RM-KO rows), and the reasoning-verifier
   direction closes for tool calls. P1 / P2 locate where each is stronger.
 - Either way: ACEBench has now been used for one comparison (this one); no method change follows from it unless P3 holds.
+
+*Correction to the run size (written 2026-11-02 17:1x UTC, before any judgment of our sets).* The pair counts above came from the stop sets'
+group ids, which are numbered afresh in every request-seed, so different answers of one request shared an id. Answers are now
+identified by their canonical calls (every no-call answer as one answer, as the judge sees it): 16,173 / 9,414 / 4,005 distinct
+pairs on held-out ToolACE / BFCL / ACEBench, 59,184 judgments in both orders. Nothing else changes.
