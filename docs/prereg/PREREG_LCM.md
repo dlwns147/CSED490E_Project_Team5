@@ -1541,3 +1541,49 @@ s25 … final 0.571–0.652); training loss 0.07 at the last step (ctx accuracy 
 **Decision (registered):** P1 refuted → the word boundary stands as SEL-W left it, now for both formats; stated in PROJECT and REPORT.
 Across the three task types the pairwise format pays only on SQL, where the right/wrong difference is a recurring convention of the
 benchmarks (COUNT(DISTINCT), LIMIT 1) that a contrast makes visible; on word problems the difference is one statement's reading.
+
+## Addendum SEL-AB: the no-call answer as a free candidate for the tool-call verifier (written 2026-11-02 06:1x UTC, before any new score; 13,698 texts to score built, the analysis run only on synthetic scores, `nlp_data/scratch/selab_dry.py`)
+
+**Why.** SEL-PW-TC and the stored rows say where the tool-call pipeline still loses on BFCL: at a multi-answer fallback no candidate is
+right in 5.6% / 4.7% of request-seeds (base / C1tc N), and 455 + 59 of those 1,074 sets (both N types) are irrelevance requests, where
+no call is right but all three calls invented one (`requests.get` with a made-up URL); only 73 of the 1,074 sets hold an
+abstention. The no-call answer costs nothing to generate, and SEL-TC's pointwise verifier orders a right abstention above a wrong call
+in 98% of BFCL's pairs. Offered wherever the pipeline does not accept on agreement, it can recover at most the irrelevance requests the
+pipeline now gets wrong there: 4.5 / 3.1 points (fallback 3.6 / 2.5, after N's failed check 0.9 / 0.6; `tc_abst_bound.py`). Related:
+BFCL's relevance / irrelevance categories and When2Call (2504.18851) treat "do not call" as an answer of its own, scored as an option
+beside calls; selective prediction's reject option (Chow) is the same choice. Here the option is scored by the same verifier, with a
+prior fitted on held-out training requests, where no call is right in 14% of requests against 32% on BFCL — the shift is the risk.
+
+**Design.** The verifier is SEL-TC's (seltc_s150), unchanged; "[]" (BFCL's prompt-format no-call answer, 966 of the 1,418 abstentions in
+its training pool) is scored once per request. **AB:** at every request-seed where the cascade does not accept on agreement — the
+fallback (N passed, the peer differed) and after N's failed check — the choice set is the distinct passing answers among the calls the
+cascade made plus the no-call answer (calls ('AB',)) unless one of them already abstains; the choice is SEL-TC's selector (logit
+π(calls | set structure) + β z, both fitted on the held-out ToolACE request-seeds with the same sets; the no-call answer is right there
+when the request has no gold call). A structure never seen on held-out ToolACE keeps SEL-TC's outcome. **AB+:** the same, also at
+agreement (the agreed answer against no call). Output tokens are the cascade's; the new prefill is one request's (≈ 0.8k tokens) per
+set.
+
+**Cells.** BFCL (non-live and live, 3,482 requests × 3 seeds) × N base (Qwen3-8B) and trained (C1tc); P = Qwen3.5-9B; SB, T = Qwen3-8B.
+Comparisons on the same request-seeds: SEL-TC's pipeline (the cascade, the verifier at multi-answer fallbacks), SEL-TC2 (TL's planner
+with the verifier at its stop, the current tool-call method: 86.6% / 87.7%), the cascade and the default.
+
+**Predictions** (paired 95% intervals over requests, utility points):
+- **SEL-AB-P1:** AB − SEL-TC's pipeline, lower bound > 0 in at least one N type, upper bound < 0 in none.
+- **SEL-AB-P2 (decision against the current method):** AB − SEL-TC2, lower bound > 0 in at least one N type, upper bound < 0 in none.
+- **SEL-AB-P3 (mechanism):** in both N types AB gains over SEL-TC's pipeline, ≥ 80% of the gain comes from irrelevance requests, and
+  the other requests lose ≤ 0.5 points (a right call replaced by no call).
+- **SEL-AB-P4:** AB+ − AB, lower bound > 0 in at least one N type, upper bound < 0 in none.
+- Expected: AB − SEL-TC +0.5 to +2.0 (base), +0.3 to +1.5 (C1tc): the prior learnt where no call is right in 14% of requests may hold
+  the verifier back; P2 needs about +1.2 over SEL-TC (SEL-TC2 is +0.70 / +0.73 above it), so it is uncertain; AB+ −0.2 to +0.5 (the
+  agreed wrong calls on irrelevance requests are 1.5 / 1.0% of request-seeds, the agreed right ones 55%).
+
+**Decision.**
+- P1 and P2 hold → AB replaces SEL-TC2 as the tool-call method (AB+ if P4 holds too); PROJECT, REPORT and PROPOSAL updated.
+- P1 holds, P2 refuted → the no-call answer goes into SEL-TC2's stop next (its planner needs a prior for an answer no call produced;
+  pre-registered then); stated.
+- P1 refuted → a free no-call candidate does not help the verifier's choice on BFCL (the held-out prior, or calls lost on relevant
+  requests: P3 says which); the tool-call method is unchanged; stated.
+
+Run: `lcm_shift.py --sel-build-ab` (done: 13,698 texts → results/conf/sel_req_ab.jsonl; every stored no-call answer graded as the rule
+above says, 2,373 held-out ToolACE and 6,114 BFCL), then one job: a server with seltc_s150 scores them (`SEL_REQ=sel_req_ab.jsonl
+score_conf.py sel seltc_s150`, log results/run_selab_score.log), then `lcm_shift.py --sel-ab seltc_s150` > results/lcm_selab.log.

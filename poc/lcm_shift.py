@@ -1754,6 +1754,27 @@ def tc2_run(P, sc, txt, S, sset, i, beta=None, sd=1.0, task="tc"):
         return c["r"], tok, True, C
 
 
+def tc2_fit(nsrc, S):
+    """SEL-TC2: TL's planner fitted on the held-out ToolACE requests, and the verifier's beta and sd at its stop -> (P, beta, sd, sets)"""
+    Dh, Xh = tc2_cells("tcho", nsrc)
+    sch = [(i, s, lcm.seed_calls(q, s)) for i, q in Dh.items() for s in (1, 2, 3)]
+    tok = [sum(sc[j][3] for _, _, sc in sch) / len(sch) for j in range(5)]
+    P = Supervised([full(sc) for _, _, sc in sch], tok)
+    sets = [x[3] for i, s, sc in sch for x in [tc2_run(P, sc, Xh[(i, s)], S, "tcho", i)] if x and x[3]]
+    dv = [c["s"] - sum(d["s"] for d in C) / len(C) for C in sets for c in C]
+    sd = (sum(x * x for x in dv) / max(1, len(dv))) ** 0.5 or 1.0
+
+    def ll(b):
+        t = 0.0
+        for C in sets:
+            mu = sum(c["s"] for c in C) / len(C)
+            for c in C:
+                z = c["lp"] + b * (c["s"] - mu) / sd
+                t += -math.log1p(math.exp(-z)) if c["r"] else -math.log1p(math.exp(min(z, 700)))
+        return t
+    return P, max((b / 10 for b in range(0, 41)), key=ll), sd, len(sets)
+
+
 def main_sel_tc2():
     """addendum SEL-TC2 (--sel-tc2 <verifier name>): TL's planner (fitted on the held-out ToolACE requests) with the verifier choosing at
     its stop, against the planner alone, SEL-TC's pipeline (the cascade with the verifier at its fallback) and the default, on BFCL"""
@@ -1766,23 +1787,7 @@ def main_sel_tc2():
     R = {}
     for nsrc in (None, RV_N["tc"]):
         name = "trained" if nsrc else "base"
-        Dh, Xh = tc2_cells("tcho", nsrc)
-        sch = [(i, s, lcm.seed_calls(q, s)) for i, q in Dh.items() for s in (1, 2, 3)]
-        tok = [sum(sc[j][3] for _, _, sc in sch) / len(sch) for j in range(5)]
-        P = Supervised([full(sc) for _, _, sc in sch], tok)
-        sets = [x[3] for i, s, sc in sch for x in [tc2_run(P, sc, Xh[(i, s)], S, "tcho", i)] if x and x[3]]
-        dv = [c["s"] - sum(d["s"] for d in C) / len(C) for C in sets for c in C]
-        sd = (sum(x * x for x in dv) / max(1, len(dv))) ** 0.5 or 1.0
-
-        def ll(b):
-            t = 0.0
-            for C in sets:
-                mu = sum(c["s"] for c in C) / len(C)
-                for c in C:
-                    z = c["lp"] + b * (c["s"] - mu) / sd
-                    t += -math.log1p(math.exp(-z)) if c["r"] else -math.log1p(math.exp(min(z, 700)))
-            return t
-        beta = max((b / 10 for b in range(0, 41)), key=ll)
+        P, beta, sd, nsets = tc2_fit(nsrc, S)
         # SEL-TC's pipeline on BFCL: the cascade, the fitted selector at its fallback (as main_sel_tc)
         _, raw_ho, ho, _ = tc_sel_items("tcho", nsrc, S)
         choose, beta1 = sel_fit([(i, s, [{"r": c[0], "calls": c[1], "s": 0.0} for c in cand.values()], dr) for i, s, cand, dr in raw_ho], ho)
@@ -1810,7 +1815,7 @@ def main_sel_tc2():
         d = lambda x, y: ci({i: Uq[x][i] - Uq[y][i] for i in ids})
         R[name] = r = {k: d("comb", k) for k in ("plan", "sel", "cascade", "default")}
         r["sel_vs_plan"] = d("sel", "plan")
-        print(f"    SEL-TC2 BFCL {name}: beta {beta:.1f} (sd {sd:.2f}, {len(sets)} held-out stop sets); " + "; ".join(
+        print(f"    SEL-TC2 BFCL {name}: beta {beta:.1f} (sd {sd:.2f}, {nsets} held-out stop sets); " + "; ".join(
             f"{k} {100 * acc[k] / n:.1f}% at {kt[k] / n / 1000:.2f}k" for k in ("comb", "plan", "sel", "cascade", "default")) +
             f"; planner stops with a scored set on {nset}, unseen patterns {unseen} of {n}", flush=True)
         print(f"    SEL-TC2 BFCL {name}: combined - planner {f(r['plan'])}; combined - SEL-TC pipeline {f(r['sel'])}; combined - cascade "
@@ -1822,6 +1827,188 @@ def main_sel_tc2():
     for k in ("trained", "base"):
         print(f"*** SEL-TC2-P2{k[0]} ({k}: combined - SEL-TC pipeline lower bound > 0): {f(R[k]['sel'])} -> "
               f"{'holds' if R[k]['sel'][1] > 0 else 'refuted'}")
+
+
+AB_TEXT = "[]"   # addendum SEL-AB: the no-call answer as BFCL's prompt format writes it (966 of 1,418 abstentions in the verifier's pool)
+_TC_GOLD = {}
+
+
+def ab_none_right(sset, i):
+    """SEL-AB: is no call right on the request (held-out ToolACE: no gold call; BFCL: an irrelevance request)"""
+    if sset == "tcho":
+        if not _TC_GOLD:
+            dd = os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nlp_data")
+            _TC_GOLD.update({p["id"]: bool(p["gold"]) for p in map(json.loads, open(f"{dd}/toolace/tc_train_items.jsonl"))})
+        return not _TC_GOLD[i]
+    return i.startswith("irrelevance") or i.startswith("live_irrelevance")
+
+
+def ab_is_none(k):
+    return (json.loads(k) if k.startswith('"') else k) == "none"
+
+
+def ab_cells(sset, nsrc):
+    """SEL-AB: every request-seed of the cascade with its location — 'agree' (N passed, the peer returned the same answer: N),
+    'fallback' (N passed, the peer differed: d, or SEL-TC's verifier where >= 2 distinct answers pass), 'nfail' (N failed its check:
+    d) — the distinct passing answers among the calls the cascade made, {key: [right, calls, [raw texts]]}, and whether its answer is
+    right"""
+    if sset == "tcho":
+        D = quiet(lcm.load_tcho, TC_HO_N[nsrc])
+    else:
+        k = {"nsrc": nsrc} if nsrc else {}
+        D = {**quiet(lcm.load, "tc", "q8b", "q35", "non-live", **k), **quiet(lcm.load, "tc", "q8b", "q35", "live", **k)}
+    W = tc_texts(sset, nsrc)
+    out = []
+    for i, q in D.items():
+        for s in (1, 2, 3):
+            N, P, SB, T, T2 = lcm.seed_calls(q, s)
+            dn, d, dk = ("SB", SB, ("SB", s)) if SB[1] else (("T", T, ("T", s)) if T[1] else ("T2", T2, ("T", s % 3 + 1)))
+            if N[1] and P[1] and P[0] is not None and P[0] == N[0]:
+                loc, made, rr = "agree", (("N", N, ("N", s)), ("P", P, ("P", s))), N[2]
+            elif N[1]:
+                loc, made, rr = "fallback", (("N", N, ("N", s)), ("P", P, ("P", s)), (dn, d, dk)), d[2]
+            else:
+                loc, made, rr = "nfail", ((dn, d, dk),), d[2]
+            cand = {}
+            for nm, x, tk in made:
+                if x[1] and x[0] is not None:
+                    c = cand.setdefault(x[0], [bool(x[2]), (), []])
+                    c[1] += (nm,); c[2].append(W[(tk[0], tk[1], i)])
+            out.append((i, s, loc, cand, bool(rr)))
+    return D, out
+
+
+def ab_sets(sset, nsrc, S, locs):
+    """SEL-AB: sel_items-style sets at the given locations — the passing answers (s: the verifier's mean score over their texts) plus,
+    if none of them is the no-call answer, the no-call answer itself (calls ('AB',), scored on AB_TEXT); sets missing a score dropped"""
+    D, cells = ab_cells(sset, nsrc)
+    out, miss = [], 0
+    for i, sd, loc, cand, rr in cells:
+        if loc not in locs or not cand:
+            continue
+        C = []
+        for k, (r, calls, texts) in cand.items():
+            x = [S.get(rv_key("tc", sset, i, "sel", t)) for t in texts]
+            if any(v is None for v in x):
+                C = None; break
+            C.append({"r": r, "calls": calls, "s": sum(v["s"] for v in x) / len(x), "k": k})
+        if C is not None and not any(ab_is_none(c["k"]) for c in C):
+            v = S.get(rv_key("tc", sset, i, "sel", AB_TEXT))
+            C = None if v is None else C + [{"r": ab_none_right(sset, i), "calls": ("AB",), "s": v["s"], "k": "none"}]
+        if C is None:
+            miss += 1; continue
+        out.append((i, sd, C, rr))
+    return D, cells, out, miss
+
+
+def main_sel_build_ab():
+    """addendum SEL-AB: the texts the verifier has not scored -> results/conf/sel_req_ab.jsonl — AB_TEXT on every request and the
+    passing answers at every location of both N types (held-out ToolACE, BFCL); checks BFCL's no-call grades against the categories"""
+    from run_nlopt import _rows
+    have = {r["h"] for r in _rows(os.path.join(lcm.ROOT, "results", "conf", "sel_scores_seltc_s150.jsonl"))}
+    req, bad = {}, Counter()
+    for sset in ("tcho", "bfcl"):
+        for nsrc in (None, RV_N["tc"]):
+            D, cells = ab_cells(sset, nsrc)
+            for i in D:
+                h = rv_key("tc", sset, i, "sel", AB_TEXT)
+                if h not in have:
+                    req[h] = {"h": h, "task": "tc", "sset": sset, "id": i, "kind": "sel", "text": AB_TEXT}
+            for i, s, loc, cand, rr in cells:
+                for k, (r, calls, texts) in cand.items():
+                    if ab_is_none(k):
+                        bad[(sset, r == ab_none_right(sset, i))] += 1
+                    for t in set(texts):
+                        h = rv_key("tc", sset, i, "sel", t)
+                        if h not in have:
+                            req[h] = {"h": h, "task": "tc", "sset": sset, "id": i, "kind": "sel", "text": t}
+            print(f"SEL-AB build {sset} {nsrc or 'base'}: {len(D)} requests, {len(cells)} request-seeds "
+                  f"({', '.join(f'{x} {sum(c[2] == x for c in cells)}' for x in ('agree', 'fallback', 'nfail'))}); new texts so far {len(req)}",
+                  flush=True)
+    print(f"SEL-AB build: stored no-call answers graded as the rule says {dict(bad)}")
+    with open(os.path.join(lcm.ROOT, "results", "conf", "sel_req_ab.jsonl"), "w") as f:
+        for r in req.values():
+            f.write(json.dumps(r) + "\n")
+    print(f"SEL-AB build: {len(req)} requests -> results/conf/sel_req_ab.jsonl")
+
+
+def main_sel_ab():
+    """addendum SEL-AB (--sel-ab <verifier name>): the no-call answer as a candidate wherever the verifier chooses, on BFCL — AB: at the
+    fallback and after N's failed check; AB+: also against N where N and the peer agree — against SEL-TC's pipeline, SEL-TC2's planner
+    with the verifier, the cascade and the default (SEL-AB-P1..P4)"""
+    from analyze_ho3 import ci
+    from run_nlopt import _rows
+    nm = sys.argv[sys.argv.index("--sel-ab") + 1]
+    S = {r["h"]: r for r in _rows(os.path.join(lcm.ROOT, "results", "conf", f"sel_scores_{nm}.jsonl"))}
+    f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
+    U = lambda r, t: 100 * float(r) - LAM * t / 1000
+    LOC = {"AB": ("fallback", "nfail"), "AB+": ("fallback", "nfail", "agree")}
+    R, mech = {}, {}
+    for nsrc in (None, RV_N["tc"]):
+        name = "trained" if nsrc else "base"
+        # SEL-TC's pipeline and SEL-TC2, as main_sel_tc2
+        _, raw_ho, ho, _ = tc_sel_items("tcho", nsrc, S)
+        choose, _ = sel_fit([(i, s, [{"r": c[0], "calls": c[1], "s": 0.0} for c in cand.values()], dr) for i, s, cand, dr in raw_ho], ho)
+        selc = {(x[0], x[1]): choose(x) for x in tc_sel_items("bfcl", nsrc, S)[2]}
+        P, beta2, sd2, _ = tc2_fit(nsrc, S)
+        Db, Xb = tc2_cells("bfcl", nsrc)
+        ch, info = {}, []
+        for arm, locs in LOC.items():
+            _, _, hs, hmiss = ab_sets("tcho", nsrc, S, locs)
+            c_, b_ = sel_fit([(i, s, [dict(c, s=0.0) for c in C], dr) for i, s, C, dr in hs], hs)
+            _, _, bs, bmiss = ab_sets("bfcl", nsrc, S, locs)
+            ch[arm] = {(x[0], x[1]): (x, c_(x)) for x in bs}
+            info.append(f"{arm} beta {b_:.1f}, held-out sets {len(hs)} (missing {hmiss}), BFCL sets {len(bs)} (missing {bmiss})")
+        ids = sorted(Db)
+        acc, kt, Uq, unseen, picked = Counter(), Counter(), {k: Counter() for k in ("AB+", "AB", "SEL-TC2", "SEL-TC", "cascade", "default")}, \
+            Counter(), Counter()
+        mq = {k: Counter() for k in ("irrelevance", "other")}
+        for i in ids:
+            for s in (1, 2, 3):
+                sc = lcm.seed_calls(Db[i], s)
+                rc, tc_ = lcm.fixed("cascade", sc)
+                c = selc.get((i, s))
+                rs = c["r"] if c else rc
+                a = tc2_run(P, sc, Xb[(i, s)], S, "bfcl", i, beta2, sd2)
+                out = {"cascade": (rc, tc_), "SEL-TC": (rs, tc_), "default": lcm.fixed("SB->T->T", sc),
+                       "SEL-TC2": (rs, tc_) if a is None else a[:2]}
+                for arm in LOC:
+                    x = ch[arm].get((i, s))
+                    if x is None or x[1] is None:   # agreement (AB), no passing answer, or a structure unseen on held-out ToolACE
+                        unseen[arm] += x is not None
+                        out[arm] = (rs, tc_)
+                    else:
+                        out[arm] = (x[1]["r"], tc_); picked[arm] += x[1]["calls"] == ("AB",)
+                for k, (r, t) in out.items():
+                    acc[k] += r; kt[k] += t; Uq[k][i] += U(r, t) / 300
+                mq["irrelevance" if ab_none_right("bfcl", i) else "other"][i] += (float(out["AB"][0]) - float(rs)) / 3
+        n = 3 * len(ids)
+        d = lambda x, y: ci({i: Uq[x][i] - Uq[y][i] for i in ids})
+        R[name] = r = {"sel": d("AB", "SEL-TC"), "tc2": d("AB", "SEL-TC2"), "plus": d("AB+", "AB"), "plus_tc2": d("AB+", "SEL-TC2"),
+                       "casc": d("AB", "cascade"), "def": d("AB", "default")}
+        mech[name] = {k: sum(v.values()) / len(ids) * 100 for k, v in mq.items()}
+        print(f"    SEL-AB BFCL {name}: " + "; ".join(info) + f"; no call chosen AB {picked['AB']}, AB+ {picked['AB+']}; unseen structures "
+              f"AB {unseen['AB']}, AB+ {unseen['AB+']}", flush=True)
+        print(f"    SEL-AB BFCL {name}: " + "; ".join(f"{k} {100 * acc[k] / n:.1f}% at {kt[k] / n / 1000:.2f}k" for k in Uq), flush=True)
+        print(f"    SEL-AB BFCL {name}: AB - SEL-TC pipeline {f(r['sel'])}; AB - SEL-TC2 {f(r['tc2'])}; AB+ - AB {f(r['plus'])}; AB+ - SEL-TC2 "
+              f"{f(r['plus_tc2'])}; AB - cascade {f(r['casc'])}; AB - default {f(r['def'])}; AB - SEL-TC pipeline from irrelevance requests "
+              f"{mech[name]['irrelevance']:+.2f}, from the others {mech[name]['other']:+.2f} points", flush=True)
+    if len(R) < 2:
+        print("*** not every cell present, not decided"); return
+    two = lambda key: (sum(R[k][key][1] > 0 for k in R), sum(R[k][key][2] < 0 for k in R))
+    a, b = two("sel")
+    p1 = a >= 1 and b == 0
+    print(f"*** SEL-AB-P1 (AB - SEL-TC pipeline: lower bound > 0 in >= 1 of 2 N types, upper bound < 0 in none): {a} above, {b} below -> "
+          f"{'holds' if p1 else 'refuted'}")
+    a, b = two("tc2")
+    print(f"*** SEL-AB-P2 (AB - SEL-TC2: lower bound > 0 in >= 1 of 2 N types, upper bound < 0 in none): {a} above, {b} below -> "
+          f"{'holds' if a >= 1 and b == 0 else 'refuted'}")
+    p3 = all(R[k]["sel"][0] > 0 and mech[k]["irrelevance"] >= 0.8 * R[k]["sel"][0] and mech[k]["other"] >= -0.5 for k in R)
+    print(f"*** SEL-AB-P3 (both N types: the gain over SEL-TC's pipeline >= 80% from irrelevance requests, the others lose <= 0.5): "
+          f"{'holds' if p3 else 'refuted'}")
+    a, b = two("plus")
+    print(f"*** SEL-AB-P4 (AB+ - AB: lower bound > 0 in >= 1 of 2 N types, upper bound < 0 in none): {a} above, {b} below -> "
+          f"{'holds' if a >= 1 and b == 0 else 'refuted'}")
 
 
 SELG_GEN = ("q14a", "q35", "oss20")   # addendum SEL-G: other generators of the SQL cascade, each with its pre-registered peer (PEER)
@@ -2150,6 +2337,10 @@ def main_sel_2():
 
 
 def main():
+    if "--sel-build-ab" in sys.argv:
+        return main_sel_build_ab()
+    if "--sel-ab" in sys.argv:
+        return main_sel_ab()
     if "--sel-build-pww" in sys.argv:
         return main_sel_build_pww()
     if "--sel-pww" in sys.argv or "--sel-val-pww" in sys.argv:
