@@ -2605,11 +2605,13 @@ def main_rm_build():
 
 
 def rm_load(name="toolrm4b"):
-    """SEL-RM: the judge's rows (results/conf/rm_pairs_<name>*.jsonl, one file per shard) -> {(sset, i, ka, kb, order): row}"""
+    """SEL-RM: the judge's rows (results/conf/rm_pairs_<name>*.jsonl, one file per shard) -> {(sset, i, ka, kb, order): row}; the
+    re-judged pairs (rm_pairs_<name>_fix.jsonl: a call shown to the judge as no call, judge_sql.rm_render before 11-02 20 UTC) replace
+    the shards' rows"""
     import glob
     from run_nlopt import _rows
-    return {(r["sset"], r["i"], r["ka"], r["kb"], r["order"]): r
-            for fn in sorted(glob.glob(os.path.join(lcm.ROOT, "results", "conf", f"rm_pairs_{name}*.jsonl"))) for r in _rows(fn)}
+    fs = sorted(glob.glob(os.path.join(lcm.ROOT, "results", "conf", f"rm_pairs_{name}*.jsonl")), key=lambda fn: ("_fix" in fn, fn))
+    return {(r["sset"], r["i"], r["ka"], r["kb"], r["order"]): r for fn in fs for r in _rows(fn)}
 
 
 def rm_set(J, sset, i, C):

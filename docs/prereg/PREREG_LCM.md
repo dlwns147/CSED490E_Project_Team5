@@ -1979,6 +1979,59 @@ group ids, which are numbered afresh in every request-seed, so different answers
 identified by their canonical calls (every no-call answer as one answer, as the judge sees it): 16,173 / 9,414 / 4,005 distinct
 pairs on held-out ToolACE / BFCL / ACEBench, 59,184 judgments in both orders. Nothing else changes.
 
+### Results of addendum SEL-RM (written 2026-11-02 20:0x UTC; `results/lcm_selrm.log`; jobs 1302344 smoke, 1302345–1302352 judging, 1302700 re-judging, 1302619 raw text)
+
+59,184 judgments, 3 unparseable (3 cut at 8,192 tokens); output tokens mean 1,006 per judgment (input 1,278).
+
+*Correction (rendering), found by reading the raw outputs before the final analysis.* A call written without its list brackets or in
+a code fence was shown to the judge as the no-call reply (`judge_sql.rm_render` decoded only text starting with "["): 502 pairs (BFCL
+191, ACEBench 194, held-out ToolACE 117). It now reads an answer as our check does (5 pairs hold nested calls our decoder cannot read;
+they are shown as written); the 502 pairs were re-judged in both orders (job 1302700, `rm_pairs_toolrm4b_fix.jsonl`, replacing the
+shards' rows). A preview on 44,169 judgments before the fix gave the same decisions except RM-P1 (ACEBench 0.798 vs 0.839 then).
+*Correction (text).* selab2_s450 was trained on 4,684 ToolACE requests (SEL-AB2), not 1,267 (SEL-TC's) as written above.
+
+| cell | TC2-AB (ours) | RM (all pairs, both orders) | RM-KO (knockout, one order) | COMB |
+|---|---|---|---|---|
+| BFCL, base quick calls | 87.5% @ 0.48k | 79.2% @ 2.73k | 79.1% @ 1.20k | = TC2-AB (gamma 0.0) |
+| BFCL, C1tc quick calls | 88.0% @ 0.43k | 80.9% @ 2.48k | 80.8% @ 1.10k | = TC2-AB (gamma 0.0) |
+| ACEBench, base | 78.6% @ 0.71k | 73.9% @ 4.08k | 73.6% @ 1.70k | = TC2-AB |
+| ACEBench, C1tc | 79.4% @ 0.63k | 75.0% @ 3.71k | 74.8% @ 1.55k | = TC2-AB |
+
+Utility − TC2-AB: RM −9.47 [−10.54, −8.48] / −8.17 [−9.21, −7.24] on BFCL, −6.31 [−8.08, −4.65] / −5.92 [−7.65, −4.36] on ACEBench;
+RM-KO −8.79 / −7.60 and −5.50 / −5.05 (every upper bound below −3.3). Accuracy alone (tokens ignored), RM − TC2-AB: −8.35 / −7.15 on
+BFCL, −4.62 / −4.39 on ACEBench. Right-vs-wrong pairs within the stop sets (both N types), the judge / our score: call vs call 0.795 /
+0.736 (BFCL, n 2,302), 0.786 / 0.762 (ACEBench, n 1,381); right no-call vs wrong call 0.018 / 0.876, 0.002 / 0.824; right call vs wrong
+no-call 1.000 / 0.932, 1.000 / 0.978.
+
+- **RM-P1 holds** (I had left it open): on two calls the judge orders right first more often on both benchmarks (+5.9 / +2.4 points).
+- **RM-P2 holds**, far beyond the prediction: balanced 0.509 / 0.501 against ours 0.904 / 0.901 — the judge prefers any call to the
+  no-call answer (1.8% / 0.2% of right no-call answers preferred).
+- **RM-P3 refuted:** the fit on 9,963 / 9,921 held-out ToolACE stop sets gives gamma 0.0 in both N types: COMB is TC2-AB.
+- **RM-P4 holds** in all 4 cells, by 5–9.5 utility.
+
+**Why the judge never picks "no call".** Its training data (ToolPref-Pairwise-30K) holds 29,500 chosen answers, every one a call
+(5,811 rejected ones make none). Its reasoning (116 judgments re-run with the same seeds, 112 repeating the stored choice; sample by
+`nlp_data/scratch/rm_raw_pick.py`) applies its template's criteria ("available tools must be fully and appropriately leveraged",
+fabrication penalised) and reads the no-call reply as fabrication whenever a related function exists: "What can you do?" with a
+`respond` function (BFCL live irrelevance) is answered by calling it; a request to buy tickets that names no film by calling FindMovies.
+On held-out ToolACE its call / no-call judgments carry a likelihood ratio of 1.008 / 1.012 (P(call chosen | call right) 0.997, | no call
+right 0.989 / 0.986): no information, a fixed preference. Two caveats from the raw cases: some held-out ToolACE no-call labels are
+doubtful (four available calls for four requests labelled "no call"), which affects the COMB fit, not the BFCL / ACEBench verdicts;
+and on ACEBench's incomplete requests the registered no-call reply ("I cannot complete...") stands in for the right reply, a question
+for the missing value, which works against the judge there.
+
+*Not registered (fitting set only, partial judgments).* The judge's call-vs-call judgments alone (the no-call answer's term 0): gamma
+0.2, +15 / +23 right choices on ~9,900 judged held-out ToolACE stop sets in sample (≈ +0.14 / +0.22 points); a knockout among the
+calls needs 0.29–0.49 judgments per BFCL / ACEBench request-seed (≈ 0.15–0.25 utility at 1k tokens each). Even used only where it is
+stronger, the judge does not repay its thinking at our price.
+
+**Decision (registered).** P3 refuted → at our price of tokens, our scalar verifier (zero output tokens) is the tool-call verifier
+against the published reasoning reward model too: the RM and RM-KO rows go into REPORT §6, and the reasoning-verifier direction closes
+for tool calls. P1 / P2 locate the difference: the judge is stronger on two calls (BFCL +5.9), ours on whether to call at all. Related
+work agrees on both: IBM's ToolRM outcome models (2509.11963) report a bias toward calling; ToolRM's own ablation (2510.26167, Table 6)
+finds a scalar model trained on the same data better than the reasoning one. Whether the judge's call-vs-call edge is its data rather
+than its reasoning is addendum SEL-DATA (below, pre-registered 19:2x UTC, running).
+
 ## Addendum SEL-DATA: public preference data for the scalar verifier (written 2026-11-02 19:2x UTC, before any training with it)
 
 **Why.** SEL-RM's judgments (partial: 44,169 of 59,184; its results section will hold the final numbers) locate where the published

@@ -61,7 +61,9 @@ RM_MARK = "Here is a list of functions in json format that you can invoke.\n"
 def rm_render(text):
     from tc_reward import decode
     t = (text or "").strip()
-    d = decode(t) if t.startswith("[") else None
+    d = decode(t)   # as our check reads it: a bare call or a fenced list is a call too (11-02 20 UTC: these were shown as no call)
+    if d is None and t.startswith("["):   # calls our decoder cannot read (nested calls, expressions; BFCL's can): shown as written
+        return t
     if not d:
         return RM_NOCALL
     return "\n".join("<tool_call>\n" + json.dumps({"name": n, "arguments": a}, default=str) + "\n</tool_call>" for n, a in d)

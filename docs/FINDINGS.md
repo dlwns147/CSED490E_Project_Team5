@@ -5152,3 +5152,24 @@ Related: Relign (2412.04141), When2Call (2504.18851) train the generator to defe
 ACEBench's normal split only. Decision (registered): the tool-call claim is stated on BFCL and ACEBench; TC2-AB stays the method.
 Goal link: exact tool calls at the fewest tokens — the cheapest pipeline that holds out on both benchmarks is the quick calls, the
 peer and the verifier with "no call" among its choices.
+
+## 2026-11-02 20:0x UTC: SEL-RM (pre-registered): a published reasoning reward model loses to our scalar verifier as the tool-call selector
+Why: what is left of the tool-call method's loss is the verifier's information; the strongest published alternative is ToolRM
+(2510.26167), a 4B thinking judge trained with RL on 30K tool-call preference pairs. Judged every pair of answers in TC2-AB's stop
+sets (held-out ToolACE, BFCL, ACEBench; 59,184 judgments in both orders, ~1.0k output tokens each; its own TRBench template).
+- RM (argmax of win share) 79.2% / 80.9% on BFCL at 2.7k / 2.5k tokens vs TC2-AB 87.5% / 88.0% at 0.48k / 0.43k: −9.5 / −8.2 utility;
+  knockout −8.8 / −7.6; ACEBench −6.3 / −5.9 and −5.5 / −5.1; accuracy alone −4.4 to −8.4 points (P4 holds).
+- Combined with our score, the judge gets weight 0 on held-out ToolACE (P3 refuted): it adds nothing we lack.
+- Where each is stronger: two calls, the judge (right first 0.795 vs 0.736 BFCL, 0.786 vs 0.762 ACEBench; P1 holds); call vs no
+  call, ours (balanced 0.90 vs 0.50; it prefers a wrong call to a right no-call answer in 98–99.8% of pairs; P2 holds).
+- Why: its 29,500 training preferences all choose a call; its template reads "I cannot complete" as fabrication whenever a related
+  function exists (raw reasoning, 116 re-run judgments). On held-out ToolACE its call / no-call judgments have likelihood ratio 1.01.
+- Not registered, fitting set only: its call-vs-call judgments alone get weight 0.2 and +0.1–0.2 points in sample, below the
+  0.15–0.25 utility a knockout among calls costs.
+- Found and fixed before the final analysis: 502 pairs (1.7%) showed the judge a bracket-less or fenced call as the no-call reply;
+  re-judged. A 44k-judgment preview before the fix had P1 refuted on ACEBench (0.798 vs 0.839).
+Related: IBM's ToolRM outcome models (2509.11963) report a bias toward calling; ToolRM's own Table 6 finds a scalar model on the same
+data better than the reasoning one; When2Call (2504.18851) documents over-calling. Decision (registered): the scalar verifier is the
+tool-call verifier against the reasoning RM too; the reasoning-verifier direction closes for tool calls; RM / RM-KO in REPORT §6.
+Goal link: exact tool calls at the fewest tokens — a 1k-token judgment per pair costs more than the most it could add; the open
+question is whether the judge's call-vs-call edge is its data, testable at zero output tokens (SEL-DATA, running).
