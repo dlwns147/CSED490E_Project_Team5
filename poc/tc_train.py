@@ -10,9 +10,11 @@ term unscaled (the quick answer's own accuracy plus the cascade's utility, both 
 SEL_TC_POOL on the training requests; per request the distinct passing answers (tc_reward.check, keyed by canon), right by tc_reward.right;
 requests with a right and a wrong one. Context = the request, a candidate's text as the answer, then TC_ASK; score s = logit(ACCEPT) -
 logit(DE); loss per request = mean over (right, wrong) pairs of log(1 + exp(s_w - s_r)).
+--pw (addendum SEL-PW-TC): the same pool and requests, the pairwise verifier of cv_train.py pw (both answers in one turn, tc_pw_prompt).
 usage: /opt/conda/bin/python tc_train.py <out dir> [--questions 6000] [--batch 64] [--group 8] [--lr 2e-5] [--smoke N] [--base DIR]
        [--bil FILE [--plus]]
-       /opt/conda/bin/python tc_train.py <out dir> --orm [--batch 16] [--lr 5e-5] [--epochs 2] [--save 25] [--smoke N]"""
+       /opt/conda/bin/python tc_train.py <out dir> --orm [--batch 16] [--lr 5e-5] [--epochs 2] [--save 25] [--smoke N]
+       /opt/conda/bin/python tc_train.py <out dir> --pw [--pairs 4] [--batch 16] [--lr 5e-5] [--epochs 2] [--save 25] [--smoke N]"""
 import json, math, os, random, sys, time
 from concurrent.futures import ThreadPoolExecutor
 
@@ -24,18 +26,20 @@ ITEMS = os.path.join(os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nl
 
 
 TC_ASK = "Are these function calls (or no call) the right response to the request? Reply ACCEPT or DEFER."
+PW_TC_ASK = "Which response is right? Reply A or B."
+
+
+def tc_pw_prompt(user, a, b):
+    """SEL-PW-TC: the request, then two responses (calls, or no call) as one user turn; the next token is A or B"""
+    return (f"{user.rstrip()}\n\nTwo responses were written for this request (function calls, or no call).\n\nResponse A:\n{a.strip()}"
+            f"\n\nResponse B:\n{b.strip()}\n\n{PW_TC_ASK}")
 SEL_TC_POOL = [(f"taq8b_cheap_s{s}", "n_text") for s in (1, 2, 3, 4)] + [("taq8b_sb_s1", "text")] + \
     [(f"taq35_cheap_s{s}", "n_text") for s in (1, 2, 3, 4)]
 
 
-def main_orm(out):
-    """addendum SEL-TC: the verifier (see the docstring)"""
+def tc_pool(items):
+    """{id: {canon: [right, texts]}}: SEL_TC_POOL's distinct passing answers on items (SEL-TC, SEL-PW-TC)"""
     from cv_train import rows_of
-    os.makedirs(out, exist_ok=True)
-    B, lr, ep, save, smoke = arg("--batch", 16), arg("--lr", 5e-5), arg("--epochs", 2), arg("--save", 25), arg("--smoke", 0)
-    D = os.path.dirname(ITEMS)
-    keep = set(open(os.environ.get("SEL_IDS", f"{D}/tc_train_ids.txt")).read().split())
-    items = {p["id"]: p for p in map(json.loads, open(ITEMS)) if p["id"] in keep}
     R = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "results", "tc")
     G = {i: {} for i in items}   # id -> canon -> [right, texts]
     for f, fld in SEL_TC_POOL:
@@ -52,6 +56,17 @@ def main_orm(out):
             g = G[r["id"]].setdefault(k, [right(t, p["gold"], p["functions"]) > 0, []])
             if t not in g[1]:
                 g[1].append(t)
+    return G
+
+
+def main_orm(out):
+    """addendum SEL-TC: the verifier (see the docstring)"""
+    os.makedirs(out, exist_ok=True)
+    B, lr, ep, save, smoke = arg("--batch", 16), arg("--lr", 5e-5), arg("--epochs", 2), arg("--save", 25), arg("--smoke", 0)
+    D = os.path.dirname(ITEMS)
+    keep = set(open(os.environ.get("SEL_IDS", f"{D}/tc_train_ids.txt")).read().split())
+    items = {p["id"]: p for p in map(json.loads, open(ITEMS)) if p["id"] in keep}
+    G = tc_pool(items)
     Q = sorted((i, {k: v[1] for k, v in g.items() if v[0]}, {k: v[1] for k, v in g.items() if not v[0]}) for i, g in G.items()
                if any(v[0] for v in g.values()) and not all(v[0] for v in g.values()))
     random.Random(0).shuffle(Q)
@@ -109,10 +124,72 @@ def main_orm(out):
     print("done", out, step, "steps", flush=True)
 
 
+def main_pw(out):
+    """addendum SEL-PW-TC: cv_train.main_pw on tool calls — SEL-TC's pool and requests, up to --pairs (right, wrong) answer pairs per
+    request and epoch, each in both orders (tc_pw_prompt), loss log(1 + exp(-y s)), s = logit(A) - logit(B)"""
+    os.makedirs(out, exist_ok=True)
+    B, lr, ep, save, smoke, K = arg("--batch", 16), arg("--lr", 5e-5), arg("--epochs", 2), arg("--save", 25), arg("--smoke", 0), arg("--pairs", 4)
+    D = os.path.dirname(ITEMS)
+    keep = set(open(os.environ.get("SEL_IDS", f"{D}/tc_train_ids.txt")).read().split())
+    items = {p["id"]: p for p in map(json.loads, open(ITEMS)) if p["id"] in keep}
+    G = tc_pool(items)
+    Q = sorted((i, {k: v[1] for k, v in g.items() if v[0]}, {k: v[1] for k, v in g.items() if not v[0]}) for i, g in G.items()
+               if any(v[0] for v in g.values()) and not all(v[0] for v in g.values()))
+    random.Random(0).shuffle(Q)
+    Q = Q[:smoke or len(Q)]
+    print(f"pw-tc: {len(Q)} requests with a right and a wrong passing answer (of {len(G)}); up to {K} pairs per request in both orders; "
+          f"batch {B}, lr {lr}, epochs {ep}", flush=True)
+    pol = Policy(arg("--base", "/SSD/huggingface/Qwen/Qwen3-8B"), lr)
+    pol.acc, pol.de = pol.tok.convert_tokens_to_ids("A"), pol.tok.convert_tokens_to_ids("B")
+    assert None not in (pol.acc, pol.de) and pol.acc != pol.de and pol.tok.unk_token_id not in (pol.acc, pol.de), (pol.acc, pol.de)
+    torch = pol.torch
+    log = open(f"{out}/log.jsonl", "a")
+    step = 0
+    for e in range(ep):
+        rng = random.Random(1000 + e)
+        order = Q[:]
+        rng.shuffle(order)
+        for a0 in range(0, len(order), B):
+            t0, st = time.time(), {"loss": 0.0, "ok": 0.0, "q": 0, "ctx": 0}
+            batch = order[a0:a0 + B]
+            for i, R, W in batch:
+                p = items[i]
+                sysm = [{"role": "system", "content": p["system"]}]
+                prs = [(kr, kw) for kr in R for kw in W]
+                prs = rng.sample(prs, min(K, len(prs)))
+                ctxs, y = [], []
+                for kr, kw in prs:
+                    xr, xw = rng.choice(R[kr]), rng.choice(W[kw])
+                    for A, Bt, lab in ((xr, xw, 1.0), (xw, xr, -1.0)):
+                        ctxs.append(pol.ids(sysm + [{"role": "user", "content": tc_pw_prompt(p["user"], A, Bt)}])); y.append(lab)
+                P = pol.ids(sysm + [{"role": "user", "content": p["user"].rstrip()}])
+                kv = pol.prefix(P[:-1])
+                for sub, x in pol.gate_p(kv, P, ctxs, logit=True):
+                    yy = torch.tensor([y[b] for b in sub], device="cuda")
+                    lo = torch.nn.functional.softplus(-yy * x)
+                    (lo.sum() / len(ctxs) / len(batch)).backward()
+                    st["loss"] += lo.detach().sum().item() / len(ctxs)
+                    st["ok"] += ((yy * x.detach() > 0).float() + 0.5 * (x.detach() == 0).float()).sum().item() / len(ctxs)
+                st["q"] += 1; st["ctx"] += len(ctxs)
+                del kv
+            pol.step()
+            step += 1
+            rec = {"step": step, "epoch": e + 1, "requests": st["q"], "contexts": st["ctx"], "loss": st["loss"] / st["q"],
+                   "ctx_acc": st["ok"] / st["q"], "t": round(time.time() - t0)}
+            log.write(json.dumps(rec) + "\n"); log.flush()
+            print(json.dumps(rec), flush=True)
+            if step % save == 0:
+                pol.model.save_pretrained(f"{out}/adapter_s{step}")
+    pol.model.save_pretrained(f"{out}/adapter_final")
+    print("done", out, step, "steps", flush=True)
+
+
 def main():
     out = sys.argv[1]
     if "--orm" in sys.argv:
         return main_orm(out)
+    if "--pw" in sys.argv:
+        return main_pw(out)
     nq, B, G, lr, smoke = arg("--questions", 6000), arg("--batch", 64), arg("--group", 8), arg("--lr", 2e-5), arg("--smoke", 0)
     base = arg("--base", "/SSD/huggingface/Qwen/Qwen3-8B")
     bil = json.load(open(arg("--bil", ""))) if "--bil" in sys.argv else None

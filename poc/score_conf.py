@@ -127,6 +127,7 @@ SEL_ITEMS.update({"bfcl": f"{PD}/bfcl/tc_items.jsonl", "tcho": f"{PD}/toolace/tc
 
 def main_sel():
     """SEL (SQL ssets) and SEL-TC (bfcl, tcho: SEL_REQ=sel_req_tc.jsonl; the request, the calls' text, tc_train.TC_ASK; nothing run);
+    SEL-PW / SEL-PW-TC (kind pw: text and text2 in one turn, cv_train.pw_prompt / tc_train.tc_pw_prompt; s = logit(A) - logit(B));
     SEL-W (word sets, SEL_REQ=sel_req_w.jsonl: the request's text is VER's whole prompt; s = log P(yes) - log P(no), case variants
     summed, as ver_score.py's p_yes in log-odds)"""
     import prep_sql
@@ -168,11 +169,17 @@ def main_sel():
                     return {"h": r["h"], "s": round(lse("yes") - lse("no"), 4), "c": c, "pre": o.usage.prompt_tokens}
                 p = P[sset][r["id"]]
                 if r.get("kind") == "pw":
-                    from cv_train import pw_prompt
-                    c2, _, cols2, n2, first2 = rq[(r["id"], r["text2"])]
-                    o = client.chat.completions.create(model=nm, messages=[{"role": "user", "content": pw_prompt(
-                        p["user"], (r["text"], cols, n, first), (r["text2"], cols2, n2, first2))}], max_tokens=1, temperature=0, logprobs=True,
-                        top_logprobs=20, extra_body={"chat_template_kwargs": {"enable_thinking": False}})
+                    if sset in SEL_SPLIT:
+                        from cv_train import pw_prompt
+                        c2, _, cols2, n2, first2 = rq[(r["id"], r["text2"])]
+                        m = [{"role": "user", "content": pw_prompt(p["user"], (r["text"], cols, n, first), (r["text2"], cols2, n2, first2))}]
+                    else:   # SEL-PW-TC: the request and both responses in one turn
+                        from tc_train import tc_pw_prompt
+                        c2 = "pass"
+                        m = ([{"role": "system", "content": p["system"]}] if p.get("system") else []) + [
+                            {"role": "user", "content": tc_pw_prompt(p["user"], r["text"], r["text2"])}]
+                    o = client.chat.completions.create(model=nm, messages=m, max_tokens=1, temperature=0, logprobs=True,
+                                                       top_logprobs=20, extra_body={"chat_template_kwargs": {"enable_thinking": False}})
                     top = {t.token: t.logprob for t in o.choices[0].logprobs.content[0].top_logprobs}
                     lo = min(top.values())
                     return {"h": r["h"], "s": round(top.get("A", lo) - top.get("B", lo), 4), "c": [c, c2], "pre": o.usage.prompt_tokens}
