@@ -6,6 +6,9 @@
 # `local`) scores the fresh held-out-database candidates; the best adapter by that AUROC (lcm_shift.py --sel-val) and `local` then score the
 # targets, and lcm_shift.py --sel decides. SEL_PREFIX names the adapters (default sel; the smoke: another prefix and SEL_LOCAL=0).
 # poc/slurm/cv_eval_lane.sh orm-tc <out dir>: the same for addendum SEL-TC (held-out ToolACE for the choice, BFCL; prefix seltc).
+# poc/slurm/cv_eval_lane.sh orm-tc-ab <out dir>: addendum SEL-AB2 — train the verifier with the no-call answer in every pool (tc_train.py
+# --orm --abst, adapters every 150 steps), every adapter scores the held-out ToolACE AB sets (sel_req_abval.jsonl), lcm_shift.py
+# --sel-val-ab chooses, the choice scores every AB text (sel_req_aball.jsonl), lcm_shift.py --sel-ab2 decides.
 # poc/slurm/cv_eval_lane.sh pw <out dir>: addendum SEL-PW — train the pairwise verifier (cv_train.py pw on SEL's pool, copied), then every
 # adapter and the untrained model (local) score the fresh held-out-database pairs (results/conf/sel_req_pw.jsonl, lcm_shift.py
 # --sel-build-pw), lcm_shift.py --sel-val-pw chooses, the choice and local score the targets, lcm_shift.py --sel-pw decides.
@@ -52,6 +55,26 @@ if [ "$1" = pw-tc ]; then
   echo "[$pre $(date -u '+%F %T')] chosen: $best" >> results/run_${pre}_score.log
   SEL_SSETS=bfcl CONF_LIMIT=$lim /opt/conda/bin/python poc/score_conf.py sel $best,local >> results/run_${pre}_score.log 2>&1
   /opt/conda/bin/python poc/lcm_shift.py --sel-pwtc $best > results/lcm_${pre}.log 2>&1
+  kill $S; sleep 10; exit 0
+fi
+if [ "$1" = orm-tc-ab ]; then
+  out=$2 pre=selab2
+  mkdir -p $out
+  [ -f $out/adapter_final/adapter_config.json ] || /opt/conda/bin/python poc/tc_train.py $out --orm --abst --save 150 \
+    >> results/tc/run_${pre}_train.log 2>&1 || exit 1
+  mods="" names=""
+  for d in $out/adapter_*; do n=${pre}_${d##*/adapter_}; mods="$mods $n=$d"; names="$names,$n"; done
+  names=${names#,}
+  export VLLM_ALLOW_RUNTIME_LORA_UPDATING=True
+  S=$(bash poc/start_server.sh /SSD/huggingface/Qwen/Qwen3-8B $PORT 0 0.90 ${pre}_${SLURM_JOB_ID} --max-model-len 16384 --enable-lora \
+    --max-lora-rank 16 --max-loras 4 --max-cpu-loras 16 --max-num-seqs 64 --lora-modules $mods) || exit 1
+  export POC_BASE_URL=http://127.0.0.1:$PORT/v1
+  SEL_REQ=sel_req_abval.jsonl SEL_SSETS=tcho /opt/conda/bin/python poc/score_conf.py sel $names >> results/run_${pre}_score.log 2>&1 \
+    || { kill $S; exit 1; }
+  best=$(/opt/conda/bin/python poc/lcm_shift.py --sel-val-ab $names | tee -a results/lcm_${pre}_val.log | sed -n 's/^\*\*\* SEL-AB2 checkpoint[^:]*: //p')
+  echo "[$pre $(date -u '+%F %T')] chosen: $best" >> results/run_${pre}_score.log
+  SEL_REQ=sel_req_aball.jsonl SEL_SSETS=tcho,bfcl /opt/conda/bin/python poc/score_conf.py sel $best >> results/run_${pre}_score.log 2>&1
+  /opt/conda/bin/python poc/lcm_shift.py --sel-ab2 $best > results/lcm_${pre}.log 2>&1
   kill $S; sleep 10; exit 0
 fi
 if [ "$1" = orm-tc ]; then

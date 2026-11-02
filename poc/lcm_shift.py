@@ -1903,10 +1903,13 @@ def ab_sets(sset, nsrc, S, locs):
 
 def main_sel_build_ab():
     """addendum SEL-AB: the texts the verifier has not scored -> results/conf/sel_req_ab.jsonl — AB_TEXT on every request and the
-    passing answers at every location of both N types (held-out ToolACE, BFCL); checks BFCL's no-call grades against the categories"""
+    passing answers at every location of both N types (held-out ToolACE, BFCL); checks BFCL's no-call grades against the categories.
+    --all (addendum SEL-AB2): every such text, scored or not -> results/conf/sel_req_aball.jsonl (a new verifier scores them all), and
+    the held-out ToolACE ones AB's choice sets need (no agreement) -> results/conf/sel_req_abval.jsonl (the checkpoint choice)"""
     from run_nlopt import _rows
-    have = {r["h"] for r in _rows(os.path.join(lcm.ROOT, "results", "conf", "sel_scores_seltc_s150.jsonl"))}
-    req, bad = {}, Counter()
+    allt = "--all" in sys.argv
+    have = set() if allt else {r["h"] for r in _rows(os.path.join(lcm.ROOT, "results", "conf", "sel_scores_seltc_s150.jsonl"))}
+    req, bad, val = {}, Counter(), set()
     for sset in ("tcho", "bfcl"):
         for nsrc in (None, RV_N["tc"]):
             D, cells = ab_cells(sset, nsrc)
@@ -1914,6 +1917,8 @@ def main_sel_build_ab():
                 h = rv_key("tc", sset, i, "sel", AB_TEXT)
                 if h not in have:
                     req[h] = {"h": h, "task": "tc", "sset": sset, "id": i, "kind": "sel", "text": AB_TEXT}
+                if sset == "tcho":
+                    val.add(h)
             for i, s, loc, cand, rr in cells:
                 for k, (r, calls, texts) in cand.items():
                     if ab_is_none(k):
@@ -1922,24 +1927,67 @@ def main_sel_build_ab():
                         h = rv_key("tc", sset, i, "sel", t)
                         if h not in have:
                             req[h] = {"h": h, "task": "tc", "sset": sset, "id": i, "kind": "sel", "text": t}
+                        if sset == "tcho" and loc != "agree":
+                            val.add(h)
             print(f"SEL-AB build {sset} {nsrc or 'base'}: {len(D)} requests, {len(cells)} request-seeds "
                   f"({', '.join(f'{x} {sum(c[2] == x for c in cells)}' for x in ('agree', 'fallback', 'nfail'))}); new texts so far {len(req)}",
                   flush=True)
     print(f"SEL-AB build: stored no-call answers graded as the rule says {dict(bad)}")
-    with open(os.path.join(lcm.ROOT, "results", "conf", "sel_req_ab.jsonl"), "w") as f:
+    fn = "sel_req_aball.jsonl" if allt else "sel_req_ab.jsonl"
+    with open(os.path.join(lcm.ROOT, "results", "conf", fn), "w") as f:
         for r in req.values():
             f.write(json.dumps(r) + "\n")
-    print(f"SEL-AB build: {len(req)} requests -> results/conf/sel_req_ab.jsonl")
+    print(f"SEL-AB build: {len(req)} requests -> results/conf/{fn}")
+    if allt:
+        with open(os.path.join(lcm.ROOT, "results", "conf", "sel_req_abval.jsonl"), "w") as f:
+            for h in val:
+                f.write(json.dumps(req[h]) + "\n")
+        print(f"SEL-AB build: {len(val)} held-out ToolACE requests for the checkpoint choice -> results/conf/sel_req_abval.jsonl")
+
+
+def ab_none_auc(sset, S):
+    """SEL-AB2: AUROC of the verifier's score of AB_TEXT for 'no call is right', over the requests"""
+    D, _ = ab_cells(sset, None)
+    pos, neg = [], []
+    for i in D:
+        v = S.get(rv_key("tc", sset, i, "sel", AB_TEXT))
+        if v is not None:
+            (pos if ab_none_right(sset, i) else neg).append(v["s"])
+    return sum((p > n) + 0.5 * (p == n) for p in pos for n in neg) / max(1, len(pos) * len(neg))
 
 
 def main_sel_ab():
     """addendum SEL-AB (--sel-ab <verifier name>): the no-call answer as a candidate wherever the verifier chooses, on BFCL — AB: at the
     fallback and after N's failed check; AB+: also against N where N and the peer agree — against SEL-TC's pipeline, SEL-TC2's planner
-    with the verifier, the cascade and the default (SEL-AB-P1..P4)"""
+    with the verifier, the cascade and the default (SEL-AB-P1..P4). Addendum SEL-AB2: --sel-val-ab n1,n2,...: each checkpoint's
+    within-question AUROC on the held-out ToolACE AB sets (N types pooled) and the choice; --sel-ab2 <name>: AB and AB+ with that
+    verifier, SEL-TC's pipeline and SEL-TC2 with SEL-TC's (seltc_s150) (SEL-AB2-P1..P4)"""
     from analyze_ho3 import ci
     from run_nlopt import _rows
-    nm = sys.argv[sys.argv.index("--sel-ab") + 1]
-    S = {r["h"]: r for r in _rows(os.path.join(lcm.ROOT, "results", "conf", f"sel_scores_{nm}.jsonl"))}
+    load = lambda x: {r["h"]: r for r in _rows(os.path.join(lcm.ROOT, "results", "conf", f"sel_scores_{x}.jsonl"))}
+    if "--sel-val-ab" in sys.argv:
+        best = None
+        for nm in sys.argv[sys.argv.index("--sel-val-ab") + 1].split(","):
+            S, per = load(nm), {}
+            for nsrc in (None, RV_N["tc"]):
+                _, _, hs, miss = ab_sets("tcho", nsrc, S, ("fallback", "nfail"))
+                for i, v in sel_auc(hs).items():
+                    per.setdefault(nsrc or "base", {})[i] = v; per.setdefault("pooled", {}).setdefault(i, []).append(v)
+            if not per.get("pooled"):
+                print(f"SEL-AB2 val {nm}: no scored mixed set", flush=True); continue
+            pa = ci({i: sum(v) / len(v) for i, v in per["pooled"].items()})
+            print(f"SEL-AB2 val {nm}: AUROC base {ci(per['base'])[0] / 100:.3f}, trained {ci(per[RV_N['tc']])[0] / 100:.3f}, pooled "
+                  f"{pa[0] / 100:.3f} [{pa[1] / 100:.3f}, {pa[2] / 100:.3f}] ({len(per['pooled'])} requests); no-call score AUROC for "
+                  f"'no call is right' {ab_none_auc('tcho', S):.3f}", flush=True)
+            if best is None or pa[0] > best[1]:
+                best = (nm, pa[0])
+        print(f"*** SEL-AB2 checkpoint (highest pooled held-out ToolACE AUROC): {best[0]}")
+        return
+    ab2 = "--sel-ab2" in sys.argv
+    nm = sys.argv[sys.argv.index("--sel-ab2" if ab2 else "--sel-ab") + 1]
+    S = load(nm)
+    S0 = load("seltc_s150") if ab2 else S   # SEL-AB2: SEL-TC's pipeline and SEL-TC2 keep SEL-TC's verifier
+    tag = "SEL-AB2" if ab2 else "SEL-AB"
     f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
     U = lambda r, t: 100 * float(r) - LAM * t / 1000
     LOC = {"AB": ("fallback", "nfail"), "AB+": ("fallback", "nfail", "agree")}
@@ -1947,10 +1995,10 @@ def main_sel_ab():
     for nsrc in (None, RV_N["tc"]):
         name = "trained" if nsrc else "base"
         # SEL-TC's pipeline and SEL-TC2, as main_sel_tc2
-        _, raw_ho, ho, _ = tc_sel_items("tcho", nsrc, S)
+        _, raw_ho, ho, _ = tc_sel_items("tcho", nsrc, S0)
         choose, _ = sel_fit([(i, s, [{"r": c[0], "calls": c[1], "s": 0.0} for c in cand.values()], dr) for i, s, cand, dr in raw_ho], ho)
-        selc = {(x[0], x[1]): choose(x) for x in tc_sel_items("bfcl", nsrc, S)[2]}
-        P, beta2, sd2, _ = tc2_fit(nsrc, S)
+        selc = {(x[0], x[1]): choose(x) for x in tc_sel_items("bfcl", nsrc, S0)[2]}
+        P, beta2, sd2, _ = tc2_fit(nsrc, S0)
         Db, Xb = tc2_cells("bfcl", nsrc)
         ch, info = {}, []
         for arm, locs in LOC.items():
@@ -1969,7 +2017,7 @@ def main_sel_ab():
                 rc, tc_ = lcm.fixed("cascade", sc)
                 c = selc.get((i, s))
                 rs = c["r"] if c else rc
-                a = tc2_run(P, sc, Xb[(i, s)], S, "bfcl", i, beta2, sd2)
+                a = tc2_run(P, sc, Xb[(i, s)], S0, "bfcl", i, beta2, sd2)
                 out = {"cascade": (rc, tc_), "SEL-TC": (rs, tc_), "default": lcm.fixed("SB->T->T", sc),
                        "SEL-TC2": (rs, tc_) if a is None else a[:2]}
                 for arm in LOC:
@@ -1987,15 +2035,37 @@ def main_sel_ab():
         R[name] = r = {"sel": d("AB", "SEL-TC"), "tc2": d("AB", "SEL-TC2"), "plus": d("AB+", "AB"), "plus_tc2": d("AB+", "SEL-TC2"),
                        "casc": d("AB", "cascade"), "def": d("AB", "default")}
         mech[name] = {k: sum(v.values()) / len(ids) * 100 for k, v in mq.items()}
-        print(f"    SEL-AB BFCL {name}: " + "; ".join(info) + f"; no call chosen AB {picked['AB']}, AB+ {picked['AB+']}; unseen structures "
+        print(f"    {tag} BFCL {name}: " + "; ".join(info) + f"; no call chosen AB {picked['AB']}, AB+ {picked['AB+']}; unseen structures "
               f"AB {unseen['AB']}, AB+ {unseen['AB+']}", flush=True)
-        print(f"    SEL-AB BFCL {name}: " + "; ".join(f"{k} {100 * acc[k] / n:.1f}% at {kt[k] / n / 1000:.2f}k" for k in Uq), flush=True)
-        print(f"    SEL-AB BFCL {name}: AB - SEL-TC pipeline {f(r['sel'])}; AB - SEL-TC2 {f(r['tc2'])}; AB+ - AB {f(r['plus'])}; AB+ - SEL-TC2 "
+        print(f"    {tag} BFCL {name}: " + "; ".join(f"{k} {100 * acc[k] / n:.1f}% at {kt[k] / n / 1000:.2f}k" for k in Uq), flush=True)
+        print(f"    {tag} BFCL {name}: AB - SEL-TC pipeline {f(r['sel'])}; AB - SEL-TC2 {f(r['tc2'])}; AB+ - AB {f(r['plus'])}; AB+ - SEL-TC2 "
               f"{f(r['plus_tc2'])}; AB - cascade {f(r['casc'])}; AB - default {f(r['def'])}; AB - SEL-TC pipeline from irrelevance requests "
               f"{mech[name]['irrelevance']:+.2f}, from the others {mech[name]['other']:+.2f} points", flush=True)
     if len(R) < 2:
         print("*** not every cell present, not decided"); return
     two = lambda key: (sum(R[k][key][1] > 0 for k in R), sum(R[k][key][2] < 0 for k in R))
+    if ab2:
+        a, b = two("sel")
+        print(f"*** SEL-AB2-P1 (AB - SEL-TC pipeline: lower bound > 0 in >= 1 of 2 N types, upper bound < 0 in none): {a} above, {b} below "
+              f"-> {'holds' if a >= 1 and b == 0 else 'refuted'}")
+        a, b = two("tc2")
+        print(f"*** SEL-AB2-P2 (AB - SEL-TC2: lower bound > 0 in >= 1 of 2 N types, upper bound < 0 in none): {a} above, {b} below -> "
+              f"{'holds' if a >= 1 and b == 0 else 'refuted'}")
+        au, au0 = ab_none_auc("bfcl", S), ab_none_auc("bfcl", S0)
+        p3 = au >= 0.75 and all(mech[k]["other"] >= -0.5 for k in R)
+        rel = ", ".join(f"{k} {mech[k]['other']:+.2f}" for k in R)
+        print(f"*** SEL-AB2-P3 (no-call score AUROC for 'no call is right' on BFCL >= 0.75, and the relevant requests lose <= 0.5 in both "
+              f"N types): AUROC {au:.3f} (SEL-TC's verifier {au0:.3f}); relevant requests {rel} -> {'holds' if p3 else 'refuted'}")
+        per = {}
+        for nsrc in (None, RV_N["tc"]):
+            a1, a0 = sel_auc(tc_sel_items("bfcl", nsrc, S)[2]), sel_auc(tc_sel_items("bfcl", nsrc, S0)[2])
+            for i in a1.keys() & a0.keys():
+                per.setdefault(i, []).append(a1[i] - a0[i])
+        dd = ci({i: sum(v) / len(v) for i, v in per.items()})
+        print(f"*** SEL-AB2-P4 (call ranking kept: within-question AUROC on SEL-TC's BFCL sets, {nm} - seltc_s150, N types pooled, lower "
+              f"bound > -0.02): {dd[0] / 100:+.3f} [{dd[1] / 100:+.3f}, {dd[2] / 100:+.3f}] ({len(per)} requests) -> "
+              f"{'holds' if dd[1] / 100 > -0.02 else 'refuted'}")
+        return
     a, b = two("sel")
     p1 = a >= 1 and b == 0
     print(f"*** SEL-AB-P1 (AB - SEL-TC pipeline: lower bound > 0 in >= 1 of 2 N types, upper bound < 0 in none): {a} above, {b} below -> "
@@ -2339,7 +2409,7 @@ def main_sel_2():
 def main():
     if "--sel-build-ab" in sys.argv:
         return main_sel_build_ab()
-    if "--sel-ab" in sys.argv:
+    if "--sel-ab" in sys.argv or "--sel-ab2" in sys.argv or "--sel-val-ab" in sys.argv:
         return main_sel_ab()
     if "--sel-build-pww" in sys.argv:
         return main_sel_build_pww()

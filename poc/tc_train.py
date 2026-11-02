@@ -11,9 +11,11 @@ SEL_TC_POOL on the training requests; per request the distinct passing answers (
 requests with a right and a wrong one. Context = the request, a candidate's text as the answer, then TC_ASK; score s = logit(ACCEPT) -
 logit(DE); loss per request = mean over (right, wrong) pairs of log(1 + exp(s_w - s_r)).
 --pw (addendum SEL-PW-TC): the same pool and requests, the pairwise verifier of cv_train.py pw (both answers in one turn, tc_pw_prompt).
+--orm --abst (addendum SEL-AB2): the pool also holds the no-call answer "[]" on every request with a passing answer (right where the
+request has no gold call).
 usage: /opt/conda/bin/python tc_train.py <out dir> [--questions 6000] [--batch 64] [--group 8] [--lr 2e-5] [--smoke N] [--base DIR]
        [--bil FILE [--plus]]
-       /opt/conda/bin/python tc_train.py <out dir> --orm [--batch 16] [--lr 5e-5] [--epochs 2] [--save 25] [--smoke N]
+       /opt/conda/bin/python tc_train.py <out dir> --orm [--abst] [--batch 16] [--lr 5e-5] [--epochs 2] [--save 25] [--smoke N]
        /opt/conda/bin/python tc_train.py <out dir> --pw [--pairs 4] [--batch 16] [--lr 5e-5] [--epochs 2] [--save 25] [--smoke N]"""
 import json, math, os, random, sys, time
 from concurrent.futures import ThreadPoolExecutor
@@ -59,14 +61,27 @@ def tc_pool(items):
     return G
 
 
+def tc_pool_abst(G, items):
+    """addendum SEL-AB2: the no-call answer "[]" (canon none) in the pool of every request that holds a passing answer, right by
+    tc_reward.right (the request has no gold call): the choice set SEL-AB offers at deployment"""
+    for i, g in G.items():
+        if g:
+            c = g.setdefault(canon("[]"), [right("[]", items[i]["gold"], items[i]["functions"]) > 0, []])
+            if "[]" not in c[1]:
+                c[1].append("[]")
+    return G
+
+
 def main_orm(out):
-    """addendum SEL-TC: the verifier (see the docstring)"""
+    """addendum SEL-TC: the verifier (see the docstring); --abst: addendum SEL-AB2's pool (tc_pool_abst)"""
     os.makedirs(out, exist_ok=True)
     B, lr, ep, save, smoke = arg("--batch", 16), arg("--lr", 5e-5), arg("--epochs", 2), arg("--save", 25), arg("--smoke", 0)
     D = os.path.dirname(ITEMS)
     keep = set(open(os.environ.get("SEL_IDS", f"{D}/tc_train_ids.txt")).read().split())
     items = {p["id"]: p for p in map(json.loads, open(ITEMS)) if p["id"] in keep}
     G = tc_pool(items)
+    if "--abst" in sys.argv:
+        G = tc_pool_abst(G, items)
     Q = sorted((i, {k: v[1] for k, v in g.items() if v[0]}, {k: v[1] for k, v in g.items() if not v[0]}) for i, g in G.items()
                if any(v[0] for v in g.values()) and not all(v[0] for v in g.values()))
     random.Random(0).shuffle(Q)

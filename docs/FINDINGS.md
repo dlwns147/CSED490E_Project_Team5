@@ -5081,3 +5081,19 @@ in a few places and the question becomes which reading is right there. Same pool
 Decision (registered): P1 refuted → the word boundary stands as SEL-W left it, now for both formats. Goal link: the method per task is
 unchanged — SQL: cascade + pairwise verifier; tool calls: fitted call policy + pointwise verifier; word: XPEER's cascade. Selection
 is near its limit on all three; further gains need answers the current calls do not produce.
+
+## 2026-11-02 07:4x UTC: SEL-AB (pre-registered): offering "no call" to the tool-call verifier loses — the verifier prefers abstaining whatever the request
+Why: on BFCL half of the fallback sets with no right candidate are irrelevance requests where every call invented one; the no-call
+answer costs nothing, so the verifier was offered it wherever it chooses (bound +4.5 / +3.1 points).
+- AB − SEL-TC's pipeline −0.75 [−1.38, −0.08] (base N), −0.45 [−1.01, +0.11] (C1tc); − SEL-TC2 −1.45 / −1.18 (P1, P2 refuted).
+  Irrelevance requests gain +1.86 / +1.50, the others lose −2.60 / −1.95 (P3 refuted); offering it also at agreement adds nothing (P4).
+- Raw cases: no call chosen on 806 / 629 request-seeds, right on 273 / 166, wrong on 533 / 463 relevant requests (268 / 210 where the
+  verifier had chosen the right call: "What is the musical scale associated with C sharp major?" with `musical_scale` offered).
+- Mechanism: the verifier ranks a right no-call answer above a wrong call in 95–97% of BFCL pairs, but a right call above a wrong
+  no-call answer in only 27%; its score of "[]" carries no information about the request (AUROC 0.48 BFCL, 0.40 held-out ToolACE).
+  Its pool taught a blanket preference: an abstention was a candidate in 305 of 1,267 training requests and right in 258; the 257
+  no-gold requests where every model invented a call had no right answer and were dropped. Calibrated on BFCL itself (cross-fitted)
+  the selector gains only +0.26 / +0.17: information, not the held-out prior.
+Decision (registered): P1 refuted → the tool-call method is unchanged (SEL-TC2). Next (SEL-AB2, pre-registered, job 1300162): the same
+verifier recipe trained on the choice sets AB offers ("[]" in every request's pool: 4,684 requests, no call right in 515). It needs a
+relevance AUROC of about 0.95 inside the sets where every model invented a call to beat SEL-TC2 (derived from SEL-AB's counts).

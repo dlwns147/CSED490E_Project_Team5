@@ -1587,3 +1587,96 @@ with the verifier at its stop, the current tool-call method: 86.6% / 87.7%), the
 Run: `lcm_shift.py --sel-build-ab` (done: 13,698 texts → results/conf/sel_req_ab.jsonl; every stored no-call answer graded as the rule
 above says, 2,373 held-out ToolACE and 6,114 BFCL), then one job: a server with seltc_s150 scores them (`SEL_REQ=sel_req_ab.jsonl
 score_conf.py sel seltc_s150`, log results/run_selab_score.log), then `lcm_shift.py --sel-ab seltc_s150` > results/lcm_selab.log.
+
+### Results of addendum SEL-AB (written 2026-11-02 07:3x UTC; job 1299866, 13,698 texts scored, 0 failed; results/lcm_selab.log)
+
+| BFCL, 3,482 requests × 3 seeds | base N: accuracy | tokens | C1tc N: accuracy | tokens |
+|---|---|---|---|---|
+| default SB→T→T | 83.9% | 0.38k | 83.9% | 0.38k |
+| cascade | 84.8% | 0.28k | 85.2% | 0.27k |
+| SEL-TC's pipeline | 85.8% | 0.28k | 86.9% | 0.27k |
+| **AB** (no call offered at the fallback and after N's failed check) | 85.1% | 0.28k | 86.5% | 0.27k |
+| AB+ (also at agreement) | 85.2% | 0.28k | 86.5% | 0.27k |
+| SEL-TC2 (current method) | 86.6% | 0.48k | 87.7% | 0.43k |
+
+- **SEL-AB-P1 refuted:** AB − SEL-TC's pipeline −0.75 [−1.38, −0.08] (base), −0.45 [−1.01, +0.11] (C1tc).
+- **SEL-AB-P2 refuted:** AB − SEL-TC2 −1.45 [−2.08, −0.77], −1.18 [−1.76, −0.59].
+- **SEL-AB-P3 refuted:** irrelevance requests gain +1.86 / +1.50 points, the others lose −2.60 / −1.95 (bound 0.5).
+- **SEL-AB-P4 refuted:** AB+ − AB +0.11 [−0.01, +0.25], +0.03 [−0.05, +0.11].
+- AB still beats the cascade (+0.34 [−0.27, +0.98], +1.23 [+0.52, +1.97]) and the default (+1.19, +2.59): it is SEL-TC's verifier
+  that is lost, not the cascade's.
+- **Raw cases** (`nlp_data/scratch/selab_raw.py`): no call is chosen on 806 / 629 request-seeds — right on 273 / 166 irrelevance
+  requests (all three calls had invented one: `requests.get` with a made-up URL, a placeholder argument), wrong on 533 / 463 relevant
+  requests, of which SEL-TC's choice had been right on 268 / 210 (e.g. "What is the musical scale associated with C sharp major?" with
+  `musical_scale` offered: right call +13.88, no call +14.50; a hotel booking with every argument given: right call +8.75, no call
+  +12.12). Refitting the selector with the extra candidate also moved β (1.1 / 1.2 → 0.8 / 0.9), so 79 / 15 sets that already held a right
+  abstention now take a call.
+- **Why (`selab_pairs.py`, `selab_noscore.py`):** the verifier orders a right no-call answer above a wrong call in 95–97% of BFCL pairs
+  (the 98% this addendum quoted) but a right call above a wrong no-call answer in only 27% (BFCL) / 32% (held-out ToolACE). Its score
+  of "[]" does not depend on the request: AUROC for "no call is right" 0.48 on BFCL, 0.40 on held-out ToolACE (median +13.1 either
+  way). It learnt a blanket preference for abstaining from its pool: of the 1,267 training requests with a right and a wrong answer,
+  an abstention is a candidate in 305 and right in 258; the 257 no-gold requests where every model invented a call have no right
+  answer in the pool and were never trained on, and "[]" never stood against a right call in the 962 relevant requests without one.
+- **Calibration or information:** the same selector fitted on BFCL itself (2-fold by request, 20 splits; `selab_xfit.py`) gains only
+  +0.26 / +0.17 over SEL-TC's pipeline. The held-out prior is not the cause; the verifier has no request-level judgment of whether
+  any function fits.
+- **Related work:** an abstention loss in tool-use RL (NeurIPS 2026, "Small Models Learn to Call, and Stop Declining") keeps decline
+  ability only by adding decline examples with a cost for calling on them — the verifier's pool lacks exactly those examples. ToolRM
+  (2509.11963) trains Bradley–Terry outcome reward models on right / wrong call pairs (wrong values, missing or extra calls) and
+  reports no irrelevance test. Epoch AI's BFCL review finds irrelevance labels that penalise a correct call; some raw cases here are of
+  that kind (a request whose required arguments are missing counts as irrelevance), so part of the irrelevance loss is a labelling
+  convention the verifier would have to learn.
+- **Decision (as registered, P1 refuted):** a free no-call candidate does not help the verifier's choice on BFCL; P3 says why: right
+  calls on relevant requests are lost, not the prior. The tool-call method is unchanged (SEL-TC2). The cause is in the verifier's
+  training pool, so the next step trains a verifier whose pool holds the no-call answer on every request (addendum SEL-AB2).
+
+## Addendum SEL-AB2: a tool-call verifier trained with the no-call answer in every choice set (written 2026-11-02 07:4x UTC, before training; the analysis code run only with SEL-TC's verifier in place of the new one, where it reproduces SEL-AB's results)
+
+**Why.** SEL-AB failed because SEL-TC's verifier prefers "[]" whatever the request (AUROC 0.48 for "no call is right"; a right call
+above a wrong no-call answer in 27% of BFCL pairs), and the cause is its pool: an abstention was a candidate in 305 of its 1,267
+training requests and right in 258; the 257 no-gold requests where every model invented a call (BFCL's failing case) had no right
+answer and were dropped. The fix follows from the deployment: train on the choice sets AB offers — every request's distinct passing
+answers plus "[]" — so that "[]" stands against a right call on relevant requests and against invented calls on no-call ones.
+Related: decline examples with a cost for calling on them keep abstention in tool-use RL ("Small Models Learn to Call, and Stop
+Declining", NeurIPS 2026); When2Call (2504.18851) trains the generator to abstain with preference pairs; ToolRM (2509.11963) trains
+Bradley–Terry reward models on call pairs without an abstention test. None trains the verifier that chooses among a cascade's answers
+to rank no call against them.
+
+**Design.** `tc_train.py --orm --abst`: SEL-TC's recipe unchanged (Qwen3-8B LoRA, within-request Bradley–Terry loss over (right,
+wrong) pairs, batch 16, lr 5e-5, 2 epochs, at most 8 answers per request), the pool of every request with a passing answer extended by
+"[]" (right iff the request has no gold call): 4,684 training requests with a right and a wrong answer (no call right in 515, wrong in
+4,169) against SEL-TC's 1,267; 586 steps, adapters at 150, 300, 450 and the end. The checkpoint is the one with the highest pooled
+within-question AUROC on the held-out ToolACE AB sets (fallback and after N's failed check, both N types; 9,974 texts,
+results/conf/sel_req_abval.jsonl). It then scores every text of AB's sets on held-out ToolACE and BFCL (26,018,
+results/conf/sel_req_aball.jsonl). **AB2** is SEL-AB's AB with the new verifier (same sets, same selector fitted on held-out ToolACE);
+SEL-TC's pipeline and SEL-TC2 keep SEL-TC's verifier (the method AB2 must beat). Cells, comparisons and costs as in SEL-AB.
+
+**Predictions** (paired 95% intervals over requests, utility points):
+- **SEL-AB2-P1:** AB2 − SEL-TC's pipeline, lower bound > 0 in at least one N type, upper bound < 0 in none.
+- **SEL-AB2-P2 (decision against the current method):** AB2 − SEL-TC2, lower bound > 0 in at least one N type, upper bound < 0 in none.
+- **SEL-AB2-P3 (mechanism):** the new verifier's score of "[]" separates BFCL's no-call requests, AUROC ≥ 0.75 (SEL-TC's: 0.48), and
+  the relevant requests lose ≤ 0.5 points in both N types (SEL-AB: −2.60 / −1.95).
+- **SEL-AB2-P4 (calls still ranked):** within-question AUROC on SEL-TC's BFCL multi-answer sets (no "[]"), new − SEL-TC's verifier,
+  N types pooled, lower bound > −0.02.
+- **Expected (derived from SEL-AB's counts):** AB2 can gain where no call is right and SEL-TC chose a call (G = 431 / 289
+  request-seeds) and loses where a call is right and SEL-TC chose it (L = 2,122 / 2,100), of n = 10,446. With a binormal relevance
+  score inside these sets and the Bayes threshold (density ratio L/G), AUROC 0.90 gives +1.3 / +0.7 over SEL-TC's pipeline, 0.95 gives
+  +2.2 / +1.3. P2 needs about +2.0 over SEL-TC in one N type (SEL-TC2 is +0.70 / +0.73 above it, the interval ±0.6), so AUROC ≈ 0.95
+  inside the sets where every model invented a call. I expect P3 and P4 to hold, P1 to hold for the base N, and P2 to be refuted: the
+  remaining irrelevance failures include BFCL requests whose labels count missing arguments as irrelevance, a convention ToolACE's
+  no-call requests may not carry.
+
+**Decision.**
+- P1 and P2 hold → AB2 (cascade; at the fallback and after N's failed check the new verifier chooses among the passing answers and no
+  call) replaces SEL-TC2 as the tool-call method; PROJECT, REPORT and PROPOSAL updated.
+- P1 holds, P2 refuted → the no-call answer, scored by the new verifier, goes into SEL-TC2's stop next (SEL-TC2 gains by calling
+  more, AB2 by calling less; pre-registered then).
+- P1 refuted, P3 holds → the verifier now judges relevance, but at the fallback it does not pay; the abstention line closes on the
+  verifier side; stated.
+- P1 refuted, P3 refuted → ToolACE's no-call requests do not teach BFCL's irrelevance convention; the line closes; stated.
+- P4 refuted → the price in call ranking is reported beside the result.
+
+Run: `lcm_shift.py --sel-build-ab --all` (done: 26,018 texts → results/conf/sel_req_aball.jsonl, 9,974 for the choice →
+sel_req_abval.jsonl), then one job `bash poc/slurm/cv_eval_lane.sh orm-tc-ab $POC_DATA/cv/selab2`: training (log
+results/tc/run_selab2_train.log), the adapters score the choice set (`--sel-val-ab`, results/lcm_selab2_val.log), the chosen one
+scores the rest, `lcm_shift.py --sel-ab2 <chosen>` > results/lcm_selab2.log.
