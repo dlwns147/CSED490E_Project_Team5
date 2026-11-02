@@ -9,6 +9,8 @@
 # poc/slurm/cv_eval_lane.sh orm-tc-ab <out dir>: addendum SEL-AB2 — train the verifier with the no-call answer in every pool (tc_train.py
 # --orm --abst, adapters every 150 steps), every adapter scores the held-out ToolACE AB sets (sel_req_abval.jsonl), lcm_shift.py
 # --sel-val-ab chooses, the choice scores every AB text (sel_req_aball.jsonl), lcm_shift.py --sel-ab2 decides.
+# poc/slurm/cv_eval_lane.sh score-tc <adapter dir> <name> <request file> <sets>: one verifier adapter scores a request file of
+# results/conf (score_conf.py sel; texts it has scored are skipped) — addendum SEL-TC2-AB: selab2_s450 on sel_req_tc2.jsonl.
 # poc/slurm/cv_eval_lane.sh pw <out dir>: addendum SEL-PW — train the pairwise verifier (cv_train.py pw on SEL's pool, copied), then every
 # adapter and the untrained model (local) score the fresh held-out-database pairs (results/conf/sel_req_pw.jsonl, lcm_shift.py
 # --sel-build-pw), lcm_shift.py --sel-val-pw chooses, the choice and local score the targets, lcm_shift.py --sel-pw decides.
@@ -56,6 +58,14 @@ if [ "$1" = pw-tc ]; then
   SEL_SSETS=bfcl CONF_LIMIT=$lim /opt/conda/bin/python poc/score_conf.py sel $best,local >> results/run_${pre}_score.log 2>&1
   /opt/conda/bin/python poc/lcm_shift.py --sel-pwtc $best > results/lcm_${pre}.log 2>&1
   kill $S; sleep 10; exit 0
+fi
+if [ "$1" = score-tc ]; then
+  export VLLM_ALLOW_RUNTIME_LORA_UPDATING=True
+  S=$(bash poc/start_server.sh /SSD/huggingface/Qwen/Qwen3-8B $PORT 0 0.90 ${3}_${SLURM_JOB_ID} --max-model-len 16384 --enable-lora \
+    --max-lora-rank 16 --max-loras 4 --max-cpu-loras 16 --max-num-seqs 64 --lora-modules $3=$2) || exit 1
+  export POC_BASE_URL=http://127.0.0.1:$PORT/v1
+  SEL_REQ=$4 SEL_SSETS=$5 /opt/conda/bin/python poc/score_conf.py sel $3 >> results/run_${3}_score.log 2>&1; rc=$?
+  kill $S; sleep 10; exit $rc
 fi
 if [ "$1" = orm-tc-ab ]; then
   out=$2 pre=selab2

@@ -5097,3 +5097,21 @@ answer costs nothing, so the verifier was offered it wherever it chooses (bound 
 Decision (registered): P1 refuted → the tool-call method is unchanged (SEL-TC2). Next (SEL-AB2, pre-registered, job 1300162): the same
 verifier recipe trained on the choice sets AB offers ("[]" in every request's pool: 4,684 requests, no call right in 515). It needs a
 relevance AUROC of about 0.95 inside the sets where every model invented a call to beat SEL-TC2 (derived from SEL-AB's counts).
+
+## 2026-11-02 14:5x UTC: SEL-AB2 (pre-registered): a tool-call verifier trained with "no call" in every choice set judges relevance — +1.1 / +1.0 over its pipeline, unresolved against SEL-TC2
+Why: SEL-AB lost because the verifier rated "[]" the same on every request; its pool never put "[]" against a right call. SEL-AB2
+trains the same recipe on the sets it is offered at deployment ("[]" in every pool; 4,684 requests) and chooses the checkpoint on
+held-out ToolACE (s450: within-question AUROC 0.915 against SEL-TC's 0.605).
+- AB2 − SEL-TC's pipeline +1.12 [+0.61, +1.65] (base N), +0.99 [+0.56, +1.43] (C1tc) (P1 holds); − SEL-TC2 +0.42 [−0.12, +0.98],
+  +0.25 [−0.22, +0.71] at 0.2k fewer tokens (P2 refuted). "[]" AUROC for 'no call is right' on BFCL 0.818 (was 0.476); relevant
+  requests −0.48 / +0.09 (were −2.60 / −1.95) (P3 holds); call ranking +0.024 [+0.009, +0.039] (P4 holds).
+- Raw cases: no call chosen on 403 / 231 request-seeds, right on 237 / 123 of the 431 / 289 irrelevance request-seeds SEL-TC got wrong,
+  and costing a right call on 63 / 34 (SEL-AB: 268 / 210). On 71 / 33 irrelevance requests the selector now takes an invented call over
+  a model's own "none". "[]" minus the best call's score separates no-call requests with AUROC 0.96.
+- Against the derivation: the no-call part (+1.67 / +0.85) matches a binormal Bayes threshold at AUROC ≈ 0.92; the operating point is
+  below what the relative score's 0.96 allows, because the no-call prior comes from held-out ToolACE (14% of requests need no call;
+  BFCL 32%) and the missed requests are those where every call invented a function.
+- Related work: ToolRM (2509.11963) trains with 10k irrelevance examples and still reports a slight rise in irrelevance errors;
+  here "[]" stands against every call the verifier ranks.
+Decision (registered): P1 holds, P2 refuted → the method stays SEL-TC2; next (SEL-TC2-AB, pre-registered, job 1301891 scoring) the
+no-call answer at SEL-TC2's stop. Derived expectation +0.3 to +0.95 / +0.6 to +0.9 over SEL-TC2 (interval ±0.5).

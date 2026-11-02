@@ -1720,10 +1720,12 @@ def main_sel_build_tc2():
     print(f"SEL-TC2 build: {len(req)} requests -> results/conf/sel_req_tc2.jsonl")
 
 
-def tc2_run(P, sc, txt, S, sset, i, beta=None, sd=1.0, task="tc"):
+def tc2_run(P, sc, txt, S, sset, i, beta=None, sd=1.0, task="tc", ab=False):
     """the planner P on one request-seed; at its stop, where >= 2 passing answers were seen and every one is scored, the answer with
     the highest logit P(right | pattern) + beta z (z: the verifier's mean score over the answer's calls, centred in the set, / sd);
-    beta None: the planner's own choice. Returns (right, tokens, seen, the scored stop set or None)"""
+    beta None: the planner's own choice. ab (addendum SEL-TC2-AB): wherever the stop holds >= 1 passing answer and none of them is the
+    no-call answer, the no-call answer joins the set — its logit from P.none (the fitting rows at the pattern where no call is right),
+    its score the verifier's of AB_TEXT. Returns (right, tokens, seen, the scored stop set or None)"""
     from lcm_bound import project
     obs, right = full(sc)
     calls, tok = frozenset(), 0
@@ -1741,12 +1743,16 @@ def tc2_run(P, sc, txt, S, sset, i, beta=None, sd=1.0, task="tc"):
             if e is not None and e[0] != "X" and e[1]:
                 G.setdefault(e[0], []).append(j)
         C = None
-        if len(G) >= 2:
+        offer = ab and G and not any(ab_is_none(sc[js[0]][0]) for js in G.values())
+        if len(G) >= 2 or offer:
             sv = {g: [S.get(rv_key(task, sset, i, "sel", txt[j])) for j in js] for g, js in G.items()}
+            if offer:
+                sv["AB"] = [S.get(rv_key(task, sset, i, "sel", AB_TEXT))]
             if all(v is not None for x in sv.values() for v in x):
                 n = P.n[pat]
-                C = [{"g": g, "lp": math.log((P.r.get((pat, g), 0) + 0.5) / (n + 1) / max(1e-3, 1 - (P.r.get((pat, g), 0) + 0.5) / (n + 1))),
-                      "s": sum(v["s"] for v in x) / len(x), "r": g in rt} for g, x in sv.items()]
+                lg = lambda k: math.log((k + 0.5) / (n + 1) / max(1e-3, 1 - (k + 0.5) / (n + 1)))
+                C = [{"g": g, "lp": lg(P.none.get(pat, 0) if g == "AB" else P.r.get((pat, g), 0)), "s": sum(v["s"] for v in x) / len(x),
+                      "r": ab_none_right(sset, i) if g == "AB" else g in rt} for g, x in sv.items()]
         if beta is None or C is None:
             return ((arg in rt) if arg is not None else False), tok, True, C
         mu = sum(c["s"] for c in C) / len(C)
@@ -1754,13 +1760,25 @@ def tc2_run(P, sc, txt, S, sset, i, beta=None, sd=1.0, task="tc"):
         return c["r"], tok, True, C
 
 
-def tc2_fit(nsrc, S):
-    """SEL-TC2: TL's planner fitted on the held-out ToolACE requests, and the verifier's beta and sd at its stop -> (P, beta, sd, sets)"""
+def tc2_fit(nsrc, S, ab=False):
+    """SEL-TC2: TL's planner fitted on the held-out ToolACE requests, and the verifier's beta and sd at its stop -> (P, beta, sd, sets);
+    ab (addendum SEL-TC2-AB): P.none counts, per pattern, the fitting rows where no call is right, and the no-call answer is offered
+    at the stop (tc2_run ab) in the sets beta and sd are fitted on"""
+    import itertools
+    from lcm_bound import project
     Dh, Xh = tc2_cells("tcho", nsrc)
     sch = [(i, s, lcm.seed_calls(q, s)) for i, q in Dh.items() for s in (1, 2, 3)]
     tok = [sum(sc[j][3] for _, _, sc in sch) / len(sch) for j in range(5)]
     P = Supervised([full(sc) for _, _, sc in sch], tok)
-    sets = [x[3] for i, s, sc in sch for x in [tc2_run(P, sc, Xh[(i, s)], S, "tcho", i)] if x and x[3]]
+    if ab:
+        P.none = Counter()
+        for i, s, sc in sch:
+            if ab_none_right("tcho", i):
+                obs, right = full(sc)
+                for r in range(6):
+                    for cs in itertools.combinations(range(5), r):
+                        P.none[project(obs, right, frozenset(cs))[0]] += 1
+    sets = [x[3] for i, s, sc in sch for x in [tc2_run(P, sc, Xh[(i, s)], S, "tcho", i, ab=ab)] if x and x[3]]
     dv = [c["s"] - sum(d["s"] for d in C) / len(C) for C in sets for c in C]
     sd = (sum(x * x for x in dv) / max(1, len(dv))) ** 0.5 or 1.0
 
@@ -2078,6 +2096,88 @@ def main_sel_ab():
           f"{'holds' if p3 else 'refuted'}")
     a, b = two("plus")
     print(f"*** SEL-AB-P4 (AB+ - AB: lower bound > 0 in >= 1 of 2 N types, upper bound < 0 in none): {a} above, {b} below -> "
+          f"{'holds' if a >= 1 and b == 0 else 'refuted'}")
+
+
+def main_sel_tc2ab():
+    """addendum SEL-TC2-AB (--sel-tc2ab <verifier name>): SEL-TC2's planner with the no-call answer offered at its stop and the verifier
+    <name> choosing (TC2-AB), against SEL-TC2 as it stands (seltc_s150 at the stop), SEL-TC2 with <name> and no offer (TC2-new), SEL-AB2's
+    AB with <name> (the cascade) and the planner alone, on BFCL (SEL-TC2-AB-P1..P4). The planner is the same in every TC2 arm (it does not
+    depend on the verifier), so they differ only at the stop; a pattern the planner never saw gets SEL-TC's pipeline outcome in each"""
+    from analyze_ho3 import ci
+    from run_nlopt import _rows
+    load = lambda x: {r["h"]: r for r in _rows(os.path.join(lcm.ROOT, "results", "conf", f"sel_scores_{x}.jsonl"))}
+    nm = sys.argv[sys.argv.index("--sel-tc2ab") + 1]
+    S, S0 = load(nm), load("seltc_s150")
+    f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
+    U = lambda r, t: 100 * float(r) - LAM * t / 1000
+    arms = ("TC2-AB", "TC2-new", "SEL-TC2", "AB", "planner")
+    R, mech = {}, {}
+    for nsrc in (None, RV_N["tc"]):
+        name = "trained" if nsrc else "base"
+        _, raw_ho, ho, _ = tc_sel_items("tcho", nsrc, S0)
+        choose, _ = sel_fit([(i, s, [{"r": c[0], "calls": c[1], "s": 0.0} for c in cand.values()], dr) for i, s, cand, dr in raw_ho], ho)
+        selc = {(x[0], x[1]): choose(x) for x in tc_sel_items("bfcl", nsrc, S0)[2]}
+        _, _, hs, _ = ab_sets("tcho", nsrc, S, ("fallback", "nfail"))
+        cab, _ = sel_fit([(i, s, [dict(c, s=0.0) for c in C], dr) for i, s, C, dr in hs], hs)
+        abc = {(x[0], x[1]): cab(x) for x in ab_sets("bfcl", nsrc, S, ("fallback", "nfail"))[2]}
+        fits = {"TC2-AB": (tc2_fit(nsrc, S, ab=True), S, True), "TC2-new": (tc2_fit(nsrc, S), S, False),
+                "SEL-TC2": (tc2_fit(nsrc, S0), S0, False)}
+        Db, Xb = tc2_cells("bfcl", nsrc)
+        ids = sorted(Db)
+        acc, kt, Uq, cnt = Counter(), Counter(), {k: Counter() for k in arms}, Counter()
+        mq = {k: Counter() for k in ("irrelevance", "other")}
+        for i in ids:
+            kind = "irrelevance" if ab_none_right("bfcl", i) else "other"
+            for s in (1, 2, 3):
+                sc = lcm.seed_calls(Db[i], s)
+                rc, tc_ = lcm.fixed("cascade", sc)
+                c = selc.get((i, s))
+                rs = c["r"] if c else rc
+                a = abc.get((i, s))
+                out = {"AB": (a["r"], tc_) if a else (rs, tc_)}
+                for k, ((P, beta, sd, _), SS, ab) in fits.items():
+                    x = tc2_run(P, sc, Xb[(i, s)], SS, "bfcl", i, beta, sd, ab=ab)
+                    if x is None:
+                        cnt["unseen"] += k == "SEL-TC2"; out[k] = (rs, tc_)
+                        continue
+                    out[k] = x[:2]
+                    if k == "SEL-TC2":
+                        out["planner"] = tc2_run(P, sc, Xb[(i, s)], SS, "bfcl", i)[:2]
+                    if k == "TC2-AB" and x[3] and any(e["g"] == "AB" for e in x[3]):
+                        mu = sum(e["s"] for e in x[3]) / len(x[3])
+                        cnt["offered"] += 1; cnt["no call chosen"] += max(x[3], key=lambda e: e["lp"] + beta * (e["s"] - mu) / sd)["g"] == "AB"
+                out.setdefault("planner", (rs, tc_))
+                for k, (r, t) in out.items():
+                    acc[k] += r; kt[k] += t; Uq[k][i] += U(r, t) / 300
+                mq[kind][i] += (float(out["TC2-AB"][0]) - float(out["TC2-new"][0])) / 3
+        n = 3 * len(ids)
+        d = lambda x, y: ci({i: Uq[x][i] - Uq[y][i] for i in ids})
+        R[name] = r = {"tc2": d("TC2-AB", "SEL-TC2"), "new": d("TC2-new", "SEL-TC2"), "off": d("TC2-AB", "TC2-new"), "ab": d("TC2-AB", "AB"),
+                       "plan": d("TC2-AB", "planner")}
+        mech[name] = {k: sum(v.values()) / len(ids) * 100 for k, v in mq.items()}
+        b1, b0 = fits["TC2-AB"][0][1], fits["TC2-new"][0][1]
+        print(f"    SEL-TC2-AB BFCL {name}: beta TC2-AB {b1:.1f} (held-out stop sets {fits['TC2-AB'][0][3]}), TC2-new {b0:.1f}, SEL-TC2 "
+              f"{fits['SEL-TC2'][0][1]:.1f}; no call offered at {cnt['offered']} stops, chosen at {cnt['no call chosen']}; unseen patterns "
+              f"{cnt['unseen']} of {n}", flush=True)
+        print(f"    SEL-TC2-AB BFCL {name}: " + "; ".join(f"{k} {100 * acc[k] / n:.1f}% at {kt[k] / n / 1000:.2f}k" for k in arms), flush=True)
+        print(f"    SEL-TC2-AB BFCL {name}: TC2-AB - SEL-TC2 {f(r['tc2'])}; TC2-new - SEL-TC2 {f(r['new'])}; TC2-AB - TC2-new {f(r['off'])} "
+              f"(from irrelevance requests {mech[name]['irrelevance']:+.2f}, from the others {mech[name]['other']:+.2f} points); "
+              f"TC2-AB - AB {f(r['ab'])}; TC2-AB - planner {f(r['plan'])}", flush=True)
+    if len(R) < 2:
+        print("*** not every cell present, not decided"); return
+    two = lambda key: (sum(R[k][key][1] > 0 for k in R), sum(R[k][key][2] < 0 for k in R))
+    a, b = two("tc2")
+    print(f"*** SEL-TC2-AB-P1 (TC2-AB - SEL-TC2: lower bound > 0 in >= 1 of 2 N types, upper bound < 0 in none): {a} above, {b} below -> "
+          f"{'holds' if a >= 1 and b == 0 else 'refuted'}")
+    p2 = all(mech[k]["irrelevance"] > 0 and mech[k]["other"] >= -0.5 for k in R)
+    print(f"*** SEL-TC2-AB-P2 (TC2-AB - TC2-new, both N types: gains from irrelevance requests, the others lose <= 0.5): "
+          + ", ".join(f"{k} {mech[k]['irrelevance']:+.2f} / {mech[k]['other']:+.2f}" for k in R) + f" -> {'holds' if p2 else 'refuted'}")
+    p3 = all(R[k]["new"][2] >= 0 for k in R)
+    print(f"*** SEL-TC2-AB-P3 (TC2-new - SEL-TC2: upper bound >= 0 in both N types): " + ", ".join(f"{k} {f(R[k]['new'])}" for k in R)
+          + f" -> {'holds' if p3 else 'refuted'}")
+    a, b = two("ab")
+    print(f"*** SEL-TC2-AB-P4 (TC2-AB - AB: lower bound > 0 in >= 1 of 2 N types, upper bound < 0 in none): {a} above, {b} below -> "
           f"{'holds' if a >= 1 and b == 0 else 'refuted'}")
 
 
@@ -2411,6 +2511,8 @@ def main():
         return main_sel_build_ab()
     if "--sel-ab" in sys.argv or "--sel-ab2" in sys.argv or "--sel-val-ab" in sys.argv:
         return main_sel_ab()
+    if "--sel-tc2ab" in sys.argv:
+        return main_sel_tc2ab()
     if "--sel-build-pww" in sys.argv:
         return main_sel_build_pww()
     if "--sel-pww" in sys.argv or "--sel-val-pww" in sys.argv:

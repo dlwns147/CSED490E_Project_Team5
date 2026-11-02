@@ -1680,3 +1680,93 @@ Run: `lcm_shift.py --sel-build-ab --all` (done: 26,018 texts → results/conf/se
 sel_req_abval.jsonl), then one job `bash poc/slurm/cv_eval_lane.sh orm-tc-ab $POC_DATA/cv/selab2`: training (log
 results/tc/run_selab2_train.log), the adapters score the choice set (`--sel-val-ab`, results/lcm_selab2_val.log), the chosen one
 scores the rest, `lcm_shift.py --sel-ab2 <chosen>` > results/lcm_selab2.log.
+
+### Results of addendum SEL-AB2 (written 2026-11-02 14:5x UTC; job 1300162: 586 training steps, 4 adapters × 9,974 held-out ToolACE texts and the chosen one's 16,044 others scored, 0 failed; results/lcm_selab2_val.log, results/lcm_selab2.log)
+
+| Checkpoint | held-out ToolACE AB sets: within-question AUROC (pooled) | "[]" AUROC for "no call is right" |
+|---|---|---|
+| SEL-TC's verifier (seltc_s150) | 0.605 [0.581, 0.628] | 0.398 |
+| selab2_s150 | 0.893 [0.880, 0.905] | 0.889 |
+| selab2_s300 | 0.904 [0.891, 0.916] | 0.876 |
+| **selab2_s450 (chosen)** | 0.915 [0.904, 0.927] | 0.868 |
+| selab2_final | 0.908 [0.895, 0.920] | 0.855 |
+
+| BFCL, 3,482 requests × 3 seeds | base N: accuracy | tokens | C1tc N: accuracy | tokens |
+|---|---|---|---|---|
+| default SB→T→T | 83.9% | 0.38k | 83.9% | 0.38k |
+| cascade | 84.8% | 0.28k | 85.2% | 0.27k |
+| SEL-TC's pipeline | 85.8% | 0.28k | 86.9% | 0.27k |
+| **AB2** (new verifier; no call offered at the fallback and after N's failed check) | 87.0% | 0.28k | 87.9% | 0.27k |
+| AB2+ (also at agreement) | 86.8% | 0.28k | 87.8% | 0.27k |
+| SEL-TC2 (current method) | 86.6% | 0.48k | 87.7% | 0.43k |
+
+- **SEL-AB2-P1 holds:** AB2 − SEL-TC's pipeline +1.12 [+0.61, +1.65] (base), +0.99 [+0.56, +1.43] (C1tc).
+- **SEL-AB2-P2 refuted:** AB2 − SEL-TC2 +0.42 [−0.12, +0.98], +0.25 [−0.22, +0.71]; at 0.2k fewer tokens, but not resolved.
+- **SEL-AB2-P3 holds:** "[]" AUROC for "no call is right" on BFCL 0.818 (SEL-TC's verifier 0.476); relevant requests −0.48 / +0.09
+  (SEL-AB: −2.60 / −1.95); irrelevance requests +1.60 / +0.90.
+- **SEL-AB2-P4 holds:** call ranking improved, within-question AUROC on SEL-TC's BFCL sets +0.024 [+0.009, +0.039] (962 requests).
+- AB2+ − AB2 −0.17 [−0.29, −0.08], −0.09 [−0.24, +0.08]: offering no call against two agreeing calls still costs a little.
+- **Raw cases** (`nlp_data/scratch/selab_raw.py selab2_s450`, `selab_noscore.py`, `selab_pairs.py`): no call is chosen on 403 / 231
+  request-seeds, right on 237 / 123 irrelevance requests (of the G = 431 / 289 where SEL-TC chose a call) and wrong on 166 / 108
+  relevant ones, of which SEL-TC had been right on only 63 / 34 (SEL-AB: 268 / 210). The rest of the change is in calls: on 71 / 33
+  irrelevance requests the selector now takes an invented call over a model's own "none" (live_irrelevance_634-201-2: "none" +14.12,
+  `Movies_1_FindMovies` +7.12 chosen — the structure prior of the fallback's d answer outweighs the score), and on relevant requests
+  32 / 65 calls become right against 19 / 22 wrong. "[]" now depends on the request: median +18.9 where no call is right, +13.6
+  where a call is (BFCL); "[]" minus the best call's score separates them with AUROC 0.96 (0.98 on held-out ToolACE); a right call
+  is above a wrong no-call answer in 90% / 92% of BFCL pairs (SEL-TC's verifier: 27%).
+- **Against the derivation:** the no-call part of the gain is +1.67 / +0.85 points (100·(237 − 63)/10,446, 100·(123 − 34)/10,446),
+  close to the binormal Bayes-threshold value at AUROC 0.90–0.93 (+1.35 / +0.72 at 0.90). The operating point (t = 0.55 / 0.43 of G
+  turned right at f = 0.030 / 0.016 of L lost) is below the binormal point at the relative score's AUROC 0.96 (t = 0.73 / 0.64 at the
+  same f): the irrelevance requests SEL-TC misses are the ones where every call invented a function, and the selector's prior is
+  fitted on held-out ToolACE, where no call is right on 14% of requests against BFCL's 32%. The call-level changes cost −0.55 / gain
+  +0.13. P2's bar (≈ +2.0 over SEL-TC in one N type) was not reached, as expected.
+- **Related work:** ToolRM (2509.11963) includes 10k irrelevance examples in its reward-model data and still reports a slight rise
+  in irrelevance errors in its error analysis (Qwen3-1.7B with ToolRM-14B): irrelevance examples alone do not put "[]" against the
+  calls the model must rank. A same-named work (2510.26167, "Towards Agentic Tool-Use Reward Modeling") evaluates reward models on a
+  BFCL-derived set. Training on the deployment's choice sets, with the no-call answer in every one, gives a verifier that orders both
+  kinds of pair: a right call above a wrong no-call answer in 90% / 92% of BFCL pairs, a right no-call answer above a wrong call in
+  81% / 74% (SEL-TC's verifier: 27% and 95–97%).
+- **Decision (as registered, P1 holds, P2 refuted):** the tool-call method stays SEL-TC2 for now; the no-call answer, scored by the
+  new verifier, goes into SEL-TC2's stop next (addendum SEL-TC2-AB below). P4 holds, so no price in call ranking is reported.
+
+## Addendum SEL-TC2-AB: the no-call answer at SEL-TC2's stop (written 2026-11-02 14:5x UTC, before any SEL-TC2 text not yet scored by selab2_s450 is read; job 1301891 scoring them, the analysis code run only with SEL-TC's verifier in both places, where TC2-new reproduces SEL-TC2 exactly)
+
+**Why.** SEL-TC2 gains over SEL-TC's pipeline by calling more (+0.70 / +0.73 points at 0.48k / 0.43k tokens), AB2 by answering no call where
+every call invented a function (+1.1 / +1.0 at the cascade's tokens). The two act on different requests (relevant vs irrelevance), so
+they should add if the no-call answer is offered where SEL-TC2 chooses.
+
+**Design.** SEL-TC2's planner unchanged (fitted on held-out ToolACE; it does not depend on the verifier, so every arm below makes the
+same calls at the same tokens). At its stop, wherever ≥ 1 passing answer was seen and none is the no-call answer, "[]" joins the set:
+its logit from the fitting rows at the same pattern where no call is right (smoothed as the planner's own), its score selab2_s450's of
+"[]"; the choice is argmax logit + β z as in SEL-TC2, β and sd refitted on held-out ToolACE sets that include "[]". Arms on BFCL, both
+N types: **TC2-AB** (above), **TC2-new** (selab2_s450 at the stop, no offer: the verifier swap alone), **SEL-TC2** (seltc_s150, the
+current method), AB2, and the planner alone. A pattern the planner never saw gets SEL-TC's pipeline outcome in every arm (14 / 5).
+Code `lcm_shift.py --sel-tc2ab selab2_s450`; selab2_s450 scores the 3,036 SEL-TC2 texts it has not scored (job 1301891,
+`cv_eval_lane.sh score-tc`). Run with SEL-TC's verifier in both places, TC2-new equals SEL-TC2 to the request (86.6% / 87.7%) and
+TC2-AB loses (−0.54 / −0.82: the old verifier's blanket abstention) — the code path, not a prediction.
+
+**Predictions** (paired 95% intervals over requests, utility points):
+- **SEL-TC2-AB-P1 (decision):** TC2-AB − SEL-TC2, lower bound > 0 in at least one N type, upper bound < 0 in none.
+- **SEL-TC2-AB-P2 (mechanism):** TC2-AB − TC2-new gains from irrelevance requests and loses ≤ 0.5 points on the others, both N types.
+- **SEL-TC2-AB-P3 (the swap alone):** TC2-new − SEL-TC2, upper bound ≥ 0 in both N types.
+- **SEL-TC2-AB-P4:** TC2-AB − AB2, lower bound > 0 in at least one N type, upper bound < 0 in none (the planner's extra calls still pay
+  once no call is offered).
+- **Expected (derived).** SEL-TC2's stops on BFCL (seltc_s150, `nlp_data/scratch/tc2ab_derive.py`): "[]" would be offered on 496 /
+  341 irrelevance request-seeds where SEL-TC2 is wrong (G₂) and 6,171 / 6,075 relevant ones where it is right (L₂), of 10,446. At
+  AB2's operating point (t = 0.55 / 0.43, f = 0.030 / 0.016) the offer gains 100·(t·G₂ − f·L₂)/n = +0.86 / +0.45; the verifier swap's
+  call-level changes as in AB2 add −0.55 / +0.13, so TC2-AB − SEL-TC2 ≈ +0.3 / +0.6. If the two gains simply add (AB2 − SEL-TC plus
+  AB2+ − AB2 for offering at agreement-like stops), ≈ +0.95 / +0.90. The intervals are about ±0.5. I expect P1 to hold for C1tc N and
+  to be unresolved for base N, P2 to hold, P3 to be refuted for base N (the swap costs ≈ −0.55 there: the new verifier takes an
+  invented call over a model's own "none" at some stops) and P4 to be refuted (+0.3 / +0.6 − AB2's +0.42 / +0.25 over SEL-TC2).
+
+**Decision.**
+- P1 holds → TC2-AB replaces SEL-TC2 as the tool-call method; PROJECT, REPORT and PROPOSAL updated.
+- P1 refuted, P2 holds → the offer pays at the planner's stop but does not resolve against SEL-TC2. The remaining derived cause is
+  the prior: the no-call logit is fitted where 14% of requests need no call, BFCL has 32%. Next: estimate the target prior from
+  BFCL's unlabelled scores (EM re-weighting, Saerens et al. 2002; black-box shift estimation, Lipton et al. 2018), pre-registered then.
+- P1 refuted, P2 refuted → the offer does not carry to the planner's stop; the abstention line closes with AB2 reported (+1.1 / +1.0
+  over SEL-TC's pipeline, unresolved against SEL-TC2); stated.
+- P3 refuted → the swap's cost is reported beside the result.
+
+Run: job 1301891 (`bash poc/slurm/cv_eval_lane.sh score-tc $POC_DATA/cv/selab2/adapter_s450 selab2_s450 sel_req_tc2.jsonl tcho,bfcl`),
+then `lcm_shift.py --sel-tc2ab selab2_s450 > results/lcm_seltc2ab.log`.
