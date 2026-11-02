@@ -12,10 +12,11 @@ requests with a right and a wrong one. Context = the request, a candidate's text
 logit(DE); loss per request = mean over (right, wrong) pairs of log(1 + exp(s_w - s_r)).
 --pw (addendum SEL-PW-TC): the same pool and requests, the pairwise verifier of cv_train.py pw (both answers in one turn, tc_pw_prompt).
 --orm --abst (addendum SEL-AB2): the pool also holds the no-call answer "[]" on every request with a passing answer (right where the
-request has no gold call).
+request has no gold call). --extra toolpref,when2call (addendum SEL-DATA): + public preference pairs ($POC_DATA/toolace/tc_pref_pairs.jsonl,
+prep_tctrain.py --pref) of those sources, each pair one request (its right and its wrong answer).
 usage: /opt/conda/bin/python tc_train.py <out dir> [--questions 6000] [--batch 64] [--group 8] [--lr 2e-5] [--smoke N] [--base DIR]
        [--bil FILE [--plus]]
-       /opt/conda/bin/python tc_train.py <out dir> --orm [--abst] [--batch 16] [--lr 5e-5] [--epochs 2] [--save 25] [--smoke N]
+       /opt/conda/bin/python tc_train.py <out dir> --orm [--abst] [--extra SRC,...] [--batch 16] [--lr 5e-5] [--epochs 2] [--save 25] [--smoke N]
        /opt/conda/bin/python tc_train.py <out dir> --pw [--pairs 4] [--batch 16] [--lr 5e-5] [--epochs 2] [--save 25] [--smoke N]"""
 import json, math, os, random, sys, time
 from concurrent.futures import ThreadPoolExecutor
@@ -84,6 +85,12 @@ def main_orm(out):
         G = tc_pool_abst(G, items)
     Q = sorted((i, {k: v[1] for k, v in g.items() if v[0]}, {k: v[1] for k, v in g.items() if not v[0]}) for i, g in G.items()
                if any(v[0] for v in g.values()) and not all(v[0] for v in g.values()))
+    if "--extra" in sys.argv:   # addendum SEL-DATA: public preference pairs (prep_tctrain.py --pref) of the named sources, one request each
+        src = set(sys.argv[sys.argv.index("--extra") + 1].split(","))
+        X = [p for p in map(json.loads, open(f"{D}/tc_pref_pairs.jsonl")) if p["src"] in src]
+        items.update({p["id"]: p for p in X})
+        Q += sorted((p["id"], {canon(p["right"]): [p["right"]]}, {canon(p["wrong"]): [p["wrong"]]}) for p in X)
+        print(f"orm-tc: + {len(X)} preference pairs from {sorted(src)}", flush=True)
     random.Random(0).shuffle(Q)
     Q = Q[:smoke or len(Q)]
     print(f"orm-tc: {len(Q)} requests with a right and a wrong passing answer (of {len(G)}), {sum(len(r) + len(w) for _, r, w in Q)} "

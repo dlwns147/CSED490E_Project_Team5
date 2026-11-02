@@ -2634,6 +2634,84 @@ def rm_set(J, sset, i, C):
     return {g: win[g] / (2 * (k - 1)) for g in ks}, tok, pref
 
 
+def main_sel_data():
+    """addendum SEL-DATA (--sel-data <name> [reference, default selab2_s450]): TC2-AB with verifier <name> (beta refitted on held-out
+    ToolACE, the planner unchanged) against TC2-AB with the reference, on BFCL and ACEBench, both N types: accuracy, utility (paired
+    95% intervals over requests; the verifiers cost no output tokens, so the tokens are the same), accuracy on the requests where no
+    call is right and on the others, and the within-set ordering of right-vs-wrong pairs by each verifier's score, split into
+    call-vs-call (cc), right no-call vs wrong call (nr) and right call vs wrong no-call (cr) pairs (SEL-DATA-P1..P4)"""
+    from analyze_ho3 import ci
+    from run_nlopt import _rows
+    load = lambda x: {r["h"]: r for r in _rows(os.path.join(lcm.ROOT, "results", "conf", f"sel_scores_{x}.jsonl"))}
+    a = sys.argv.index("--sel-data")
+    nm = sys.argv[a + 1]
+    ref = sys.argv[a + 2] if len(sys.argv) > a + 2 and not sys.argv[a + 2].startswith("--") else "selab2_s450"
+    S1, S0 = load(nm), load(ref)
+    f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
+    U = lambda r, t: 100 * float(r) - LAM * t / 1000
+    R, ordr = {}, {}
+    for nsrc in (None, RV_N["tc"]):
+        name = "trained" if nsrc else "base"
+        F = {k: tc2_fit(nsrc, S, ab=True) for k, S in (("new", S1), ("ref", S0))}
+        print(f"    SEL-DATA {name}: beta {nm} {F['new'][1]:.1f} (sd {F['new'][2]:.2f}), {ref} {F['ref'][1]:.1f} (sd {F['ref'][2]:.2f})", flush=True)
+        for tgt in ("bfcl", "ace"):
+            D, X = tc2_cells(tgt, nsrc)
+            ids = sorted(D)
+            acc, kt, Uq, Aq, cnt = Counter(), Counter(), {k: Counter() for k in F}, {k: Counter() for k in ("none", "call")}, Counter()
+            od = ordr.setdefault(tgt, {f"{k}_{v}": [0.0, 0] for k in ("cc", "nr", "cr") for v in F})
+            for i in ids:
+                kind = "none" if ab_none_right(tgt, i) else "call"
+                cnt[kind] += 1
+                for s in (1, 2, 3):
+                    sc = lcm.seed_calls(D[i], s)
+                    out = {}
+                    for k, S in (("new", S1), ("ref", S0)):
+                        P, beta, sd, _ = F[k]
+                        x = tc2_run(P, sc, X[(i, s)], S, tgt, i, beta, sd, ab=True)
+                        out[k] = lcm.fixed("cascade", sc) if x is None else x[:2]
+                        if x is None:
+                            cnt["unseen"] += k == "new"
+                        elif x[3] and len(x[3]) >= 2:
+                            C = x[3]
+                            cnt["sets " + k] += 1
+                            for e in C:
+                                for e2 in C:
+                                    if e["r"] and not e2["r"]:
+                                        g, g2 = rm_id(e), rm_id(e2)
+                                        pk = "cc" if "AB" not in (g, g2) else ("nr" if g == "AB" else "cr")
+                                        od[f"{pk}_{k}"][0] += 1.0 if e["s"] > e2["s"] else 0.5 if e["s"] == e2["s"] else 0.0
+                                        od[f"{pk}_{k}"][1] += 1
+                    for k, (r, t) in out.items():
+                        acc[k] += r; kt[k] += t; Uq[k][i] += U(r, t) / 300
+                    Aq[kind][i] += (float(out["new"][0]) - float(out["ref"][0])) / 3
+            n = 3 * len(ids)
+            R[(name, tgt)] = r = {"u": ci({i: Uq["new"][i] - Uq["ref"][i] for i in ids}),
+                                  "none": ci({i: Aq["none"][i] for i in ids if ab_none_right(tgt, i)}),
+                                  "call": ci({i: Aq["call"][i] for i in ids if not ab_none_right(tgt, i)})}
+            print(f"    SEL-DATA {tgt} {name}: TC2-AB with {nm} {100 * acc['new'] / n:.2f}% at {kt['new'] / n / 1000:.2f}k, with {ref} "
+                  f"{100 * acc['ref'] / n:.2f}% at {kt['ref'] / n / 1000:.2f}k; utility {nm} - {ref} {f(r['u'])}; accuracy on the {cnt['none']} "
+                  f"no-call requests {f(r['none'])}, on the {cnt['call']} others {f(r['call'])}; unseen {cnt['unseen']} of {n}", flush=True)
+    for tgt, od in ordr.items():
+        q = {k: v[0] / v[1] if v[1] else float("nan") for k, v in od.items()}
+        print(f"    SEL-DATA {tgt} right-vs-wrong pairs (both N types), {nm} / {ref}: " + "; ".join(
+            f"{pk} {q[pk + '_new']:.3f} / {q[pk + '_ref']:.3f} (n {od[pk + '_new'][1]} / {od[pk + '_ref'][1]})" for pk in ("cc", "nr", "cr")), flush=True)
+        ordr[tgt] = q
+    if len(R) < 4:
+        print(f"*** {len(R)} of 4 cells present, not decided"); return
+    B = {k: r for k, r in R.items() if k[1] == "bfcl"}
+    up, down = sum(r["u"][1] > 0 for r in B.values()), sum(r["u"][2] < 0 for r in B.values())
+    print(f"*** SEL-DATA-P1 (BFCL utility {nm} - {ref}: lower bound > 0 in >= 1 of 2, upper bound < 0 in none): " + "; ".join(
+        f"{k[0]} {f(r['u'])}" for k, r in B.items()) + f" -> {up} above, {down} below -> {'holds' if up >= 1 and down == 0 else 'refuted'}; "
+        f"mean of the two {sum(r['u'][0] for r in B.values()) / 2:+.2f}")
+    print(f"*** SEL-DATA-P2 (call-vs-call ordering {nm} > {ref} on BFCL): {ordr['bfcl']['cc_new']:.3f} vs {ordr['bfcl']['cc_ref']:.3f} -> "
+          f"{'holds' if ordr['bfcl']['cc_new'] > ordr['bfcl']['cc_ref'] else 'refuted'}")
+    print(f"*** SEL-DATA-P3 (right no-call vs wrong call ordering {nm} > {ref} on BFCL): {ordr['bfcl']['nr_new']:.3f} vs "
+          f"{ordr['bfcl']['nr_ref']:.3f} -> {'holds' if ordr['bfcl']['nr_new'] > ordr['bfcl']['nr_ref'] else 'refuted'}")
+    p4 = all(R[(n_, "ace")]["u"][2] >= 0 for n_ in ("base", "trained"))
+    print(f"*** SEL-DATA-P4 (ACEBench utility {nm} - {ref}: upper bound >= 0 in both N types): " + "; ".join(
+        f"{n_} {f(R[(n_, 'ace')]['u'])}" for n_ in ("base", "trained")) + f" -> {'holds' if p4 else 'refuted'}")
+
+
 def main_sel_rm():
     """addendum SEL-RM (--sel-rm [name]): ToolRM-Gen-Qwen3-4B-Thinking-2507's pairwise judgments at TC2-AB's stop on BFCL and ACEBench,
     both N types: TC2-AB (ours), RM (argmax of the judge's win share, ties by the planner's log-odds), RM-KO (a single-order knockout
@@ -2643,7 +2721,8 @@ def main_sel_rm():
     from run_nlopt import _rows
     import zlib
     nm = sys.argv[sys.argv.index("--sel-rm") + 1] if len(sys.argv) > sys.argv.index("--sel-rm") + 1 else "toolrm4b"
-    S = {r["h"]: r for r in _rows(os.path.join(lcm.ROOT, "results", "conf", "sel_scores_selab2_s450.jsonl"))}
+    # SEL_RM_VER (addendum SEL-DATA): another verifier in place of ours (its stop sets must be judged already: missing -> TC2-AB)
+    S = {r["h"]: r for r in _rows(os.path.join(lcm.ROOT, "results", "conf", f"sel_scores_{os.environ.get('SEL_RM_VER', 'selab2_s450')}.jsonl"))}
     J = rm_load(nm)
     f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
     U = lambda r, t: 100 * float(r) - LAM * t / 1000
@@ -2726,7 +2805,7 @@ def main_sel_rm():
                     for k, (r, t) in out.items():
                         acc[k] += r; kt[k] += t; Uq[k][i] += U(r, t) / 300
                     for k in Aq:
-                        Aq[k][i] += (float(out[k][0]) - float(out["TC2-AB"][0])) * 100 / 3
+                        Aq[k][i] += (float(out[k][0]) - float(out["TC2-AB"][0])) / 3   # ci reports x 100: points
             n = 3 * len(ids)
             d = lambda a, b: ci({i: Uq[a][i] - Uq[b][i] for i in ids})
             R[(name, tgt)] = r = {"rm": d("RM", "TC2-AB"), "ko": d("RM-KO", "TC2-AB"), "comb": d("COMB", "TC2-AB"),
@@ -2762,6 +2841,8 @@ def main():
         return main_rm_build()
     if "--sel-rm" in sys.argv:
         return main_sel_rm()
+    if "--sel-data" in sys.argv:
+        return main_sel_data()
     if "--sel-build-ab" in sys.argv:
         return main_sel_build_ab()
     if "--sel-ab" in sys.argv or "--sel-ab2" in sys.argv or "--sel-val-ab" in sys.argv:

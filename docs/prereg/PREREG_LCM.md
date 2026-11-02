@@ -1978,3 +1978,50 @@ A format check on TRBench-BFCL prompts comes first (no judgment of our sets).
 group ids, which are numbered afresh in every request-seed, so different answers of one request shared an id. Answers are now
 identified by their canonical calls (every no-call answer as one answer, as the judge sees it): 16,173 / 9,414 / 4,005 distinct
 pairs on held-out ToolACE / BFCL / ACEBench, 59,184 judgments in both orders. Nothing else changes.
+
+## Addendum SEL-DATA: public preference data for the scalar verifier (written 2026-11-02 19:2x UTC, before any training with it)
+
+**Why.** SEL-RM's judgments (partial: 44,169 of 59,184; its results section will hold the final numbers) locate where the published
+reasoning reward model differs from our verifier: on BFCL's right-vs-wrong call pairs it orders the right call first more often
+(0.781 vs 0.712), on held-out ToolACE and ACEBench less often (0.744 vs 0.769; 0.798 vs 0.839), and it almost never prefers a right
+no-call answer to a wrong call (0.011–0.038 vs our 0.82–0.92). Its training data explains the second: every one of the 29,500
+chosen answers in ToolPref-Pairwise-30K makes a call (5,811 rejected answers make none), so no request in it has no call right. ToolRM's
+own ablation (2510.26167, Table 6) trains a discriminative (scalar, Bradley–Terry) model on the same data and it beats the generative
+one (TRBench-BFCL 76.8–77.6 vs 66.9–71.9; ACEBench best-of-16 67.2 vs 66.6). So the question left is not reasoning but data: does
+the data that gave the judge its edge on BFCL's calls — and data that labels when not to call — reduce the loss our zero-token verifier
+leaves at TC2-AB's stop? That loss on BFCL is 6.3–6.7% of request-seeds: a right call in a stop set of >= 2 calls not chosen 3.0–3.1%
+(the choice a call 1.7–1.9%, no call 1.2–1.3%), the rest no call right and not chosen. When2Call (2504.18851) trains when-not-to-call
+behaviour from preference data; IBM's ToolRM (2509.11963) trains outcome reward models on synthetic call pairs. Neither puts a
+scalar verifier at a priced cascade's stop with the no-call answer offered.
+
+**Data** (`prep_tctrain.py --pref` -> $POC_DATA/toolace/tc_pref_pairs.jsonl; our prompt format, BFCL's types, calls as Python): single-turn
+pairs whose two answers both pass our free check (the verifier only ever sees passing answers), the rejected one wrong by our grading
+with the chosen one as gold, and the request text none of BFCL's, ACEBench's or the ToolACE items'.
+- ToolPref-Pairwise-30K (discriminative split, CC-BY-NC-SA-4.0): call-vs-call pairs with the chosen answer right by its rule (score 1.0):
+  8,721. Its call / no-call pairs are left out (its construction never has no call right).
+- When2Call train_pref (CC-BY-4.0): a call vs a no-call answer (a question back or a statement that it cannot be done, both "[]"):
+  2,868 with the call right, 950 with no call right.
+
+**Run.** Three verifiers, each SEL-AB2's training (`tc_train.py --orm --abst`: Qwen3-8B LoRA, pairwise loss within a request, 2 epochs, our
+4.7k held-out-disjoint ToolACE pools) with each public pair as one more request (`--extra`): **TP** (ToolPref), **W2C** (When2Call),
+**ALL** (both); adapters every 300 steps, chosen as selab2_s450 was (held-out ToolACE AB-set AUROC, `--sel-val-ab`), then the choice
+scores every text TC2-AB needs and `lcm_shift.py --sel-data <choice>` compares TC2-AB with it against TC2-AB with selab2_s450 (beta
+refitted on held-out ToolACE; planner, stop sets and tokens unchanged): BFCL and ACEBench × base / C1tc quick calls, paired 95%
+intervals over requests. One job per arm (`cv_eval_lane.sh orm-tc-data`), RTX 3090 / A5000.
+
+**Predictions.** (Derivation: a verifier's gain ≈ Σ over pair kinds of the loss there × the relative cut in its ordering errors; the
+judge's BFCL call-vs-call edge, 0.29 -> 0.22 errors, is a 24% cut, × 1.8% ≈ +0.45; the no-call loss of ~3.4% gains only if When2Call's
+"cannot / ask" labels transfer to BFCL's irrelevance, which its 3:1 call-right share puts in doubt.)
+- **SEL-DATA-P1 (method):** ALL − selab2_s450 BFCL utility: lower bound > 0 in ≥ 1 of the 2 N types, upper bound < 0 in neither.
+- **SEL-DATA-P2 (call data):** TP orders BFCL's right-vs-wrong call pairs within stop sets better than selab2_s450 (0.736 on this
+  per-set count).
+- **SEL-DATA-P3 (no-call data):** W2C orders BFCL's right-no-call-vs-wrong-call pairs better than selab2_s450 (0.876).
+- **SEL-DATA-P4 (held out):** the adopted arm's ACEBench utility − selab2_s450: upper bound ≥ 0 in both N types.
+- **Expected:** TP +0.2 to +0.6 on BFCL (P2 holds), W2C −0.3 to +0.5 (P3 open), ALL +0.2 to +0.8 (P1 borderline), ACEBench within ±0.5.
+- Also reported: TP's and ALL's call-vs-call ordering on SEL-RM's judged pairs against the judge's (`SEL_RM_VER=<choice> lcm_shift.py
+  --sel-rm toolrm4b`) — whether the data, at zero output tokens, gives what the reasoning judge has on BFCL's calls.
+
+**Decision.** Adopted: among the arms whose BFCL utility interval has lower bound > 0 in ≥ 1 N type and upper bound < 0 in none, the
+one with the highest mean of the two; it replaces selab2_s450 in TC2-AB if its P4 holds. None → selab2_s450 stays, and the claim
+reads: the remaining verifier loss is not closed by the public tool-call preference data (BFCL is the choosing benchmark; ACEBench
+only checks).

@@ -87,6 +87,31 @@ if [ "$1" = orm-tc-ab ]; then
   /opt/conda/bin/python poc/lcm_shift.py --sel-ab2 $best > results/lcm_${pre}.log 2>&1
   kill $S; sleep 10; exit 0
 fi
+if [ "$1" = orm-tc-data ]; then
+  # orm-tc-data <out dir> <prefix> <sources>: addendum SEL-DATA — orm-tc-ab with public preference pairs added (tc_train.py --extra
+  # <sources>, adapters every 300 steps); the choice as SEL-AB2's, then it scores every text TC2-AB needs (held-out ToolACE, BFCL,
+  # ACEBench) and lcm_shift.py --sel-data compares TC2-AB with it against selab2_s450.
+  out=$2 pre=$3 src=$4
+  mkdir -p $out
+  [ -f $out/adapter_final/adapter_config.json ] || /opt/conda/bin/python poc/tc_train.py $out --orm --abst --extra $src --save 300 \
+    >> results/tc/run_${pre}_train.log 2>&1 || exit 1
+  mods="" names=""
+  for d in $out/adapter_*; do n=${pre}_${d##*/adapter_}; mods="$mods $n=$d"; names="$names,$n"; done
+  names=${names#,}
+  export VLLM_ALLOW_RUNTIME_LORA_UPDATING=True
+  S=$(bash poc/start_server.sh /SSD/huggingface/Qwen/Qwen3-8B $PORT 0 0.90 ${pre}_${SLURM_JOB_ID} --max-model-len 16384 --enable-lora \
+    --max-lora-rank 16 --max-loras 4 --max-cpu-loras 16 --max-num-seqs 64 --lora-modules $mods) || exit 1
+  export POC_BASE_URL=http://127.0.0.1:$PORT/v1
+  SEL_REQ=sel_req_abval.jsonl SEL_SSETS=tcho /opt/conda/bin/python poc/score_conf.py sel $names >> results/run_${pre}_score.log 2>&1 \
+    || { kill $S; exit 1; }
+  best=$(/opt/conda/bin/python poc/lcm_shift.py --sel-val-ab $names | tee -a results/lcm_${pre}_val.log | sed -n 's/^\*\*\* SEL-AB2 checkpoint[^:]*: //p')
+  echo "[$pre $(date -u '+%F %T')] chosen: $best" >> results/run_${pre}_score.log
+  SEL_REQ=sel_req_aball.jsonl SEL_SSETS=tcho,bfcl /opt/conda/bin/python poc/score_conf.py sel $best >> results/run_${pre}_score.log 2>&1
+  SEL_REQ=sel_req_tc2.jsonl SEL_SSETS=tcho,bfcl /opt/conda/bin/python poc/score_conf.py sel $best >> results/run_${pre}_score.log 2>&1
+  SEL_REQ=sel_req_ace.jsonl SEL_SSETS=ace /opt/conda/bin/python poc/score_conf.py sel $best >> results/run_${pre}_score.log 2>&1
+  /opt/conda/bin/python poc/lcm_shift.py --sel-data $best > results/lcm_${pre}.log 2>&1
+  kill $S; sleep 10; exit 0
+fi
 if [ "$1" = orm-tc ]; then
   out=$2 pre=${SEL_PREFIX:-seltc}
   mods="" names=""
