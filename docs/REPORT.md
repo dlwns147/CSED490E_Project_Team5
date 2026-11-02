@@ -32,7 +32,7 @@ beats the no-label default on text-to-SQL (+2.0 utility, BIRD dev) and tool call
 +2.60, the two trainings adding without a cross term); trained to gate itself, it learns to defer everything, and trained for the cascade's exact reward it loses to plain RL on both tasks (it gives up learned abstention on tool calls; CV-1, TC-RL).
 Where the cheap checks disagree and two or three passing SQL queries remain, a verifier trained on BIRD-train labels for the
 within-question contrast chooses among them (AUROC 0.82 on BIRD dev; label-free scores 0.50) and adds +0.9 to +2.0 in all six cells at
-no output tokens, as a pre-registered bound predicted from its AUROC; with it the untrained peer cascade also beats the default on SQL
+no output tokens, as a pre-registered bound predicted from its AUROC (+0.3 more when it sees both queries at once, SEL-PW); with it the untrained peer cascade also beats the default on SQL
 (61.1% at 1.39k tokens vs 59.5% at 1.68k on BIRD dev; Spider test 78.9% at 0.47k vs 76.2% at 1.08k; SEL). The same recipe on tool
 calls (ToolACE training labels, BFCL) adds +1.08 / +1.68 over the cascade, mostly by choosing a right abstention (SEL-TC).
 Where the check is perfect (Lean proofs) the
@@ -679,7 +679,7 @@ and Spider dev (61–62% on Spider test). Unlike GradeSQL's gain from 32 samples
 stored quick queries per fallback add a right candidate in only 1.5% of the cells, so the room is in the answers the cascade has
 already paid for. Unchanged, the verifier gains at every other generator's fallback too (SEL-G, pre-registered: Qwen3-14B-AWQ,
 Qwen3.5-9B and gpt-oss-20b, 9 of 9 cells, +1.07 to +2.66; AUROC 0.73–0.83, gpt-oss-20b's queries in another family's style included),
-and it turns Qwen3.5-9B's peer cascade on Spider test, which did not beat its default (−0.36), into a gain (+1.00). On tool calls (SEL-TC, pre-registered) the same recipe on 1,267 ToolACE training requests reaches 0.84 / 0.80 on
+and it turns Qwen3.5-9B's peer cascade on Spider test, which did not beat its default (−0.36), into a gain (+1.00). Shown both answers in one prompt instead of each alone — the same candidates, backbone, 1,320 training questions and loss (SEL-PW, pre-registered) — the verifier separates better: AUROC +0.039 / +0.044 pooled over the three targets (untrained / trained quick query), and the choice gains +0.27 [+0.00, +0.56] / +0.33 [+0.01, +0.65] points, nearly all on Spider test (+0.54 / +0.69), where the one-at-a-time verifier transferred worst (0.72–0.74 against 0.80–0.78 pairwise). The gain is not the column convention (as large on same-column as on different-column pairs; column-order-only disagreements cancel) but content — COUNT(DISTINCT …) for "how many different", LIMIT 1 for "most frequently". It costs 5–23% more prefill and no output tokens; the SQL pipeline now uses it. This isolates the format that CHASE-SQL's pairwise selector changes together with its candidates and data. On tool calls (SEL-TC, pre-registered) the same recipe on 1,267 ToolACE training requests reaches 0.84 / 0.80 on
 BFCL (label-free 0.48) and adds +1.08 / +1.68 over the cascade — more than the call policy fitted on the same held-out requests (−0.11 /
 +1.04) and at no output tokens; the pipeline is 85.8% / 86.9% accurate at 0.27–0.28k tokens against the default's 83.9% at 0.38k. Of
 the answers it changes, most are a right abstention chosen over a call filled with values the request never gave ("Your Starting

@@ -5015,3 +5015,24 @@ within-question verifier on VER's OptMATH-Train programs (1,029 problems) to ask
 Decision (registered): the word method stays XPEER's cascade; PROJECT, REPORT, PROPOSAL state the boundary. Next (pre-registered,
 running: smoke 1296550, then 1296551): SEL-PW, a pairwise verifier at the SQL fallback against SEL's pointwise one on the same
 candidates, backbone, data and loss — whether seeing the alternative raises the AUROC that the bound says limits the gain.
+
+## 2026-11-02 00:5x UTC: SEL-PW (pre-registered): the SQL verifier chooses better when it sees the alternative — pairwise replaces pointwise at the fallback
+Why: across SEL, SEL-TC, SEL-G and SEL-W the fallback gain follows the verifier's within-question AUROC (the bound), so the AUROC is the
+lever. SEL-PW changed only the format — both queries and their results in one prompt, s(a, b) = logit(A) − logit(B), order-debiased —
+with SEL's candidates, backbone (Qwen3-8B + LoRA r 16), 1,320 BIRD-train questions and loss held fixed.
+- AUROC pairwise − pointwise, three targets pooled: +0.039 [+0.016, +0.062] / +0.044 [+0.020, +0.068] (untrained / trained quick
+  query; P1 holds). Choice: +0.27 [+0.000, +0.56] / +0.33 [+0.008, +0.65] points (P2 holds, narrowly), nearly all on Spider test
+  (+0.54 / +0.69, both significant; BIRD dev and Spider dev −0.00 to +0.20).
+- Where it pays: the pointwise verifier transferred worst to Spider test (0.82 → 0.72–0.74); the pairwise one held 0.78–0.80. Across
+  the six cells the AUROC gain shrinks as the pointwise AUROC rises (exploratory; a ceiling may explain part).
+- Not the mechanism predicted (P3 refuted): the ordering gain is the same on same-column and different-column pairs (+2.4 / +2.9, each
+  n.s.). Raw cases are content (COUNT(DISTINCT) for "how many different", LIMIT 1 for "most frequently"); column-order-only
+  disagreements cancel (32 wins vs 36 losses on Spider test).
+- The untrained model prefers the query that returns more columns (701 / 891 Spider test pairs), against the benchmarks' convention:
+  AUROC 0.32–0.61 untrained, so the format needs the training.
+- The cross-fitted selector reaches the bound in 3 of 6 cells (P4 refuted): the mean of pairwise log-odds is a less calibrated z.
+- Cost: no output tokens; prefill +5–23% per question-seed.
+Decision (registered): the SQL fallback uses the pairwise verifier; PROJECT, REPORT, PROPOSAL updated. Goal link: the same accuracy per
+output token, +0.3 points at the stratum where the cascade cannot tell its answers apart. Next (pre-registered, running: smoke 1297145,
+then 1297146): SEL-PW-TC, the same change on tool calls, where SEL-TC's pointwise verifier is at chance on calls that differ in an
+optional argument — the case a side-by-side view should fix (P3 there).

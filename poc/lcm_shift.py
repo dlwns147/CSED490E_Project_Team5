@@ -1144,6 +1144,171 @@ def main_sel_tc():
           f"{'holds' if max(p4) <= 0.05 else 'refuted'}")
 
 
+def main_sel_build_pwtc():
+    """addendum SEL-PW-TC: every ordered pair of distinct passing answers in SEL-TC's cells, one text per answer (the first call's in
+    the order N, P, d) -> results/conf/sel_req_pwtc.jsonl (held-out ToolACE for the checkpoint and beta; BFCL)"""
+    req = {}
+    for sset in ("tcho", "bfcl"):
+        for nsrc in (None, RV_N["tc"]):
+            D, items = tc_items(sset, nsrc)
+            for i, s, cand, dr in items:
+                reps = [v[2][0] for v in cand.values()]
+                for a in reps:
+                    for b in reps:
+                        if a != b:
+                            h = rv_key("tc", sset, i, "pw", [a, b])
+                            req[h] = {"h": h, "task": "tc", "sset": sset, "id": i, "kind": "pw", "text": a, "text2": b}
+            print(f"SEL-PW-TC build {sset} {nsrc or 'base'}: {len(items)} multi-answer fallback request-seeds; requests so far {len(req)}",
+                  flush=True)
+    with open(os.path.join(lcm.ROOT, "results", "conf", "sel_req_pwtc.jsonl"), "w") as f:
+        for r in req.values():
+            f.write(json.dumps(r) + "\n")
+    print(f"SEL-PW-TC build: {len(req)} requests -> results/conf/sel_req_pwtc.jsonl")
+
+
+def pwtc_items(sset, nsrc, S):
+    """tc_sel_items for SEL-PW-TC: candidate a's s = the mean over the other candidates b of (s(a, b) - s(b, a)) / 2 (as pw_items);
+    also each candidate's answer key (k) and text (t)"""
+    D, raw = tc_items(sset, nsrc)
+    out, miss = [], 0
+    for i, sd, cand, dr in raw:
+        K = list(cand)
+        reps = [cand[k][2][0] for k in K]
+        C = []
+        for a in range(len(K)):
+            d, pre = [], 0
+            for b in range(len(K)):
+                if a != b:
+                    x, y = S.get(rv_key("tc", sset, i, "pw", [reps[a], reps[b]])), S.get(rv_key("tc", sset, i, "pw", [reps[b], reps[a]]))
+                    if x is None or y is None:
+                        d = None; break
+                    d.append((x["s"] - y["s"]) / 2); pre += x.get("pre", 0)
+            if d is None:
+                C = None; break
+            C.append({"r": cand[K[a]][0], "calls": cand[K[a]][1], "s": sum(d) / len(d), "pre": pre, "k": K[a], "t": reps[a]})
+        if C is None:
+            miss += 1; continue
+        out.append((i, sd, C, dr))
+    return D, [(i, s, {k: [v[0], v[1]] for k, v in c.items()}, dr) for i, s, c, dr in raw], out, miss
+
+
+def pair_kind(ka, kb):
+    """SEL-PW-TC-P3's pair types: 'abstain' (one answer is no call), 'same' (the same functions, other argument values), 'other'"""
+    un = lambda k: json.loads(k) if k.startswith('"') else k   # BFCL's keys are json.dumps of analyze_tc's calls; tcho's tc_reward.canon
+    ka, kb = un(ka), un(kb)
+    if "none" in (ka, kb):
+        return "abstain"
+    name = lambda e: e[0] if isinstance(e, list) else next(iter(e))
+    fn = lambda k: sorted(name(json.loads(x)) for x in json.loads(k))
+    return "same" if fn(ka) == fn(kb) else "other"
+
+
+def main_sel_pwtc():
+    """addendum SEL-PW-TC. --sel-val-pwtc n1,n2,...: pooled within-question AUROC of each pairwise checkpoint (and local, reported) on
+    the held-out ToolACE fallback sets and the choice; --sel-pwtc <name>: BFCL against SEL-TC's pointwise verifier (seltc_s150) on the
+    same request-seeds (SEL-PW-TC-P1..P4)"""
+    from analyze_ho3 import ci
+    from run_nlopt import _rows
+    cd = os.path.join(lcm.ROOT, "results", "conf")
+    load = lambda nm: {r["h"]: r for r in _rows(os.path.join(cd, f"sel_scores_{nm}.jsonl"))}
+    g = lambda v: f"{v[0] / 100:.3f} [{v[1] / 100:.3f}, {v[2] / 100:.3f}]"
+    f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
+    if "--sel-val-pwtc" in sys.argv:
+        best = None
+        for nm in sys.argv[sys.argv.index("--sel-val-pwtc") + 1].split(","):
+            S, pooled, per = load(nm), {}, {}
+            for nsrc in (None, RV_N["tc"]):
+                _, _, it, miss = pwtc_items("tcho", nsrc, S)
+                a = sel_auc(it)
+                per[nsrc or "base"] = ci(a) if a else (float("nan"),) * 3
+                for i, v in a.items():
+                    pooled.setdefault(i, []).append(v)
+            if not pooled:
+                print(f"SEL-PW-TC val {nm}: no scored mixed set", flush=True); continue
+            pa = ci({i: sum(v) / len(v) for i, v in pooled.items()})
+            print(f"SEL-PW-TC val {nm}: AUROC base {g(per['base'])}, trained {g(per['q8btcc1'])}, pooled {g(pa)} ({len(pooled)} requests)",
+                  flush=True)
+            if nm != "local" and (best is None or pa[0] > best[1]):
+                best = (nm, pa[0])
+        print(f"*** SEL-PW-TC checkpoint (highest pooled held-out ToolACE AUROC): {best[0]}")
+        return
+    nm = sys.argv[sys.argv.index("--sel-pwtc") + 1]
+    S, ST = load(nm), load("seltc_s150")
+    SL = load("local") if os.path.exists(os.path.join(cd, "sel_scores_local.jsonl")) else {}
+    R, mech = {}, {k: {} for k in ("same", "other", "abstain")}
+    for nsrc in (None, RV_N["tc"]):
+        name = "trained" if nsrc else "base"
+        _, raw_ho, how, _ = pwtc_items("tcho", nsrc, S)
+        _, _, hot, _ = tc_sel_items("tcho", nsrc, ST)
+        prior = [(i, s, [{"r": c[0], "calls": c[1], "s": 0.0} for c in cand.values()], dr) for i, s, cand, dr in raw_ho]
+        cw, bw = sel_fit(prior, how)
+        ct, bt = sel_fit(prior, hot)
+        D, raw, itw, missw = pwtc_items("bfcl", nsrc, S)
+        _, _, itt, misst = tc_sel_items("bfcl", nsrc, ST)
+        kw, kt = {(x[0], x[1]): x for x in itw}, {(x[0], x[1]): x for x in itt}
+        keys = sorted(set(kw) & set(kt))
+        if not keys:
+            print(f"    SEL-PW-TC BFCL {name}: no scored request-seed (missing pairwise {missw}, pointwise {misst})", flush=True); continue
+        itw, itt = [kw[k] for k in keys], [kt[k] for k in keys]
+        aw, at = sel_auc(itw), sel_auc(itt)
+        Aw, At = ci(aw), ci(at)
+        dA = {i: aw[i] - at[i] for i in aw if i in at}
+        ids, n = sorted(D), 3 * len(D)
+        sw, stt, cross, unseen = Counter(), Counter(), Counter(), 0
+        for x in itw:
+            c = cw(x); unseen += c is None
+            sw[x[0]] += (c["r"] if c else x[3]) - x[3]
+        for x in itt:
+            c = ct(x)
+            stt[x[0]] += (c["r"] if c else x[3]) - x[3]
+        for h in (0, 1):
+            half = [x for x in itw if zlib.crc32(x[0].encode()) % 2 == h]
+            ch, _ = sel_fit(half, half)
+            for x in itw:
+                if zlib.crc32(x[0].encode()) % 2 != h:
+                    c = ch(x)
+                    cross[x[0]] += (c["r"] if c else x[3]) - x[3]
+        c3 = lambda d: ci({i: d.get(i, 0) / 3 for i in ids})
+        pb, _ = rv_gauss(raw, Aw[0] / 100)
+        for xw, xt in zip(itw, itt):   # both lists hold the candidates in tc_items' order
+            Cw, Ct = xw[2], xt[2]
+            for a in range(len(Cw)):
+                for b in range(len(Cw)):
+                    if Cw[a]["r"] and not Cw[b]["r"]:
+                        o = lambda C: (C[a]["s"] > C[b]["s"]) + 0.5 * (C[a]["s"] == C[b]["s"])
+                        mech[pair_kind(Cw[a]["k"], Cw[b]["k"])].setdefault((name, xw[0]), []).append((o(Cw), o(Ct)))
+        al = ""
+        if SL:
+            _, _, itl, _ = pwtc_items("bfcl", nsrc, SL)
+            if itl:
+                al = f"; untrained pairwise {ci(sel_auc(itl))[0] / 100:.3f}"
+        pre_w = sum(c["pre"] for x in itw for c in x[2]) / n
+        pre_t = sum(c["pre"] for x in itt for c in x[2]) / n
+        R[name] = r = dict(Aw=Aw, At=At, dA=ci(dA), sw=c3(sw), st=c3(stt), d=c3({i: sw[i] - stt[i] for i in ids}), cross=c3(cross),
+                           bound=100 * pb / n)
+        print(f"    SEL-PW-TC BFCL {name}: {len(raw)} multi-answer fallback request-seeds, {len(keys)} scored by both (missing pairwise "
+              f"{missw}, pointwise {misst}); within-question AUROC pairwise {g(Aw)}, pointwise {g(At)}, pairwise - pointwise "
+              f"{g(r['dA'])}{al}; selector - cascade pairwise (beta {bw:.1f}; {unseen} unseen structures keep d) {f(r['sw'])}, pointwise "
+              f"(beta {bt:.1f}) {f(r['st'])}; pairwise - pointwise selector {f(r['d'])}; cross-fitted Bayes (pairwise) {f(r['cross'])}; "
+              f"bound at the pairwise AUROC {100 * pb / n:+.2f}; prefill per request-seed pairwise {pre_w:.0f}, pointwise {pre_t:.0f} tokens",
+              flush=True)
+    if len(R) < 2:
+        print(f"*** {len(R)} of 2 cells present, not decided"); return
+    p1 = [R[k]["dA"][1] > 0 for k in ("base", "trained")]
+    print(f"*** SEL-PW-TC-P1 (pairwise - pointwise AUROC lower bound > 0, both N types): {p1} -> {'holds' if all(p1) else 'refuted'}")
+    up, down = sum(R[k]["d"][1] > 0 for k in R), sum(R[k]["d"][2] < 0 for k in R)
+    print(f"*** SEL-PW-TC-P2 (pairwise - pointwise selector: lower bound > 0 in >= 1 of 2 N types, upper bound < 0 in none): {up} above, "
+          f"{down} below -> {'holds' if up >= 1 and down == 0 else 'refuted'}")
+    md = {k: ci({q: sum(a - b for a, b in v) / len(v) for q, v in M.items()}) if M else (float("nan"),) * 3 for k, M in mech.items()}
+    ns = {k: sum(len(v) for v in M.values()) for k, M in mech.items()}
+    print("    SEL-PW-TC BFCL (right, wrong) pairs, pairwise - pointwise ordering, per request, N types pooled: " +
+          "; ".join(f"{k} {f(md[k])} ({ns[k]} pairs)" for k in ("same", "other", "abstain")))
+    p3 = md["same"][0] >= 3 and md["same"][1] > 0
+    print(f"*** SEL-PW-TC-P3 (same-function pairs >= +3 points with lower bound > 0): -> {'holds' if p3 else 'refuted'}")
+    p4 = sum(abs(r["cross"][0] - r["bound"]) <= 0.7 for r in R.values())
+    print(f"*** SEL-PW-TC-P4 (cross-fitted Bayes within 0.7 of the bound at the pairwise AUROC, both): {p4} of 2 -> "
+          f"{'holds' if p4 == 2 else 'refuted'}")
+
 SELW_T = (("ob403", "OptiBench's other 403"), ("mamo", "MAMO"))   # SEL-W's targets; DEV_WORD fits the checkpoint, the arm, pi and beta
 SELW_N = ("q8b", "q14a")
 
@@ -1807,6 +1972,10 @@ def main_sel_2():
 
 
 def main():
+    if "--sel-build-pwtc" in sys.argv:
+        return main_sel_build_pwtc()
+    if "--sel-pwtc" in sys.argv or "--sel-val-pwtc" in sys.argv:
+        return main_sel_pwtc()
     if "--sel-build-pw" in sys.argv:
         return main_sel_build_pw()
     if "--sel-pw" in sys.argv or "--sel-val-pw" in sys.argv:

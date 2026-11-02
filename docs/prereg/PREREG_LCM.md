@@ -1330,3 +1330,89 @@ one prefill per ordered pair).
 - P2 refuted, P1 holds → the contrast separates better but not enough to change the choice at two or three answers; stated.
 - P1 refuted → at this data size the verifier gains nothing from seeing the alternative; the pointwise verifier stays, stated against
   CHASE-SQL / R3-SQL's claims (which change the candidates, the backbone or the data along with the format).
+
+## Results of addendum SEL-PW (written 2026-11-02 00:5x UTC; `results/lcm_selpw_val.log`, `results/lcm_selpw.log`; job 1296551: 166 training steps on the 1,320 questions, 38,220 ordered pairs scored, none failed; raw cases `nlp_data/scratch/selpw_raw.py`)
+
+Checkpoint: s150, pooled AUROC on the 16 held-out training databases 0.811 [0.742, 0.879] (SEL's pointwise s125: 0.752); the untrained
+model with the same prompt 0.506 there, 0.59 / 0.61 on BIRD dev and 0.32–0.45 on Spider.
+
+| cell (N) | AUROC pairwise | pointwise | pairwise − pointwise | selector − cascade, pairwise | pointwise | pairwise − pointwise selector | cross-fitted (pairwise) | bound |
+|---|---|---|---|---|---|---|---|---|
+| BIRD dev (base) | 0.837 | 0.819 | +0.017 [−0.013, +0.050] | +1.18 | +1.18 | −0.00 [−0.50, +0.54] | +1.61 | +2.33 |
+| Spider test (base) | 0.804 | 0.737 | +0.066 [+0.025, +0.108] | +2.55 | +2.01 | +0.54 [+0.13, +0.96] | +2.68 | +2.97 |
+| Spider dev (base) | 0.834 | 0.797 | +0.037 [−0.005, +0.083] | +1.14 | +0.94 | +0.20 [−0.37, +0.81] | +2.04 | +3.22 |
+| BIRD dev (C1) | 0.791 | 0.763 | +0.028 [−0.008, +0.064] | +0.98 | +0.87 | +0.11 [−0.48, +0.68] | +1.15 | +1.74 |
+| Spider test (C1) | 0.782 | 0.716 | +0.066 [+0.019, +0.109] | +2.20 | +1.51 | +0.69 [+0.21, +1.17] | +2.13 | +2.79 |
+| Spider dev (C1) | 0.827 | 0.785 | +0.043 [+0.002, +0.084] | +2.04 | +2.04 | −0.00 [−0.69, +0.65] | +1.99 | +3.18 |
+
+- **SEL-PW-P1 holds:** pairwise − pointwise AUROC, the three targets pooled, base +0.039 [+0.016, +0.062], C1 +0.044 [+0.020, +0.068].
+- **SEL-PW-P2 holds, narrowly:** pairwise − pointwise selector, pooled, base +0.27 [+0.000, +0.56] (above 0 at the fourth decimal), C1
+  +0.33 [+0.008, +0.65]; no upper bound below 0. The gain is Spider test's (+0.54, +0.69, both significant); BIRD dev and Spider dev
+  −0.00 to +0.20.
+- **SEL-PW-P3 refuted:** on BIRD dev's (right, wrong) pairs the ordering gain is not specific to pairs with the same output columns
+  (+2.36 [−0.58, +5.35], 1,510 pairs) against different columns (+2.92 [−0.09, +5.75], 551 pairs): the contrast helps about equally
+  on both, so "localising a content difference the pointwise score misses" is not the mechanism shown.
+- **SEL-PW-P4 refuted:** the cross-fitted selector is within 0.7 of the bound in 3 of 6 cells (Spider test both, Spider dev C1); in
+  BIRD dev and Spider dev base it falls 0.6–1.2 short (the pointwise verifier was within 0.7 in 5 of 6): the order-debiased mean of
+  pairwise log-odds is a less calibrated z than a pointwise score.
+- **Raw cases (top choices that differ, both N types):** pairwise right and pointwise wrong in 201 / 192 / 61 question-seeds (BIRD dev /
+  Spider test / Spider dev), the reverse in 143 / 110 / 37. Not column order: SELECT lists that hold the same columns in another order
+  are 2 / 32 / 15 of the wins and 2 / 36 / 12 of the losses, so the net gain is content. Wins: "How many different engines …"
+  COUNT(DISTINCT Engine) over a DISTINCT list; "ordered most frequently" with GROUP BY … ORDER BY COUNT … LIMIT 1 over the same query
+  without LIMIT; "the name and id of the sailors" with DISTINCT where reservations repeat. Losses: "the highest or the lowest
+  monthly profit" answered by ORDER BY … ASC LIMIT 1 over the query that takes both.
+- **Where the format pays (exploratory):** across the six cells the AUROC gain falls as the pointwise AUROC rises (0.716 / 0.737 →
+  +0.066; 0.819 → +0.017): the pairwise verifier loses less under the shift to Spider test (pointwise 0.82 → 0.72–0.74, pairwise
+  0.84 → 0.78–0.80). A ceiling explains part of it; not tested.
+- **The untrained model prefers the query that returns more:** in pairs with different output-column counts it prefers the wider query
+  in 701 of 891 (Spider test) and 945 of 1,475 (BIRD dev), against both benchmarks' "return only what is asked": hence its AUROC below
+  0.5, and why the format needs the training.
+- **Cost:** one output token per ordered pair, as pointwise; prefill per question-seed +5–23% (BIRD dev 2,572 vs 2,085 tokens, Spider
+  488–715 vs 462–655).
+- **Related work:** CHASE-SQL (2410.01943) selects with a fine-tuned pairwise model and Pairwise RM (2501.13007) reports pairwise above
+  pointwise reward models; with candidates, backbone, data and loss fixed here, the format alone is worth +0.04 AUROC and +0.3 points
+  at a two- or three-answer fallback, most of it under database shift. R3-SQL's combination of the two scores was not tested.
+
+**Decision (registered):** P2 holds → the pairwise verifier replaces the pointwise one at the SQL fallback; PROJECT, REPORT and PROPOSAL
+updated. The same change on tool calls is pre-registered below (SEL-PW-TC); word problems after it. SEL-G (other generators) and SEL2
+were run with the pointwise verifier and are not re-run.
+
+## Addendum SEL-PW-TC: the pairwise verifier on tool calls (written 2026-11-02 00:5x UTC, before any pairwise tool-call training step or score; 21,166 ordered-pair requests built, the analysis run only on synthetic scores, `nlp_data/scratch/selpwtc_dry.py`)
+
+**Why.** SEL-PW: with candidates, backbone, data and loss fixed, seeing the alternative raises the SQL verifier's AUROC by +0.04 and the
+choice by +0.3 points. SEL-TC's pointwise verifier reaches 0.84 / 0.80 on BFCL; its gain is mostly a right abstention chosen over a
+call with invented values. On BFCL's fallback cells the (right, wrong) answer pairs are 'same' (the same functions, other argument
+values: 703 / 713 for base / C1tc N), 'abstain' (one answer makes no call: 1,263 / 1,334) and 'other' (197 / 161). A pairwise view puts
+a differing argument value beside the other; a pointwise one judges each value alone against the request.
+
+**Verifier.** Qwen3-8B + LoRA r 16 (`tc_train.py --pw`) on SEL-TC's pool and requests: the 1,267 ToolACE training requests with a right
+and a wrong passing answer (2.07 (right, wrong) answer pairs per request); per request and epoch up to 4 pairs, each in both orders.
+Context (`tc_train.tc_pw_prompt`): SEL-TC's system prompt (with the functions), one user turn with the request, "Two responses were
+written for this request (function calls, or no call).", Response A, Response B, "Which response is right? Reply A or B."; s(a, b) =
+logit(A) − logit(B); loss log(1 + exp(−y s)); batch 16, lr 5e-5, 2 epochs, adapters every 50 steps (s50, s100, s150, final).
+At a fallback cell each answer is represented by the first call's text (order N, P, d); z-input s(a) = the mean over the other answers
+of (s(a, b) − s(b, a)) / 2, as SEL-PW; the selector is SEL-TC's (logit π(calls | structure) + β z, fitted on the held-out ToolACE
+requests). **Checkpoint:** the highest pooled within-question AUROC on the held-out ToolACE fallback sets (as SEL-TC); the untrained
+model with the same prompt (`local`) is scored on BFCL only and reported.
+
+**Cells.** SEL-TC's: BFCL (non-live and live) × N base (Qwen3-8B) or trained (C1tc); P = Qwen3.5-9B; SB, T = Qwen3-8B. The comparison is
+SEL-TC's pointwise verifier (seltc_s150) on the same request-seeds. Output tokens unchanged; prefill reported.
+
+**Predictions** (paired 95% intervals over requests):
+- **SEL-PW-TC-P1:** pairwise − pointwise within-question AUROC, lower bound > 0 for both N types.
+- **SEL-PW-TC-P2 (decision):** pairwise − pointwise selector, lower bound > 0 for at least one N type and upper bound < 0 for none.
+- **SEL-PW-TC-P3 (mechanism):** on the 'same'-function (right, wrong) pairs, pairwise − pointwise ordering ≥ +3 points with lower bound
+  > 0 (per request, N types pooled); 'abstain' and 'other' reported.
+- **SEL-PW-TC-P4 (theory):** the pairwise selector's cross-fitted Bayes gain within 0.7 of the bound at its AUROC in both cells.
+- Expected: AUROC +0.00 to +0.05 (on SQL the gain was largest where the pointwise verifier transferred worst; on BFCL SEL-TC's AUROC is
+  above its held-out ToolACE value, so the room may be smaller), selector −0.2 to +0.5; P4 uncertain after SEL-PW's 3 of 6.
+
+**Decision.**
+- P2 holds → the pairwise verifier replaces the pointwise one in the tool-call pipeline (SEL-TC's fallback; at SEL-TC2's stop, where
+  up to five answers give up to 20 ordered pairs, pre-registered next); PROJECT, REPORT and PROPOSAL updated.
+- P2 refuted, P1 holds → the format separates better on tool calls but does not change the choice; the pointwise verifier stays.
+- P1 refuted → the format's gain is SQL's (results shown, conventions under database shift); stated.
+
+Run: smoke `PW_SMOKE=1 bash poc/slurm/cv_eval_lane.sh pw-tc $POC_DATA/cv/selpwtc_smoke`, then (afterok) `bash poc/slurm/cv_eval_lane.sh
+pw-tc $POC_DATA/cv/selpwtc` (logs results/tc/run_selpwtc_train.log, results/run_selpwtc_score.log; results/lcm_selpwtc_val.log,
+results/lcm_selpwtc.log).

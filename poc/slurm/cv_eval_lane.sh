@@ -10,6 +10,9 @@
 # adapter and the untrained model (local) score the fresh held-out-database pairs (results/conf/sel_req_pw.jsonl, lcm_shift.py
 # --sel-build-pw), lcm_shift.py --sel-val-pw chooses, the choice and local score the targets, lcm_shift.py --sel-pw decides.
 # PW_SMOKE=1: 32 questions, 2 steps (1 epoch), prefix selpwsmk, 30 requests per name and set.
+# poc/slurm/cv_eval_lane.sh pw-tc <out dir>: addendum SEL-PW-TC — the same on tool calls (tc_train.py --pw on SEL-TC's pool, adapters
+# every 50 steps; held-out ToolACE for the choice without local, results/conf/sel_req_pwtc.jsonl from lcm_shift.py --sel-build-pwtc; BFCL
+# with the choice and local; lcm_shift.py --sel-pwtc). PW_SMOKE=1: prefix selpwtcsmk.
 #   sbatch -J selpw -x n19,n22,n24,n26 poc/slurm/job.sh "bash poc/slurm/cv_eval_lane.sh pw /NAS/SJ/POSTECH/nlp_data/cv/selpw"
 if [ "$1" = pw ]; then
   out=$2
@@ -29,6 +32,26 @@ if [ "$1" = pw ]; then
   echo "[$pre $(date -u '+%F %T')] chosen: $best" >> results/run_${pre}_score.log
   SEL_SSETS=dev,spider,spiderdev CONF_LIMIT=$lim /opt/conda/bin/python poc/score_conf.py sel $best,local >> results/run_${pre}_score.log 2>&1
   /opt/conda/bin/python poc/lcm_shift.py --sel-pw $best > results/lcm_${pre}.log 2>&1
+  kill $S; sleep 10; exit 0
+fi
+if [ "$1" = pw-tc ]; then
+  out=$2
+  if [ "${PW_SMOKE:-0}" = 1 ]; then pre=selpwtcsmk tr="--smoke 32 --epochs 1 --save 2" lim=30; else pre=selpwtc tr="--save 50" lim=1000000000; fi
+  mkdir -p $out
+  [ -f $out/adapter_final/adapter_config.json ] || /opt/conda/bin/python poc/tc_train.py $out --pw $tr >> results/tc/run_${pre}_train.log 2>&1 \
+    || exit 1
+  mods="" names=""
+  for d in $out/adapter_*; do n=${pre}_${d##*/adapter_}; mods="$mods $n=$d"; names="$names,$n"; done
+  export VLLM_ALLOW_RUNTIME_LORA_UPDATING=True
+  S=$(bash poc/start_server.sh /SSD/huggingface/Qwen/Qwen3-8B $PORT 0 0.90 ${pre}_${SLURM_JOB_ID} --max-model-len 16384 --enable-lora \
+    --max-lora-rank 16 --max-loras 4 --max-cpu-loras 16 --max-num-seqs 64 --lora-modules $mods) || exit 1
+  export POC_BASE_URL=http://127.0.0.1:$PORT/v1 SEL_REQ=sel_req_pwtc.jsonl
+  SEL_SSETS=tcho CONF_LIMIT=$lim /opt/conda/bin/python poc/score_conf.py sel ${names#,} >> results/run_${pre}_score.log 2>&1 || { kill $S; exit 1; }
+  best=$(/opt/conda/bin/python poc/lcm_shift.py --sel-val-pwtc ${names#,} | tee -a results/lcm_${pre}_val.log \
+    | sed -n 's/^\*\*\* SEL-PW-TC checkpoint[^:]*: //p')
+  echo "[$pre $(date -u '+%F %T')] chosen: $best" >> results/run_${pre}_score.log
+  SEL_SSETS=bfcl CONF_LIMIT=$lim /opt/conda/bin/python poc/score_conf.py sel $best,local >> results/run_${pre}_score.log 2>&1
+  /opt/conda/bin/python poc/lcm_shift.py --sel-pwtc $best > results/lcm_${pre}.log 2>&1
   kill $S; sleep 10; exit 0
 fi
 if [ "$1" = orm-tc ]; then
