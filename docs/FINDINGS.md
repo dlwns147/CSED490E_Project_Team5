@@ -5115,3 +5115,18 @@ held-out ToolACE (s450: within-question AUROC 0.915 against SEL-TC's 0.605).
   here "[]" stands against every call the verifier ranks.
 Decision (registered): P1 holds, P2 refuted → the method stays SEL-TC2; next (SEL-TC2-AB, pre-registered, job 1301891 scoring) the
 no-call answer at SEL-TC2's stop. Derived expectation +0.3 to +0.95 / +0.6 to +0.9 over SEL-TC2 (interval ±0.5).
+
+## 2026-11-02 15:1x UTC: SEL-TC2-AB (pre-registered): "no call" at the call policy's stop — the new tool-call method, 87.5% / 88.0% on BFCL
+Why: SEL-TC2 gains by calling more, AB2 by answering no call where every call invented a function; offered at SEL-TC2's stop with
+the retrained verifier (selab2_s450), the two should add.
+- TC2-AB − SEL-TC2 +0.89 [+0.47, +1.36] (base N), +0.28 [−0.16, +0.72] (C1tc) at the same tokens (P1 holds); the verifier swap
+  alone −0.03 / −0.06 (P3 holds); TC2-AB − AB2 +0.47 [+0.09, +0.86] / +0.03 (P4 holds); relevant requests lose −0.70 / −0.55
+  against the −0.5 bound (P2 refuted). Derived offer gain +0.86 / +0.45, observed +0.92 / +0.34.
+- Raw cases: no call chosen on 355 / 249 stops, right on 175 / 103 irrelevance request-seeds, wrong on 72 / 58 relevant ones where
+  SEL-TC2 was right; mostly where the planner stopped with 4–6 disagreeing passing calls (semantic-entropy-like signal, Farquhar et
+  al. 2024), the verifier deciding (score term +1.73 for right no-call choices, +0.42 for wrong ones).
+- Diagnostics with BFCL labels read: no constant on the no-call logit adds more than +0.1 (the label-shift offset +1.06 loses
+  −0.4 / −0.5), a separate weight on "[]"'s score at most +0.3: the prior is not the remaining cause (the derived next step for P1
+  refuted would have been wrong). Left: a right answer in the stop set not chosen 6.7 / 6.3% (about half of sampled irrelevance
+  misses have a call that looks right — BFCL label convention), no right answer among the five calls 4.5%.
+Decision (registered): P1 holds → TC2-AB is the tool-call method; PROJECT, REPORT, PROPOSAL (both languages) updated.

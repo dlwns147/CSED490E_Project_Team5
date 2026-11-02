@@ -1770,3 +1770,48 @@ TC2-AB loses (−0.54 / −0.82: the old verifier's blanket abstention) — the 
 
 Run: job 1301891 (`bash poc/slurm/cv_eval_lane.sh score-tc $POC_DATA/cv/selab2/adapter_s450 selab2_s450 sel_req_tc2.jsonl tcho,bfcl`),
 then `lcm_shift.py --sel-tc2ab selab2_s450 > results/lcm_seltc2ab.log`.
+
+### Results of addendum SEL-TC2-AB (written 2026-11-02 15:1x UTC; job 1301891: selab2_s450 scored the 3,036 SEL-TC2 texts, 0 failed; results/lcm_seltc2ab.log)
+
+| BFCL, 3,482 requests × 3 seeds | base N: accuracy | tokens | C1tc N: accuracy | tokens |
+|---|---|---|---|---|
+| default SB→T→T | 83.9% | 0.38k | 83.9% | 0.38k |
+| the planner alone | 84.7% | 0.48k | 86.4% | 0.43k |
+| AB2 (cascade, no call offered) | 87.0% | 0.28k | 87.9% | 0.27k |
+| SEL-TC2 (seltc_s150 at the stop) | 86.6% | 0.48k | 87.7% | 0.43k |
+| TC2-new (selab2_s450 at the stop, no offer) | 86.6% | 0.48k | 87.7% | 0.43k |
+| **TC2-AB** (selab2_s450, no call offered at the stop) | **87.5%** | 0.48k | **88.0%** | 0.43k |
+
+- **SEL-TC2-AB-P1 holds:** TC2-AB − SEL-TC2 +0.89 [+0.47, +1.36] (base), +0.28 [−0.16, +0.72] (C1tc).
+- **SEL-TC2-AB-P2 refuted:** TC2-AB − TC2-new +0.92 [+0.51, +1.36] / +0.34 [−0.03, +0.71]; irrelevance requests +1.62 / +0.88, the
+  others −0.70 / −0.55 (bound −0.5).
+- **SEL-TC2-AB-P3 holds:** the swap alone, TC2-new − SEL-TC2, −0.03 [−0.20, +0.14] / −0.06 [−0.34, +0.20].
+- **SEL-TC2-AB-P4 holds:** TC2-AB − AB2 +0.47 [+0.09, +0.86] / +0.03 [−0.33, +0.40].
+- **Against the derivation:** the offer's part (+0.92 / +0.34) is what AB2's operating point gave on SEL-TC2's stops (+0.86 / +0.45);
+  the swap's predicted −0.55 / +0.13 did not happen (−0.03 / −0.06): AB2's call-level losses came from the cascade selector's prior
+  for the fallback's d answer, which the planner's pattern logits do not have. So P1 held for base N, not (as expected) for C1tc N.
+- **Raw cases** (`nlp_data/scratch/tc2ab_raw.py`): no call chosen on 355 / 249 stops, right on 175 / 103 irrelevance request-seeds
+  SEL-TC2 had wrong (of 555 / 396), costing a right call on 72 / 58 relevant ones (of 6,248 / 6,216: t = 0.32 / 0.26, f = 0.012 /
+  0.009, more conservative than AB2's 0.55 / 0.43 at 0.030 / 0.016). Calls change little: 20 / 40 irrelevance requests where a
+  model's "none" was right now get a call, relevant calls 17 / 43 become right against 11 / 20 wrong. No call is chosen mostly where
+  the planner stopped with 4–6 distinct passing answers (127 of 175 right ones; 54 of 72 wrong ones): every call disagreed. There
+  the pattern already favours no call (median logit margin +0.45 to +0.67 over the best call) and the verifier decides: its score
+  term is +1.73 / +1.25 for the right no-call choices, +0.42 / +0.29 for the wrong ones.
+- **Diagnostics (oracle bounds, BFCL labels read; not methods)** (`tc2ab_shift.py`, `tc2ab_bscale.py`, `tc2ab_prior.py`): a constant
+  added to the no-call logit changes accuracy by at most +0.04 / +0.10 (best at −0.25 / −0.5), and the label-shift offset the
+  priors imply (logit 0.32 − logit 0.14 = +1.06) loses −0.42 / −0.52. A separate weight on "[]"'s score adds at most +0.31 / +0.04.
+  The pattern prior alone (β = 0) gives 85.1% / 86.6%: the verifier carries the gain. **So the prior is not the remaining cause,
+  and the derived next step for P1 refuted (prior re-estimation) would have been wrong; the choice at the stop is at its optimum
+  for these scores.**
+- **Where TC2-AB still loses** (`tc2ab_headroom.py`, share of request-seeds, base / C1tc): the stop set holds a right answer not
+  chosen — irrelevance 3.5 / 2.9%, relevant 3.2 / 3.4%; no right answer in the five calls 4.5 / 4.5%; a right answer among calls the
+  planner did not make 0.7 / 0.5%; other 0.6 / 0.6%. Of 20 sampled irrelevance misses (`tc2ab_irrmiss.py`), about 9 have a call that
+  looks right ("What is the current time in Sydney, Australia?" with `get_local_time(location="Sydney, Australia")`; "open calc"
+  with `cmd_controller.execute(command="calc")`; "connect to SQL01" with `connect_to_server(nickname="SQL01")`), about 6 are
+  ambiguous, 5 need no call; in those misses the pattern's logit margin for the call is +4.1 (median) and the score gap 0.0.
+  Part of the remaining irrelevance loss is BFCL's labels (Epoch AI's review), not the verifier.
+- **Related work:** choosing "no call" where the sampled calls disagree is the semantic-entropy signal for confabulation (Farquhar
+  et al., Nature 2024): disagreement among samples marks answers the model makes up. Here the disagreement enters through the
+  planner's pattern statistics and is resolved by a verifier that has seen "[]" against every call.
+- **Decision (as registered, P1 holds):** TC2-AB replaces SEL-TC2 as the tool-call method (87.5% / 88.0% at 0.48k / 0.43k tokens);
+  PROJECT, REPORT and PROPOSAL updated. P3 holds, so the swap costs nothing.
