@@ -5053,6 +5053,10 @@ that differ in one argument, the case a side-by-side view should fix. Same pool 
   there, about +0.006 on BFCL. Not run.
 - The untrained model with this prompt is near chance (0.60 / 0.52); P4 refuted (cross-fitted 0.9 / 1.4 below the bound, which assumes
   one separation for all pair kinds).
+- Where the tool-call pipeline still loses on BFCL (cascade + pointwise selector, base / C1tc N, share of request-seeds; `nlp_data/scratch/tc_headroom.py`):
+  no right answer among N, P, d at a multi-answer fallback 5.6 / 4.7%; N and the peer agree on a wrong call 3.4 / 2.8%; the verifier
+  misses a right answer that is there 2.3 / 3.2%; N fails its check and d is wrong 2.1 / 1.8%. Any verifier format is worth at most
+  the 2.3–3.2 points it misses; the larger losses need a right candidate or a check of agreement.
 Decision (registered): P1 refuted → the format's gain is SQL's (results judged under database shift); tool calls keep the pointwise
 verifier (SEL-TC, SEL-TC2). Goal link: no change in accuracy or tokens on tool calls; the verifier format is task-dependent, and the
 per-kind split says which: a contrast view helps where answers differ in content of the same kind, hurts where one answer is to do
