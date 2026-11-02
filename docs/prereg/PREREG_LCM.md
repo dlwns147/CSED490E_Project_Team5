@@ -1463,3 +1463,46 @@ reported.
 Run: smoke `PW_SMOKE=1 bash poc/slurm/ver_lane.sh --selpww $POC_DATA/cv/selpww_smoke`, then (afterok) `bash poc/slurm/ver_lane.sh
 --selpww $POC_DATA/cv/selpww` (logs results/x3/run_selpww_train.log, results/run_selpww_score.log; results/lcm_selpww_val.log,
 results/lcm_selpww.log; the untrained model's scores in results/conf/sel_scores_localw.jsonl, `SEL_ALIAS`).
+
+## Results of addendum SEL-PW-TC (written 2026-11-02 03:3x UTC; `results/lcm_selpwtc_val.log`, `results/lcm_selpwtc.log`; job 1297146: 160 training steps on the 1,267 ToolACE requests, 49,192 held-out ToolACE and 17,706 BFCL ordered pairs scored (30 more of the untrained model's from the smoke), none failed; raw cases `nlp_data/scratch/selpwtc_raw.py`, exploratory `selpwtc_kind.py`, `selens_rho.py`)
+
+Checkpoint: final (160 steps), pooled AUROC on the held-out ToolACE fallback sets 0.815 [0.790, 0.840] (SEL-TC's pointwise s150:
+0.793 [0.767, 0.817]; s50 / s100 / s150 0.775 / 0.789 / 0.811).
+
+| cell (N) | AUROC pairwise | pointwise | pairwise − pointwise | untrained pairwise | selector − cascade, pairwise | pointwise | pairwise − pointwise selector | cross-fitted (pairwise) | bound |
+|---|---|---|---|---|---|---|---|---|---|
+| BFCL (base) | 0.843 | 0.837 | +0.006 [−0.014, +0.025] | 0.604 | +0.86 [+0.59, +1.18] | +1.08 [+0.78, +1.41] | −0.22 [−0.48, +0.03] | +0.61 | +1.55 |
+| BFCL (C1tc) | 0.815 | 0.800 | +0.015 [−0.009, +0.039] | 0.517 | +1.52 [+1.08, +1.98] | +1.68 [+1.17, +2.24] | −0.16 [−0.56, +0.19] | +1.17 | +2.53 |
+
+- **SEL-PW-TC-P1 refuted:** neither lower bound is above 0 (2,833 / 2,892 request-seeds, every one scored by both verifiers).
+- **SEL-PW-TC-P2 refuted:** neither interval excludes 0; the choice does not change.
+- **SEL-PW-TC-P3 holds:** on same-function (right, wrong) pairs the pairwise verifier orders +7.26 [+4.54, +10.10] points better (1,416
+  pairs); other functions +1.92 [−2.99, +7.00] (358); pairs with one abstention −2.37 [−4.24, −0.58] (2,597).
+- **SEL-PW-TC-P4 refuted:** the cross-fitted selector is 0.9 / 1.4 below the bound at its AUROC; the bound assumes one separation for
+  every pair, and this verifier's differs by pair kind (below).
+- **Raw cases — why the gain cancels:** where the two verifiers order an abstention pair differently, the pairwise one prefers the call
+  in 380 of 386 (right in 141, wrong in 239). On pairs where no call is right (BFCL's live-irrelevance requests) it orders 1,031 /
+  922 of 1,138 / 1,093 right (base / C1tc N), the pointwise one 1,118 / 1,072; where a call is right, 91 / 187 of 125 / 241 against 65 /
+  76. Example: "[]" against `uber.eat.order(restaurant="McDonald's", items=["pizza"], …)` for a request no function serves (pairwise
+  −4.6, pointwise +5.8). On same-function pairs it wins 183 to 64: `date="2023-10-02"` over `"2023-10-2"`, a call without an
+  unrequested `request_heartbeat=True`, the right year; it loses on BFCL conventions (`date="dontcare"` against the argument left out)
+  and on list lengths. On the held-out ToolACE fit set the same preference is there but small (abstention pairs ordered right 540 vs
+  547 of 567, base) and abstention pairs are 30–36% of (right, wrong) pairs there against 59% on BFCL: the shift hides it from the
+  checkpoint choice.
+- **The untrained model with this prompt is near chance** (0.60 / 0.52): as on SQL, the format needs the training.
+- **Combining the two verifiers (exploratory, BFCL already seen per pair kind):** the pointwise selector deciding call against no call
+  and the pairwise one choosing among calls gains +0.10 [−0.07, +0.26] / +0.26 [+0.07, +0.45] over the pointwise selector alone. A
+  single weighted sum of the two scores (R3-SQL's combination) is bounded by theory before any target is read: for jointly Gaussian
+  within-question pair differences with separations d₁, d₂ and correlation ρ, the best linear weight reaches d* = √((d₁² + d₂² −
+  2ρd₁d₂) / (1 − ρ²)); on the fit sets ρ = 0.83–0.85 (tool calls) and 0.64–0.72 (SQL, 16 held-out databases) with the pairwise
+  verifier ahead, so d* adds at most +0.001 AUROC there, and with BFCL's equal AUROCs at ρ 0.85 about +0.006. Not run.
+- **Cost:** no output tokens; prefill per request-seed 958 / 897 against 808 / 822 (+9–19%).
+- **Related work:** pairwise LLM judges follow distractor features such as assertiveness more than absolute scoring does (Tripathi et
+  al., "Pairwise or Pointwise?", 2504.14716); a call next to "no call" is that case. Tool-call reward models are reported to fail
+  mainly on irrelevance (ToolRM / FC-RewardBench). The format's SQL gain (SEL-PW) came under database shift; here the shift is toward
+  abstention and runs against it.
+
+**Decision (registered):** P1 refuted → the format's gain is SQL's: there it judged results under database shift; on tool calls its
+argument-level gain (P3) is cancelled by a preference for calling over abstaining, which BFCL's irrelevance requests punish. The
+tool-call pipeline keeps the pointwise verifier (SEL-TC, SEL-TC2); stated in PROJECT and REPORT. The composite (+0.1 / +0.3,
+exploratory) is not pursued: below SEL-PW's +0.3 on a target already read.

@@ -5036,3 +5036,24 @@ Decision (registered): the SQL fallback uses the pairwise verifier; PROJECT, REP
 output token, +0.3 points at the stratum where the cascade cannot tell its answers apart. Next (pre-registered, running: smoke 1297145,
 then 1297146): SEL-PW-TC, the same change on tool calls, where SEL-TC's pointwise verifier is at chance on calls that differ in an
 optional argument — the case a side-by-side view should fix (P3 there).
+
+## 2026-11-02 03:3x UTC: SEL-PW-TC (pre-registered): on tool calls the pairwise verifier fixes arguments and breaks abstention — the pointwise one stays
+Why: SEL-PW raised the SQL verifier's AUROC by +0.04 with only the format changed; SEL-TC's pointwise verifier is near chance on calls
+that differ in one argument, the case a side-by-side view should fix. Same pool (1,267 ToolACE requests), backbone, loss and selector.
+- BFCL, pairwise − pointwise: AUROC +0.006 [−0.014, +0.025] / +0.015 [−0.009, +0.039] (base / C1tc N; P1 refuted), choice −0.22
+  [−0.48, +0.03] / −0.16 [−0.56, +0.19] (P2 refuted). Held-out ToolACE: 0.815 vs 0.793.
+- The predicted mechanism is there (P3 holds): same-function pairs +7.3 [+4.5, +10.1] points better ordered (`date="2023-10-02"`
+  over `"2023-10-2"`, no unrequested optional argument). It is cancelled on abstention pairs (−2.4 [−4.2, −0.6]): where the two
+  disagree on a call against "no call", the pairwise verifier prefers the call in 380 of 386, wrong in 239 (BFCL's live-irrelevance
+  requests). On the ToolACE fit set the preference is small (540 vs 547 of 567) and abstention pairs are a third, not 59%: the
+  checkpoint choice could not see it. Pairwise judges follow assertive distractors more than absolute scoring (2504.14716).
+- Combining both (exploratory, target already read): pointwise for call-vs-abstain, pairwise among calls, +0.10 / +0.26 over pointwise
+  alone. A weighted sum (R3-SQL's combination) is bounded before reading any target: with pair-difference correlation ρ 0.83–0.85
+  (tool calls) / 0.64–0.72 (SQL) on the fit sets, the Gaussian optimum d* = √((d₁² + d₂² − 2ρd₁d₂)/(1 − ρ²)) adds ≤ +0.001 AUROC
+  there, about +0.006 on BFCL. Not run.
+- The untrained model with this prompt is near chance (0.60 / 0.52); P4 refuted (cross-fitted 0.9 / 1.4 below the bound, which assumes
+  one separation for all pair kinds).
+Decision (registered): P1 refuted → the format's gain is SQL's (results judged under database shift); tool calls keep the pointwise
+verifier (SEL-TC, SEL-TC2). Goal link: no change in accuracy or tokens on tool calls; the verifier format is task-dependent, and the
+per-kind split says which: a contrast view helps where answers differ in content of the same kind, hurts where one answer is to do
+nothing. Next: SEL-PW-W (running, 1297161) decides the word problems.
