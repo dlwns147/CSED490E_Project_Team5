@@ -1917,3 +1917,59 @@ Best-of-16 on ACEBench's normal split only (+1.3 to +3.8 with a 4B policy), with
 **Decision (registered).** P1 and P2 hold → the tool-call claim is stated on two benchmarks, one never used for a decision (REPORT,
 PROJECT, PROPOSAL in both languages). P3 holds with its point ≥ 0 in both N types → TC2-AB stays the method; reported with it: on
 ACEBench the call policy's thinks add nothing over AB2 (same accuracy, half the tokens), so the policy's part is a BFCL result.
+
+## Addendum SEL-RM: a published reasoning reward model for tool calls at the method's stop (written 2026-11-02 17:0x UTC, before any judgment of our sets exists)
+
+**Why.** What is left of the tool-call method's loss is the verifier's information (a right answer in the stop set not chosen: 6.3–6.7%
+of BFCL request-seeds, 9.5–9.7% on ACEBench) and coverage. The strongest published alternative to our verifier is ToolRM
+(2510.26167, Findings ACL 2026): a generative reward model that reasons before a pairwise choice, trained with RL on
+ToolPref-Pairwise-30K (seven open datasets — APIGen, APIGen-MT, BUTTON, ComplexFuncBench, Hermes, Glaive, ToolAlpaca; not ToolACE,
+BFCL or ACEBench). Its released checkpoint is ToolRM-Gen-Qwen3-4B-Thinking-2507 (CC-BY-NC-SA-4.0; the discriminative and 8B ones are
+not released). Two questions: does reasoning verification carry information our scalar verifier (selab2_s450, Qwen3-8B LoRA, 1,267
+ToolACE requests, zero output tokens) lacks, and can it repay its thinking tokens at our price (0.5 utility per 1k)? The answer
+places our verifier against named prior work either way.
+
+**Run.** The sets are TC2-AB's stop sets with ≥ 2 answers ("[]" offered as in TC2-AB) on held-out ToolACE (for fitting), BFCL and
+ACEBench, both N types: distinct unordered answer pairs per request 10,861 / 7,561 / 2,805, each judged in both orders (42,454
+judgments). Prompt: ToolRM's own think-mode template from TRBench-BFCL, verbatim (task, evaluation criteria, conversation history,
+two responses, `<choice>`), with the request's functions as the Hermes `<tools>` block it was trained on (ACEBench's current time and
+profile appended to the system turn), the user turn as our prompt has it, each call rendered as `<tool_call>{"name", "arguments"}</tool_call>`
+and every no-call answer as the reply "I cannot complete this request with the available functions." (fixed now). Sampling as its
+evaluation script: temperature 0.6, top-p 0.95, top-k 20, at most 8,192 output tokens, one seed per judgment; vLLM on RTX 3090s.
+A format check on TRBench-BFCL prompts comes first (no judgment of our sets).
+
+**Scores and arms** (BFCL and ACEBench × base / C1tc quick calls; paired 95% intervals over requests):
+- w(c): the share of c's judgments (both orders, against every other member of its set) that choose c; an unparseable choice
+  counts one half.
+- **TC2-AB** (ours): the planner's log-odds lp + β z (our verifier), as fitted.
+- **RM**: the same stop, argmax w, ties by lp (the planner's own log-odds, no verifier); tokens: the pipeline's plus every judgment's
+  output tokens.
+- **RM-KO**: one order per pair (fixed by a hash), a knockout in a fixed random order of the set — the cheapest use of a pairwise
+  judge (k − 1 judgments); tokens: the pipeline's plus those judgments'.
+- **COMB**: lp + β z + γ (w − mean of the set) / sd_w, β and γ by maximum likelihood on the held-out ToolACE stop sets (as β was;
+  grids 0–4 by 0.1); tokens as RM.
+- Reported: within-set ordering of right-vs-wrong pairs by w and by our score s, split into call-vs-call and call-vs-no-call pairs;
+  output and input tokens per judgment; the share of unparseable choices.
+
+**Predictions.**
+- **RM-P1 (call vs call):** on right-vs-wrong pairs of two calls, ToolRM orders right first at least as often as our verifier
+  (point estimate, pooled over N types) on both benchmarks — its reasoning checks arguments against the request.
+- **RM-P2 (no call):** on pairs of a call and a no-call answer, one right, ToolRM's balanced ordering accuracy (mean of the two
+  kinds) is below ours on both benchmarks — its training rewards a call whenever the reference has one, and TRBench holds no
+  irrelevance request; ours was retrained on choice sets that hold "[]" (SEL-AB2).
+- **RM-P3 (information):** COMB − TC2-AB in accuracy points (tokens ignored): lower bound > 0 in ≥ 1 of the 4 cells, upper bound
+  < 0 in none.
+- **RM-P4 (cost):** RM-KO − TC2-AB and RM − TC2-AB in utility: upper bound < 0 in all 4 cells. Derivation: 80% (BFCL) / 95% (ACEBench) of request-seeds
+  stop with a set of ≥ 2 (mean size 2.4, so 1.4 knockout judgments); at ~1.5k output tokens per judgment a knockout costs ≈
+  1.7–2.0k tokens per request (−0.85 to −1.0 utility), so it must gain over a point of accuracy on top of a verifier that leaves 6–10% in the set; I expect it to gain less.
+- **Expected.** ToolRM is weaker on "[]" (P2 holds), at most level on calls (P1 open), COMB adds ≤ +0.5 points (P3 refuted in most
+  cells), RM-P4 holds.
+
+**Decision.**
+- P3 holds → reasoning verification carries information the scalar verifier lacks: a value-of-information gate (judge only where
+  the fitted COMB says the expected accuracy gain exceeds 0.5 × the judge's expected tokens) is derived on held-out ToolACE and
+  pre-registered next.
+- P3 refuted → at our price of tokens, a scalar verifier trained on 1,267 ToolACE requests is the tool-call verifier against the
+  published reasoning reward model too; reported in REPORT's prior-work comparison (RM and RM-KO rows), and the reasoning-verifier
+  direction closes for tool calls. P1 / P2 locate where each is stronger.
+- Either way: ACEBench has now been used for one comparison (this one); no method change follows from it unless P3 holds.

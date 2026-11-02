@@ -1763,7 +1763,8 @@ def tc2_run(P, sc, txt, S, sset, i, beta=None, sd=1.0, task="tc", ab=False):
                 n = P.n[pat]
                 lg = lambda k: math.log((k + 0.5) / (n + 1) / max(1e-3, 1 - (k + 0.5) / (n + 1)))
                 C = [{"g": g, "lp": lg(P.none.get(pat, 0) if g == "AB" else P.r.get((pat, g), 0)), "s": sum(v["s"] for v in x) / len(x),
-                      "r": ab_none_right(sset, i) if g == "AB" else g in rt} for g, x in sv.items()]
+                      "r": ab_none_right(sset, i) if g == "AB" else g in rt, "t": AB_TEXT if g == "AB" else txt[G[g][0]]}
+                     for g, x in sv.items()]
         if beta is None or C is None:
             return ((arg in rt) if arg is not None else False), tok, True, C
         mu = sum(c["s"] for c in C) / len(C)
@@ -2562,7 +2563,198 @@ def main_sel_2():
               f"{down} below -> {'holds' if up >= 2 and down == 0 else 'refuted'}")
 
 
+RM_SSETS = ("tcho", "bfcl", "ace")
+
+
+def main_rm_build():
+    """addendum SEL-RM (--rm-build): every distinct unordered pair of answers in TC2-AB's stop sets (selab2_s450, the no-call answer
+    offered) with >= 2 answers, per request (seeds and N types pooled), on held-out ToolACE, BFCL and ACEBench ->
+    results/conf/rm_req.jsonl {sset, i, ka, kb, a, b} (ka < kb: the answers' group keys; a, b: an answer's text, the first seen; the
+    offered no-call answer AB_TEXT), judged in both orders by poc/judge_sql.py --tc-pair"""
+    from run_nlopt import _rows
+    S = {r["h"]: r for r in _rows(os.path.join(lcm.ROOT, "results", "conf", "sel_scores_selab2_s450.jsonl"))}
+    out = os.path.join(lcm.ROOT, "results", "conf", "rm_req.jsonl")
+    with open(out, "w") as f:
+        for sset in RM_SSETS:
+            txt, pairs = {}, {}
+            for nsrc in (None, RV_N["tc"]):
+                P, b, sd, _ = tc2_fit(nsrc, S, ab=True)
+                D, X = tc2_cells(sset, nsrc)
+                for i in sorted(D):
+                    for s in (1, 2, 3):
+                        x = tc2_run(P, lcm.seed_calls(D[i], s), X[(i, s)], S, sset, i, b, sd, ab=True)
+                        if x is None or not x[3] or len(x[3]) < 2:
+                            continue
+                        ks = sorted(str(e["g"]) for e in x[3])
+                        for e in x[3]:
+                            txt.setdefault((i, str(e["g"])), e["t"])
+                        for a in range(len(ks)):
+                            for c in range(a + 1, len(ks)):
+                                pairs.setdefault((i, ks[a], ks[c]), None)
+            for i, ka, kb in pairs:
+                f.write(json.dumps({"sset": sset, "i": i, "ka": ka, "kb": kb, "a": txt[(i, ka)], "b": txt[(i, kb)]}) + "\n")
+            print(f"SEL-RM build {sset}: {len(pairs)} pairs over {len({p[0] for p in pairs})} requests", flush=True)
+
+
+def rm_load(name="toolrm4b"):
+    """SEL-RM: the judge's rows (results/conf/rm_pairs_<name>*.jsonl, one file per shard) -> {(sset, i, ka, kb, order): row}"""
+    import glob
+    from run_nlopt import _rows
+    return {(r["sset"], r["i"], r["ka"], r["kb"], r["order"]): r
+            for fn in sorted(glob.glob(os.path.join(lcm.ROOT, "results", "conf", f"rm_pairs_{name}*.jsonl"))) for r in _rows(fn)}
+
+
+def rm_set(J, sset, i, C):
+    """SEL-RM: per member of a stop set, w = the share of its judgments (both orders, against every other member) that choose it (an
+    unparseable choice counts one half), the judgments' output tokens, and pref(a, b) = the share of the pair's two judgments choosing
+    a; None if a judgment is missing"""
+    ks = [str(e["g"]) for e in C]
+    win, tok, pref = Counter(), 0, {}
+    for a in range(len(ks)):
+        for c in range(a + 1, len(ks)):
+            ka, kb = sorted((ks[a], ks[c]))
+            pa = 0.0
+            for o in (0, 1):
+                r = J.get((sset, i, ka, kb, o))
+                if r is None:
+                    return None
+                tok += r["out_tokens"] or 0
+                v = 0.5 if r["win"] is None else float(r["win"] == "a")
+                win[ka] += v; win[kb] += 1 - v; pa += v / 2
+            pref[(ka, kb)], pref[(kb, ka)] = pa, 1 - pa
+    k = len(ks)
+    return {g: win[g] / (2 * (k - 1)) for g in ks}, tok, pref
+
+
+def main_sel_rm():
+    """addendum SEL-RM (--sel-rm [name]): ToolRM-Gen-Qwen3-4B-Thinking-2507's pairwise judgments at TC2-AB's stop on BFCL and ACEBench,
+    both N types: TC2-AB (ours), RM (argmax of the judge's win share, ties by the planner's log-odds), RM-KO (a single-order knockout
+    in a fixed random order of the set), COMB (lp + beta z + gamma w, fitted on held-out ToolACE); right-vs-wrong pair ordering by the
+    judge and by our score (RM-P1..P4)"""
+    from analyze_ho3 import ci
+    from run_nlopt import _rows
+    import zlib
+    nm = sys.argv[sys.argv.index("--sel-rm") + 1] if len(sys.argv) > sys.argv.index("--sel-rm") + 1 else "toolrm4b"
+    S = {r["h"]: r for r in _rows(os.path.join(lcm.ROOT, "results", "conf", "sel_scores_selab2_s450.jsonl"))}
+    J = rm_load(nm)
+    f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
+    U = lambda r, t: 100 * float(r) - LAM * t / 1000
+    jt = [r["out_tokens"] or 0 for r in J.values()]
+    print(f"SEL-RM {nm}: {len(J)} judgments; unparseable {sum(r['win'] is None for r in J.values())}; output tokens mean "
+          f"{sum(jt) / max(1, len(jt)):.0f}, input tokens mean {sum(r['in_tokens'] or 0 for r in J.values()) / max(1, len(J)):.0f}; "
+          f"cut at the cap {sum(r.get('finish') == 'length' for r in J.values())}", flush=True)
+    R, ordr = {}, {}
+    for nsrc in (None, RV_N["tc"]):
+        name = "trained" if nsrc else "base"
+        P, beta, sd, _ = tc2_fit(nsrc, S, ab=True)
+        # COMB's beta and gamma: maximum likelihood on the held-out ToolACE stop sets with every judgment present (as beta, tc2_fit)
+        Dh, Xh = tc2_cells("tcho", nsrc)
+        fit = []
+        for i in Dh:
+            for s in (1, 2, 3):
+                x = tc2_run(P, lcm.seed_calls(Dh[i], s), Xh[(i, s)], S, "tcho", i, beta, sd, ab=True)
+                if x and x[3] and len(x[3]) >= 2:
+                    w = rm_set(J, "tcho", i, x[3])
+                    if w:
+                        fit.append([(e["lp"], e["s"], w[0][str(e["g"])], e["r"]) for e in x[3]])
+        dw = [c[2] - sum(d[2] for d in C) / len(C) for C in fit for c in C]
+        sdw = (sum(v * v for v in dw) / max(1, len(dw))) ** 0.5 or 1.0
+
+        def ll(b, g):
+            t = 0.0
+            for C in fit:
+                ms, mw = sum(c[1] for c in C) / len(C), sum(c[2] for c in C) / len(C)
+                for lp, s_, w_, r in C:
+                    z = lp + b * (s_ - ms) / sd + g * (w_ - mw) / sdw
+                    t += -math.log1p(math.exp(-z)) if r else -math.log1p(math.exp(min(z, 700)))
+            return t
+        b2, g2 = max(((b / 10, g / 10) for b in range(41) for g in range(41)), key=lambda bg: ll(*bg)) if fit else (beta, 0.0)
+        print(f"    SEL-RM {name}: COMB fitted on {len(fit)} held-out ToolACE stop sets: beta {b2:.1f}, gamma {g2:.1f} (sd_w {sdw:.3f}; "
+              f"TC2-AB's beta {beta:.1f})", flush=True)
+        for tgt in ("bfcl", "ace"):
+            D, X = tc2_cells(tgt, nsrc)
+            ids = sorted(D)
+            acc, kt, Uq, Aq, cnt = Counter(), Counter(), {k: Counter() for k in ("TC2-AB", "RM", "RM-KO", "COMB")}, \
+                {k: Counter() for k in ("RM", "COMB")}, Counter()
+            od = ordr.setdefault(tgt, {k: [0.0, 0] for k in ("cc_rm", "cc_s", "nr_rm", "nr_s", "cr_rm", "cr_s")})
+            for i in ids:
+                for s in (1, 2, 3):
+                    sc = lcm.seed_calls(D[i], s)
+                    x = tc2_run(P, sc, X[(i, s)], S, tgt, i, beta, sd, ab=True)
+                    if x is None:
+                        out = dict.fromkeys(Uq, lcm.fixed("cascade", sc)); cnt["unseen"] += 1
+                    elif not x[3] or len(x[3]) < 2:
+                        out = dict.fromkeys(Uq, x[:2])
+                    else:
+                        C = x[3]
+                        w = rm_set(J, tgt, i, C)
+                        if w is None:
+                            out = dict.fromkeys(Uq, x[:2]); cnt["missing"] += 1
+                        else:
+                            W, jtok, pref = w
+                            cnt["judged"] += 1
+                            g = lambda e: str(e["g"])
+                            rm = max(C, key=lambda e: (W[g(e)], e["lp"]))
+                            ms, mw = sum(e["s"] for e in C) / len(C), sum(W[g(e)] for e in C) / len(C)
+                            cb = max(C, key=lambda e: e["lp"] + b2 * (e["s"] - ms) / sd + g2 * (W[g(e)] - mw) / sdw)
+                            seq = sorted(C, key=lambda e: zlib.crc32(f"{tgt}|{i}|{s}|{name}|{g(e)}".encode()))
+                            cur, ktok = seq[0], 0
+                            for e in seq[1:]:
+                                ka, kb = sorted((g(cur), g(e)))
+                                o = zlib.crc32(f"{ka}|{kb}".encode()) % 2
+                                r = J[(tgt, i, ka, kb, o)]
+                                ktok += r["out_tokens"] or 0
+                                if r["win"] is None:
+                                    cur = max((cur, e), key=lambda c: c["lp"])
+                                else:
+                                    cur = cur if (r["win"] == "a") == (g(cur) == ka) else e
+                            out = {"TC2-AB": x[:2], "RM": (rm["r"], x[1] + jtok), "RM-KO": (cur["r"], x[1] + ktok), "COMB": (cb["r"], x[1] + jtok)}
+                            for e in C:   # right-vs-wrong pairs: the judge's preference and our score's ordering
+                                for e2 in C:
+                                    if e["r"] and not e2["r"]:
+                                        kind = "cc" if "AB" not in (e["g"], e2["g"]) and not ab_is_none(e["g"]) and not ab_is_none(e2["g"]) else \
+                                            ("nr" if e["g"] == "AB" or ab_is_none(e["g"]) else "cr")
+                                        od[kind + "_rm"][0] += pref[(g(e), g(e2))]; od[kind + "_rm"][1] += 1
+                                        od[kind + "_s"][0] += 1.0 if e["s"] > e2["s"] else 0.5 if e["s"] == e2["s"] else 0.0; od[kind + "_s"][1] += 1
+                    for k, (r, t) in out.items():
+                        acc[k] += r; kt[k] += t; Uq[k][i] += U(r, t) / 300
+                    for k in Aq:
+                        Aq[k][i] += (float(out[k][0]) - float(out["TC2-AB"][0])) * 100 / 3
+            n = 3 * len(ids)
+            d = lambda a, b: ci({i: Uq[a][i] - Uq[b][i] for i in ids})
+            R[(name, tgt)] = r = {"rm": d("RM", "TC2-AB"), "ko": d("RM-KO", "TC2-AB"), "comb": d("COMB", "TC2-AB"),
+                                  "comb_acc": ci({i: Aq["COMB"][i] for i in ids}), "rm_acc": ci({i: Aq["RM"][i] for i in ids})}
+            print(f"    SEL-RM {tgt} {name}: " + "; ".join(f"{k} {100 * acc[k] / n:.1f}% at {kt[k] / n / 1000:.2f}k" for k in Uq) +
+                  f"; judged stop sets {cnt['judged']}, missing {cnt['missing']}, unseen {cnt['unseen']} of {n}", flush=True)
+            print(f"    SEL-RM {tgt} {name}: utility RM - TC2-AB {f(r['rm'])}; RM-KO - TC2-AB {f(r['ko'])}; COMB - TC2-AB {f(r['comb'])}; "
+                  f"accuracy points (tokens ignored) RM - TC2-AB {f(r['rm_acc'])}, COMB - TC2-AB {f(r['comb_acc'])}", flush=True)
+    for tgt, od in ordr.items():
+        q = {k: v[0] / v[1] if v[1] else float("nan") for k, v in od.items()}
+        print(f"    SEL-RM {tgt} right-vs-wrong pairs (both N types): call vs call judge {q['cc_rm']:.3f} / ours {q['cc_s']:.3f} (n {od['cc_rm'][1]}); "
+              f"right no-call vs wrong call judge {q['nr_rm']:.3f} / ours {q['nr_s']:.3f} (n {od['nr_rm'][1]}); right call vs wrong no-call "
+              f"judge {q['cr_rm']:.3f} / ours {q['cr_s']:.3f} (n {od['cr_rm'][1]})", flush=True)
+        ordr[tgt] = q
+    if len(R) < 4 or len(ordr) < 2:
+        print(f"*** {len(R)} of 4 cells present, not decided"); return
+    p1 = all(ordr[t]["cc_rm"] >= ordr[t]["cc_s"] for t in ordr)
+    print(f"*** RM-P1 (call vs call: judge >= ours on both benchmarks): " + ", ".join(f"{t} {ordr[t]['cc_rm']:.3f} vs {ordr[t]['cc_s']:.3f}" for t in ordr)
+          + f" -> {'holds' if p1 else 'refuted'}")
+    bal = {t: ((ordr[t]["nr_rm"] + ordr[t]["cr_rm"]) / 2, (ordr[t]["nr_s"] + ordr[t]["cr_s"]) / 2) for t in ordr}
+    print(f"*** RM-P2 (call vs no call, balanced: judge < ours on both benchmarks): " + ", ".join(f"{t} {a:.3f} vs {b:.3f}" for t, (a, b) in bal.items())
+          + f" -> {'holds' if all(a < b for a, b in bal.values()) else 'refuted'}")
+    up, down = sum(r["comb_acc"][1] > 0 for r in R.values()), sum(r["comb_acc"][2] < 0 for r in R.values())
+    print(f"*** RM-P3 (COMB - TC2-AB accuracy: lower bound > 0 in >= 1 of 4, upper bound < 0 in none): {up} above, {down} below -> "
+          f"{'holds' if up >= 1 and down == 0 else 'refuted'}")
+    p4 = all(r["ko"][2] < 0 and r["rm"][2] < 0 for r in R.values())
+    print(f"*** RM-P4 (RM-KO and RM - TC2-AB utility: upper bound < 0 in all 4): " + "; ".join(
+        f"{k[1]} {k[0]} KO {f(r['ko'])}, RM {f(r['rm'])}" for k, r in R.items()) + f" -> {'holds' if p4 else 'refuted'}")
+
+
 def main():
+    if "--rm-build" in sys.argv:
+        return main_rm_build()
+    if "--sel-rm" in sys.argv:
+        return main_sel_rm()
     if "--sel-build-ab" in sys.argv:
         return main_sel_build_ab()
     if "--sel-ab" in sys.argv or "--sel-ab2" in sys.argv or "--sel-val-ab" in sys.argv:
