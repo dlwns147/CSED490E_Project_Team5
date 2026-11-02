@@ -1815,3 +1815,56 @@ then `lcm_shift.py --sel-tc2ab selab2_s450 > results/lcm_seltc2ab.log`.
   planner's pattern statistics and is resolved by a verifier that has seen "[]" against every call.
 - **Decision (as registered, P1 holds):** TC2-AB replaces SEL-TC2 as the tool-call method (87.5% / 88.0% at 0.48k / 0.43k tokens);
   PROJECT, REPORT and PROPOSAL updated. P3 holds, so the swap costs nothing.
+
+## Addendum ACE: the tool-call method on a benchmark never used for any decision (written 2026-11-02 15:1x UTC, before any ACEBench call is made)
+
+**Why.** Every tool-call decision since SEL-TC was tested on BFCL (SEL-TC, SEL-TC2, SEL-PW-TC, SEL-AB, SEL-AB2, SEL-TC2-AB): the
+method that stands (TC2-AB) was picked after six pre-registered looks at the same 3,482 requests. SQL has an untouched benchmark
+(Spider test, FINAL); tool calls do not. The SEL-TC2-AB headroom says the remaining loss is in the verifier's information and in
+coverage, so the claim that matters now is whether the pipeline as fitted holds where nothing was chosen.
+
+**Benchmark.** ACEBench (Chen et al. 2025, arXiv 2501.12851; github ACEBench/ACEBench, MIT), English, every category that is one
+request with a function list: normal (atom bool / enum / list / number / object-deep / object-short, single function, parallel
+functions, similar APIs, preference with a user profile, multi-turn user-adjust / user-switch: the conversation so far, then the
+next call) and special (incomplete, error-param, irrelevant: no call is right) — 973 requests, 150 with no call right; agent left
+out (it needs ACEBench's environment). Items `prep_tctrain.py --ace` -> $POC_DATA/acebench/tc_items.jsonl: BFCL's system prompt
+(the one every arm, the verifiers and the planner have seen) with ACEBench's function docs and its current time / profile; graded as
+the held-out ToolACE requests (`tc_reward.right`: the calls equal the gold calls as a multiset, strings after strip; the two items
+with listed alternatives take any of them). This is stricter than ACEBench's own checker (it accepts a gold string inside the
+answer) and more lenient on special items (any reply without a call counts, as BFCL's irrelevance; ACEBench also asks that the
+reply names the missing or wrong parameter); every arm is graded the same way. Overlap with the training data: 5 of 1,983 function
+names and no request text appear in ToolACE's 9,549 items; ACEBench's APIs are synthesized in ToolACE's style (same group), so it is
+nearer the training distribution than BFCL is.
+
+**Runs** (3 seeds, as BFCL): Qwen3-8B quick / short think / think (tag aceq8b), Qwen3-8B with C1tc's adapter quick (aceq8btcc1),
+Qwen3.5-9B quick (the peer, aceq35); then seltc_s150 and selab2_s450 score every passing text and "[]" per request. Nothing is
+refitted: the planner, β and sd are SEL-TC2-AB's (fitted on held-out ToolACE), the verifiers are the chosen checkpoints, the SEL-TC
+selector is fitted on held-out ToolACE as before.
+
+**Arms**, both N types: default SB→T→T, the cascade, SEL-TC's pipeline, SEL-TC2, AB2, **TC2-AB** (the method). Paired 95% intervals
+over requests, utility points (100·right − 0.5 per 1k output tokens).
+
+**Predictions.**
+- **ACE-P1 (the method holds out):** TC2-AB − default, lower bound > 0 in both N types.
+- **ACE-P2:** TC2-AB − cascade, lower bound > 0 in at least one N type, upper bound < 0 in none.
+- **ACE-P3 (the last step holds out):** TC2-AB − SEL-TC2, upper bound ≥ 0 in both N types.
+- **ACE-P4 (mechanism):** on the special requests TC2-AB is right more often than SEL-TC2 in both N types (point estimates).
+- **Expected.** On BFCL TC2-AB − default is ≈ +3.5 / +4.1 utility (from the accuracies and tokens), TC2-AB − cascade ≈ +2.6 / +2.7, TC2-AB − SEL-TC2 +0.89 / +0.28. The
+  intervals on 973 requests are about 1.9× BFCL's (±1 point for the last comparison). The no-call part should shrink with the share of
+  requests that need no call (15% here, 32% on BFCL): ≈ +0.4 / +0.1, unresolved. ACEBench's nested objects and exact strings lower
+  every arm's accuracy, and its requests resemble the quick model's RL data (C1tc), so I expect P1 and P4 to hold, P2 to hold for at
+  least the base N, P3 to hold (point near +0.3).
+
+**Decision.**
+- P1 and P2 hold → the tool-call claim is stated on two benchmarks, one never used for a decision (REPORT, PROJECT, PROPOSAL).
+- P1 holds, P2 refuted → the gain over the default holds out but the cascade's selection layers do not; the claim is narrowed to
+  "beats the default" outside BFCL and the selection layers are reported as BFCL results.
+- P1 refuted → the tool-call claim is BFCL's; stated; the cause is read from raw cases before any further step.
+- P3 refuted → the no-call offer's gain is BFCL's (its irrelevance share and labels); reported, and TC2-AB is kept only if P3's
+  point estimate is ≥ 0 in both N types (else SEL-TC2 is the method again).
+
+Run: `prep_tctrain.py --ace` (done: 973 items, 150 with no call, every gold answer renders and grades right), then jobs `ace_q8b_s<s>`
+(lane.sh, Qwen3-8B, run_tc.py aceq8b <s>, all arms), `ace_q8bc1` (lane.sh, C1tc's adapter as `local`, TC_ARMS=quick, seeds 1–3),
+`ace_q35` (lane.sh, Qwen3.5-9B, TC_ARMS=cheap, seeds 1–3), all with TC_ITEMS=$POC_DATA/acebench/tc_items.jsonl; then the scoring
+job (cv_eval_lane.sh score-tc, both verifiers) and `lcm_shift.py --sel-tc2ab selab2_s450 --set ace` (code written while the runs go,
+run only after the scoring; its BFCL path unchanged).
