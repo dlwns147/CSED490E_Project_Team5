@@ -1506,3 +1506,38 @@ Checkpoint: final (160 steps), pooled AUROC on the held-out ToolACE fallback set
 argument-level gain (P3) is cancelled by a preference for calling over abstaining, which BFCL's irrelevance requests punish. The
 tool-call pipeline keeps the pointwise verifier (SEL-TC, SEL-TC2); stated in PROJECT and REPORT. The composite (+0.1 / +0.3,
 exploratory) is not pursued: below SEL-PW's +0.3 on a target already read.
+
+## Results of addendum SEL-PW-W (written 2026-11-02 06:0x UTC; `results/lcm_selpww_val.log`, `results/lcm_selpww.log`; job 1297161: 130 training steps on the 1,029 OptMATH-Train problems, every ordered pair scored, none failed; raw cases `nlp_data/scratch/selpww_raw.py`)
+
+Checkpoint: s100, pooled development AUROC 0.670 [0.608, 0.731] (Qwen3-8B 0.713, Qwen3-14B-AWQ 0.630; SEL-W's V2 there 0.702;
+s25 … final 0.571–0.652); training loss 0.07 at the last step (ctx accuracy 0.95): the pairs are fitted, the reading does not transfer.
+
+| cell (N) | AUROC pairwise | V2 | pairwise − V2 | untrained pairwise | selector − cascade, pairwise | V2 | pairwise − V2 selector | cross-fitted (pairwise) | bound |
+|---|---|---|---|---|---|---|---|---|---|
+| OptiBench's other 403 (Qwen3-8B) | 0.648 | 0.693 | −0.044 [−0.141, +0.053] | 0.546 | +0.17 [−0.66, +0.99] | +0.41 | −0.25 [−0.66, +0.08] | +0.08 | +0.65 |
+| MAMO (Qwen3-8B) | 0.516 | 0.620 | −0.104 [−0.179, −0.026] | 0.572 | −0.00 [−0.62, +0.62] | +0.46 | −0.46 [−0.85, −0.08] | −0.12 | +0.43 |
+| OptiBench's other 403 (Qwen3-14B-AWQ) | 0.597 | 0.638 | −0.041 [−0.121, +0.048] | 0.467 | −0.08 [−1.24, +0.99] | −0.00 | −0.08 [−0.58, +0.41] | −0.17 | +0.45 |
+| MAMO (Qwen3-14B-AWQ) | 0.583 | 0.664 | −0.082 [−0.156, −0.013] | 0.540 | +0.35 [−0.58, +1.35] | +1.16 | −0.81 [−1.35, −0.35] | +0.62 | +1.11 |
+
+- **SEL-PW-W-P1 refuted, the other way:** pairwise − V2 AUROC, four cells pooled, −0.073 [−0.114, −0.034]; significantly worse on both
+  MAMO cells.
+- **SEL-PW-W-P2 refuted:** no cell's lower bound above 0 (none below).
+- **SEL-PW-W-P3 refuted:** pairs whose programs differ in ≤ 28 lines −5.81 [−11.95, −0.11] (321 pairs), the rest −5.62 [−11.00,
+  +0.04] (307): seeing where the formulations differ does not help on either half.
+- **SEL-PW-W-P4 holds** (4 of 4), but the bounds are small (+0.43 to +1.11), so it is a weak test.
+- **Raw cases — both verifiers order by the printed value, the pairwise one more:** over the 628 targets' (right, wrong) pairs the
+  pairwise verifier orders 56% right, V2 66%. When the right value is the larger one (280 pairs) they are right in 81% / 85%; when it is
+  the smaller one (348), in 36% / 51%. By the objective's direction (from the programs): when the right value is the more constrained
+  one (larger for a minimisation, smaller for a maximisation; 284 pairs) 71% / 80%, when it is the more optimistic one (262) 38% /
+  50%. In the 132 pairs where the two disagree, V2 is right in 97. The wrong programs read the statement differently in a way the
+  benchmark fixes by convention — "for every 3 hours of training at least 2 units of equipment … this combined value at least 15"
+  read as 3T + 2E ≥ 15 (right, 30) or as the ratio 3Y ≥ 2X with X + Y ≥ 15 (78); "the difference … at least 50" read as X − Y ≥ 50
+  (right) or |X − Y| ≥ 50 — and neither format resolves the reading; the pairwise one leans harder on the value prior.
+- **Cost:** prefill per problem-seed 366–406 tokens against V2's 235–255 (+50–65%); no output tokens.
+- **Related work:** Pairwise RM (2501.13007) puts a pairwise judge above pointwise reward models on MATH; with programs, backbone, data
+  and loss fixed, here it is below. As on tool calls (SEL-PW-TC), the pairwise judge amplifies a surface prior — there a call over an
+  abstention, here the more constrained value — as pairwise LLM judges do with distractor features (2504.14716).
+
+**Decision (registered):** P1 refuted → the word boundary stands as SEL-W left it, now for both formats; stated in PROJECT and REPORT.
+Across the three task types the pairwise format pays only on SQL, where the right/wrong difference is a recurring convention of the
+benchmarks (COUNT(DISTINCT), LIMIT 1) that a contrast makes visible; on word problems the difference is one statement's reading.

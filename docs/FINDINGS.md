@@ -5061,3 +5061,23 @@ Decision (registered): P1 refuted → the format's gain is SQL's (results judged
 verifier (SEL-TC, SEL-TC2). Goal link: no change in accuracy or tokens on tool calls; the verifier format is task-dependent, and the
 per-kind split says which: a contrast view helps where answers differ in content of the same kind, hurts where one answer is to do
 nothing. Next: SEL-PW-W (running, 1297161) decides the word problems.
+
+## 2026-11-02 06:0x UTC: SEL-PW-W (pre-registered): on word problems the pairwise verifier is worse than one-at-a-time — the verifier line closes on all three task types
+Why: SEL-PW's registered follow-up. SEL-W's verifier (V2) does not choose among word programs; side by side, the two formulations differ
+in a few places and the question becomes which reading is right there. Same pool (1,029 OptMATH-Train problems), backbone, loss.
+- Pairwise − V2 AUROC, four target cells pooled: −0.073 [−0.114, −0.034] (P1 refuted the other way; MAMO −0.10 / −0.08, both
+  significant); selector − cascade, no cell above 0 (P2 refuted); no gain on pairs that differ in few lines (P3 refuted).
+- Raw cases: both verifiers order by the printed value. Right in 81% / 85% (pairwise / V2) of pairs where the right value is the
+  larger, 36% / 51% where it is the smaller; by objective direction, 71% / 80% when the right value is the more constrained one, 38% /
+  50% when it is the more optimistic. The wrong programs are other readings of one sentence ("for every 3 hours … at least 2 units …
+  combined value at least 15": a sum constraint or a ratio; "difference at least 50": X − Y or |X − Y|), which neither format resolves.
+- Pattern across SEL-PW / -TC / -W: the pairwise judge amplifies a surface prior (SQL untrained: the wider query; tool calls: a call
+  over an abstention; word: the more constrained value). Training removes it only where the right/wrong difference is a recurring
+  convention (SQL), as pairwise judges' susceptibility to distractors predicts (2504.14716).
+- Where any selection or accept-step change could still pay (stored rows, perfect information): flagging every agreed wrong answer
+  and taking d where d is right adds at most 0.5–0.8 (tool calls), 0.9–2.4 (SQL) and 0.4–0.7 points (word problems) before tokens;
+  the verifier's misses at the fallback are 2.3–3.2 points on tool calls. The remaining loss is answers no call produces
+  (`nlp_data/scratch/accept_headroom.py`, `tc_headroom.py`).
+Decision (registered): P1 refuted → the word boundary stands as SEL-W left it, now for both formats. Goal link: the method per task is
+unchanged — SQL: cascade + pairwise verifier; tool calls: fitted call policy + pointwise verifier; word: XPEER's cascade. Selection
+is near its limit on all three; further gains need answers the current calls do not produce.
