@@ -2178,3 +2178,34 @@ noise.
 bound < 0 → SEL-PW's switch is withdrawn: the pointwise verifier is the SQL method's (fewer prefill tokens), with Qwen3-8B's Spider-test
 gain reported as not replicated. P1 refuted otherwise → the pairwise verifier stays for Qwen3-8B, where it was shown, and the other
 generators keep the pointwise one (no evidence to pay 5–23% more prefill); PROJECT, REPORT and PROPOSAL state which.
+
+## Results of addendum SEL-PW-G (written 2026-11-03 08:3x UTC; `results/lcm_selpwg.log`; job 1308266, 21,374 new ordered pairs scored, none failed; raw cases `nlp_data/scratch/selpwg_raw.py` -> `selpwg_raw.out`)
+
+| generator ← peer | target | AUROC pairwise / pointwise | selector − cascade, pairwise / pointwise | pairwise − pointwise selector |
+|---|---|---|---|---|
+| Qwen3-14B-AWQ ← Qwen3.5-9B | BIRD dev | 0.821 / 0.790 | +2.03 / +1.07 | +0.96 [+0.41, +1.55] |
+| | Spider test | 0.795 / 0.733 | +2.07 / +1.61 | +0.46 [+0.00, +0.90] |
+| | Spider dev | 0.852 / 0.788 | +1.34 / +1.10 | +0.24 [−0.24, +0.73] |
+| Qwen3.5-9B ← Qwen3-8B | BIRD dev | 0.823 / 0.828 | +2.14 / +1.57 | +0.57 [+0.04, +1.07] |
+| | Spider test | 0.806 / 0.741 | +1.82 / +1.36 | +0.46 [+0.11, +0.84] |
+| | Spider dev | 0.818 / 0.794 | +1.83 / +1.14 | +0.69 [+0.16, +1.26] |
+| gpt-oss-20b ← Qwen3.5-9B | BIRD dev | 0.811 / 0.777 | +3.09 / +2.40 | +0.70 [+0.22, +1.20] |
+| | Spider test | 0.791 / 0.762 | +2.93 / +2.66 | +0.27 [−0.17, +0.75] |
+| | Spider dev | 0.839 / 0.760 | +2.69 / +1.63 | +1.06 [+0.49, +1.67] |
+
+(β pairwise 1.0, pointwise 0.8–0.9; every fallback question-seed scored by both; the pointwise rows are SEL-G's exactly.)
+
+- **SEL-PW-G-P1 holds:** pairwise − pointwise selector, nine cells pooled, +0.58 [+0.41, +0.76]; per generator +0.60 [+0.28, +0.93] /
+  +0.55 [+0.29, +0.82] / +0.59 [+0.28, +0.89], each above 0; no cell below. **SEL-PW-G-P2 holds:** AUROC +0.037 [+0.025, +0.050]
+  (per generator +0.049 / +0.026 / +0.039).
+- The selector gain is above the expected +0.1 to +0.5 and about twice Qwen3-8B's (+0.27 / +0.33), and it is not Spider test's alone
+  (BIRD dev +0.57 to +0.96): the replication is stronger than the result it replicates. The AUROC gain is as expected (SEL-PW
+  +0.039 / +0.044). With it the pairwise selector's β is 1.0 against the pointwise 0.8–0.9: the order-debiased pairwise score earns more
+  weight against the structure prior on these generators' cells.
+- **Raw cases** (top choices that differ; pairwise right / pointwise right): Qwen3-14B-AWQ 214 / 102, Qwen3.5-9B 213 / 151,
+  gpt-oss-20b 204 / 123. Wins are content: the name column instead of the code ("city_name" for "each city"), the join path the
+  question names (shipment items rather than shipments), no extra column, GROUP BY … ORDER BY COUNT … LIMIT 1 for "the most". Losses
+  include output-column order (MIN/MAX in the order asked, which the graders compare) and readings of the question (COUNT(*) against
+  COUNT(DISTINCT …)).
+- **Decision (registered):** P1 holds → the pairwise verifier is the SQL fallback's verifier for every generator tested (Qwen3-8B,
+  Qwen3-14B-AWQ, Qwen3.5-9B, gpt-oss-20b). SEL-PW's narrow single-generator result is replicated; PROJECT, REPORT and PROPOSAL state it.

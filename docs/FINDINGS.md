@@ -5190,3 +5190,16 @@ distribution can disagree on another policy's outputs (Eisenstein et al. 2023, u
 the same on SQL. Decision (registered): AB is part of the tool-call method for every generator tested; the call planner stays a
 Qwen3-8B result (needs the generator's held-out ToolACE calls). Goal link: exact tool calls at the fewest tokens for any generator —
 +1.6 accuracy points at no extra output token.
+
+## 2026-11-03 08:3x UTC: SEL-PW-G (pre-registered): the pairwise SQL verifier replicates at three other generators — +0.58 over the pointwise one
+Why: SEL-PW switched the SQL fallback to the pairwise verifier on a narrow result for Qwen3-8B alone (+0.27 [+0.000, +0.56]); SEL-G's
+other generators had the pointwise one. A narrow result that changed the method needed a replication before stating it for every
+generator. Same verifiers, unchanged; nine cells (Qwen3-14B-AWQ, Qwen3.5-9B, gpt-oss-20b × BIRD dev, Spider test, Spider dev).
+- Pairwise − pointwise selector, pooled +0.58 [+0.41, +0.76] (P1 holds); every generator above 0 (+0.55 to +0.60), no cell below;
+  AUROC +0.037 [+0.025, +0.050] (P2 holds). Selector − cascade with the pairwise verifier +1.3 to +3.1 points per cell.
+- Stronger than the result it replicates (twice Qwen3-8B's gain, BIRD dev included), at the same AUROC gain.
+- Raw: wins are content (name vs code column, the join path the question names, no extra column, LIMIT 1 for "the most"); losses
+  include output-column order the graders compare and COUNT(*) vs COUNT(DISTINCT).
+Related: CHASE-SQL (2410.01943) and Pairwise RM (2501.13007) prefer pairwise selection; here, with candidates, backbone, data and loss
+fixed, the format alone adds +0.6 at other generators' fallbacks. Decision (registered): the pairwise verifier is the SQL fallback's
+verifier for every generator tested. Goal link: exact SQL at no extra output tokens — +0.6 more accuracy for 5–23% more prefill.
