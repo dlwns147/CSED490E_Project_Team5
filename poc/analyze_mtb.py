@@ -66,6 +66,37 @@ def main():
     print(f"*** MT-B1: planner - T lower bound > 0 in {held} of {len(out)} models (needs 2): {'holds' if held >= 2 else 'refuted'}")
 
 
+def env_half():
+    """addendum MT-SEL-ENV: item -> 0 / 1 by environment group, None when it uses classes of both. The groups are the two-group split of
+    BFCL's eight classes (GorillaFileSystem in group 0) that maximises the smaller group's count of items using only its classes."""
+    PD = os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nlp_data")
+    M = [json.loads(l) for l in open(f"{PD}/bfcl/mt_items.jsonl")]
+    cls = sorted({c for r in M for c in r["involved_classes"]})
+    size = lambda A: min(sum(set(r["involved_classes"]) <= A for r in M), sum(not set(r["involved_classes"]) & A for r in M))
+    A = max(({c for k, c in enumerate(cls) if m >> k & 1} for m in range(1, 2 ** len(cls) - 1) if m & 1), key=size)
+    return {r["id"]: 0 if set(r["involved_classes"]) <= A else 1 if not set(r["involved_classes"]) & A else None for r in M}
+
+
+def main_sel_env_build():
+    """addendum MT-SEL-ENV (--sel-env-build): the group item lists $POC_DATA/bfcl/mt_selenv_ids_h{0,1}.txt (training) and MT-SEL's turn-0
+    requests of each group's items, results/conf/sel_req_mtenv_h{0,1}.jsonl (scoring by the verifier trained on the other group)."""
+    PD = os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nlp_data")
+    C = os.path.join(os.path.dirname(RES), "conf")
+    eh = env_half()
+    items = {json.loads(l)["id"] for l in open(f"{PD}/bfcl/mt_sel_items.jsonl")}
+    for g in (0, 1):
+        ids = sorted(i for i in items if eh.get(i) == g)
+        open(f"{PD}/bfcl/mt_selenv_ids_h{g}.txt", "w").write("\n".join(ids) + "\n")
+        n = 0
+        with open(f"{C}/sel_req_mtenv_h{g}.jsonl", "w") as w:
+            for h in (0, 1):
+                for l in open(f"{C}/sel_req_mt_h{h}.jsonl"):
+                    if eh.get(json.loads(l)["id"]) == g:
+                        w.write(l); n += 1
+        print(f"group {g}: {len(ids)} items with turn-0 sets, {n} requests", flush=True)
+    print(f"dropped (both groups): {sum(eh.get(i) is None for i in items)} items")
+
+
 def main_sel():
     """addendum MT-SEL (--sel <verifier trained on half 0>,<verifier trained on half 1> [--ref <name>]): at turn 0, a verifier choosing
     among the rollouts of N, the peer's N and T (SEL3; with the next seed's T too, SEL4), and the gate (N kept when its score clears tau,
@@ -84,6 +115,13 @@ def main_sel():
     V = {0: load(a[1]), 1: load(a[0])}   # half h's items are scored by the verifier trained on the other half
     Rf = load(ref) if ref else None
     rows = [json.loads(l) for l in open(f"{C}/mt_sel_rows.jsonl")]
+    # addendum MT-SEL-ENV: MT_SEL_SPLIT=env takes the halves by environment group (env_half), =same keeps the scenario halves; both drop
+    # the items that use both groups, and dump the per-item utilities to results/tc/mtselenv_<split>.json (P3 when both exist)
+    sp = os.environ.get("MT_SEL_SPLIT")
+    if sp:
+        eh = env_half()
+        rows = [dict(r, half=eh[r["id"]]) if sp == "env" else r for r in rows if eh.get(r["id"]) is not None]
+    dump = {}
     f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
     out, outr, auc = {}, {}, {}
 
@@ -156,6 +194,7 @@ def main_sel():
                     ok, t = r["roll"][k][1], r["roll"][k][2]
                     U[k][r["id"]] += u(ok, t) / 3; A[k][r["id"]] += 100 * ok / 3; K[k][r["id"]] += t / 3
         n = len(ids)
+        dump[m] = {i: {"SEL3": U["SEL3"][i], "T": U["T"][i]} for i in ids}
         d = lambda x: ci({i: (U[x][i] - U["T"][i]) / 100 for i in ids})
         out[m] = {k: d(k) for k in ("SEL3", "SEL4", "GATE")}
         out[m]["alone3"] = ci({i: (U["alone3"][i] - U["SEL3"][i]) / 100 for i in ids})
@@ -180,6 +219,13 @@ def main_sel():
         up = sum(v[1] > 0 for v in outr.values())
         print(f"*** MT-SEL-P4 (SEL3 with the trained verifiers - with {ref}, lower bound > 0 in >= 2 of 3 models): {up} of 3 -> "
               f"{'holds' if up >= 2 else 'refuted'}")
+    if sp and not synth:
+        json.dump(dump, open(f"{RES}/mtselenv_{sp}.json", "w"))
+        other = f"{RES}/mtselenv_{'same' if sp == 'env' else 'env'}.json"
+        if os.path.exists(other):
+            E, S = (dump, json.load(open(other))) if sp == "env" else (json.load(open(other)), dump)
+            p3 = ci({f"{m}/{i}": (E[m][i]["SEL3"] - S[m][i]["SEL3"]) / 100 for m in E for i in E[m] if i in S.get(m, {})})
+            print(f"*** MT-SEL-ENV-P3 (SEL3 environment split - scenario split, same items, three models pooled): {f(p3)}")
 
 
 def main_sel2():
@@ -283,7 +329,9 @@ def main_sel2():
 
 
 if __name__ == "__main__":
-    if "--sel2" in sys.argv:
+    if "--sel-env-build" in sys.argv:
+        main_sel_env_build()
+    elif "--sel2" in sys.argv:
         main_sel2()
     elif "--sel" in sys.argv:
         main_sel()

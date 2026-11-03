@@ -517,3 +517,51 @@ pooled **+3.44 [+1.05, +5.83]** (P3's test, here for the reference verifiers). P
 Reading: AUROC falls from 0.84–0.91 at turn 0 to 0.69–0.81 later, and T is more often right later (77–86%), so there is less to
 win. P3 holding for `mtso` will therefore not show that later-turn training matters; P4 (`mtso` − `mtsel` on these sets) does.
 Predictions unchanged.
+
+## Addendum MT-SEL-ENV: does the turn-0 choice hold in environments the verifier never saw? (written 2026-11-03 17:3x UTC, before any environment-split verifier is trained)
+
+**Why.** MT-SEL's halves are split by scenario, and both halves use the same eight BFCL environments. A verifier could have learned
+what a right file-system or trading turn looks like. This is the caveat recorded under MT-SEL. Any claim for agent loops needs the gain
+to survive in unseen environments. It also tells us whether MT-SO, if it holds, needs a separate environment-held-out run.
+
+**Split (computed, not chosen).** Each item uses one or two of the eight classes. Of the 127 two-group partitions of the classes
+(GorillaFileSystem fixed in group 0), take the one that maximises the smaller group's count of items using only that group's classes:
+
+| Group | Classes | Items |
+|---|---|---|
+| 0 | GorillaFileSystem, MathAPI, TwitterAPI, VehicleControlAPI | 228 |
+| 1 | MessageAPI, TicketAPI, TradingBot, TravelAPI | 240 |
+
+The 132 items that use both groups are dropped from training and test.
+
+**Run.**
+1. `python3.11 poc/analyze_mtb.py --sel-env-build` writes:
+   - the group item lists `$POC_DATA/bfcl/mt_selenv_ids_h{0,1}.txt`;
+   - the turn-0 request files `results/conf/sel_req_mtenv_h{0,1}.jsonl`, which are MT-SEL's requests restricted to each group.
+2. Jobs `mtenv_h<g>`:
+   - train with MT-SEL's recipe on group g's items only: `SEL_IDS=mt_selenv_ids_h<g>.txt tc_train.py $POC_DATA/cv/mtenv_h<g> --orm --mt
+     --batch 8 --epochs 4 --save 1000`;
+   - then score the other group's requests: `cv_eval_lane.sh score-tc ... mtenv_h<g> sel_req_mtenv_h<1-g>.jsonl mt`.
+3. `MT_SEL_SPLIT=same python3.11 poc/analyze_mtb.py --sel mtsel_h0,mtsel_h1` gives MT-SEL's scenario split on the same 468 items, for
+   comparison.
+4. `MT_SEL_SPLIT=env python3.11 poc/analyze_mtb.py --sel mtenv_h0,mtenv_h1` gives the environment split. Verifier, selector fit
+   (SEL-CL) and gate threshold all come from the other environment group. Output goes to `results/mtselenv.txt`.
+
+**Predictions** (turn 0, three models, utility as MT-SEL, items × 3 seeds, 95% intervals over items):
+- **MT-SEL-ENV-P1 (decision):** SEL3 − T lower bound > 0 in ≥ 2 of 3 models.
+- **MT-SEL-ENV-P2:** within-set AUROC ≥ 0.75 in ≥ 2 of 3 models.
+- **MT-SEL-ENV-P3 (cost of unseen environments):** on the same items, SEL3 with the environment split minus SEL3 with the scenario
+  split, pooled over the three models. Reported with its interval.
+- **Expected.**
+  - AUROC 0.75–0.82, against MT-SEL's 0.84–0.91.
+  - SEL3 − T +2 to +5.
+  - P3 between −1 and −3.
+  - Confound: each environment verifier trains on 228–240 items, against about 300 for each scenario half. A loss in P3 mixes unseen
+    environments with less data.
+
+**Decision.**
+- **P1 holds** → MT-SEL's gain is not environment memorisation. If MT-SO holds, it gets an environment-held-out online run with these
+  verifiers.
+- **P1 refuted** → a size-matched scenario control tells less data from unseen environments: scenario verifiers trained on random
+  228 / 240-item subsets. If the control keeps the gain, the agent-loop claim is scoped to "trained on the target environments", and
+  new environments become the required test.
