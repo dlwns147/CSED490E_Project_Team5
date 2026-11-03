@@ -71,9 +71,10 @@ def turn2(n, cols, first):
 PW_ASK = "Which query answers the question? Reply A or B."
 
 
-def pw_prompt(user, a, b):
+def pw_prompt(user, a, b, wit=None):
     """addendum SEL-PW: the question's prompt without its instruction, then two candidate queries, each with its result as turn 2 shows
-    it, then PW_ASK; a, b = (query, column names, row count, first 5 rows)"""
+    it, then PW_ASK; a, b = (query, column names, row count, first 5 rows). SIDE-W (PREREG_SIDE.md): wit = a witness row of
+    sql_witness.py, shown after both queries (sql_witness.wtext)"""
     from prep_sql import ASK
     body = user[:-len(ASK)].rstrip() if user.endswith(ASK) else user.rstrip()
 
@@ -82,6 +83,10 @@ def pw_prompt(user, a, b):
         rows = "\n".join("\t".join(r)[:300] for r in first)
         return (f"Query {t}:\n```sql\n{q}\n```\nIt returned {n} row{'' if n == 1 else 's'}. The first {len(first)}:\n"
                 + "\t".join(cols)[:300] + f"\n{rows}")
+    if wit:
+        from sql_witness import wtext
+        return (f"{body}\n\nTwo SQLite queries were written for this question.\n\n{show('A', a)}\n\n{show('B', b)}\n\n"
+                f"{wtext(wit, a[0], b[0])}\n\n{PW_ASK}")
     return f"{body}\n\nTwo SQLite queries were written for this question.\n\n{show('A', a)}\n\n{show('B', b)}\n\n{PW_ASK}"
 
 
@@ -394,6 +399,10 @@ def main_pw(out):
     Q = Q[:smoke or len(Q)]
     print(f"pw: {len(Q)} questions with a right and a wrong passing result (of {len(C)}); up to {K} pairs per question in both orders; "
           f"batch {B}, lr {lr}, epochs {ep}", flush=True)
+    from sql_witness import wkey, wload
+    WIT = wload()   # SIDE-W: $PW_WITNESS set -> every pair shown with its witness (none found -> SEL-PW's prompt)
+    if WIT:
+        print(f"pw: {len(WIT)} witnesses from $PW_WITNESS", flush=True)
     pol = Policy(arg("--base", "/SSD/huggingface/Qwen/Qwen3-8B"), lr)
     pol.acc, pol.de = pol.tok.convert_tokens_to_ids("A"), pol.tok.convert_tokens_to_ids("B")
     assert None not in (pol.acc, pol.de) and pol.acc != pol.de and pol.tok.unk_token_id not in (pol.acc, pol.de), (pol.acc, pol.de)
@@ -414,8 +423,9 @@ def main_pw(out):
                 ctxs, y = [], []
                 for hr, hw in prs:
                     xr, xw = rng.choice(R[hr]), rng.choice(W[hw])
+                    w = WIT.get(wkey("fresh", i, xr[0], xw[0]))
                     for A, Bq, lab in ((xr, xw, 1.0), (xw, xr, -1.0)):
-                        ctxs.append(pol.ids([{"role": "user", "content": pw_prompt(p["user"], A, Bq)}])); y.append(lab)
+                        ctxs.append(pol.ids([{"role": "user", "content": pw_prompt(p["user"], A, Bq, w)}])); y.append(lab)
                 from prep_sql import ASK
                 body = p["user"][:-len(ASK)].rstrip() if p["user"].endswith(ASK) else p["user"].rstrip()
                 P = pol.ids([{"role": "user", "content": body}])

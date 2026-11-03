@@ -138,6 +138,8 @@ def main_sel():
     from cv_train import run_query, turn2
     names = sys.argv[2].split(",")
     ssets = os.environ.get("SEL_SSETS", "fresh,dev,spider,spiderdev").split(",")
+    from sql_witness import wkey, wload
+    WIT = wload()   # SIDE-W (PREREG_SIDE.md): $PW_WITNESS -> the SQL pairs are shown with their witnesses
     req = [r for r in _rows(f"{ROOT}/results/conf/{os.environ.get('SEL_REQ', 'sel_req.jsonl')}") if r["sset"] in ssets]
     P = {k: {p["id"]: p for p in map(json.loads, open(SEL_ITEMS[k]))} for k in ssets if k in SEL_ITEMS}
     for sset in ssets:   # run_query reads prep_sql.SPLIT: one split at a time
@@ -180,7 +182,8 @@ def main_sel():
                     if sset in SEL_SPLIT:
                         from cv_train import pw_prompt
                         c2, _, cols2, n2, first2 = rq[(r["id"], r["text2"])]
-                        m = [{"role": "user", "content": pw_prompt(p["user"], (r["text"], cols, n, first), (r["text2"], cols2, n2, first2))}]
+                        w = WIT.get(wkey(sset, r["id"], r["text"], r["text2"]))   # SIDE-W ($PW_WITNESS; unset: none)
+                        m = [{"role": "user", "content": pw_prompt(p["user"], (r["text"], cols, n, first), (r["text2"], cols2, n2, first2), w)}]
                     else:   # SEL-PW-TC: the request and both responses in one turn
                         from tc_train import tc_pw_prompt
                         c2 = "pass"

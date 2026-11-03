@@ -934,7 +934,11 @@ def main_sel_pw():
         print(f"*** SEL-PW checkpoint (highest pooled held-out-database AUROC): {best[0]}")
         return
     nm = sys.argv[sys.argv.index("--sel-pw") + 1]
-    S, ST = load(nm), load("sel_s125")
+    ref = os.environ.get("SEL_PW_REF")   # SIDE-W (PREREG_SIDE.md): a pairwise reference (selpw_s150) in place of SEL's pointwise one
+    S, ST = load(nm), load(ref or "sel_s125")
+    ref_items = (lambda sset, nsrc: pw_items(sset, nsrc, ST)) if ref else (lambda sset, nsrc: sel_items(sset, nsrc, ST))
+    if ref:
+        print(f"SEL-PW --sel-pw {nm}: the reference ('pointwise' below) is the pairwise {ref}", flush=True)
     SL = load("local") if os.path.exists(os.path.join(cd, "sel_scores_local.jsonl")) else {}
     R, pool = {}, {}
     for nsrc in (None, RV_N["sql"]):
@@ -942,10 +946,10 @@ def main_sel_pw():
         Dp, allfr = rv_items("sql", "fresh", nsrc)
         prior = [(i, s, [{"r": c[0], "calls": c[1], "s": 0.0} for c in cand.values()], dr) for i, s, cand, dr in allfr]
         cw, bw = sel_fit(prior, [x for x in pw_items("fresh", nsrc, S)[2] if x[0] in val])
-        ct, bt = sel_fit(prior, [x for x in sel_items("fresh", nsrc, ST)[2] if x[0] in val])
+        ct, bt = sel_fit(prior, [x for x in ref_items("fresh", nsrc)[2] if x[0] in val])
         for sset, tname in SEL_T:
             D, raw, itw, missw = pw_items(sset, nsrc, S)
-            _, _, itt, misst = sel_items(sset, nsrc, ST)
+            _, _, itt, misst = ref_items(sset, nsrc)
             kw, kt = {(x[0], x[1]): x for x in itw}, {(x[0], x[1]): x for x in itt}
             keys = sorted(set(kw) & set(kt))
             if not keys:
