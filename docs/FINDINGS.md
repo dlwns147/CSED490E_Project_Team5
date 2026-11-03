@@ -5284,4 +5284,4 @@ when every number is used vs 72–78% when not) and 0.60–0.66 where it disagre
 (3) **Word problems, template reuse:** near-duplicate statements once numbers are masked (token Jaccard ≥ 0.8) are 2 of 245 (nl4opt),
 0 of 100 (IndustryOR), 0 of 652 / 19 of 211 (MAMO easy / complex): reusing a checked program by number substitution has no room here.
 Reading: on these tasks the passing wrong answers are misreadings shared in meaning, which structural checks of the answer do not see;
-the teammate track goes where the room is (agent loops: new environments as a held-out test; see the team notes).
+the suggested teammate track goes where the room is (agent loops: new environments as a held-out test).
