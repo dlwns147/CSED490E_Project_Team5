@@ -2149,3 +2149,32 @@ the prior never saw keep d; AB adds no output token to the cascade.)
   call) is part of the tool-call method for every generator tested (Qwen3-8B, Qwen3-14B-AWQ, Qwen3.5-9B, gpt-oss-20b), as SEL-G showed
   on SQL; TC2-AB's call planner stays a Qwen3-8B result (it needs the generator's own held-out ToolACE calls). PROJECT, REPORT and
   PROPOSAL state the scope.
+
+## Addendum SEL-PW-G: does the pairwise SQL verifier replicate at other generators' fallbacks? (written 2026-11-03 07:3x UTC, before any of the 21,374 new ordered pairs is scored; 26,800 built, 5,426 already scored by selpw_s150 as Qwen3-8B's pairs; a dry run with random scores for the unscored pairs was run, see below)
+
+**Why.** SEL-PW replaced the pointwise verifier by the pairwise one at the SQL fallback on a narrow result for one generator
+(Qwen3-8B; pooled selector gain +0.27 [+0.000, +0.56] / +0.33 [+0.008, +0.65], all of it Spider test's), and SEL-G's other generators
+were run with the pointwise verifier and not re-run. A narrow, single-generator result that changed the method needs a replication
+before the method is stated for every generator. Related work: CHASE-SQL (2410.01943) and Pairwise RM (2501.13007) report pairwise above
+pointwise selection; SEL-PW found the format worth +0.04 AUROC with all else fixed, more under database shift.
+
+**Cells.** SEL-G's: Qwen3-14B-AWQ (peer Qwen3.5-9B), Qwen3.5-9B (peer Qwen3-8B), gpt-oss-20b (peer Qwen3.5-9B), untrained quick
+queries; BIRD dev, Spider test, Spider dev. Pairwise verifier: SEL-PW's selpw_s150, unchanged; pointwise: SEL's sel_s125 (SEL-G's scores).
+Each verifier's selector fitted as in SEL-G (π on the generator's 1,338 fresh BIRD-train questions, β on the held-out-database ones).
+Run: `cv_eval_lane.sh score-tc $POC_DATA/cv/selpw/adapter_s150 selpw_s150 sel_req_pwg.jsonl fresh,dev,spider,spiderdev` (the lane's
+generic scoring mode; `lcm_shift.py --sel-build-pwg`), then `lcm_shift.py --sel-pwg selpw_s150` > results/lcm_selpwg.log.
+
+**Predictions** (paired 95% intervals over questions; the three generators × three targets pooled, per-generator lines reported):
+- **SEL-PW-G-P1 (decision):** pairwise − pointwise selector, lower bound > 0.
+- **SEL-PW-G-P2:** pairwise − pointwise within-question AUROC, lower bound > 0.
+- **Expected:** AUROC +0.02 to +0.06, selector +0.1 to +0.5 (SEL-PW: +0.039 / +0.044 and +0.27 / +0.33); with nine cells pooled the
+  interval is about ±0.17, so a true +0.3 is detected about nine times in ten.
+
+**Dry run (disclosed; not a prediction).** With the real scores of the 5,426 pairs shared with Qwen3-8B's and random scores elsewhere,
+the pointwise rows reproduce SEL-G exactly (e.g. Qwen3-14B-AWQ BIRD dev +1.07, gpt-oss-20b Spider test +2.66), and the pairwise ones are
+noise.
+
+**Decision.** P1 holds → the pairwise verifier is the SQL fallback's verifier for every generator tested. P1 refuted with the upper
+bound < 0 → SEL-PW's switch is withdrawn: the pointwise verifier is the SQL method's (fewer prefill tokens), with Qwen3-8B's Spider-test
+gain reported as not replicated. P1 refuted otherwise → the pairwise verifier stays for Qwen3-8B, where it was shown, and the other
+generators keep the pointwise one (no evidence to pay 5–23% more prefill); PROJECT, REPORT and PROPOSAL state which.

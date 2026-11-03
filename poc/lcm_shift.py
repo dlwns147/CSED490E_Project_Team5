@@ -985,6 +985,95 @@ def main_sel_pw():
           f"{'holds' if p4 >= 4 else 'refuted'}")
 
 
+def main_sel_build_pwg():
+    """addendum SEL-PW-G: every ordered pair of distinct passing answers at the other generators' SQL fallbacks (SEL-G's cells, their own
+    quick queries; the fresh held-out-database questions and the three targets) -> results/conf/sel_req_pwg.jsonl"""
+    req, val = {}, sel_val_ids()
+    for gen in SELG_GEN:
+        for sset in ("fresh",) + tuple(x for x, _ in SEL_T):
+            D, items = rv_items("sql", sset, None, gen, PEER[gen])
+            for i, s, cand, dr in items:
+                if sset == "fresh" and i not in val:
+                    continue
+                reps = [texts[0] for r, calls, texts in cand.values()]
+                for a in reps:
+                    for b in reps:
+                        if a != b:
+                            h = rv_key("sql", sset, i, "pw", [a, b])
+                            req[h] = {"h": h, "task": "sql", "sset": sset, "id": i, "kind": "pw", "text": a, "text2": b}
+            print(f"SEL-PW-G build {gen}<-{PEER[gen]} {sset}: {len(items)} multi-answer fallback question-seeds; requests so far {len(req)}",
+                  flush=True)
+    with open(os.path.join(lcm.ROOT, "results", "conf", "sel_req_pwg.jsonl"), "w") as f:
+        for r in req.values():
+            f.write(json.dumps(r) + "\n")
+    print(f"SEL-PW-G build: {len(req)} requests -> results/conf/sel_req_pwg.jsonl")
+
+
+def main_sel_pwg():
+    """addendum SEL-PW-G (--sel-pwg <pairwise checkpoint>): SEL-PW's pairwise verifier against SEL's pointwise one (sel_s125, SEL-G's
+    scores) at the SQL fallback of Qwen3-14B-AWQ, Qwen3.5-9B and gpt-oss-20b, untrained quick queries, each verifier's selector fitted
+    as in SEL-G (pi on the generator's fresh questions, beta on the held-out-database ones). SEL_PWG_SYNTH=1: random pairwise scores where
+    one is missing (the dry run). (SEL-PW-G-P1, P2: the three generators and three targets pooled; per generator reported)"""
+    import random
+    from analyze_ho3 import ci
+    from run_nlopt import _rows
+    cd = os.path.join(lcm.ROOT, "results", "conf")
+    load = lambda nm: {r["h"]: r for r in _rows(os.path.join(cd, f"sel_scores_{nm}.jsonl"))}
+    nm = sys.argv[sys.argv.index("--sel-pwg") + 1]
+    S, ST, val = load(nm), load("sel_s125"), sel_val_ids()
+    if os.environ.get("SEL_PWG_SYNTH") == "1":
+        rnd = random.Random(0)
+        for r in _rows(os.path.join(cd, "sel_req_pwg.jsonl")):
+            S.setdefault(r["h"], {"s": rnd.gauss(0, 2)})
+    g = lambda v: f"{v[0] / 100:.3f} [{v[1] / 100:.3f}, {v[2] / 100:.3f}]"
+    f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
+    P1, P2, allp = [], [], {"dA": {}, "d": {}}
+    for gen in SELG_GEN:
+        peer, pool = PEER[gen], {"dA": {}, "d": {}}
+        _, allfr = rv_items("sql", "fresh", None, gen, peer)
+        prior = [(i, s, [{"r": c[0], "calls": c[1], "s": 0.0} for c in cand.values()], dr) for i, s, cand, dr in allfr]
+        cw, bw = sel_fit(prior, [x for x in pw_items("fresh", None, S, gen, peer)[2] if x[0] in val])
+        ct, bt = sel_fit(prior, [x for x in sel_items("fresh", None, ST, "sel", gen, peer)[2] if x[0] in val])
+        for sset, tname in SEL_T:
+            D, raw, itw, missw = pw_items(sset, None, S, gen, peer)
+            _, _, itt, misst = sel_items(sset, None, ST, "sel", gen, peer)
+            kw, kt = {(x[0], x[1]): x for x in itw}, {(x[0], x[1]): x for x in itt}
+            keys = sorted(set(kw) & set(kt))
+            if not keys:
+                print(f"    SEL-PW-G {tname} {gen}: no question-seed scored by both (missing pairwise {missw}, pointwise {misst})", flush=True)
+                continue
+            itw, itt = [kw[k] for k in keys], [kt[k] for k in keys]
+            aw, at = sel_auc(itw), sel_auc(itt)
+            dA = {i: aw[i] - at[i] for i in aw if i in at}
+            ids = sorted(D)
+            sw, stt = Counter(), Counter()
+            for x in itw:
+                c = cw(x)
+                sw[x[0]] += (c["r"] if c else x[3]) - x[3]
+            for x in itt:
+                c = ct(x)
+                stt[x[0]] += (c["r"] if c else x[3]) - x[3]
+            c3 = lambda d: ci({i: d.get(i, 0) / 3 for i in ids})
+            dd = c3({i: sw[i] - stt[i] for i in ids})
+            pool["dA"].update({(tname, i): x for i, x in dA.items()})
+            pool["d"].update({(tname, i): (sw[i] - stt[i]) / 3 for i in ids})
+            print(f"    SEL-PW-G {tname} {gen}<-{peer}: {len(raw)} fallback question-seeds, {len(keys)} scored by both (missing pairwise "
+                  f"{missw}, pointwise {misst}); AUROC pairwise {g(ci(aw))}, pointwise {g(ci(at))}, pairwise - pointwise {g(ci(dA))}; "
+                  f"selector - cascade pairwise (beta {bw:.1f}) {f(c3(sw))}, pointwise (beta {bt:.1f}) {f(c3(stt))}; pairwise - pointwise "
+                  f"selector {f(dd)}", flush=True)
+        dA, d = ci(pool["dA"]), ci(pool["d"])
+        print(f"    SEL-PW-G {gen}, three targets pooled: pairwise - pointwise AUROC {g(dA)}; pairwise - pointwise selector {f(d)}", flush=True)
+        P1.append((d[1] > 0, d[2] < 0)); P2.append(dA[1] > 0)
+        for k in pool:
+            allp[k].update({(gen,) + key: v for key, v in pool[k].items()})
+    up, down = sum(a for a, _ in P1), sum(b for _, b in P1)
+    print(f"    SEL-PW-G per generator (targets pooled): selector above {up}, below {down}; AUROC above {sum(P2)} of 3")
+    dA, d = ci(allp["dA"]), ci(allp["d"])
+    print(f"*** SEL-PW-G-P1 (pairwise - pointwise selector, three generators x three targets pooled, lower bound > 0): {f(d)} -> "
+          f"{'holds' if d[1] > 0 else 'refuted'}{' (upper bound < 0: pointwise better)' if d[2] < 0 else ''}")
+    print(f"*** SEL-PW-G-P2 (pairwise - pointwise AUROC, pooled, lower bound > 0): {g(dA)} -> {'holds' if dA[1] > 0 else 'refuted'}")
+
+
 TC_HO_N = {None: "hoq8b", "q8btcc1": "hoq8btcc1"}   # SEL-TC: the held-out ToolACE quick calls of each N type
 TC_ACE_N = {None: "aceq8b", "q8btcc1": "aceq8btcc1"}   # addendum ACE: ACEBench's quick calls of each N type
 
@@ -2966,6 +3055,10 @@ def main():
         return main_sel_build_pwtc()
     if "--sel-pwtc" in sys.argv or "--sel-val-pwtc" in sys.argv:
         return main_sel_pwtc()
+    if "--sel-build-pwg" in sys.argv:
+        return main_sel_build_pwg()
+    if "--sel-pwg" in sys.argv:
+        return main_sel_pwg()
     if "--sel-build-pw" in sys.argv:
         return main_sel_build_pw()
     if "--sel-pw" in sys.argv or "--sel-val-pw" in sys.argv:
