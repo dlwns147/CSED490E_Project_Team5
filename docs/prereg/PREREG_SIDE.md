@@ -175,3 +175,33 @@ anchors). In addition, P3 is reported on the first diverging turn: its share wit
   - keep every request kind at no more than a third of the turns;
   - count silent failures at the first diverging turn. This replaces the whole-conversation definition, which counts downstream
     errors as visible.
+
+## SIDE-ENV-3: a second family, a team calendar with rooms (written 2026-11-03 20:4x UTC, before any model ran on it)
+
+**Why.** SIDE-ENV-2 closed the package manager. SIDE-ENV's question stands: can a generated family give the agent-loop methods a test
+outside BFCL? This family is built with the three lessons:
+- every request states its rule;
+- each request kind is a third of the turns;
+- silent failures are counted at the first diverging turn.
+Its algorithmic core is interval scheduling: the earliest common free slot of several calendars and a room, and the meetings that
+overlap a window.
+
+**Environment** (`side/envs/team_calendar.py`, `side/gen_cal.py`, seed 0, 40 scenarios).
+- **Tools (8):** find_meeting, get_schedule, get_room_schedule, list_rooms, book_meeting, move_meeting, cancel_meeting, block_time.
+- **State:** 5 people, 4 rooms with capacities 2–8, 9–14 meetings over three days, 3–6 blocked times.
+- **Each conversation has one turn of each kind**, in random order:
+  - book: for 2–4 people, the earliest half-hour start when all are free, the smallest free room that fits, ties by name; a
+    request whose answer is 09:00 with nobody busy is redrawn;
+  - move: an existing meeting, found by title, to another day by the same rule;
+  - cancel: a person's new appointment; cancel every meeting they attend that overlaps it, then block the time with the stated label.
+- Ground truth: the rule's calls (1.37 per turn).
+- Replay: valid 40 / 40, and 40 / 40 one call per step. Without the block 0 / 40 still valid; with the largest room instead of the
+  rule's 0 / 40.
+
+**Runs, predictions, decision:** as SIDE-ENV (Qwen3-8B decides, Qwen3.5-9B reported; N, T, E, seed 1). P1 is T in [20%, 85%]; P2
+is T − N ≥ +5. P3 is the silent share of Qwen3-8B's N failures at the first diverging turn, ≥ 12.8%; the whole-conversation share is
+reported too.
+- Expected: N 10–40%, T 30–70%, silent share 40–80% (a later or wrong-room booking succeeds without an error).
+- P1–P3 hold → SIDE-ENV's "hold" branch: the BFCL-trained MT-SEL verifiers score this family's turn-0 rollouts zero-shot, which is
+  pre-registered next.
+- Refuted → stated. The second track's environment work continues only through a family the teammate designs.
