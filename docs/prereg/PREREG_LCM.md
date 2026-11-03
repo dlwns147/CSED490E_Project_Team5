@@ -2425,3 +2425,38 @@ at ACEBench AB, −12.8 at the stop), as it should. Not evidence.
     Qwen3.5-9B and gpt-oss-20b only. SEL-G-TC's "every generator" claim stays a BFCL claim.
   - SQL's selector is unchanged (derived: the two fits give the same β there).
   - The next verifier comparison (SEL-PW-AB is judged with its registered Bernoulli fit) reports both fits.
+
+## Results of addendum SEL-PW-AB (written 2026-11-03 13:4x UTC; `results/lcm_selpwab.log`, `results/lcm_selpwab_val.log`; training job 1308484, held-out scoring 1308661, 1308836, 1309332, 1309516, target scoring 1309599, every pair scored, none failed; with the set-choice fit, reported: `SEL_PWAB_CL=1` -> `results/lcm_selpwab_cl.log`; raw cases `nlp_data/scratch/selpwab_diff.py`)
+
+**Checkpoint choice** (pooled held-out ToolACE AUROC; selab2_s450 0.915): s150 0.899, s300 0.909, s450 0.919, **final 0.920**.
+
+| pairwise − pointwise AB (accuracy points; tokens equal) | registered Bernoulli fit | set-choice fit (reported) |
+|---|---|---|
+| BFCL Qwen3-8B base / trained | +0.02 [−0.28, +0.33] / −0.09 [−0.42, +0.28] | −0.12 [−0.45, +0.21] / −0.08 [−0.46, +0.31] |
+| ACEBench Qwen3-8B base / trained | +0.07 [−0.34, +0.55] / −0.31 [−0.82, +0.21] | +0.10 [−0.34, +0.55] / −0.07 [−0.62, +0.45] |
+| BFCL Qwen3-14B-AWQ / Qwen3.5-9B / gpt-oss-20b | +0.11 / +0.15 / +0.03 (all intervals include 0) | −0.01 / +0.37 [+0.03, +0.69] / −0.18 |
+
+| right-vs-wrong pairs in BFCL's AB sets (Qwen3-8B, both N types), pairwise / pointwise | |
+|---|---|
+| call vs call (cc) | 0.764 / 0.741 |
+| right no call vs wrong call (nr) | **0.797 / 0.893** |
+| right call vs wrong no call (cr) | **0.963 / 0.893** |
+
+- **SEL-PW-AB-P1 refuted:** no interval above or below 0.
+- **P2 refuted:** call vs call +0.023, short of +0.03. On ACEBench +0.017; on the other generators' BFCL sets +0.026 to +0.030.
+- **P3 refuted:** right no call over a wrong call 0.797 against 0.893; 0.777–0.848 on the other generators.
+- **P4 holds.**
+- All four fell below the expected ranges except P4.
+- **Raw cases** (BFCL, Qwen3-8B, sets where the choices differ; pairwise right 165, pointwise right 172):
+  - The pairwise verifier gains on relevant requests: a right call where the pointwise one chose "[]" (79 vs 71 the other way),
+    and call vs call 46 vs 37 ("New York, NY" over "New York", an unrequested `show_type="regular"` dropped).
+  - It loses on irrelevance requests: an invented call over the model's own written refusal (58 vs 24), `requests.get` with
+    made-up coordinates, `Music_3_LookupMusic(artist="Raees")` for a film.
+- **Why:** with "[]" in every training pool the pairwise format still prefers a call to declining. Its "no call" bias halved from
+  SEL-PW-TC (380 of 386 disagreements), but it remains. That cancels its argument-level gain.
+- **Decision (registered):** selab2_s450 stays at AB and at TC2-AB's stop. The format's tool-call verdict (SEL-PW-TC) now holds for
+  verifiers trained with "no call" in every pool too: shown both answers, the verifier orders calls and right-call-vs-wrong-abstention
+  better and right-abstention-vs-wrong-call worse, for no net change, on both benchmarks and all four generators. On SQL, where there is
+  no "no call", the format pays (SEL-PW, SEL-PW-G).
+- Not pursued: the two verifiers' errors are complementary (nr against cr), so a two-score selector could gain. It is an add-on to a
+  selector that is already at the ceiling the scores allow, not a new signal.

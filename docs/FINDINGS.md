@@ -5241,3 +5241,14 @@ beat the score alone there.
   for "Tokyo", `weight_kg: -5.0` agreed while the quick model declined). On ACEBench CL is right in 103 changed sets, the old fit in 27.
 Decision (registered): the CL fit replaces the Bernoulli fit at AB (every generator) and at TC2-AB's stop. SQL is unchanged (both fits
 give the same β there). Goal link: exact tool calls at no extra tokens — the same verifier, weighted for the decision it makes.
+
+## 2026-11-03 13:4x UTC: SEL-PW-AB (pre-registered): the pairwise tool-call verifier, trained with "no call" in every set, does not beat the pointwise one
+Why: SEL-PW-TC's pairwise verifier ordered calls better but preferred any call to declining; SEL-AB2 had fixed that for the pointwise
+verifier by putting "[]" in every training set. Same fix, pairwise format.
+- Held-out ToolACE AUROC 0.920 (final) vs 0.915.
+- AB on BFCL: +0.02 / −0.09 (base / trained quick calls); ACEBench +0.07 / −0.31. All intervals include 0, also with the set-choice
+  fit and for the three other generators (P1–P3 refuted, P4 holds).
+- Orderings on BFCL: call vs call 0.764 vs 0.741, right call over wrong "no call" 0.963 vs 0.893, but right "no call" over a wrong
+  call 0.797 vs 0.893. It trades right calls on relevant requests for invented calls on irrelevance requests (79 vs 71 and 24 vs 58).
+Decision (registered): selab2_s450 stays. For tool calls the pairwise format does not pay, with or without "no call" in training; for
+SQL it does. Goal link: the tool-call verifier is at what its pool teaches; what remains is coverage and benchmark convention.

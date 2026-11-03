@@ -2590,7 +2590,8 @@ def main_sel_pwab():
     fits = {}
     for nsrc in (None, RV_N["tc"]):
         hw, ht = pwab_sets("tcho", nsrc, S)[2], ab_sets("tcho", nsrc, S0, LOCS)[2]
-        fits[nsrc] = (sel_fit(z0(hw), hw), sel_fit(z0(ht), ht))
+        F = sel_fit_cl if os.environ.get("SEL_PWAB_CL") == "1" else sel_fit   # SEL_PWAB_CL=1 (reported after SEL-CL): the set-choice fit
+        fits[nsrc] = (F(z0(hw), hw), F(z0(ht), ht))
         print(f"    SEL-PW-AB fit {nsrc or 'base'}: beta pairwise {fits[nsrc][0][1]:.1f}, pointwise {fits[nsrc][1][1]:.1f} "
               f"({len(hw)} / {len(ht)} held-out ToolACE sets)", flush=True)
     R, ordr = {}, {}
