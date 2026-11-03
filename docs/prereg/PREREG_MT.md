@@ -501,3 +501,19 @@ thinking at every step, with the verifier and the choice rule cross-fitted by sc
 - **P2 holds, P1 not** → a trade, reported with its break-even λ.
 - **Both refuted** → the turn-0 gain does not carry, reported with the per-turn diagnostics (where the choice goes wrong); the method
   stays thinking at every step.
+
+### Note MT-SO, reference arm first (2026-11-03 16:2x UTC)
+The `mtsel_l` job finished (MT-SEL's verifiers scored all 42,079 later-turn texts, 0 failed), so the analysis was run once with
+those verifiers in the SEL3 slot (`--sel2 mtsel_h0,mtsel_h1`; the fit files it wrote were moved aside, the registered run rewrites
+them). Turn 0 reproduces MT-SEL (+5.84 / +8.99 / +5.39). On the later-turn pseudo-sets, the turn-0 verifiers already gain:
+pooled **+3.44 [+1.05, +5.83]** (P3's test, here for the reference verifiers). Per model, turn 1 / 2 / 3+:
+
+| | turn 1 | turn 2 | turn 3+ |
+|---|---|---|---|
+| Qwen3-8B: T acc, SEL3 acc, AUROC, SEL3 − T | 81.3%, 84.0%, 0.774, +2.83 [+0.06, +5.80] | 85.4%, 87.9%, 0.802, +3.57 [−0.64, +7.69] | 77.7%, 79.5%, 0.718, +0.20 [−5.76, +5.87] |
+| Qwen3-14B-AWQ | 77.4%, 80.9%, 0.764, +4.72 [+0.69, +8.62] | 82.3%, 85.1%, 0.756, +2.86 [−1.43, +7.43] | 80.5%, 81.4%, 0.687, +6.11 [+0.09, +12.87] |
+| Qwen3.5-9B | 84.5%, 86.7%, 0.813, +2.81 [+0.02, +5.67] | 85.8%, 85.8%, 0.698, −0.89 [−3.82, +1.66] | 81.3%, 83.2%, 0.739, +0.95 [−5.83, +7.82] |
+
+Reading: AUROC falls from 0.84–0.91 at turn 0 to 0.69–0.81 later, and T is more often right later (77–86%), so there is less to
+win. P3 holding for `mtso` will therefore not show that later-turn training matters; P4 (`mtso` − `mtsel` on these sets) does.
+Predictions unchanged.
