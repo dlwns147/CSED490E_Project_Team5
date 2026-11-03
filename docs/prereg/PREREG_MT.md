@@ -406,3 +406,36 @@ half. Every rollout's output tokens are counted. This assumes, as MT-V did, a re
   MT-V's infrastructure, with the verifier retrained on turn-0 and later-turn rollouts.
 - **P1 refuted** → the agent-loop method stays "think at every step". The claim adds that a verifier trained on the benchmark's own
   scenario-held-out labels did not find a signal beyond MT-B's limit.
+
+### Results MT-SEL (written 2026-11-03 15:1x UTC; `results/mtsel.txt`; raw cases `nlp_data/scratch/mtsel_raw.py`)
+
+Both verifiers trained to the final step (136 / 128 steps; training pair accuracy 0.94–1.0 in the last epoch), each scored all of the
+other half's rollouts (7,840 / 7,689, none missing); selab2_s450 scored all 15,529.
+
+| model (peer) | T | N | SEL3 | SEL4 | GATE | SEL3 with selab2_s450 | within-set AUROC | SEL3 − T | GATE − T | SEL3 trained − selab2_s450 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Qwen3-8B (Qwen3.5-9B) | 71.5% @ 2.09k | 57.5% @ 0.24k | 77.6% @ 2.48k | 78.7% @ 4.57k | 72.3% @ 1.98k | 74.4% | 0.838 [0.811, 0.865] | +5.89 [+3.62, +8.24] | +0.84 [−0.62, +2.27] | +3.18 [+1.56, +4.80] |
+| Qwen3-14B-AWQ (Qwen3.5-9B) | 71.0% @ 1.99k | 40.6% @ 0.31k | 80.0% @ 2.44k | 81.5% @ 4.43k | 72.6% @ 2.06k | 75.0% | 0.912 [0.893, 0.930] | +8.77 [+6.66, +10.89] | +1.59 [+0.73, +2.50] | +4.91 [+3.29, +6.48] |
+| Qwen3.5-9B (Qwen3-8B) | 73.9% @ 0.81k | 62.3% @ 0.14k | 79.7% @ 1.19k | 81.7% @ 2.00k | 75.7% @ 0.70k | 75.0% | 0.842 [0.816, 0.869] | +5.61 [+3.65, +7.59] | +1.84 [+0.56, +3.18] | +4.63 [+2.90, +6.37] |
+
+- **MT-SEL-P1 holds** (3 of 3), **P2 holds** (0.838 / 0.912 / 0.842), **P3 holds** (2 of 3), **P4 holds** (3 of 3). SEL4 − T +5.96 /
+  +9.33 / +7.28 at about twice SEL3's tokens. The score alone − the fitted selector −0.34 / −0.11 / −0.34 (n.s.); β_CL 1.1–2.3.
+- Above the expected range: AUROC 0.84–0.91 (expected 0.70–0.85), SEL3 − T +5.6 to +8.8 (expected +2 to +6), and selab2_s450, which
+  never saw a multi-step turn, already gains (its SEL3 74.4 / 75.0 / 75.0% against T's 71.5 / 71.0 / 73.9%).
+- The gain is in every category (SEL3 − T accuracy, base / missing function / missing parameter): Qwen3-8B +4.7 / +7.5 / +6.1,
+  Qwen3-14B-AWQ +10.9 / +8.0 / +8.1, Qwen3.5-9B +7.5 / +3.8 / +6.1.
+- Where it comes from: of the item-seeds where the choice is right and T wrong (179 / 196 / 167), the chosen rollout is the peer's
+  quick turn in 123 / 166 / 78 and the model's own quick turn in the rest; the reverse (T right, the choice wrong) 70 / 35 / 63. For
+  Qwen3-14B-AWQ, whose own quick turn is weak (40.6%), the choice is mostly Qwen3.5-9B's quick turn.
+- Raw: the verifier reads the results. It prefers a quick turn that recovered from an error and finished the request (zip codes looked
+  up after "distance not found", then the distance) over a thinking turn that gave up ("Rivermist does not appear to be a valid
+  city"), and a quick turn that placed the order at the looked-up price over a thinking turn that kept re-querying the order. Losses:
+  a quick turn that also set navigation the user said not to set when unreachable (one extra call), "Reply: []" scored above a
+  thinking turn that listed the files, and quick turns that over-ran (extra `cd`/`cat` steps) where thinking stopped.
+- Caveat: halves are split by scenario; BFCL reuses environments (the file system, the vehicle, trading, messaging) across
+  scenarios, so the verifier has seen other requests on the same environments. That is the deployment the method assumes (labels
+  from the environment it acts in), not a held-out-environment claim.
+
+**Decision (as registered, P1 holds):** the online arm is pre-registered next — at every turn, sandboxed rollouts N, P, T with the
+verifier choosing, on MT-V's infrastructure, the verifier retrained on turn-0 and later-turn rollouts. Turn 0 alone does not change
+the agent-loop method: MT-V showed turn-0 room that did not carry into whole trajectories, so the claim waits for the online arm.

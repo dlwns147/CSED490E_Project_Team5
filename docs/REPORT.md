@@ -735,6 +735,12 @@ OR problems and the observation that the cross-model filter removes the harm but
   (−2.80 [−5.66, +0.25] and −3.24 [−5.96, −0.61] utility at 1.3× the tokens). Its offline turn-0 room (+7 to +8) was an artifact of
   counting an end state right when any turn reaching it was right: BFCL also grades each turn's responses, and in 22–29% of turn-0
   item-seeds one end state is reached by a right and a wrong turn; with the committed turn's own label the room is −0.6 to −9.4.
+  A verifier trained on the benchmark's own labels (Qwen3-8B LoRA, pairwise within a turn; cross-fitted by scenario) reads each
+  rollout's calls and results and chooses among the quick, the peer's quick and the thinking turn: at turn 0 it beats thinking by
+  +5.89 / +8.77 / +5.61 utility (Qwen3-8B / Qwen3-14B-AWQ / Qwen3.5-9B; within-set AUROC 0.84–0.91; MT-SEL, pre-registered, offline,
+  every rollout's tokens counted), mostly by taking a quick turn that recovered from an error and finished where thinking gave up or
+  over-ran. MT-V's turn-0 room did not carry into whole conversations, so the method stays thinking at every step until the online
+  test (the choice at every turn) is in.
 
 ## 8. Limitations
 

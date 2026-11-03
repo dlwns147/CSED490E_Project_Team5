@@ -5252,3 +5252,19 @@ verifier by putting "[]" in every training set. Same fix, pairwise format.
   call 0.797 vs 0.893. It trades right calls on relevant requests for invented calls on irrelevance requests (79 vs 71 and 24 vs 58).
 Decision (registered): selab2_s450 stays. For tool calls the pairwise format does not pay, with or without "no call" in training; for
 SQL it does. Goal link: the tool-call verifier is at what its pool teaches; what remains is coverage and benchmark convention.
+
+## 2026-11-03 15:1x UTC: MT-SEL (pre-registered): a verifier trained on BFCL multi-turn labels, choosing among turn rollouts, beats thinking at turn 0
+Why: in agent loops every cheap-first rule lost to thinking at every step (MT, MT-V), and MT-B put thinking at the limit of the free
+signals (visible failure, agreement of end states). On SQL and single tool calls a trained verifier choosing among answers already
+made beat that kind of limit (SEL, TC2-AB).
+- Two Qwen3-8B LoRA verifiers, each trained on one half of the scenarios' turn-0 rollouts (pairwise within a turn), score the other
+  half; the choice among the quick turn N, the peer's quick turn P and the thinking turn T uses the set-choice fit.
+- SEL3 − T utility at turn 0: **+5.89 [+3.62, +8.24] / +8.77 [+6.66, +10.89] / +5.61 [+3.65, +7.59]** (Qwen3-8B / Qwen3-14B-AWQ /
+  Qwen3.5-9B; 77.6 / 80.0 / 79.7% vs 71.5 / 71.0 / 73.9% at 1.2–1.5× T's tokens). Within-set AUROC 0.838 / 0.912 / 0.842.
+  The gate (N kept when its score clears τ, else T) +0.84 / +1.59 / +1.84. The single-turn verifier selab2_s450 already gains, the
+  trained ones +3.2 to +4.9 more. P1–P4 hold.
+- The gains are mostly the peer's or the model's own quick turn that recovered from an error and finished, where thinking gave up or
+  over-ran; every category gains (+3.8 to +10.9 accuracy).
+Decision (registered): the online arm (the choice at every turn, verifier retrained on later turns too) is pre-registered next; the
+agent-loop method stays "think at every step" until it is in, since MT-V's turn-0 room did not carry. Goal link: the first signal
+that beats thinking in agent loops.
