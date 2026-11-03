@@ -45,7 +45,10 @@ Add a "missing parameter" variant: a turn that lacks a needed value has an empty
 in BFCL's `multi_turn_miss_param`.
 
 **The main track runs** `poc/run_mt.py` and `poc/grade_mt.py` unchanged, with
-`MT_CLASSES=<Class>=side.envs.<module> MT_ITEMS=<items>`.
+`MT_CLASSES=<Class>=side.envs.<module> MT_ITEMS=<items>`. Then `python side/analyze_env.py <Class=side.envs.module> <items.jsonl>
+<tag>` gives the registered numbers for any family: right and tokens per arm, thinking minus quick with its interval, and, for each
+failed conversation, the first turn where its state leaves the ground truth's, which attributes differ there, and whether that turn
+showed an error.
 
 ## B. Distinguishing sub-databases for SQL (`poc/sql_witness.py`)
 
