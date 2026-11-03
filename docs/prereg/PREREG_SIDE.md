@@ -170,7 +170,7 @@ anchors). In addition, P3 is reported on the first diverging turn: its share wit
   dependencies installed or, for Qwen3.5-9B, remove unrelated packages nothing depends on.
 - **Decision (registered):** the package-manager family is closed. Thinking now pays (+15), but whole conversations are capped by
   the one request kind that makes up half of the turns.
-- **Lessons carried to the next family** ():
+- **Lessons carried to the next family** (`side/README.md`):
   - state each rule in the request (version 1);
   - keep every request kind at no more than a third of the turns;
   - count silent failures at the first diverging turn. This replaces the whole-conversation definition, which counts downstream
