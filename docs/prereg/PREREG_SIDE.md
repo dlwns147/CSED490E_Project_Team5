@@ -64,3 +64,47 @@ Qwen3-8B. Reference: SEL-PW's s150 without the witness on the same question-seed
   side project is scoped to the stratum P3 points at.
 - P1 refuted → a trained 8B pairwise verifier gains nothing from a sub-database witness; side project B closes (constructed witnesses
   would add information only where the real data lacks a small witness, a minority by P4).
+
+## SIDE-ENV: does a generated environment reproduce BFCL's multi-turn regime? (written 2026-11-03 19:1x UTC, before any model ran on it; 40 scenarios generated, their ground truths replayed through BFCL's checker)
+
+**Why.** The agent-loop results (MT-SEL; MT-SO running) are measured on BFCL v4's 8 environment classes, and the verifiers are trained
+on the same classes. MT-SEL-ENV (PREREG_MT, running) holds out half of BFCL's classes, but they share BFCL's authors, style and
+ground-truth conventions. A family of generated environments in BFCL's format, with ground truths computed by an algorithm, gives a
+held-out test no verifier has seen, and is a self-contained algorithmic job for the second track (state machine, constraint policy,
+resolver, scenario generator). This test decides only whether the first family is a valid test bed: whether it reproduces the regime
+the methods were built for (thinking pays; failures exist that the environment does not show).
+
+**Related work.** RandomWorld (Sullivan et al., EMNLP 2025, 2506.11045; code released) generates typed tools and single-instruction
+trajectories for training, with tools whose outputs are memoised, not a shared mutable state over user turns. FuncBenchGen
+(2509.26553) generates function-dependency DAGs to test multi-step calling; ToolSandbox (2408.04682) is stateful and conversational
+but hand-written. None generates stateful multi-turn environments with algorithmic ground truth in BFCL's format.
+
+**Environment** (`side/envs/package_manager.py`, `side/gen_pkg.py`, seed 0, 40 scenarios). A package manager: a random 3-layer
+dependency DAG of 16 packages with 2–4 versions each, dependencies through windows of allowed versions; 6 functions (search_package,
+list_installed, get_disk_space, install_package with as_dependency, remove_package, upgrade_package); a policy stated in every
+function's description (missing dependencies first, newest version every needer allows, as_dependency=True; a named-version-free
+install takes the newest installable version; removal also removes dependencies no longer needed; upgrade to the newest version every
+dependent allows). Each scenario: an initial state from 2–3 policy installs, then 3 user turns drawn from install-version (29 turns),
+install-newest (38), remove (46), upgrade (7); ground truth = the policy's mutating calls (3.04 per turn). Every call's result depends
+only on the call and the state, so BFCL's checker accepts any order reaching the policy's state: the ground truths replay as valid in
+40 / 40, one call per step 40 / 40, without as_dependency 0 / 40. Runs through the unchanged `run_mt.py` / `grade_mt.py`
+(`MT_CLASSES=PackageManagerAPI=side.envs.package_manager MT_ITEMS=$POC_DATA/side/pkg_items.jsonl`).
+
+**Runs.** Qwen3-8B (decides) and Qwen3.5-9B (reported), arms N, T, E, seed 1, as MT's (PREREG_MT; 20-step limit, 2,048 / 8,192-token
+caps).
+
+**Predictions** (anchored to BFCL's stored seed-1 rows of the same model: N 16.8%, T 29.7%, E 23.5%; 12.8% of N's failed
+conversations show no visible failure, i.e. no error result, no repeated step, no force-quit):
+- **SIDE-ENV-P1 (neither ceiling nor floor):** Qwen3-8B T right in [20%, 85%] (conversations).
+- **SIDE-ENV-P2 (thinking pays):** Qwen3-8B T − N ≥ +5 points (point estimate; paired interval over the 40 scenarios reported).
+- **SIDE-ENV-P3 (failures the environment does not show):** the silent share of Qwen3-8B's N failures ≥ BFCL's 12.8%.
+- Reported: E between N and T as on BFCL; per turn kind, which requests fail.
+- Expected: N 15–45%, T 35–75%, silent share 20–50% (a wrong version or a missing as_dependency returns no error).
+
+**Decision.**
+- P1–P3 hold → the family is a valid held-out test bed: next (pre-registered separately) the BFCL-trained MT-SEL verifiers score its
+  turn-0 rollouts zero-shot, and the second track builds two more families through the same interface (`side/README.md`).
+- P1 refuted at the ceiling → deeper DAGs and more conflicts (generator arguments), re-tested once on new seeds by the same rules; at
+  the floor → fewer packages; P2 refuted → the family does not test what the methods are about (thinking does not change the outcome)
+  and is redesigned; P3 refuted → the family tests only visible failures, where the free check suffices, and gets requests whose
+  wrong plans run without errors.

@@ -31,6 +31,12 @@ PD = os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nlp_data")
 sys.path.insert(0, os.path.join(PD, "bfcl", "pkg"))
 import bfcl_eval.eval_checker.multi_turn_eval.multi_turn_utils as U  # noqa: E402
 
+# SIDE-ENV (PREREG_SIDE.md): generated environments outside BFCL, MT_CLASSES="Class=module,..." (modules under the repo, e.g.
+# PackageManagerAPI=side.envs.package_manager), with MT_ITEMS naming their items
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+for _x in filter(None, os.environ.get("MT_CLASSES", "").split(",")):
+    U.CLASS_FILE_PATH_MAPPING[_x.split("=")[0]] = _x.split("=")[1]
+
 RES = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "results", "tc")
 DATA = os.environ.get("MT_ITEMS") or os.path.join(PD, "bfcl", "mt_items.jsonl")
 NMAX, TMAX, STEPS = 2048, 8192, 20

@@ -13,7 +13,7 @@ from concurrent.futures import ProcessPoolExecutor
 PD = os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nlp_data")
 SETS = {"dev": ("sql_items", "dev_databases"), "spider": ("sql_spider_items", "spider_databases"),
         "spiderdev": ("sql_spiderdev_items", "spiderdev_databases"), "fresh": ("sql_train_items", "train_databases")}
-QT, MAXT, MAXS = 5.0, 600, 120.0   # per-query timeout (s), tests and seconds per pair
+QT, MAXT, MAXS, CAP = 5.0, 600, 120.0, 300000   # per-query timeout (s), tests and seconds per pair, rows copied per table
 FK = os.environ.get("WIT_FK", "1") == "1"   # 0: the second pass for pairs whose results differ only through dangling references (the
 #   real database has orphans, and closing the keys removes the difference): no closure, the witness keeps the real orphans it needs
 
@@ -78,7 +78,7 @@ class Witness:
 
     def load(self):
         """fill the temp tables with a deterministic sample of each table's rows (rowid hash), growing 1/4096 -> all until the results
-        differ: a large table is copied whole only when no sample separates the queries"""
+        differ: a table is copied whole only when no sample separates the queries, and never beyond CAP rows"""
         size = {t: self.con.execute(f'SELECT COUNT(*) FROM main."{t}"').fetchone()[0] for t in self.tabs}
         big = max(size.values(), default=0)
         for frac in (1 / 4096, 1 / 512, 1 / 64, 1 / 8, 1):
@@ -86,11 +86,12 @@ class Witness:
                 continue
             for t in self.tabs:
                 self.con.execute(f'DELETE FROM temp."{t}"')
+                f = min(frac, CAP / max(1, size[t]))   # a table is never copied beyond CAP rows (BIRD train has 10^7-row tables)
                 try:
-                    cond = "" if frac == 1 else f" WHERE ((rowid * 2654435761) % 1000003) < {int(frac * 1000003)}"
+                    cond = "" if f >= 1 else f" WHERE ((rowid * 2654435761) % 1000003) < {max(1, int(f * 1000003))}"
                     self.con.execute(f'INSERT INTO temp."{t}" SELECT * FROM main."{t}"{cond}')
-                except sqlite3.OperationalError:   # no rowid in main: the whole table
-                    self.con.execute(f'INSERT INTO temp."{t}" SELECT * FROM main."{t}"')
+                except sqlite3.OperationalError:   # no rowid in main: the first CAP rows
+                    self.con.execute(f'INSERT INTO temp."{t}" SELECT * FROM main."{t}" LIMIT {CAP}')
             self.close_fk()
             if self.differ():
                 return True

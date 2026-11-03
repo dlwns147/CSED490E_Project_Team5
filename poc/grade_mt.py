@@ -6,6 +6,11 @@ Runs on the login node in the grader venv:
 import contextlib, io, json, os, sys
 
 from bfcl_eval.eval_checker.multi_turn_eval.multi_turn_checker import multi_turn_checker
+from bfcl_eval.constants.executable_backend_config import CLASS_FILE_PATH_MAPPING
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+for _x in filter(None, os.environ.get("MT_CLASSES", "").split(",")):   # SIDE-ENV (PREREG_SIDE.md): as run_mt.py
+    CLASS_FILE_PATH_MAPPING[_x.split("=")[0]] = _x.split("=")[1]
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RES = os.path.join(ROOT, "results", "tc")
