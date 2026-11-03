@@ -2297,3 +2297,84 @@ s1200 0.888, s1800 0.904, s2100 0.883, final 0.879). No arm's checkpoint reached
   in-convention data for this verifier is exhausted (ToolACE's 9,549 single-call requests are all in its training, its fit set or
   TC-RL's training). Related: ToolRM (2510.26167) trains on the same pairs and reports a scalar model on them above its reasoning one
   on its own benchmark; When2Call (2504.18851) documents over-calling.
+
+## Addendum SEL-CL: the selector fitted for the choice it makes (written 2026-11-03 10:3x UTC, before any target is read with the set-choice fit, and before the score alone is read on ACEBench; before ACEBench is generated for Qwen3-14B-AWQ, Qwen3.5-9B and gpt-oss-20b; fitting-set checks, a check of the Bernoulli arms and a dry run with random target scores were run, see below)
+
+**Why.** The selector at AB and at TC2-AB's stop is logistic: logit π(answer | set structure) + β z, with β fitted by the likelihood
+of each answer's own right / wrong label on held-out ToolACE (Bernoulli; `sel_fit`, `tc2_fit`). It is only ever used to choose one
+answer per set. Derived from that mismatch:
+1. The Bernoulli likelihood includes sets where every answer is wrong (37% of AB's fitting sets) or every one is right. There z,
+   centred within the set, cannot explain the labels, so these sets pull β toward 0: the attenuation of a logit coefficient under
+   omitted set-level heterogeneity (Yatchew & Griliches 1985; Mood 2010), which the conditional logit removes by conditioning on the
+   set (Chamberlain 1980).
+2. In a choice among answers of which one is right, the prior enters the choice probability as log P(right), not as its logit
+   (McFadden's conditional logit: a softmax over the set).
+
+So the derived selector (CL) is log π + β_CL z. β_CL maximises the set-choice likelihood (the softmax mass on the set's right answers)
+over the sets that hold both a right and a wrong answer (`choice_beta`, `sel_fit_cl`, `tc2_fit(cl=True)`). The score alone is its
+β → ∞ limit.
+
+**Fitting set** (held-out ToolACE; its labels are used by every fit; no target read; `nlp_data/scratch/selcl_src*.py`):
+
+| | β_CL, base / trained | Bernoulli β, base / trained | in-sample choice accuracy over sets, CL / Bernoulli / alone |
+|---|---|---|---|
+| AB | 1.9 / 2.0 | 1.3 / 1.3 | 54.9 / 53.6 / 53.6% (base), 55.6 / 54.6 / 54.5% (trained) |
+| TC2-AB's stop | 2.0 / 2.0 | 1.3 / 1.2 | 75.6 / 74.4 / 75.0% (base), 75.6 / 74.7 / 75.0% (trained) |
+
+The Bernoulli fit does not beat the score alone even on its own fitting set.
+
+**Reported before, not registered (SEL-G-TC):** on BFCL the score alone beat the Bernoulli selector in all four AB rows (+0.2 to +1.0).
+It also beat the prior refitted on BFCL's own halves. Point 1 predicts this: a better-estimated prior with the same attenuated β does
+not fix the weight.
+
+**SQL is not tested.** With SEL-PW's pairwise verifier, β_CL equals the Bernoulli β on every generator's fitting questions (0.8–1.1 vs
+0.9–1.0), so the derivation predicts no change there.
+
+**Related work:** conditional logit (McFadden 1974; Chamberlain 1980); attenuation by unobserved heterogeneity (Mood 2010); listwise
+(softmax) vs pointwise ranking losses (ListNet, Cao et al. 2007; a 2026 CLEF verifier study finds pointwise BCE training as good as or
+better than listwise). Those train the scorer; here one weight of a fixed verifier is fitted.
+
+**Run.**
+1. Generate ACEBench for Qwen3-14B-AWQ (all three arms), Qwen3.5-9B (SB and T; its quick calls exist as Qwen3-8B's peer) and
+   gpt-oss-20b (all three; harmony, efforts low / medium as in XG). Seeds 1–3, each generator with its pre-registered peer (PEER).
+   Commands are in the handoff.
+2. `lcm_shift.py --sel-build-gtc --set ace` -> results/conf/sel_req_gace.jsonl, and selab2_s450 scores it
+   (`cv_eval_lane.sh score-tc ... sel_req_gace.jsonl ace`).
+3. `lcm_shift.py --sel-cl selab2_s450` > results/lcm_selcl.log.
+
+Arms: Bernoulli (in use), CL, and the score alone. Each is fitted on held-out ToolACE per N type; the other generators take the base fit,
+as in SEL-G-TC. They are compared:
+- at AB in five cells: Qwen3-8B with base and with trained quick calls, Qwen3-14B-AWQ, Qwen3.5-9B, gpt-oss-20b;
+- at TC2-AB's stop: Qwen3-8B, both N types.
+
+The arms differ only in the choice, so tokens are equal. Pooled cells take, per request, the mean over cells of the paired difference,
+with a 95% bootstrap interval over requests.
+
+**Check** (`SEL_CL_CHECK=1`, Bernoulli arms only): it reproduces ACE's AB (78.7 / 79.6%) and SEL-G-TC's four BFCL rows exactly, and
+the Bernoulli choice equals `tc2_run`'s in every stop set (2,768 / 2,760 on ACEBench, 8,524 / 8,364 on BFCL).
+
+**Dry run** (`SEL_CL_SYNTH=1`, random target scores): it runs end to end. With random scores the larger β loses (CL − Bernoulli −2.7
+at ACEBench AB, −12.8 at the stop), as it should. Not evidence.
+
+**Predictions** (paired 95% intervals over requests):
+- **SEL-CL-P1 (decision, AB):** ACEBench, five cells pooled, CL − Bernoulli lower bound > 0.
+- **SEL-CL-P2 (decision, TC2-AB's stop):** ACEBench, both N types pooled, CL − Bernoulli lower bound > 0.
+- **SEL-CL-P3 (the prior still informs):** ACEBench AB pooled, CL − alone upper bound ≥ 0.
+- **SEL-CL-P4 (AB on a second benchmark for the other generators; SEL-G-TC's P1 / P2 on ACEBench):** AB (Bernoulli) − cascade lower
+  bound > 0 for ≥ 2 of 3 and upper bound < 0 for none; AB − the generator's default lower bound > 0 for all 3.
+- **SEL-CL-P5 (replication on BFCL):** BFCL AB, five cells pooled, CL − Bernoulli lower bound > 0. Reported, not decisive: BFCL's
+  score-alone rows motivated this addendum.
+- **Expected:**
+  - AB +0.2 to +0.5. On the fitting set CL gains +1.3 / +1.0 set-points over the 37% of request-seeds with a set; shrink that out of
+    sample.
+  - TC2-AB's stop +0.3 to +0.8 (+1.2 / +0.9 over 94–95%).
+  - CL − alone 0 to +0.4 on ACEBench.
+
+**Decision.**
+- **P1 holds** → AB's selector is the CL fit for every generator. If the score alone beats it (alone − CL lower bound > 0), the prior
+  is dropped at AB instead.
+- **P2 holds** → TC2-AB's stop takes the CL fit too.
+- **Neither holds** → the Bernoulli fit stays, and the claim reads: the attenuation shows on the fitting set only.
+- **P4 holds** → AB is the tool-call method on ACEBench for every generator tested. **Refuted** → SEL-G-TC's scope stays BFCL.
+- SQL's selector is unchanged either way, as derived above.
+- SEL-PW-AB (running) is judged with its pre-registered Bernoulli selector. If CL is adopted, the next verifier comparison uses it.

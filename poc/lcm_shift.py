@@ -697,6 +697,45 @@ def sel_fit(prior, fit):
     return choose, beta
 
 
+def choice_beta(sets, prior, sd):
+    """addendum SEL-CL: the beta that maximises the set-choice (conditional-logit) likelihood, log of the softmax mass of prior(C, c) +
+    beta z on the set's right answers, over the sets holding a right and a wrong answer (a set with none or all right says nothing about
+    the choice; in the Bernoulli likelihood such sets pull beta toward 0); grid 0-10"""
+    mixed = [C for C in sets if any(c["r"] for c in C) and not all(c["r"] for c in C)]
+
+    def ll(b):
+        t = 0.0
+        for C in mixed:
+            mu = sum(c["s"] for c in C) / len(C)
+            u = [prior(C, c) + b * (c["s"] - mu) / sd for c in C]
+            m = max(u)
+            t += math.log(sum(math.exp(x - m) for x, c in zip(u, C) if c["r"])) - math.log(sum(math.exp(x - m) for x in u))
+        return t
+    return max((b / 10 for b in range(0, 101)), key=ll)
+
+
+def sel_fit_cl(prior, fit):
+    """addendum SEL-CL: sel_fit's selector fitted for the choice it makes — log pi(calls | set structure) (the same counts) in place of
+    its logit and beta from choice_beta on `fit`; returns choose(item) -> the chosen candidate or None (a structure never seen), beta"""
+    st = lambda C: tuple(sorted(c["calls"] for c in C))
+    cnt, rt = Counter(), Counter()
+    for _, _, C, _ in prior:
+        for c in C:
+            cnt[(st(C), c["calls"])] += 1; rt[(st(C), c["calls"])] += c["r"]
+    lg = lambda S, c: math.log((rt[(S, c["calls"])] + 0.5) / (cnt[(S, c["calls"])] + 1))
+    mu = lambda C: sum(c["s"] for c in C) / len(C)
+    dv = [c["s"] - mu(C) for _, _, C, _ in fit for c in C]
+    sd = (sum(x * x for x in dv) / max(1, len(dv))) ** 0.5 or 1.0
+    beta = choice_beta([C for _, _, C, _ in fit], lambda C, c: lg(st(C), c), sd)
+
+    def choose(it):
+        C = it[2]
+        if any(cnt[(st(C), c["calls"])] == 0 for c in C):
+            return None
+        return max(C, key=lambda c: lg(st(C), c) + beta * (c["s"] - mu(C)) / sd)
+    return choose, beta
+
+
 def main_sel():
     """addendum SEL. --sel-val n1,n2,...: within-question AUROC of each checkpoint's scores on the fresh held-out-database questions
     (N base and trained pooled) and the choice. --sel <name>: the targets (SEL-P1..P4)."""
@@ -1079,12 +1118,13 @@ TC_ACE_N = {None: "aceq8b", "q8btcc1": "aceq8btcc1"}   # addendum ACE: ACEBench'
 
 
 def tc_load(sset, nsrc, gen="q8b", peer="q35"):
-    """a tool-call set's requests with all five calls (lcm.seed_calls form): tcho (held-out ToolACE), ace (ACEBench), else BFCL (gen's
-    calls with its peer's quick calls; addendum SEL-G-TC)"""
+    """a tool-call set's requests with all five calls (lcm.seed_calls form): tcho (held-out ToolACE), ace (ACEBench; gen's calls with
+    its peer's quick calls, addendum SEL-CL), else BFCL (gen's calls with its peer's quick calls; addendum SEL-G-TC)"""
     if sset == "tcho":
         return quiet(lcm.load_tcho, TC_HO_N[nsrc])
     if sset == "ace":
-        return quiet(lcm.load_tcho, TC_ACE_N[nsrc], "aceq35", "aceq8b", sset="ace")
+        n = TC_ACE_N[nsrc] if gen == "q8b" else "ace" + (nsrc or gen)
+        return quiet(lcm.load_tcho, n, "ace" + peer, "ace" + gen, sset="ace")
     k = {"nsrc": nsrc} if nsrc else {}
     return {**quiet(lcm.load, "tc", gen, peer, "non-live", **k), **quiet(lcm.load, "tc", gen, peer, "live", **k)}
 
@@ -1098,8 +1138,9 @@ def tc_texts(sset, nsrc, gen="q8b", peer="q35"):
         src = (("N", TC_HO_N[nsrc], "cheap", "n_text"), ("P", "hoq35", "cheap", "n_text"), ("SB", "hoq8b", "sb", "text"),
                ("T", "hoq8b", "think", "text"))
     elif sset == "ace":
-        src = (("N", TC_ACE_N[nsrc], "cheap", "n_text"), ("P", "aceq35", "cheap", "n_text"), ("SB", "aceq8b", "sb", "text"),
-               ("T", "aceq8b", "think", "text"))
+        n = TC_ACE_N[nsrc] if gen == "q8b" else "ace" + (nsrc or gen)
+        src = (("N", n, "cheap", "n_text"), ("P", "ace" + peer, "cheap", "n_text"), ("SB", "ace" + gen, "sb", "text"),
+               ("T", "ace" + gen, "think", "text"))
     else:
         src = (("N", nsrc or gen, "cheap", "n_text"), ("P", peer, "cheap", "n_text"), ("SB", gen, "sb", "text"),
                ("T", gen, "think", "text"))
@@ -1863,10 +1904,11 @@ def tc2_run(P, sc, txt, S, sset, i, beta=None, sd=1.0, task="tc", ab=False):
         return c["r"], tok, True, C
 
 
-def tc2_fit(nsrc, S, ab=False):
+def tc2_fit(nsrc, S, ab=False, cl=False):
     """SEL-TC2: TL's planner fitted on the held-out ToolACE requests, and the verifier's beta and sd at its stop -> (P, beta, sd, sets);
     ab (addendum SEL-TC2-AB): P.none counts, per pattern, the fitting rows where no call is right, and the no-call answer is offered
-    at the stop (tc2_run ab) in the sets beta and sd are fitted on"""
+    at the stop (tc2_run ab) in the sets beta and sd are fitted on. cl (addendum SEL-CL): beta from choice_beta with the planner's
+    log P(right | pattern) (log sigmoid of lp) as the prior"""
     import itertools
     from lcm_bound import project
     Dh, Xh = tc2_cells("tcho", nsrc)
@@ -1893,6 +1935,8 @@ def tc2_fit(nsrc, S, ab=False):
                 z = c["lp"] + b * (c["s"] - mu) / sd
                 t += -math.log1p(math.exp(-z)) if c["r"] else -math.log1p(math.exp(min(z, 700)))
         return t
+    if cl:
+        return P, choice_beta(sets, lambda C, c: -math.log1p(math.exp(-c["lp"])), sd), sd, len(sets)
     return P, max((b / 10 for b in range(0, 41)), key=ll), sd, len(sets)
 
 
@@ -2598,27 +2642,29 @@ def main_sel_pwab():
 def main_sel_build_gtc():
     """addendum SEL-G-TC: the texts AB's choice sets need at the other generators' BFCL cascades (their passing answers at the fallback
     and after N's failed check, and "[]" on every request; texts already scored are skipped by score_conf.py) ->
-    results/conf/sel_req_gtc.jsonl"""
+    results/conf/sel_req_gtc.jsonl. --set ace (addendum SEL-CL): the same on ACEBench -> results/conf/sel_req_gace.jsonl"""
+    tgt = sys.argv[sys.argv.index("--set") + 1] if "--set" in sys.argv else "bfcl"
+    fn = "sel_req_gace.jsonl" if tgt == "ace" else "sel_req_gtc.jsonl"
     req = {}
     for gen in SELG_GEN:
-        D, cells = ab_cells("bfcl", None, gen, PEER[gen])
+        D, cells = ab_cells(tgt, None, gen, PEER[gen])
         for i in D:
-            h = rv_key("tc", "bfcl", i, "sel", AB_TEXT)
-            req[h] = {"h": h, "task": "tc", "sset": "bfcl", "id": i, "kind": "sel", "text": AB_TEXT}
+            h = rv_key("tc", tgt, i, "sel", AB_TEXT)
+            req[h] = {"h": h, "task": "tc", "sset": tgt, "id": i, "kind": "sel", "text": AB_TEXT}
         for i, s, loc, cand, rr in cells:
             if loc == "agree":
                 continue
             for r, calls, texts in cand.values():
                 for t in set(texts):
-                    h = rv_key("tc", "bfcl", i, "sel", t)
-                    req[h] = {"h": h, "task": "tc", "sset": "bfcl", "id": i, "kind": "sel", "text": t}
-        print(f"SEL-G-TC build {gen}<-{PEER[gen]}: {len(D)} requests, {len(cells)} request-seeds "
+                    h = rv_key("tc", tgt, i, "sel", t)
+                    req[h] = {"h": h, "task": "tc", "sset": tgt, "id": i, "kind": "sel", "text": t}
+        print(f"SEL-G-TC build {tgt} {gen}<-{PEER[gen]}: {len(D)} requests, {len(cells)} request-seeds "
               f"({', '.join(f'{x} {sum(c[2] == x for c in cells)}' for x in ('agree', 'fallback', 'nfail'))}); texts so far {len(req)}",
               flush=True)
-    with open(os.path.join(lcm.ROOT, "results", "conf", "sel_req_gtc.jsonl"), "w") as f:
+    with open(os.path.join(lcm.ROOT, "results", "conf", fn), "w") as f:
         for r in req.values():
             f.write(json.dumps(r) + "\n")
-    print(f"SEL-G-TC build: {len(req)} requests -> results/conf/sel_req_gtc.jsonl")
+    print(f"SEL-G-TC build: {len(req)} requests -> results/conf/{fn}")
 
 
 def main_sel_gtc():
@@ -2697,6 +2743,137 @@ def main_sel_gtc():
     p3 = [round(R[x]["A"][0] / 100 - a0, 3) for x in G]
     print(f"*** SEL-G-TC-P3 (AB-set AUROC within 0.05 of Qwen3-8B's {a0:.3f} for every generator): {p3} -> "
           f"{'holds' if min(p3) >= -0.05 else 'refuted'}")
+
+
+SELCL_AB = (("q8b", None), ("q8b", "q8btcc1"), ("q14a", None), ("q35", None), ("oss20", None))   # addendum SEL-CL: AB's cells
+
+
+def main_sel_cl():
+    """addendum SEL-CL (--sel-cl <verifier>): the selector fitted for the choice it makes (log prior + beta from the set-choice
+    likelihood: sel_fit_cl, tc2_fit cl) against the Bernoulli fit in use (sel_fit, tc2_fit) and the verifier's score alone, at AB (the
+    cascade's fallback and failed quick calls; cells SELCL_AB, each generator with its peer) and at TC2-AB's stop (Qwen3-8B, both N
+    types), on ACEBench (decides) and BFCL (reported); every fit on held-out ToolACE (per N type; the other generators take the base
+    one), nothing refitted on a target. SEL_CL_SYNTH=1: random target scores (the dry run); SEL_CL_CHECK=1: only the Bernoulli arms,
+    which reproduce SEL-G-TC's and ACE's AB and SEL-TC2-AB's stop (tc2_run's own choice). (SEL-CL-P1..P5)"""
+    import random
+    from analyze_ho3 import ci
+    from run_nlopt import _rows
+    nm = sys.argv[sys.argv.index("--sel-cl") + 1]
+    S = {r["h"]: r for r in _rows(os.path.join(lcm.ROOT, "results", "conf", f"sel_scores_{nm}.jsonl"))}
+    synth, check = os.environ.get("SEL_CL_SYNTH") == "1", os.environ.get("SEL_CL_CHECK") == "1"
+
+    class Rand(dict):
+        def get(self, h, d=None):
+            return {"s": random.Random(h).gauss(0, 4)}
+    St = Rand() if synth else S
+    f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
+    U = lambda r, t: 100 * float(r) - LAM * t / 1000
+    lsig = lambda x: -math.log1p(math.exp(-x))
+    LOCS = ("fallback", "nfail")
+    z0 = lambda X: [(i, s, [dict(c, s=0.0) for c in C], dr) for i, s, C, dr in X]
+    arms = ("Bern",) if check else ("Bern", "CL", "alone")
+    DIFF = (("CL", "Bern"), ("alone", "Bern"), ("CL", "alone"))
+    fits = {}
+    for nsrc in (None, RV_N["tc"]):
+        _, _, hs, _ = ab_sets("tcho", nsrc, S, LOCS)
+        cb, bb = sel_fit(z0(hs), hs)
+        cc, bc = sel_fit_cl(z0(hs), hs)
+        tb, tcl = tc2_fit(nsrc, S, ab=True), tc2_fit(nsrc, S, ab=True, cl=True)
+        fits[nsrc] = (cb, cc, tb, tcl[1])
+        print(f"SEL-CL fits on held-out ToolACE ({'trained' if nsrc else 'base'} quick calls): AB {len(hs)} sets, beta Bernoulli {bb:.1f}, "
+              f"set-choice {bc:.1f}; TC2-AB's stop {tb[3]} sets, beta Bernoulli {tb[1]:.1f}, set-choice {tcl[1]:.1f}", flush=True)
+    R, pool = {}, {}
+    for tgt in ("ace", "bfcl"):
+        for gen, nsrc in SELCL_AB:
+            peer, (cb, cc, _, _) = PEER[gen], fits[nsrc]
+            D, cells, bs, miss = ab_sets(tgt, nsrc, St, LOCS, gen, peer)
+            name = f"{tgt} AB {gen} {'trained' if nsrc else 'base'}"
+            if not D:
+                print(f"    SEL-CL {name}: no rows", flush=True)
+                continue
+            ids, n = sorted(D), 3 * len(D)
+            M, unseen = {k: {} for k in arms}, 0
+            for x in bs:
+                c = cb(x)
+                unseen += c is None
+                M["Bern"][(x[0], x[1])] = c["r"] if c else x[3]
+                if not check:
+                    c = cc(x)
+                    M["CL"][(x[0], x[1])] = c["r"] if c else x[3]
+                    M["alone"][(x[0], x[1])] = max(x[2], key=lambda c: c["s"])["r"]
+            Uq, acc = {k: Counter() for k in arms + ("cascade", "default")}, Counter()
+            for i in ids:
+                for sd in (1, 2, 3):
+                    sc = lcm.seed_calls(D[i], sd)
+                    rc, tc_ = lcm.fixed("cascade", sc)
+                    out = {"cascade": (rc, tc_), "default": lcm.fixed("SB->T->T", sc)}
+                    for k, m in M.items():
+                        out[k] = (m.get((i, sd), rc), tc_)
+                    for k, (r, t) in out.items():
+                        acc[k] += r; Uq[k][i] += U(r, t) / 300
+            d = lambda x, y: {i: Uq[x][i] - Uq[y][i] for i in ids}
+            R[name] = r = {"casc": ci(d("Bern", "cascade")), "dflt": ci(d("Bern", "default"))}
+            line = f"{len(ids)} requests, {len(bs)} AB sets (missing scores {miss}, unseen structures keep d {unseen}); " + ", ".join(
+                f"{k} {100 * acc[k] / n:.1f}%" for k in Uq) + f"; AB (Bernoulli) - cascade {f(r['casc'])}, - default {f(r['dflt'])}"
+            if not check:
+                for a, b in DIFF:
+                    dd = d(a, b)
+                    r[a + "-" + b] = ci(dd)
+                    for i, v in dd.items():
+                        pool.setdefault((tgt, "AB", a + "-" + b), {}).setdefault(i, []).append(v)
+                line += "; " + "; ".join(f"{a} - {b} {f(r[a + '-' + b])}" for a, b in DIFF)
+            print(f"    SEL-CL {name}: {line}", flush=True)
+        for nsrc in (None, RV_N["tc"]):
+            (P, beta, sd, _), betac = fits[nsrc][2], fits[nsrc][3]
+            Db, Xb = tc2_cells(tgt, nsrc)
+            ids, name = sorted(Db), f"{tgt} TC2-AB q8b {'trained' if nsrc else 'base'}"
+            Uq, nst, agree = {k: Counter() for k in arms}, 0, Counter()
+            for i in ids:
+                for s in (1, 2, 3):
+                    sc = lcm.seed_calls(Db[i], s)
+                    x = tc2_run(P, sc, Xb[(i, s)], St, tgt, i, ab=True)
+                    if x is None or not x[3]:
+                        continue
+                    C, nst = x[3], nst + 1
+                    mu = sum(c["s"] for c in C) / len(C)
+                    ch = {"Bern": max(C, key=lambda c: c["lp"] + beta * (c["s"] - mu) / sd),
+                          "CL": max(C, key=lambda c: lsig(c["lp"]) + betac * (c["s"] - mu) / sd), "alone": max(C, key=lambda c: c["s"])}
+                    agree["tc2_run"] += tc2_run(P, sc, Xb[(i, s)], St, tgt, i, beta, sd, ab=True)[0] == ch["Bern"]["r"]
+                    for k in arms:
+                        Uq[k][i] += 100 * float(ch[k]["r"]) / 300
+            line = f"{len(ids)} requests, {nst} scored stop sets (Bernoulli's choice = tc2_run's in {agree['tc2_run']})"
+            if not check:
+                r = R[name] = {}
+                for a, b in DIFF:
+                    dd = {i: Uq[a][i] - Uq[b][i] for i in ids}
+                    r[a + "-" + b] = ci(dd)
+                    for i, v in dd.items():
+                        pool.setdefault((tgt, "TC2", a + "-" + b), {}).setdefault(i, []).append(v)
+                line += "; " + "; ".join(f"{a} - {b} {f(r[a + '-' + b])}" for a, b in DIFF)
+            print(f"    SEL-CL {name}: {line}", flush=True)
+    if check:
+        return
+    P = {k: ci({i: sum(v) / len(v) for i, v in d.items()}) for k, d in pool.items()}
+    for (tgt, where, k), v in sorted(P.items()):
+        print(f"    SEL-CL {tgt} {where}, cells pooled (per request, mean over cells): {k} {f(v)}", flush=True)
+    a = P.get(("ace", "AB", "CL-Bern"), (float("nan"),) * 3)
+    print(f"*** SEL-CL-P1 (ACEBench AB, five cells pooled, set-choice - Bernoulli: lower bound > 0): {f(a)} -> "
+          f"{'holds' if a[1] > 0 else 'refuted'}")
+    a = P.get(("ace", "TC2", "CL-Bern"), (float("nan"),) * 3)
+    print(f"*** SEL-CL-P2 (ACEBench TC2-AB's stop, both N types pooled, set-choice - Bernoulli: lower bound > 0): {f(a)} -> "
+          f"{'holds' if a[1] > 0 else 'refuted'}")
+    a = P.get(("ace", "AB", "CL-alone"), (float("nan"),) * 3)
+    print(f"*** SEL-CL-P3 (ACEBench AB, five cells pooled, set-choice - score alone: upper bound >= 0): {f(a)} -> "
+          f"{'holds' if a[2] >= 0 else 'refuted (the score alone better)'}")
+    G = [R.get(f"ace AB {x} base") for x in SELG_GEN]
+    if all(G):
+        up, down, dl = sum(x["casc"][1] > 0 for x in G), sum(x["casc"][2] < 0 for x in G), sum(x["dflt"][1] > 0 for x in G)
+        print(f"*** SEL-CL-P4 (ACEBench, the other generators' AB (Bernoulli): - cascade lower bound > 0 for >= 2 of 3 and upper bound < 0 "
+              f"for none; - default lower bound > 0 for all 3): {up} above, {down} below; default {dl} of 3 -> "
+              f"{'holds' if up >= 2 and down == 0 and dl == 3 else 'refuted'}")
+    a = P.get(("bfcl", "AB", "CL-Bern"), (float("nan"),) * 3)
+    print(f"*** SEL-CL-P5 (BFCL AB, five cells pooled, set-choice - Bernoulli: lower bound > 0): {f(a)} -> "
+          f"{'holds' if a[1] > 0 else 'refuted'}")
 
 
 def tc3_choice(P, pat, rt, calls, txt, S, sset, i, beta, sd, loo=False):
@@ -3250,6 +3427,8 @@ def main():
         return main_sel_build_gtc()
     if "--sel-gtc" in sys.argv:
         return main_sel_gtc()
+    if "--sel-cl" in sys.argv:
+        return main_sel_cl()
     if "--sel-build-g" in sys.argv:
         return main_sel_build_g()
     if "--sel-g" in sys.argv:
