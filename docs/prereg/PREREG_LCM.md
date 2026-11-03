@@ -2245,3 +2245,55 @@ selab2_s450, both N types): call vs call 0.741, right no call vs wrong call 0.89
 **Decision.** P1 and P4 hold → the pairwise verifier replaces selab2_s450 at AB (scope per generator from the reported cells), and its
 use at TC2-AB's stop is pre-registered next. Otherwise selab2_s450 stays, and the format's tool-call verdict (SEL-PW-TC) is stated for
 verifiers trained with "no call" in the pool too.
+
+## Results of addendum SEL-DATA (written 2026-11-03 09:1x UTC; `results/lcm_seld{tp,w2,all}.log`, `results/lcm_seld{tp,w2,all}_val.log`; jobs 1302664–1302666 with pre-scoring 1306841–1306848, 1307057, 1307720, 1308334, every text scored, none failed; raw cases `nlp_data/scratch/seldata_diff.py` -> `seldata_diff_{tp,w2,all}.out`; coverage `cov_miss.py`, `cov_value.py`)
+
+Checkpoints (pooled held-out ToolACE AB-set AUROC; selab2_s450 0.915): **TP s600 0.901** (s300 0.849, s900 0.872, s1200 0.884, s1500
+0.864, final 0.896); **W2C final 0.912** (s300 0.882, s600 0.903, s900 0.909); **ALL s1500 0.905** (s300 0.862, s600 0.894, s900 0.884,
+s1200 0.888, s1800 0.904, s2100 0.883, final 0.879). No arm's checkpoint reached selab2_s450 on the set that chooses.
+
+| arm − selab2_s450, TC2-AB utility | BFCL base | BFCL trained | ACEBench base | ACEBench trained |
+|---|---|---|---|---|
+| TP (ToolPref) | −0.49 [−0.79, −0.19] | −0.05 [−0.30, +0.21] | −0.72 [−1.27, −0.24] | −0.48 [−1.06, +0.10] |
+| W2C (When2Call) | −0.35 [−0.64, −0.08] | −0.34 [−0.62, −0.04] | −0.03 [−0.34, +0.27] | −0.27 [−0.72, +0.14] |
+| ALL (both) | −0.48 [−0.77, −0.19] | −0.08 [−0.36, +0.21] | −0.48 [−0.96, −0.03] | −0.55 [−1.03, −0.10] |
+
+| ordering of right-vs-wrong pairs in TC2-AB's stop sets, both N types | BFCL cc / nr / cr | ACEBench cc / nr / cr |
+|---|---|---|
+| selab2_s450 | 0.736 / 0.876 / 0.932 | 0.762 / 0.824 / 0.978 |
+| TP | 0.691 / 0.827 / 0.941 | 0.761 / 0.706 / 0.980 |
+| W2C | 0.728 / 0.874 / 0.924 | 0.761 / 0.808 / 0.958 |
+| ALL | 0.715 / 0.816 / 0.934 | 0.746 / 0.799 / 0.961 |
+| ToolRM-4B judge (SEL-RM's pairs, cc) | 0.795 | 0.786 |
+
+- **SEL-DATA-P1 refuted** for ALL (base below 0) and for every arm: no BFCL interval above 0, four below. **P2 refuted** (TP's
+  call-vs-call 0.691 < 0.736). **P3 refuted** (W2C's no-call ordering 0.874 < 0.876). **P4:** no arm adopted (by arm: W2C holds, TP and
+  ALL refuted). Every arm fell below its expected range (TP +0.2 to +0.6, W2C −0.3 to +0.5, ALL +0.2 to +0.8).
+- **Where the loss is:** accuracy on the requests where no call is right, BFCL −1.41 / −0.87 (TP), −1.64 / −1.17 (ALL), −0.36 / −0.36
+  (W2C); ACEBench −3.33 / −3.56 (TP); on the others BFCL −0.06 / +0.34 (TP), +0.07 / +0.44 (ALL), −0.35 / −0.32 (W2C). The call data
+  buys a little on requests that need a call with trained quick calls and costs more where no call is right.
+- **On the judge's own pairs** (`SEL_RM_VER=<choice> lcm_shift.py --sel-rm toolrm4b`): call-vs-call 0.691 / 0.728 / 0.715 (TP / W2C /
+  ALL) on BFCL against the judge's 0.795, 0.746–0.761 on ACEBench against 0.786: the data that trained the judge does not give its
+  call-vs-call edge to a zero-token scalar verifier.
+- **Raw cases** (request-seeds where TC2-AB's choice changes; the arm's right / selab2_s450's right, BFCL):
+  - W2C 114 / 186: "[]" over a right call 67 vs 25; a right "[]" on a no-call request 43 vs 26; the model's own written refusal loses
+    to a wrong call 55 vs 14 ("the temperature in New York" with `requests.get` offered: refusal z +0.71 → −0.11). With 3 of 4
+    pairs call-right and the no-call side always the literal "[]", it moves "[]"'s score on every request, not relevance.
+  - TP: call over "[]" +17 and over a refusal +15 on requests that need a call; "[]" 14 vs 48 and refusals 13 vs 55 where none is
+    right; call vs call 29 vs 41, preferring unrequested optional arguments (`includeHistory=True`, `include_completed=True`,
+    `include_description=True`, `request_heartbeat=True`) and longer values — ToolPref's sources' gold, which BFCL grades wrong.
+  - ALL 130 / 188: TP's pattern (8,721 call-vs-call pairs against When2Call's 950 no-call-right ones): where no call is right a wrong
+    call over "[]" 57 and over a refusal 58 against 21; call vs call 33 vs 36, losing BFCL's "City, State" (`city="Campbell"` over
+    `"Campbell, CA"`, `"New York"` over `"New York, NY"`) and to `include_completed=True`.
+- **Coverage, the other half of what is left (diagnostic, not registered; ACEBench, both N types):** 549 relevant request-seeds have
+  no right answer among the five calls. The closest of the five differs from the gold by a value (314), an extra key (89), a missing key
+  (47), the functions (8), is undecodable (5), or is equal after a crude normalisation (81; format or grader). Of the value misses, 141
+  have the mismatching gold value nowhere in the request (invented campaign titles, profile values the gold reads from a preference
+  file), 52 mix stated and unstated values, 83 have every mismatching value stated in the request. So at most about 130 of the 549
+  (stated values, missing keys) look reachable by more calls, ≤ 2 points on ACEBench; the rest are the benchmark's conventions.
+- **Decision (registered):** no arm adopted → selab2_s450 stays in TC2-AB, and the claim reads: the remaining verifier loss is not
+  closed by the public tool-call preference data (BFCL chooses; ACEBench only checks). Why: public preference pairs carry their
+  sources' conventions (optional arguments filled, bare city names, calling over declining), which both benchmarks grade as wrong, and
+  in-convention data for this verifier is exhausted (ToolACE's 9,549 single-call requests are all in its training, its fit set or
+  TC-RL's training). Related: ToolRM (2510.26167) trains on the same pairs and reports a scalar model on them above its reasoning one
+  on its own benchmark; When2Call (2504.18851) documents over-calling.

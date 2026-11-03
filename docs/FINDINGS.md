@@ -5203,3 +5203,18 @@ generator. Same verifiers, unchanged; nine cells (Qwen3-14B-AWQ, Qwen3.5-9B, gpt
 Related: CHASE-SQL (2410.01943) and Pairwise RM (2501.13007) prefer pairwise selection; here, with candidates, backbone, data and loss
 fixed, the format alone adds +0.6 at other generators' fallbacks. Decision (registered): the pairwise verifier is the SQL fallback's
 verifier for every generator tested. Goal link: exact SQL at no extra output tokens — +0.6 more accuracy for 5–23% more prefill.
+
+## 2026-11-03 09:1x UTC: SEL-DATA (pre-registered): public tool-call preference data does not close the verifier's loss — every arm loses
+Why: the verifier's information is what is left of the tool-call method's loss; the reasoning judge orders BFCL's calls better (0.795
+vs 0.736) and its scalar ablation suggests the edge is its data. Three arms added to SEL-AB2's training: ToolPref (8,721 call-vs-call
+pairs), When2Call (2,868 call-right + 950 no-call-right), both.
+- TC2-AB utility − selab2_s450, BFCL base / trained: TP −0.49 / −0.05, W2C −0.35 / −0.34, ALL −0.48 / −0.08; ACEBench −0.72 / −0.48,
+  −0.03 / −0.27, −0.48 / −0.55. No interval above 0 anywhere (P1–P3 refuted; P4 by arm W2C only).
+- None gets the judge's call-vs-call edge (BFCL 0.691–0.728 vs the judge's 0.795 and selab2's 0.736).
+- Raw: ToolPref teaches its sources' conventions — fill optional arguments (`include_completed=True`), bare city names ("Campbell"
+  over BFCL's "Campbell, CA"), call rather than decline; When2Call moves the literal "[]" up on every request and pushes written
+  refusals down (3:1 call-right, no-call always "[]").
+- Coverage (diagnostic): on ACEBench at most ~130 of 549 no-right-answer request-seeds look reachable by more calls (≤ 2 points); the rest
+  are values never stated in the request or the benchmark's format.
+Decision (registered): selab2_s450 stays; the remaining verifier loss is not closed by public preference data — other conventions, and
+in-convention ToolACE data is used up. Goal link: exact tool calls — what is left is mostly benchmark convention, not a missing signal.
