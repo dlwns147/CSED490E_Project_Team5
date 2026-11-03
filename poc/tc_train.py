@@ -11,13 +11,14 @@ SEL_TC_POOL on the training requests; per request the distinct passing answers (
 requests with a right and a wrong one. Context = the request, a candidate's text as the answer, then TC_ASK; score s = logit(ACCEPT) -
 logit(DE); loss per request = mean over (right, wrong) pairs of log(1 + exp(s_w - s_r)).
 --pw (addendum SEL-PW-TC): the same pool and requests, the pairwise verifier of cv_train.py pw (both answers in one turn, tc_pw_prompt).
+--pw --abst (addendum SEL-PW-AB): the pairwise verifier on SEL-AB2's pool ("[]" in every pool).
 --orm --abst (addendum SEL-AB2): the pool also holds the no-call answer "[]" on every request with a passing answer (right where the
 request has no gold call). --extra toolpref,when2call (addendum SEL-DATA): + public preference pairs ($POC_DATA/toolace/tc_pref_pairs.jsonl,
 prep_tctrain.py --pref) of those sources, each pair one request (its right and its wrong answer).
 usage: /opt/conda/bin/python tc_train.py <out dir> [--questions 6000] [--batch 64] [--group 8] [--lr 2e-5] [--smoke N] [--base DIR]
        [--bil FILE [--plus]]
        /opt/conda/bin/python tc_train.py <out dir> --orm [--abst] [--extra SRC,...] [--batch 16] [--lr 5e-5] [--epochs 2] [--save 25] [--smoke N]
-       /opt/conda/bin/python tc_train.py <out dir> --pw [--pairs 4] [--batch 16] [--lr 5e-5] [--epochs 2] [--save 25] [--smoke N]"""
+       /opt/conda/bin/python tc_train.py <out dir> --pw [--abst] [--pairs 4] [--batch 16] [--lr 5e-5] [--epochs 2] [--save 25] [--smoke N]"""
 import json, math, os, random, sys, time
 from concurrent.futures import ThreadPoolExecutor
 
@@ -155,6 +156,8 @@ def main_pw(out):
     keep = set(open(os.environ.get("SEL_IDS", f"{D}/tc_train_ids.txt")).read().split())
     items = {p["id"]: p for p in map(json.loads, open(ITEMS)) if p["id"] in keep}
     G = tc_pool(items)
+    if "--abst" in sys.argv:   # addendum SEL-PW-AB: "[]" in every pool, as SEL-AB2's
+        G = tc_pool_abst(G, items)
     Q = sorted((i, {k: v[1] for k, v in g.items() if v[0]}, {k: v[1] for k, v in g.items() if not v[0]}) for i, g in G.items()
                if any(v[0] for v in g.values()) and not all(v[0] for v in g.values()))
     random.Random(0).shuffle(Q)

@@ -2422,6 +2422,179 @@ def main_sel_g():
     print(f"*** SEL-G-P2 (BIRD dev AUROC >= 0.70 for every generator): {[round(x, 3) for x in p2]} -> {'holds' if min(p2) >= 0.70 else 'refuted'}")
 
 
+PWAB_GEN = (("q8b", None), ("q8b", "q8btcc1"), ("q14a", None), ("q35", None), ("oss20", None))   # SEL-PW-AB's BFCL cells (gen, nsrc)
+
+
+def pwab_cells(sset, nsrc, gen="q8b", peer="q35"):
+    """addendum SEL-PW-AB: AB's choice sets (the fallback and after N's failed check) with one text per answer (the first in the order
+    the calls were made) and "[]" when no passing answer is no call: (D, [(id, seed, [(key, right, calls, text)], cascade right)])"""
+    D, cells = ab_cells(sset, nsrc, gen, peer)
+    out = []
+    for i, s, loc, cand, rr in cells:
+        if loc == "agree" or not cand:
+            continue
+        C = [(k, r, calls, texts[0]) for k, (r, calls, texts) in cand.items()]
+        if not any(ab_is_none(k) for k, *_ in C):
+            C.append(("none", ab_none_right(sset, i), ("AB",), AB_TEXT))
+        out.append((i, s, C, rr))
+    return D, out
+
+
+def pwab_sets(sset, nsrc, S, gen="q8b", peer="q35"):
+    """SEL-PW-AB: ab_sets with the pairwise verifier — candidate a's s = the mean over the others b of (s(a, b) - s(b, a)) / 2, the
+    order-debiased log-odds (as pw_items); sets missing a score dropped"""
+    D, cells = pwab_cells(sset, nsrc, gen, peer)
+    out, miss = [], 0
+    for i, sd, C0, rr in cells:
+        if len(C0) < 2:
+            continue
+        C = []
+        for a, (k, r, calls, t) in enumerate(C0):
+            d = []
+            for b, x in enumerate(C0):
+                if a != b:
+                    u, v = S.get(rv_key("tc", sset, i, "pw", [t, x[3]])), S.get(rv_key("tc", sset, i, "pw", [x[3], t]))
+                    if u is None or v is None:
+                        d = None; break
+                    d.append((u["s"] - v["s"]) / 2)
+            if d is None:
+                C = None; break
+            C.append({"r": r, "calls": calls, "s": sum(d) / len(d), "k": k})
+        if C is None:
+            miss += 1; continue
+        out.append((i, sd, C, rr))
+    return D, cells, out, miss
+
+
+def main_sel_build_pwab():
+    """addendum SEL-PW-AB: every ordered pair within AB's choice sets — held-out ToolACE (both N types; the checkpoint and beta) ->
+    results/conf/sel_req_pwab_val.jsonl; BFCL (Qwen3-8B both N types, the other generators' untrained quick calls) and ACEBench (both
+    N types) -> results/conf/sel_req_pwab.jsonl"""
+    val, req = {}, {}
+    plan = [("tcho", "q8b", None), ("tcho", "q8b", RV_N["tc"]), ("ace", "q8b", None), ("ace", "q8b", RV_N["tc"])] + \
+        [("bfcl", g, n) for g, n in PWAB_GEN]
+    for sset, gen, nsrc in plan:
+        D, cells = pwab_cells(sset, nsrc, gen, PEER[gen])
+        R = val if sset == "tcho" else req
+        for i, s, C, rr in cells:
+            for a in C:
+                for b in C:
+                    if a[3] != b[3]:
+                        h = rv_key("tc", sset, i, "pw", [a[3], b[3]])
+                        R[h] = {"h": h, "task": "tc", "sset": sset, "id": i, "kind": "pw", "text": a[3], "text2": b[3]}
+        print(f"SEL-PW-AB build {sset} {gen} {nsrc or 'base'}: {len(cells)} AB sets ({sum(len(c[2]) >= 2 for c in cells)} with >= 2 "
+              f"answers); pairs so far val {len(val)}, targets {len(req)}", flush=True)
+    for fn, R in (("sel_req_pwab_val.jsonl", val), ("sel_req_pwab.jsonl", req)):
+        with open(os.path.join(lcm.ROOT, "results", "conf", fn), "w") as f:
+            for r in R.values():
+                f.write(json.dumps(r) + "\n")
+        print(f"SEL-PW-AB build: {len(R)} ordered pairs -> results/conf/{fn}")
+
+
+def main_sel_pwab():
+    """addendum SEL-PW-AB. --sel-val-pwab n1,n2,...: each pairwise checkpoint's within-set AUROC on the held-out ToolACE AB sets (both N
+    types pooled) and the choice. --sel-pwab <name> [reference, default selab2_s450]: AB with the pairwise verifier against AB with the
+    pointwise reference, each verifier's selector fitted on held-out ToolACE (pi by structure, beta; Qwen3-8B's for the other generators):
+    BFCL and ACEBench for Qwen3-8B's both N types, BFCL for the other generators (reported); utility (the verifiers add no output
+    token), and the within-set ordering of right-vs-wrong pairs by kind — call vs call (cc), right no call vs wrong call (nr), right call
+    vs wrong no call (cr). SEL_PWAB_SYNTH=1: random pairwise scores where one is missing (the dry run). (SEL-PW-AB-P1..P4)"""
+    import random
+    from analyze_ho3 import ci
+    from run_nlopt import _rows
+    cd = os.path.join(lcm.ROOT, "results", "conf")
+    load = lambda x: {r["h"]: r for r in _rows(os.path.join(cd, f"sel_scores_{x}.jsonl"))}
+    synth = os.environ.get("SEL_PWAB_SYNTH") == "1"
+
+    def lp(nm):
+        S = load(nm)
+        if synth:
+            rnd = random.Random(0)
+            for fn in ("sel_req_pwab_val.jsonl", "sel_req_pwab.jsonl"):
+                for r in _rows(os.path.join(cd, fn)):
+                    S.setdefault(r["h"], {"s": rnd.gauss(0, 2)})
+        return S
+    z0 = lambda X: [(i, s, [dict(c, s=0.0) for c in C], dr) for i, s, C, dr in X]
+    f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
+    LOCS = ("fallback", "nfail")
+    if "--sel-val-pwab" in sys.argv:
+        best = None
+        for nm in sys.argv[sys.argv.index("--sel-val-pwab") + 1].split(","):
+            S, pooled, per = lp(nm), {}, {}
+            for nsrc in (None, RV_N["tc"]):
+                a = sel_auc(pwab_sets("tcho", nsrc, S)[2])
+                per[nsrc or "base"] = ci(a) if a else (float("nan"),) * 3
+                for i, v in a.items():
+                    pooled.setdefault(i, []).append(v)
+            if not pooled:
+                print(f"SEL-PW-AB val {nm}: no scored mixed set", flush=True); continue
+            pa = ci({i: sum(v) / len(v) for i, v in pooled.items()})
+            print(f"SEL-PW-AB val {nm}: AUROC base {per['base'][0] / 100:.3f}, trained {per[RV_N['tc']][0] / 100:.3f}, pooled "
+                  f"{pa[0] / 100:.3f} [{pa[1] / 100:.3f}, {pa[2] / 100:.3f}] ({len(pooled)} requests)", flush=True)
+            if best is None or pa[0] > best[1]:
+                best = (nm, pa[0])
+        print(f"*** SEL-PW-AB checkpoint (highest pooled held-out ToolACE AUROC): {best[0]}")
+        return
+    a = sys.argv.index("--sel-pwab")
+    nm = sys.argv[a + 1]
+    ref = sys.argv[a + 2] if len(sys.argv) > a + 2 and not sys.argv[a + 2].startswith("--") else "selab2_s450"
+    S, S0 = lp(nm), load(ref)
+    fits = {}
+    for nsrc in (None, RV_N["tc"]):
+        hw, ht = pwab_sets("tcho", nsrc, S)[2], ab_sets("tcho", nsrc, S0, LOCS)[2]
+        fits[nsrc] = (sel_fit(z0(hw), hw), sel_fit(z0(ht), ht))
+        print(f"    SEL-PW-AB fit {nsrc or 'base'}: beta pairwise {fits[nsrc][0][1]:.1f}, pointwise {fits[nsrc][1][1]:.1f} "
+              f"({len(hw)} / {len(ht)} held-out ToolACE sets)", flush=True)
+    R, ordr = {}, {}
+    plan = [("bfcl", "q8b", None), ("bfcl", "q8b", RV_N["tc"]), ("ace", "q8b", None), ("ace", "q8b", RV_N["tc"])] + \
+        [("bfcl", g, None) for g in SELG_GEN]
+    for tgt, gen, nsrc in plan:
+        (cw, _), (ct, _) = fits[nsrc]
+        D, _, sw, mw = pwab_sets(tgt, nsrc, S, gen, PEER[gen])
+        _, _, st, mt = ab_sets(tgt, nsrc, S0, LOCS, gen, PEER[gen])
+        kw, kt = {(x[0], x[1]): x for x in sw}, {(x[0], x[1]): x for x in st}
+        keys = set(kw) & set(kt)
+        od = ordr.setdefault((tgt, gen), {f"{k}_{v}": [0.0, 0] for k in ("cc", "nr", "cr") for v in ("w", "t")})
+        Uq, acc = Counter(), Counter()
+        for key in keys:
+            for v, x, ch in (("w", kw[key], cw), ("t", kt[key], ct)):
+                c = ch(x)
+                acc[v] += (c["r"] if c else x[3]) - x[3]
+                if v == "w":
+                    Uq[key[0]] += 100 * float(c["r"] if c else x[3]) / 3
+                else:
+                    Uq[key[0]] -= 100 * float(c["r"] if c else x[3]) / 3
+                for e in x[2]:
+                    for e2 in x[2]:
+                        if e["r"] and not e2["r"]:
+                            n1, n2 = ab_is_none(e["k"]) or e["k"] == "none", ab_is_none(e2["k"]) or e2["k"] == "none"
+                            pk = "cc" if not (n1 or n2) else ("nr" if n1 else "cr")
+                            od[f"{pk}_{v}"][0] += 1.0 if e["s"] > e2["s"] else 0.5 if e["s"] == e2["s"] else 0.0
+                            od[f"{pk}_{v}"][1] += 1
+        ids = sorted(D)
+        name = f"{tgt} {gen} {'trained' if nsrc else 'base'}"
+        n = 3 * len(ids)
+        R[name] = r = ci({i: Uq.get(i, 0.0) / 100 for i in ids})
+        print(f"    SEL-PW-AB {name}: {len(keys)} AB sets scored by both (missing pairwise {mw}, pointwise {mt}); AB accuracy pairwise "
+              f"{100 * acc['w'] / n:+.2f}, pointwise {100 * acc['t'] / n:+.2f} points over the cascade; pairwise - pointwise {f(r)}", flush=True)
+    for (tgt, gen), od in ordr.items():
+        q = {k: v[0] / v[1] if v[1] else float("nan") for k, v in od.items()}
+        print(f"    SEL-PW-AB {tgt} {gen} right-vs-wrong pairs (N types pooled), pairwise / pointwise: " + "; ".join(
+            f"{pk} {q[pk + '_w']:.3f} / {q[pk + '_t']:.3f} (n {od[pk + '_w'][1]})" for pk in ("cc", "nr", "cr")), flush=True)
+        ordr[(tgt, gen)] = q
+    B = [R["bfcl q8b base"], R["bfcl q8b trained"]]
+    up, down = sum(r[1] > 0 for r in B), sum(r[2] < 0 for r in B)
+    print(f"*** SEL-PW-AB-P1 (BFCL, Qwen3-8B, pairwise - pointwise AB: lower bound > 0 in >= 1 of 2 N types, upper bound < 0 in none): "
+          f"{f(B[0])} / {f(B[1])} -> {up} above, {down} below -> {'holds' if up >= 1 and down == 0 else 'refuted'}")
+    q = ordr[("bfcl", "q8b")]
+    print(f"*** SEL-PW-AB-P2 (BFCL call-vs-call ordering, pairwise >= pointwise + 0.03): {q['cc_w']:.3f} vs {q['cc_t']:.3f} -> "
+          f"{'holds' if q['cc_w'] >= q['cc_t'] + 0.03 else 'refuted'}")
+    print(f"*** SEL-PW-AB-P3 (BFCL right-no-call-vs-wrong-call ordering, pairwise >= pointwise - 0.03): {q['nr_w']:.3f} vs {q['nr_t']:.3f} "
+          f"-> {'holds' if q['nr_w'] >= q['nr_t'] - 0.03 else 'refuted'}")
+    A = [R["ace q8b base"], R["ace q8b trained"]]
+    print(f"*** SEL-PW-AB-P4 (ACEBench, pairwise - pointwise AB: upper bound >= 0 in both N types): {f(A[0])} / {f(A[1])} -> "
+          f"{'holds' if all(r[2] >= 0 for r in A) else 'refuted'}")
+
+
 def main_sel_build_gtc():
     """addendum SEL-G-TC: the texts AB's choice sets need at the other generators' BFCL cascades (their passing answers at the fallback
     and after N's failed check, and "[]" on every request; texts already scored are skipped by score_conf.py) ->
@@ -3069,6 +3242,10 @@ def main():
         return main_sel_2()
     if "--sel-tc3" in sys.argv:
         return main_sel_tc3()
+    if "--sel-build-pwab" in sys.argv:
+        return main_sel_build_pwab()
+    if "--sel-pwab" in sys.argv or "--sel-val-pwab" in sys.argv:
+        return main_sel_pwab()
     if "--sel-build-gtc" in sys.argv:
         return main_sel_build_gtc()
     if "--sel-gtc" in sys.argv:

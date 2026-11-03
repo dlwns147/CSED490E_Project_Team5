@@ -2209,3 +2209,39 @@ generators keep the pointwise one (no evidence to pay 5–23% more prefill); PRO
   COUNT(DISTINCT …)).
 - **Decision (registered):** P1 holds → the pairwise verifier is the SQL fallback's verifier for every generator tested (Qwen3-8B,
   Qwen3-14B-AWQ, Qwen3.5-9B, gpt-oss-20b). SEL-PW's narrow single-generator result is replicated; PROJECT, REPORT and PROPOSAL state it.
+
+## Addendum SEL-PW-AB: the pairwise tool-call verifier trained with "no call" in every choice set (written 2026-11-03 08:4x UTC, before any training step; 22,302 held-out ToolACE and 42,510 BFCL / ACEBench ordered pairs built; the analysis run only on random scores, where the pointwise rows reproduce SEL-AB2's and SEL-G-TC's AB exactly)
+
+**Why.** Three results meet here. SEL-PW-TC: shown both calls, a verifier orders same-function calls +7.3 points better (wrong date
+format, an unrequested `request_heartbeat=True`), but it was trained on a pool where "no call" was rarely a candidate and preferred a
+call to abstaining in 380 of 386 disagreements, which BFCL's irrelevance requests punish. SEL-AB2: putting "[]" in every training pool
+taught the pointwise verifier relevance ("[]" AUROC 0.48 → 0.82). SEL-RM / SEL-DATA: the reasoning judge orders BFCL's calls better than
+our verifier (0.795 vs 0.736) and its training data does not give that to ours; the judge sees both answers. So: does the pairwise
+format, trained with "[]" in every pool, keep its argument-level gain without the abstention bias? Related: pairwise judges follow
+distractor features such as assertiveness more than pointwise ones (Tripathi et al., 2504.14716); CHASE-SQL (2410.01943) selects
+pairwise; on SQL the format gains +0.3 to +0.6 (SEL-PW, SEL-PW-G).
+
+**Run.** `tc_train.py <out> --pw --abst --save 150` (SEL-PW-TC's pairwise loss — up to 4 (right, wrong) pairs per request in both
+orders — on SEL-AB2's pool, 2 epochs, Qwen3-8B LoRA), one RTX 3090 / A5000 job; each saved adapter scores the held-out ToolACE AB-set pairs
+(`lcm_shift.py --sel-build-pwab` -> results/conf/sel_req_pwab_val.jsonl; `cv_eval_lane.sh score-tc <adapter> <name>
+sel_req_pwab_val.jsonl tcho`), `lcm_shift.py --sel-val-pwab` chooses (highest pooled AUROC, as SEL-AB2), the choice scores
+results/conf/sel_req_pwab.jsonl (BFCL: Qwen3-8B both N types and the three other generators; ACEBench: both N types), then
+`lcm_shift.py --sel-pwab <choice>` > results/lcm_selpwab.log. Compared at AB (the cascade with the verifier choosing among the passing
+answers and "[]" at the fallback and after a failed quick call; the step SEL-G-TC showed for four generators) against selab2_s450, each
+verifier's selector fitted on held-out ToolACE; the verifiers add no output token. Reference orderings on BFCL's AB sets (pointwise,
+selab2_s450, both N types): call vs call 0.741, right no call vs wrong call 0.893, right call vs wrong no call 0.893; ACEBench 0.782 /
+0.923 / 0.958.
+
+**Predictions** (paired 95% intervals over requests):
+- **SEL-PW-AB-P1 (decision):** pairwise − pointwise AB on BFCL, Qwen3-8B: lower bound > 0 in ≥ 1 of 2 N types, upper bound < 0 in none.
+- **SEL-PW-AB-P2 (the format's gain):** BFCL call-vs-call ordering, pairwise ≥ pointwise + 0.03.
+- **SEL-PW-AB-P3 (abstention kept):** BFCL right-no-call-vs-wrong-call ordering, pairwise ≥ pointwise − 0.03.
+- **SEL-PW-AB-P4 (held out):** ACEBench, pairwise − pointwise AB, upper bound ≥ 0 in both N types.
+- **Expected:** call vs call 0.77–0.81 (the judge's level), right no call vs wrong call 0.85–0.90; BFCL utility −0.3 to +0.5 (derivation:
+  the call-vs-call losses are about a third of AB's misses on BFCL, so a fifth fewer ordering errors there is +0.2 to +0.4, and P3's
+  margin of 0.03 on the no-call pairs costs up to −0.3).
+- Reported: the other generators' BFCL cells.
+
+**Decision.** P1 and P4 hold → the pairwise verifier replaces selab2_s450 at AB (scope per generator from the reported cells), and its
+use at TC2-AB's stop is pre-registered next. Otherwise selab2_s450 stays, and the format's tool-call verdict (SEL-PW-TC) is stated for
+verifiers trained with "no call" in the pool too.
