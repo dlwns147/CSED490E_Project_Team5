@@ -152,3 +152,26 @@ anchors). In addition, P3 is reported on the first diverging turn: its share wit
 - If P1–P3 hold, SIDE-ENV's "hold" branch applies.
 - If not, the family is closed and SIDE-ENV's lesson is recorded: a generated environment has to state its conventions in the
   request. The second track then starts from another family through the same interface.
+
+## Results of SIDE-ENV-2 (written 2026-11-03 20:4x UTC; jobs 1311368 / 1311369; rows `results/tc/mt_sidepkg2_{q8b,q35}_{N,T,E}_s1.jsonl`)
+
+| model | N | T | E | T − N (paired 95%) | silent share of N's failures (registered) | first diverging turn silent, N / T |
+|---|---|---|---|---|---|---|
+| Qwen3-8B | 1 / 40 @ 0.22k | 7 / 40 @ 13.05k | 3 / 40 @ 3.66k | +15.0 [+3.8, +26.2] | 5.1% | 58% / 73% |
+| Qwen3.5-9B | 2 / 40 @ 1.14k | 8 / 40 @ 11.47k | 1 / 40 @ 1.44k | +15.0 [+1.8, +28.2] | 73.7% | 82% / 53% |
+
+- **SIDE-ENV-P1 refuted narrowly:** Qwen3-8B T 17.5%, below 20%.
+- **P2 holds:** +15.0 against the +5 needed, with lower bound > 0.
+- **P3 refuted by the registered definition:** 5.1%. Counted at the first diverging turn instead, 58% of Qwen3-8B's failures are
+  silent. The registered definition counts the later "already installed" / "needed by" errors that follow a silent divergence.
+- Qwen3.5-9B, reported only, would pass all three.
+- **Raw cases (Qwen3-8B):** installs and upgrades now come out right in most turns (install 15–16 of 17–20, upgrade 7–8 of 8–9).
+  Removal with clean-up is the bottleneck: 58 of 120 turns. N gets 2 of 36 reached removal turns right, T 11 of 38. Errors leave
+  dependencies installed or, for Qwen3.5-9B, remove unrelated packages nothing depends on.
+- **Decision (registered):** the package-manager family is closed. Thinking now pays (+15), but whole conversations are capped by
+  the one request kind that makes up half of the turns.
+- **Lessons carried to the next family** ():
+  - state each rule in the request (version 1);
+  - keep every request kind at no more than a third of the turns;
+  - count silent failures at the first diverging turn. This replaces the whole-conversation definition, which counts downstream
+    errors as visible.

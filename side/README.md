@@ -28,6 +28,8 @@ environments. A new environment family with algorithmic ground truth is a test n
    - Each request must state the rule it implies (which dependencies, which version, what to clean up), as BFCL's requests do. The
      first version of the package manager left two conventions to the function docs, and no model followed them, thinking or not:
      2.5% right (`PREREG_SIDE.md`, SIDE-ENV results).
+   - Keep every request kind at no more than a third of the turns. In the second version (rules stated), half of the turns were
+     removals with clean-up, and those capped whole conversations at 17.5% with thinking (SIDE-ENV-2).
    - See `gen_pkg.py`.
 3. **The CPU check**, which must pass before any model runs:
    `python side/check_env.py <items.jsonl> <Class=side.envs.module> --negative '<a correct fragment>' '<a mistake>'`.
