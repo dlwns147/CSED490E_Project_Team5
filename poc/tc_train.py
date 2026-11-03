@@ -14,7 +14,8 @@ logit(DE); loss per request = mean over (right, wrong) pairs of log(1 + exp(s_w 
 --pw --abst (addendum SEL-PW-AB): the pairwise verifier on SEL-AB2's pool ("[]" in every pool).
 --orm --abst (addendum SEL-AB2): the pool also holds the no-call answer "[]" on every request with a passing answer (right where the
 request has no gold call). --orm --mt (addendum MT-SEL): the pool is BFCL multi-turn's turn-0 rollouts (results/conf/mt_sel_pool.jsonl, items
-$POC_DATA/bfcl/mt_sel_items.jsonl; SEL_IDS=$POC_DATA/bfcl/mt_sel_ids_h<half>.txt). --extra toolpref,when2call (addendum SEL-DATA): + public preference pairs ($POC_DATA/toolace/tc_pref_pairs.jsonl,
+$POC_DATA/bfcl/mt_sel_items.jsonl; SEL_IDS=$POC_DATA/bfcl/mt_sel_ids_h<half>.txt); MT_SEL_TAG=mt_sel2 (addendum MT-SO): turn 0 and
+the later turns (mt_sel2_pool.jsonl, mt_sel2_items.jsonl, SEL_IDS=mt_sel2_ids_h<half>.txt). --extra toolpref,when2call (addendum SEL-DATA): + public preference pairs ($POC_DATA/toolace/tc_pref_pairs.jsonl,
 prep_tctrain.py --pref) of those sources, each pair one request (its right and its wrong answer).
 usage: /opt/conda/bin/python tc_train.py <out dir> [--questions 6000] [--batch 64] [--group 8] [--lr 2e-5] [--smoke N] [--base DIR]
        [--bil FILE [--plus]]
@@ -84,9 +85,10 @@ def main_orm(out):
     if "--mt" in sys.argv:   # addendum MT-SEL: BFCL multi-turn turn-0 rollouts (mt_peer0.py --sel-build), SEL_IDS = one half's items
         from cv_train import rows_of
         PD = os.path.dirname(D)
-        items = {p["id"]: p for p in map(json.loads, open(f"{PD}/bfcl/mt_sel_items.jsonl")) if p["id"] in keep}
+        tg = os.environ.get("MT_SEL_TAG", "mt_sel")   # addendum MT-SO: mt_sel2 (turn 0 and the later turns, mt_peer0.py --sel-build2)
+        items = {p["id"]: p for p in map(json.loads, open(f"{PD}/bfcl/{tg}_items.jsonl")) if p["id"] in keep}
         R = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "results", "conf")
-        G = {r["id"]: {t: [c["right"], [t]] for t, c in r["cands"].items()} for r in rows_of(f"{R}/mt_sel_pool.jsonl") if r["id"] in items}
+        G = {r["id"]: {t: [c["right"], [t]] for t, c in r["cands"].items()} for r in rows_of(f"{R}/{tg}_pool.jsonl") if r["id"] in items}
     else:
         items = {p["id"]: p for p in map(json.loads, open(ITEMS)) if p["id"] in keep}
         G = tc_pool(items)

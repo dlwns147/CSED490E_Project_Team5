@@ -733,6 +733,7 @@ def sel_fit_cl(prior, fit):
         if any(cnt[(st(C), c["calls"])] == 0 for c in C):
             return None
         return max(C, key=lambda c: lg(st(C), c) + beta * (c["s"] - mu(C)) / sd)
+    choose.state = {"cnt": cnt, "rt": rt, "beta": beta, "sd": sd}   # addendum MT-SO: the fit, exported for the online arm
     return choose, beta
 
 

@@ -182,8 +182,110 @@ def main_sel():
               f"{'holds' if up >= 2 else 'refuted'}")
 
 
+def main_sel2():
+    """addendum MT-SO (--sel2 <verifier trained on half 0>,<on half 1> [--ref <another pair>]): MT-SEL's choice among N, the peer's N and
+    T on turn 0 and on the later turns' pseudo-sets (results/conf/mt_sel2_rows.jsonl, mt_peer0.py --sel-build2; scores of sset mt2), per
+    turn (0, 1, 2, >= 3), cross-fitted as main_sel; writes the online arm's fit, results/tc/mt_so_fit_<model>.json: per test half h,
+    lcm_shift.sel_fit_cl on the other half's sets of every turn pooled (scores of the verifier trained on h), keys '<structure>|<roles>'.
+    MT-SO-P3: SEL3 - T on the later turns, the three models pooled, intervals over items; P4: SEL3 - SEL3 with --ref, same sets.
+    MT_SEL_SYNTH=1: random scores (the dry run; the fit goes to mt_so_fit_<model>_synth.json)."""
+    import random
+    from collections import Counter, defaultdict
+    import lcm_shift as L
+    a = sys.argv[sys.argv.index("--sel2") + 1].split(",")
+    ref = sys.argv[sys.argv.index("--ref") + 1].split(",") if "--ref" in sys.argv else None
+    C = os.path.join(os.path.dirname(RES), "conf")
+    load = lambda nm: {r["h"]: r["s"] for r in map(json.loads, open(f"{C}/sel_scores_{nm}.jsonl"))} if os.path.exists(f"{C}/sel_scores_{nm}.jsonl") else {}
+    synth = os.environ.get("MT_SEL_SYNTH") == "1"
+    VS = {"SEL3": {0: load(a[1]), 1: load(a[0])}}   # half h's sets are scored by the verifier trained on the other half
+    if ref:
+        VS["ref3"] = {0: load(ref[1]), 1: load(ref[0])}
+    rows = [json.loads(l) for l in open(f"{C}/mt_sel2_rows.jsonl")]
+    f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
+    tg = lambda k: str(k) if k < 3 else "3+"
+    base = lambda i: i.split("/")[0]
+
+    def sc(S, i, t):
+        if synth:
+            return random.Random(L.rv_key("tc", "mt2", i, "sel", t)).gauss(0, 2)
+        return S.get(L.rv_key("tc", "mt2", i, "sel", t))
+
+    def sets(rs, S):
+        X, miss = [], 0
+        for r in rs:
+            g = {}
+            for k in ("N", "P", "T"):
+                g.setdefault(r["roll"][k][0], []).append(k)
+            Cc = []
+            for t, ks in g.items():
+                v = sc(S[r["half"]], r["id"], t)
+                if v is None:
+                    Cc = None; break
+                Cc.append({"r": r["roll"][ks[0]][1], "calls": tuple(sorted(ks)), "s": v, "t": t})
+            if Cc is None:
+                miss += 1; continue
+            X.append(((r["id"], r["seed"]), r["seed"], Cc, r["roll"]["T"][1]))
+        return X, miss
+    z0 = lambda X: [(i, s, [dict(c, s=0.0) for c in Cc], dr) for i, s, Cc, dr in X]
+    later = {nm: defaultdict(list) for nm in VS}; vsref = defaultdict(list)
+    for m in ("q8b", "q14a", "q35"):
+        R = [r for r in rows if r["model"] == m]
+        D = {nm: defaultdict(lambda: defaultdict(list)) for nm in VS}   # name -> turn group -> item -> [utility - T's]
+        A = {nm: defaultdict(list) for nm in VS}; At = defaultdict(list); AU = {nm: defaultdict(list) for nm in VS}
+        U2 = {nm: {} for nm in VS}; miss = Counter(); unseen = Counter(); out = {}
+        for h in (0, 1):
+            fitR, testR = [r for r in R if r["half"] != h], [r for r in R if r["half"] == h]
+            for nm, S in VS.items():
+                fit, _ = sets(fitR, S)
+                test, ms = sets(testR, S)
+                miss[nm] += ms
+                choose, beta = L.sel_fit_cl(z0(fit), fit)
+                if nm == "SEL3":
+                    st = choose.state
+                    out[f"h{h}"] = {"cnt": {f"{k[0]!r}|{k[1]!r}": v for k, v in st["cnt"].items()},
+                                    "rt": {f"{k[0]!r}|{k[1]!r}": v for k, v in st["rt"].items()}, "beta": st["beta"], "sd": st["sd"]}
+                byk = {(r["id"], r["seed"]): r for r in testR}
+                for x in test:
+                    r = byk[x[0]]; c = choose(x); unseen[nm] += c is None
+                    ok = c["r"] if c else r["roll"]["T"][1]
+                    t = sum(r["roll"][k][2] for k in ("N", "P", "T"))
+                    d = u(ok, t) - u(r["roll"]["T"][1], r["roll"]["T"][2])
+                    D[nm][tg(r["turn"])][base(r["id"])].append(d)
+                    A[nm][tg(r["turn"])].append(100 * ok)
+                    U2[nm][(r["id"], r["seed"])] = u(ok, t)
+                    if nm == "SEL3":
+                        At[tg(r["turn"])].append(100 * r["roll"]["T"][1])
+                    if r["turn"] >= 1:
+                        later[nm][base(r["id"])].append(d)
+                for k, v in L.sel_auc([(x[0][0], x[0][1], x[2], x[3]) for x in test]).items():
+                    AU[nm][tg(int(k.split("/t")[1]) if "/t" in k else 0)].append(v)
+        if "ref3" in VS:
+            for k, v in U2["SEL3"].items():
+                if k in U2["ref3"] and "/t" in k[0]:
+                    vsref[base(k[0])].append(v - U2["ref3"][k])
+        json.dump(out, open(f"{RES}/mt_so_fit_{m}{'_synth' if synth else ''}.json", "w"))
+        print(f"=== MT-SO offline {m}: missing scores {dict(miss)}, unseen structures keep T {dict(unseen)}; fit written "
+              f"(beta_CL h0 {out['h0']['beta']:.2f}, h1 {out['h1']['beta']:.2f})", flush=True)
+        for g in ("0", "1", "2", "3+"):
+            if not D["SEL3"][g]:
+                continue
+            per = lambda nm: ci({i: sum(v) / len(v) / 100 for i, v in D[nm][g].items()})
+            au = lambda nm: sum(AU[nm][g]) / max(1, len(AU[nm][g]))
+            print(f"    turn {g}: {len(A['SEL3'][g])} sets; T {sum(At[g]) / len(At[g]):.1f}%; "
+                  + "; ".join(f"{nm} {sum(A[nm][g]) / len(A[nm][g]):.1f}%, AUROC {au(nm):.3f}, - T {f(per(nm))}" for nm in VS), flush=True)
+    p3 = ci({i: sum(v) / len(v) / 100 for i, v in later["SEL3"].items()})
+    print(f"*** MT-SO-P3 (SEL3 - T on the later turns' pseudo-sets, three models pooled, lower bound > 0): {f(p3)} -> "
+          f"{'holds' if p3[1] > 0 else 'refuted'}")
+    if vsref:
+        p4 = ci({i: sum(v) / len(v) / 100 for i, v in vsref.items()})
+        print(f"*** MT-SO-P4 (SEL3 with {','.join(a)} - with {','.join(ref)} on the same later-turn sets, lower bound > 0): {f(p4)} -> "
+              f"{'holds' if p4[1] > 0 else 'refuted'}")
+
+
 if __name__ == "__main__":
-    if "--sel" in sys.argv:
+    if "--sel2" in sys.argv:
+        main_sel2()
+    elif "--sel" in sys.argv:
         main_sel()
     else:
         main()

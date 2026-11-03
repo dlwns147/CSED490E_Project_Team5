@@ -439,3 +439,65 @@ other half's rollouts (7,840 / 7,689, none missing); selab2_s450 scored all 15,5
 **Decision (as registered, P1 holds):** the online arm is pre-registered next — at every turn, sandboxed rollouts N, P, T with the
 verifier choosing, on MT-V's infrastructure, the verifier retrained on turn-0 and later-turn rollouts. Turn 0 alone does not change
 the agent-loop method: MT-V showed turn-0 room that did not carry into whole trajectories, so the claim waits for the online arm.
+
+## Addendum MT-SO: the verifier's choice at every turn, online (written 2026-11-03 15:2x UTC, before the retrained verifiers exist and before any online row)
+
+**Why.** MT-SEL's choice among N, P and T beats thinking at turn 0 (+5.6 to +8.8 utility). MT-V had turn-0 room too and lost over whole
+conversations, because its room was a grouping artifact. Here the turn-0 room is measured with each rollout's own label, but later
+turns differ: the context is longer, the state is the committed one, and the verifier never saw a later turn. MT-SEL's decision
+registered this arm.
+
+**Related work.** Reward-model best-of-N for tool calls, including multi-turn BFCL (ToolRM, 2510.26167); process verifiers for
+tool-using agents (2601.12294; ToolPRM, ACL 2026); per-turn thinking budgets on BFCL multi-turn (TAB, 2604.05164). New here: at every
+turn, a choice among the same model's quick turn, another model's quick turn and the thinking turn, all output tokens priced, against
+thinking at every step, with the verifier and the choice rule cross-fitted by scenario.
+
+**Data (built 2026-11-03 15:2x UTC, `mt_peer0.py --sel-build2`).**
+- Each stored trajectory (3 models × arms N, E, F, T × seeds 1–3) is graded turn by turn (`turn_track`, BFCL's per-turn checks).
+  A turn whose ground truth is empty must leave the state unchanged, as MT-SEL's turn-0 labels; BFCL checks that only at the next
+  turn's state, so for 367 of 21,492 trajectories (1.7%, all in the missing-function / missing-parameter categories) this is stricter
+  than BFCL's grade (a guess at the empty turn that BFCL passes later); no trajectory is right here and wrong in BFCL.
+- At turn k ≥ 1, the trajectories still right through turn k−1 (the ground truth's state) give rollouts of turn k, right when the
+  trajectory is still right after it. The verifier's request: the earlier requests, then the current one (`turn_context`).
+- Requests with a right and a wrong rollout, turn 0 / later: 525 / 978 (half 0: 270 / 494; half 1: 255 / 484).
+- Pseudo-sets for later turns: per model and seed, N, the peer's N and T at turn k when those three trajectories are all still right
+  through k−1 (3,719 over the three models). They come from different histories, so they are the online choice's sets only
+  approximately.
+
+**Run.**
+1. Two verifiers `mtso_h<h>`: `MT_SEL_TAG=mt_sel2 SEL_IDS=$POC_DATA/bfcl/mt_sel2_ids_h<h>.txt tc_train.py $POC_DATA/cv/mtso_h<h> --orm
+   --mt --batch 8 --epochs 4` (MT-SEL's recipe, final adapter). Each scores the other half's texts (`sel_req_mt2_h<1-h>.jsonl`, sset mt2).
+2. Secondary: MT-SEL's turn-0 verifiers `mtsel_h<h>` score the same texts (does training on later turns matter?).
+3. `python3.11 poc/analyze_mtb.py --sel2 mtso_h0,mtso_h1 --ref mtsel_h0,mtsel_h1`:
+   - offline SEL3 − T per turn (0, 1, 2, ≥ 3) on the pseudo-sets;
+   - writes the choice rule `results/tc/mt_so_fit_<model>.json`. For each test half it holds the set-choice fit (`sel_fit_cl`: log
+     prior by roles + β_CL z) on the other half's turn-0 sets and later pseudo-sets, pooled, with the scores of the verifier not
+     trained on that half.
+4. Online arm S (`run_mt.py <tag> S <seed>`), at every turn:
+   - rollouts N (quick, the generator), P (quick, the peer) and T (thinking, the generator) on sandbox copies of the committed
+     environment, with MT-V's seeds and caps;
+   - the verifier trained on the other half of the scenarios scores each distinct rollout (`render`, `turn_context`; system prompt:
+     the json docs of the functions the three rollouts call, `short_system`), and the item half's fit chooses;
+   - a structure the fit never saw commits T; the chosen rollout's steps and environment continue the conversation.
+
+   Every rollout's output tokens count; the verifier's prefill is reported.
+5. Qwen3-8B (peer Qwen3.5-9B) and Qwen3.5-9B (peer Qwen3-8B), all 600 items, seeds 1–3, one two-GPU job per model and seed
+   (`vote_lane.sh`; the verifiers are LoRA adapters on the Qwen3-8B server). `grade_mt.py <tag> S`, then compared with the stored T arm
+   (same items, seeds and step seeds): `MTV_ARM=S python3.11 poc/analyze_mtv.py q8b q35`.
+
+**Predictions** (paired 95% intervals over items, seed means; utility 100 × right − 0.5 × output ktokens of the whole conversation):
+- **MT-SO-P1 (decision):** S − T utility lower bound > 0 for both models.
+- **MT-SO-P2:** S − T accuracy lower bound > 0 for both models.
+- **MT-SO-P3 (later turns, offline):** on the later-turn pseudo-sets (turns ≥ 1, the three models pooled), SEL3 − T lower bound > 0.
+- **MT-SO-P4 (secondary):** on the same sets, SEL3 with `mtso` − SEL3 with `mtsel` lower bound > 0 (training on later turns matters).
+- **Expected:** S − T accuracy +5 to +12. If each turn's success given a right start rises from about 0.75 to 0.81, about four turns
+  compound that to about +10 accuracy. The tokens cost 1.2–1.5× T's (about −1 utility), so utility +3 to +10. P3 holds with a smaller
+  gain than turn 0's. P4 is uncertain: MT-SEL's verifiers already read results, and the later-turn context is new to them.
+
+**Decision.**
+- **P1 holds for both** → the agent-loop method becomes the verifier's choice among the quick, the peer's quick and the thinking turn
+  at every turn (PROJECT, REPORT, PROPOSAL); next, whether the peer and the quick turn can be skipped when the verifier is sure (a
+  gate, MT-SEL's P3).
+- **P2 holds, P1 not** → a trade, reported with its break-even λ.
+- **Both refuted** → the turn-0 gain does not carry, reported with the per-turn diagnostics (where the choice goes wrong); the method
+  stays thinking at every step.

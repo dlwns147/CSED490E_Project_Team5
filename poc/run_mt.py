@@ -15,7 +15,9 @@ Rows (results/tc/mt_<tag>_<arm>_s<seed>.jsonl): per turn, per step {calls, think
 offline by poc/grade_mt.py (BFCL's multi_turn_checker). Rows resume.
   V  (MT-V, PREREG_MT addendum MT-V) per turn, sandboxed rollouts of the quick turn, the peer's quick turn (another model's server,
      POC_PEER_URL) and two thinking turns, made and committed by the per-turn policy learned on the other half's turn 0 (MT_POLICY)
-usage: python run_mt.py <tag> <arm N|T|E|F|V> <seed>     (MT_SUBSET=i/k: items i, i+k, ... only — the smoke; MT_WORKERS, default 8)"""
+  S  (MT-SO, addendum MT-SO) per turn, sandboxed rollouts N, P, T; a trained verifier (LoRA on the MT_VER server: gen or peer) scores
+     them and the set-choice fit fitted on the other half (results/tc/mt_so_fit_<tag>.json) commits one
+usage: python run_mt.py <tag> <arm N|T|E|F|V|S> <seed>     (MT_SUBSET=i/k: items i, i+k, ... only — the smoke; MT_WORKERS, default 8)"""
 import ast, copy, json, os, re, sys, zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -225,6 +227,87 @@ def run_item_vote(p, tag, seed):
             "n_think": sum(s["think"] for t in turns for s in t), "n_steps": sum(len(t) for t in turns)}
 
 
+def run_item_sel(p, tag, seed):
+    """MT-SO (PREREG_MT addendum MT-SO): per turn, rollouts of the quick turn (N), the peer's quick turn (P) and the thinking turn (T) on
+    sandbox copies of the committed environment; the verifier trained on the other half of the scenarios (LoRA mtso_h<1-h> on the
+    MT_VER server, gen or peer) scores each distinct rollout as mt_peer0.render shows it after mt_peer0.turn_context, and the set-choice
+    fit of the item's half (results/tc/mt_so_fit_<tag>.json, analyze_mtb.py --sel2) chooses; a structure the fit never saw commits T.
+    The chosen rollout's steps and environment continue the conversation; every rollout's output tokens count."""
+    import copy, math
+    from mt_peer0 import render, short_system, turn_context
+    from tc_train import TC_ASK
+    h = zlib.crc32(p["id"].rsplit("_", 1)[1].encode()) % 2
+    fit, ver = _sofit(tag)[f"h{h}"], f"mtso_h{1 - h}"
+    vcli = PEER if os.environ.get("MT_VER", "gen") == "peer" else None
+    from llm import client as gcli
+    name = f"{tag}_S_s{seed}"
+    cfg, cls, lc = p["initial_config"], p["involved_classes"], "long_context" in p["cat"]
+    U.execute_multi_turn_func_call([], cfg, cls, name, p["id"], long_context=lc)
+    msgs = [{"role": "system", "content": p["system"]}]
+    turns, choices, tok, vpre, quit_ = [], [], 0, 0, False
+    spec = {"N": (False, None), "P": (False, PEER), "T": (True, None)}
+    for ti, um in enumerate(p["turns"]):
+        msgs += um
+        cand = {}
+        for j, (think, cli) in spec.items():
+            cname = f"{name}_t{ti}_{j}"
+            for c in cls:   # sandbox: a deep copy of the committed instances
+                U.__dict__[_inst(cname, p["id"], c)] = copy.deepcopy(U.__dict__[_inst(name, p["id"], c)])
+            new, steps, n, q, vis = run_turn(p, msgs, cname, ti, think, seed, cli, lc)
+            tok += n
+            cand[j] = (new, steps, q, {c: U.__dict__[_inst(cname, p["id"], c)] for c in cls}, render(steps), n)
+        groups = {}
+        for j in spec:
+            groups.setdefault(cand[j][4], []).append(j)
+        names = {re.sub(r"\(.*", "", c) for j in spec for z in cand[j][1] for c in z["calls"]}
+        sysm = short_system(p, names)
+        C = []
+        for txt, js in groups.items():
+            m = [{"role": "system", "content": sysm}, {"role": "user", "content": turn_context(p, ti)},
+                 {"role": "assistant", "content": txt}, {"role": "user", "content": TC_ASK}]
+            o = (vcli or gcli).chat.completions.create(model=ver, messages=m, max_tokens=1, temperature=0, logprobs=True, top_logprobs=20,
+                                                         extra_body={"chat_template_kwargs": {"enable_thinking": False}})
+            top = {t.token: t.logprob for t in o.choices[0].logprobs.content[0].top_logprobs}
+            lo = min(top.values())
+            vpre += o.usage.prompt_tokens
+            C.append({"calls": tuple(sorted(js)), "s": top.get("ACCEPT", lo) - top.get("DE", lo)})
+        S = repr(tuple(sorted(c["calls"] for c in C)))
+        key = lambda c: f"{S}|{c['calls']!r}"
+        if any(key(c) not in fit["cnt"] for c in C):
+            ch, unseen = "T", True
+        else:
+            mu = sum(c["s"] for c in C) / len(C)
+            lg = lambda c: math.log((fit["rt"][key(c)] + 0.5) / (fit["cnt"][key(c)] + 1))
+            ch, unseen = max(C, key=lambda c: lg(c) + fit["beta"] * (c["s"] - mu) / fit["sd"])["calls"][0], False
+        new, steps, q, state, _, _ = cand[ch]
+        for c in cls:   # commit the chosen rollout's environment
+            U.__dict__[_inst(name, p["id"], c)] = state[c]
+        for j in spec:
+            for c in cls:
+                U.__dict__.pop(_inst(f"{name}_t{ti}_{j}", p["id"], c), None)
+        msgs += new
+        turns.append(steps)
+        choices.append({"commit": ch, "unseen": unseen, "sets": [[list(c["calls"]), round(c["s"], 4)] for c in C],
+                        "tok": {j: cand[j][5] for j in spec}})
+        if q:
+            quit_ = True
+            break
+    for c in cls:
+        U.__dict__.pop(_inst(name, p["id"], c), None)
+    return {"id": p["id"], "cat": p["cat"], "arm": "S", "seed": seed, "turns": turns, "tok": tok, "force_quit": quit_, "choices": choices,
+            "ver_prefill": vpre, "n_think": sum(s["think"] for t in turns for s in t), "n_steps": sum(len(t) for t in turns)}
+
+
+_SOFIT = {}
+
+
+def _sofit(tag):
+    """MT-SO: the set-choice fit per item half (fitted on the other half), keys '<structure>|<roles>' as analyze_mtb.py --sel2 writes"""
+    if tag not in _SOFIT:
+        _SOFIT[tag] = json.load(open(os.environ.get("MT_SO_FIT", f"{RES}/mt_so_fit_{tag}.json")))
+    return _SOFIT[tag]
+
+
 def _canon(obs):
     """lcm_bound.project's canonical form: groups relabelled by first appearance in call order"""
     m, out = {}, []
@@ -297,8 +380,8 @@ def run_item(p, tag, arm, seed):
 
 def main():
     tag, arm, seed = sys.argv[1], sys.argv[2], int(sys.argv[3])
-    assert arm in ("N", "T", "E", "F", "V")
-    if arm == "V":   # MT-V: the peer's server (POC_PEER_URL) and the policy files (MT_POLICY, with {h} for the fitting half)
+    assert arm in ("N", "T", "E", "F", "V", "S")
+    if arm in ("V", "S"):   # MT-V: the peer's server (POC_PEER_URL) and the policy files (MT_POLICY, with {h} for the fitting half); MT-SO: MT_VER
         global PEER
         from openai import OpenAI
         PEER = OpenAI(base_url=os.environ["POC_PEER_URL"], api_key="none", timeout=float(os.environ.get("POC_TIMEOUT", 3600)))
@@ -311,7 +394,8 @@ def main():
     todo = [p for p in P if p["id"] not in done]
     print(f"MT {tag} {arm} s{seed}: {len(todo)} of {len(P)} items to run", flush=True)
     with ThreadPoolExecutor(int(os.environ.get("MT_WORKERS", 8))) as ex, open(path, "a") as f:
-        fs = {(ex.submit(run_item_vote, p, tag, seed) if arm == "V" else ex.submit(run_item, p, tag, arm, seed)): p["id"] for p in todo}
+        run = {"V": run_item_vote, "S": run_item_sel}
+        fs = {(ex.submit(run[arm], p, tag, seed) if arm in run else ex.submit(run_item, p, tag, arm, seed)): p["id"] for p in todo}
         for j, fu in enumerate(as_completed(fs)):
             try:
                 r = fu.result()

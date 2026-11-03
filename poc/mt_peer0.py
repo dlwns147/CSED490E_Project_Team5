@@ -259,8 +259,138 @@ def main_sel_build():
           f"{len(req[0])} / {len(req[1])}", flush=True)
 
 
+def turn_context(p, k):
+    """MT-SO: the verifier's request at turn k — turn 0: the request (MT-SEL's items); later: the earlier requests, then the current one"""
+    if k == 0:
+        return p["turns"][0][-1]["content"]
+    prev = "\n".join(f"{j + 1}. {p['turns'][j][-1]['content']}" for j in range(k))
+    return f"Earlier requests in this conversation (already handled):\n{prev}\n\nCurrent request: {p['turns'][k][-1]['content']}"
+
+
+def turn_track(p, x, name):
+    """MT-SO: the first wrong turn of trajectory row x (len(ground truth) when none), turn by turn as BFCL's multi_turn_checker: a turn
+    with a non-empty ground truth needs a non-empty answer, every instance's state equal to the ground truth's and the turn's ground-truth
+    execution results among all results so far; a turn with an empty ground truth must leave the state as the ground truth's (as MT-SEL's
+    turn-0 labels; BFCL sees a change at the next turn's state check); a force-quit turn is wrong"""
+    from bfcl_eval.eval_checker.multi_turn_eval.multi_turn_checker import state_checker
+    cfg, cls, gts = p["initial_config"], p["involved_classes"], p["ground_truth"]
+    ex = lambda c, nm: U.execute_multi_turn_func_call(c, cfg, cls, nm, p["id"], long_context=False, is_evaL_run=True)
+    allres = []
+    try:
+        for k, gt in enumerate(gts):
+            if k >= len(x["turns"]):
+                return k
+            st = [z["calls"] for z in x["turns"][k] if z["calls"]]
+            for c in st:
+                allres += ex(c, name)[0]
+            mi = ex([], name)[1]
+            gres, gi = ex(gt, name + "_gt")
+            if (x["force_quit"] and k == len(x["turns"]) - 1) or (gt and (not st or U.is_empty_execute_response(st))):
+                return k
+            if not state_checker(mi, gi)["valid"] or (gt and not response_checker(allres, gres, k)["valid"]):
+                return k
+        return len(gts)
+    finally:
+        for nm in (name, name + "_gt"):
+            for c in cls:
+                U.__dict__.pop(re.sub(r"[-./:]", "_", f"{nm}_eval_{p['id']}_{c}_instance"), None)
+
+
+def main_sel_build2():
+    """addendum MT-SO (--sel-build2): MT-SEL's data plus every later turn. Each stored trajectory (SEL_MODELS x SEL_ARMS x seeds 1-3) is
+    graded turn by turn (turn_track); at turn k >= 1 the trajectories still right through turn k-1 (their state is the ground truth's)
+    give rollouts of that turn, right when the trajectory is still right after it. Request id <item>/t<k>, its context turn_context
+    (the requests so far). Writes $POC_DATA/bfcl/mt_sel2_items.jsonl, mt_sel2_ids_h<half>.txt, results/conf/mt_sel2_pool.jsonl,
+    results/conf/mt_sel2_rows.jsonl (turn 0: MT-SEL's rows; turn k: per model and seed, N, the peer's N, T (and the next seed's T) when
+    those trajectories are all still right through turn k-1 — sets as the online choice sees them, but from different histories) and
+    results/conf/sel_req_mt2_h<half>.jsonl (sset mt2, every text of the half, turn 0 included). Also prints how often the trajectory's
+    last turn_track agrees with BFCL's grade (results/tc/mt_grades_*)."""
+    import hashlib, zlib
+    P = {p["id"]: p for p in map(json.loads, open(DATA))}
+    R = {(m, a): rows(m, a) for m in SEL_MODELS for a in SEL_ARMS}
+    C = os.path.join(ROOT, "results", "conf")
+    PD = os.path.dirname(DATA)
+    it0 = {x["id"]: x for x in map(json.loads, open(f"{PD}/mt_sel_items.jsonl"))}
+    pool0 = {r["id"]: r for r in map(json.loads, open(f"{C}/mt_sel_pool.jsonl"))}
+    rows0 = [json.loads(l) for l in open(f"{C}/mt_sel_rows.jsonl")]
+    ids = sorted(it0)
+    key = lambda i, t: hashlib.sha1(json.dumps(["tc", "mt2", i, "sel", t]).encode()).hexdigest()[:20]   # lcm_shift.rv_key
+    half = lambda i: zlib.crc32(i.split("/")[0].rsplit("_", 1)[1].encode()) % 2
+    G = {(m, a, s): json.load(open(f"{RES}/mt_grades_{m}_{a}_s{s}.json")) for m in SEL_MODELS for a in SEL_ARMS for s in (1, 2, 3)}
+    items = [dict(x, turn=0) for x in it0.values()]
+    pool = {i: dict(pool0[i], turn=0) for i in ids}
+    out = [dict(r, turn=0) for r in rows0]
+    agree, conflict, n = Counter(), 0, 0
+    for i in ids:
+        p = P[i]
+        F = {}
+        for m in SEL_MODELS:
+            for a in SEL_ARMS:
+                for s in (1, 2, 3):
+                    x = R[(m, a)][s][i]
+                    F[(m, a, s)] = turn_track(p, x, f"tt{n}"); n += 1
+                    agree[(F[(m, a, s)] == len(p["ground_truth"])) == G[(m, a, s)][i]["ok"]] += 1
+        for k in range(1, len(p["ground_truth"])):
+            cand, roll = {}, {}
+            for (m, a, s), f in F.items():
+                x = R[(m, a)][s][i]
+                if f < k or k >= len(x["turns"]):
+                    continue
+                tk = x["turns"][k]
+                txt = render(tk)
+                ok = f > k
+                st = [z["calls"] for z in tk if z["calls"]]
+                c = cand.setdefault(txt, {"right": ok, "src": [], "calls": sorted({re.sub(r"\(.*", "", c) for z in st for c in z})})
+                conflict += c["right"] != ok
+                c["src"].append([m, a, s])
+                roll[(m, a, s)] = (txt, c["right"], sum(z["tok"] for z in tk), any(any(z.get("err") or []) or z.get("loop") for z in tk))
+            if not cand:
+                continue
+            j = f"{i}/t{k}"
+            names = {nm for c in cand.values() for nm in c["calls"]}
+            items.append({"id": j, "system": short_system(p, names), "user": turn_context(p, k), "half": half(i), "turn": k})
+            pool[j] = {"id": j, "half": half(i), "cands": cand, "turn": k}
+            for m in SEL_MODELS:
+                for s in (1, 2, 3):
+                    q = {"N": (m, "N", s), "P": (SEL_PEER[m], "N", s), "T": (m, "T", s), "T2": (m, "T", s % 3 + 1)}
+                    if all(q[r] in roll for r in ("N", "P", "T")):
+                        out.append({"model": m, "id": j, "seed": s, "half": half(i), "turn": k,
+                                    "roll": {r: roll[v] for r, v in q.items() if v in roll}})
+    req = {0: {}, 1: {}}
+    for j, r in pool.items():
+        for t in r["cands"]:
+            h = key(j, t)
+            req[r["half"]][h] = {"h": h, "task": "tc", "sset": "mt2", "id": j, "kind": "sel", "text": t}
+    with open(f"{PD}/mt_sel2_items.jsonl", "w") as f:
+        for x in items:
+            f.write(json.dumps(x) + "\n")
+    for h in (0, 1):
+        with open(f"{PD}/mt_sel2_ids_h{h}.txt", "w") as f:
+            f.write("\n".join(x["id"] for x in items if x["half"] == h) + "\n")
+        with open(f"{C}/sel_req_mt2_h{h}.jsonl", "w") as f:
+            for r in req[h].values():
+                f.write(json.dumps(r) + "\n")
+    with open(f"{C}/mt_sel2_pool.jsonl", "w") as f:
+        for r in pool.values():
+            f.write(json.dumps(r) + "\n")
+    with open(f"{C}/mt_sel2_rows.jsonl", "w") as f:
+        for r in out:
+            f.write(json.dumps(r) + "\n")
+    mixed = lambda r: any(v["right"] for v in r["cands"].values()) and not all(v["right"] for v in r["cands"].values())
+    print(f"MT-SO build: trajectory grades, turn_track all right == BFCL's grade {dict(agree)}; rollouts whose rendered text another "
+          f"rollout shares with the other label {conflict}", flush=True)
+    for k in sorted({r["turn"] for r in pool.values()}):
+        rs = [r for r in pool.values() if r["turn"] == k]
+        print(f"  turn {k}: {len(rs)} requests, {sum(len(r['cands']) for r in rs)} distinct rollouts, with a right and a wrong "
+              f"{sum(mixed(r) for r in rs)} (half 0 {sum(mixed(r) for r in rs if r['half'] == 0)}); pseudo-sets "
+              f"{sum(1 for r in out if r['turn'] == k)}", flush=True)
+    print(f"MT-SO build: scoring requests {len(req[0])} / {len(req[1])}", flush=True)
+
+
 if __name__ == "__main__":
     if "--sel-build" in sys.argv:
         main_sel_build()
+    elif "--sel-build2" in sys.argv:
+        main_sel_build2()
     else:
         main()
