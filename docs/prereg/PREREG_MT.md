@@ -565,3 +565,27 @@ The 132 items that use both groups are dropped from training and test.
 - **P1 refuted** → a size-matched scenario control tells less data from unseen environments: scenario verifiers trained on random
   228 / 240-item subsets. If the control keeps the gain, the agent-loop claim is scoped to "trained on the target environments", and
   new environments become the required test.
+
+## Results of addendum MT-SEL-ENV (written 2026-11-03 19:2x UTC; `results/mtselenv.txt`, scenario split on the same items `results/mtselenv_same.txt`; jobs 1310879 / 1310880: 108 / 96 training steps, 6,017 / 6,056 turn-0 texts scored, none failed)
+
+467 env-pure items (228 group 0, 239 group 1 with turn-0 sets) × 3 seeds; verifier, set-choice fit and gate threshold from the other
+group.
+
+| model | T | SEL3 env split | SEL3 − T env split | AUROC env | SEL3 − T scenario split (same items) | AUROC scenario | GATE − T env / scenario |
+|---|---|---|---|---|---|---|---|
+| Qwen3-8B | 72.7% @ 2.10k | 76.2% @ 2.45k | +3.40 [+1.41, +5.45] | 0.785 | +4.68 [+2.26, +7.24] | 0.841 | −4.06 / +0.78 |
+| Qwen3-14B-AWQ | 72.1% @ 1.98k | 76.2% @ 2.41k | +3.86 [+1.36, +6.22] | 0.841 | +8.21 [+5.93, +10.57] | 0.911 | −11.32 / +1.39 |
+| Qwen3.5-9B | 75.4% @ 0.80k | 78.6% @ 1.14k | +2.97 [+0.32, +5.47] | 0.808 | +4.97 [+2.75, +7.18] | 0.843 | −5.19 / +1.44 |
+
+- **MT-SEL-ENV-P1 holds:** SEL3 − T lower bound > 0 in 3 of 3 models.
+- **MT-SEL-ENV-P2 holds:** within-set AUROC 0.785 / 0.841 / 0.808, ≥ 0.75 in 3 of 3.
+- **MT-SEL-ENV-P3:** environment split − scenario split, SEL3, pooled −2.55 [−3.62, −1.40], within the expected −1 to −3. It mixes
+  unseen environments with 228–239 training items instead of about 300.
+- Every prediction's expected range held, except Qwen3-14B-AWQ's AUROC (0.841, above 0.82).
+- Reported: the gate does not transfer. Its threshold, fitted on the other group, loses −4 to −11 against thinking, against +0.8 to
+  +1.4 with the scenario split. The fitted set choice (SEL-CL) holds its edge over the score alone (−0.57 / −0.93 / −1.21 for the
+  score alone).
+
+**Decision (registered):** MT-SEL's turn-0 gain is not environment memorisation. In environments the verifier never saw it keeps
+about half of the scenario-split gain, +3.0 to +3.9 against thinking. If MT-SO holds, it gets an environment-held-out online run with
+these verifiers. SIDE-ENV (PREREG_SIDE) is the test beyond BFCL's own classes.

@@ -5285,3 +5285,18 @@ when every number is used vs 72–78% when not) and 0.60–0.66 where it disagre
 0 of 100 (IndustryOR), 0 of 652 / 19 of 211 (MAMO easy / complex): reusing a checked program by number substitution has no room here.
 Reading: on these tasks the passing wrong answers are misreadings shared in meaning, which structural checks of the answer do not see;
 the suggested teammate track goes where the room is (agent loops: new environments as a held-out test).
+
+## 2026-11-03 19:2x UTC: MT-SEL-ENV (pre-registered): the turn-0 verifier keeps its gain over thinking in BFCL environments it never saw
+Why: MT-SEL's halves shared all eight BFCL environment classes; a verifier could have learned what a right turn looks like in each.
+The split was computed, not chosen: of the 127 two-group partitions of the classes, the one maximising the smaller group's count of
+single-group items (228 / 239 items; 130 mixed dropped). Verifier, set-choice fit and gate threshold all come from the other group.
+- SEL3 − T +3.40 [+1.41, +5.45] / +3.86 [+1.36, +6.22] / +2.97 [+0.32, +5.47] (Qwen3-8B / Qwen3-14B-AWQ / Qwen3.5-9B; 76–79% right
+  vs 72–75%); within-set AUROC 0.785 / 0.841 / 0.808. P1, P2 hold.
+- Cost of unseen environments (with ~25% less training data): −2.55 [−3.62, −1.40] pooled against the scenario split on the same
+  items (+4.7 / +8.2 / +5.0, AUROC 0.84 / 0.91 / 0.84).
+- The gate (keep N when its score clears a threshold) does not transfer: −4 to −11 against thinking (+0.8 to +1.4 within
+  environments). The fitted set choice does.
+Decision (registered): the turn-0 claim holds in unseen BFCL environments at about half the size. The online arm (MT-SO, running)
+gets an environment-held-out run if it holds. The generated environment of the second track (SIDE-ENV) is the test beyond BFCL's
+own classes. Goal link: the agent-loop gain is not a memorised environment.
+
