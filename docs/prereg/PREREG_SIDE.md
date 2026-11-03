@@ -108,3 +108,47 @@ conversations show no visible failure, i.e. no error result, no repeated step, n
   the floor → fewer packages; P2 refuted → the family does not test what the methods are about (thinking does not change the outcome)
   and is redesigned; P3 refuted → the family tests only visible failures, where the free check suffices, and gets requests whose
   wrong plans run without errors.
+
+## Results of SIDE-ENV (written 2026-11-03 19:4x UTC; jobs 1311251 / 1311252; rows `results/tc/mt_sidepkg_{q8b,q35}_{N,T,E}_s1.jsonl`, graded with `grade_mt.py`; raw-case replay `nlp_data/scratch/sidepkg_fail.py`; environment version 1 = commit 301ac98)
+
+| model | N | T | E | silent share of N's failures |
+|---|---|---|---|---|
+| Qwen3-8B | 0 / 40 @ 0.20k | 1 / 40 @ 6.66k | 0 / 40 @ 2.65k | 5.0% |
+| Qwen3.5-9B | 2 / 40 @ 0.32k | 0 / 40 @ 2.27k | 2 / 40 @ 0.82k | 18.4% |
+
+- **SIDE-ENV-P1 refuted at the floor:** Qwen3-8B T 2.5%. **P2 refuted:** T − N +2.5 points. **P3 refuted:** 5.0% silent against
+  BFCL's 12.8% (by the registered whole-conversation definition; see the raw cases).
+- **Raw cases** (each trajectory replayed turn by turn against the policy's state; the first diverging turn):
+  - 16–19 of 40 conversations first diverge at a removal. The model removes the named package and leaves its dependencies
+    installed, against the policy's clean-up. This is a silent step.
+  - 10–17 first diverge at an install that is right except for the as_dependency flag.
+  - 1–4 diverge on a version choice and 1–2 on a missing dependency.
+  - Thinking changes neither of the two main causes. The later errors in the registered definition ("already installed",
+    "needed by") are downstream of a silent first divergence, which is why the silent share comes out low.
+- Reading: the floor is two conventions that live only in the function docs, which no model follows with or without thinking. It is
+  not the size of the graph, so the registered remedy for the floor (fewer packages) would not touch the cause. BFCL's own requests
+  state what they imply ("Make sure to create the directory").
+
+## SIDE-ENV-2: the same environment with every request stating its rule (written 2026-11-03 19:4x UTC, before any model ran on version 2)
+
+**Change (the one retry SIDE-ENV allowed, aimed at the cause the raw cases show instead of the registered "fewer packages"):**
+- No as_dependency flag and no record of what the user asked for.
+- Every request states its rule in its own words:
+  - install: "install its missing dependencies first, each at the newest version that every package needing it allows";
+  - install-newest: "the newest version that can be installed without changing any installed package";
+  - removal: "then remove every package it depended on, directly or indirectly, that no remaining installed package needs";
+  - upgrade: "the newest version that every installed package depending on it allows".
+- The policy left in the docs is only what the tools enforce.
+- What remains for the model is the algorithm: the dependency closure, the intersection of allowed versions, the orphans after a
+  removal.
+- Generator seed 1, 40 scenarios: remove 58 turns, install-newest 34, install-version 18, upgrade 10; 2.98 ground-truth calls per
+  turn.
+- Ground truths replay as valid in 40 / 40, and in 40 / 40 with one call per step.
+- Negative variants: without the clean-up 1 / 40 still valid; the requested package alone 4 / 40.
+
+**Runs, predictions and decision:** as SIDE-ENV (Qwen3-8B decides, Qwen3.5-9B reported; N, T, E, seed 1; P1–P3 with the same
+anchors). In addition, P3 is reported on the first diverging turn: its share with no error result and no repeated step.
+- Expected: N 10–35%, T 30–65%.
+- If P1–P3 hold, SIDE-ENV's "hold" branch applies.
+- If not, the family is closed and SIDE-ENV's lesson is recorded: a generated environment has to state its conventions in the
+  request. The second track then starts from another family through the same interface.

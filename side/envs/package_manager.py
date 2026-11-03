@@ -5,10 +5,10 @@ breaking installed packages. Every call's result depends only on its arguments a
 checker (end state + unordered ground-truth results) accepts any order that reaches the same state.
 
 State (initial_config["PackageManagerAPI"]): registry {name: {version: {"depends": {dep: [allowed versions]}, "size_mb": int}}},
-installed {name: version}, manual [names the user asked for; the rest were installed as dependencies], disk_free_mb.
-Policy (stated in the function docs, `side/gen_pkg.py` POLICY): a missing dependency is installed first, at the newest version that
-every package needing it allows; a dependency already installed at an allowed version is kept; "remove X" also removes the
-dependencies no remaining package needs that were not asked for by the user."""
+installed {name: version}, disk_free_mb.
+Version 2 (SIDE-ENV-2): each user request states what it implies (which dependencies, which versions, what to clean up), as BFCL's
+requests do; version 1 (commit 301ac98) left two conventions to the function docs (an as_dependency flag and clean-up after a
+removal), and no model followed them, thinking or not (PREREG_SIDE.md, SIDE-ENV results)."""
 from copy import deepcopy
 
 
@@ -20,7 +20,6 @@ class PackageManagerAPI:
     def __init__(self):
         self.registry = {}
         self.installed = {}
-        self.manual = []
         self.disk_free_mb = 0
         self._api_description = ("This tool belongs to the PackageManagerAPI, which installs, removes and upgrades software packages "
                                   "with versioned dependencies on one machine.")
@@ -29,7 +28,6 @@ class PackageManagerAPI:
         s = deepcopy(scenario)
         self.registry = s.get("registry", {})
         self.installed = s.get("installed", {})
-        self.manual = sorted(s.get("manual", []))
         self.disk_free_mb = s.get("disk_free_mb", 10000)
 
     def _needs(self, name, version, skip=None):
@@ -66,9 +64,8 @@ class PackageManagerAPI:
 
         Returns:
             installed (dict): Package name -> installed version.
-            requested_by_user (list): The installed packages the user asked for (the others were installed as dependencies).
         """
-        return {"installed": dict(sorted(self.installed.items())), "requested_by_user": sorted(self.manual)}
+        return {"installed": dict(sorted(self.installed.items()))}
 
     def get_disk_space(self) -> dict:
         """
@@ -79,14 +76,13 @@ class PackageManagerAPI:
         """
         return {"disk_free_mb": self.disk_free_mb}
 
-    def install_package(self, name: str, version: str, as_dependency: bool = False) -> dict:
+    def install_package(self, name: str, version: str) -> dict:
         """
         Install one version of a package. Every dependency of that version must already be installed at an allowed version.
 
         Args:
             name (str): Package name.
             version (str): Version to install.
-            as_dependency (bool): True when the package is installed only because another package needs it. Defaults to False.
         Returns:
             status (str): "installed".
             package (str): Package name.
@@ -109,8 +105,6 @@ class PackageManagerAPI:
             return {"error": f"Not enough disk space: {name} {version} needs {size} MB."}
         self.installed[name] = version
         self.disk_free_mb -= size
-        if not as_dependency and name not in self.manual:
-            self.manual = sorted(self.manual + [name])
         return {"status": "installed", "package": name, "version": version}
 
     def remove_package(self, name: str) -> dict:
@@ -131,7 +125,6 @@ class PackageManagerAPI:
             return {"error": f"Cannot remove {name}: needed by {', '.join(sorted(need))}."}
         v = self.installed.pop(name)
         self.disk_free_mb += self.registry[name][v]["size_mb"]
-        self.manual = [m for m in self.manual if m != name]
         return {"status": "removed", "package": name, "version": v}
 
     def upgrade_package(self, name: str, version: str) -> dict:

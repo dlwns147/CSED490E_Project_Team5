@@ -6,6 +6,8 @@ window of allowed versions (newer versions tend to need newer dependencies). The
 policy. Each scenario has 3 turns drawn from four requests; the ground truth of a turn is the policy's plan computed by the resolver
 below (mutating calls only: every result depends only on the call and the state, so BFCL's unordered result check and its end-state
 check accept any order that reaches the policy's state). A request whose plan is empty or impossible is redrawn.
+Version 2 (SIDE-ENV-2): every request states its dependency, version and clean-up rule; no as_dependency flag, no record of what
+the user asked for (version 1, commit 301ac98, left both to the function docs).
 usage: python side/gen_pkg.py <out.jsonl> [n=40] [seed=0]   (the BFCL system-prompt header is copied from $POC_DATA/bfcl/mt_items.jsonl)"""
 import inspect, json, os, random, re, sys
 
@@ -13,13 +15,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from side.envs.package_manager import PackageManagerAPI, vkey  # noqa: E402
 
 CLS = "PackageManagerAPI"
-POLICY = ("Policy of this machine: before installing a package, install each missing dependency (recursively, dependencies first) at "
-          "the newest version that every package needing it allows, with as_dependency=True; keep a dependency that is already "
-          "installed at an allowed version. When the user names no version, install the newest version that can be installed this "
-          "way without changing installed packages. Removing a package the user asked for also removes, afterwards, every package "
-          "that was installed as a dependency and is no longer needed by any installed package. Upgrading a package means the newest "
-          "version that every installed package depending on it allows, after installing that version's missing dependencies by the "
-          "same rule.")
+POLICY = ("A package can be installed only after all its dependencies are installed at allowed versions; a package can be removed "
+          "only when no installed package depends on it.")
 SYL = ["bram", "cor", "dex", "fen", "gal", "hol", "jun", "kel", "lum", "mor", "nax", "ost", "pim", "quor", "riv", "sol", "tav",
        "ulm", "vex", "wyn", "zor", "ard", "bel", "cyn"]
 SUF = ["", "kit", "lib", "core", "io", "net", "db", "ui", "fmt", "x"]
@@ -113,13 +110,19 @@ def newest_installable(st, R, x):
 
 
 def plan_remove(st, R, x):
-    """remove x (user-requested, nothing depends on it), then every dependency-installed package no remaining package needs"""
+    """remove x (nothing depends on it), then, repeatedly, every package of x's dependency closure (installed versions, taken before
+    the removal) that no remaining installed package needs -- the clean-up the request states"""
     inst = dict(st["installed"])
-    if x not in inst or x not in st["manual"] or any(x in R[p][v]["depends"] for p, v in inst.items() if p != x):
+    if x not in inst or any(x in R[p][v]["depends"] for p, v in inst.items() if p != x):
         return None
+    clo, stack = set(), [x]
+    while stack:
+        for d in R[stack[-1]][inst[stack.pop()]]["depends"]:
+            if d in inst and d not in clo:
+                clo.add(d); stack.append(d)
     out = [x]; inst.pop(x)
     while True:
-        orphan = sorted(p for p in inst if p not in st["manual"] and not any(p in R[q][w]["depends"] for q, w in inst.items() if q != p))
+        orphan = sorted(p for p in inst if p in clo and not any(p in R[q][w]["depends"] for q, w in inst.items() if q != p))
         if not orphan:
             return out
         out.append(orphan[0]); inst.pop(orphan[0])
@@ -191,54 +194,60 @@ def call_str(fn, **kw):
 def scenario(rng, k):
     R, layer = registry(rng)
     top = [p for p in R if layer[p] == max(layer.values())]
-    st = {"registry": R, "installed": {}, "manual": [], "disk_free_mb": rng.randint(2000, 4000)}
+    st = {"registry": R, "installed": {}, "disk_free_mb": rng.randint(2000, 4000)}
     env = PackageManagerAPI(); env._load_scenario(st)
     for x in rng.sample(top, min(len(top), rng.randint(2, 3))):
         v, pl = newest_installable(st, R, x) if rng.random() < 0.5 else (lambda w: (w, plan_install(st, R, x, w)))(rng.choice(list(R[x])))
         if pl:
-            apply(env, [call_str("install_package", name=p, version=w, as_dependency=d) for p, w, d in pl])
-            st = {"registry": R, "installed": dict(env.installed), "manual": list(env.manual), "disk_free_mb": env.disk_free_mb}
-    init = {"registry": R, "installed": dict(env.installed), "manual": list(env.manual), "disk_free_mb": env.disk_free_mb}
+            apply(env, [call_str("install_package", name=p, version=w) for p, w, d in pl])
+            st = {"registry": R, "installed": dict(env.installed), "disk_free_mb": env.disk_free_mb}
+    init = {"registry": R, "installed": dict(env.installed), "disk_free_mb": env.disk_free_mb}
     turns, gts, kinds = [], [], []
     for _ in range(40):
         if len(turns) == 3:
             break
         kind = rng.choice(["install_v", "install", "remove", "upgrade"])
-        st = {"registry": R, "installed": dict(env.installed), "manual": list(env.manual), "disk_free_mb": env.disk_free_mb}
+        st = {"registry": R, "installed": dict(env.installed), "disk_free_mb": env.disk_free_mb}
         if kind in ("install_v", "install"):
             cand = [p for p in R if p not in env.installed and layer[p] >= 1]
             if not cand:
                 continue
             x = rng.choice(cand)
+            dep = rng.choice([" Install its missing dependencies first, each at the newest version that every package needing it allows.",
+                              " Any dependency that is not installed yet goes in first, at the newest version allowed by all the packages that need it.",
+                              " Missing dependencies (and theirs) must be installed first; for each, pick the newest version that everything needing it accepts."])
             if kind == "install_v":
                 v = rng.choice(list(R[x])); pl = plan_install(st, R, x, v)
-                msg = rng.choice([f"Please install {x} version {v}.", f"I need {x} {v} on this machine.", f"Set up {x}, version {v}."])
+                msg = rng.choice([f"Please install {x} version {v}.", f"I need {x} {v} on this machine.", f"Set up {x}, version {v}."]) + dep
             else:
                 v, pl = newest_installable(st, R, x)
-                msg = rng.choice([f"Install {x} for me.", f"Can you get {x} installed?", f"I'd like {x} on this machine."])
+                msg = rng.choice([f"Install the newest version of {x} that can be installed without changing any installed package.",
+                                  f"Get {x} installed: the latest version that works with what is already installed, without changing anything installed.",
+                                  f"I'd like {x}, in the newest version possible without upgrading or removing anything installed."]) + dep
             if not pl or len(pl) < 2:
                 continue
-            calls = [call_str("install_package", name=p, version=w, as_dependency=True) if d else call_str("install_package", name=p, version=w)
-                     for p, w, d in pl]
+            calls = [call_str("install_package", name=p, version=w) for p, w, d in pl]
         elif kind == "remove":
-            cand = [p for p in env.manual if plan_remove(st, R, p)]
+            cand = [p for p in env.installed if plan_remove(st, R, p)]
             if not cand:
                 continue
             x = rng.choice(cand); rm = plan_remove(st, R, x)
             if len(rm) < 2:
                 continue
             calls = [call_str("remove_package", name=p) for p in rm]
-            msg = rng.choice([f"Remove {x}; I don't need it anymore.", f"Uninstall {x} and clean up what it pulled in.",
-                              f"Get rid of {x}."])
+            msg = rng.choice([f"Remove {x}, then remove every package it depended on, directly or indirectly, that no remaining installed package needs.",
+                              f"Uninstall {x} and clean up: also uninstall each of its direct or indirect dependencies once nothing installed needs it.",
+                              f"Get rid of {x} together with whichever of its (direct or transitive) dependencies nothing else installed still uses."])
         else:
             cand = [p for p in env.installed if plan_upgrade(st, R, p)]
             if not cand:
                 continue
             y = rng.choice(cand); pre, w = plan_upgrade(st, R, y)
-            calls = [call_str("install_package", name=p, version=v, as_dependency=True) for p, v, _ in pre] + [
-                call_str("upgrade_package", name=y, version=w)]
-            msg = rng.choice([f"Upgrade {y} as far as the installed packages allow.", f"Bring {y} up to the newest version that still works with everything installed.",
-                              f"Update {y}."])
+            calls = [call_str("install_package", name=p, version=v) for p, v, _ in pre] + [call_str("upgrade_package", name=y, version=w)]
+            msg = rng.choice([f"Upgrade {y} to the newest version that every installed package depending on it allows.",
+                              f"Bring {y} up to the newest version that still works with everything installed that depends on it.",
+                              f"Update {y} as far as the packages that depend on it allow."]) + (
+                " If that version needs a dependency that is not installed, install it first at the newest allowed version." if pre else "")
         res = apply(env, calls)
         assert not any("error" in r for r in res), (kind, calls, res)
         turns.append([{"role": "user", "content": msg}]); gts.append(calls); kinds.append(kind)
