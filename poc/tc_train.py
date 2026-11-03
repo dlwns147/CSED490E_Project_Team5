@@ -13,11 +13,12 @@ logit(DE); loss per request = mean over (right, wrong) pairs of log(1 + exp(s_w 
 --pw (addendum SEL-PW-TC): the same pool and requests, the pairwise verifier of cv_train.py pw (both answers in one turn, tc_pw_prompt).
 --pw --abst (addendum SEL-PW-AB): the pairwise verifier on SEL-AB2's pool ("[]" in every pool).
 --orm --abst (addendum SEL-AB2): the pool also holds the no-call answer "[]" on every request with a passing answer (right where the
-request has no gold call). --extra toolpref,when2call (addendum SEL-DATA): + public preference pairs ($POC_DATA/toolace/tc_pref_pairs.jsonl,
+request has no gold call). --orm --mt (addendum MT-SEL): the pool is BFCL multi-turn's turn-0 rollouts (results/conf/mt_sel_pool.jsonl, items
+$POC_DATA/bfcl/mt_sel_items.jsonl; SEL_IDS=$POC_DATA/bfcl/mt_sel_ids_h<half>.txt). --extra toolpref,when2call (addendum SEL-DATA): + public preference pairs ($POC_DATA/toolace/tc_pref_pairs.jsonl,
 prep_tctrain.py --pref) of those sources, each pair one request (its right and its wrong answer).
 usage: /opt/conda/bin/python tc_train.py <out dir> [--questions 6000] [--batch 64] [--group 8] [--lr 2e-5] [--smoke N] [--base DIR]
        [--bil FILE [--plus]]
-       /opt/conda/bin/python tc_train.py <out dir> --orm [--abst] [--extra SRC,...] [--batch 16] [--lr 5e-5] [--epochs 2] [--save 25] [--smoke N]
+       /opt/conda/bin/python tc_train.py <out dir> --orm [--abst | --mt] [--extra SRC,...] [--batch 16] [--lr 5e-5] [--epochs 2] [--save 25] [--smoke N]
        /opt/conda/bin/python tc_train.py <out dir> --pw [--abst] [--pairs 4] [--batch 16] [--lr 5e-5] [--epochs 2] [--save 25] [--smoke N]"""
 import json, math, os, random, sys, time
 from concurrent.futures import ThreadPoolExecutor
@@ -80,8 +81,15 @@ def main_orm(out):
     B, lr, ep, save, smoke = arg("--batch", 16), arg("--lr", 5e-5), arg("--epochs", 2), arg("--save", 25), arg("--smoke", 0)
     D = os.path.dirname(ITEMS)
     keep = set(open(os.environ.get("SEL_IDS", f"{D}/tc_train_ids.txt")).read().split())
-    items = {p["id"]: p for p in map(json.loads, open(ITEMS)) if p["id"] in keep}
-    G = tc_pool(items)
+    if "--mt" in sys.argv:   # addendum MT-SEL: BFCL multi-turn turn-0 rollouts (mt_peer0.py --sel-build), SEL_IDS = one half's items
+        from cv_train import rows_of
+        PD = os.path.dirname(D)
+        items = {p["id"]: p for p in map(json.loads, open(f"{PD}/bfcl/mt_sel_items.jsonl")) if p["id"] in keep}
+        R = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "results", "conf")
+        G = {r["id"]: {t: [c["right"], [t]] for t, c in r["cands"].items()} for r in rows_of(f"{R}/mt_sel_pool.jsonl") if r["id"] in items}
+    else:
+        items = {p["id"]: p for p in map(json.loads, open(ITEMS)) if p["id"] in keep}
+        G = tc_pool(items)
     if "--abst" in sys.argv:
         G = tc_pool_abst(G, items)
     Q = sorted((i, {k: v[1] for k, v in g.items() if v[0]}, {k: v[1] for k, v in g.items() if not v[0]}) for i, g in G.items()

@@ -153,5 +153,114 @@ def main():
               f"fixes {RC[(a, 'vfix', False)]} / breaks {RC[(a, 'vharm', False)]} of the rest)")
 
 
+SEL_MODELS = ("q8b", "q14a", "q35")
+SEL_PEER = {"q8b": "q35", "q14a": "q35", "q35": "q8b"}   # the cascade's peers (lcm_shift.PEER)
+SEL_ARMS = ("N", "E", "F", "T")
+
+
+def render(t0, cap=300, keep=(10, 2)):
+    """MT-SEL: a turn's rollout as the verifier reads it — each step's calls and their results (each cut at `cap` characters), the
+    closing reply; a turn of more than 12 steps keeps its first 10 and last 2, and the text its first 2,000 and last 1,000 characters"""
+    st = [z for z in t0]
+    if len(st) > sum(keep):
+        st = st[:keep[0]] + [{"skip": len(st) - sum(keep)}] + st[-keep[1]:]
+    out = []
+    for z in st:
+        if "skip" in z:
+            out.append(f"... ({z['skip']} more steps) ..."); continue
+        if z["calls"]:
+            out.append(f"[{', '.join(z['calls'])}]")
+            out += [f"-> {r[:cap]}" for r in (z.get("res") or [])]
+        else:
+            out.append(f"Reply: {(z.get('text') or '').strip()[:cap]}")
+    t = "\n".join(out) if out else "Reply: "
+    return t if len(t) <= 3000 else t[:2000] + "\n... (cut) ...\n" + t[-1000:]   # at most 3,000 characters (the scoring context is 16k)
+
+
+def short_system(p, names):
+    """MT-SEL: BFCL's system prompt with the json docs of only the functions in `names` (the ones the turn's rollouts call), then the
+    names of the others; the full docs run to ~11k tokens"""
+    s = p["system"]
+    i = s.index("Here is a list of functions in json format")
+    fl = json.loads(s[s.index("[", i):])
+    keep = [f for f in fl if f["name"] in names]
+    rest = [f["name"] for f in fl if f["name"] not in names]
+    return (s[:i] + "Here are the functions in json format that the responses below call.\n" + json.dumps(keep, indent=1)
+            + (f"\n\nOther available functions: {', '.join(rest)}." if rest else ""))
+
+
+def main_sel_build():
+    """addendum MT-SEL (--sel-build): the turn-0 rollouts of the arms SEL_ARMS of every model, each graded on its own (BFCL's per-turn
+    check from the turn's start: end state and, for a non-empty ground truth, its execution results) -> $POC_DATA/bfcl/mt_sel_items.jsonl
+    (per item: the shortened system prompt, the turn-0 request), results/conf/mt_sel_pool.jsonl (per item: every distinct rendered
+    rollout, right, its sources), results/conf/mt_sel_rows.jsonl (per model, item and seed: N, the peer's N, T, the next seed's T, E, F as
+    (text, right, output tokens, visible failure)) and the scoring requests results/conf/sel_req_mt_h<half>.jsonl (sset mt; half =
+    crc32 of the scenario index mod 2: an item's three categories share a scenario)"""
+    import hashlib, zlib
+    P = {p["id"]: p for p in map(json.loads, open(DATA))}
+    R = {(m, a): rows(m, a) for m in SEL_MODELS for a in SEL_ARMS}
+    ids = sorted(i for i in P if all(i in R[(m, a)][s] for m in SEL_MODELS for a in SEL_ARMS for s in (1, 2, 3)))
+    print(f"MT-SEL build: {len(ids)} of {len(P)} items have every model x arm x seed", flush=True)
+    key = lambda i, t: hashlib.sha1(json.dumps(["tc", "mt", i, "sel", t]).encode()).hexdigest()[:20]   # lcm_shift.rv_key
+    half = lambda i: zlib.crc32(i.rsplit("_", 1)[1].encode()) % 2
+    pool, out, req, items = {}, [], {0: {}, 1: {}}, []
+    for i in ids:
+        p = P[i]; gt = p["ground_truth"][0]
+        gi, gres = run(p, [gt] if gt else [], "sgt")
+        memo, cand = {}, {}
+
+        def grade(m, a, s):
+            x = R[(m, a)][s][i]; t0 = x["turns"][0] if x["turns"] else []
+            st = [z["calls"] for z in t0 if z["calls"]]
+            txt = render(t0)
+            if txt not in memo:
+                ai, ares = run(p, st, f"sr{len(memo)}")   # a fresh name per run: BFCL keeps instances by name
+                ok = same(ai, gi) and not (x["force_quit"] and len(x["turns"]) == 1)
+                if ok and gt:
+                    ok = bool(st) and response_checker(ares, gres, 0)["valid"]
+                memo[txt] = bool(ok)
+            c = cand.setdefault(txt, {"right": memo[txt], "src": [], "calls": sorted({re.sub(r"\(.*", "", c) for z in st for c in z})})
+            c["src"].append([m, a, s])
+            return (txt, memo[txt], sum(z["tok"] for z in t0), any(any(z.get("err") or []) or z.get("loop") for z in t0))
+        G = {(m, a, s): grade(m, a, s) for m in SEL_MODELS for a in SEL_ARMS for s in (1, 2, 3)}
+        for m in SEL_MODELS:
+            for s in (1, 2, 3):
+                out.append({"model": m, "id": i, "seed": s, "half": half(i), "roll": {
+                    "N": G[(m, "N", s)], "P": G[(SEL_PEER[m], "N", s)], "T": G[(m, "T", s)], "T2": G[(m, "T", s % 3 + 1)],
+                    "E": G[(m, "E", s)], "F": G[(m, "F", s)]}})
+        names = {n for c in cand.values() for n in c["calls"]}
+        items.append({"id": i, "system": short_system(p, names), "user": p["turns"][0][-1]["content"], "half": half(i)})
+        pool[i] = cand
+        for t in cand:
+            h = key(i, t)
+            req[half(i)][h] = {"h": h, "task": "tc", "sset": "mt", "id": i, "kind": "sel", "text": t}
+    PD = os.path.dirname(DATA)
+    with open(f"{PD}/mt_sel_items.jsonl", "w") as f:
+        for x in items:
+            f.write(json.dumps(x) + "\n")
+    for h in (0, 1):
+        with open(f"{PD}/mt_sel_ids_h{h}.txt", "w") as f:
+            f.write("\n".join(x["id"] for x in items if x["half"] == h) + "\n")
+    C = os.path.join(ROOT, "results", "conf")
+    with open(f"{C}/mt_sel_pool.jsonl", "w") as f:
+        for i, cand in pool.items():
+            f.write(json.dumps({"id": i, "half": half(i), "cands": cand}) + "\n")
+    with open(f"{C}/mt_sel_rows.jsonl", "w") as f:
+        for r in out:
+            f.write(json.dumps(r) + "\n")
+    for h in (0, 1):
+        with open(f"{C}/sel_req_mt_h{h}.jsonl", "w") as f:
+            for r in req[h].values():
+                f.write(json.dumps(r) + "\n")
+    mixed = {h: sum(1 for i, c in pool.items() if half(i) == h and any(v["right"] for v in c.values()) and not all(v["right"] for v in c.values()))
+             for h in (0, 1)}
+    print(f"MT-SEL build: {len(items)} items (half 0 {sum(x['half'] == 0 for x in items)}, half 1 {sum(x['half'] == 1 for x in items)}); "
+          f"distinct rollouts {sum(len(c) for c in pool.values())}; items with a right and a wrong rollout {mixed}; scoring requests "
+          f"{len(req[0])} / {len(req[1])}", flush=True)
+
+
 if __name__ == "__main__":
-    main()
+    if "--sel-build" in sys.argv:
+        main_sel_build()
+    else:
+        main()

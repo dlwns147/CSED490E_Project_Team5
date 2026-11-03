@@ -351,3 +351,58 @@ agree; which thinking rollouts share a state) are few and frequent.
   signals, and "think at every step" is the agent-loop rule by that bound. MT-V's online loss is the same fact over whole trajectories.
 - **Decision (as pre-registered, V2 refuted):** reported; the agent-loop method stays "think at every step". The MT-V secondary
   (labels needed by the vote policy) was computed with the same grouping and is withdrawn.
+
+## Addendum MT-SEL: a trained verifier as the turn's missing signal (written 2026-11-03 12:4x UTC, before any verifier is trained or any rollout is scored; the analysis was run only on random scores, where T reproduces MT-B's turn-0 row)
+
+**Why.** Agent loops are the one task where the method still loses: every cheap-first rule lost to thinking at every step (MT-P2,
+MT-V), and MT-B, correctly measured, put thinking at the information limit of the free signals (visible failure, agreement of end
+states). On SQL and single tool calls the step that beat that limit was a verifier trained on the task's labels, choosing among the
+answers already made (SEL, SEL-TC2-AB). The room at turn 0, with each rollout graded on its own (`mt_sel_rows.jsonl`, labels equal
+to MT-B's dumps for 21,488 of the 21,492 (role, item-seed) pairs): an oracle choosing among N, the peer's N and T gains +14.1 / +14.1 / +14.3 utility over T
+(Qwen3-8B / Qwen3-14B-AWQ / Qwen3.5-9B); a perfect gate on N alone gains +6.5 / +5.1 / +9.2. A binormal simulation of the choice among
+N, P, T puts the gain at +5.6 / +4.0 / +5.9 for a within-set AUROC of 0.80 and +7.9 / +6.7 / +8.4 at 0.85; the gate at 0.85 gains only
++2.0 / +0.7 / +3.5 (`nlp_data/scratch`, this session's notes). So the choice, not the gate, is the arm with room.
+
+**Related work.** Step-level escalation with a trained process verifier (R2V-Agent, 2605.16604); a process reward model for function
+calls guiding beam search (ToolPRM, ACL 2026; BFCL single-turn); per-turn thinking budgets on BFCL multi-turn (TAB, 2604.05164). New
+here: an outcome verifier on whole turn rollouts (calls and their results) choosing among the same model's quick turn, another model's
+quick turn and its thinking turn, every output token priced, against thinking at every step.
+
+**Run.**
+1. `mt_peer0.py --sel-build`: the turn-0 rollouts of arms N, E, F, T of the three models, seeds 1–3, each graded on its own (BFCL's
+   per-turn check from the turn's start), rendered as the verifier reads them (`render`: each step's calls and results, results cut at
+   300 characters, at most 12 steps and 3,000 characters). 597 items, 15,529 distinct rollouts. The system prompt keeps the json docs of
+   only the functions the item's rollouts call, then the other functions' names.
+2. Two verifiers, cross-fitted by scenario: half = crc32 of the scenario index mod 2 (an item's three categories share a scenario);
+   292 / 305 items, 270 / 255 with a right and a wrong rollout. `SEL_IDS=$POC_DATA/bfcl/mt_sel_ids_h<h>.txt tc_train.py
+   $POC_DATA/cv/mtsel_h<h> --orm --mt --batch 8 --epochs 4` (SEL-TC's pairwise loss within a request, Qwen3-8B LoRA r 16, lr 5e-5, at
+   most 8 rollouts per request per step); the final adapter, no checkpoint choice. Each scores the other half's rollouts
+   (`cv_eval_lane.sh score-tc ... sel_req_mt_h<1-h>.jsonl mt`).
+3. Reference: selab2_s450 (the single-turn ToolACE verifier, trained on neither half) scores every rollout.
+4. `python3.11 poc/analyze_mtb.py --sel mtsel_h0,mtsel_h1 --ref selab2_s450` > results/mtsel.txt.
+
+Arms at turn 0, per model:
+- **SEL3:** run N, the peer's N and T, then choose by `sel_fit_cl` (log prior by the roles that produced the rollout + β_CL z).
+- **SEL4:** SEL3 plus the next seed's T.
+- **GATE:** run N; keep it when its score clears τ, otherwise run T.
+- **T:** think, the method.
+
+The selector and τ are fitted per model on one half, with scores from the verifier that did not train on it, and applied to the other
+half. Every rollout's output tokens are counted. This assumes, as MT-V did, a resettable environment and a second resident model.
+
+**Predictions** (paired 95% intervals over items, seed means; utility 100 × right − 0.5 × output ktokens of turn 0):
+- **MT-SEL-P1 (decision):** SEL3 − T lower bound > 0 in ≥ 2 of 3 models.
+- **MT-SEL-P2 (the signal):** within-set AUROC of the trained verifiers on SEL3's sets ≥ 0.75 in ≥ 2 of 3 models.
+- **MT-SEL-P3:** GATE − T lower bound > 0 in ≥ 2 of 3 models.
+- **MT-SEL-P4 (in-domain labels matter):** SEL3 with the trained verifiers − SEL3 with selab2_s450, lower bound > 0 in ≥ 2 of 3.
+- **Expected:**
+  - AUROC 0.70–0.85: 270 training scenarios is a small pool next to SEL-TC's 4,684 requests, but BFCL's conventions are the
+    training data's own.
+  - SEL3 − T +2 to +6; GATE − T 0 to +2.
+  - selab2_s450 AUROC 0.6–0.7: it never saw a multi-step turn or an environment result.
+
+**Decision.**
+- **P1 holds** → the online arm is pre-registered next: at every turn, sandboxed rollouts N, P, T with the verifier choosing, run on
+  MT-V's infrastructure, with the verifier retrained on turn-0 and later-turn rollouts.
+- **P1 refuted** → the agent-loop method stays "think at every step". The claim adds that a verifier trained on the benchmark's own
+  scenario-held-out labels did not find a signal beyond MT-B's limit.
