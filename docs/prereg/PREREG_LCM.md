@@ -2078,3 +2078,41 @@ judge's BFCL call-vs-call edge, 0.29 -> 0.22 errors, is a 24% cut, × 1.8% ≈ +
 one with the highest mean of the two; it replaces selab2_s450 in TC2-AB if its P4 holds. None → selab2_s450 stays, and the claim
 reads: the remaining verifier loss is not closed by the public tool-call preference data (BFCL is the choosing benchmark; ACEBench
 only checks).
+
+## Addendum SEL-G-TC: the tool-call verifier at other generators' cascades (written 2026-11-03 07:1x UTC, before any of the 8,616 new texts is scored; 17,017 texts built, 8,401 already scored by selab2_s450 as Qwen3-8B's or Qwen3.5-9B's answers or "[]"; a dry run with random scores for the unscored texts was run, see below)
+
+**Why.** The tool-call method's verifier (selab2_s450) was trained on Qwen3-8B's answers only and tested only where Qwen3-8B
+answers. On SQL the verifier carried to three other generators unchanged (SEL-G: 9 of 9 cells). On tool calls it has not been tried,
+and the claim "the tool-call method" is scoped to one generator. Their cascades leave as much room as Qwen3-8B's (labels only,
+`nlp_data/scratch/selgtc_room.py`; oracle over AB's choice sets − cascade): Qwen3-8B 7.32 points, Qwen3-14B-AWQ 5.94, Qwen3.5-9B
+6.17, gpt-oss-20b 7.30. Related work: a reward model trained on one policy's samples can carry to other policies (AgentRM,
+2502.18407: trained on LLaMA-3-8B's states, +12.6 on LLaMA-3-70B), but reward models that agree in distribution can disagree on another
+policy's outputs (reward-model underspecification, Eisenstein et al. 2023); on SQL ours carried (SEL-G).
+
+**Cells.** BFCL (non-live + live, 3,482 requests × 3 seeds). Generators Qwen3-14B-AWQ (peer Qwen3.5-9B), Qwen3.5-9B (peer
+Qwen3-8B), gpt-oss-20b (peer Qwen3.5-9B): the pre-registered peers (PEER); N, SB, T the generator's own stored calls. The pipeline is
+SEL-AB2's AB: the cascade, and at its fallback and after N's failed check the verifier chooses among the distinct passing answers and
+"[]" (offered when none of them is no call). TC2-AB's call planner needs the generator's own held-out ToolACE calls, which only
+Qwen3-8B has, so the planner is not part of this test (on Qwen3-8B, AB is within 0.1–0.5 points of TC2-AB on BFCL at 0.2k fewer
+tokens and as accurate on ACEBench). Nothing is refitted: π (the prior by set structure) and β are Qwen3-8B's, fitted on its held-out
+ToolACE AB sets (base quick calls; β 1.3); selab2_s450 as it is. Qwen3-8B's own row reproduces SEL-AB2's AB (86.9%, +2.19 over the
+cascade; the dry run). Run: job `score-tc` (`cv_eval_lane.sh score-tc $POC_DATA/cv/selab2/adapter_s450 selab2_s450
+sel_req_gtc.jsonl bfcl`, from `lcm_shift.py --sel-build-gtc`), then `lcm_shift.py --sel-gtc selab2_s450` > results/lcm_selgtc.log.
+
+**Predictions** (paired 95% intervals over requests; utility = accuracy here, AB adds no generated token to the cascade):
+- **SEL-G-TC-P1 (decision):** AB − cascade, lower bound > 0 for ≥ 2 of 3 generators and upper bound < 0 for none.
+- **SEL-G-TC-P2:** AB − the generator's own default (SB→T→T), lower bound > 0 for every generator (cascade − default from stored
+  rows: −0.35 / +1.99 / +0.93).
+- **SEL-G-TC-P3 (the verifier carries):** within-set AUROC on the generator's AB sets within 0.05 of Qwen3-8B's (0.894) for every
+  generator.
+- **Expected** (derivation: Qwen3-8B's AB recovers 0.30 of its room at AUROC 0.894; with AUROC 0.84–0.89 the share is 0.2–0.3):
+  AUROC 0.84–0.89 for the Qwen generators, 0.80–0.88 for gpt-oss-20b; AB − cascade +1.2 to +2.2.
+
+**Dry run (disclosed; not a prediction).** With selab2_s450's real scores on the 8,401 shared texts and random scores on the 8,616
+unscored ones, AB − cascade is +0.43 / −0.38 / +0.17 and the AUROC 0.73 / 0.68 / 0.60: half-random scores push the choice toward the
+prior. The analysis code runs end to end; the numbers above are not read as evidence.
+
+**Decision.** P1 holds → AB is part of the tool-call method for every generator tested (scope stated per generator where one fails);
+PROJECT, REPORT and PROPOSAL state the scope. P1 refuted → the verifier step is stated for Qwen3-8B's answers only, with each
+generator's AUROC; if P3 fails too, the gap is the verifier's training generator, and the registered next test is a verifier trained
+on the pooled generators' ToolACE answers.

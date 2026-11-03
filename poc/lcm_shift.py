@@ -989,19 +989,20 @@ TC_HO_N = {None: "hoq8b", "q8btcc1": "hoq8btcc1"}   # SEL-TC: the held-out ToolA
 TC_ACE_N = {None: "aceq8b", "q8btcc1": "aceq8btcc1"}   # addendum ACE: ACEBench's quick calls of each N type
 
 
-def tc_load(sset, nsrc):
-    """a tool-call set's requests with all five calls (lcm.seed_calls form): tcho (held-out ToolACE), ace (ACEBench), else BFCL"""
+def tc_load(sset, nsrc, gen="q8b", peer="q35"):
+    """a tool-call set's requests with all five calls (lcm.seed_calls form): tcho (held-out ToolACE), ace (ACEBench), else BFCL (gen's
+    calls with its peer's quick calls; addendum SEL-G-TC)"""
     if sset == "tcho":
         return quiet(lcm.load_tcho, TC_HO_N[nsrc])
     if sset == "ace":
         return quiet(lcm.load_tcho, TC_ACE_N[nsrc], "aceq35", "aceq8b", sset="ace")
     k = {"nsrc": nsrc} if nsrc else {}
-    return {**quiet(lcm.load, "tc", "q8b", "q35", "non-live", **k), **quiet(lcm.load, "tc", "q8b", "q35", "live", **k)}
+    return {**quiet(lcm.load, "tc", gen, peer, "non-live", **k), **quiet(lcm.load, "tc", gen, peer, "live", **k)}
 
 
-def tc_texts(sset, nsrc):
+def tc_texts(sset, nsrc, gen="q8b", peer="q35"):
     """{(call type, seed, id): the raw text} of a tool-call cell's calls N, P, SB, T (tcho: the held-out ToolACE rows; ace: ACEBench's;
-    else BFCL)"""
+    else BFCL, gen's calls with its peer's)"""
     from run_nlopt import _rows
     R = os.path.join(lcm.ROOT, "results", "tc")
     if sset == "tcho":
@@ -1011,8 +1012,8 @@ def tc_texts(sset, nsrc):
         src = (("N", TC_ACE_N[nsrc], "cheap", "n_text"), ("P", "aceq35", "cheap", "n_text"), ("SB", "aceq8b", "sb", "text"),
                ("T", "aceq8b", "think", "text"))
     else:
-        src = (("N", nsrc or "q8b", "cheap", "n_text"), ("P", "q35", "cheap", "n_text"), ("SB", "q8b", "sb", "text"),
-               ("T", "q8b", "think", "text"))
+        src = (("N", nsrc or gen, "cheap", "n_text"), ("P", peer, "cheap", "n_text"), ("SB", gen, "sb", "text"),
+               ("T", gen, "think", "text"))
     return {(t, s, r["id"]): (r.get(fld) or "").strip() for t, tag, a, fld in src for s in (1, 2, 3) for r in _rows(f"{R}/{tag}_{a}_s{s}.jsonl")}
 
 
@@ -1879,13 +1880,13 @@ def ab_is_none(k):
     return (json.loads(k) if k.startswith('"') else k) == "none"
 
 
-def ab_cells(sset, nsrc):
+def ab_cells(sset, nsrc, gen="q8b", peer="q35"):
     """SEL-AB: every request-seed of the cascade with its location — 'agree' (N passed, the peer returned the same answer: N),
     'fallback' (N passed, the peer differed: d, or SEL-TC's verifier where >= 2 distinct answers pass), 'nfail' (N failed its check:
     d) — the distinct passing answers among the calls the cascade made, {key: [right, calls, [raw texts]]}, and whether its answer is
     right"""
-    D = tc_load(sset, nsrc)
-    W = tc_texts(sset, nsrc)
+    D = tc_load(sset, nsrc, gen, peer)
+    W = tc_texts(sset, nsrc, gen, peer)
     out = []
     for i, q in D.items():
         for s in (1, 2, 3):
@@ -1906,10 +1907,10 @@ def ab_cells(sset, nsrc):
     return D, out
 
 
-def ab_sets(sset, nsrc, S, locs):
+def ab_sets(sset, nsrc, S, locs, gen="q8b", peer="q35"):
     """SEL-AB: sel_items-style sets at the given locations — the passing answers (s: the verifier's mean score over their texts) plus,
     if none of them is the no-call answer, the no-call answer itself (calls ('AB',), scored on AB_TEXT); sets missing a score dropped"""
-    D, cells = ab_cells(sset, nsrc)
+    D, cells = ab_cells(sset, nsrc, gen, peer)
     out, miss = [], 0
     for i, sd, loc, cand, rr in cells:
         if loc not in locs or not cand:
@@ -2330,6 +2331,110 @@ def main_sel_g():
           f"{sum(hold)} of 3 -> {'holds' if sum(hold) >= 2 else 'refuted'}")
     p2 = [R[(gen, "BIRD dev")]["A"][0] / 100 for gen in SELG_GEN]
     print(f"*** SEL-G-P2 (BIRD dev AUROC >= 0.70 for every generator): {[round(x, 3) for x in p2]} -> {'holds' if min(p2) >= 0.70 else 'refuted'}")
+
+
+def main_sel_build_gtc():
+    """addendum SEL-G-TC: the texts AB's choice sets need at the other generators' BFCL cascades (their passing answers at the fallback
+    and after N's failed check, and "[]" on every request; texts already scored are skipped by score_conf.py) ->
+    results/conf/sel_req_gtc.jsonl"""
+    req = {}
+    for gen in SELG_GEN:
+        D, cells = ab_cells("bfcl", None, gen, PEER[gen])
+        for i in D:
+            h = rv_key("tc", "bfcl", i, "sel", AB_TEXT)
+            req[h] = {"h": h, "task": "tc", "sset": "bfcl", "id": i, "kind": "sel", "text": AB_TEXT}
+        for i, s, loc, cand, rr in cells:
+            if loc == "agree":
+                continue
+            for r, calls, texts in cand.values():
+                for t in set(texts):
+                    h = rv_key("tc", "bfcl", i, "sel", t)
+                    req[h] = {"h": h, "task": "tc", "sset": "bfcl", "id": i, "kind": "sel", "text": t}
+        print(f"SEL-G-TC build {gen}<-{PEER[gen]}: {len(D)} requests, {len(cells)} request-seeds "
+              f"({', '.join(f'{x} {sum(c[2] == x for c in cells)}' for x in ('agree', 'fallback', 'nfail'))}); texts so far {len(req)}",
+              flush=True)
+    with open(os.path.join(lcm.ROOT, "results", "conf", "sel_req_gtc.jsonl"), "w") as f:
+        for r in req.values():
+            f.write(json.dumps(r) + "\n")
+    print(f"SEL-G-TC build: {len(req)} requests -> results/conf/sel_req_gtc.jsonl")
+
+
+def main_sel_gtc():
+    """addendum SEL-G-TC (--sel-gtc <verifier>): AB (SEL-AB2: the verifier choosing among the passing answers and "[]" at the fallback
+    and after N's failed check) at the BFCL cascade of Qwen3-14B-AWQ, Qwen3.5-9B and gpt-oss-20b, each with its pre-registered peer
+    (PEER), against the cascade and the generator's default SB->T->T; pi and beta from Qwen3-8B's held-out ToolACE sets (base quick
+    calls), nothing refitted; Qwen3-8B's row (SEL-AB2's AB) as the reference. SEL_GTC_SYNTH=1: random scores where one is missing (the
+    dry run). (SEL-G-TC-P1..P3)"""
+    import random
+    from analyze_ho3 import ci
+    from run_nlopt import _rows
+    nm = sys.argv[sys.argv.index("--sel-gtc") + 1]
+    S = {r["h"]: r for r in _rows(os.path.join(lcm.ROOT, "results", "conf", f"sel_scores_{nm}.jsonl"))}
+    synth = os.environ.get("SEL_GTC_SYNTH") == "1"
+    g = lambda v: f"{v[0]:.3f} [{v[1]:.3f}, {v[2]:.3f}]"
+    f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
+    U = lambda r, t: 100 * float(r) - LAM * t / 1000
+    LOCS = ("fallback", "nfail")
+    z0 = lambda X: [(i, s, [dict(c, s=0.0) for c in C], dr) for i, s, C, dr in X]
+    _, _, hs, _ = ab_sets("tcho", None, S, LOCS)
+    choose, beta = sel_fit(z0(hs), hs)
+    print(f"SEL-G-TC: pi and beta from Qwen3-8B's held-out ToolACE AB sets (base): {len(hs)} sets, beta {beta:.1f}", flush=True)
+    R = {}
+    for gen in ("q8b",) + SELG_GEN:
+        peer = PEER[gen]
+        Sg = S
+        if synth and gen != "q8b":
+            rnd, Sg = random.Random(0), dict(S)
+            for i, s, loc, cand, rr in ab_cells("bfcl", None, gen, peer)[1]:
+                for t in [AB_TEXT] + [t for v in cand.values() for t in v[2]]:
+                    Sg.setdefault(rv_key("tc", "bfcl", i, "sel", t), {"s": rnd.gauss(0, 4)})
+        D, cells, bs, miss = ab_sets("bfcl", None, Sg, LOCS, gen, peer)
+        ids, n = sorted(D), 3 * len(D)
+        M = {k: {} for k in ("AB", "cross", "alone", "oracle")}
+        unseen = 0
+        for x in bs:
+            c = choose(x)
+            unseen += c is None
+            M["AB"][(x[0], x[1])] = c["r"] if c else x[3]
+            M["alone"][(x[0], x[1])] = max(x[2], key=lambda c: c["s"])["r"]
+            M["oracle"][(x[0], x[1])] = any(c["r"] for c in x[2])
+        for h in (0, 1):
+            half = [x for x in bs if zlib.crc32(x[0].encode()) % 2 == h]
+            chh, _ = sel_fit(z0(half), half)
+            for x in bs:
+                if zlib.crc32(x[0].encode()) % 2 != h:
+                    c = chh(x)
+                    M["cross"][(x[0], x[1])] = c["r"] if c else x[3]
+        Uq, acc, kt = {k: Counter() for k in ("AB", "cross", "alone", "oracle", "cascade", "default")}, Counter(), Counter()
+        for i in ids:
+            for sd in (1, 2, 3):
+                sc = lcm.seed_calls(D[i], sd)
+                rc, tc_ = lcm.fixed("cascade", sc)
+                out = {"cascade": (rc, tc_), "default": lcm.fixed("SB->T->T", sc)}
+                for k, m in M.items():
+                    out[k] = (m.get((i, sd), rc), tc_)
+                for k, (r, t) in out.items():
+                    acc[k] += r; kt[k] += t; Uq[k][i] += U(r, t) / 300
+        d = lambda x, y: ci({i: Uq[x][i] - Uq[y][i] for i in ids})
+        A = ci(sel_auc(bs))
+        R[gen] = r = dict(A=A, casc=d("AB", "cascade"), dflt=d("AB", "default"), cd=d("cascade", "default"), cross=d("cross", "cascade"),
+                          alone=d("alone", "cascade"), room=d("oracle", "cascade"))
+        print(f"    SEL-G-TC BFCL {gen}<-{peer}: {len(bs)} AB sets (missing scores {miss}, unseen structures keep d {unseen}); AUROC "
+              f"{g([v / 100 for v in A])}; " + "; ".join(f"{k} {100 * acc[k] / n:.1f}% at {kt[k] / n / 1000:.2f}k" for k in Uq), flush=True)
+        print(f"    SEL-G-TC BFCL {gen}<-{peer}: AB - cascade {f(r['casc'])}; AB - default {f(r['dflt'])}; cascade - default {f(r['cd'])}; "
+              f"cross-fitted Bayes - cascade {f(r['cross'])}; verifier alone - cascade {f(r['alone'])}; room (oracle - cascade) "
+              f"{r['room'][0]:+.2f}", flush=True)
+    G = SELG_GEN
+    up, down = sum(R[x]["casc"][1] > 0 for x in G), sum(R[x]["casc"][2] < 0 for x in G)
+    print(f"*** SEL-G-TC-P1 (AB - cascade: lower bound > 0 for >= 2 of 3 generators, upper bound < 0 for none): {up} above, {down} below "
+          f"-> {'holds' if up >= 2 and down == 0 else 'refuted'}")
+    up = sum(R[x]["dflt"][1] > 0 for x in G)
+    print(f"*** SEL-G-TC-P2 (AB - the generator's default: lower bound > 0 for every generator): {up} of 3 -> "
+          f"{'holds' if up == 3 else 'refuted'}")
+    a0 = R["q8b"]["A"][0] / 100
+    p3 = [round(R[x]["A"][0] / 100 - a0, 3) for x in G]
+    print(f"*** SEL-G-TC-P3 (AB-set AUROC within 0.05 of Qwen3-8B's {a0:.3f} for every generator): {p3} -> "
+          f"{'holds' if min(p3) >= -0.05 else 'refuted'}")
 
 
 def tc3_choice(P, pat, rt, calls, txt, S, sset, i, beta, sd, loo=False):
@@ -2871,6 +2976,10 @@ def main():
         return main_sel_2()
     if "--sel-tc3" in sys.argv:
         return main_sel_tc3()
+    if "--sel-build-gtc" in sys.argv:
+        return main_sel_build_gtc()
+    if "--sel-gtc" in sys.argv:
+        return main_sel_gtc()
     if "--sel-build-g" in sys.argv:
         return main_sel_build_g()
     if "--sel-g" in sys.argv:
