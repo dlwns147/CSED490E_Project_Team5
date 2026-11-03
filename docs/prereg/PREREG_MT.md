@@ -589,3 +589,23 @@ group.
 **Decision (registered):** MT-SEL's turn-0 gain is not environment memorisation. In environments the verifier never saw it keeps
 about half of the scenario-split gain, +3.0 to +3.9 against thinking. If MT-SO holds, it gets an environment-held-out online run with
 these verifiers. SIDE-ENV (PREREG_SIDE) is the test beyond BFCL's own classes.
+
+## Results of addendum MT-SO, offline part (written 2026-11-03 20:1x UTC; `results/mtso_offline.txt`; jobs 1310314 / 1310315: 384 / 372 training steps, 21,363 / 20,716 texts scored, none failed; the fits `results/tc/mt_so_fit_{q8b,q14a,q35}.json`, β_CL 1.2–2.9)
+
+SEL3 − T on the pseudo-sets, per turn (mtso = verifiers trained with later turns; ref = MT-SEL's turn-0 verifiers; AUROC within set):
+
+| model | turn 0 | turn 1 | turn 2 | turn 3+ |
+|---|---|---|---|---|
+| Qwen3-8B mtso / ref | +8.85 (0.909) / +5.84 (0.843) | +6.25 (0.905) / +2.83 (0.774) | +7.97 (0.956) / +3.57 (0.802) | +5.68 (0.913) / +0.20 (0.718) |
+| Qwen3-14B-AWQ | +9.83 (0.940) / +8.99 (0.914) | +9.93 (0.905) / +4.72 (0.764) | +8.31 (0.949) / +2.86 (0.756) | +11.25 (0.833) / +6.11 (0.687) |
+| Qwen3.5-9B | +8.74 (0.916) / +5.39 (0.846) | +5.33 (0.914) / +2.81 (0.813) | +7.83 (0.948) / −0.89 (0.698) | +9.77 (0.880) / +0.95 (0.739) |
+
+- **MT-SO-P3 holds:** later turns, three models pooled, SEL3 − T +9.10 [+6.65, +11.47].
+- **MT-SO-P4 holds:** mtso − mtsel on the same later-turn sets +5.66 [+3.85, +7.55]. MT-SEL's turn-0 verifiers fall to AUROC
+  0.69–0.81 on later turns, while the retrained ones keep 0.83–0.96. Their turn-0 gain is larger too (+8.7 to +9.8 against MT-SEL's
+  +5.6 to +8.8), from twice the training requests.
+- Against the expected "smaller gain than turn 0's", the later-turn gain is about as large as turn 0's. The pseudo-sets come from
+  different histories, so the online run decides (P1, P2).
+
+Online jobs submitted 2026-11-03 20:1x UTC: 1311508 / 1311510 / 1311512 `mtso_q8b_s{1,2,3}` and 1311509 / 1311511 / 1311513 `mtso_q35_s{1,2,3}`
+(vote_lane.sh, LoRA mtso_h0 / mtso_h1 on the Qwen3-8B server; MT_VER=peer for Qwen3.5-9B).
