@@ -2116,3 +2116,36 @@ prior. The analysis code runs end to end; the numbers above are not read as evid
 PROJECT, REPORT and PROPOSAL state the scope. P1 refuted → the verifier step is stated for Qwen3-8B's answers only, with each
 generator's AUROC; if P3 fails too, the gap is the verifier's training generator, and the registered next test is a verifier trained
 on the pooled generators' ToolACE answers.
+
+## Results of addendum SEL-G-TC (written 2026-11-03 07:3x UTC; `results/lcm_selgtc.log`; job 1308125, 8,616 new texts scored, none failed; raw cases `nlp_data/scratch/selgtc_raw.py` -> `selgtc_raw.out`)
+
+| BFCL, generator ← peer | AUROC on AB sets | AB | cascade | default SB→T→T | AB − cascade | AB − default | room |
+|---|---|---|---|---|---|---|---|
+| Qwen3-8B ← Qwen3.5-9B (reference, SEL-AB2's AB) | 0.894 [0.882, 0.906] | 86.9% @ 0.28k | 84.8% | 83.9% @ 0.38k | +2.19 [+1.69, +2.69] | +3.05 [+2.40, +3.69] | 7.32 |
+| Qwen3-14B-AWQ ← Qwen3.5-9B | 0.902 [0.890, 0.914] | 86.7% @ 0.25k | 85.2% | 85.6% @ 0.32k | **+1.56 [+1.08, +2.02]** | **+1.21 [+0.56, +1.85]** | 5.94 |
+| Qwen3.5-9B ← Qwen3-8B | 0.888 [0.874, 0.901] | 83.7% @ 0.25k | 82.1% | 80.1% @ 0.36k | **+1.63 [+1.24, +2.08]** | **+3.61 [+2.93, +4.29]** | 6.17 |
+| gpt-oss-20b ← Qwen3.5-9B | 0.887 [0.874, 0.900] | 86.3% @ 0.21k | 84.8% | 83.9% @ 0.23k | **+1.56 [+1.13, +2.02]** | **+2.49 [+1.95, +3.06]** | 7.30 |
+
+(π and β from Qwen3-8B's held-out ToolACE AB sets, β 1.3; 3,949–4,499 AB sets per generator, no missing score, 8–32 with a structure
+the prior never saw keep d; AB adds no output token to the cascade.)
+
+- **SEL-G-TC-P1 holds** (3 of 3 above, none below). **SEL-G-TC-P2 holds** (3 of 3). **SEL-G-TC-P3 holds** (AUROC − Qwen3-8B's
+  +0.008 / −0.006 / −0.007). The gains are inside the expected +1.2 to +2.2 (0.22–0.26 of each generator's room, Qwen3-8B 0.30); the
+  AUROCs are above the expected 0.84–0.89 for the Qwen generators and 0.80–0.88 for gpt-oss-20b: the verifier, trained on Qwen3-8B's
+  answers only, orders another family's calls as well as Qwen3-8B's.
+- Where the peer cascade alone did not beat the default (Qwen3-14B-AWQ, −0.35 [−0.80, +0.11]; HO-PA), the pipeline does (+1.21).
+- **Where it changes the answer** (per 100 request-seeds; Qwen3-8B / Qwen3-14B-AWQ / Qwen3.5-9B / gpt-oss-20b): a right "[]" on an
+  irrelevance request where the cascade called 2.27 / 1.68 / 1.05 / 1.25; a right call for the cascade's wrong one 0.54 / 0.56 / 1.16 /
+  0.84 (Qwen3.5-9B's fallback thinks are wrong more often, so its gain is more calls); "[]" over a right call 0.53 / 0.55 / 0.48 / 0.46;
+  a wrong call for a right one 0.18 / 0.20 / 0.19 / 0.30. The losses are Qwen3-8B's kinds: "[]" where BFCL accepts several spellings of
+  a value ("McDonald's" / "Mc Donalds"), a call that passes the user's words on, an unrequested default argument (gpt-oss-20b's
+  `number_of_seats: 1`).
+- Reported, not registered: the verifier's score alone (no prior) − cascade +2.80 / +1.74 / +1.92 / +2.57, above AB in all four rows
+  (+0.2 to +1.0), and above the prior refitted on BFCL's own halves (cross-fitted +2.48 / +1.44 / +1.88 / +2.45). With SEL-TC's
+  verifier (AUROC 0.80–0.84) the prior helped (alone +0.60 / +0.99 vs +1.08 / +1.68); with this one (0.89–0.90) the structural prior,
+  fitted on held-out ToolACE where 14% of requests need no call against BFCL's 32%, costs on BFCL. Not acted on here: the method's
+  selector was fixed before ACEBench, and a change would need a test on data not yet read with it.
+- **Decision (registered):** P1 holds → AB (the verifier with "no call" offered at the cascade's fallback and after a failed quick
+  call) is part of the tool-call method for every generator tested (Qwen3-8B, Qwen3-14B-AWQ, Qwen3.5-9B, gpt-oss-20b), as SEL-G showed
+  on SQL; TC2-AB's call planner stays a Qwen3-8B result (it needs the generator's own held-out ToolACE calls). PROJECT, REPORT and
+  PROPOSAL state the scope.

@@ -5173,3 +5173,20 @@ data better than the reasoning one; When2Call (2504.18851) documents over-callin
 tool-call verifier against the reasoning RM too; the reasoning-verifier direction closes for tool calls; RM / RM-KO in REPORT §6.
 Goal link: exact tool calls at the fewest tokens — a 1k-token judgment per pair costs more than the most it could add; the open
 question is whether the judge's call-vs-call edge is its data, testable at zero output tokens (SEL-DATA, running).
+
+## 2026-11-03 07:3x UTC: SEL-G-TC (pre-registered): the tool-call verifier carries unchanged to three other generators — +1.6 over each cascade on BFCL
+Why: the tool-call verifier was trained on Qwen3-8B's answers and tested only on them, so "the tool-call method" was one generator's.
+Their cascades leave as much room (oracle over the choice sets − cascade 5.9–7.3 points). Nothing refitted (verifier selab2_s450, π
+and β from Qwen3-8B's held-out ToolACE sets); AB = the cascade with the verifier choosing among the passing answers and "[]".
+- AB − cascade +1.56 [+1.08, +2.02] (Qwen3-14B-AWQ), +1.63 [+1.24, +2.08] (Qwen3.5-9B), +1.56 [+1.13, +2.02] (gpt-oss-20b); AB −
+  each generator's default +1.21 / +3.61 / +2.49 (all significant); AUROC 0.902 / 0.888 / 0.887 vs Qwen3-8B's 0.894 (P1–P3 hold).
+- For Qwen3-14B-AWQ, where the peer cascade alone did not beat the default (−0.35), the pipeline does (+1.21).
+- Same mechanism as on Qwen3-8B: right "[]" on irrelevance requests (1.1–1.7 per 100 request-seeds), right calls for the fallback's
+  wrong ones (0.6–1.2); losses "[]" over right calls (0.5) where BFCL accepts several spellings of a value.
+- Not registered: the verifier's score alone beats the structural prior + β z in all four rows (+0.2 to +1.0), even with the prior
+  refitted on BFCL's halves; with SEL-TC's weaker verifier the prior helped. Noted, not acted on.
+Related: AgentRM (2502.18407) reports a reward model trained on one policy's states transferring to others; reward models agreeing in
+distribution can disagree on another policy's outputs (Eisenstein et al. 2023, underspecification) — here they do not. SEL-G showed
+the same on SQL. Decision (registered): AB is part of the tool-call method for every generator tested; the call planner stays a
+Qwen3-8B result (needs the generator's held-out ToolACE calls). Goal link: exact tool calls at the fewest tokens for any generator —
++1.6 accuracy points at no extra output token.
