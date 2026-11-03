@@ -5268,3 +5268,20 @@ made beat that kind of limit (SEL, TC2-AB).
 Decision (registered): the online arm (the choice at every turn, verifier retrained on later turns too) is pre-registered next; the
 agent-loop method stays "think at every step" until it is in, since MT-V's turn-0 room did not carry. Goal link: the first signal
 that beats thinking in agent loops.
+
+## 2026-11-03 17:2x UTC: exploratory (stored rows, development sets only, decides nothing): three algorithmic checks scoped for a second track — none has room
+Purpose: scope label-free checks a teammate (algorithms background, no LLM work) could own; development sets only, so later
+pre-registered tests on held-out sets stay clean. Scripts in `nlp_data/scratch/` (`sql_subdb.py`, `prov_probe2.py`).
+(1) **SQL, agreement on sub-databases** (BIRD dev, Qwen3-8B quick ← Qwen3.5-9B quick, seeds 1–3): of 2,062 accepted pairs (both pass,
+same rows) 391 are wrong; 291 of those are different query texts. Both queries were run on 4 sub-databases per database (half of each
+table's rows by a seeded rowid hash, then foreign-key orphans removed); equivalent queries agree on every instance. Flagged: 2.0% of
+accepted wrong pairs vs 2.5% of accepted right ones — the shared wrong answers are the same meaning, not a coincidence on one database.
+Ceiling even with a perfect flag: the default is right on 22.7% of the 291, about +1 utility. Related: DPC (2604.15163) builds a
+minimal distinguishing database for *disagreeing* candidates; test-suite accuracy (Zhong et al. 2020) for grading.
+(2) **Word problems, number provenance** (x3 dev, 3 seeds; label numbers such as "Product 1" excluded): the share of statement numbers
+that appear as program literals separates passing right from wrong programs at AUROC 0.55–0.56 where the peer agrees (right 86–87%
+when every number is used vs 72–78% when not) and 0.60–0.66 where it disagrees; "invented" literals are uninformative (0.42–0.47).
+(3) **Word problems, template reuse:** near-duplicate statements once numbers are masked (token Jaccard ≥ 0.8) are 2 of 245 (nl4opt),
+0 of 100 (IndustryOR), 0 of 652 / 19 of 211 (MAMO easy / complex): reusing a checked program by number substitution has no room here.
+Reading: on these tasks the passing wrong answers are misreadings shared in meaning, which structural checks of the answer do not see;
+the teammate track goes where the room is (agent loops: new environments as a held-out test; see the team notes).
