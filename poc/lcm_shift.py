@@ -1862,7 +1862,7 @@ def main_sel_build_tc2():
     print(f"SEL-TC2 build: {len(req)} requests -> results/conf/sel_req_tc2.jsonl")
 
 
-def tc2_run(P, sc, txt, S, sset, i, beta=None, sd=1.0, task="tc", ab=False):
+def tc2_run(P, sc, txt, S, sset, i, beta=None, sd=1.0, task="tc", ab=False, cl=False):
     """the planner P on one request-seed; at its stop, where >= 2 passing answers were seen and every one is scored, the answer with
     the highest logit P(right | pattern) + beta z (z: the verifier's mean score over the answer's calls, centred in the set, / sd);
     beta None: the planner's own choice. ab (addendum SEL-TC2-AB): wherever the stop holds >= 1 passing answer and none of them is the
@@ -1900,7 +1900,8 @@ def tc2_run(P, sc, txt, S, sset, i, beta=None, sd=1.0, task="tc", ab=False):
         if beta is None or C is None:
             return ((arg in rt) if arg is not None else False), tok, True, C
         mu = sum(c["s"] for c in C) / len(C)
-        c = max(C, key=lambda c: c["lp"] + beta * (c["s"] - mu) / sd)
+        pr = (lambda c: -math.log1p(math.exp(-c["lp"]))) if cl else (lambda c: c["lp"])   # cl (addendum SEL-CL): the log prior
+        c = max(C, key=lambda c: pr(c) + beta * (c["s"] - mu) / sd)
         return c["r"], tok, True, C
 
 
@@ -2248,13 +2249,15 @@ def main_sel_tc2ab():
     <name> choosing (TC2-AB), against SEL-TC2 as it stands (seltc_s150 at the stop), SEL-TC2 with <name> and no offer (TC2-new), SEL-AB2's
     AB with <name> (the cascade) and the planner alone, on BFCL (SEL-TC2-AB-P1..P4). The planner is the same in every TC2 arm (it does not
     depend on the verifier), so they differ only at the stop; a pattern the planner never saw gets SEL-TC's pipeline outcome in each.
-    --set ace (addendum ACE): the same, nothing refitted, on ACEBench, with the default, the cascade and SEL-TC's pipeline (ACE-P1..P4)"""
+    --set ace (addendum ACE): the same, nothing refitted, on ACEBench, with the default, the cascade and SEL-TC's pipeline (ACE-P1..P4).
+    --cl (addendum SEL-CL, adopted): TC2-AB's stop and AB with the set-choice fit (the other arms as they were)"""
     from analyze_ho3 import ci
     from run_nlopt import _rows
     load = lambda x: {r["h"]: r for r in _rows(os.path.join(lcm.ROOT, "results", "conf", f"sel_scores_{x}.jsonl"))}
     nm = sys.argv[sys.argv.index("--sel-tc2ab") + 1]
     tgt = sys.argv[sys.argv.index("--set") + 1] if "--set" in sys.argv else "bfcl"
     tag = "ACE" if tgt == "ace" else "SEL-TC2-AB"
+    cl = "--cl" in sys.argv
     S, S0 = load(nm), load("seltc_s150")
     f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
     U = lambda r, t: 100 * float(r) - LAM * t / 1000
@@ -2267,9 +2270,9 @@ def main_sel_tc2ab():
         choose, _ = sel_fit([(i, s, [{"r": c[0], "calls": c[1], "s": 0.0} for c in cand.values()], dr) for i, s, cand, dr in raw_ho], ho)
         selc = {(x[0], x[1]): choose(x) for x in tc_sel_items(tgt, nsrc, S0)[2]}
         _, _, hs, _ = ab_sets("tcho", nsrc, S, ("fallback", "nfail"))
-        cab, _ = sel_fit([(i, s, [dict(c, s=0.0) for c in C], dr) for i, s, C, dr in hs], hs)
+        cab, _ = (sel_fit_cl if cl else sel_fit)([(i, s, [dict(c, s=0.0) for c in C], dr) for i, s, C, dr in hs], hs)
         abc = {(x[0], x[1]): cab(x) for x in ab_sets(tgt, nsrc, S, ("fallback", "nfail"))[2]}
-        fits = {"TC2-AB": (tc2_fit(nsrc, S, ab=True), S, True), "TC2-new": (tc2_fit(nsrc, S), S, False),
+        fits = {"TC2-AB": (tc2_fit(nsrc, S, ab=True, cl=cl), S, True), "TC2-new": (tc2_fit(nsrc, S), S, False),
                 "SEL-TC2": (tc2_fit(nsrc, S0), S0, False)}
         Db, Xb = tc2_cells(tgt, nsrc)
         ids = sorted(Db)
@@ -2285,7 +2288,7 @@ def main_sel_tc2ab():
                 a = abc.get((i, s))
                 out = {"AB": (a["r"], tc_) if a else (rs, tc_), "SEL-TC": (rs, tc_), "cascade": (rc, tc_), "default": lcm.fixed("SB->T->T", sc)}
                 for k, ((P, beta, sd, _), SS, ab) in fits.items():
-                    x = tc2_run(P, sc, Xb[(i, s)], SS, tgt, i, beta, sd, ab=ab)
+                    x = tc2_run(P, sc, Xb[(i, s)], SS, tgt, i, beta, sd, ab=ab, cl=cl and k == "TC2-AB")
                     if x is None:
                         cnt["unseen"] += k == "SEL-TC2"; out[k] = (rs, tc_)
                         continue
@@ -2294,7 +2297,9 @@ def main_sel_tc2ab():
                         out["planner"] = tc2_run(P, sc, Xb[(i, s)], SS, tgt, i)[:2]
                     if k == "TC2-AB" and x[3] and any(e["g"] == "AB" for e in x[3]):
                         mu = sum(e["s"] for e in x[3]) / len(x[3])
-                        cnt["offered"] += 1; cnt["no call chosen"] += max(x[3], key=lambda e: e["lp"] + beta * (e["s"] - mu) / sd)["g"] == "AB"
+                        cnt["offered"] += 1
+                        pr = (lambda e: -math.log1p(math.exp(-e["lp"]))) if cl else (lambda e: e["lp"])
+                        cnt["no call chosen"] += max(x[3], key=lambda e: pr(e) + beta * (e["s"] - mu) / sd)["g"] == "AB"
                 out.setdefault("planner", (rs, tc_))
                 for k, (r, t) in out.items():
                     acc[k] += r; kt[k] += t; Uq[k][i] += U(r, t) / 300

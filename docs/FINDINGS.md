@@ -5218,3 +5218,26 @@ pairs), When2Call (2,868 call-right + 950 no-call-right), both.
   are values never stated in the request or the benchmark's format.
 Decision (registered): selab2_s450 stays; the remaining verifier loss is not closed by public preference data — other conventions, and
 in-convention ToolACE data is used up. Goal link: exact tool calls — what is left is mostly benchmark convention, not a missing signal.
+
+## 2026-11-03 11:3x UTC: SEL-CL (pre-registered): fit the selector for the choice it makes — +0.5 at AB and +1.0 at TC2-AB's stop on ACEBench
+Why: the tool-call selector (logit prior + β z) fitted β on each answer's own right / wrong label. Sets where every answer is wrong (37%
+of the fitting sets) cannot be explained by a within-set score, so they pull β toward 0 (attenuation under omitted set-level
+heterogeneity; Mood 2010). For a choice, the derived fit is the conditional logit: log prior + β_CL z, with β_CL from the set-choice
+likelihood (McFadden 1974; Chamberlain 1980). On the fitting set β_CL is 1.9–2.0 against 1.2–1.3, and the Bernoulli fit did not even
+beat the score alone there.
+- ACEBench, a fresh test: three more generators were generated for it (Qwen3-14B-AWQ, Qwen3.5-9B, gpt-oss-20b), and Qwen3-8B's cells
+  were never read with CL or the score alone.
+  - AB, five cells pooled: **+0.52 [+0.30, +0.77]** (P1).
+  - TC2-AB's stop: **+1.04 [+0.48, +1.59]** (P2).
+  - CL − score alone: +0.20 [−0.28, +0.72] (P3).
+- BFCL: AB +0.54 [+0.39, +0.70] with all five cells above 0 (P5); the stop +0.54 [+0.27, +0.82].
+- At BFCL's stop the score alone loses to CL by 0.86: the planner's prior matters, its weight was wrong.
+- The tool-call method with the CL fit:
+  - BFCL: 88.3% / 88.3% (was 87.5% / 88.0%).
+  - ACEBench: 79.6% / 80.6% vs the default's 74.0% (+5.4 / +6.5 utility; was +4.4 / +5.4).
+- P4 refuted: on ACEBench, AB beats each other generator's cascade (+2.7 / +2.7 / +3.3). It beats the default for Qwen3.5-9B and
+  gpt-oss-20b, not for Qwen3-14B-AWQ (+0.65 [−1.00, +2.32]; its default is the strongest, 76.5%).
+- Raw: the old fit let two agreeing calls outvote a much higher score (an unrequested `include_follow_up: false`, "Tokyo, Japan"
+  for "Tokyo", `weight_kg: -5.0` agreed while the quick model declined). On ACEBench CL is right in 103 changed sets, the old fit in 27.
+Decision (registered): the CL fit replaces the Bernoulli fit at AB (every generator) and at TC2-AB's stop. SQL is unchanged (both fits
+give the same β there). Goal link: exact tool calls at no extra tokens — the same verifier, weighted for the decision it makes.

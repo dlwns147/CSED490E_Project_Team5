@@ -2378,3 +2378,50 @@ at ACEBench AB, −12.8 at the stop), as it should. Not evidence.
 - **P4 holds** → AB is the tool-call method on ACEBench for every generator tested. **Refuted** → SEL-G-TC's scope stays BFCL.
 - SQL's selector is unchanged either way, as derived above.
 - SEL-PW-AB (running) is judged with its pre-registered Bernoulli selector. If CL is adopted, the next verifier comparison uses it.
+
+## Results of addendum SEL-CL (written 2026-11-03 11:3x UTC; `results/lcm_selcl.log`; generation jobs 1308744–1308752, 24 files × 973 rows; scoring job 1309157, 2,614 new texts, none failed, no AB set missing a score; absolute pipeline numbers with the CL fit `lcm_shift.py --sel-tc2ab selab2_s450 [--set ace] --cl` -> `results/lcm_selcl_tc2ab.log`, `results/lcm_selcl_ace.log`; raw cases `nlp_data/scratch/selcl_diff.py` -> `selcl_diff.out`)
+
+| CL − Bernoulli (accuracy points; tokens equal) | ACEBench | BFCL |
+|---|---|---|
+| AB, Qwen3-8B base / trained | +0.55 [+0.10, +1.06] / +0.31 [−0.07, +0.69] | +0.75 [+0.47, +1.02] / +0.27 [+0.05, +0.49] |
+| AB, Qwen3-14B-AWQ / Qwen3.5-9B / gpt-oss-20b | +0.24 [−0.14, +0.62] / +0.62 [+0.24, +1.03] / +0.89 [+0.45, +1.37] | +0.40 [+0.16, +0.67] / +0.27 [+0.03, +0.52] / +1.01 [+0.72, +1.34] |
+| AB, five cells pooled | **+0.52 [+0.30, +0.77]** | **+0.54 [+0.39, +0.70]** |
+| TC2-AB's stop, base / trained | +0.99 [+0.41, +1.58] / +1.10 [+0.45, +1.71] | +0.82 [+0.51, +1.18] / +0.25 [−0.05, +0.56] |
+| TC2-AB's stop, pooled | **+1.04 [+0.48, +1.59]** | +0.54 [+0.27, +0.82] |
+| CL − score alone, AB pooled / stop pooled | +0.20 [−0.28, +0.72] / −0.02 [−0.96, +0.91] | +0.13 [−0.17, +0.43] / +0.86 [+0.32, +1.43] |
+
+- **SEL-CL-P1 holds:** +0.52 [+0.30, +0.77]. The point estimate is in every cell above 0, and it is at the top of the expected +0.2 to
+  +0.5.
+- **SEL-CL-P2 holds:** +1.04 [+0.48, +1.59], above the expected +0.3 to +0.8.
+- **SEL-CL-P3 holds:** CL − alone +0.20 [−0.28, +0.72], so the score alone does not beat CL.
+- **SEL-CL-P5 holds:** BFCL +0.54 [+0.39, +0.70], every one of the five cells above 0.
+- **SEL-CL-P4 refuted:** AB (Bernoulli) beats each cascade on ACEBench, +2.67 [+1.82, +3.63] / +2.71 [+1.88, +3.60] / +3.32 [+2.47, +4.25]
+  (Qwen3-14B-AWQ / Qwen3.5-9B / gpt-oss-20b). It beats the default for Qwen3.5-9B (+3.25) and gpt-oss-20b (+4.95), but not for
+  Qwen3-14B-AWQ: +0.65 [−1.00, +2.32]. Qwen3-14B-AWQ's default is the strongest of the four on ACEBench (76.5%), and its cascade
+  starts 2.0 points below it.
+- **The score alone is not the fix:** at TC2-AB's stop on BFCL it loses to CL by +0.86 [+0.32, +1.43]. The planner's prior (the
+  pattern of calls made) carries information there that a weight of ∞ throws away. CL keeps that prior and still re-weights the score.
+- **With the CL fit, the pipelines are:**
+  - TC2-AB on BFCL: **88.3% / 88.3%** at 0.48k / 0.43k tokens (base / trained quick calls; was 87.5% / 88.0%).
+  - TC2-AB on ACEBench: **79.6% / 80.6%** at 0.71k / 0.63k, − default +5.44 [+3.81, +7.07] / +6.47 [+4.89, +8.20] (was +4.44 / +5.38).
+  - AB alone: 87.7% / 88.2% on BFCL and 79.2% / 79.9% on ACEBench.
+  - TC2-AB − AB on ACEBench: +0.21 [−0.56, +0.96] / +0.56 [−0.18, +1.30]. The call policy's extra thinks still add nothing
+    significant there.
+- **Raw cases** (AB sets where the two fits choose differently; CL right / Bernoulli right):
+  - ACEBench: 103 / 27. By change: call over call 55 / 19; "[]" over a call 21 / 3; the model's own refusal over a call 13 / 0;
+    a call over "[]" 10 / 4.
+  - BFCL: 469 / 187.
+  - The Bernoulli fit let two agreeing calls outvote a much higher score (scores below are relative to the set's mean):
+    - P and SB agree on `include_follow_up: false`, an unrequested optional argument (−0.96), against N's bare call (+3.29).
+    - "Tokyo, Japan" agreed against the request's "Tokyo".
+    - On ACEBench's error-parameter and incomplete requests, two calls agree on `weight_kg: -5.0` or an invented interface list,
+      where the quick model declined (+3.1 to +8.1).
+  - CL loses where agreement was right and the score preferred a wrong value by a small margin (`#008000` over the right `#00FF00`,
+    +1.4 vs −0.6).
+- **Decision (registered):**
+  - P1 holds → AB's selector is the CL fit (log prior + β_CL z) for every generator. P3 holds, so the prior stays.
+  - P2 holds → TC2-AB's stop takes the CL fit too.
+  - P4 refuted → on ACEBench, AB is shown over each generator's cascade for all three other generators, and over the default for
+    Qwen3.5-9B and gpt-oss-20b only. SEL-G-TC's "every generator" claim stays a BFCL claim.
+  - SQL's selector is unchanged (derived: the two fits give the same β there).
+  - The next verifier comparison (SEL-PW-AB is judged with its registered Bernoulli fit) reports both fits.
