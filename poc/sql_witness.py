@@ -198,7 +198,22 @@ def one(job):
         return {"key": key, "status": f"error {type(e).__name__}: {e}"[:200], "sec": round(time.time() - t0, 1)}
 
 
+def nofk_requests(files, out):
+    """--nofk <witness files, comma-separated> <out requests>: the pairs no file has a witness for and whose difference vanished once
+    the keys were closed (the second pass, WIT_FK=0)"""
+    rows = [json.loads(l) for f in files.split(",") for l in open(f)]
+    have = {r["key"] for r in rows if r.get("status") in ("1-minimal", "budget")}
+    todo = sorted({r["key"] for r in rows if r.get("status", "").startswith("no difference")} - have)
+    with open(out, "w") as f:
+        for k in todo:
+            s, i, a, b = json.loads(k)
+            f.write(json.dumps({"sset": s, "id": i, "text": a, "text2": b}) + "\n")
+    print(f"{len(todo)} pairs for the second pass -> {out}")
+
+
 def main():
+    if sys.argv[1] == "--nofk":
+        return nofk_requests(sys.argv[2], sys.argv[3])
     src, out = sys.argv[1], sys.argv[2]
     mx = int(sys.argv[3]) if len(sys.argv) > 3 else 0
     workers = int(sys.argv[4]) if len(sys.argv) > 4 else 4
@@ -208,8 +223,9 @@ def main():
             r = json.loads(l)
             items[(sset, r["id"])] = r["db_id"]
     done = set()
-    if os.path.exists(out):
-        done = {json.loads(l)["key"] for l in open(out)}
+    for f in [out] + list(filter(None, os.environ.get("WIT_DONE", "").split(","))):   # WIT_DONE: other shards' files, skipped too
+        if os.path.exists(f):
+            done |= {json.loads(l)["key"] for l in open(f)}
     jobs, seen = [], set()
     for l in open(src):
         r = json.loads(l)
@@ -221,9 +237,13 @@ def main():
         db = items[(r["sset"], r["id"])]
         jobs.append((key, f"{PD}/bird/{SETS[r['sset']][1]}/{db}/{db}.sqlite", a, b))
     jobs = jobs[:mx or len(jobs)]
+    if os.environ.get("WIT_SHARD"):   # i/k: the pairs whose index is i mod k (one CPU job per shard, each its own out file)
+        i0, k = map(int, os.environ["WIT_SHARD"].split("/")); jobs = jobs[i0::k]
     print(f"{len(jobs)} unordered pairs to do ({len(done)} done)", flush=True)
-    with open(out, "a") as f, ProcessPoolExecutor(workers) as ex:
-        for i, r in enumerate(ex.map(one, jobs, chunksize=1)):
+    from concurrent.futures import as_completed
+    with open(out, "a") as f, ProcessPoolExecutor(workers) as ex:   # written as they finish: a slow pair holds back nothing
+        for i, fu in enumerate(as_completed([ex.submit(one, j) for j in jobs])):
+            r = fu.result()
             f.write(json.dumps(r) + "\n"); f.flush()
             if i % 50 == 0:
                 print(i, r["status"], r.get("rows"), r.get("tests"), r["sec"], flush=True)

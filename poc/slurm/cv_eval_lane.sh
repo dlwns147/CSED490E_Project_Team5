@@ -20,23 +20,28 @@
 # with the choice and local; lcm_shift.py --sel-pwtc). PW_SMOKE=1: prefix selpwtcsmk.
 #   sbatch -J selpw -x n19,n22,n24,n26 poc/slurm/job.sh "bash poc/slurm/cv_eval_lane.sh pw /NAS/SJ/POSTECH/nlp_data/cv/selpw"
 if [ "$1" = pw ]; then
+  # SIDE-W (PREREG_SIDE.md): PW_PRE=<prefix> PW_POOL=<pool file> PW_WIT_TRAIN=<witness files> PW_WIT_TGT=<witness files> [PW_EXTRA="name=adapter"]
+  # [PW_REF=selpw_s150]: the same with the witness in the prompt; the untrained model scores into its own file (localwit, reported, not
+  # in the choice); PW_EXTRA's adapters score every set without entering the choice; the analysis compares against PW_REF.
   out=$2
-  if [ "${PW_SMOKE:-0}" = 1 ]; then pre=selpwsmk tr="--smoke 32 --epochs 1 --save 2" lim=30; else pre=selpw tr="" lim=1000000000; fi
-  mkdir -p $out; [ -f $out/pool.jsonl ] || cp /NAS/SJ/POSTECH/nlp_data/cv/sel/pool.jsonl $out/ || exit 1
-  [ -f $out/adapter_final/adapter_config.json ] || /opt/conda/bin/python poc/cv_train.py pw $out $tr >> results/sql/run_${pre}_train.log 2>&1 \
-    || exit 1
+  if [ "${PW_SMOKE:-0}" = 1 ]; then pre=selpwsmk tr="--smoke 32 --epochs 1 --save 2" lim=30; else pre=${PW_PRE:-selpw} tr="" lim=1000000000; fi
+  mkdir -p $out; [ -f $out/pool.jsonl ] || cp ${PW_POOL:-/NAS/SJ/POSTECH/nlp_data/cv/sel/pool.jsonl} $out/ || exit 1
+  [ -f $out/adapter_final/adapter_config.json ] || PW_WITNESS="${PW_WIT_TRAIN:-}" /opt/conda/bin/python poc/cv_train.py pw $out $tr \
+    >> results/sql/run_${pre}_train.log 2>&1 || exit 1
   mods="" names=""
   for d in $out/adapter_*; do n=${pre}_${d##*/adapter_}; mods="$mods $n=$d"; names="$names,$n"; done
+  extra=""; [ -n "${PW_EXTRA:-}" ] && { mods="$mods $PW_EXTRA"; extra=",${PW_EXTRA%%=*}"; }
+  if [ -n "${PW_PRE:-}" ]; then export SEL_ALIAS=local=localwit; val=${names#,}; else val=local$names; fi
   export VLLM_ALLOW_RUNTIME_LORA_UPDATING=True
   S=$(bash poc/start_server.sh /SSD/huggingface/Qwen/Qwen3-8B $PORT 0 0.90 ${pre}_${SLURM_JOB_ID} --max-model-len 16384 --enable-lora \
     --max-lora-rank 16 --max-loras 4 --max-cpu-loras 16 --max-num-seqs 64 --lora-modules $mods) || exit 1
-  export POC_BASE_URL=http://127.0.0.1:$PORT/v1 SEL_REQ=sel_req_pw.jsonl
-  SEL_SSETS=fresh CONF_LIMIT=$lim /opt/conda/bin/python poc/score_conf.py sel local$names >> results/run_${pre}_score.log 2>&1 || { kill $S; exit 1; }
-  best=$(/opt/conda/bin/python poc/lcm_shift.py --sel-val-pw local$names | tee -a results/lcm_${pre}_val.log \
+  export POC_BASE_URL=http://127.0.0.1:$PORT/v1 SEL_REQ=sel_req_pw.jsonl PW_WITNESS="${PW_WIT_TGT:-}"
+  SEL_SSETS=fresh CONF_LIMIT=$lim /opt/conda/bin/python poc/score_conf.py sel local$names$extra >> results/run_${pre}_score.log 2>&1 || { kill $S; exit 1; }
+  best=$(/opt/conda/bin/python poc/lcm_shift.py --sel-val-pw $val | tee -a results/lcm_${pre}_val.log \
     | sed -n 's/^\*\*\* SEL-PW checkpoint[^:]*: //p')
   echo "[$pre $(date -u '+%F %T')] chosen: $best" >> results/run_${pre}_score.log
-  SEL_SSETS=dev,spider,spiderdev CONF_LIMIT=$lim /opt/conda/bin/python poc/score_conf.py sel $best,local >> results/run_${pre}_score.log 2>&1
-  /opt/conda/bin/python poc/lcm_shift.py --sel-pw $best > results/lcm_${pre}.log 2>&1
+  SEL_SSETS=dev,spider,spiderdev CONF_LIMIT=$lim /opt/conda/bin/python poc/score_conf.py sel $best,local$extra >> results/run_${pre}_score.log 2>&1
+  SEL_PW_REF=${PW_REF:-} /opt/conda/bin/python poc/lcm_shift.py --sel-pw $best > results/lcm_${pre}.log 2>&1
   kill $S; sleep 10; exit 0
 fi
 if [ "$1" = pw-tc ]; then
