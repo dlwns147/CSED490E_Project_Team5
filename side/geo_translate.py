@@ -5,7 +5,7 @@ problem's own conclusion guards the translation; Newclid's DDAR (deduction + alg
   check  per translation: parse; build the premises alone on 8 random diagrams; the guard passes when the goal holds numerically
          (to 1e-7) on at least one (a false goal holds on none); a guarded translation then goes to DDAR with a timeout
          -> results/proof/gt_<tag>_check.jsonl (status: unexpressible / no translation / syntax error / build error / goal fails /
-         guarded; proved true or false; seconds)
+         trivial (the goal already holds among the construction's facts) / guarded; proved true or false; seconds)
 A proof DDAR finds is a proof of the translated statement. It is a proof of the problem only when the translation is faithful, which
 the guard does not decide: a translation that adds a hypothesis passes it. Faithfulness is read by hand (dev) or compared with a
 reference translation (IMO-AG-30's, where one exists).
@@ -162,6 +162,8 @@ def gen():
             what = {"goal fails": "The goal does not hold on any figure built from your constructions, so the constructions or the goal "
                                   "do not match the problem.",
                     "copied example": "It repeats one of the examples instead of translating this problem.",
+                    "trivial": "The goal already follows from the constructions themselves, before any reasoning, so it is not the "
+                               "problem's claim.",
                     "no translation": "No line with ' ? ' and a goal was found in your reply."}.get(st, f"{st}: {msg}")
             msgs += [{"role": "assistant", "content": r["text"]}, {"role": "user", "content": REPAIR.format(what=what)}]
         return {"id": x["id"], "sample": s, "dsl": d, "out_tokens": sum(q["out_tokens"] for q in rounds),
@@ -209,13 +211,22 @@ def one_check(dsl, timeout):
     # holds on no random diagram, so the guard asks for at least one; `held` reports how many.
     if not held:
         return "goal fails", None, "held on 0 of 8 diagrams", time.time() - t0
-    if timeout <= 0:   # the guard alone (gen --repair)
+    # The second test (dev 3, 11-04: every translation the grammar run passed was true by construction, a ratio equal to itself or
+    # three points built on one line): a competition conclusion is never already one of the hypotheses, so a goal that holds among
+    # the construction's facts before any deduction is "trivial". In `check`, and in gen's guard with GT_TRIVIAL=1 (the gen jobs
+    # started before it keep their guard).
+    trivial_test = timeout > 0 or os.environ.get("GT_TRIVIAL") == "1"
+    if timeout <= 0 and not trivial_test:   # the guard alone (gen --repair)
         return "guarded", None, f"held on {held} of 8", time.time() - t0
     try:
         s = GeometricSolverBuilder(seed=0).load_problem_from_txt(dsl, translate=False).build()
+        if s.proof_state.check_goals():
+            return "trivial", None, "the goal already holds among the construction's facts, before any deduction", time.time() - t0
+        if timeout <= 0:
+            return "guarded", None, f"held on {held} of 8", time.time() - t0
         proved = bool(s.run(timeout=timeout))
     except Exception as e:
-        return "guarded", False, f"held on {held} of 8; DDAR: {type(e).__name__}: {str(e)[:200]}", time.time() - t0
+        return "guarded", (None if timeout <= 0 else False), f"held on {held} of 8; DDAR: {type(e).__name__}: {str(e)[:200]}", time.time() - t0
     return "guarded", proved, f"held on {held} of 8", time.time() - t0
 
 
