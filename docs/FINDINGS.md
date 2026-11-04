@@ -5485,3 +5485,17 @@ On the 64 items that are statements to prove (34 false, 30 true):
     against the scenario halves' 1,214 / 1,188;
   - then the offline fit;
   - then arm U online on the 468 env-pure items.
+
+## 2026-11-04 09:2x UTC: SIDE-GT dev 2, Qwen3-8B part (exploratory; 24 problems × 4 samples, thinking, up to 2 repair turns): repair fixes nothing, and 1 of 24 problems is translated faithfully
+- Job 1314619 (12.1k tokens per sample over its rounds). 83 of 96 samples got repair turns, and none of them reached the guard.
+  - Of 195 round-to-round transitions, 98 go from build error to build error, 22 from syntax error to syntax error, and 12 from a
+    build error to a syntax error.
+  - Final status: build error 53, syntax error 23, unexpressible 12, goal fails 5, guarded 2, no translation 1.
+- Both guarded samples passed in round 0. Read by hand:
+  - ISL 2012 G (= IMO 2012 P5: right angle at C, D the foot, X on CD, BK = BC on AX, AL = AC on BX, M = AL ∩ BK, show MK = ML) is
+    translated faithfully: `c a b = r_triangle c a b; c0 = foot c0 c a b; x = on_line x c c0; k = on_line k a x, eqdistance k b b c;
+    l = on_line l b x, eqdistance l a a c; m = intersection_ll m a l b k ? cong m k m l`.
+  - Canada 2006 P2 (a locus of rectangles' diagonal intersections) became the midline theorem, a true statement of another problem.
+- So for an 8B model the guard's error message is not usable feedback in this language: it keeps the same wrong construction or
+  argument count. The gpt-oss-120b run (job 1314618) is still queued for 4 GPUs (now RTX3090 or A5000). The DDAR check of both
+  follows (watcher).
