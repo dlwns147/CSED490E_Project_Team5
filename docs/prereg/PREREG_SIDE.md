@@ -274,3 +274,45 @@ reported too.
 - **Correction to SIDE-ENV-2's results** (same date): `side/analyze_env.py`, the family-agnostic replay, gives Qwen3-8B N's first
   diverging turn silent in 23 / 38 (60.5%), not the 58% recorded from `sidepkg_fail.py`; T 72.7% and Qwen3.5-9B's numbers match. The
   decision does not change.
+
+## SIDE-MC-H: constructions held out: a thinking program first, the thinking answer only when the program's object fails a free check (written 2026-11-04 12:0x UTC, before any generation on the 147 held-out instances)
+
+**Why.** The computation way of the side work: a constructive problem is solved by an object, and a human-written verifier
+decides it. The dev results (FINDINGS 2026-11-04 09:0x and 11:3x; 79 instances of 40 problems, Qwen3-8B) are as follows.
+- Thinking at a 30k cap: a direct answer is right on 19 (22.0k tokens). A program that builds or searches is right on 18 (18.1k).
+  They overlap on only 10.
+- The main recipe's order: the thinking program first, and the thinking answer only when the program's output does not parse or
+  none of 4 quick self-written checkers accepts it. This gave 27 right, the union of both, at 36.5k tokens. Utility +15.93 against
+  +13.05 for the direct answer alone, +2.88 [−5.01, +11.84] clustered by problem.
+- The rule, the order and the 4 checkers were chosen on dev, so dev numbers are not evidence. This test fixes them and runs on the
+  held-out instances.
+
+**Related work.** MathConstruct (2502.10197) scores each model directly and with brute-force code, separately. CodeT (2207.10397)
+ranks programs by agreement with generated tests. We found no use of a self-written checker as the escalation gate between a
+program and a direct answer for constructions.
+
+**Data.** `$POC_DATA/construct/ids_mceval.txt`: 147 instances, 2 variations each of 75 problems (`construct.py build`, split by
+`random.Random(0)` over problem names, none in dev).
+
+**Run** (Qwen3-8B, lane.sh, two GPUs with tensor parallelism and a 32k context for the 30k arms; tags `mceval_q8b_*`):
+1. `gen mceval_q8b_dt30 --arm direct --think --max_tokens 30000`, `gen mceval_q8b_pt30 --arm program --think --max_tokens 30000`,
+   `gen mceval_q8b_cn8 --arm checker --k 4` (quick checkers, 4 samples).
+2. `grade mceval_q8b_dt30 mceval_q8b_pt30 --checkers mceval_q8b_cn8` (MathConstruct's verifiers).
+3. Arms, per instance:
+   - **D**: dt30 alone;
+   - **P**: pt30 alone;
+   - **C** (the rule): pt30's object when it parses and at least one of the 4 checkers accepts it, else dt30's. Tokens are
+     pt30's plus the checkers', plus dt30's when escalated;
+   - **C0**: the same with parsing as the only check (no checker).
+
+**Predictions** (paired, 95% bootstrap intervals over problems; utility 100 × right − 0.5 × output ktokens):
+- **SIDE-MC-H-P1 (decision):** C − D accuracy lower bound > 0.
+- **SIDE-MC-H-P2:** C − D utility, reported with its interval. Expected about +3, interval including 0: C costs about 1.7× D.
+- **SIDE-MC-H-P3:** C − C0 accuracy ≥ 0 (the checkers keep more than they lose). Reported with its interval.
+- **Reported:** the checkers' accept rates on right and wrong parsed objects, and the overlap of P's and D's right objects.
+- **Expected:** D 20–28% (dev 24%), C 28–38% (dev 34%).
+
+**Decision.**
+- **P1 holds** → for constructions the side work's computation recipe is "thinking program, quick self-written check, thinking
+  answer on failure" (side/README section D), stated as a trade if P2's interval includes 0.
+- **P1 refuted** → the overlap on dev was noise, and the recipe is the direct thinking answer with the full budget.
