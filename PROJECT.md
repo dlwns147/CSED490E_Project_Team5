@@ -205,6 +205,8 @@ table: `docs/REPORT.md` §5.1):
 5. **Read the raw outputs**, not only scores; treat a surprising number as a harness bug until the raw programs say otherwise.
 6. **Record:** a dated entry (UTC, from `date -u`) appended to `docs/FINDINGS.md` for every result; `docs/proposal/PROPOSAL.md` and `PROPOSAL_ko.md`
    updated together, short, numbers edited in place. Slides (`docs/proposal/*.pptx`, `poc/make_slides.js`) change only when asked.
+   **Paused (user, 2026-11-05: "you don't need to consider proposals for now"):** the proposal files are not updated until the user
+   asks again. Results go to FINDINGS, the prereg files, PROJECT and REPORT.
 7. **Git:** commit and push after each change. The repository is public: scan the staged diff for secrets, never commit raw outputs
    (`*.jsonl`, logs), server addresses or keys; no co-author lines — commits are by the team's account.
 8. **Explain for a first-time reader:** what ran, how, the result with its cost, what is next.
