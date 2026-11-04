@@ -5360,3 +5360,15 @@ own classes. Goal link: the agent-loop gain is not a memorised environment.
   alone, before any proof. BrokenMath (2510.04721; its mitigations are prompting, self-confidence, best-of-n and iterative agents and
   fine-tuning, none of which computes) has competition statements perturbed to be false. The dev smoke runs on 40 false and 40 true
   statements from its train split (job 1312685).
+
+## 2026-11-04 03:4x UTC: Lean, related-work check (user: can we improve in Lean more than related works?): no; the proof direction's novelty corrected
+- Accuracy: miniF2F test is near saturation for heavy systems (Seed-Prover 243 / 244; Kimina-Prover-72B 92.2%; Goedel-Prover-V2-32B
+  88.1% pass@32, 90.4% with self-correction). Small trained provers are far ahead of our harness: Goedel-Prover-V2-8B 84.6% pass@32
+  (ours with the same model 76.6%); Pythagoras-Prover-4B 86.1% pass@32 (2606.12594). These gains come from training (data synthesis,
+  curricula, RL, self-correction), beyond a course budget of RTX 3090s.
+- Cost: the project's proof finding (cheap attempts first, think after; PF, PL1–PL3) is the direction of EconProver (2509.12603, ACL
+  2026: learned chain-of-thought switching at a fraction of the chain-of-thought tokens). Per-problem early stopping from Lean feedback
+  is 2606.04883. Our runs measure the same rule for general models without training.
+- Recorded in REPORT §5.8 and PROJECT (direction 1) as a measurement, not a new method. No new Lean run: none of the open questions is
+  new against this work at our scale. Goal link: the proof track's remaining contribution is a check where none exists (SIDE-PF
+  statements, BrokenMath).

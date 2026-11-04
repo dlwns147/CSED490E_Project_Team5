@@ -196,7 +196,8 @@ table: `docs/REPORT.md` §5.1):
   family (HO-N4); the pilot chooses the fact.
 - **Direction 1 — proofs, where the check is perfect** (Lean 4 + Mathlib on the cluster; PF, PL1, PL2): cheap attempts dominate thinking
   up to always-thinking's budget, thinking adds the statements sampling never reaches; with tokens priced the best split is short and a
-  30-label pilot finds it; Qwen3-8B on the same frontier (PL3) agrees.
+  30-label pilot finds it; Qwen3-8B on the same frontier (PL3) agrees; the direction is published for trained provers (EconProver 2509.12603, learned
+  chain-of-thought switching; early stopping from Lean feedback 2606.04883), so it is a measurement, not a new method.
 - **Direction 2 — the fact in the weights, no labels** (DT, DT-14, DT2): LoRA on 1,127 strict-check-passing programs gives Qwen3-8B /
   Qwen3-14B the library's gain without the library (OptiBench, BWOR), not on unseen problem types; it does not fix the check (fact-first
   with the fine-tuned model still loses to thinking with the fact). Self-training on 3,996 unlabeled problems stays at round 1 with every

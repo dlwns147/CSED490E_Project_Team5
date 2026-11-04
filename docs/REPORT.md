@@ -388,6 +388,9 @@ than 8 thinking attempts (gpt-oss-20b 74 vs 72; gpt-oss-120b 83 vs 81), thinking
 (80, 91), and up to always-thinking's budget the best policy is mostly cheap attempts (PF, PL1). One cheap try before thinking saves
 nothing (97–103% of the tokens): with a perfect check the escalation rule is "sample cheaply until it stops paying, then think". With tokens
 priced, the best split is short (4–6 cheap attempts, at most one thinking attempt), and 30 labelled statements pick it within a point (PL2).
+The direction is already published for trained provers: EconProver (2509.12603, ACL 2026) learns when to switch to chain-of-thought
+and keeps accuracy at a fraction of the chain-of-thought tokens, and a router that reads Lean's feedback stops early on unpromising
+problems (2606.04883). Our measurement extends the same rule to general models without training; it is not a new method.
 
 ### 5.9 Tool calls: a weak free check, and nothing to save (TC-1)
 Beyond programs, BFCL v4's single-turn Python categories (3,482 items, BFCL's own prompt mode and AST checker; Qwen3-8B, Qwen3-14B-AWQ,
