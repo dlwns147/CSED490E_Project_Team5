@@ -5455,3 +5455,15 @@ On the 64 items that are statements to prove (34 false, 30 true):
   This matches NL2AGBench (2608.28481): Qwen3-235B 12.5% executable zero-shot.
 - Next (dev 2, jobs 1314618 / 1314619): up to 2 repair turns that tell the model what the guard found (the main recipe's repair turn),
   for Qwen3-8B with thinking and for gpt-oss-120b (medium effort), the largest open model on the cluster.
+
+## 2026-11-04 09:0x UTC: SIDE-MC dev (exploratory; 79 instances of 40 problems, Qwen3-8B): quick routes find 3–4 objects, thinking at 16k tokens is cut off on 77% of instances, and the quick model-written checker rejects half of the right answers
+- Graded by MathConstruct's human verifiers. Direct answer, quick: 4 of 79 right, 2.4k tokens. Program that builds or searches,
+  quick: 3 of 79, 0.5k tokens (45 programs ran, 19 timed out at 60 s, 15 crashed). Direct answer, thinking, 16k-token cap (job
+  1314160; 75 of 79 when stopped): 9 of 75 right, 15.0k tokens, and 58 of 75 hit the cap without an answer; 9 of the 17 that finished
+  are right, three of them after 13–15.5k tokens.
+- The checker Qwen3-8B writes quickly from the statement alone (326 tokens) accepts 6 of the 90 wrong answers it could run on (it
+  ignores required counts such as "find 22 pairs") and rejects 8 of the 16 right answers (float equality, a wrong rule, a wrong
+  simulation). As a free check it would throw away half of what it should keep.
+- So the cap, not the model, decides the thinking route at 16k. The thinking arms rerun with a 30k cap (the server's 32k context)
+  on two GPUs with tensor parallelism (jobs 1315237 direct, 1315238 program and checker); one 30k run gives the right-rate at every
+  smaller cap from its token counts, so the 16k arms are not run again. The 16k direct run is kept as a second sample.
