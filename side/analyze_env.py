@@ -89,3 +89,17 @@ for a in arms:
     print("   attributes that differ there", dict(diff))
     print("   silent there, by kind", dict(fsil))
     print("   turns matched / not until the divergence", dict(sorted(turnok.items())))
+    sep = collections.Counter()   # every conversation, each turn up to its first divergence: right or wrong, an error or not
+    for i in ids:
+        p, r = P[i], R[a][i]
+        x, g = C(), C(); x._load_scenario(p["initial_config"][cls]); g._load_scenario(p["initial_config"][cls])
+        for ti, gt in enumerate(p["ground_truth"]):
+            t = r["turns"][ti] if ti < len(r["turns"]) else []
+            run(x, [c for z in t for c in z["calls"]]); run(g, gt)
+            same = pub(x) == pub(g)
+            sep[(same, any(any(z.get("err") or []) or z.get("loop") for z in t))] += 1
+            if not same:
+                break
+    rt, wt = sep[(True, True)] + sep[(True, False)], sep[(False, True)] + sep[(False, False)]
+    print(f"   separation of the free check: an error in {sep[(True, True)]} / {rt} right turns and {sep[(False, True)]} / {wt} wrong "
+          f"turns (BFCL turn 0, Qwen3-8B: 33% / 75% quick, 29% / 57% thinking)")

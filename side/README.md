@@ -41,12 +41,15 @@ environments. A new environment family with algorithmic ground truth is a test n
     turn), so three turns land near 0.5 × 0.76 × 0.35 ≈ 13%.
   - Choose the number of turns and the request kinds from a small pilot's q, so that q^k for Qwen3-8B with thinking falls in
     [20%, 85%].
-- An error in a turn does not tell a right turn from a wrong one. This is what makes a trained verifier necessary.
-  - In the calendar, Qwen3-8B's quick turns showed an error in 9 of 9 right turns and 35 of 40 wrong ones. It guesses ids and room
-    names in the same step as the reads.
-  - Measure this as the error rate of right turns against wrong turns, up to each conversation's first wrong turn
-    (`analyze_env.py` replays this), and pre-register it that way. The share of failures without an error, which SIDE-ENV-3 used,
-    fails a family where errors are everywhere.
+- An error in a turn tells a right turn from a wrong one no better than on BFCL. Otherwise a check that escalates on errors would
+  already do the verifier's job.
+  - Measure the error rate of right turns against wrong turns, up to each conversation's first wrong turn (`analyze_env.py`
+    prints it), and pre-register it that way.
+  - BFCL's anchor (turn 0, `results/conf/mt_sel_rows.jsonl`): Qwen3-8B's quick turns show an error in 33% of right turns and 75%
+    of wrong ones; with thinking, 29% and 57%.
+  - In the calendar it was 9 of 9 right turns and 35 of 40 wrong ones (quick), because the model guesses ids and room names in the
+    same step as the reads. That is less separation than BFCL's. SIDE-ENV-3 counted the share of failures without an error instead,
+    a measure that fails a family where errors are everywhere.
 3. **The CPU check**, which must pass before any model runs:
    `python side/check_env.py <items.jsonl> <Class=side.envs.module> --negative '<a correct fragment>' '<a mistake>'`.
    - The ground truth must be valid for every item.
