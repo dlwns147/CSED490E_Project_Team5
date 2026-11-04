@@ -177,6 +177,9 @@ table: `docs/REPORT.md` §5.1):
    **Theory counts as evidence** (user, 2026-10-29): use mathematical / theoretical analysis where it helps, not only empirical tests —
    derive what a method can reach (bounds, decompositions, optimal policies) before or alongside running it, and let the derivation
    shape the design and the pre-registered predictions.
+   **No heuristics** (user, 2026-11-01: "don't do easy or incremental things, and don't suggest heuristics"): no hand-set thresholds,
+   fixed orders, clamps or "at least N" cut-offs as a method or a recommendation. A decision rule is derived from an explicit model
+   (Bayes-optimal or decision-theoretic), its parameters are estimated, and its assumptions are stated and tested.
 3. **At least 3 seeds** for any positive claim; report seed means and, for comparisons, a 95% interval over problems; call a tie a tie.
 4. **Accuracy with its cost:** output tokens per problem always; input tokens where prompts differ in length.
 5. **Read the raw outputs**, not only scores; treat a surprising number as a harness bug until the raw programs say otherwise.
