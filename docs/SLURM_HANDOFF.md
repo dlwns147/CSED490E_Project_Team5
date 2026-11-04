@@ -4,6 +4,7 @@ State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Tea
 (/NAS/SJ/POSTECH/nlp, 8 × RTX PRO 6000 Blackwell, GPUs 0–3) was stopped on 2026-10-20 04:2x UTC; no job is running there.
 
 ## 0. Status on the Slurm cluster (updated 2026-10-27 16:3x UTC)
+- **Running (11-04 17:5x UTC; PREREG_MT.md addendum MT-PW, pairwise within-set choice):** pairs built on the login node (`python3.11 poc/analyze_mtb.py --pw-build` -> results/conf/sel_req_mt2pw_h{0,1}.jsonl, 22,222 / 24,924 ordered pairs); jobs 1317909 / 1317910 `mtpw_h<h>` (`MT_SEL_TAG=mt_sel2 SEL_IDS=$POC_DATA/bfcl/mt_sel2_ids_h<h>.txt tc_train.py $POC_DATA/cv/mtpw_h<h> --pw --mt --pairs 4 --batch 8 --epochs 4 --save 1000` >> results/tc/run_mtpw_h<h>_train.log, then `cv_eval_lane.sh score-tc .../adapter_final mtpw_h<h> sel_req_mt2pw_h<1-h>.jsonl mt2`). Then the offline analysis (pairwise score per rollout = mean over rivals of (s(a,b) − s(b,a))/2 in the set-choice fit) — to be added to analyze_mtb.py --sel2.
 - **Running (11-01 13 UTC; PREREG_LCM.md addenda RV2 and SEL; RV2 done 14:2x UTC, SEL done 17:5x UTC: P1–P4 hold, results in PREREG_LCM):** RV2 = Qwen3.5-9B's channel scores, job 1293926 (`rv_q35`: lane.sh
   `--vllm '--max-model-len 20480 --language-model-only --max-num-seqs 32 --max-num-batched-tokens 1056' --frac 0.88` Qwen/Qwen3.5-9B, `CONF_LIMIT=40
   RV_KINDS=rev RV_SUFFIX=_q35 $P poc/score_conf.py rv && RV_KINDS=rev RV_SUFFIX=_q35 $P poc/score_conf.py rv`; the first try 1293239 died of
