@@ -109,10 +109,26 @@ the proof's concrete claims; a printed counterexample flags the proof.
 - The false flags come from testing something the proof does not claim: "infinitely many n" tested at one n, values outside the
   hypotheses. Rerunning code cannot fix that, so the proof-level check is dropped.
 
-**Testing now: a statement alone, before any proof.** A statement is short and precise, so there is less to misread.
-- BrokenMath (INSAIT, 2510.04721) perturbs competition statements to make them false, and models "prove" them anyway: GPT-5 does so
-  29% of the time.
-- Its mitigations (prompting, agents, fine-tuning) never compute anything.
-- If a cheap test program finds counterexamples to many false statements and almost never to true ones, it answers "this is false"
-  for a fraction of a proof attempt's tokens. The dev run uses 40 false and 40 true statements from BrokenMath's train split; the
-  benchmark's 451 false statements and 168 true originals are kept for the pre-registered test.
+**A statement alone, before any proof (dev, 11-04; BrokenMath, competition statements perturbed to be false):** reasoning already
+separates them.
+- Qwen3-8B with thinking, asked "true or false", flags 97% of false statements and 17% of true ones.
+- A counterexample program flags 79% and 23%. Requiring both cuts true-statement flags to 7%, at 12.7k tokens.
+- Translated to Lean by Qwen3-8B, 67 of 78 statements do not even compile, and Plausible cannot sample ℝ. Not pursued.
+
+**Testing now: hard proofs, geometry first (SIDE-PG).** The program draws random instances of the figure and checks the proof's
+concrete claims (equal angles, collinear, concyclic, tangent). The problem's own conclusion is true, so an instance where it fails
+is a wrongly built figure and is discarded. A claim is refuted only if it fails on every remaining instance (at least 3).
+- Data: OPC's 299 human-graded geometry proofs. 15 problems are used for development, 50 are kept for the test.
+
+**Next areas, the same scheme** (each with a sound refutation, and the true theorem guarding the test; OPC graded proofs,
+wrong / right):
+
+| Area | Refutation | Guard | OPC (wrong / right) |
+|---|---|---|---|
+| Functional equations | plug in the claimed solutions; search simple families for missed ones | each reported solution checked on many random points | 190 / 89 |
+| Inequalities | minimise LHS − RHS for each intermediate inequality (IneqMath has another test set) | the original inequality must survive the same search | 101 / 93 |
+| Combinatorics | brute-force small cases: the claimed extremum, the claimed construction | the statement must hold on the small cases | 188 / 109 |
+| Analysis (Putnam) | high-precision numerics; random matrices | the problem's stated value | 65 / 248 |
+
+None of these sees the most common error, a step left unjustified while true (85% of solutions in IneqMath), so they complement a
+proof judge rather than replace it.

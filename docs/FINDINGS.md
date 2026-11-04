@@ -5372,3 +5372,27 @@ own classes. Goal link: the agent-loop gain is not a memorised environment.
 - Recorded in REPORT §5.8 and PROJECT (direction 1) as a measurement, not a new method. No new Lean run: none of the open questions is
   new against this work at our scale. Goal link: the proof track's remaining contribution is a check where none exists (SIDE-PF
   statements, BrokenMath).
+
+## 2026-11-04 04:5x UTC: SIDE-PF statement dev (exploratory; BrokenMath train, 40 false + 40 true statements, Qwen3-8B): reasoning already separates; Lean with Qwen3-8B as translator compiles almost nothing
+On the 64 items that are statements to prove (34 false, 30 true):
+
+| arm | false flagged | true flagged | tokens |
+|---|---|---|---|
+| verdict, thinking (`--verdict --think`) | 33 / 34 (97%) | 5 / 30 (17%) | 4.4k |
+| counterexample program, thinking | 27 / 34 (79%) | 7 / 30 (23%) | 8.3k |
+| both say false | 27 / 34 (79%) | 2 / 30 (7%) | 12.7k |
+| program, no thinking | 11 / 34 | 7 / 30 | 0.9k |
+| verdict, no thinking | 26 / 34 | 14 / 30 | 33 |
+
+- The two true statements both arms flag have wrong program counterexamples (a strategy said to win with probability 0.5; a
+  geometry configuration that does not match the statement).
+- The thinking verdict is BrokenMath's own prompt mitigation ("validate the problem first"), so the statement check adds nothing new.
+  The program helps only by cutting false flags (17% → 7%) at +8k tokens, which pays only when true statements dominate.
+- **Lean arm** (`side/lean_statement.py`: Qwen3-8B translates, Plausible searches; jobs 1312792 / 1312794 translate, 1312802 /
+  1312860 check):
+  - quick translations: 60 of 74 ill-typed, 13 untestable (ℝ), 1 counterexample, on a true statement whose translation made `n!` a
+    variable;
+  - thinking translations (4.5k tokens): 67 of 78 ill-typed, 9 untestable, 2 testable, 0 counterexamples.
+- Decision: the statement check is not pre-registered; it is recorded as dev only. The Lean arm closes with this translator. The user
+  re-scoped proofs to hard proofs such as geometry (statements Lean can check are close to the computational problems), so the
+  proof track continues with SIDE-PG: numerical checks of geometry proofs, guarded by the problem's own conclusion (dev job 1312912).
