@@ -107,7 +107,10 @@ OptMATH is partly broken: its statements omit what its gold answers need.
 
 1. MT-PW offline, then online.
 2. For geometry, auxiliary points proposed by the model (SIDE-GT-AUXP, running) against random ones.
-3. The final report (`docs/REPORT.md`).
+3. Beyond BFCL: the per-turn choice on τ²-bench. Its protocol is different (a simulated user, policy documents, graded on the
+   final database). The BFCL-trained verifier would run zero-shot. This tests the agent-loop claim's external validity; MT-SO-ENV
+   only covered environment classes inside BFCL.
+4. The final report (`docs/REPORT.md`).
 
 ## 6. Documents
 
