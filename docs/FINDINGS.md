@@ -5616,3 +5616,18 @@ On the 64 items that are statements to prove (34 false, 30 true):
   auxiliary search proves on CPU. Faithfulness was judged by hand before any proof attempt.
 - 9 faithful problems stay unproved. Next method (hard gap): a proposer of auxiliary points that is not random, and a label-free
   faithfulness check.
+
+## 2026-11-04 18:5x UTC: SIDE-GT-AGREE (pre-registered): agreement between independent translations certifies faithfulness without reading them; 8 of 65 held-out problems are proved end to end with no human in the loop
+- The check: on a figure built from translation A, every construction predicate and the goal of translation B (over the points both
+  name) must hold numerically, and the other way round. A translation is corroborated when some other translation of the problem
+  agrees with it both ways. An added or dropped hypothesis breaks one direction.
+- Against the blind verdicts on 59 guarded held-out translations:
+  - 0 of 6 unfaithful translations are corroborated (P1 holds);
+  - 47 of 48 faithful ones on problems with two or more translations are (98%);
+  - 14 problems are corroborated, all 14 faithful.
+- With the proofs: **8 of 65 held-out olympiad geometry problems proved end to end without hand reading** (10 with it). They
+  include ISL 2012 G (12_16, 12_18), ISL 2016 G (16_23 a) and ISL 2017 G (17_19). OPC's graded frontier natural-language proofs of
+  those four are right 0 of 26 times in total.
+- Related: AlphaGeometry and AlphaGeometry2 translate by hand or with Gemini and check by reading. NL2AGBench checks that a
+  translation executes, not that it is faithful. We found no label-free faithfulness test of this kind. Its blind spot is a
+  misreading shared by every sample.

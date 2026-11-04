@@ -592,3 +592,26 @@ over the points both name. A translation with an added or dropped hypothesis bre
   audit.
 - **P1 refuted** → the failure cases are reported. Corroboration is a necessary condition, not a sufficient one, and hand reading
   stays.
+
+## Results of SIDE-GT-AGREE (written 2026-11-04 18:5x UTC; `results/proof/gt_gteval_q36_tg_agree.jsonl`, 130 ordered pairs on 23 problems, login node)
+
+| blind verdict | corroborated | not corroborated |
+|---|---|---|
+| faithful (53) | 47 | 6 |
+| unfaithful (6) | 0 | 6 |
+
+- **AGREE-P1 holds:** no unfaithful translation is corroborated.
+  - Indonesia 2005 P7's two translations share the garbled statement, yet disagree. They name the squares' vertices in opposite
+    orders, so their figures differ.
+  - ISL 2001 G1's two unfaithful translations disagree too.
+- **AGREE-P2:** 47 of the 48 faithful translations on problems with ≥ 2 guarded ones are corroborated (98%). The miss is USAMO
+  2012 P5 sample 2, which names its reflected points differently from the others (coverage 0). The other 5 faithful
+  translations are alone on their problems.
+- **Problems:** 14 have a corroborated translation, and all 14 are faithful by the blind reading.
+- **End to end without hand reading** (corroborated and proved, by DDAR or with one auxiliary point): **8 of 65 problems**. Hand
+  reading gives 10; the 2 missing (Romanian NMO 2006, USAMO 2010 P1) each had a single guarded translation. All 4 OPC shortlist
+  problems whose frontier proofs all failed are among the 8.
+
+**Decision (registered):** corroboration replaces hand reading for counting end-to-end proofs in later geometry runs, with hand
+reading as an audit. It needs at least two guarded translations per problem, so k (samples per problem) now also buys
+certification. The check's blind spot stays as predicted: a misreading shared by every sample.

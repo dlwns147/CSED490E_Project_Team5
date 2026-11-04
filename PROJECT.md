@@ -47,7 +47,7 @@ New types are welcome after a related-work check.
 | Instructions (IFEval, IFBench) | A model-written, executed checker gating thinking beats both modes in 4 of 6 cells (+1.1 to +2.5), at 1.0–2.6× the tokens: a gain, not a saving (IF-1). |
 | Short-answer math (MATH-500, AIME) | Text with thinking is best. A program is a second opinion: when text and program agree, 0.3–0.9% are wrong. |
 | Lean proofs (miniF2F) | A specialised 8B prover proves the most (Goedel-Prover-V2-8B, 180 of 244). Facts and repair from compiler errors do not help. |
-| Geometry proofs (side track, SIDE-GT) | The model translates the statement into a formal construction language, and a CPU engine (Newclid's DDAR) proves it exactly. With Qwen3.6-27B, 4 IMO problems are proved on dev. Held out: 19 of 65 problems are translated faithfully (judged blind). DDAR alone proves 3; adding one random auxiliary point brings it to 10. Four of the 10 are shortlist problems whose graded frontier natural-language proofs are all wrong. The prover is the bottleneck. |
+| Geometry proofs (side track, SIDE-GT) | The model translates the statement into a formal construction language, and a CPU engine (Newclid's DDAR) proves it exactly. With Qwen3.6-27B, 4 IMO problems are proved on dev. Held out: 19 of 65 problems are translated faithfully (judged blind). DDAR alone proves 3; adding one random auxiliary point brings it to 10. Four of the 10 are shortlist problems whose graded frontier natural-language proofs are all wrong. Agreement between independent translations certifies faithfulness without reading them: no unfaithful translation passed, and 98% of faithful ones did. With it, 8 of 65 are proved with no human in the loop (SIDE-GT-AGREE). The prover is the bottleneck. |
 | Constructions (side track, SIDE-MC) | Unsolved for an 8B model. A thinking answer and a thinking program solve different instances (23% and 18% alone, 33% together). The model's own checker rejects 28% of right objects, so it cannot pick between them. |
 
 **Did not work** (do not retry without a new idea):
@@ -109,7 +109,7 @@ OptMATH is partly broken: its statements omit what its gold answers need.
 
 1. MT-PW offline, then online.
 2. The MT-SO-ENV verdict.
-3. For geometry, an auxiliary-point proposer that is not random, and a label-free faithfulness check.
+3. For geometry, auxiliary points proposed by the model (SIDE-GT-AUXP, running) against random ones.
 4. The final report (`docs/REPORT.md`).
 
 ## 6. Documents
