@@ -523,3 +523,41 @@ not graded. SIDE-MC-H's result stands as recorded: the gated cascade is refuted,
 - Reading: the registered decision stands (P1, on DDAR alone, refuted). The arm shows what the prover gap costs. Random single
   points recover 7 of the 16 faithful problems DDAR alone missed. A proposer that chooses points, or two points, is the next method,
   not a further sweep of this one.
+
+## SIDE-GT-AUXP: auxiliary points proposed by the model, against random ones (written 2026-11-04 18:5x UTC, before any proposal is generated)
+
+**Why.** The prover is the geometry pipeline's bottleneck. Random single auxiliary points (64 tries) lift IMO-AG-30's references from
+11 to 14 of 30, and the held-out problems from 3 to 10 of 65. Solvers do not add points at random; they add the point a solution
+needs. HAGeo's heuristics reach 28 of 30.
+
+**Related work.**
+- Models trained to propose auxiliary points: AlphaGeometry (Nature 2024), AlphaGeometry2 (2502.03544), InternGeometry (2512.10534,
+  an RL-trained agent), GenesisGeo (2509.21896, fine-tuned).
+- Hand-engineered heuristics with no network: HAGeo (2512.00097).
+- A training-free LLM in a symbolic loop, but writing analogical proofs rather than auxiliary points: 2505.14479.
+- We found no test of an untrained general model proposing auxiliary points to DDAR under a grammar of the construction language.
+
+**Method** (`geo_translate.py propose`, then `aux --prop`).
+- Qwen3.6-27B-AWQ (thinking, medium effort) reads the statement (where we have it) and the translation, and reasons about a
+  solution.
+- One greedy turn then lists up to 8 auxiliary points under an input-dependent grammar: Newclid's 58 single-point constructions,
+  with arguments drawn only from the translation's points, one or two constructions per point.
+- 2 samples per translation. Proposals are tried in order, interleaved across samples, at 60 s per DDAR run, until one proves.
+
+**Data.**
+- The 26 IMO-AG-30-and-other reference translations that DDAR alone did not prove at 60 s (random points proved 4 of them).
+- The 43 faithful held-out translations, on 16 problems, that DDAR alone did not prove in the auxiliary arm (random proved 7
+  problems).
+- Both sets were used by the random arm only; nothing in the proposer was tuned on them.
+
+**Predictions** (problems; DDAR proofs are exact, so a count is not a noisy estimate of itself):
+- **AUXP-P1 (decision):** the model's points prove at least one problem that 64 random points did not, on either set.
+- **AUXP-P2 (reported):** problems proved by the model's points and by random points, and by each alone. DDAR calls per problem:
+  at most 16 against 64.
+- **Expected:** the model proves 3–8 of the 42 problems, 1–4 of them new. Its tokens are about 2 × 15k per translation.
+
+**Decision.**
+- **P1 holds** → the pipeline's auxiliary step becomes the model's proposals first, then random ones. The proposer's search (two
+  points, feedback from what DDAR derived) is the next method.
+- **P1 refuted** → an untrained general model does not know which point a solution needs in this language. The next step is a
+  derived criterion, such as points that create new deductions, before any training.

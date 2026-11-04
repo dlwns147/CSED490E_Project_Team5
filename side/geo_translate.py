@@ -14,7 +14,8 @@ usage: $P side/geo_translate.py gen <tag> <ids file> [--think] [--k K] [--max_to
        POC_BASE_URL set; --repair needs Newclid on PYTHONPATH: up to R more turns, each told the guard's finding; --grammar: after each
        free reply, one quick greedy turn writes the final line under the language's grammar, vLLM structured outputs)
        <python with newclid> side/geo_translate.py check <tag> [--timeout S] [--workers W]     (CPU job)
-       <python with newclid> side/geo_translate.py aux <tag | refs> [--k K] [--timeout S] [--workers W] [--ids file]   (CPU job)"""
+       <python with newclid> side/geo_translate.py aux <tag | refs> [--k K] [--timeout S] [--workers W] [--ids file | --prop <prop tag>]   (CPU job)
+       $P side/geo_translate.py propose <tag> <aux file tag> [--think] [--k K] [--m M]   (lane.sh job: the model proposes auxiliary points)"""
 import json, os, re, subprocess, sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -297,6 +298,87 @@ def aux_candidates(dsl, k, seed=0):
     return [(c.format(x=x), f"{pre}; {x} = {c.format(x=x)} ? {goal}") for c in C]
 
 
+PROPOSE = """{problem}
+
+Its translation into AlphaGeometry's construction language:
+{dsl}
+
+A deduction engine (DDAR: angle chasing, ratio chasing, similar triangles, cyclic quadrilaterals) could not prove the goal from these
+points alone. Olympiad solutions often add an auxiliary point that makes the proof go through: a midpoint, a reflection, a second
+intersection of a line and a circle, a circumcentre, the foot of a perpendicular, a parallel through a point. Think about how a solution
+of this problem would go, then propose up to {m} different auxiliary points, the most promising first, each built from the points above
+with one construction or as the intersection of two.
+
+{ref}"""
+
+PROPOSE_FINAL = """Now write the auxiliary points, one per line, as `{x} = construction {x} args` or `{x} = construction1 {x} args, construction2 {x} args`,
+using only the points above, in one ``` code block."""
+
+
+def aux_points(dsl):
+    pts = []
+    for step in dsl.split(" ? ")[0].split("; "):
+        for q in step.split(" = ")[0].split():
+            if q not in pts:
+                pts.append(q)
+    return pts, next(n for n in ("aux", "aux0", "aux1", "zaux") if n not in pts)
+
+
+def aux_grammar(dsl):
+    """EBNF of a list of auxiliary points for this translation (an input-dependent grammar, Geng et al. 2305.13971): each line defines
+    the new point by one or two of Newclid's single-point constructions whose other arguments are existing points (no numeric constants)"""
+    pts, x = aux_points(dsl)
+    con = []
+    for block in open(os.path.join(PD, "newclid_defs.txt")).read().strip().split("\n\n"):
+        L = block.strip().splitlines()
+        h = L[0].split()
+        if not h or h[0] == "=" or len(L) < 2 or ":" not in L[1] or "," in L[1] or any(":" in a for a in h[1:]):
+            continue
+        new = L[1].split(":")[0].split()
+        if len(new) != 1 or len(L[1].split(":")[1].split()) < 2:
+            continue
+        con.append(f'"{h[0]}"' + "".join(f' " {x}"' if a == new[0] else ' " " P' for a in h[1:]))
+    return "\n".join(['root ::= "```\\n" line ("\\n" line)* "\\n```"', f'line ::= "{x} = " con (", " con)?',
+                      "con ::= " + " | ".join(con), "P ::= " + " | ".join(f'"{q}"' for q in pts)])
+
+
+def propose():
+    """propose <tag> <aux file tag> [--think] [--k K] [--m M] (lane.sh job): for every row of gt_<aux file tag>_aux.jsonl that DDAR alone
+    did not prove, the model reads the statement and the translation and proposes up to M auxiliary points (a free reply, then the list
+    under aux_grammar), K samples -> results/proof/gt_<tag>_prop.jsonl (id, sample, dsl, cands, tokens)"""
+    from llm import chat_msgs
+    tag, src = sys.argv[2], sys.argv[3]
+    think = "--think" in sys.argv
+    k = int(sys.argv[sys.argv.index("--k") + 1]) if "--k" in sys.argv else 2
+    m = int(sys.argv[sys.argv.index("--m") + 1]) if "--m" in sys.argv else 8
+    P = {x["id"]: x for x in map(json.loads, open(os.path.join(PD, "problems.jsonl")))}
+    AG = {x["ag30"]: x for x in P.values() if x.get("ag30")}   # IMO-AG-30 reference ids -> our problems where we have the statement
+    B = [r for r in map(json.loads, open(f"{OUT}/gt_{src}_aux.jsonl")) if r["base"] == "guarded" and not r["base_proved"]]
+    out = f"{OUT}/gt_{tag}_prop.jsonl"
+    done = {(r["id"], r["sample"], r["s"]) for r in map(json.loads, open(out))} if os.path.exists(out) else set()
+    todo = [(r, s) for r in B for s in range(k) if (r["id"], r["sample"], s) not in done]
+    print(f"SIDE-GT propose {tag}: {len(todo)} proposals for {len(B)} translations (think={think}, k={k}, m={m})", flush=True)
+
+    def one(r, s):
+        text = (P.get(r["id"]) or AG.get(r["id"]) or {}).get("problem", "(Only the translation below is available.)")
+        _, x = aux_points(r["dsl"])
+        msgs = [{"role": "user", "content": PROPOSE.format(problem=text, dsl=r["dsl"], m=m, ref=reference())}]
+        a = chat_msgs(msgs, think=think, max_tokens=16000 if think else 2048, temperature=0.6 if think else 0.7)
+        q = chat_msgs(msgs + [{"role": "assistant", "content": a["text"]}, {"role": "user", "content": PROPOSE_FINAL.format(x=x)}],
+                      think=False, max_tokens=1024, temperature=0, extra={"structured_outputs": {"grammar": aux_grammar(r["dsl"])}})
+        body = re.findall(r"```[a-zA-Z0-9]*[ \t]*\r?\n(.*?)```", q["text"], flags=re.S)
+        lines = [l.strip() for l in (body[-1] if body else "").splitlines() if l.strip().startswith(f"{x} = ")]
+        cands = list(dict.fromkeys(l.split(" = ", 1)[1] for l in lines))[:m]
+        return {"id": r["id"], "sample": r["sample"], "s": s, "dsl": r["dsl"], "cands": cands, "out_tokens": a["out_tokens"] + q["out_tokens"],
+                "text": a["text"][-1500:]}
+    with ThreadPoolExecutor(32) as ex, open(out, "a") as f:
+        for fu in as_completed([ex.submit(one, r, s) for r, s in todo]):
+            try:
+                f.write(json.dumps(fu.result()) + "\n"); f.flush()
+            except Exception as e:
+                print(f"  failed: {type(e).__name__}: {str(e)[:200]}", flush=True)
+
+
 def aux():
     """aux <tag | refs> [--k K] [--timeout S] [--workers W] [--ids file]: for each base translation (refs: $POC_DATA/geo/gt_refs.jsonl;
     a tag: the guarded, unproved rows of gt_<tag>_check.jsonl, optionally only the ids/samples listed in --ids as id:sample), DDAR on the
@@ -320,23 +402,43 @@ def aux():
         except Exception as e:
             return ["build error", None, f"{type(e).__name__}", 0]
 
+    prop = None
+    if "--prop" in sys.argv:   # candidates proposed by the model (propose), in its order, samples interleaved; no DDAR-alone rerun
+        prop = {}
+        for q in map(json.loads, open(f"{OUT}/gt_{sys.argv[sys.argv.index('--prop') + 1]}_prop.jsonl")):
+            prop.setdefault((q["id"], q["sample"]), []).append(q)
+        B = [{"id": i, "sample": s, "dsl": v[0]["dsl"]} for (i, s), v in prop.items()]
+
+    def cands_of(r):
+        if prop is None:
+            return aux_candidates(r["dsl"], k)
+        pre, goal = r["dsl"].split(" ? ")
+        _, x = aux_points(r["dsl"])
+        qs = sorted(prop[(r["id"], r.get("sample", 0))], key=lambda q: q["s"])
+        C = list(dict.fromkeys(c for j in range(max(len(q["cands"]) for q in qs)) for q in qs if j < len(q["cands"]) for c in [q["cands"][j]]))
+        return [(c, f"{pre}; {x} = {c} ? {goal}") for c in C]
+
     def run(r):
-        st, pr, msg, sec = one(r["dsl"])
+        if prop is None:
+            st, pr, msg, sec = one(r["dsl"])
+        else:
+            st, pr, msg, sec = "guarded", False, "", 0
         out = {"id": r["id"], "sample": r.get("sample", 0), "dsl": r["dsl"], "base": st, "base_proved": pr, "aux": None, "tried": 0,
                "sec": sec}
         if pr or st != "guarded":
             return out
-        for c, d in aux_candidates(r["dsl"], k):
+        for c, d in cands_of(r):
             st2, pr2, _, s2 = one(d)
             out["tried"] += 1; out["sec"] += s2
             if pr2:
                 out["aux"] = c
                 break
         return out
-    with ThreadPoolExecutor(workers) as ex, open(f"{OUT}/gt_{tag}_aux.jsonl", "w") as f:
+    name = f"{tag}_auxp" if prop is not None else f"{tag}_aux"
+    with ThreadPoolExecutor(workers) as ex, open(f"{OUT}/gt_{name}.jsonl", "w") as f:
         for fu in as_completed([ex.submit(run, r) for r in B]):
             f.write(json.dumps(fu.result()) + "\n"); f.flush()
-    print(f"SIDE-GT aux {tag}: {len(B)} translations -> {OUT}/gt_{tag}_aux.jsonl", flush=True)
+    print(f"SIDE-GT aux {tag}: {len(B)} translations -> {OUT}/gt_{name}.jsonl", flush=True)
 
 
 if __name__ == "__main__":
@@ -345,4 +447,4 @@ if __name__ == "__main__":
         logging.disable(logging.CRITICAL)
         print(json.dumps(one_check(sys.argv[2], float(sys.argv[3]))))
     else:
-        {"gen": gen, "check": check, "aux": aux}[sys.argv[1]]()
+        {"gen": gen, "check": check, "aux": aux, "propose": propose}[sys.argv[1]]()
