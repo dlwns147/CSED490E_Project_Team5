@@ -5528,3 +5528,19 @@ On the 64 items that are statements to prove (34 false, 30 true):
 - The order, gate and number of checkers were chosen on these 79 instances, so they are tested on the 147 held-out ones.
   SIDE-MC-H (PREREG_SIDE) decides on accuracy (C − D lower bound > 0) and reports utility. Jobs 1315962 `mcedt` (direct, 30k)
   and 1315963 `mcept` (program 30k + 4 quick checkers).
+
+## 2026-11-04 12:1x UTC: SIDE-GT dev 3 (exploratory; Qwen3-8B, grammar-constrained final line, up to 2 repair turns): the grammar removes the syntax errors, but every translation that now passes is a trivially true statement
+- Job 1315770. `--grammar` adds one quick, greedy turn after each free reply. It rewrites the final line under an EBNF built from
+  Newclid's 81 constructions and their argument counts, plus the 11 goal predicates (vLLM 0.22 `structured_outputs.grammar`; the
+  older `guided_grammar` field is silently ignored).
+- Quick, k = 8 (1.0k tokens): 6 of 192 pass the guard (0 of 192 without the grammar), on 3 problems. Thinking, k = 4 (11.9k
+  tokens): 2 of 96 (2 of 96 with repair alone). Syntax errors fall from 23 to 3; build errors stay (degenerate figures, unmet
+  preconditions, points used before they are defined) and goals that fail rise.
+- Read by hand, none of the 8 is faithful. Each is true by construction:
+  - `eqratio p q r m p q r m` (a ratio equal to itself, IMO-shortlist-level problem Indonesia 2005 P4);
+  - three points built on one line, then `coll` (IMO 2020 P1, IMO 2007 P4, IMO 2014 P4, ISL 2008).
+- So the guard needs a second test: a translation's goal must not already hold among its construction facts before any deduction
+  (a competition conclusion is never a stated hypothesis). That test removes these 8. Faithful translations for Qwen3-8B over
+  three runs: 1 of 24 problems (IMO 2012 P5, dev 2). The translation step is the bottleneck, as in NL2AGBench.
+- Next: Qwen3.6-27B-AWQ (job 1315918, two GPUs) and gpt-oss-120b (job 1314618, still queued for four) with the grammar and repair.
+  If neither translates faithfully, SIDE-GT records that open models on this cluster cannot be the translator.
