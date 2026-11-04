@@ -5467,3 +5467,21 @@ On the 64 items that are statements to prove (34 false, 30 true):
 - So the cap, not the model, decides the thinking route at 16k. The thinking arms rerun with a 30k cap (the server's 32k context)
   on two GPUs with tensor parallelism (jobs 1315237 direct, 1315238 program and checker); one 30k run gives the right-rate at every
   smaller cap from its token counts, so the 16k arms are not run again. The 16k direct run is kept as a second sample.
+
+## 2026-11-04 09:2x UTC: MT-SO online (pre-registered): the verifier's choice at every turn beats thinking at every step by +17.2 and +15.5 utility, so it becomes the agent-loop method
+- BFCL v4 multi-turn, 600 items × seeds 1–3. At every turn the quick turn, the peer's quick turn and the thinking turn run in
+  sandboxes. A Qwen3-8B LoRA verifier (trained with later turns, cross-fitted by scenario) scores each, and the set-choice fit commits
+  one. Every rollout's output tokens count.
+- Qwen3-8B (peer Qwen3.5-9B): 48.8% at 8.31k tokens vs thinking 30.8% at 6.84k, utility **+17.21 [+14.33, +20.12]**, accuracy
+  +17.94. Qwen3.5-9B (peer Qwen3-8B): 53.9% at 3.29k vs 38.0% at 2.56k, **+15.52 [+12.83, +18.52]**, accuracy +15.89. Every category
+  is above 0. Turns committing N / P / T: 22 / 37 / 41% and 29 / 20 / 51%. The verifier's prefill is 17k tokens per conversation.
+- MT-SO-P1 and P2 hold for both models, above the expected range (+5 to +12 accuracy). S beats every stored arm, including the
+  stronger model's own thinking (Qwen3-8B with the choice 48.8% vs Qwen3.5-9B thinking 38.0%).
+- Raw read (Qwen3-8B s1): 152 items S right / T wrong, 35 the reverse. T's losses there are wrong end states (86), wrong responses
+  (34), turns without calls (27) and forced stops (5). In the two traced, S takes the peer's quick turn at turn 0 and T's turn later.
+- Decision (registered): the agent-loop method becomes this choice (PROJECT, REPORT, PROPOSAL updated). Scope: the verifier saw
+  scenarios of the same eight environment classes. MT-SO-ENV (registered today) runs it in classes it never saw:
+  - environment-split verifiers trained with later turns: jobs 1315451 / 1315452 `mtsoenv_h<g>`, 791 / 1,090 training requests
+    against the scenario halves' 1,214 / 1,188;
+  - then the offline fit;
+  - then arm U online on the 468 env-pure items.

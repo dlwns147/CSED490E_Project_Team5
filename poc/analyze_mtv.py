@@ -2,7 +2,8 @@
 other arms, per model: accuracy, output tokens, utility (100 x right - 0.5 x ktokens), paired 95% intervals over items (seed means);
 the share of turns committed without thinking (the quick or the peer's turn), the fallback rate, rollouts per turn; MT-V1 / V2.
 MTV_ARM=S (addendum MT-SO): the verifier's choice at every turn (arm S) in V's place; the shares of turns committing N, P and T, the
-turns whose set structure the fit never saw (T committed), the verifier's prefill; MT-SO-P1 / P2.
+turns whose set structure the fit never saw (T committed), the verifier's prefill; MT-SO-P1 / P2. MTV_ARM=U (addendum MT-SO-ENV): the
+same for arm U on its env-pure items, and U - S on those items (P3); MT-SOENV-P1 / P2.
 usage: python3.11 poc/analyze_mtv.py [tags]   (after grade_mt.py <tag> V; MTV_ARM=S: grade_mt.py <tag> S)"""
 import json, os, sys
 
@@ -26,7 +27,7 @@ def main():
         tok = {a: sum(D[(a, s)][i]["tok"] for i in ids for s in (1, 2, 3)) / (3 * len(ids)) / 1000 for a in (X, "T")}
         du = ci({i: (per[X][i] - per["T"][i]) / 100 for i in ids})
         da = ci({i: (acc[X][i] - acc["T"][i]) / 100 for i in ids})
-        if X == "S":
+        if X in ("S", "U"):
             ch = [c for s in (1, 2, 3) for i in ids for c in D[(X, s)][i]["choices"]]
             sh = {j: 100 * sum(c["commit"] == j for c in ch) / max(1, len(ch)) for j in "NPT"}
             cat = {k: ci({i: (acc[X][i] - acc["T"][i]) / 100 for i in ids if i.rsplit("_", 1)[0] == k})
@@ -37,6 +38,15 @@ def main():
                   f"committing N {sh['N']:.1f}%, P {sh['P']:.1f}%, T {sh['T']:.1f}%; structure unseen {100 * sum(c['unseen'] for c in ch) / max(1, len(ch)):.1f}%; "
                   f"verifier prefill {sum(D[(X, s)][i]['ver_prefill'] for i in ids for s in (1, 2, 3)) / (3 * len(ids)) / 1000:.1f}k per item")
             print("    S - T accuracy by category: " + "; ".join(f"{k} {v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]" for k, v in cat.items()))
+            if X == "U":   # MT-SOENV-P3: U - S on the same items (unseen environments and less training data together)
+                DS = {s: load(tag, "S", s) for s in (1, 2, 3)}
+                js = [i for i in ids if all(DS[s] and i in DS[s] for s in (1, 2, 3))]
+                pu = lambda D3, i: sum(u(D3[s][i]) for s in (1, 2, 3)) / 3
+                pa = lambda D3, i: sum(100 * float(D3[s][i]["ok"]) for s in (1, 2, 3)) / 3
+                DU = {s: D[(X, s)] for s in (1, 2, 3)}
+                us, ua = ci({i: (pu(DU, i) - pu(DS, i)) / 100 for i in js}), ci({i: (pa(DU, i) - pa(DS, i)) / 100 for i in js})
+                print(f"    U - S on the same {len(js)} items: S {sum(pa(DS, i) for i in js) / max(1, len(js)):.1f}%; utility "
+                      f"{us[0]:+.2f} [{us[1]:+.2f}, {us[2]:+.2f}]; accuracy {ua[0]:+.2f} [{ua[1]:+.2f}, {ua[2]:+.2f}]")
             v1 += du[1] > 0; v2 += da[1] > 0
             continue
         votes = [v for s in (1, 2, 3) for i in ids for v in D[("V", s)][i].get("votes", [])]
@@ -49,7 +59,7 @@ def main():
         print(f"    V - T utility {du[0]:+.2f} [{du[1]:+.2f}, {du[2]:+.2f}]; accuracy {da[0]:+.2f} [{da[1]:+.2f}, {da[2]:+.2f}]; "
               f"turns committing a quick rollout {100 * quick:.1f}%, with no thinking rollout {100 * nothink:.1f}%; rollouts per turn {roll:.2f}; fallback {100 * fb:.1f}%")
         v1 += du[1] > 0; v2 += da[1] > 0
-    nm = "MT-SO-P" if X == "S" else "MT-V"
+    nm = {"S": "MT-SO-P", "U": "MT-SOENV-P"}.get(X, "MT-V")
     print(f"*** {nm}1 (utility, both models): {v1} / {len(tags)} -> {'holds' if v1 == len(tags) else 'refuted'}; "
           f"{nm}2 (accuracy): {v2} / {len(tags)} -> {'holds' if v2 == len(tags) else 'refuted'}")
 

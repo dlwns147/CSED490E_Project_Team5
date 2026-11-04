@@ -15,9 +15,11 @@ Rows (results/tc/mt_<tag>_<arm>_s<seed>.jsonl): per turn, per step {calls, think
 offline by poc/grade_mt.py (BFCL's multi_turn_checker). Rows resume.
   V  (MT-V, PREREG_MT addendum MT-V) per turn, sandboxed rollouts of the quick turn, the peer's quick turn (another model's server,
      POC_PEER_URL) and two thinking turns, made and committed by the per-turn policy learned on the other half's turn 0 (MT_POLICY)
+  U  (addendum MT-SO-ENV) S with the item's environment group (analyze_mtb.env_half) in place of its scenario half: the verifier
+     mtsoenv_h<1-g>, the fit results/tc/mt_soenv_fit_<tag>.json; only the items whose classes are all in one group
   S  (MT-SO, addendum MT-SO) per turn, sandboxed rollouts N, P, T; a trained verifier (LoRA on the MT_VER server: gen or peer) scores
      them and the set-choice fit fitted on the other half (results/tc/mt_so_fit_<tag>.json) commits one
-usage: python run_mt.py <tag> <arm N|T|E|F|V|S> <seed>     (MT_SUBSET=i/k: items i, i+k, ... only — the smoke; MT_WORKERS, default 8)"""
+usage: python run_mt.py <tag> <arm N|T|E|F|V|S|U> <seed>     (MT_SUBSET=i/k: items i, i+k, ... only — the smoke; MT_WORKERS, default 8)"""
 import ast, copy, json, os, re, sys, zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -233,20 +235,25 @@ def run_item_vote(p, tag, seed):
             "n_think": sum(s["think"] for t in turns for s in t), "n_steps": sum(len(t) for t in turns)}
 
 
-def run_item_sel(p, tag, seed):
+def run_item_sel(p, tag, seed, arm="S"):
     """MT-SO (PREREG_MT addendum MT-SO): per turn, rollouts of the quick turn (N), the peer's quick turn (P) and the thinking turn (T) on
     sandbox copies of the committed environment; the verifier trained on the other half of the scenarios (LoRA mtso_h<1-h> on the
     MT_VER server, gen or peer) scores each distinct rollout as mt_peer0.render shows it after mt_peer0.turn_context, and the set-choice
     fit of the item's half (results/tc/mt_so_fit_<tag>.json, analyze_mtb.py --sel2) chooses; a structure the fit never saw commits T.
-    The chosen rollout's steps and environment continue the conversation; every rollout's output tokens count."""
+    The chosen rollout's steps and environment continue the conversation; every rollout's output tokens count.
+    arm U (addendum MT-SO-ENV): the item's environment group in place of its half, verifier mtsoenv_h<1-g>, fit mt_soenv_fit_<tag>.json."""
     import copy, math
     from mt_peer0 import render, short_system, turn_context
     from tc_train import TC_ASK
-    h = zlib.crc32(p["id"].rsplit("_", 1)[1].encode()) % 2
-    fit, ver = _sofit(tag)[f"h{h}"], f"mtso_h{1 - h}"
+    if arm == "U":
+        h = _envh()[p["id"]]
+        fit, ver = _sofit(tag, "soenv")[f"h{h}"], f"mtsoenv_h{1 - h}"
+    else:
+        h = zlib.crc32(p["id"].rsplit("_", 1)[1].encode()) % 2
+        fit, ver = _sofit(tag)[f"h{h}"], f"mtso_h{1 - h}"
     vcli = PEER if os.environ.get("MT_VER", "gen") == "peer" else None
     from llm import client as gcli
-    name = f"{tag}_S_s{seed}"
+    name = f"{tag}_{arm}_s{seed}"
     cfg, cls, lc = p["initial_config"], p["involved_classes"], "long_context" in p["cat"]
     U.execute_multi_turn_func_call([], cfg, cls, name, p["id"], long_context=lc)
     msgs = [{"role": "system", "content": p["system"]}]
@@ -300,18 +307,28 @@ def run_item_sel(p, tag, seed):
             break
     for c in cls:
         U.__dict__.pop(_inst(name, p["id"], c), None)
-    return {"id": p["id"], "cat": p["cat"], "arm": "S", "seed": seed, "turns": turns, "tok": tok, "force_quit": quit_, "choices": choices,
+    return {"id": p["id"], "cat": p["cat"], "arm": arm, "seed": seed, "turns": turns, "tok": tok, "force_quit": quit_, "choices": choices,
             "ver_prefill": vpre, "n_think": sum(s["think"] for t in turns for s in t), "n_steps": sum(len(t) for t in turns)}
 
 
-_SOFIT = {}
+_SOFIT, _ENVH = {}, {}
 
 
-def _sofit(tag):
-    """MT-SO: the set-choice fit per item half (fitted on the other half), keys '<structure>|<roles>' as analyze_mtb.py --sel2 writes"""
-    if tag not in _SOFIT:
-        _SOFIT[tag] = json.load(open(os.environ.get("MT_SO_FIT", f"{RES}/mt_so_fit_{tag}.json")))
-    return _SOFIT[tag]
+def _sofit(tag, kind="so"):
+    """MT-SO: the set-choice fit per item half (fitted on the other half), keys '<structure>|<roles>' as analyze_mtb.py --sel2 writes;
+    kind soenv (MT-SO-ENV): per environment group, MT_SEL_SPLIT=env analyze_mtb.py --sel2"""
+    if (tag, kind) not in _SOFIT:
+        f = f"{RES}/mt_{kind}_fit_{tag}.json"
+        _SOFIT[(tag, kind)] = json.load(open(os.environ.get("MT_SO_FIT", f) if kind == "so" else f))
+    return _SOFIT[(tag, kind)]
+
+
+def _envh():
+    """MT-SO-ENV: item -> environment group (0 / 1, None for items of both), as MT-SEL-ENV split BFCL's classes"""
+    if not _ENVH:
+        from analyze_mtb import env_half
+        _ENVH.update(env_half(DATA))
+    return _ENVH
 
 
 def _canon(obs):
@@ -386,21 +403,23 @@ def run_item(p, tag, arm, seed):
 
 def main():
     tag, arm, seed = sys.argv[1], sys.argv[2], int(sys.argv[3])
-    assert arm in ("N", "T", "E", "F", "V", "S")
-    if arm in ("V", "S"):   # MT-V: the peer's server (POC_PEER_URL) and the policy files (MT_POLICY, with {h} for the fitting half); MT-SO: MT_VER
+    assert arm in ("N", "T", "E", "F", "V", "S", "U")
+    if arm in ("V", "S", "U"):   # MT-V: the peer's server (POC_PEER_URL) and the policy files (MT_POLICY, with {h} for the fitting half); MT-SO: MT_VER
         global PEER
         from openai import OpenAI
         PEER = OpenAI(base_url=os.environ["POC_PEER_URL"], api_key="none", timeout=float(os.environ.get("POC_TIMEOUT", 3600)))
     P = [json.loads(l) for l in open(DATA)]
     if os.environ.get("MT_SUBSET"):
         i, k = map(int, os.environ["MT_SUBSET"].split("/")); P = P[i::k]
+    if arm == "U":   # MT-SO-ENV: the items of one environment group only
+        P = [p for p in P if _envh().get(p["id"]) is not None]
     os.makedirs(RES, exist_ok=True)
     path = f"{RES}/mt_{tag}_{arm}_s{seed}.jsonl"
     done = {r["id"] for r in _rows(path)}
     todo = [p for p in P if p["id"] not in done]
     print(f"MT {tag} {arm} s{seed}: {len(todo)} of {len(P)} items to run", flush=True)
     with ThreadPoolExecutor(int(os.environ.get("MT_WORKERS", 8))) as ex, open(path, "a") as f:
-        run = {"V": run_item_vote, "S": run_item_sel}
+        run = {"V": run_item_vote, "S": run_item_sel, "U": lambda p, tag, seed: run_item_sel(p, tag, seed, "U")}
         fs = {(ex.submit(run[arm], p, tag, seed) if arm in run else ex.submit(run_item, p, tag, arm, seed)): p["id"] for p in todo}
         for j, fu in enumerate(as_completed(fs)):
             try:

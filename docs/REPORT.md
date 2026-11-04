@@ -742,8 +742,14 @@ OR problems and the observation that the cross-model filter removes the harm but
   rollout's calls and results and chooses among the quick, the peer's quick and the thinking turn: at turn 0 it beats thinking by
   +5.89 / +8.77 / +5.61 utility (Qwen3-8B / Qwen3-14B-AWQ / Qwen3.5-9B; within-set AUROC 0.84–0.91; MT-SEL, pre-registered, offline,
   every rollout's tokens counted), mostly by taking a quick turn that recovered from an error and finished where thinking gave up or
-  over-ran. MT-V's turn-0 room did not carry into whole conversations, so the method stays thinking at every step until the online
-  test (the choice at every turn) is in.
+  over-ran. Online, choosing this way at every turn of the conversation (MT-SO, pre-registered; the verifier retrained with later
+  turns, whose labels are the turns still right given a right start) beats thinking at every step by +17.21 [+14.33, +20.12] and
+  +15.52 [+12.83, +18.52] utility for Qwen3-8B and Qwen3.5-9B (48.8% vs 30.8% at 8.31k vs 6.84k tokens; 53.9% vs 38.0% at 3.29k vs
+  2.56k), in every category, committing the peer's quick turn on 20–37% of turns and the quick turn on 22–29%. The verifier's prefill
+  (17k tokens per conversation) is not priced. The gain compounds: a conversation fails when any one of its turns fails (a wrong end
+  state, a turn left without calls), and the choice avoids such turns one at a time. The verifier was trained
+  on scenarios of the same eight environment classes. At turn 0 it keeps about half its gain in classes it never saw (MT-SEL-ENV),
+  and the online test there is MT-SO-ENV.
 
 ## 8. Limitations
 

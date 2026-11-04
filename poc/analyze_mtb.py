@@ -66,11 +66,12 @@ def main():
     print(f"*** MT-B1: planner - T lower bound > 0 in {held} of {len(out)} models (needs 2): {'holds' if held >= 2 else 'refuted'}")
 
 
-def env_half():
+def env_half(path=None):
     """addendum MT-SEL-ENV: item -> 0 / 1 by environment group, None when it uses classes of both. The groups are the two-group split of
-    BFCL's eight classes (GorillaFileSystem in group 0) that maximises the smaller group's count of items using only its classes."""
+    BFCL's eight classes (GorillaFileSystem in group 0) that maximises the smaller group's count of items using only its classes.
+    path: the items file (default $POC_DATA/bfcl/mt_items.jsonl; run_mt.py passes its DATA)."""
     PD = os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nlp_data")
-    M = [json.loads(l) for l in open(f"{PD}/bfcl/mt_items.jsonl")]
+    M = [json.loads(l) for l in open(path or f"{PD}/bfcl/mt_items.jsonl")]
     cls = sorted({c for r in M for c in r["involved_classes"]})
     size = lambda A: min(sum(set(r["involved_classes"]) <= A for r in M), sum(not set(r["involved_classes"]) & A for r in M))
     A = max(({c for k, c in enumerate(cls) if m >> k & 1} for m in range(1, 2 ** len(cls) - 1) if m & 1), key=size)
@@ -95,6 +96,27 @@ def main_sel_env_build():
                         w.write(l); n += 1
         print(f"group {g}: {len(ids)} items with turn-0 sets, {n} requests", flush=True)
     print(f"dropped (both groups): {sum(eh.get(i) is None for i in items)} items")
+
+
+def main_so_env_build():
+    """addendum MT-SO-ENV (--so-env-build): per environment group g, mt_sel2's request ids of its items (turn 0 and the later turns,
+    '<item>' / '<item>/t<k>'), $POC_DATA/bfcl/mt_soenv_ids_h<g>.txt (training), and their texts, results/conf/sel_req_mt2env_h<g>.jsonl
+    (scored by the verifier trained on the other group)."""
+    PD = os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nlp_data")
+    C = os.path.join(os.path.dirname(RES), "conf")
+    eh = env_half()
+    ids = [json.loads(l)["id"] for l in open(f"{PD}/bfcl/mt_sel2_items.jsonl")]
+    for g in (0, 1):
+        mine = sorted(i for i in ids if eh.get(i.split("/")[0]) == g)
+        open(f"{PD}/bfcl/mt_soenv_ids_h{g}.txt", "w").write("\n".join(mine) + "\n")
+        n = 0
+        with open(f"{C}/sel_req_mt2env_h{g}.jsonl", "w") as w:
+            for h in (0, 1):
+                for l in open(f"{C}/sel_req_mt2_h{h}.jsonl"):
+                    if eh.get(json.loads(l)["id"].split("/")[0]) == g:
+                        w.write(l); n += 1
+        print(f"group {g}: {len(mine)} requests ({sum('/' not in i for i in mine)} at turn 0), {n} texts", flush=True)
+    print(f"dropped (both groups): {sum(eh.get(i.split('/')[0]) is None for i in ids)} requests")
 
 
 def main_sel():
@@ -234,7 +256,9 @@ def main_sel2():
     turn (0, 1, 2, >= 3), cross-fitted as main_sel; writes the online arm's fit, results/tc/mt_so_fit_<model>.json: per test half h,
     lcm_shift.sel_fit_cl on the other half's sets of every turn pooled (scores of the verifier trained on h), keys '<structure>|<roles>'.
     MT-SO-P3: SEL3 - T on the later turns, the three models pooled, intervals over items; P4: SEL3 - SEL3 with --ref, same sets.
-    MT_SEL_SYNTH=1: random scores (the dry run; the fit goes to mt_so_fit_<model>_synth.json)."""
+    MT_SEL_SYNTH=1: random scores (the dry run; the fit goes to mt_so_fit_<model>_synth.json).
+    MT_SEL_SPLIT=env (addendum MT-SO-ENV): halves by environment group (env_half), the items of both groups dropped; the fit goes to
+    results/tc/mt_soenv_fit_<model>.json."""
     import random
     from collections import Counter, defaultdict
     import lcm_shift as L
@@ -250,6 +274,10 @@ def main_sel2():
     f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
     tg = lambda k: str(k) if k < 3 else "3+"
     base = lambda i: i.split("/")[0]
+    env = os.environ.get("MT_SEL_SPLIT") == "env"
+    if env:
+        eh = env_half()
+        rows = [dict(r, half=eh[base(r["id"])]) for r in rows if eh.get(base(r["id"])) is not None]
 
     def sc(S, i, t):
         if synth:
@@ -309,7 +337,7 @@ def main_sel2():
             for k, v in U2["SEL3"].items():
                 if k in U2["ref3"] and "/t" in k[0]:
                     vsref[base(k[0])].append(v - U2["ref3"][k])
-        json.dump(out, open(f"{RES}/mt_so_fit_{m}{'_synth' if synth else ''}.json", "w"))
+        json.dump(out, open(f"{RES}/mt_so{'env' if env else ''}_fit_{m}{'_synth' if synth else ''}.json", "w"))
         print(f"=== MT-SO offline {m}: missing scores {dict(miss)}, unseen structures keep T {dict(unseen)}; fit written "
               f"(beta_CL h0 {out['h0']['beta']:.2f}, h1 {out['h1']['beta']:.2f})", flush=True)
         for g in ("0", "1", "2", "3+"):
@@ -331,6 +359,8 @@ def main_sel2():
 if __name__ == "__main__":
     if "--sel-env-build" in sys.argv:
         main_sel_env_build()
+    elif "--so-env-build" in sys.argv:
+        main_so_env_build()
     elif "--sel2" in sys.argv:
         main_sel2()
     elif "--sel" in sys.argv:
