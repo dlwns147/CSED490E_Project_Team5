@@ -119,6 +119,26 @@ def main_so_env_build():
     print(f"dropped (both groups): {sum(eh.get(i.split('/')[0]) is None for i in ids)} requests")
 
 
+def main_pw_build():
+    """addendum MT-PW (--pw-build): every ordered pair of distinct rollout texts in every pseudo-set (results/conf/mt_sel2_rows.jsonl) of
+    half h -> results/conf/sel_req_mt2pw_h<h>.jsonl (task tc, sset mt2, kind pw; scored by the pairwise verifier trained on the other half)"""
+    import lcm_shift as L
+    C = os.path.join(os.path.dirname(RES), "conf")
+    req = {0: {}, 1: {}}
+    for r in map(json.loads, open(f"{C}/mt_sel2_rows.jsonl")):
+        T = list(dict.fromkeys(r["roll"][k][0] for k in ("N", "P", "T")))
+        for a in T:
+            for b in T:
+                if a != b:
+                    h = L.rv_key("tc", "mt2", r["id"], "pw", [a, b])
+                    req[r["half"]][h] = {"h": h, "task": "tc", "sset": "mt2", "id": r["id"], "kind": "pw", "text": a, "text2": b}
+    for g in (0, 1):
+        with open(f"{C}/sel_req_mt2pw_h{g}.jsonl", "w") as f:
+            for v in req[g].values():
+                f.write(json.dumps(v) + "\n")
+        print(f"half {g}: {len(req[g])} ordered pairs", flush=True)
+
+
 def main_sel():
     """addendum MT-SEL (--sel <verifier trained on half 0>,<verifier trained on half 1> [--ref <name>]): at turn 0, a verifier choosing
     among the rollouts of N, the peer's N and T (SEL3; with the next seed's T too, SEL4), and the gate (N kept when its score clears tau,
@@ -361,6 +381,8 @@ if __name__ == "__main__":
         main_sel_env_build()
     elif "--so-env-build" in sys.argv:
         main_so_env_build()
+    elif "--pw-build" in sys.argv:
+        main_pw_build()
     elif "--sel2" in sys.argv:
         main_sel2()
     elif "--sel" in sys.argv:
