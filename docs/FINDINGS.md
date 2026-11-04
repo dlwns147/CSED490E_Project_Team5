@@ -5588,3 +5588,20 @@ On the 64 items that are statements to prove (34 false, 30 true):
   unproved here include IMO 2008 P1, 2012 P5, 2015 P3, 2019 P2 and 2020 P1. The gap comes from single points, 64 tries and Newclid's
   DDAR. Two or more points and a larger budget come next.
 - The same search runs on the 53 faithful held-out translations as SIDE-GT-H's AUX arm (job 1317291).
+
+## 2026-11-04 17:4x UTC: Main track, derived: why the per-turn choice gains +16 to +18 over whole conversations, and where the next gain is (the verifier, not a gate)
+- **Model.** A conversation is right only when every turn is right, so with per-turn success p_t given a right start, its accuracy
+  is the turn-count-weighted mean of ∏_t p_t. There are no free parameters.
+- **Check.** Fed the offline pseudo-set rates, the model gives S − T = +15.5 / +17.4 (Qwen3-8B / Qwen3.5-9B). Online gave
+  +17.9 / +15.9. Both levels are 4–6 points high, because the pseudo-sets keep only the easier histories. My registered +5 to +12
+  missed because it assumed a per-turn gain of +6; the measured per-turn gains are +6 to +10, and over 4–5 turns they multiply.
+  The model's prediction for MT-SO-ENV (+9.7 / +10.4) is registered before any U row is read.
+- **Where the next gain is.** The same model gives each change's ceiling over whole conversations (Qwen3-8B; Qwen3.5-9B in
+  parentheses):
+  - a perfect choice among the same N, P, T: 63.7% (71.2%), against SEL3's 52.5% (59.4%), so **+11 points at no output tokens**;
+  - a second thinking rollout in the set: oracle 68.5% (76.4%), +5 more, at about +7.5k (+2.7k) tokens per conversation;
+  - **a gate** (skip the thinking rollout when the quick ones look right): it can save at most the thinking rollouts' tokens, about
+    7.8k (2.8k) per conversation, so at most **+3.9 (+1.4) utility**, and less once its errors cost accuracy.
+- **Decision.** The gate registered as MT-SO's next step is dropped: its derived ceiling is a third of the verifier's. The next
+  method step attacks the verifier's within-set choice. It picks a wrong rollout in 5–7% of the turns where a right one exists,
+  and that compounds to 11 points.
