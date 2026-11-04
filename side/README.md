@@ -147,7 +147,7 @@ translates the statement into AlphaGeometry's construction language, and Newclid
 None of these sees a step left unjustified while true, the most common error (85% of solutions in IneqMath), so a symbolic engine
 that proves, as in geometry, is the stronger route where one exists.
 
-## D. Constructions: the computation side of proofs (`side/construct.py`; being tested)
+## D. Constructions: the computation side of proofs (`side/construct.py`; held-out test done)
 
 **Why:** the side work on math runs two ways (user, 11-04): proofs (section C; geometry) and computation. A constructive problem
 ("show that an object with these properties exists") is proved by the object, and whether an object is right is decided by computing.
@@ -167,6 +167,16 @@ development, 75 held out).
 
 **Setup:** MathConstruct needs `sympy`, `antlr4-python3-runtime==4.11`, `pydantic`, `loguru`; grading runs with
 `PYTHONPATH=$POC_DATA/construct/mathconstruct/src`.
+
+**Results (Qwen3-8B; PREREG_SIDE SIDE-MC-H, 147 held-out instances):**
+- One thinking answer with a 30k cap solves 23.1% (22.2k tokens); a 16k cap cuts most runs off (dev: 9 vs 18 right).
+- A thinking program solves 18.4%, mostly different instances: the two are right on 27 and 34, only 13 in common.
+- The model's own quick checker is not a usable free check. It rejects 28% of right objects, so the registered cascade
+  (program, checker, then the answer) is not significantly better than the answer alone (+4.8 points [−0.7, +10.3]).
+- Taking the program's object whenever it parses, else the answer, gains +6.8 points [+0.7, +13.5] at 1.4× the tokens. That was
+  a secondary arm; it needs a fresh test before anyone relies on it.
+- Open question for the teammate: a checker that is right more often than the model's own (written once per problem and checked
+  on small cases), or a search program that the problem's structure makes exact.
 
 **For algorithms work:** the program route is search (backtracking, SAT encodings, local search), and "search small cases, find the
 pattern, build the large case" is a method of its own.

@@ -359,3 +359,28 @@ are right in 2 of 79 graded attempts, and 14 of the 15 have none right.
   an auxiliary-point search for the faithful translations DDAR cannot prove (HAGeo-style, on Newclid).
 - **P1 refuted** → dev's rate came from the IMO-AG-30 problems. The pipeline is reported with the held-out rate, and the next
   step is the translator, not the prover.
+
+## Results of SIDE-MC-H (written 2026-11-04 14:3x UTC; `results/mch_eval.txt`, `python3 side/construct.py cascade mceval_q8b_dt30+mceval_q8b_pt30 --direct mceval_q8b_dt30 --program mceval_q8b_pt30 --checkers mceval_q8b_cn8`; jobs 1315962 / 1315963)
+
+147 instances of 75 problems, Qwen3-8B, graded by MathConstruct's verifiers; intervals by bootstrap over problems.
+
+| arm | right | tokens | utility |
+|---|---|---|---|
+| D: direct, thinking at 30k | 34 (23.1%) | 22.2k | +12.04 |
+| P: program, thinking at 30k | 27 (18.4%) | 17.9k | +9.43 |
+| C: P's object if it parses and one of 4 quick checkers accepts it, else D | 41 (27.9%) | 38.7k | +8.52 |
+| C0: P's object if it parses, else D | 44 (29.9%) | 31.9k | +14.00 |
+
+- **SIDE-MC-H-P1 refuted:** C − D accuracy +4.76 [−0.68, +10.27]; the lower bound misses 0.
+- **P2:** C − D utility −3.52 [−9.09, +2.69].
+- **P3 refuted:** C − C0 accuracy −2.04 [−5.56, +1.36], utility −5.48 [−9.42, −1.88]. The quick checkers accept 44 of 61 right
+  parsed objects and 15 of 95 wrong ones. Rejecting 17 right objects costs more than catching 80 wrong ones gains.
+- The complementarity is not noise. P and D are right on 27 and 34 instances, 13 in common, union 48 (dev: 18, 19, 10, 27). The
+  parse-only gate C0, registered as a secondary arm, gains accuracy +6.80 [+0.68, +13.51] at 1.4× D's tokens. Its utility ties,
+  +1.96 [−4.55, +9.09].
+- Expected ranges: D 20–28% held (23.1%); C 28–38% missed (27.9%).
+
+**Decision (registered):** P1 is refuted, so the computation recipe for constructions stays the direct thinking answer with the
+full budget. The registered reason, "the overlap on dev was noise", is contradicted: the overlap holds, and the gate is what fails.
+C0's accuracy gain is a result of a secondary arm, not a decision. Using it needs a fresh test (new variations of the problems).
+The self-written quick checker is not a usable free check for an 8B model on constructions: it rejects 28% of right objects.

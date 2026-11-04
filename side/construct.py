@@ -223,5 +223,60 @@ def analyze():
                       f"{tok / len(ids):.1f}k tokens; utility {(100 * right - 0.5 * tok) / len(ids):+.2f}")
 
 
+def cascade():
+    """SIDE-MC-H (PREREG_SIDE): arms D (direct, thinking), P (program, thinking), C (P's object when it parses and one of the first m
+    quick checkers accepts it, else D's), C0 (parsing as the only check); accuracy and utility (100 x right - 0.5 x ktokens), paired
+    95% bootstrap intervals over problems (both variations of a problem resampled together).
+    usage: python side/construct.py cascade <grade file tag> --direct <tag> --program <tag> --checkers <tag> [--m 4]"""
+    import random
+    from collections import defaultdict
+    G = [json.loads(l) for l in open(f"{OUT}/mc_grade_{sys.argv[2]}.jsonl")]
+    dt, pt, ct = (sys.argv[sys.argv.index(f) + 1] for f in ("--direct", "--program", "--checkers"))
+    m = int(sys.argv[sys.argv.index("--m") + 1]) if "--m" in sys.argv else 4
+    ctok = defaultdict(int)
+    for r in map(json.loads, open(f"{OUT}/mc_{ct}.jsonl")):
+        if r.get("s", 0) < m:
+            ctok[r["id"]] += r["out_tokens"]
+    D = {g["id"]: g for g in G if g["tag"] == dt}
+    P = {g["id"]: g for g in G if g["tag"] == pt}
+    ids = sorted(set(D) & set(P))
+    acc = lambda g: any(g.get("checks", {}).get(ct if s == 0 else f"{ct}#{s}") == "accept" for s in range(m))
+    arms = {"D": {}, "P": {}, "C": {}, "C0": {}}
+    for i in ids:
+        d, p = D[i], P[i]
+        arms["D"][i] = (d["right"], d["out_tokens"])
+        arms["P"][i] = (p["right"], p["out_tokens"])
+        arms["C"][i] = ((p["right"], p["out_tokens"] + ctok[i]) if p["parsed"] and acc(p)
+                        else (d["right"], p["out_tokens"] + ctok[i] + d["out_tokens"]))
+        arms["C0"][i] = (p["right"], p["out_tokens"]) if p["parsed"] else (d["right"], p["out_tokens"] + d["out_tokens"])
+    u = lambda rt: 100 * rt[0] - 0.5 * rt[1] / 1000
+    prob = defaultdict(list)
+    for i in ids:
+        prob[i.rsplit("__", 1)[0]].append(i)
+    names = sorted(prob)
+
+    def ci(f):
+        B = []
+        for b in range(10000):
+            r = random.Random(b)
+            S = [i for _ in names for i in prob[r.choice(names)]]
+            B.append(sum(f(i) for i in S) / len(S))
+        B.sort()
+        return sum(f(i) for i in ids) / len(ids), B[249], B[9749]
+    print(f"SIDE-MC-H: {len(ids)} instances of {len(names)} problems; checkers {ct} (first {m})")
+    for a, X in arms.items():
+        print(f"  {a:3s} right {sum(v[0] for v in X.values()):3d} ({100 * sum(v[0] for v in X.values()) / len(ids):.1f}%), "
+              f"{sum(v[1] for v in X.values()) / len(ids) / 1000:.1f}k tokens, utility {sum(u(v) for v in X.values()) / len(ids):+.2f}")
+    for a, b in (("C", "D"), ("C0", "D"), ("C", "C0"), ("P", "D")):
+        da = ci(lambda i: 100 * (arms[a][i][0] - arms[b][i][0]))
+        du = ci(lambda i: u(arms[a][i]) - u(arms[b][i]))
+        print(f"  {a} - {b}: accuracy {da[0]:+.2f} [{da[1]:+.2f}, {da[2]:+.2f}]; utility {du[0]:+.2f} [{du[1]:+.2f}, {du[2]:+.2f}]")
+    pr = {i for i in ids if P[i]["right"]}; dr = {i for i in ids if D[i]["right"]}
+    print(f"  right objects: P {len(pr)}, D {len(dr)}, both {len(pr & dr)}, union {len(pr | dr)}")
+    for lab in (True, False):
+        V = [acc(g) for g in list(P.values()) + list(D.values()) if g["parsed"] and g["right"] == lab]
+        print(f"  {'right' if lab else 'wrong'} parsed objects accepted by a checker: {sum(V)} of {len(V)}")
+
+
 if __name__ == "__main__":
-    {"build": build, "gen": gen, "grade": grade, "analyze": analyze}[sys.argv[1]]()
+    {"build": build, "gen": gen, "grade": grade, "analyze": analyze, "cascade": cascade}[sys.argv[1]]()

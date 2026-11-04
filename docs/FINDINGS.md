@@ -5567,3 +5567,13 @@ On the 64 items that are statements to prove (34 false, 30 true):
   auxiliary points. HAGeo (2512.00097) reaches 28 of 30 on IMO-AG-30 with heuristic auxiliary points and 25 with random ones; its
   code is not released, so an auxiliary-point search on Newclid would be ours.
 - Next: SIDE-GT-H on the 65 held-out problems (PREREG_SIDE).
+
+## 2026-11-04 14:3x UTC: SIDE-MC-H (pre-registered, 147 held-out instances): the checker-gated cascade misses (P1 refuted); a thinking program and a thinking answer still solve different instances
+- D (direct, thinking, 30k) 23.1% at 22.2k tokens; P (program) 18.4% at 17.9k; C (registered cascade) 27.9% at 38.7k; C0 (parse
+  only) 29.9% at 31.9k.
+- C − D accuracy +4.76 [−0.68, +10.27] (P1 refuted), utility −3.52. C − C0 −2.04: the quick checkers reject 17 of 61 right
+  objects, and that costs more than the 80 of 95 wrong ones they catch.
+- P and D are right on 27 and 34 instances, 13 in common, union 48: the overlap replicates the dev result (dev 18, 19, 10, 27).
+  C0 (secondary) gains +6.80 [+0.68, +13.51] accuracy, with utility tied at 1.4× the tokens.
+- Decision as registered: for constructions the recipe stays one thinking answer with the full budget, and the 8B model's own quick
+  checker is not a free check. side/README section D updated.
