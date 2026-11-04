@@ -5548,3 +5548,22 @@ On the 64 items that are statements to prove (34 false, 30 true):
   `check`, and in gen's guard with `GT_TRIVIAL=1`, so the running jobs keep their guard. On the login node it flags all 7
   distinct grammar-run passes and none of the 41 reference translations (IMO-AG-30 and the others in gt_refs). IMO 2012 P5's
   faithful translation and the Canada 2006 midline statement stay `guarded`.
+
+## 2026-11-04 13:1x UTC: SIDE-GT dev 4 (exploratory; Qwen3.6-27B-AWQ translating, grammar, up to 2 repair turns): four IMO problems proved end to end from the statement, by an open 27B model and a CPU engine
+- Job 1315918 (two 3090s, tensor parallel, thinking at medium effort, k = 4): 19.2k tokens per translation. 15 of 96 pass the
+  guard on 7 problems; none is trivial. For comparison, Qwen3-8B passed 2 of 96, with 1 faithful problem over three runs.
+- Read by hand against the statement and, where one exists, IMO-AG-30's reference:
+  - **faithful (6 problems):** IMO 2010 P2 (two encodings, one with the reflection over AI), IMO 2014 P4 (∠APB = ∠BAC, which is
+    equivalent to ∠PAB = ∠BCA), IMO 2015 P4 (three encodings), IMO 2010 P4 (one direction of the "if and only if", as the rules
+    ask), ISL 2015 G (CQ = QP), IMO 2017 P4;
+  - **unfaithful (1):** IMO 2012 P5, where X is fixed at the midpoint of CC0, an added hypothesis.
+- DDAR (check job 1316203, CPU, 300 s) proves 7 translations of 4 problems: IMO 2010 P4 (2), IMO 2014 P4 (1), IMO 2015 P4 (2) and
+  IMO 2017 P4 (2), in 2–62 s each. These are the four that DDAR proves from IMO-AG-30's own translations. IMO 2010 P2 and
+  ISL 2015 G stay unproved (DDAR alone; they need an auxiliary point).
+- On OPC's human grades, frontier models' natural-language proofs of ISL 2010 G (= IMO 2010 P4) are right 0 of 4 times, and of
+  ISL 2017 G (= IMO 2017 P4) 0 of 5.
+- So the pipeline works when the translator is strong enough: an open 27B model translates and repairs, the guard and trivial test
+  filter, and DDAR's proofs are exact. Dev: 4 of 24 problems end to end (Wilson 95% [6.7%, 35.9%]); 2 more are faithful but need
+  auxiliary points. HAGeo (2512.00097) reaches 28 of 30 on IMO-AG-30 with heuristic auxiliary points and 25 with random ones; its
+  code is not released, so an auxiliary-point search on Newclid would be ours.
+- Next: SIDE-GT-H on the 65 held-out problems (PREREG_SIDE).

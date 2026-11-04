@@ -316,3 +316,46 @@ program and a direct answer for constructions.
 - **P1 holds** → for constructions the side work's computation recipe is "thinking program, quick self-written check, thinking
   answer on failure" (side/README section D), stated as a trade if P2's interval includes 0.
 - **P1 refuted** → the overlap on dev was noise, and the recipe is the direct thinking answer with the full budget.
+
+## SIDE-GT-H: geometry held out: exact proofs from the statement by an open model translating and a CPU engine proving (written 2026-11-04 13:1x UTC, before any translation of the 65 held-out problems)
+
+**Why.** Dev (FINDINGS 2026-11-04 13:1x; 24 problems): Qwen3.6-27B-AWQ translates 6 problems faithfully, and DDAR proves 4 end to
+end (IMO 2010 P4, 2014 P4, 2015 P4, 2017 P4). This test checks whether that rate carries to problems never used for any decision.
+The 11 dev problems with an IMO-AG-30 reference were put first, and IMO-AG-30 is DDAR-friendly, so the held-out rate may be lower.
+
+**Related work.** NL2AGBench (2608.28481) measures translation alone: executable rates, open models weak. AlphaGeometry 1 and 2
+(2502.03544) translate with Gemini and prove with a trained model plus DDAR. HAGeo (2512.00097) proves from given formal
+statements, using heuristic auxiliary points. We found no end-to-end result from natural language with an open model and a
+symbolic engine only.
+
+**Data.** `$POC_DATA/geo/ids_gteval.txt`: 65 problems, none in dev. 15 are from OPC; frontier natural-language proofs of those
+are right in 2 of 79 graded attempts, and 14 of the 15 have none right.
+
+**Run.**
+1. Translate with `gen gteval_q36_tg ids_gteval.txt --think --k 4 --repair 2 --grammar`.
+   - Qwen3.6-27B-AWQ on two 3090s, tensor parallel, `POC_TEMPLATE_EFFORT=medium`.
+   - `GT_TRIVIAL=1`, so the repair turn is told when a goal is trivial. This is the only change from dev 4.
+2. **Faithfulness first, blind to DDAR.**
+   - Before any `check` runs, I list every translation whose last round is `guarded` and read each against its statement.
+   - A translation is **faithful** when two things hold. Every hypothesis of the statement is present, up to an equivalent
+     encoding. And none is added: a special position, a fixed ratio, or a chosen intersection the statement leaves open are
+     added hypotheses; picking one of two intersections where the statement names it is not. The goal must be the statement's
+     claim, or for "if and only if" one direction with the other side as hypothesis.
+   - The list and the verdicts are written to `results/proof/gteval_faithful.json` and committed in this file's results section
+     before step 3.
+3. `check gteval_q36_tg --timeout 300` (guard, trivial test, DDAR).
+4. **End-to-end count:** problems with at least one faithful translation that DDAR proves.
+
+**Predictions.**
+- **SIDE-GT-H-P1 (decision):** the held-out end-to-end rate is at least 6.7%, dev's Wilson 95% lower bound. On 65 problems that is
+  ≥ 5 problems.
+- **SIDE-GT-H-P2 (reported):** the faithful-translation rate (dev 6 of 24), DDAR's rate given a faithful translation (dev 4 of
+  6), and tokens per problem.
+- **SIDE-GT-H-P3 (reported):** among the 15 OPC problems, the number proved where every graded frontier proof was wrong.
+- **Expected:** 3–8 problems end to end, below dev's 17% because dev started with the IMO-AG-30 problems.
+
+**Decision.**
+- **P1 holds** → SIDE-GT is documented in side/README as a working pipeline for the teammate, with the held-out rate. Next comes
+  an auxiliary-point search for the faithful translations DDAR cannot prove (HAGeo-style, on Newclid).
+- **P1 refuted** → dev's rate came from the IMO-AG-30 problems. The pipeline is reported with the held-out rate, and the next
+  step is the translator, not the prover.
