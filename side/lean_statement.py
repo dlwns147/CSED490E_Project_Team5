@@ -35,7 +35,10 @@ def lean_of(text):
     t = (b[-1] if b else text).strip()   # no code block: the theorem is searched in the whole reply
     t = "\n".join(l for l in t.splitlines() if not l.startswith(("import ", "open ", "set_option")))
     m = re.search(r"(theorem|lemma)\s+\S+", t)
-    return t[m.start():].strip() if m else None
+    if m:
+        return t[m.start():].strip()
+    m = re.search(r"(?m)^\s*stmt\b", t)   # Qwen3-8B often writes `stmt : ...` without the keyword (dev, 11-04)
+    return "theorem " + t[m.start():].strip() if m else None
 
 
 def gen():
@@ -76,6 +79,9 @@ def check():
     tag = sys.argv[2]
     batch = int(sys.argv[3]) if len(sys.argv) > 3 else 16
     R = [json.loads(l) for l in open(f"{OUT}/ls_{tag}.jsonl")]
+    for r in R:   # re-extract from the stored reply (the extractor may be newer than the rows)
+        if r.get("text"):
+            r["lean"] = lean_of(r["text"])
     out = f"{OUT}/ls_{tag}_check.jsonl"
 
     def run(rows):
