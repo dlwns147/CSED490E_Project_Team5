@@ -468,3 +468,27 @@ translations have none faithful:
   - The procedure was fixed on IMO-AG-30's references (job 1316470, still running). So far it has found 4 more proofs, among them
     IMO 2010 P2.
 - **AUX-P1 (reported):** +1 to +5 problems over the primary count.
+
+## Results of SIDE-GT-H, part 2: the registered check (written 2026-11-04 15:3x UTC; check job 1317210, `results/proof/gt_gteval_q36_tg_check.jsonl`)
+
+- DDAR proves 8 translations on 5 problems. 2 of the 8 were judged unfaithful in part 1: USAMO 2006 P6 (partial goal) and ISL
+  2014 G (the feet of H in place of the angle conditions). They do not count.
+- **End to end (faithful and proved): 3 of 65 problems.**
+  - Pan-African 2002 P5: 3 translations, 6 s each.
+  - Romanian NMO 2006 grade 9 P3(b): 1 translation, 3 s.
+  - ISL 2012 G (2012_16, the ECGD parallelogram and the reflection H, concyclic D, H, F, G): 2 translations, 12 s. Frontier
+    natural-language proofs of it are right 0 of 8 times (OPC).
+- **SIDE-GT-H-P1 refuted:** 3 of 65 = 4.6%, below the registered 6.7% (≥ 5 problems). It is inside the expected 3–8.
+- **P2:**
+  - faithful translations on 19 of 65 problems (29%; dev 25%);
+  - DDAR proves 3 of those 19 (dev 4 of 6);
+  - 12.5k tokens per translation, 50k per problem (k = 4).
+- **P3:** 1 OPC problem proved where every graded frontier proof was wrong (ISL 2012 G, 0 of 8).
+- No translation was trivial.
+- One guarded translation (USAMO 2001 P2, sample 1) held on 0 of 8 diagrams in `check`, after holding on at least one in gen's
+  guard. The diagram search is not fully determined by its seed; noted, not changed.
+
+**Decision (registered):** P1 is refuted, and the pipeline is reported with the held-out rate, 3 of 65 problems end to end. The
+registered next step, "the translator, not the prover", is contradicted by the data. Translation holds up: 29% of the problems are
+translated faithfully, more than on dev. The prover is the bottleneck: 16 of 19 faithful problems are not proved by DDAR alone. The
+auxiliary-point arm, registered before this check, is the test of that (job 1317291).
