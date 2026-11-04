@@ -13,7 +13,8 @@ INSAIT-Institute/BrokenMath), whose benchmark statements are competition problem
 $POC_DATA/proof/brokenmath/bm.jsonl (label 0 = false statement, 1 = true: the train split's unperturbed statements and the
 benchmark's originals that are themselves statements to prove).
 usage (in a lane.sh job; POC_BASE_URL set; $P = the sandbox python):
-  $P side/proof_falsify.py <tag> <ids file> [--statement] [--think] [--max_tokens N] [--workers W]
+  $P side/proof_falsify.py <tag> <ids file> [--statement [--verdict]] [--think] [--max_tokens N] [--workers W]
+  (--verdict: the baseline without computation; the model decides true or false by reasoning, flag = it says false)
   -> results/proof/pf_<tag>.jsonl, one row per item: id, label, program, out_tokens, finish, run status, last line, flag"""
 import json, os, re, sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -76,14 +77,27 @@ Statement:
 {problem}"""
 
 
+PROMPT_V = """Below is a competition statement that someone wants proved. It may be false. Decide whether it is true or false. \
+Do not write a proof. End your reply with exactly one line: `VERDICT: TRUE` or `VERDICT: FALSE`.
+
+Statement:
+{problem}"""
+
+
 def code_of(text):
     b = re.findall(r"```(?:python|py)?[ \t]*\n(.*?)```", text, flags=re.S)
     return b[-1] if b else None
 
 
-def one(x, think, max_tokens, statement=False):
-    q = PROMPT_ST.format(problem=x["problem"]) if statement else PROMPT.format(problem=x["problem"], solution=x["solution"])
+def one(x, think, max_tokens, statement=False, verdict=False):
+    q = (PROMPT_V if verdict else PROMPT_ST).format(problem=x["problem"]) if statement else \
+        PROMPT.format(problem=x["problem"], solution=x["solution"])
     r = chat(q, think=think, max_tokens=max_tokens, temperature=0.6 if think else 0.7)
+    if verdict:
+        v = re.findall(r"VERDICT:\s*\**\s*(TRUE|FALSE)", r["text"].upper())
+        return {"id": x["id"], "label": x["label"], "split": x["split"], "model_id": x["model_id"], "program": None,
+                "out_tokens": r["out_tokens"], "in_tokens": r["in_tokens"], "finish": r["finish"], "status": "verdict",
+                "last": v[-1] if v else "", "stderr": "", "flag": bool(v) and v[-1] == "FALSE"}
     code = code_of(r["text"])
     run = run_python(code, "", timeout=10) if code else None
     last = (run.stdout.strip().splitlines() or [""])[-1][:500] if run else ""
@@ -95,7 +109,7 @@ def one(x, think, max_tokens, statement=False):
 
 def main():
     tag, ids_file = sys.argv[1], sys.argv[2]
-    think, statement = "--think" in sys.argv, "--statement" in sys.argv
+    think, statement, verdict = "--think" in sys.argv, "--statement" in sys.argv, "--verdict" in sys.argv
     mt = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else (12000 if think else 4096)
     workers = int(sys.argv[sys.argv.index("--workers") + 1]) if "--workers" in sys.argv else 32
     want = set(open(ids_file).read().split())
@@ -106,7 +120,7 @@ def main():
     todo = [x for x in X if x["id"] not in done]
     print(f"SIDE-PF {tag}: {len(todo)} of {len(X)} {'statements' if statement else 'proofs'} to check (think={think}, max_tokens={mt})", flush=True)
     with ThreadPoolExecutor(workers) as ex, open(out, "a") as f:
-        fut = [ex.submit(one, x, think, mt, statement) for x in todo]
+        fut = [ex.submit(one, x, think, mt, statement, verdict) for x in todo]
         for k, fu in enumerate(as_completed(fut)):
             try:
                 r = fu.result()
