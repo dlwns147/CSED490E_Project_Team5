@@ -109,7 +109,7 @@ def check():
             elif "Found a counter-example" in txt or "Found a counterexample" in txt:
                 st = "counterexample"
             elif "Failed to create a `testable` instance" in txt or \
-                    re.search(r"failed to synthesize[\s\S]*(Testable|Sampleable|Shrinkable|Decidable)", txt):
+                    re.search(r"failed to synthesize\s+(Plausible\.)?(Testable|SampleableExt|Shrinkable|Decidable)", txt):
                 st = "untestable"
             elif "Unable to find a counter-example" in txt or "Gave up" in txt or not re.search(r"\berror\b", txt):
                 st = "none found"
