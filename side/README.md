@@ -82,7 +82,7 @@ witness for 98.4% of the target pairs, with a median of 3 rows.
 readable, but the 8B verifier does not use them: its choice changes less than retraining alone changes it. Side project B is closed.
 The code stays as an example of a delta-debugging component.
 
-## C. Proofs (`side/proof_falsify.py`, `side/geo_translate.py`; being tested)
+## C. Proofs (`side/proof_falsify.py`, `side/geo_translate.py`; geometry pipeline held-out tested)
 
 **What the main track already knows** (`docs/prereg/PREREG_PROOF.md`):
 - Lean 4 (miniF2F): the compiler is a perfect check.
@@ -121,7 +121,7 @@ the proof's concrete claims, discarding instances where the problem's own (true)
 - The judges name a false geometric fact in only 6 of the 38 wrong proofs; the rest are gaps or missing work, which no numerical
   test sees. Frontier models' proofs of OPC's 22 shortlist geometry problems are right in 2 of 105 cases.
 
-**Testing now: geometry by translation and a symbolic engine (SIDE-GT, `side/geo_translate.py`).** The model writes no proof. It
+**Geometry by translation and a symbolic engine (SIDE-GT, `side/geo_translate.py`).** The model writes no proof. It
 translates the statement into AlphaGeometry's construction language, and Newclid's DDAR (Sicca et al., 2411.11938; CPU) proves it.
 - The free check: the problem's conclusion must hold numerically on a random figure built from the translation's hypotheses alone.
   A false goal holds on none; a translation that adds a hypothesis still passes, so faithfulness is read by hand or against a
@@ -133,8 +133,25 @@ translates the statement into AlphaGeometry's construction language, and Newclid
   11 with an IMO-AG-30 reference; 24 for development, 65 held out.
 - Setup: `pip install --no-deps --target $POC_DATA/geo/pylib newclid==2.0.2 colorama networkx pyvis seaborn`; run the check with
   `PYTHONPATH=$POC_DATA/geo/pylib`.
-- A project for algorithms work: the translator's search (resampling, repair from Newclid's errors), and auxiliary constructions
-  when DDAR stops (HAGeo's heuristics are a published baseline).
+- What we built on top of the guard:
+  - repair turns that show the model Newclid's error;
+  - `--grammar`: the final line is decoded under an EBNF of Newclid's 81 constructions and their argument counts, using vLLM 0.22's
+    `structured_outputs.grammar`;
+  - a trivial-goal test that rejects a goal already among the construction's facts;
+  - retries on other diagrams when Newclid fails on one (`GT_DDAR_SEEDS`);
+  - `aux`, a search over one auxiliary point at a time.
+- Results (FINDINGS 11-04; PREREG_SIDE SIDE-GT-H):
+  - **Qwen3-8B:** fails as the translator. 1 of 24 dev problems is translated faithfully. The grammar removes the syntax errors,
+    but what then passes is trivially true.
+  - **Qwen3.6-27B-AWQ** (two 3090s, thinking at medium effort, k = 4, grammar, 2 repair turns):
+    - dev: 6 of 24 problems faithful; DDAR proves IMO 2010 P4, 2014 P4, 2015 P4 and 2017 P4;
+    - held out (faithfulness judged before any proof attempt): 19 of 65 problems faithful (29%), but DDAR alone proves only 3
+      (4.6%; the registered bar of 5 was missed). One of the 3 is ISL 2012 G (2012_16), where frontier natural-language proofs are
+      right 0 of 8 times.
+  - **gpt-oss-120b:** declines 78 of 96 dev translations as unexpressible. It is faithful on 4 problems, and DDAR proves 1.
+- So with a 27B translator the prover is the bottleneck. A project for algorithms work: auxiliary constructions when DDAR stops.
+  Our first search is uniform over construction type, then over arguments. HAGeo's heuristics (28 of 30 on IMO-AG-30, random
+  constructions 25) are the published target; their code is not released.
 
 **Other hard proofs, the same question** (OPC graded proofs, wrong / right): is there a free check that sees the common error?
 
