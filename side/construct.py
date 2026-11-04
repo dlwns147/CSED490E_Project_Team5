@@ -10,7 +10,7 @@ any answer, can stand in for the human verifier as the free check (on these prob
   grade   (MathConstruct's environment) every answer by the human verifier, and every checker on every answer of the same instance
           -> results/proof/mc_grade_<tags>.jsonl
 usage: python side/construct.py build
-       $P side/construct.py gen <tag> <ids file> --arm direct|program|checker [--think] [--max_tokens N]
+       $P side/construct.py gen <tag> <ids file> --arm direct|program|checker [--think] [--max_tokens N] [--k K]
        python side/construct.py grade <answer tag> [<answer tag> ...] --checkers <checker tag> [<checker tag> ...]
 (MathConstruct's environment: PYTHONPATH=$POC_DATA/construct/mathconstruct/src:$POC_DATA/construct/pylib)"""
 import json, os, random, re, sys
@@ -81,15 +81,16 @@ def gen():
     arm = sys.argv[sys.argv.index("--arm") + 1]
     think = "--think" in sys.argv
     mt = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else (16000 if think else 4096)
+    k = int(sys.argv[sys.argv.index("--k") + 1]) if "--k" in sys.argv else 1   # independent samples per instance
     want = set(open(ids_file).read().split())
     X = [x for x in map(json.loads, open(os.path.join(PD, "instances.jsonl"))) if x["id"] in want]
     os.makedirs(OUT, exist_ok=True)
     out = f"{OUT}/mc_{tag}.jsonl"
-    done = {json.loads(l)["id"] for l in open(out)} if os.path.exists(out) else set()
-    todo = [x for x in X if x["id"] not in done]
-    print(f"SIDE-MC gen {tag}: {len(todo)} of {len(X)} instances (arm={arm}, think={think})", flush=True)
+    done = {(r["id"], r.get("s", 0)) for r in map(json.loads, open(out))} if os.path.exists(out) else set()
+    todo = [(x, i) for x in X for i in range(k) if (x["id"], i) not in done]
+    print(f"SIDE-MC gen {tag}: {len(todo)} of {len(X) * k} samples (arm={arm}, think={think}, k={k})", flush=True)
 
-    def one(x):
+    def one(x, i):
         if arm == "direct":   # MathConstruct's own prompt
             q = f"{x['statement']}\n\nFormat your reply as follows:\n{x['formatting']}"
         elif arm == "program":
@@ -97,7 +98,7 @@ def gen():
         else:
             q = PROMPT_CHECKER.format(statement=x["statement"], formatting=x["formatting"], example=x["example"])
         r = chat(q, think=think, max_tokens=mt, temperature=0.6 if think else 0.7)
-        row = {"id": x["id"], "arm": arm, "think": think, "out_tokens": r["out_tokens"], "in_tokens": r["in_tokens"],
+        row = {"id": x["id"], "s": i, "arm": arm, "think": think, "out_tokens": r["out_tokens"], "in_tokens": r["in_tokens"],
                "finish": r["finish"], "text": r["text"][-6000:]}
         if arm != "direct":
             row["code"] = code_of(r["text"])
@@ -106,7 +107,7 @@ def gen():
             row.update(status=run.status, stdout=run.stdout[-20000:], stderr=run.stderr[-300:])
         return row
     with ThreadPoolExecutor(32) as ex, open(out, "a") as f:
-        for fu in as_completed([ex.submit(one, x) for x in todo]):
+        for fu in as_completed([ex.submit(one, x, i) for x, i in todo]):
             try:
                 r = fu.result()
             except Exception as e:
@@ -147,7 +148,7 @@ def grade():
         p = variations[x["name"]][x["v"]]
         assert str(p) == x["statement"], x["id"]
         parsed, ok, detail = p.parse_and_check([{"role": "assistant", "content": answer_text(r)}])   # MathConstruct reads a chat
-        rows.append({"id": r["id"], "tag": r["tag"], "right": bool(ok), "parsed": None if parsed is None else repr(parsed),
+        rows.append({"id": r["id"], "s": r.get("s", 0), "tag": r["tag"], "right": bool(ok), "parsed": None if parsed is None else repr(parsed),
                      "detail": str(detail)[:200], "out_tokens": r["out_tokens"]})
 
     def run_checker(code, parsed):
@@ -159,7 +160,7 @@ def grade():
     with ThreadPoolExecutor(8) as ex:
         res = list(ex.map(lambda ac: run_checker(ac[1]["code"], ac[0]["parsed"]), jobs))
     for (a, c), v in zip(jobs, res):
-        a.setdefault("checks", {})[c["tag"]] = v
+        a.setdefault("checks", {})[c["tag"] if c.get("s", 0) == 0 else f"{c['tag']}#{c['s']}"] = v   # one verdict per checker sample
     out = f"{OUT}/mc_grade_{'+'.join(atags)}.jsonl"
     with open(out, "w") as f:
         for a in rows:
