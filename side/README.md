@@ -30,14 +30,30 @@ environments. A new environment family with algorithmic ground truth is a test n
      2.5% right (`PREREG_SIDE.md`, SIDE-ENV results).
    - Keep every request kind at no more than a third of the turns. In the second version (rules stated), half of the turns were
      removals with clean-up, and those capped whole conversations at 17.5% with thinking (SIDE-ENV-2).
-   - See `gen_pkg.py`.
+   - See `gen_pkg.py` and `gen_cal.py`.
+
+**What a family must show** (from three tries: SIDE-ENV, -2, -3):
+- Thinking pays. It did in both families, by +15 to +50 points.
+- Qwen3-8B with thinking is right in at least 20% of conversations. Both families missed this: 17.5% (packages) and 15% (calendar,
+  one booking, one move and one cancellation per conversation).
+  - A conversation is right only if every turn is: with a per-turn right rate q, k turns give about q^k. In the calendar, thinking
+    got 14 of 28 bookings, 16 of 21 moves and 8 of 23 cancellations right (each counted until the conversation's first wrong
+    turn), so three turns land near 0.5 × 0.76 × 0.35 ≈ 13%.
+  - Choose the number of turns and the request kinds from a small pilot's q, so that q^k for Qwen3-8B with thinking falls in
+    [20%, 85%].
+- An error in a turn does not tell a right turn from a wrong one. This is what makes a trained verifier necessary.
+  - In the calendar, Qwen3-8B's quick turns showed an error in 9 of 9 right turns and 35 of 40 wrong ones. It guesses ids and room
+    names in the same step as the reads.
+  - Measure this as the error rate of right turns against wrong turns, up to each conversation's first wrong turn
+    (`analyze_env.py` replays this), and pre-register it that way. The share of failures without an error, which SIDE-ENV-3 used,
+    fails a family where errors are everywhere.
 3. **The CPU check**, which must pass before any model runs:
    `python side/check_env.py <items.jsonl> <Class=side.envs.module> --negative '<a correct fragment>' '<a mistake>'`.
    - The ground truth must be valid for every item.
    - A deliberate mistake must make most items invalid.
 
-**Ideas for the next families:** each should have real constraints and a policy with one answer.
-- A meeting scheduler: rooms, attendees' calendars, the earliest feasible slot, moves that keep constraints.
+**Ideas for the next families:** each should have real constraints and a policy with one answer. The package manager and the
+team calendar (`envs/team_calendar.py`) are closed as test beds, and they are examples of the interface.
 - Bank transfers under daily limits and fees: the cheapest valid sequence.
 - A warehouse: picking under capacity, shortest route.
 

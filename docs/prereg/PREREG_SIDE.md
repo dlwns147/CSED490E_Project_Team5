@@ -205,3 +205,40 @@ reported too.
 - P1–P3 hold → SIDE-ENV's "hold" branch: the BFCL-trained MT-SEL verifiers score this family's turn-0 rollouts zero-shot, which is
   pre-registered next.
 - Refuted → stated. The second track's environment work continues only through a family the teammate designs.
+
+## Results of SIDE-ENV-3 (written 2026-11-04 00:2x UTC; jobs 1311813 / 1311814; rows `results/tc/mt_sidecal_{q8b,q35}_{N,T,E}_s1.jsonl`, graded with `grade_mt.py`; analysis `side/analyze_env.py`; raw cases `nlp_data/scratch/sidecal_raw.py`, `sidecal_err.py`)
+
+| model | N | T | E | T − N right (paired 95%) | T − N utility | silent share of N's failures: first diverging turn / whole conversation |
+|---|---|---|---|---|---|---|
+| Qwen3-8B | 0 / 40 @ 0.66k | 6 / 40 @ 28.38k | 3 / 40 @ 15.77k | +15.0 [+3.8, +26.2] | +1.1 [−10.9, +13.1] | 12.5% (5 / 40) / 0.0% |
+| Qwen3.5-9B | 0 / 40 @ 1.09k | 20 / 40 @ 6.56k | 0 / 40 @ 1.40k | +50.0 [+34.3, +65.7] | +47.3 [+31.5, +63.1] | 97.5% / 60.0% |
+
+- **SIDE-ENV-3-P1 refuted:** Qwen3-8B T 15.0%, below 20%. **P2 holds:** +15.0. **P3 refuted narrowly:** 12.5% against 12.8%
+  (one conversation).
+- **Decision (registered):** the calendar family is closed as a test bed. The second track's environment work continues only through
+  a family the teammate designs; the zero-shot MT-SEL test is not run on this family.
+- **Raw cases:**
+  - The visible-failure signal carries no information here, and that is why P3 fails. Counted on every turn up to the first
+    divergence, an error result appears in Qwen3-8B N's right turns 9 of 9 and its wrong turns 35 of 40. For T it is 26 of 38 right
+    and 21 of 34 wrong.
+    - The errors come from calls issued in the same step as the reads they depend on: guessed meeting ids ("No meeting with id"),
+      guessed room names ("No room named"), and repeated bookings ("A meeting titled ... already exists").
+    - A check that escalates on an error would escalate nearly every turn. The registered P3 counts such failures as "shown by the
+      environment", so it measures the share of silent failures where the property that matters is separation.
+    - Qwen3.5-9B T separates somewhat: errors in 10 of 20 wrong turns and 21 of 74 right turns.
+  - **Qwen3-8B T:**
+    - Book: 10 of 34 reached booking turns pick a wrong start in the right room.
+    - Cancel: 15 of 34 first divergences, 10 of them cancelling a meeting the person does not attend or that does not overlap the
+      window. The cancels are issued in the same step as `get_schedule`, from ids seen in earlier turns.
+    - Its thinking costs 28k output tokens per conversation, so T − N utility is +1.1.
+  - **Qwen3.5-9B N** never makes the booking or move call (0 of 40 turns each), so it fails on the protocol, not on the
+    algorithm. In 18 booking turns and 11 move turns no call decodes, usually because `list_rooms` is written without parentheses
+    (16 and 8 of them). BFCL's decoder then reads the step as text. In the other turns it reads the calendars and then writes its
+    slot reasoning as the reply, which ends the turn. E inherits this: the turn shows no error, so E never thinks (0.45 thinking steps
+    per conversation).
+- **Lesson for the teammate's families** (`side/README.md`): pre-register P3 as separation, not as a share of silent failures. A
+  family tests the verifier methods when an error in the turn does not tell a right turn from a wrong one. Compare the error rate of
+  right and wrong turns up to the first divergence. Check it against BFCL's stored rows before the run, as P1's anchors are.
+- **Correction to SIDE-ENV-2's results** (same date): `side/analyze_env.py`, the family-agnostic replay, gives Qwen3-8B N's first
+  diverging turn silent in 23 / 38 (60.5%), not the 58% recorded from `sidepkg_fail.py`; T 72.7% and Qwen3.5-9B's numbers match. The
+  decision does not change.
