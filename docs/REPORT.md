@@ -727,6 +727,23 @@ OR problems and the observation that the cross-model filter removes the harm but
   thinking tokens there for the Qwen models, but nothing on AIME.
 - **Formal proofs** (miniF2F, Lean 4): a specialized 8B prover proves 180 of 244 statements (Goedel-Prover-V2-8B) vs 133 for Qwen3.6 and
   66 for gpt-oss-20b; facts (a verified similar proof, a lemma toolkit) and repair from compiler errors do not help.
+- **Olympiad geometry proofs from the statement** (second track; PREREG_SIDE SIDE-GT-H, -AGREE).
+  - **Pipeline.** The model writes no proof. Qwen3.6-27B-AWQ translates the statement into AlphaGeometry's construction language.
+    The final line is decoded under a grammar of Newclid's constructions, and the model gets repair turns that show Newclid's
+    errors. Newclid's DDAR then proves the result on CPU, adding one auxiliary point at a time when needed.
+  - **Filters.** A numerical guard removes false goals, a test rejects goals already among the hypotheses, and agreement between
+    independent translations certifies faithfulness.
+  - **Faithfulness check.** On a figure built from one translation, the other's construction predicates and goal must hold, both
+    ways. Against blind hand verdicts on 59 translations, it accepted no unfaithful translation and 98% of faithful ones.
+  - **Results on 65 held-out problems** (about 50k tokens per problem):
+    - translated faithfully: 19;
+    - proved by DDAR alone: 3 (the registered target of 5 was missed);
+    - proved with one auxiliary point: 10;
+    - proved with no human in the loop: 8.
+
+    The 8 include four shortlist problems whose graded frontier natural-language proofs (OPC) are right 0 of 26 times.
+  - **Smaller translators.** Qwen3-8B translates faithfully only 1 of 24 dev problems. gpt-oss-120b declines most of them as
+    unexpressible.
 - **The weakest model's check leak** (Section 5.2).
 - **Agent loops** (BFCL v4 multi-turn, 600 items, MT): the environment's error is a free check at every step, but thinking only after
   it loses to always thinking (E − T −5.5 and −7.7 utility for Qwen3-8B and Qwen3.5-9B), on visible failures as much as on silent
