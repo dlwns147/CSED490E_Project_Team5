@@ -2,7 +2,9 @@
 statement into a Lean 4 + Mathlib theorem (`gen`); Lean then searches for a counterexample with Plausible's random testing (`check`:
 the theorem's proof is replaced by `plausible`). A counterexample Plausible prints is a real counterexample to the formal statement, so on
 a true statement a flag can only come from a translation that changed the claim. Statements over types Plausible cannot sample (ℝ)
-are reported as untestable.
+are reported as untestable. Messages as Lean v4.15 + Plausible print them (checked 11-04 on $POC_DATA/proof/leantest/T.lean): a
+counterexample is an error "Found a counter-example!" with the instance; none found leaves only the warning "declaration uses 'sorry'";
+an unsampleable type is "Failed to create a `testable` instance".
 usage: $P side/lean_statement.py gen <tag> <ids file> [--think] [--max_tokens N]   (lane.sh job; POC_BASE_URL set)
          -> results/proof/ls_<tag>.jsonl (id, label, lean statement, tokens)
        python side/lean_statement.py check <tag> [batch]   (CPU job; Lean + Mathlib from run_lean.py's paths)
@@ -101,7 +103,8 @@ def check():
                 st = "timeout"
             elif "Found a counter-example" in txt or "Found a counterexample" in txt:
                 st = "counterexample"
-            elif re.search(r"failed to synthesize[\s\S]*(Testable|Sampleable|Shrinkable|Decidable)", txt):
+            elif "Failed to create a `testable` instance" in txt or \
+                    re.search(r"failed to synthesize[\s\S]*(Testable|Sampleable|Shrinkable|Decidable)", txt):
                 st = "untestable"
             elif "Unable to find a counter-example" in txt or "Gave up" in txt or not re.search(r"\berror\b", txt):
                 st = "none found"
