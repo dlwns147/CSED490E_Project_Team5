@@ -701,3 +701,32 @@ the gain with the AUROC within sets in parentheses.
   is above MT-SEL-ENV's turn-0-only verifiers (+3.0 to +3.9). The training with later turns helps at turn 0 too.
 - The online arm U was submitted at 13:39 UTC by the chain: jobs 1316461 / 1316463 / 1316465 `mtsoenv_q8b_s{1,2,3}` and 1316462 /
   1316464 / 1316466 `mtsoenv_q35_s{1,2,3}` (vote_lane.sh, LoRAs mtsoenv_h0 / h1, `run_mt.py <m> U <s>`, 468 env-pure items).
+
+## Addendum MT-SO-ENV-P5: a compounding model's prediction of the online gain (written 2026-11-04 17:4x UTC; MT-SO-ENV's six online jobs are running, and no U row has been read or graded)
+
+**Model.** BFCL grades a conversation right only when every turn is right. So with per-turn success p_t given a right start, a
+conversation of K turns succeeds with probability ∏_{t<K} p_t, and an arm's accuracy is the turn-count-weighted mean of that
+product. There are no free parameters. Per-turn p_t comes from the offline pseudo-sets: T's rate for arm T, SEL3's for the choice;
+turns ≥ 3 share one rate. The weights are the items' turn counts.
+
+**Check on MT-SO, whose online result predates this model** (all 600 items):
+
+| model | product model: T, S, S − T | online: T, S, S − T |
+|---|---|---|
+| Qwen3-8B | 37.0%, 52.5%, +15.5 | 30.8%, 48.8%, +17.9 |
+| Qwen3.5-9B | 41.9%, 59.4%, +17.4 | 38.0%, 53.9%, +15.9 |
+
+The model over-states both arms' levels by 4–6 points. The pseudo-sets keep only histories where N, P and T were all still right,
+which are easier. The model gets the gain within 2.4 points, and the S/T ratio within 0.17 (1.42 against 1.58 and 1.42). The
+registered expectation, +5 to +12, came from assuming a per-turn gain of +6, which is too small. The offline per-turn gains are
++6 to +10 points, and over 4–5 turns they multiply.
+
+**Prediction for MT-SO-ENV.** On the 468 env-pure items, with the environment-split per-turn rates (`results/mtsoenv_offline.txt`):
+- Qwen3-8B: U − T accuracy **+9.7** (additive form), +8.3 (ratio form: online T × (product ratio − 1));
+- Qwen3.5-9B: **+10.4** (additive), +9.2 (ratio).
+
+- **MT-SOENV-P5:** each model's online U − T accuracy interval contains the additive prediction.
+- **Reported:** both forms' errors.
+
+As a control, the same model with the scenario-split rates on these items gives +15.5 / +17.4, against online S − T of +16.5 /
++15.1.
