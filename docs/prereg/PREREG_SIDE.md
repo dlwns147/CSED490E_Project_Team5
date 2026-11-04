@@ -492,3 +492,8 @@ translations have none faithful:
 registered next step, "the translator, not the prover", is contradicted by the data. Translation holds up: 29% of the problems are
 translated faithfully, more than on dev. The prover is the bottleneck: 16 of 19 faithful problems are not proved by DDAR alone. The
 auxiliary-point arm, registered before this check, is the test of that (job 1317291).
+
+### Note SIDE-MC-H2 withdrawn (2026-11-04 17:4x UTC, before any grading; jobs 1316744 / 1316745 cancelled at 65 of 137 direct answers)
+This run would only confirm that the main recipe's rule ("take the program's object, think on a visible failure") holds on one more
+task. It cannot change the project's claim, so it is withdrawn under the project's rule against incremental runs. The 65 rows were
+not graded. SIDE-MC-H's result stands as recorded: the gated cascade is refuted, and C0 is a secondary arm only.
