@@ -10,7 +10,8 @@ A proof DDAR finds is a proof of the translated statement. It is a proof of the 
 the guard does not decide: a translation that adds a hypothesis passes it. Faithfulness is read by hand (dev) or compared with a
 reference translation (IMO-AG-30's, where one exists).
 Problems: $POC_DATA/geo/problems.jsonl (id, source, problem, ref = reference translation or null).
-usage: $P side/geo_translate.py gen <tag> <ids file> [--think] [--k K] [--max_tokens N]        (lane.sh job; POC_BASE_URL set)
+usage: $P side/geo_translate.py gen <tag> <ids file> [--think] [--k K] [--max_tokens N] [--repair R]   (lane.sh job; POC_BASE_URL
+       set; --repair needs Newclid on PYTHONPATH: up to R more turns, each told the guard's finding)
        <python with newclid> side/geo_translate.py check <tag> [--timeout S] [--workers W]     (CPU job)"""
 import json, os, re, subprocess, sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -87,11 +88,28 @@ def dsl_of(text):
     return lines[-1] if lines else None
 
 
+REPAIR = """Newclid cannot use this translation. {what}
+Write a corrected translation of the same problem, following the same rules. Reply with the translation only, in one ``` code block."""
+
+
+def guard(dsl):
+    """the checker's verdict without DDAR, in a subprocess (needs Newclid on PYTHONPATH): (status, message)"""
+    if dsl in (None, "UNEXPRESSIBLE"):
+        return ("no translation" if dsl is None else "unexpressible"), ""
+    try:
+        p = subprocess.run([sys.executable, os.path.abspath(__file__), "one", dsl, "0"], capture_output=True, text=True, timeout=900)
+        st, _, msg, _ = json.loads(p.stdout.strip().splitlines()[-1])
+    except Exception as e:
+        st, msg = "build error", f"checker: {type(e).__name__}"
+    return st, msg
+
+
 def gen():
-    from llm import chat
+    from llm import chat_msgs
     tag, ids_file = sys.argv[2], sys.argv[3]
     think = "--think" in sys.argv
     k = int(sys.argv[sys.argv.index("--k") + 1]) if "--k" in sys.argv else 8
+    rep = int(sys.argv[sys.argv.index("--repair") + 1]) if "--repair" in sys.argv else 0
     mt = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else (16000 if think else 2048)
     want = set(open(ids_file).read().split())
     X = [x for x in map(json.loads, open(os.path.join(PD, "problems.jsonl"))) if x["id"] in want]
@@ -99,12 +117,24 @@ def gen():
     out = f"{OUT}/gt_{tag}.jsonl"
     done = {(r["id"], r["sample"]) for r in map(json.loads, open(out))} if os.path.exists(out) else set()
     todo = [(x, s) for x in X for s in range(k) if (x["id"], s) not in done]
-    print(f"SIDE-GT gen {tag}: {len(todo)} translations of {len(X)} problems (think={think}, k={k})", flush=True)
+    print(f"SIDE-GT gen {tag}: {len(todo)} translations of {len(X)} problems (think={think}, k={k}, repair={rep})", flush=True)
 
     def one(x, s):
-        r = chat(prompt(x["problem"]), think=think, max_tokens=mt, temperature=0.6 if think else 0.7)
-        return {"id": x["id"], "sample": s, "dsl": dsl_of(r["text"]), "out_tokens": r["out_tokens"], "in_tokens": r["in_tokens"],
-                "finish": r["finish"], "text": r["text"][-1500:]}
+        msgs, rounds = [{"role": "user", "content": prompt(x["problem"])}], []
+        for i in range(rep + 1):   # --repair R: up to R more turns, each told what the guard found (the main recipe's repair turn)
+            r = chat_msgs(msgs, think=think, max_tokens=mt, temperature=0.6 if think else 0.7)
+            d = dsl_of(r["text"])
+            st, msg = guard(d) if rep else ("", "")
+            rounds.append({"dsl": d, "status": st, "msg": msg[:300], "out_tokens": r["out_tokens"], "in_tokens": r["in_tokens"]})
+            if not rep or st in ("guarded", "unexpressible") or i == rep:
+                break
+            what = {"goal fails": "The goal does not hold on any figure built from your constructions, so the constructions or the goal "
+                                  "do not match the problem.",
+                    "copied example": "It repeats one of the examples instead of translating this problem.",
+                    "no translation": "No line with ' ? ' and a goal was found in your reply."}.get(st, f"{st}: {msg}")
+            msgs += [{"role": "assistant", "content": r["text"]}, {"role": "user", "content": REPAIR.format(what=what)}]
+        return {"id": x["id"], "sample": s, "dsl": d, "out_tokens": sum(q["out_tokens"] for q in rounds),
+                "in_tokens": sum(q["in_tokens"] for q in rounds), "finish": r["finish"], "text": r["text"][-1500:], "rounds": rounds}
     with ThreadPoolExecutor(32) as ex, open(out, "a") as f:
         for fu in as_completed([ex.submit(one, x, s) for x, s in todo]):
             try:
@@ -124,6 +154,8 @@ def one_check(dsl, timeout):
     from newclid.problem import Problem
     from newclid.statements.statement import Statement
     t0 = time.time()
+    if dsl.split(" ? ")[0].strip() in {e[1].split(" ? ")[0] for e in EXAMPLES}:   # dev 11-04: all 3 guarded Qwen3-8B translations
+        return "copied example", None, "", 0.0                                     # were example 3, copied (a true theorem)
     try:
         goal = Construction.from_txt(dsl.split(" ? ")[1].strip())
         Problem.from_txt(dsl, translate=False)
@@ -146,6 +178,8 @@ def one_check(dsl, timeout):
     # holds on no random diagram, so the guard asks for at least one; `held` reports how many.
     if not held:
         return "goal fails", None, "held on 0 of 8 diagrams", time.time() - t0
+    if timeout <= 0:   # the guard alone (gen --repair)
+        return "guarded", None, f"held on {held} of 8", time.time() - t0
     try:
         s = GeometricSolverBuilder(seed=0).load_problem_from_txt(dsl, translate=False).build()
         proved = bool(s.run(timeout=timeout))

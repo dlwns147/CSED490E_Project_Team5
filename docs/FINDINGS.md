@@ -5442,3 +5442,16 @@ On the 64 items that are statements to prove (34 false, 30 true):
   benchmark; no test-time use found.
 - Dev (exploratory, Qwen3-8B; jobs 1314159 quick arms, 1314160 thinking arms) sizes the routes before a pre-registration on the 147
   held-out instances.
+
+## 2026-11-04 07:5x UTC: SIDE-GT dev 1 (exploratory; 24 problems, Qwen3-8B, no repair): the guard is sound on references, but Qwen3-8B translates nothing faithfully
+- Checker on the references (job 1314271): all 30 IMO-AG-30 translations pass the guard (goal true on at least one of 8 figures; an
+  all-8 rule rejected 4 of them, because a construction with two intersection points takes either). DDAR proves 11 of 30
+  (AlphaGeometry's README: 14); 5 stop with Newclid errors in the diagram search (InvalidLineIntersectError, a TypeError).
+- Qwen3-8B, 6 examples in the prompt: quick (k = 8, 208 tokens): 0 of 192 translations pass; 145 fail to build (degenerate points,
+  `on_segment` and other constructions that do not exist, wrong argument counts), 35 do not parse. Thinking (k = 4, 5.9k tokens):
+  3 of 96 pass and DDAR proves all 3, but all 3 are example 3 of the prompt copied verbatim (DEFM concyclic), on IMO 2007 P4 and ISL
+  2001 G4: true theorems of the wrong problem. Faithful translations: 0 of 24 problems.
+- So the guard catches false goals but not a true statement of another problem, as designed; a copied example is now its own status.
+  This matches NL2AGBench (2608.28481): Qwen3-235B 12.5% executable zero-shot.
+- Next (dev 2, jobs 1314618 / 1314619): up to 2 repair turns that tell the model what the guard found (the main recipe's repair turn),
+  for Qwen3-8B with thinking and for gpt-oss-120b (medium effort), the largest open model on the cluster.
