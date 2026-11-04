@@ -12,7 +12,7 @@ reference translation (IMO-AG-30's, where one exists).
 Problems: $POC_DATA/geo/problems.jsonl (id, source, problem, ref = reference translation or null).
 usage: $P side/geo_translate.py gen <tag> <ids file> [--think] [--k K] [--max_tokens N] [--repair R] [--grammar]   (lane.sh job;
        POC_BASE_URL set; --repair needs Newclid on PYTHONPATH: up to R more turns, each told the guard's finding; --grammar: after each
-       free reply, one quick greedy turn writes the final line under the language's grammar, vLLM guided decoding)
+       free reply, one quick greedy turn writes the final line under the language's grammar, vLLM structured outputs)
        <python with newclid> side/geo_translate.py check <tag> [--timeout S] [--workers W]     (CPU job)"""
 import json, os, re, subprocess, sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -90,7 +90,7 @@ def dsl_of(text):
 
 
 def grammar():
-    """EBNF (vLLM guided_grammar, xgrammar) of a reply: one code block holding UNEXPRESSIBLE or steps of the listed constructions, each
+    """EBNF (vLLM structured_outputs grammar, xgrammar) of a reply: one code block holding UNEXPRESSIBLE or steps of the listed constructions, each
     with its own number of arguments (typed ones as constants: Angle 2pi/3 or 60o, Ratio 1/2, Length 3), ' ? ' and one goal predicate
     with its number of points. It removes the unknown constructions and wrong argument counts; it does not check meaning."""
     kind = {"Angle": "ang", "Ratio": "rat", "Length": "len"}
@@ -151,7 +151,7 @@ def gen():
             draft = dsl_of(r["text"])
             if gram:   # --grammar: the free reply, then its final line rewritten under the grammar (quick, greedy)
                 q = chat_msgs(msgs + [{"role": "assistant", "content": r["text"]}, {"role": "user", "content": FINAL}], think=False,
-                              max_tokens=1024, temperature=0, extra={"guided_grammar": gram})
+                              max_tokens=1024, temperature=0, extra={"structured_outputs": {"grammar": gram}})   # vLLM 0.22
                 r = dict(r, text=q["text"], out_tokens=r["out_tokens"] + q["out_tokens"], in_tokens=r["in_tokens"] + q["in_tokens"])
             d = dsl_of(r["text"])
             st, msg = guard(d) if rep else ("", "")
