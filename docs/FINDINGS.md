@@ -5514,3 +5514,17 @@ On the 64 items that are statements to prove (34 false, 30 true):
 - Pending: thinking programs and thinking checkers at 30k (job 1315238). A thinking checker must reach far higher precision than
   35% for the cascade to pay. If it does not, the computation way's answer for an 8B model on constructions is "think with the full
   budget", and the self-written checker is not a free check.
+
+## 2026-11-04 12:0x UTC: SIDE-MC dev, thinking programs and thinking checkers: the program and the direct answer solve different instances, and the recipe's order takes the union; SIDE-MC-H registered
+- Thinking program at 30k (job 1315238): 18 of 79 right at 18.1k tokens. 60 programs ran, 34 printed a parseable object, and 18 of
+  those 34 are right. Against the thinking direct answer (19 right) the overlap is 10, so the union is 27.
+- Thinking checker (8.2k tokens): accepts 54 of 73 right parsed objects and 33 of 695 wrong ones. The quick checker accepts 38 / 73
+  and 39 / 695. Better recall, but it costs as much as a third of a thinking run, so gating with it loses utility (+6.3 to +8.4
+  against +13.05).
+- The recipe's order with the quick checker: the thinking program first, then the direct thinking answer only when the program's
+  output does not parse or none of 4 quick checkers accepts it. This gave 27 right (the union) at 36.5k tokens, +15.93 against
+  +13.05, +2.88 [−5.01, +11.84] by problem. With parsing as the only gate: 24 right, +14.80. Direct answer first, then the program:
+  −1.3.
+- The order, gate and number of checkers were chosen on these 79 instances, so they are tested on the 147 held-out ones.
+  SIDE-MC-H (PREREG_SIDE) decides on accuracy (C − D lower bound > 0) and reports utility. Jobs 1315962 `mcedt` (direct, 30k)
+  and 1315963 `mcept` (program 30k + 4 quick checkers).
