@@ -219,16 +219,22 @@ def one_check(dsl, timeout):
     trivial_test = timeout > 0 or os.environ.get("GT_TRIVIAL") == "1"
     if timeout <= 0 and not trivial_test:   # the guard alone (gen --repair)
         return "guarded", None, f"held on {held} of 8", time.time() - t0
-    try:
-        s = GeometricSolverBuilder(seed=0).load_problem_from_txt(dsl, translate=False).build()
-        if s.proof_state.check_goals():
-            return "trivial", None, "the goal already holds among the construction's facts, before any deduction", time.time() - t0
-        if timeout <= 0:
-            return "guarded", None, f"held on {held} of 8", time.time() - t0
-        proved = bool(s.run(timeout=timeout))
-    except Exception as e:
-        return "guarded", (None if timeout <= 0 else False), f"held on {held} of 8; DDAR: {type(e).__name__}: {str(e)[:200]}", time.time() - t0
-    return "guarded", proved, f"held on {held} of 8", time.time() - t0
+    # GT_DDAR_SEEDS (default "0"): diagrams to try in turn when Newclid fails on one (InvalidLineIntersectError and the like depend on
+    # the random diagram; dev 4 lost IMO 2012 P5 and IMO 2010 P2 translations to them)
+    err = None
+    for seed in map(int, os.environ.get("GT_DDAR_SEEDS", "0").split(",")):
+        try:
+            s = GeometricSolverBuilder(seed=seed).load_problem_from_txt(dsl, translate=False).build()
+            if s.proof_state.check_goals():
+                return "trivial", None, "the goal already holds among the construction's facts, before any deduction", time.time() - t0
+            if timeout <= 0:
+                return "guarded", None, f"held on {held} of 8", time.time() - t0
+            proved = bool(s.run(timeout=timeout))
+            return "guarded", proved, f"held on {held} of 8" + (f"; DDAR diagram seed {seed}" if seed else ""), time.time() - t0
+        except Exception as e:
+            err = e
+    return ("guarded", (None if timeout <= 0 else False), f"held on {held} of 8; DDAR: {type(err).__name__}: {str(err)[:200]}",
+            time.time() - t0)
 
 
 def check():
