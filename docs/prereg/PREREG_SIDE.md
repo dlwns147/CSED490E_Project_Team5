@@ -411,3 +411,60 @@ Then `construct.py cascade` (D, P, C0; intervals by bootstrap over problems).
   program prints no parseable object" (side/README section D). It is stated as an accuracy gain at about 1.4× the tokens, a tie
   in utility unless P2's interval excludes 0.
 - **P1 refuted** → it stays the direct thinking answer.
+
+
+## Results of SIDE-GT-H, part 1: faithfulness, judged before any check (written 2026-11-04 15:2x UTC; job 1316296, 260 translations at 12.5k tokens; verdicts `results/proof/gteval_faithful.json`, faithful ids `$POC_DATA/geo/ids_gteval_faithful.txt`)
+
+Statuses of the last round: unexpressible 130, guarded 59 (on 23 problems), goal fails 35, build error 34, no translation 2. No
+`check` has run on this tag.
+
+The protocol is as registered, with two readings made explicit:
+- Positional and configuration conditions that the language cannot state do not count as missing hypotheses: betweenness,
+  acuteness, convexity, a line disjoint from a circle. IMO-AG-30's references omit them too.
+- A translation that names one of several objects the statement leaves open states a stronger claim and counts as faithful. An
+  example is "a median" written as the A-median.
+
+| problem | faithful samples | unfaithful samples | reading |
+|---|---|---|---|
+| hf_2001_imo_shortlist_problems_g1 | - | 0,3 | T0 takes A1 as the midpoint of the square's top side, not its centre; T3 replaces A1 by the centre of the square on BC (a homothety step of the solution) |
+| hf_2001_usamo_problems_problem_2 | 0,1,2,3 | - | incenter2 gives D1 on BC, E1 on CA; CD2 = BD1, CE2 = AE1; Q one of the two intersections, as the statement names it |
+| hf_2002_pan_african_mo_problems_problem_5 | 0,1,3 | - | circle on diameter AB, tangents at E and F as perpendiculars to the radii |
+| hf_2004_imo_shortlist_problems_g8 | 0 | - | AN/BN = AM/BM by eqratio6; N one of the two intersections (N != M named) |
+| hf_2004_pan_african_mo_problems_problem_6 | 0,1,2,3 | - | one direction of the iff: N the midpoint, goal IK perp JN |
+| hf_2005_indonesia_mo_problems_problem_7 | - | 2,3 | the statement text is garbled ("the intersection of A2 and B1B2"); the squares are placed on the sides AB, BC, ... which the text does not say |
+| hf_2005_usamo_problems_problem_3 | 3 | - | the text says 'APC_1 is cyclic' (garbled); the translation reads APBC1 and APCB1, USAMO 2005 P3 as posed |
+| hf_2006_romanian_nmo_problems_grade_9_problem_3 | 0 | - | part (b): CB = BP = PA = AB by circles, D the second point of line CP on the circle, goal PD = r |
+| hf_2006_usamo_problems_problem_6 | - | 1 | AE/ED = BF/FC encoded through parallels (equivalent), but the goal is one circle (TCF) through the common point of two; the claim needs (TDE) as well |
+| hf_2007_indonesia_mo_problems_problem_7 | 0,1,2,3 | - | part (a): tangents at C and D, Q and R as stated, goal P, Q, R collinear |
+| hf_2008_usamo_problems_problem_2 | 0,1,2,3 | - | D, E on the perpendicular bisectors and on AM, F = BD x CE |
+| hf_2009_usamo_problems_problem_5 | 3 | - | isosceles trapezoid (AB parallel CD, inscribed); one direction: G on the bisector of CBD, goal PQRS cyclic |
+| hf_2010_usamo_problems_problem_1 | 2 | - | half of angle XOZ written as the inscribed angle XAZ (A on the circle), the language's only way to state a half angle |
+| hf_2012_usamo_problems_problem_5 | 0,1,2 | - | the reflected lines by angle_mirror or by reflecting A in the line PQ |
+| hf_2020_camo_problems_problem_3 | 0,1,2,3 | - | X on EF with BX parallel AC, Y with CY parallel AB, M, N point reflections |
+| opc_IMOSL_2012_16 | 1,3 | - | parallelogram c e d g gives G = C + D - E, the ECGD of the statement; H the reflection of E in AD |
+| opc_IMOSL_2012_18 | 0,3 | - | X on AO and the perpendicular at D, Y on AD and the perpendicular at E |
+| opc_IMOSL_2012_22 | 0,1,2,3 | - | the line given by two free points (disjointness from the circle is a configuration condition the language cannot state); the generic case of the conclusion: the second common point of two circles lies on the third |
+| opc_IMOSL_2014_20 | - | 1 | the angle conditions on S and T are replaced by S, T the feet from H (added hypotheses) |
+| opc_IMOSL_2016_23 | 0,1 | - | part (a): A- and B-excentres, reflections in BC / CA, the reflected lines through reflections of points in AI / BI |
+| opc_IMOSL_2017_19 | 0,1,2,3 | - | the goal names the A-median, which implies 'a median' |
+| opc_IMOSL_2022_19 | 0,1,2,3 | - | X, Y the second intersections with DX = DA, EY = EA (by eqdistance or by intersection_cc) |
+| opc_IMOSL_2023_21 | 0,1,2,3 | - | l_a through the reflections of B in CH and C in BH, and so on; T's vertices as pairwise intersections |
+
+**Faithful: 53 of 59 guarded translations, on 19 of the 65 problems** (dev: 6 of 24). The other 4 problems with guarded
+translations have none faithful:
+- ISL 2001 G1;
+- Indonesia 2005 P7, whose statement text is garbled;
+- USAMO 2006 P6, whose goal is only part of the claim;
+- ISL 2014 G (2014_20).
+
+## Addendum to SIDE-GT-H: the auxiliary-point arm (written 2026-11-04 15:2x UTC, with the verdicts above and before any check)
+
+- **Primary (P1), unchanged:** `check gteval_q36_tg --timeout 300`, with DDAR on diagram seed 0.
+- **Arm AUX, secondary.** Command: `GT_DDAR_SEEDS=0,1,2,3 aux gteval_q36_tg --ids ids_gteval_faithful.txt --k 64 --timeout 60`.
+  - It runs on the faithful translations that the primary check leaves guarded and unproved.
+  - It adds one auxiliary point at a time: a construction type drawn uniformly, then its arguments. The types are midpoint, point
+    reflection, circumcentre, foot, line reflection, and intersection of two lines. It stops at the first proof.
+  - It counts the problems proved by DDAR alone or with one auxiliary point.
+  - The procedure was fixed on IMO-AG-30's references (job 1316470, still running). So far it has found 4 more proofs, among them
+    IMO 2010 P2.
+- **AUX-P1 (reported):** +1 to +5 problems over the primary count.
