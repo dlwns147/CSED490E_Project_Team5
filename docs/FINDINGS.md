@@ -5605,3 +5605,14 @@ On the 64 items that are statements to prove (34 false, 30 true):
 - **Decision.** The gate registered as MT-SO's next step is dropped: its derived ceiling is a third of the verifier's. The next
   method step attacks the verifier's within-set choice. It picks a wrong rollout in 5–7% of the turns where a right one exists,
   and that compounds to 11 points.
+
+## 2026-11-04 18:4x UTC: SIDE-GT-H auxiliary arm: with one random auxiliary point, 10 of 65 held-out olympiad geometry problems are proved end to end from the statement (DDAR alone: 3)
+- The arm was registered before the check. It adds one point at a time (k = 64, 60 s each) to the faithful translations DDAR alone
+  left unproved: 7 more problems, 16 translations with an auxiliary point and 2 on another diagram.
+- Among them are ISL 2012 G (2012_18), ISL 2016 G (2016_23 a) and ISL 2017 G (2017_19). OPC's graded frontier natural-language
+  proofs of those are right 0 of 8, 0 of 5 and 0 of 5 times. With ISL 2012_16 that makes 4 held-out shortlist problems proved where
+  every graded frontier proof was wrong.
+- Pipeline: Qwen3.6-27B-AWQ translates (two 3090s, 50k tokens per problem); the guard and trivial test filter; DDAR plus the
+  auxiliary search proves on CPU. Faithfulness was judged by hand before any proof attempt.
+- 9 faithful problems stay unproved. Next method (hard gap): a proposer of auxiliary points that is not random, and a label-free
+  faithfulness check.

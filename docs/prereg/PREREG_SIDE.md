@@ -497,3 +497,29 @@ auxiliary-point arm, registered before this check, is the test of that (job 1317
 This run would only confirm that the main recipe's rule ("take the program's object, think on a visible failure") holds on one more
 task. It cannot change the project's claim, so it is withdrawn under the project's rule against incremental runs. The 65 rows were
 not graded. SIDE-MC-H's result stands as recorded: the gated cascade is refuted, and C0 is a secondary arm only.
+
+## Results of SIDE-GT-H, part 3: the auxiliary-point arm (written 2026-11-04 18:4x UTC; job 1317291, `results/proof/gt_gteval_q36_tg_aux.jsonl`)
+
+- 46 faithful translations were unproved by the primary check. The arm proves 18 of them on 7 problems:
+  - 2 with DDAR alone, on another diagram;
+  - 16 with one auxiliary point, after 4–41 tries at 148–2,486 s each.
+- **End to end with the arm: 10 of 65 problems (15.4%), against 3 for DDAR alone. AUX-P1: +7, above the expected +1 to +5.**
+- New problems:
+
+  | problem | auxiliary point | OPC frontier proofs right |
+  |---|---|---|
+  | Pan-African 2004 P6 | reflection of B in AK | not in OPC |
+  | USAMO 2008 P2 | reflection of D in M | not in OPC |
+  | USAMO 2010 P1 | AO ∩ YQ | not in OPC |
+  | CAMO 2020 P3 | reflection of B in Q | not in OPC |
+  | ISL 2012 G (2012_18) | midpoint of DY | 0 of 8 |
+  | ISL 2016 G (2016_23 a) | reflection of I_A'' in BP | 0 of 5 |
+  | ISL 2017 G (2017_19) | reflection of A in HM | 0 of 5 |
+
+- Among OPC's held-out shortlist problems, 4 are now proved where every graded frontier proof was wrong: 2012_16, 2012_18, 2016_23
+  and 2017_19. P3 of the main arm counted 1.
+- Faithful but still unproved (9): USAMO 2001 P2, ISL 2004 G8, USAMO 2005 P3, Indonesia 2007 P7, USAMO 2009 P5, USAMO 2012 P5,
+  ISL 2012 (2012_22), ISL 2022 (2022_19), ISL 2023 (2023_21).
+- Reading: the registered decision stands (P1, on DDAR alone, refuted). The arm shows what the prover gap costs. Random single
+  points recover 7 of the 16 faithful problems DDAR alone missed. A proposer that chooses points, or two points, is the next method,
+  not a further sweep of this one.
