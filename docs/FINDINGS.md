@@ -5499,3 +5499,18 @@ On the 64 items that are statements to prove (34 false, 30 true):
 - So for an 8B model the guard's error message is not usable feedback in this language: it keeps the same wrong construction or
   argument count. The gpt-oss-120b run (job 1314618) is still queued for 4 GPUs (now RTX3090 or A5000). The DDAR check of both
   follows (watcher).
+
+## 2026-11-04 11:3x UTC: SIDE-MC dev: thinking at a 30k cap doubles the right objects, and cheap sampled routes with self-written checkers add nothing on top, even with a perfect checker little
+- Direct answer with thinking at a 30k cap (job 1315237, two GPUs): 19 of 79 right at 22.0k tokens (utility +13.05 per instance).
+  On the same 75 instances the 16k run had 9 right and this run 18. From its token counts, a 16k cap would have given 13 of 79 at
+  14.8k (+9.1) and 24k 16 of 79. 24 of 79 still hit 30k. For constructions, the cap is the lever.
+- 8 quick samples per instance (job 1315279), graded by the human verifiers. Programs: right on 9 instances, 4.6k tokens. Direct
+  answers: right on 6, 19.6k. 8 quick checkers per instance accept 129 of 288 right parsed answers and 256 of 5,168 wrong ones.
+- Choosing by agreement (`side/construct.py analyze`, CodeT's size × checkers-passed), else thinking at 30k: the best
+  configuration ties thinking alone (8 programs, 4 checkers: 19 right, +13.30 against +13.05). The chosen object is right in 8 of
+  23 cases, and every wrong choice replaces a thinking run that might have been right.
+- Headroom with a perfect checker (oracle): the programs' right objects overlap thinking's on 5 of 9 instances, so 8 programs, then
+  thinking, give 23 right, +16.78. The cascade can gain at most +3.7 per instance here. The checker realises none of it.
+- Pending: thinking programs and thinking checkers at 30k (job 1315238). A thinking checker must reach far higher precision than
+  35% for the cascade to pay. If it does not, the computation way's answer for an 8B model on constructions is "think with the full
+  budget", and the self-written checker is not a free check.
