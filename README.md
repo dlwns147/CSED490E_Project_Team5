@@ -1,6 +1,6 @@
 # Solving Problems with LLMs, Accurately and Cheaply
 
-*Tools, Facts, and Checks.* POSTECH CSED490E (Graduate NLP) team project, Team 5.
+POSTECH CSED490E team project, Team 5.
 
 This is the manual: how to set up, run and analyze everything in this repository. **What the project is for, its claim, scope and
 working rules: `PROJECT.md`.** The argument with all numbers: `docs/proposal/PROPOSAL.md` (Korean: `docs/proposal/PROPOSAL_ko.md`).
@@ -50,16 +50,16 @@ export MODELS_DIR=/path/to/a/large/disk
 python bench.py download q14a oss20 q8b      # the three 24 GB models (--dry only shows what would be downloaded)
 ```
 
-| Alias | Model | Download | Smallest GPU | Example GPUs |
-|---|---|---|---|---|
-| `q8b` | Qwen/Qwen3-8B (16-bit) | 16 GB | 24 GB (20k context) | RTX 3090, RTX 4090, A100 40GB, L40S |
-| `q14a` | Qwen/Qwen3-14B-AWQ (4-bit) | 10 GB | 24 GB | RTX 3090, RTX 4090, A10G |
-| `oss20` | openai/gpt-oss-20b (4-bit MXFP4) | 14 GB | 24 GB | RTX 3090, RTX 4090, L4, A10G |
-| `q35` | Qwen/Qwen3.5-9B (16-bit; text only: `--language-model-only`) | 19 GB | 24 GB (37k context; hybrid attention, 73k-token KV) | RTX 3090 (HO-N, the unseen-model test) |
-| `q14b` | Qwen/Qwen3-14B (16-bit) | 30 GB | 48 GB | L40S, RTX 6000 Ada, A100 80GB |
-| `q32b` | Qwen/Qwen3-32B-AWQ (4-bit) | 19 GB | 40 GB | A100 40GB, L40S, RTX 6000 Ada |
-| `q36` | Qwen/Qwen3.6-35B-A3B-FP8 (8-bit) | 38 GB | 80 GB | H100, RTX PRO 6000 |
-| `oss120` | openai/gpt-oss-120b (4-bit MXFP4) | 65 GB | 80 GB | H100 80GB, H200, RTX PRO 6000 |
+| Alias      | Model                                                          | Download | Smallest GPU                                        | Example GPUs                           |
+| ---------- | -------------------------------------------------------------- | -------- | --------------------------------------------------- | -------------------------------------- |
+| `q8b`    | Qwen/Qwen3-8B (16-bit)                                         | 16 GB    | 24 GB (20k context)                                 | RTX 3090, RTX 4090, A100 40GB, L40S    |
+| `q14a`   | Qwen/Qwen3-14B-AWQ (4-bit)                                     | 10 GB    | 24 GB                                               | RTX 3090, RTX 4090, A10G               |
+| `oss20`  | openai/gpt-oss-20b (4-bit MXFP4)                               | 14 GB    | 24 GB                                               | RTX 3090, RTX 4090, L4, A10G           |
+| `q35`    | Qwen/Qwen3.5-9B (16-bit; text only: `--language-model-only`) | 19 GB    | 24 GB (37k context; hybrid attention, 73k-token KV) | RTX 3090 (HO-N, the unseen-model test) |
+| `q14b`   | Qwen/Qwen3-14B (16-bit)                                        | 30 GB    | 48 GB                                               | L40S, RTX 6000 Ada, A100 80GB          |
+| `q32b`   | Qwen/Qwen3-32B-AWQ (4-bit)                                     | 19 GB    | 40 GB                                               | A100 40GB, L40S, RTX 6000 Ada          |
+| `q36`    | Qwen/Qwen3.6-35B-A3B-FP8 (8-bit)                               | 38 GB    | 80 GB                                               | H100, RTX PRO 6000                     |
+| `oss120` | openai/gpt-oss-120b (4-bit MXFP4)                              | 65 GB    | 80 GB                                               | H100 80GB, H200, RTX PRO 6000          |
 
 Results up to 2026-10-20 come from NVIDIA RTX PRO 6000 Blackwell (96 GB; 32k context, 88% of memory), from 2026-10-22 from RTX 3090
 (24 GB; 20k context, 92% of memory). On a smaller GPU shorten the context, e.g. `python bench.py serve q8b --frac 0.95 -- --max-model-len 16384`.
@@ -84,13 +84,13 @@ Run all commands from the repository root. The current state of the work on the 
 
 ### 4.1 What is where
 
-| on the cluster (host) | inside a job's container | what |
-|---|---|---|
-| `/home1/leesangjun/SJ/POSTECH/nlp` | `/NAS/SJ/POSTECH/nlp` | this repository; every job runs from here |
-| `/home1/leesangjun/nlp_project_261021.tar` | image `nlp_project:261021` | vLLM 0.22.0 + torch 2.11 cu130 (`/opt/conda`); client and sandbox Python `/root/venvs/llm_algo_poc` (= `$P`) |
-| `/home/leesangjun/SSD/huggingface` | `/SSD/huggingface` | shared model pool (root-owned) |
-| `/home1/leesangjun/SJ/POSTECH/nlp_data` | `$POC_DATA` = `/NAS/SJ/POSTECH/nlp_data` | external benchmark data (MAMO, OptMATH, OptiBench, BWOR, LogiOR) |
-| `/home1/leesangjun/out/nlp/<jobid>.out` | | job log: node, image load time, `lane exit <code>` |
+| on the cluster (host)                        | inside a job's container                     | what                                                                                                               |
+| -------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `/home1/leesangjun/SJ/POSTECH/nlp`         | `/NAS/SJ/POSTECH/nlp`                      | this repository; every job runs from here                                                                          |
+| `/home1/leesangjun/nlp_project_261021.tar` | image `nlp_project:261021`                 | vLLM 0.22.0 + torch 2.11 cu130 (`/opt/conda`); client and sandbox Python `/root/venvs/llm_algo_poc` (= `$P`) |
+| `/home/leesangjun/SSD/huggingface`         | `/SSD/huggingface`                         | shared model pool (root-owned)                                                                                     |
+| `/home1/leesangjun/SJ/POSTECH/nlp_data`    | `$POC_DATA` = `/NAS/SJ/POSTECH/nlp_data` | external benchmark data (MAMO, OptMATH, OptiBench, BWOR, LogiOR)                                                   |
+| `/home1/leesangjun/out/nlp/<jobid>.out`    |                                              | job log: node, image load time, `lane exit <code>`                                                               |
 
 These are the paths of the account that runs the jobs. For another account, change them in `poc/slurm/job.sh`: the log path, the image
 file, and the `-v` mounts.
@@ -128,11 +128,11 @@ job unexpanded. The scripts in `poc/queues/` are records of the old servers' run
 one of their lanes into a job.
 
 **Sizing jobs** (measured on RTX 3090, 2026-10-22):
+
 - **Cheap arms** (no thinking) are fast: one model's free + usage-card arms on BWOR and LogiOR, 3 seeds, took 10–35 minutes in one job.
 - **Qwen3 thinking arms** (10–12k tokens per problem) are slow, so give each seed its own job. One job per seed finished about 3× sooner
   than three seeds sharing one server, and free RTX3090 slots are usually available.
-- **Dependent steps** chain with `sbatch --dependency=afterok:<id>[:<id>...]`. For example, the label-free library arm (`run_form.py
-  formx`) needs every model's cheap programs first.
+- **Dependent steps** chain with `sbatch --dependency=afterok:<id>[:<id>...]`. For example, the label-free library arm (`run_form.py formx`) needs every model's cheap programs first.
 
 ### 4.4 Watching, resuming, stopping
 
@@ -194,6 +194,7 @@ python poc/analyze_hop.py --repair --fair --gate q14a q8b q35       # HO-P3: the
 HO7_CELLS=optibench:formx,bwor:formx python poc/analyze_ho7.py q35 # one cheap repair before thinking
 python poc/merge_shards.py results/x3/opt_<tag>_<mode>_s<seed>.jsonl  # after a run split with NLOPT_SHARD=i/k
 ```
+
 Geometry analyses import the client (`llm.py`): on a login node without the container use Python ≥ 3.10 and a stub `openai` module on
 `PYTHONPATH` (the analyses never call a model).
 

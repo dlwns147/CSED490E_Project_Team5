@@ -3,7 +3,7 @@
 Paste the block below as the first message of a new Claude Code session started in the cloned repository.
 
 ```text
-Continue the POSTECH graduate NLP class project "Tools, Facts, and Checks" (CSED490E, team 5) on this Slurm cluster. The repository is
+Continue the POSTECH graduate NLP class project (CSED490E, team 5) on this Slurm cluster. The repository is
 github.com/dlwns147/CSED490E_Project_Team5 (public, branch main); it was moved here from another server on 2026-10-20.
 
 Read first, in this order: docs/SLURM_HANDOFF.md (state, evidence table, next steps, data/model paths, environment, how runs map to Slurm,

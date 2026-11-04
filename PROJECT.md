@@ -1,6 +1,6 @@
 # Project: goal, rules and status
 
-*Solving Problems with LLMs, Accurately and Cheaply — Tools, Facts, and Checks.* POSTECH CSED490E, Team 5
+*Solving Problems with LLMs, Accurately and Cheaply.* POSTECH CSED490E, Team 5
 
 This file holds what the project is for, what we found, how we work, and where things stand. The details live elsewhere: setup in
 `README.md`, every result (dated) in `docs/FINDINGS.md`, each experiment's predictions and verdict in `docs/prereg/`, and cluster

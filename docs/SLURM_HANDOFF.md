@@ -172,8 +172,8 @@ State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Tea
 - **Smoke test** (`poc/slurm/smoke.sh`, first 10 OptiBench problems): Qwen3-8B 2/10 @ 0.41k, Qwen3-14B-AWQ 5/10 @ 0.35k, gpt-oss-20b
   3/10 @ 0.53k; raw programs show the old failure kinds; the harness reproduces (FINDINGS 2026-10-21 18:40).
 - **Raw results** of the old server (results/*.jsonl, 2.0 GB) are here (10-22 01:48 UTC), copied from the shared NFS `/NAS/SJ/POSTECH/nlp`
-  with `ssh -F /home1/leesangjun/cpu_jobs/ssh_origin.conf remote 'cd /NAS/SJ/POSTECH/nlp && tar czf - results' | tar xzf - --skip-old-files`
-  (`remote` = the old-server host in the team's local ssh config, not kept in this public repo; read-only there). `cpu_jobs/nlp/status_hourly.sh` (login node, nohup)
+  with `ssh -F /home1/leesangjun/.ssh/origin.conf remote 'cd /NAS/SJ/POSTECH/nlp && tar czf - results' | tar xzf - --skip-old-files`
+  (`remote` = the old-server host in the team's local ssh config, not kept in this public repo; read-only there). `SJ/POSTECH/nlp/host/status_hourly.sh` (login node, nohup)
   logs jobs hourly to `out/nlp/status_hourly.log`.
 - **Done on Slurm (10-22):** HO2 + WF3 on BWOR / LogiOR (PREREG_HO.md): think-on-failure ties always thinking for the two stronger models,
   loses for Qwen3-8B (leaky check on hard problems); library pays 6 / 6; WF3 rule right 10 / 12 (only its 'add' side tested).
@@ -181,14 +181,9 @@ State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Tea
   most leaked programs fail only edge cases the given input never contains (decision (c), see §2).
 
 ## 1. The project in one paragraph
-POSTECH CSED490E team project "Tools, Facts, and Checks": computational geometry (CG) and combinatorial-optimization (CO) problems solved
-by LLM-written programs, accurately and cheaply, with models that fit one 24 GB GPU. Every result is accuracy *and* tokens. The recipe:
-write a cheap program first; give the model the missing knowledge as a **fact** (library usage, or a checked program for a similar
-problem); run a **free label-free check** (the program runs / is feasible / metamorphic copies agree); pay for **thinking only when the
-check visibly fails**. Text: `docs/proposal/PROPOSAL.md` (+ Korean mirror `docs/proposal/PROPOSAL_ko.md`, always updated together, short, numbers edited in place).
-Lab log: `docs/FINDINGS.md` (dated, append-only). Pre-registrations with appended results: `docs/prereg/PREREG_*.md`. Index: `docs/README.md`.
-Slides are maintained by a separate writing session (`docs/proposal/PROPOSAL_slides*.pptx`, `docs/proposal/Proposal_Team5*.pptx`, `poc/make_slides.js`) — do not edit them
-unless asked.
+POSTECH CSED490E team project: exactly right answers from LLMs at the lowest cost, with open 8B–120B models; every result is accuracy
+*and* tokens. Problems and methods are open (user, 2026-11-05); the goal, what we found so far, the rules and the status are in
+`PROJECT.md`, every dated result in `docs/FINDINGS.md`, each experiment in `docs/prereg/`.
 
 ## 2. Where the evidence stands (all 3 seeds unless noted; tokens = output tokens per problem)
 | claim | evidence | file |
