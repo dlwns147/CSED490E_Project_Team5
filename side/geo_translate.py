@@ -13,7 +13,8 @@ Problems: $POC_DATA/geo/problems.jsonl (id, source, problem, ref = reference tra
 usage: $P side/geo_translate.py gen <tag> <ids file> [--think] [--k K] [--max_tokens N] [--repair R] [--grammar]   (lane.sh job;
        POC_BASE_URL set; --repair needs Newclid on PYTHONPATH: up to R more turns, each told the guard's finding; --grammar: after each
        free reply, one quick greedy turn writes the final line under the language's grammar, vLLM structured outputs)
-       <python with newclid> side/geo_translate.py check <tag> [--timeout S] [--workers W]     (CPU job)"""
+       <python with newclid> side/geo_translate.py check <tag> [--timeout S] [--workers W]     (CPU job)
+       <python with newclid> side/geo_translate.py aux <tag | refs> [--k K] [--timeout S] [--workers W] [--ids file]   (CPU job)"""
 import json, os, re, subprocess, sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -260,10 +261,82 @@ def check():
     print(f"SIDE-GT check {tag}: {len(R)} translations -> {OUT}/gt_{tag}_check.jsonl", flush=True)
 
 
+def aux_candidates(dsl, k, seed=0):
+    """k auxiliary points, drawn uniformly (seeded) from one-step classical constructions on the translation's points: midpoints,
+    point reflections, circumcentres, feet, line reflections, and intersections of two lines through point pairs. HAGeo (2512.00097)
+    reports 25 of IMO-AG-30 for random auxiliary constructions and 28 for its heuristics; its code is not released."""
+    import itertools, random
+    pts = []
+    for step in dsl.split(" ? ")[0].split("; "):
+        for q in step.split(" = ")[0].split():
+            if q not in pts:
+                pts.append(q)
+    P2, P3 = list(itertools.combinations(pts, 2)), list(itertools.combinations(pts, 3))
+    T = {"midpoint": [f"midpoint {{x}} {a} {b}" for a, b in P2],
+         "mirror": [f"mirror {{x}} {a} {b}" for a, b in itertools.permutations(pts, 2)],
+         "circle": [f"circle {{x}} {a} {b} {c}" for a, b, c in P3],
+         "foot": [f"foot {{x}} {a} {b} {c}" for a in pts for b, c in itertools.combinations([q for q in pts if q != a], 2)],
+         "reflect": [f"reflect {{x}} {a} {b} {c}" for a in pts for b, c in itertools.combinations([q for q in pts if q != a], 2)],
+         "intersection_ll": [f"intersection_ll {{x}} {a} {b} {c} {d}" for (a, b), (c, d) in itertools.combinations(P2, 2)
+                             if len({a, b, c, d}) == 4]}
+    rng = random.Random(seed)
+    for v in T.values():
+        rng.shuffle(v)
+    C = []   # uniform over the construction type, then over its arguments (line intersections would otherwise be ~half the pool)
+    while len(C) < k and any(T.values()):
+        ty = rng.choice([t for t, v in T.items() if v])
+        C.append(T[ty].pop())
+    x = next(n for n in ("aux", "aux0", "aux1", "zaux") if n not in pts)
+    pre, goal = dsl.split(" ? ")
+    return [(c.format(x=x), f"{pre}; {x} = {c.format(x=x)} ? {goal}") for c in C]
+
+
+def aux():
+    """aux <tag | refs> [--k K] [--timeout S] [--workers W] [--ids file]: for each base translation (refs: $POC_DATA/geo/gt_refs.jsonl;
+    a tag: the guarded, unproved rows of gt_<tag>_check.jsonl, optionally only the ids/samples listed in --ids as id:sample), DDAR on the
+    translation alone, then with one auxiliary point at a time (aux_candidates, in order) until one proves -> gt_<tag>_aux.jsonl"""
+    tag = sys.argv[2]
+    arg = lambda n, d: type(d)(sys.argv[sys.argv.index(n) + 1]) if n in sys.argv else d
+    k, timeout, workers = arg("--k", 64), arg("--timeout", 60.0), arg("--workers", 4)
+    if tag == "refs":
+        B = [json.loads(l) for l in open(os.path.join(PD, "gt_refs.jsonl"))]
+    else:
+        B = [r for r in map(json.loads, open(f"{OUT}/gt_{tag}_check.jsonl")) if r["status"] == "guarded" and not r["proved"]]
+        if "--ids" in sys.argv:
+            keep = set(open(sys.argv[sys.argv.index("--ids") + 1]).read().split())
+            B = [r for r in B if f"{r['id']}:{r['sample']}" in keep]
+
+    def one(dsl):
+        try:
+            p = subprocess.run([sys.executable, os.path.abspath(__file__), "one", dsl, str(timeout)], capture_output=True, text=True,
+                               timeout=timeout + 600)
+            return json.loads(p.stdout.strip().splitlines()[-1])
+        except Exception as e:
+            return ["build error", None, f"{type(e).__name__}", 0]
+
+    def run(r):
+        st, pr, msg, sec = one(r["dsl"])
+        out = {"id": r["id"], "sample": r.get("sample", 0), "dsl": r["dsl"], "base": st, "base_proved": pr, "aux": None, "tried": 0,
+               "sec": sec}
+        if pr or st != "guarded":
+            return out
+        for c, d in aux_candidates(r["dsl"], k):
+            st2, pr2, _, s2 = one(d)
+            out["tried"] += 1; out["sec"] += s2
+            if pr2:
+                out["aux"] = c
+                break
+        return out
+    with ThreadPoolExecutor(workers) as ex, open(f"{OUT}/gt_{tag}_aux.jsonl", "w") as f:
+        for fu in as_completed([ex.submit(run, r) for r in B]):
+            f.write(json.dumps(fu.result()) + "\n"); f.flush()
+    print(f"SIDE-GT aux {tag}: {len(B)} translations -> {OUT}/gt_{tag}_aux.jsonl", flush=True)
+
+
 if __name__ == "__main__":
     if sys.argv[1] == "one":
         import logging
         logging.disable(logging.CRITICAL)
         print(json.dumps(one_check(sys.argv[2], float(sys.argv[3]))))
     else:
-        {"gen": gen, "check": check}[sys.argv[1]]()
+        {"gen": gen, "check": check, "aux": aux}[sys.argv[1]]()
