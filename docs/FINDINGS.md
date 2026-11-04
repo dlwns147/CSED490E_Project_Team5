@@ -5300,3 +5300,11 @@ Decision (registered): the turn-0 claim holds in unseen BFCL environments at abo
 gets an environment-held-out run if it holds. The generated environment of the second track (SIDE-ENV) is the test beyond BFCL's
 own classes. Goal link: the agent-loop gain is not a memorised environment.
 
+
+## 2026-11-04 00:4x UTC: proposal files moved into `proposal/` (user: a folder for the proposal files; no results)
+- `git mv`: PROPOSAL.md, PROPOSAL_ko.md, Proposal_Team5.pptx, Proposal_Team5_v2.pptx, PROPOSAL_slides_full.pptx and
+  docs/notes/PROPOSAL_CORE_DRAFT.md into `proposal/`; docs/archive/ (the earlier proposal versions) is now `proposal/archive/`.
+- Figures stay in `figs/`, which the proposal, the report and the README share; the proposal's links now point to `../figs/`.
+- `poc/make_slides.js` writes and `poc/export_slide_figs.py` reads the decks in `proposal/`.
+- Paths updated in README, PROJECT, docs/README, docs/REPORT, docs/SLURM_HANDOFF, docs/SLURM_PROMPT and docs/notes/REPORT_OUTLINE.
+  Dated logs (this file, HANDOFF.md) and the pre-registrations keep the old paths as written.

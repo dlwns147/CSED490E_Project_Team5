@@ -7,7 +7,7 @@ Continue the POSTECH graduate NLP class project "Tools, Facts, and Checks" (CSED
 github.com/dlwns147/CSED490E_Project_Team5 (public, branch main); it was moved here from another server on 2026-10-20.
 
 Read first, in this order: docs/SLURM_HANDOFF.md (state, evidence table, next steps, data/model paths, environment, how runs map to Slurm,
-harness traps, working rules), then PROPOSAL.md, the tail of docs/FINDINGS.md, docs/prereg/PREREG_HOG.md and docs/prereg/PREREG_HO.md.
+harness traps, working rules), then proposal/PROPOSAL.md, the tail of docs/FINDINGS.md, docs/prereg/PREREG_HOG.md and docs/prereg/PREREG_HO.md.
 
 Scope: computational geometry and combinatorial optimization solved by LLM-written programs, accurately and cheaply, with models that fit
 one 24 GB GPU (gpt-oss-20b, Qwen3-14B-AWQ, Qwen3-8B; larger models only as references). Every result reports accuracy together with tokens.
@@ -29,7 +29,7 @@ when a fact does NOT pay, (3) fold the held-out results into the final report.
 
 Rules (mine, standing): pre-register predictions with numbers and a decision rule in docs/prereg/PREREG_*.md before running; at least 3 seeds
 for any positive claim; report cost-accuracy, not accuracy alone; read raw programs and treat surprising numbers as harness bugs until the raw
-outputs say otherwise; append dated entries to docs/FINDINGS.md; update PROPOSAL.md and its Korean mirror PROPOSAL_ko.md together, short,
+outputs say otherwise; append dated entries to docs/FINDINGS.md; update proposal/PROPOSAL.md and its Korean mirror proposal/PROPOSAL_ko.md together, short,
 numbers edited in place; do not edit the slide files unless I ask; commit and push after each change (public repo: scan the staged diff for
 secrets, never commit raw outputs); before starting any run, ask whether it can change the project's main claim, and skip it if not — no
 replications or baselines for their own sake. Explain results to me for a first-time reader: what ran, how, the result with its cost, what

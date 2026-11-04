@@ -4,7 +4,7 @@
 (Sangjun Lee, Seongbin Park).
 
 This file holds what the project is for and how we work. How to install and run everything: `README.md` (the manual). The argument with
-all numbers: `PROPOSAL.md` (Korean: `PROPOSAL_ko.md`). The lab log: `docs/FINDINGS.md`.
+all numbers: `proposal/PROPOSAL.md` (Korean: `proposal/PROPOSAL_ko.md`). The lab log: `docs/FINDINGS.md`.
 
 ## 0. In plain words (problems and what solved them)
 
@@ -179,8 +179,8 @@ table: `docs/REPORT.md` §5.1):
 3. **At least 3 seeds** for any positive claim; report seed means and, for comparisons, a 95% interval over problems; call a tie a tie.
 4. **Accuracy with its cost:** output tokens per problem always; input tokens where prompts differ in length.
 5. **Read the raw outputs**, not only scores; treat a surprising number as a harness bug until the raw programs say otherwise.
-6. **Record:** a dated entry (UTC, from `date -u`) appended to `docs/FINDINGS.md` for every result; `PROPOSAL.md` and `PROPOSAL_ko.md`
-   updated together, short, numbers edited in place. Slides (`*.pptx`, `poc/make_slides.js`) change only when asked.
+6. **Record:** a dated entry (UTC, from `date -u`) appended to `docs/FINDINGS.md` for every result; `proposal/PROPOSAL.md` and `PROPOSAL_ko.md`
+   updated together, short, numbers edited in place. Slides (`proposal/*.pptx`, `poc/make_slides.js`) change only when asked.
 7. **Git:** commit and push after each change. The repository is public: scan the staged diff for secrets, never commit raw outputs
    (`*.jsonl`, logs), server addresses or keys; no co-author lines — commits are by the team's account.
 8. **Explain for a first-time reader:** what ran, how, the result with its cost, what is next.
@@ -273,7 +273,7 @@ table: `docs/REPORT.md` §5.1):
 |---|---|
 | `PROJECT.md` | this file: goal, claim, scope, rules, status |
 | `README.md` | the manual: setup, running, files, harness notes |
-| `PROPOSAL.md`, `PROPOSAL_ko.md` | the argument with every number (English, Korean; kept in sync) |
+| `proposal/` | `PROPOSAL.md`, `PROPOSAL_ko.md`: the argument with every number (English, Korean; kept in sync); the talk and full decks (`*.pptx`); earlier versions (`archive/`) |
 | `docs/FINDINGS.md` | lab log, dated, append-only |
 | `docs/prereg/PREREG_<id>.md` | one file per experiment: predictions, then results and verdicts (index: `docs/README.md`) |
 | `docs/notes/` | REPORT_OUTLINE (final-report draft), CRITIQUE (self-review), RELATED_WORK, FIX_MAP |

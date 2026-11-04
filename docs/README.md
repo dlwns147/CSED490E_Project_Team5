@@ -7,7 +7,7 @@ Goal, scope and working rules: `PROJECT.md`; how to set up and run: `README.md` 
 | `FINDINGS.md` | Chronological lab log (newest at the end) |
 | `prereg/PREREG_<id>.md` | One file per experiment: predictions before the run → results and verdicts |
 | `notes/` | Self-critique (CRITIQUE), check coverage (CHECKS), failure → fix map (FIX_MAP), related work (RELATED_WORK), drafts |
-| `archive/` | Earlier versions of the proposal |
+| `../proposal/` | The proposal (`PROPOSAL.md`, Korean `PROPOSAL_ko.md`), its decks, its earlier versions (`archive/`) |
 
 Commands are in `poc/queues/queue_*<id>*.sh` (old servers, records only) and `poc/slurm/*.sh` (Slurm cluster, from 2026-10-22), analyses in `poc/analyze_<id>.py`.
 

@@ -11,7 +11,7 @@ FIGS = {"Finding 1:": "ex_finding1", "Finding 2:": "ex_finding2", "Finding 3:": 
         "The problems we study": "ex_problems"}
 
 with tempfile.TemporaryDirectory() as d:
-    shutil.copy(os.path.join(ROOT, "PROPOSAL_slides_full.pptx"), d)
+    shutil.copy(os.path.join(ROOT, "proposal", "PROPOSAL_slides_full.pptx"), d)
     subprocess.run(["soffice", "--headless", "--convert-to", "pdf", "--outdir", d, os.path.join(d, "PROPOSAL_slides_full.pptx")], check=True,
                    stdout=subprocess.DEVNULL)
     pdf = os.path.join(d, "PROPOSAL_slides_full.pdf")

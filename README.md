@@ -3,7 +3,7 @@
 *Tools, Facts, and Checks.* POSTECH CSED490E (Graduate NLP) team project, Team 5.
 
 This is the manual: how to set up, run and analyze everything in this repository. **What the project is for, its claim, scope and
-working rules: `PROJECT.md`.** The argument with all numbers: `PROPOSAL.md` (Korean: `PROPOSAL_ko.md`).
+working rules: `PROJECT.md`.** The argument with all numbers: `proposal/PROPOSAL.md` (Korean: `proposal/PROPOSAL_ko.md`).
 
 Many LLM tasks come with a free, partial check: programs for geometry, optimization, contest and word problems, SQL queries, tool calls,
 instructions with checkable constraints. Cheap answers can be silently wrong, and thinking longer is expensive. We look for the cheapest
@@ -16,7 +16,8 @@ way to get exactly right answers: a cheap answer, the missing fact, a free check
 ```
 PROJECT.md                     goal, claim, scope, working rules, status
 README.md                      this manual
-PROPOSAL.md, PROPOSAL_ko.md    the argument with every number (English, Korean)
+proposal/                      the proposal: PROPOSAL.md, PROPOSAL_ko.md (the argument with every number, English, Korean),
+                               the talk (Proposal_Team5*.pptx), the full findings deck, earlier versions (archive/)
 bench.py                       one entry point: list / download / serve / run / submit (Slurm) / analyze
 poc/run_*.py                   benchmark harnesses (each explains its options at the top)
 poc/analyze_*.py               analyses of the stored rows
@@ -24,7 +25,7 @@ poc/slurm/                     Slurm job template (job.sh), generic lane (lane.s
 poc/queues/                    the exact commands of the old servers' runs (records; see poc/queues/README.md)
 docs/                          lab log (FINDINGS.md), pre-registrations (prereg/), notes, cluster state (SLURM_HANDOFF.md); index docs/README.md
 results/                       problem sets and reference data (model outputs *.jsonl and logs are not in git)
-figs/, *.pptx                  figures; the talk (Proposal_Team5*.pptx) and the full findings deck
+figs/                          figures (the proposal, the report and this manual share them)
 ```
 
 ## 2. Setup
