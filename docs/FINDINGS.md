@@ -5396,3 +5396,35 @@ On the 64 items that are statements to prove (34 false, 30 true):
 - Decision: the statement check is not pre-registered; it is recorded as dev only. The Lean arm closes with this translator. The user
   re-scoped proofs to hard proofs such as geometry (statements Lean can check are close to the computational problems), so the
   proof track continues with SIDE-PG: numerical checks of geometry proofs, guarded by the problem's own conclusion (dev job 1312912).
+
+## 2026-11-04 06:3x UTC: SIDE-PG geometry dev (exploratory; 57 OPC geometry proofs, 38 wrong / 19 right, 15 problems; Qwen3-8B): no recall; the proof track turns to translation + a symbolic engine
+- The check (`side/proof_falsify.py --geometry`, job 1312912): a program builds 8 random instances of the figure, checks the
+  problem's own conclusion (instances where it fails are discarded) and each claim of the proof; a claim is refuted when it fails on
+  every remaining instance (at least 3).
+- First reading showed every program as a bad figure: Qwen3-8B writes `INSTANCE 3: {...}`, which the parser did not accept. The parser
+  is fixed and the stored programs were re-run (outputs are now stored).
+
+| arm | wrong flagged | right flagged | program ran and the figure held | tokens | cut by the length cap |
+|---|---|---|---|---|---|
+| thinking (16k cap) | 0 / 38 | 0 / 19 | 22 / 57 | 12.7k | 20 / 57 |
+| quick (4k cap) | 1 / 38 | 0 / 19 | 2 / 57 | 2.7k | 20 / 57 |
+
+- The one flag is a Putnam convex-set problem (putnambench_497), not plane geometry; its "refuted" claim is the program's own bound.
+- Why there is no recall: the judges' feedback on the 38 wrong proofs names a false concrete geometric fact in 6 (generic_1304–1307,
+  best_of_n_234–235: an angle claim, CK = CL, ∠CPB = ∠CPA, a symmetry, directed angles, AC = BC assumed). The rest are skipped
+  calculations, "not a full solution", no solution, a specific case, or (matharena_176/177) a wrong minimum. With thinking, five of the 6
+  ran out of the 16k budget before writing code, and generic_1307's program tested the claim only when SC = SP, which random
+  instances never satisfy.
+- The guard works as designed (0 right proofs flagged) but there is almost nothing to catch: OPC's frontier-model proofs of the 22
+  shortlist geometry problems are right in 2 of 105 human-graded cases, and their errors are gaps, not false facts.
+- Decision: the numerical check of natural-language geometry proofs is closed (not pre-registered).
+- Next, SIDE-GT (`side/geo_translate.py`): Qwen3-8B only translates the statement into AlphaGeometry's construction language; the
+  problem's own conclusion guards the translation numerically; Newclid's DDAR (CPU) proves it. Related work: proving from the
+  construction language is close to solved without a network (HAGeo 2512.00097: 28 / 30 IMO-AG-30 on CPU; AlphaGeometry2 2502.03544;
+  InternGeometry 2512.10534: 44 / 50, a 32B agent); translation is the bottleneck (NL2AGBench 2608.28481: open models at most 46%
+  executable with 54 examples, Qwen3-235B 12.5% zero-shot; AlphaGeometry2 uses Gemini with self-consistency and reports translation
+  errors). Untested there: a small model with a free numerical guard and resampling, and how often a guarded translation is unfaithful.
+- Checker setup (11-04): Newclid 2.0.2 in `$POC_DATA/geo/pylib` (the image lacked pyvis and seaborn, which Newclid imports lazily but
+  must find). Newclid's numerical comparisons use an absolute 1e-12, which true goals miss by rounding; the checker uses 1e-7. Problems:
+  89 (OPC's 22 shortlist geometry problems and 67 from theblackcat102/IMO-geometry, MIT, after removing 4 duplicates), 11 with an
+  IMO-AG-30 reference; 24 for development (the 11 with a reference first), 65 held out.

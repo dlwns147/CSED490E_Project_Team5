@@ -115,8 +115,8 @@ def geo_verdict(stdout):
         try:
             if line.startswith("CLAIMS:"):
                 claims = json.loads(line[7:])
-            elif line.startswith("INSTANCE "):
-                inst.append(json.loads(line[9:]))
+            elif line.startswith("INSTANCE") and "{" in line:   # Qwen3-8B writes `INSTANCE 3: {...}` (dev, 11-04)
+                inst.append(json.loads(line[line.index("{"):]))
         except (ValueError, TypeError):
             continue
     ok = [x for x in inst if isinstance(x, dict) and x.get("conclusion") is True]
@@ -159,7 +159,8 @@ def one(x, think, max_tokens, statement=False, verdict=False, geometry=False):
         flag = bool(flag)
     return {"id": x["id"], "label": x["label"], "split": x["split"], "model_id": x["model_id"], "program": code,
             "out_tokens": r["out_tokens"], "in_tokens": r["in_tokens"], "finish": r["finish"],
-            "status": run.status if run else "no code", "last": last, "stderr": (run.stderr[-300:] if run else ""), "flag": flag}
+            "status": run.status if run else "no code", "last": last, "stderr": (run.stderr[-300:] if run else ""), "flag": flag,
+            "stdout": (run.stdout[-4000:] if run else "")}
 
 
 def main():

@@ -82,7 +82,7 @@ witness for 98.4% of the target pairs, with a median of 3 rows.
 readable, but the 8B verifier does not use them: its choice changes less than retraining alone changes it. Side project B is closed.
 The code stays as an example of a delta-debugging component.
 
-## C. Proofs (`side/proof_falsify.py`; being tested)
+## C. Proofs (`side/proof_falsify.py`, `side/geo_translate.py`; being tested)
 
 **What the main track already knows** (`docs/prereg/PREREG_PROOF.md`):
 - Lean 4 (miniF2F): the compiler is a perfect check.
@@ -115,20 +115,34 @@ separates them.
 - A counterexample program flags 79% and 23%. Requiring both cuts true-statement flags to 7%, at 12.7k tokens.
 - Translated to Lean by Qwen3-8B, 67 of 78 statements do not even compile, and Plausible cannot sample ℝ. Not pursued.
 
-**Testing now: hard proofs, geometry first (SIDE-PG).** The program draws random instances of the figure and checks the proof's
-concrete claims (equal angles, collinear, concyclic, tangent). The problem's own conclusion is true, so an instance where it fails
-is a wrongly built figure and is discarded. A claim is refuted only if it fails on every remaining instance (at least 3).
-- Data: OPC's 299 human-graded geometry proofs. 15 problems are used for development, 50 are kept for the test.
+**Geometry proofs checked numerically (SIDE-PG dev, 11-04): no recall.** The program drew random instances of the figure and checked
+the proof's concrete claims, discarding instances where the problem's own (true) conclusion failed.
+- On 57 OPC geometry proofs it flagged 0 of 38 wrong and 0 of 19 right proofs with thinking (12.7k tokens; a third hit the 16k cap).
+- The judges name a false geometric fact in only 6 of the 38 wrong proofs; the rest are gaps or missing work, which no numerical
+  test sees. Frontier models' proofs of OPC's 22 shortlist geometry problems are right in 2 of 105 cases.
 
-**Next areas, the same scheme** (each with a sound refutation, and the true theorem guarding the test; OPC graded proofs,
-wrong / right):
+**Testing now: geometry by translation and a symbolic engine (SIDE-GT, `side/geo_translate.py`).** The model writes no proof. It
+translates the statement into AlphaGeometry's construction language, and Newclid's DDAR (Sicca et al., 2411.11938; CPU) proves it.
+- The free check: the problem's conclusion must hold numerically on a random figure built from the translation's hypotheses alone.
+  A false goal holds on none; a translation that adds a hypothesis still passes, so faithfulness is read by hand or against a
+  reference translation.
+- What is known: proving from the construction language is close to solved without a network (HAGeo, 2512.00097: 28 of 30
+  IMO-AG-30 on CPU). Translation is the weak link: open models reach at most 46% executable translations even with 54 examples
+  (NL2AGBench, 2608.28481). Untested: a small model with this guard and resampling.
+- Data: `$POC_DATA/geo/problems.jsonl`, 89 problems (OPC's 22 shortlist geometry problems and 67 from theblackcat102/IMO-geometry),
+  11 with an IMO-AG-30 reference; 24 for development, 65 held out.
+- Setup: `pip install --no-deps --target $POC_DATA/geo/pylib newclid==2.0.2 colorama networkx pyvis seaborn`; run the check with
+  `PYTHONPATH=$POC_DATA/geo/pylib`.
+- A project for algorithms work: the translator's search (resampling, repair from Newclid's errors), and auxiliary constructions
+  when DDAR stops (HAGeo's heuristics are a published baseline).
 
-| Area | Refutation | Guard | OPC (wrong / right) |
-|---|---|---|---|
-| Functional equations | plug in the claimed solutions; search simple families for missed ones | each reported solution checked on many random points | 190 / 89 |
-| Inequalities | minimise LHS − RHS for each intermediate inequality (IneqMath has another test set) | the original inequality must survive the same search | 101 / 93 |
-| Combinatorics | brute-force small cases: the claimed extremum, the claimed construction | the statement must hold on the small cases | 188 / 109 |
-| Analysis (Putnam) | high-precision numerics; random matrices | the problem's stated value | 65 / 248 |
+**Other hard proofs, the same question** (OPC graded proofs, wrong / right): is there a free check that sees the common error?
 
-None of these sees the most common error, a step left unjustified while true (85% of solutions in IneqMath), so they complement a
-proof judge rather than replace it.
+| Area | Free check | OPC (wrong / right) |
+|---|---|---|
+| Inequalities | numerical minimisation refutes a false step; an SOS certificate proves a polynomial one (LIPS, 2502.13834) | 101 / 93 |
+| Functional equations | plug in the claimed solutions; search simple families for missed ones | 190 / 89 |
+| Combinatorics | brute force on small cases: the claimed extremum, the claimed construction | 188 / 109 |
+
+None of these sees a step left unjustified while true, the most common error (85% of solutions in IneqMath), so a symbolic engine
+that proves, as in geometry, is the stronger route where one exists.
