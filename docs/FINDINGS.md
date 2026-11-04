@@ -5428,3 +5428,17 @@ On the 64 items that are statements to prove (34 false, 30 true):
   must find). Newclid's numerical comparisons use an absolute 1e-12, which true goals miss by rounding; the checker uses 1e-7. Problems:
   89 (OPC's 22 shortlist geometry problems and 67 from theblackcat102/IMO-geometry, MIT, after removing 4 duplicates), 11 with an
   IMO-AG-30 reference; 24 for development (the 11 with a reference first), 65 held out.
+
+## 2026-11-04 06:5x UTC: SIDE-MC opened (user: the side work on math progresses two ways, computation and proof): constructions with a human verifier
+- Proof way: SIDE-GT (geometry by translation + Newclid DDAR; dev running). Computation way: constructive problems, which are proofs
+  whose correctness is computed. MathConstruct (2502.10197, MIT; 121 problems after the authors' September 2025 corrections; o3-mini
+  high 65% of variations; 2024 models writing brute-force code 5–10%, 11–19% searching small cases and generalising) has a verifier
+  and a variation generator per problem; it runs on Python 3.11 (one verifier uses Fraction.is_integer from 3.12).
+- `side/construct.py`: build (226 instances = 2 variations of 115 problems; dev 79 instances of 40 problems, 147 held out), gen
+  (arms: direct answer, program that builds or searches, checker written from the statement alone; quick and thinking), grade (the
+  human verifier on every answer; every checker on every answer of its instance).
+- Questions: the cheapest route to a verified object for an 8B model, and whether a model-written checker can be the free check (its
+  errors are measured exactly here). Related: ComBench (2606.10479) generates verifiers with a model and audits them to build a
+  benchmark; no test-time use found.
+- Dev (exploratory, Qwen3-8B; jobs 1314159 quick arms, 1314160 thinking arms) sizes the routes before a pre-registration on the 147
+  held-out instances.

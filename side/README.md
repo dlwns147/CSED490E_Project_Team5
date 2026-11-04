@@ -146,3 +146,27 @@ translates the statement into AlphaGeometry's construction language, and Newclid
 
 None of these sees a step left unjustified while true, the most common error (85% of solutions in IneqMath), so a symbolic engine
 that proves, as in geometry, is the stronger route where one exists.
+
+## D. Constructions: the computation side of proofs (`side/construct.py`; being tested)
+
+**Why:** the side work on math runs two ways (user, 11-04): proofs (section C; geometry) and computation. A constructive problem
+("show that an object with these properties exists") is proved by the object, and whether an object is right is decided by computing.
+
+**Data:** MathConstruct (Balunović et al., 2502.10197; eth-sri/mathconstruct, MIT): 121 competition problems, each with a
+human-written verifier and a generator of variations (other parameters, so a remembered answer does not help). Published: o3-mini
+(high) 65% of variations; models writing brute-force code 5–10%, and 11–19% when they search small cases and generalise (2024 models,
+without thinking). `side/construct.py build` writes two variations of each problem (226 instances of 115 problems; 40 problems for
+development, 75 held out).
+
+**Questions:**
+1. Which route gives a verified object with the fewest tokens: answer directly (quick or thinking), or write a program that builds or
+   searches for the object.
+2. Can a checker the model writes from the statement alone, before seeing any answer, stand in for the human verifier as the free
+   check? On these problems its false accepts and false rejects are measured exactly. Related: ComBench (2606.10479) has a model
+   write verifiers to build a benchmark, then audits them; we found no test-time use.
+
+**Setup:** MathConstruct needs `sympy`, `antlr4-python3-runtime==4.11`, `pydantic`, `loguru`; grading runs with
+`PYTHONPATH=$POC_DATA/construct/mathconstruct/src`.
+
+**For algorithms work:** the program route is search (backtracking, SAT encodings, local search), and "search small cases, find the
+pattern, build the large case" is a method of its own.
