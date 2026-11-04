@@ -70,22 +70,17 @@ in BFCL's `multi_turn_miss_param`.
 failed conversation, the first turn where its state leaves the ground truth's, which attributes differ there, and whether that turn
 showed an error.
 
-## B. Distinguishing sub-databases for SQL (`poc/sql_witness.py`)
+## B. Distinguishing sub-databases for SQL (`poc/sql_witness.py`; closed)
 
-**What for:** when two candidate SQL queries return different rows, a trained pairwise verifier picks one. A witness shows the verifier
-why the two queries differ: a few rows of the real database on which they still disagree.
+**What it was for:** when two candidate SQL queries return different rows, a trained pairwise verifier picks one. A witness shows the
+verifier why the two queries differ: a few rows of the real database on which they still disagree.
 
-**What it does now:** delta debugging over rows, with foreign keys closed and the results' shape kept as on the real database. It
-finds a 1-minimal witness of about 3 rows for most pairs.
+**What it does:** delta debugging over rows, with foreign keys closed and the results' shape kept as on the real database. It finds a
+witness for 98.4% of the target pairs, with a median of 3 rows.
 
-**If SIDE-W shows that witnesses help** (see `PREREG_SIDE.md`), the algorithmic work is:
-- **Constructed witnesses.** Use constraint solving, as in VeriEQL (OOPSLA 2024) or XData, for pairs whose difference the real data
-  shows only on large row sets, or not at all.
-- **The most readable witness** among the 1-minimal ones: fewest tables, fewest NULLs, the rows the question names.
-- **Speed on 10⁷-row tables.** Use provenance (the rows a query reads) instead of sampling.
-
-**Data:** BIRD (bird-bench.github.io) and Spider (yale-lily.github.io/spider) are public. Develop and test the search on gold queries
-against mutated gold queries from BIRD train. The main track runs it on the stored candidate pairs.
+**Result (SIDE-W, 11-04):** the verifier trained with witnesses equals the one without, in every test set. The witnesses are right and
+readable, but the 8B verifier does not use them: its choice changes less than retraining alone changes it. Side project B is closed.
+The code stays as an example of a delta-debugging component.
 
 ## C. Proofs (`side/proof_falsify.py`; being tested)
 
@@ -111,6 +106,6 @@ against mutated gold queries from BIRD train. The main track runs it on the stor
 concrete claims on instances. A printed counterexample flags the proof.
 - Measured on OPC's human labels: the share of wrong proofs flagged, against the share of right proofs flagged (the check's own
   errors).
-- If it catches enough with few false flags, next:
-  - give the counterexample to a proof judge, as witnesses are given to the SQL verifier;
-  - BrokenMath (INSAIT), where models "prove" false statements: the statement itself can be tested on small cases.
+- If it catches enough with few false flags, a flag rejects the proof directly; it is not shown to a judge, since SIDE-W found an 8B
+  verifier does not use a shown counterexample. Next would be BrokenMath (INSAIT), where models "prove" false statements: the
+  statement itself can be tested on small cases.

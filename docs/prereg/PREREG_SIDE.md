@@ -65,6 +65,38 @@ Qwen3-8B. Reference: SEL-PW's s150 without the witness on the same question-seed
 - P1 refuted → a trained 8B pairwise verifier gains nothing from a sub-database witness; side project B closes (constructed witnesses
   would add information only where the real data lacks a small witness, a minority by P4).
 
+## Results of SIDE-W (written 2026-11-04 02:2x UTC; job 1311549 `selwit`: training 166 steps, checkpoint, target scoring; `results/lcm_selwit.log`, `results/lcm_selwit_val.log`; the log's "pairwise" is the witness verifier selwit_s150, its "pointwise" the reference selpw_s150)
+
+- **Coverage (P4) holds:** a witness for 7,124 of 7,239 target pairs (98.4%; 64 at the budget), median 3 rows (90th percentile 6).
+  115 pairs got none; they keep SEL-PW's prompt.
+- **Checkpoint:** selwit_s150, pooled held-out-database AUROC 0.785 [0.710, 0.853] (SEL-PW's s150: 0.811 [0.742, 0.879]).
+
+| within-question AUROC, witness vs SEL-PW | BIRD dev | Spider test | Spider dev |
+|---|---|---|---|
+| N base | 0.837 vs 0.837 | 0.797 vs 0.804 | 0.832 vs 0.834 |
+| N trained (C1) | 0.798 vs 0.791 | 0.790 vs 0.782 | 0.810 vs 0.827 |
+
+- **SIDE-W-P1 refuted:** witness − SEL-PW AUROC, targets pooled: base −0.002 [−0.014, +0.009], trained +0.003 [−0.010, +0.016].
+- **SIDE-W-P2 refuted:** selector, targets pooled: base +0.05 [−0.11, +0.20], trained −0.02 [−0.20, +0.18]; no lower bound > 0 and
+  no upper bound < 0.
+- **SIDE-W-P3 refuted:** BIRD dev (right, wrong) pairs with the same output columns +0.45 [−1.12, +2.04] points (1,510 pairs),
+  different columns +0.05 [+0.00, +0.14] (551).
+- **Reported:**
+  - SEL-PW's s150 adapter shown the witness without training on it (selwitz): AUROC −0.014 [−0.027, −0.001] (base) and −0.009
+    [−0.022, +0.005] (trained); selector +0.06 / +0.07, n.s.; same-column pairs −2.38 [−4.45, −0.50].
+  - The untrained model with the witness prompt: held-out-database AUROC 0.471, chance.
+- **Raw:**
+  - The witnesses are right and readable. In BIRD dev 514 the witness shows the one banned card that only the query without
+    `status = 'Legal'` keeps. In 1492 it shows a KAM customer without transactions, for whom the query that joins transactions
+    returns NULL.
+  - The verifier hardly moves with them. On the 14,248 requests with a witness its scores correlate 0.966 with SEL-PW's, and the
+    preferred query flips in 9.4%. On the 230 requests without a witness, where the two prompts are identical, it flips in 13.0%:
+    the witness changes the choice less than retraining does.
+  - A witness adds a median of 119 prompt tokens.
+- **Decision (registered):** P1 refuted → a trained 8B pairwise verifier gains nothing from a sub-database witness, and side project
+  B closes. Constructed witnesses would add information only where the real data has no small witness, 1.6% of pairs by P4. The
+  word-problem analogue (an LP difference shown to the verifier) is not started.
+
 ## SIDE-ENV: does a generated environment reproduce BFCL's multi-turn regime? (written 2026-11-03 19:1x UTC, before any model ran on it; 40 scenarios generated, their ground truths replayed through BFCL's checker)
 
 **Why.** The agent-loop results (MT-SEL; MT-SO running) are measured on BFCL v4's 8 environment classes, and the verifiers are trained

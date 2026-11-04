@@ -5337,3 +5337,13 @@ own classes. Goal link: the agent-loop gain is not a memorised environment.
 - Next: SIDE-PF, a model-written counterexample search per proof (`side/proof_falsify.py`); dev smoke job 1312455 on 60 generic proofs
   (30 wrong, 30 right; Qwen3-8B without and with thinking) before the pre-registration. Goal link: a free check for proofs, the one
   math type where the project has none.
+
+## 2026-11-04 02:2x UTC: SIDE-W (PREREG_SIDE.md): a sub-database witness does not help the trained pairwise SQL verifier; side project B closes
+- The witness verifier (SEL-PW's recipe, prompt plus witness; checkpoint selwit_s150) equals SEL-PW on all six target cells:
+  AUROC pooled −0.002 [−0.014, +0.009] (base N) and +0.003 [−0.010, +0.016] (trained N); selector +0.05 / −0.02, intervals across 0.
+  P1–P3 refuted; coverage P4 holds (98.4% of target pairs, median 3 rows).
+- Raw: the witnesses are right and readable, but the verifier's preferred query flips in 9.4% of requests with a witness, against
+  13.0% on requests whose prompts are identical (retraining alone). Shown to SEL-PW's adapter without training, the witness lowers
+  AUROC (−0.014 [−0.027, −0.001]).
+- Decision (registered): the SQL fallback keeps SEL-PW; side project B closes (constructed witnesses would matter for 1.6% of pairs).
+  Goal link: the fallback's room (+5 to +6 points) still needs a signal the 8B verifier can use; a row-level difference is not it.
