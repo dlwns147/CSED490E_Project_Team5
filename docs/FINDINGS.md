@@ -5347,3 +5347,16 @@ own classes. Goal link: the agent-loop gain is not a memorised environment.
   AUROC (−0.014 [−0.027, −0.001]).
 - Decision (registered): the SQL fallback keeps SEL-PW; side project B closes (constructed witnesses would matter for 1.6% of pairs).
   Goal link: the fallback's room (+5 to +6 points) still needs a signal the 8B verifier can use; a row-level difference is not it.
+
+## 2026-11-04 03:1x UTC: SIDE-PF dev (exploratory, 60 OPC generic proofs, job 1312455): a counterexample search over a proof's claims does not separate right from wrong proofs
+- Qwen3-8B writes one test program per proof (`side/proof_falsify.py`). Flagged: wrong proofs 11 / 30 vs right proofs 9 / 30
+  without thinking (905 tokens); 6 / 30 vs 5 / 30 with thinking (9.5k tokens; 24 of 60 runs stopped at the 12k cap without a program).
+- Raw (the 14 flagged right proofs): the program tests something the proof does not claim.
+  - It tests "infinitely many n" at one n (E_10(27) < E_9(27)).
+  - It tests outside the stated hypotheses or at a boundary the proof excludes (n = 3, n = 91, (0, 0, 1)).
+  - It misreads a construction, or prints a template (`n={n}`).
+  Rerunning the code cannot fix a misread claim.
+- Decision: the proof-level check is not pre-registered (no separation on dev). The narrower check is tested instead: a statement
+  alone, before any proof. BrokenMath (2510.04721; its mitigations are prompting, self-confidence, best-of-n and iterative agents and
+  fine-tuning, none of which computes) has competition statements perturbed to be false. The dev smoke runs on 40 false and 40 true
+  statements from its train split (job 1312685).

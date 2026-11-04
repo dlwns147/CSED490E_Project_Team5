@@ -102,10 +102,17 @@ The code stays as an example of a delta-debugging component.
   - nothing at all in 51%.
 - Computation can catch only the wrong answers and the false claims.
 
-**Test running (SIDE-PF):** a model writes one program per proof that brute-forces the answer on small cases and tests the proof's
-concrete claims on instances. A printed counterexample flags the proof.
-- Measured on OPC's human labels: the share of wrong proofs flagged, against the share of right proofs flagged (the check's own
-  errors).
-- If it catches enough with few false flags, a flag rejects the proof directly; it is not shown to a judge, since SIDE-W found an 8B
-  verifier does not use a shown counterexample. Next would be BrokenMath (INSAIT), where models "prove" false statements: the
-  statement itself can be tested on small cases.
+**Tried on proofs (SIDE-PF dev, 11-04):** a model writes one program per proof that brute-forces the answer on small cases and tests
+the proof's concrete claims; a printed counterexample flags the proof.
+- On 60 OPC proofs it flagged wrong and right proofs alike: 11 of 30 wrong vs 9 of 30 right (Qwen3-8B, no thinking); 6 vs 5 with
+  thinking.
+- The false flags come from testing something the proof does not claim: "infinitely many n" tested at one n, values outside the
+  hypotheses. Rerunning code cannot fix that, so the proof-level check is dropped.
+
+**Testing now: a statement alone, before any proof.** A statement is short and precise, so there is less to misread.
+- BrokenMath (INSAIT, 2510.04721) perturbs competition statements to make them false, and models "prove" them anyway: GPT-5 does so
+  29% of the time.
+- Its mitigations (prompting, agents, fine-tuning) never compute anything.
+- If a cheap test program finds counterexamples to many false statements and almost never to true ones, it answers "this is false"
+  for a fraction of a proof attempt's tokens. The dev run uses 40 false and 40 true statements from BrokenMath's train split; the
+  benchmark's 451 false statements and 168 true originals are kept for the pre-registered test.
