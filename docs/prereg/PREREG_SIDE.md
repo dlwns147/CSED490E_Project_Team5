@@ -561,3 +561,34 @@ needs. HAGeo's heuristics reach 28 of 30.
   points, feedback from what DDAR derived) is the next method.
 - **P1 refuted** → an untrained general model does not know which point a solution needs in this language. The next step is a
   derived criterion, such as points that create new deductions, before any training.
+
+## SIDE-GT-AGREE: a label-free faithfulness check from agreement between translations (written 2026-11-04 18:5x UTC, before the check runs on any held-out pair; three smoke pairs only)
+
+**Why.** Every end-to-end proof so far rests on my reading of the translation. Without that reading, a translation that adds or
+drops a hypothesis would count as a proof of the problem. Two translations of one statement that are both faithful describe the
+same configuration and claim. So on a figure built from either one, the other's construction predicates and goal hold, at least
+over the points both name. A translation with an added or dropped hypothesis breaks this in one direction.
+
+**Check** (`geo_translate.py agree`, `one_agree`; numerical tolerance 1e-7, up to 4 diagrams):
+- For an ordered pair (A, B), build A's figure.
+- Evaluate B's predicates whose points A also names: each construction's predicates from Newclid's definitions, plus B's goal.
+- "B holds on A" when all of them hold on some diagram.
+- A translation is **corroborated** when some other translation of the same problem holds on it and it holds on that one.
+- Smoke on held-out pairs: Indonesia 2007 T0/T1 (faithful) agree both ways at coverage 1.0, and so do ISL 2012_16 T1/T3. ISL 2001
+  G1 T0/T3, two different unfaithful translations, fail both ways.
+
+**Data.** The 59 guarded held-out translations of Qwen3.6-27B (SIDE-GT-H), with the blind verdicts of part 1 as labels (53 faithful,
+6 unfaithful).
+
+**Predictions.**
+- **AGREE-P1 (decision):** no translation judged unfaithful is corroborated. Precision 1, because a false acceptance would count a
+  false proof.
+- **AGREE-P2 (reported):** the share of faithful translations corroborated. It is limited to problems with ≥ 2 guarded translations.
+- **Expected:** P1 may fail on Indonesia 2005 P7, whose two translations share one reading of a garbled statement (a shared
+  misreading is the check's blind spot). P2 about 85%.
+
+**Decision.**
+- **P1 holds** → corroboration replaces hand reading for counting end-to-end proofs in later geometry runs, with hand reading as an
+  audit.
+- **P1 refuted** → the failure cases are reported. Corroboration is a necessary condition, not a sufficient one, and hand reading
+  stays.

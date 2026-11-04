@@ -379,6 +379,93 @@ def propose():
                 print(f"  failed: {type(e).__name__}: {str(e)[:200]}", flush=True)
 
 
+def defs_preds():
+    """construction -> (its argument names, the predicates its new points satisfy), from newclid_defs.txt's fourth line of each block"""
+    D = {}
+    for block in open(os.path.join(PD, "newclid_defs.txt")).read().strip().split("\n\n"):
+        L = block.strip().splitlines()
+        h = L[0].split()
+        if not h or h[0] == "=" or len(L) < 4:
+            continue
+        pr = [(t.split()[0], t.split()[1:]) for seg in L[3].split(";") if ":" in seg for t in seg.split(":", 1)[1].split(",") if t.split()]
+        D[h[0]] = ([a.split(":")[0] for a in h[1:]], pr)
+    return D
+
+
+def preds_of(dsl, D):
+    """every predicate the translation's construction steps assert, in its own point names (numeric constants left out)"""
+    out = []
+    for step in dsl.split(" ? ")[0].split("; "):
+        for con in step.split(" = ", 1)[1].split(","):
+            t = con.split()
+            if not t or t[0] not in D:
+                continue
+            args, pr = D[t[0]]
+            m = dict(zip(args, t[1:]))
+            for name, xs in pr:
+                if all(x in m for x in xs):
+                    out.append((name, [m[x] for x in xs]))
+    return out
+
+
+def one_agree(a, b, seeds=4):
+    """does every predicate of translation b (its construction steps and its goal, over points both name) hold on a figure built from
+    translation a? Returns
+    (holds on some diagram, evaluable / all of b's predicates). Runs inside its own process, as one_check."""
+    from newclid import GeometricSolverBuilder
+    from newclid.defs.clause import Construction
+    from newclid.numerical.check import check_numerical
+    from newclid.statements.statement import Statement
+    import newclid.numerical.check as nc
+    nc.ATOM, nc.close_enough = 1e-7, (lambda u, v, tol=1e-7: abs(u - v) < tol)
+    D = defs_preds()
+    pa, _ = aux_points(a)
+    g = b.split(" ? ")[1].split()
+    P = preds_of(b, D) + [(g[0], g[1:])]   # b's goal too: two faithful translations' goals hold on each other's figures
+    E = [(n, xs) for n, xs in P if all(x in pa for x in xs)]
+    if not E:
+        return False, 0.0
+    for seed in range(seeds):
+        try:
+            s = GeometricSolverBuilder(seed=seed, no_goal=True).load_problem_from_txt(a, translate=False).build()
+            ok = all(check_numerical(Statement(n, s.proof_state.map_construction_args_to_objects(Construction.from_txt(" ".join([n] + xs)))))
+                     for n, xs in E)
+        except Exception:
+            continue
+        if ok:
+            return True, len(E) / len(P)
+    return False, len(E) / len(P)
+
+
+def agree():
+    """agree <tag> [--workers W]: for every pair of guarded translations of one problem (the last round's status), whether each one's
+    construction predicates and goal hold on the other's figure (both directions: the same configuration and claim, up to the names
+    they share) -> results/proof/gt_<tag>_agree.jsonl. A label-free check of faithfulness against other samples: an
+    added or dropped hypothesis breaks the mutual consistency."""
+    import itertools
+    tag = sys.argv[2]
+    workers = int(sys.argv[sys.argv.index("--workers") + 1]) if "--workers" in sys.argv else 4
+    R = [r for r in map(json.loads, open(f"{OUT}/gt_{tag}.jsonl")) if r["rounds"][-1]["status"] == "guarded"]
+    by = {}
+    for r in R:
+        by.setdefault(r["id"], []).append(r)
+    jobs = [(i, x, y) for i, rs in by.items() for x, y in itertools.permutations(rs, 2)]
+
+    def run(j):
+        i, x, y = j
+        try:
+            p = subprocess.run([sys.executable, os.path.abspath(__file__), "one_agree", x["dsl"], y["dsl"]], capture_output=True, text=True,
+                               timeout=900)
+            ok, cov = json.loads(p.stdout.strip().splitlines()[-1])
+        except Exception:
+            ok, cov = False, 0.0
+        return {"id": i, "a": x["sample"], "b": y["sample"], "b_holds_on_a": ok, "coverage": round(cov, 3)}
+    with ThreadPoolExecutor(workers) as ex, open(f"{OUT}/gt_{tag}_agree.jsonl", "w") as f:
+        for fu in as_completed([ex.submit(run, j) for j in jobs]):
+            f.write(json.dumps(fu.result()) + "\n"); f.flush()
+    print(f"SIDE-GT agree {tag}: {len(jobs)} ordered pairs on {len(by)} problems -> {OUT}/gt_{tag}_agree.jsonl", flush=True)
+
+
 def aux():
     """aux <tag | refs> [--k K] [--timeout S] [--workers W] [--ids file]: for each base translation (refs: $POC_DATA/geo/gt_refs.jsonl;
     a tag: the guarded, unproved rows of gt_<tag>_check.jsonl, optionally only the ids/samples listed in --ids as id:sample), DDAR on the
@@ -446,5 +533,9 @@ if __name__ == "__main__":
         import logging
         logging.disable(logging.CRITICAL)
         print(json.dumps(one_check(sys.argv[2], float(sys.argv[3]))))
+    elif sys.argv[1] == "one_agree":
+        import logging
+        logging.disable(logging.CRITICAL)
+        print(json.dumps(one_agree(sys.argv[2], sys.argv[3])))
     else:
-        {"gen": gen, "check": check, "aux": aux, "propose": propose}[sys.argv[1]]()
+        {"gen": gen, "check": check, "aux": aux, "propose": propose, "agree": agree}[sys.argv[1]]()
