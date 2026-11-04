@@ -384,3 +384,30 @@ are right in 2 of 79 graded attempts, and 14 of the 15 have none right.
 full budget. The registered reason, "the overlap on dev was noise", is contradicted: the overlap holds, and the gate is what fails.
 C0's accuracy gain is a result of a secondary arm, not a decision. Using it needs a fresh test (new variations of the problems).
 The self-written quick checker is not a usable free check for an 8B model on constructions: it rejects 28% of right objects.
+
+## SIDE-MC-H2: the parse-only gate on fresh variations (written 2026-11-04 14:3x UTC, before any generation on the new instances)
+
+**Why.** SIDE-MC-H refuted the checker-gated cascade. Its secondary arm C0 gained accuracy over the direct thinking answer:
++6.80 [+0.68, +13.51] at 1.4× the tokens. C0 takes the thinking program's object when the program prints one that parses, else
+the thinking answer. It was not the decision arm, so it is tested here on instances no decision has seen. This is the main
+recipe's rule ("think again only on a visible failure") with the program's output as the visible check.
+
+**Data.** `construct.py build --more` appends variations 2 and 3 of every problem to `instances.jsonl`.
+`generate_multiple` is prefix-stable, so variations 0 and 1 are unchanged; duplicates of earlier statements are dropped.
+`ids_mcfresh.txt` holds the 137 new instances of the 75 held-out problems. They are new parameters of problems SIDE-MC-H used, so
+the problems are not independent of it, but the instances are.
+
+**Run.** Qwen3-8B, the same jobs as SIDE-MC-H: `gen mcfresh_q8b_dt30 --arm direct --think --max_tokens 30000` and
+`gen mcfresh_q8b_pt30 --arm program --think --max_tokens 30000`; `grade mcfresh_q8b_dt30 mcfresh_q8b_pt30 --checkers <none>`.
+Then `construct.py cascade` (D, P, C0; intervals by bootstrap over problems).
+
+**Predictions.**
+- **SIDE-MC-H2-P1 (decision):** C0 − D accuracy lower bound > 0.
+- **P2 (reported):** C0 − D utility, expected about +2 with an interval including 0.
+- **Expected:** D 20–28%, C0 27–35%.
+
+**Decision.**
+- **P1 holds** → the computation recipe for constructions becomes "thinking program first, the thinking answer only when the
+  program prints no parseable object" (side/README section D). It is stated as an accuracy gain at about 1.4× the tokens, a tie
+  in utility unless P2's interval excludes 0.
+- **P1 refuted** → it stays the direct thinking answer.

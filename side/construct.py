@@ -56,6 +56,8 @@ def build():
     from math_construct.problems import get_all_problem_classes
     C = sorted(get_all_problem_classes(), key=lambda c: c.config.name)
     os.makedirs(PD, exist_ok=True)
+    if "--more" in sys.argv:   # SIDE-MC-H2: variations 2 and 3 (generate_multiple is prefix-stable), appended; fresh ids for held-out problems
+        return build_more(C)
     rows = []
     for c in C:
         for v, p in enumerate(c.generate_multiple(3, include_original=True)[1:]):   # two variations, not the published original
@@ -75,6 +77,31 @@ def build():
     for fn, keep in (("ids_mcdev.txt", lambda n: n in dev), ("ids_mceval.txt", lambda n: n not in dev)):
         open(os.path.join(PD, fn), "w").write("\n".join(r["id"] for r in rows if keep(r["name"])) + "\n")
     print(f"{len(rows)} instances of {len(names)} problems; dev {sum(r['name'] in dev for r in rows)}")
+
+
+def build_more(C):
+    old = [json.loads(l) for l in open(os.path.join(PD, "instances.jsonl"))]
+    seen = {x["statement"] for x in old}
+    held = {x.split("__")[0] for x in open(os.path.join(PD, "ids_mceval.txt")).read().split()}
+    rows = []
+    for c in C:
+        for v, p in enumerate(c.generate_multiple(5, include_original=True)[1:]):
+            if v < 2 or str(p) in seen:
+                continue
+            seen.add(str(p))
+            try:
+                ex = c.parse(p.get_formatting())
+                example = f" For example, the answer in the example above parses to `{ex!r}`."
+            except Exception:
+                example = ""
+            rows.append({"id": f"{c.config.name}__v{v}", "name": c.config.name, "v": v, "statement": str(p), "formatting": p.get_formatting(),
+                         "example": example, "params": json.loads(json.dumps(p.to_json()["param_values"], default=str))})
+    with open(os.path.join(PD, "instances.jsonl"), "a") as f:
+        for r in rows:
+            f.write(json.dumps(r) + "\n")
+    fresh = [r["id"] for r in rows if r["name"] in held]
+    open(os.path.join(PD, "ids_mcfresh.txt"), "w").write("\n".join(fresh) + "\n")
+    print(f"{len(rows)} new instances; {len(fresh)} of held-out problems -> ids_mcfresh.txt")
 
 
 def gen():
@@ -147,7 +174,7 @@ def grade():
     for r in A:
         x = inst[r["id"]]
         if x["name"] not in variations:
-            variations[x["name"]] = C[x["name"]].generate_multiple(3, include_original=True)[1:]
+            variations[x["name"]] = C[x["name"]].generate_multiple(5, include_original=True)[1:]   # prefix-stable (v0, v1 as before)
         p = variations[x["name"]][x["v"]]
         assert str(p) == x["statement"], x["id"]
         parsed, ok, detail = p.parse_and_check([{"role": "assistant", "content": answer_text(r)}])   # MathConstruct reads a chat
