@@ -609,3 +609,77 @@ SEL3 − T on the pseudo-sets, per turn (mtso = verifiers trained with later tur
 
 Online jobs submitted 2026-11-03 20:1x UTC: 1311508 / 1311510 / 1311512 `mtso_q8b_s{1,2,3}` and 1311509 / 1311511 / 1311513 `mtso_q35_s{1,2,3}`
 (vote_lane.sh, LoRA mtso_h0 / mtso_h1 on the Qwen3-8B server; MT_VER=peer for Qwen3.5-9B).
+
+## Results of addendum MT-SO, online part (written 2026-11-04 09:1x UTC; `results/mtso_online.txt`; jobs 1311508–1311513, 600 items × seeds 1–3 per model, graded by `grade_mt.py <tag> S`)
+
+| model (peer) | S | T | S − T utility | S − T accuracy | turns committing N / P / T | structure unseen | verifier prefill per item |
+|---|---|---|---|---|---|---|---|
+| Qwen3-8B (Qwen3.5-9B) | 48.8% @ 8.31k | 30.8% @ 6.84k | **+17.21 [+14.33, +20.12]** | +17.94 [+15.11, +20.78] | 22.4 / 36.8 / 40.8% | 0.4% | 16.7k |
+| Qwen3.5-9B (Qwen3-8B) | 53.9% @ 3.29k | 38.0% @ 2.56k | **+15.52 [+12.83, +18.52]** | +15.89 [+13.17, +18.89] | 29.0 / 20.3 / 50.8% | 0.2% | 16.8k |
+
+Per seed: Qwen3-8B S 49.2 / 48.7 / 48.5%, Qwen3.5-9B S 53.3 / 55.0 / 53.3%. By category (accuracy), Qwen3-8B: base +17.50, missing
+function +20.67, missing parameter +15.67; Qwen3.5-9B: +16.83, +17.17, +13.67; every interval above 0.
+
+- **MT-SO-P1 holds** (utility lower bound > 0, 2 of 2) and **MT-SO-P2 holds** (accuracy, 2 of 2).
+- Above the expected range (accuracy +5 to +12, utility +3 to +10): the tokens cost 1.21× / 1.29× T's (−0.7 / −0.4 utility), and
+  the accuracy gain is +16 to +18. S is also above every other stored arm of both models: the best of them is Qwen3.5-9B's F at
+  38.7%. Qwen3-8B with the choice (48.8%) beats its peer's own thinking (38.0%) by 10.8 points.
+- Raw trajectories (Qwen3-8B seed 1, S right and T wrong: 152 items; the reverse: 35): T's failures there are a wrong end state
+  (86), a wrong response (34), a turn left without calls (27) and forced stops (5). In the two read, S commits the peer's quick turn
+  at turn 0 and then the thinking turn. In one, T calls nothing at turn 1. In the other, T books the flight twice at turn 0 and
+  then uses the second booking's id.
+- Scope: the verifier and the choice rule are cross-fitted by scenario. Both halves use BFCL's eight environment classes. The
+  verifier's prefill (16.7k tokens per item, a LoRA on the Qwen3-8B server) is reported, not priced.
+
+**Decision (registered):** the agent-loop method becomes the verifier's choice among the quick turn, the peer's quick turn and the
+thinking turn at every turn (PROJECT, REPORT, PROPOSAL). Next, as registered:
+1. An online run in environments the verifier never saw (MT-SEL-ENV's decision). Its verifiers must be trained with later turns:
+   MT-SO-P4 showed turn-0 verifiers lose most of their later-turn separation.
+2. The gate: skip the peer and the quick turn when the verifier is sure (MT-SEL's P3). MT-SEL-ENV found that the gate's threshold
+   did not transfer across environments, so the gate is tested on the scenario split first.
+
+## Addendum MT-SO-ENV: the choice at every turn, online, in environments the verifier never saw (written 2026-11-04 09:1x UTC, before any environment-split verifier with later turns is trained)
+
+**Why.** MT-SO holds online with verifiers cross-fitted by scenario, but both halves use BFCL's eight environment classes. MT-SEL-ENV
+showed that at turn 0 a verifier trained on the other four classes keeps about half the gain. MT-SEL-ENV's decision registered this
+run for the case that MT-SO holds. Its verifiers must see later turns, because MT-SO-P4 showed that turn-0 verifiers lose most of their
+separation there. The answer sets the scope of the agent-loop claim: "trained on the target environments", or "trained on other
+environments".
+
+**Split.** MT-SEL-ENV's environment groups (`analyze_mtb.env_half`):
+- group 0: GorillaFileSystem, MathAPI, TwitterAPI, VehicleControlAPI (228 items);
+- group 1: MessageAPI, TicketAPI, TradingBot, TravelAPI (240 items).
+
+The 132 items that use both groups are dropped from training and test.
+
+**Run.**
+1. `python3.11 poc/analyze_mtb.py --so-env-build` writes, per group g:
+   - `$POC_DATA/bfcl/mt_soenv_ids_h<g>.txt`, the turn-0 and later-turn request ids of mt_sel2 whose item is in group g;
+   - `results/conf/sel_req_mt2env_h<g>.jsonl`, mt_sel2's texts of those items.
+2. Jobs `mtsoenv_h<g>`:
+   - train with MT-SO's recipe on group g only: `MT_SEL_TAG=mt_sel2 SEL_IDS=mt_soenv_ids_h<g>.txt tc_train.py $POC_DATA/cv/mtsoenv_h<g>
+     --orm --mt --batch 8 --epochs 4`;
+   - then score the other group's texts: `cv_eval_lane.sh score-tc ... mtsoenv_h<g> sel_req_mt2env_h<1-g>.jsonl mt2`.
+3. `MT_SEL_SPLIT=env python3.11 poc/analyze_mtb.py --sel2 mtsoenv_h0,mtsoenv_h1` gives the offline per-turn table on the env-pure
+   pseudo-sets. It writes the choice rule `results/tc/mt_soenv_fit_<model>.json`: for each group, the set-choice fit on the other
+   group's sets, with the scores of the verifier not trained on that group.
+4. The online arm U (`run_mt.py <tag> U <seed>`) is arm S with the item's group in place of its scenario half: verifier
+   `mtsoenv_h<1-g>`, the fit of group g. It runs on the 468 env-pure items, for both models, seeds 1–3, with the same jobs, servers and
+   peers as MT-SO. Then `grade_mt.py <tag> U` and `MTV_ARM=U python3.11 poc/analyze_mtv.py q8b q35` (U − T and U − S on the same items).
+
+**Predictions** (paired 95% intervals over items, seed means; utility as MT-SO):
+- **MT-SOENV-P1 (decision):** U − T utility lower bound > 0 for both models.
+- **MT-SOENV-P2:** U − T accuracy lower bound > 0 for both models.
+- **MT-SOENV-P3 (cost of unseen environments, reported):** U − S on the same items, per model, with its interval. As in MT-SEL-ENV
+  this mixes unseen environments with less training data.
+- **MT-SOENV-P4 (offline):** on the later-turn pseudo-sets of env-pure items, the three models pooled, SEL3 − T lower bound > 0.
+- **Expected.**
+  - Offline, the environment split kept 45–70% of the scenario split's turn-0 gain on the same items. So U − T +6 to +12 utility,
+    against S − T's +15.5 to +17.2, and U − S −4 to −10.
+  - Later-turn AUROC (offline) 0.75–0.85, against mtso's 0.83–0.96.
+
+**Decision.**
+- **P1 holds for both** → the agent-loop claim is stated for environments the verifier never saw, within BFCL (REPORT, PROPOSAL).
+  Next: the gate, then SIDE-ENV (beyond BFCL's classes).
+- **P1 refuted for either** → the claim is scoped to "a verifier trained on scenarios of the target environments", reported with
+  the per-turn offline diagnostics and U − S.
