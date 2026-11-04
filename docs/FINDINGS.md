@@ -5308,3 +5308,11 @@ own classes. Goal link: the agent-loop gain is not a memorised environment.
 - `poc/make_slides.js` writes and `poc/export_slide_figs.py` reads the decks in `proposal/`.
 - Paths updated in README, PROJECT, docs/README, docs/REPORT, docs/SLURM_HANDOFF, docs/SLURM_PROMPT and docs/notes/REPORT_OUTLINE.
   Dated logs (this file, HANDOFF.md) and the pre-registrations keep the old paths as written.
+
+## 2026-11-04 00:4x UTC: `proposal/` moved into `docs/proposal/`; the old servers' HANDOFF.md into `docs/` (user: proposal folder inside docs, reorganize if needed; no results)
+- `git mv proposal docs/proposal` and `git mv HANDOFF.md docs/HANDOFF.md`. The repository root now holds only PROJECT.md, README.md,
+  bench.py and the folders.
+- The proposal's links point to `../../figs/`, `../../README.md` and `../FINDINGS.md` (all checked to resolve);
+  `poc/make_slides.js` and `poc/export_slide_figs.py` use `docs/proposal/`.
+- Paths updated in README (its file list now also names docs/proposal/ and side/), PROJECT, docs/REPORT, docs/SLURM_HANDOFF,
+  docs/SLURM_PROMPT and docs/notes/REPORT_OUTLINE. docs/README indexes every document in docs/.

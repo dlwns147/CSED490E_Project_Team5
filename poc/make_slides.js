@@ -8,8 +8,8 @@ try { ({ applyTheme } = require(process.env.PPTX_THEME_JS || "/root/.claude/skil
 const ROOT = process.env.PROJECT_ROOT || path.join(__dirname, "..");   // repository root (this file is poc/make_slides.js)
 const FIG = (f) => path.join(ROOT, "figs", f);
 const ICON = (name) => FIG(path.join("icons", name + ".png"));   // figs/icons/*.png, drawn by poc/make_icons.js
-const OUT = path.join(ROOT, "proposal", "Proposal_Team5.pptx");
-const OUT_V2 = path.join(ROOT, "proposal", "Proposal_Team5_v2.pptx");   // the same talk slides with the rewritten Korean script
+const OUT = path.join(ROOT, "docs", "proposal", "Proposal_Team5.pptx");
+const OUT_V2 = path.join(ROOT, "docs", "proposal", "Proposal_Team5_v2.pptx");   // the same talk slides with the rewritten Korean script
 
 const THEME = {
   name: "Office Theme", headFontFace: "Calibri", bodyFontFace: "Calibri",
@@ -686,7 +686,7 @@ s.addNotes((pre || "") + "Updated 2026-10-19. Done since the last version: conte
 pres.addSection({ title: "Next" });
 slideLimits("Next", "Where the recipe stops, and what is next");
 
-const FULL = path.join(ROOT, "proposal", "PROPOSAL_slides_full.pptx");
+const FULL = path.join(ROOT, "docs", "proposal", "PROPOSAL_slides_full.pptx");
 pres.writeFile({ fileName: FULL }).then(async () => { await applyTheme(FULL, THEME); console.log("written", FULL); })
   .then(() => buildTalk(OUT, "v1")).then(() => buildTalk(OUT_V2, "v2"));
 

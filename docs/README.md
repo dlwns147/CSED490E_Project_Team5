@@ -5,9 +5,13 @@ Goal, scope and working rules: `PROJECT.md`; how to set up and run: `README.md` 
 | File | Contents |
 |---|---|
 | `FINDINGS.md` | Chronological lab log (newest at the end) |
+| `REPORT.md` | Draft of the final report |
+| `proposal/` | The proposal (`PROPOSAL.md`, Korean `PROPOSAL_ko.md`), its decks (`*.pptx`), its earlier versions (`archive/`) |
 | `prereg/PREREG_<id>.md` | One file per experiment: predictions before the run → results and verdicts |
 | `notes/` | Self-critique (CRITIQUE), check coverage (CHECKS), failure → fix map (FIX_MAP), related work (RELATED_WORK), drafts |
-| `../proposal/` | The proposal (`PROPOSAL.md`, Korean `PROPOSAL_ko.md`), its decks, its earlier versions (`archive/`) |
+| `SLURM_HANDOFF.md` | State of the work on the Slurm cluster (running and done jobs, next steps) |
+| `SLURM_PROMPT.md` | The first message for a new Claude Code session on the Slurm server |
+| `HANDOFF.md` | The old servers' status log (until 2026-10-20) |
 
 Commands are in `poc/queues/queue_*<id>*.sh` (old servers, records only) and `poc/slurm/*.sh` (Slurm cluster, from 2026-10-22), analyses in `poc/analyze_<id>.py`.
 

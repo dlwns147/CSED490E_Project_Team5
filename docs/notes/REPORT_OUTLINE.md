@@ -1,7 +1,7 @@
 # Final report: draft outline (2026-10-22, Slurm side; the full draft is docs/REPORT.md since 2026-10-23)
 
 Purpose: one argument for the course report, built from the held-out evidence, with every number given with its tokens and, for the
-held-out comparisons, a 95% interval over problems. Details stay in proposal/PROPOSAL.md, FINDINGS.md and docs/prereg/.
+held-out comparisons, a 95% interval over problems. Details stay in docs/proposal/PROPOSAL.md, docs/FINDINGS.md and docs/prereg/.
 
 ## The claim (one sentence)
 For computational problems solved by LLM-written programs on one 24 GB GPU, giving the missing fact first and paying for thinking only when a
@@ -12,7 +12,7 @@ check's leak, not problem difficulty, decides where thinking should go.
 1. Problem and setup: computational geometry + optimization; models that fit one RTX 3090 (gpt-oss-20b, Qwen3-14B-AWQ, Qwen3-8B; larger
    ones only as references); accuracy with output (and input) tokens; strict graders.
 2. The recipe (program → fact → free check → think on failure → reuse) and why each step: findings 1–5 in one paragraph each, with the
-   example from proposal/PROPOSAL.md.
+   example from docs/proposal/PROPOSAL.md.
 3. Development result: U1 — 87% @ 2.5k vs difficulty-based allocation 74% @ 4.1k (208 problems × 3 models × 3 seeds).
 4. **Held-out tests (the core of the report).** Table below; then where it fails and why (check leak: geometry edge cases for Qwen3-8B,
    running-but-wrong programs on BWOR / LogiOR), and what does not rescue it (brute force, resampling, model-written edge-case tests).

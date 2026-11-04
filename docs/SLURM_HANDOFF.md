@@ -173,9 +173,9 @@ POSTECH CSED490E team project "Tools, Facts, and Checks": computational geometry
 by LLM-written programs, accurately and cheaply, with models that fit one 24 GB GPU. Every result is accuracy *and* tokens. The recipe:
 write a cheap program first; give the model the missing knowledge as a **fact** (library usage, or a checked program for a similar
 problem); run a **free label-free check** (the program runs / is feasible / metamorphic copies agree); pay for **thinking only when the
-check visibly fails**. Text: `proposal/PROPOSAL.md` (+ Korean mirror `proposal/PROPOSAL_ko.md`, always updated together, short, numbers edited in place).
+check visibly fails**. Text: `docs/proposal/PROPOSAL.md` (+ Korean mirror `docs/proposal/PROPOSAL_ko.md`, always updated together, short, numbers edited in place).
 Lab log: `docs/FINDINGS.md` (dated, append-only). Pre-registrations with appended results: `docs/prereg/PREREG_*.md`. Index: `docs/README.md`.
-Slides are maintained by a separate writing session (`proposal/PROPOSAL_slides*.pptx`, `proposal/Proposal_Team5*.pptx`, `poc/make_slides.js`) — do not edit them
+Slides are maintained by a separate writing session (`docs/proposal/PROPOSAL_slides*.pptx`, `docs/proposal/Proposal_Team5*.pptx`, `poc/make_slides.js`) — do not edit them
 unless asked.
 
 ## 2. Where the evidence stands (all 3 seeds unless noted; tokens = output tokens per problem)

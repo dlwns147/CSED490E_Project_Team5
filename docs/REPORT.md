@@ -1,6 +1,6 @@
 # Facts First, Think on Failure: Solving Problems with LLMs, Accurately and Cheaply
 
-*Draft of the final report, POSTECH CSED490E Team 5 (Sangjun Lee, Seongbin Park). Started 2026-10-23 from `proposal/PROPOSAL.md`, the
+*Draft of the final report, POSTECH CSED490E Team 5 (Sangjun Lee, Seongbin Park). Started 2026-10-23 from `docs/proposal/PROPOSAL.md`, the
 pre-registrations in `docs/prereg/` and `docs/notes/REPORT_OUTLINE.md`; format and length to be fitted to the course template.*
 
 ## Abstract
@@ -774,5 +774,5 @@ contest problems). Where every model misreads the same statement (OptMATH: under
 values) no label-free check can help; there the statement, not the check, is the limit. Two extensions point past it: where the check is perfect (formal proofs) the rule becomes
 "sample cheaply, then think", and the fact itself can be trained into the model from the recipe's own checked programs, with no labels.
 
-*Sources: `proposal/PROPOSAL.md`; held-out numbers `results/x3/ho*_analysis.log`, `results/x3/ho2_*_analysis.log`,
+*Sources: `docs/proposal/PROPOSAL.md`; held-out numbers `results/x3/ho*_analysis.log`, `results/x3/ho2_*_analysis.log`,
 `results/x3/input_tokens_analysis.log`, `results/hogc_analysis.log`; predictions and verdicts `docs/prereg/PREREG_{U1,HO,HOG,HOGC,HON,MODEL,X7,N,X1,PROOF}.md`; analyses `poc/analyze_{ho,ho3,ho7,hogc,hox,hod_gate,budget,hop,hol,hon}.py`.*
