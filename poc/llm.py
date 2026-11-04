@@ -97,14 +97,15 @@ def chat_many(prompts, workers: int = 8, **kw):
 
 
 def chat_msgs(msgs: list, model: str = "local", temperature: float = 0.7, max_tokens: int = 1024,
-              think: bool = False, seed: int | None = None, client_=None, logprobs: bool = False) -> dict:
-    """multi-turn variant: msgs = [{"role": ..., "content": ...}, ...]"""
+              think: bool = False, seed: int | None = None, client_=None, logprobs: bool = False, extra: dict | None = None) -> dict:
+    """multi-turn variant: msgs = [{"role": ..., "content": ...}, ...]; extra: more request fields (e.g. vLLM's guided_grammar)"""
     ts = _TS if think else {}
     r = (client_ or client).chat.completions.create(
         model=model, messages=msgs, temperature=ts.get("temperature", temperature), top_p=ts.get("top_p", 0.95 if temperature > 0 else 1.0),
         max_tokens=max_tokens, seed=seed, **({"logprobs": True} if logprobs else {}),
         **({"presence_penalty": ts["presence_penalty"]} if "presence_penalty" in ts else {}),
-        extra_body={"chat_template_kwargs": {"enable_thinking": think, **_TK}, **_EFF, **({"top_k": int(ts["top_k"])} if "top_k" in ts else {})})
+        extra_body={"chat_template_kwargs": {"enable_thinking": think, **_TK}, **_EFF, **({"top_k": int(ts["top_k"])} if "top_k" in ts else {}),
+                    **(extra or {})})
     msg = r.choices[0].message
     text = msg.content or ""
     out = {"text": strip_think(text), "finish": r.choices[0].finish_reason,

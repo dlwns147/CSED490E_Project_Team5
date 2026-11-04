@@ -10,8 +10,9 @@ A proof DDAR finds is a proof of the translated statement. It is a proof of the 
 the guard does not decide: a translation that adds a hypothesis passes it. Faithfulness is read by hand (dev) or compared with a
 reference translation (IMO-AG-30's, where one exists).
 Problems: $POC_DATA/geo/problems.jsonl (id, source, problem, ref = reference translation or null).
-usage: $P side/geo_translate.py gen <tag> <ids file> [--think] [--k K] [--max_tokens N] [--repair R]   (lane.sh job; POC_BASE_URL
-       set; --repair needs Newclid on PYTHONPATH: up to R more turns, each told the guard's finding)
+usage: $P side/geo_translate.py gen <tag> <ids file> [--think] [--k K] [--max_tokens N] [--repair R] [--grammar]   (lane.sh job;
+       POC_BASE_URL set; --repair needs Newclid on PYTHONPATH: up to R more turns, each told the guard's finding; --grammar: after each
+       free reply, one quick greedy turn writes the final line under the language's grammar, vLLM guided decoding)
        <python with newclid> side/geo_translate.py check <tag> [--timeout S] [--workers W]     (CPU job)"""
 import json, os, re, subprocess, sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -88,6 +89,28 @@ def dsl_of(text):
     return lines[-1] if lines else None
 
 
+def grammar():
+    """EBNF (vLLM guided_grammar, xgrammar) of a reply: one code block holding UNEXPRESSIBLE or steps of the listed constructions, each
+    with its own number of arguments (typed ones as constants: Angle 2pi/3 or 60o, Ratio 1/2, Length 3), ' ? ' and one goal predicate
+    with its number of points. It removes the unknown constructions and wrong argument counts; it does not check meaning."""
+    kind = {"Angle": "ang", "Ratio": "rat", "Length": "len"}
+    con = []
+    for block in open(os.path.join(PD, "newclid_defs.txt")).read().strip().split("\n\n"):
+        h = block.strip().splitlines()[0].split()
+        if h and h[0] != "=":
+            con.append(f'"{h[0]}"' + "".join(f' " " {kind[a.split(":")[1]] if ":" in a else "nm"}' for a in h[1:]))
+    goal = [f'"{p}"' + ' " " nm' * n for p, n in (("coll", 3), ("para", 4), ("perp", 4), ("cong", 4), ("cyclic", 4), ("midp", 3),
+                                                    ("eqangle", 8), ("eqratio", 8), ("simtri", 6), ("contri", 6))]
+    goal.append('"aconst"' + ' " " nm' * 4 + ' " " ang')
+    return "\n".join(['root ::= "```\\n" body "\\n```"', 'body ::= "UNEXPRESSIBLE" | step ("; " step)* " ? " goal',
+                      'step ::= nm (" " nm)* " = " con (", " con)*', "con ::= " + " | ".join(con), "goal ::= " + " | ".join(goal),
+                      "nm ::= [a-z] [a-z0-9_]*", 'ang ::= [0-9]+ "pi/" [0-9]+ | [0-9]+ "o"', 'rat ::= [0-9]+ "/" [0-9]+',
+                      'len ::= [0-9]+ ("." [0-9]+)?'])
+
+
+FINAL = """Now write the final translation in the required form: steps that use only the listed constructions, each with exactly its listed
+arguments, then " ? " and one goal predicate (or UNEXPRESSIBLE), in one ``` code block."""
+
 REPAIR = """Newclid cannot use this translation. {what}
 Write a corrected translation of the same problem, following the same rules. Reply with the translation only, in one ``` code block."""
 
@@ -110,6 +133,7 @@ def gen():
     think = "--think" in sys.argv
     k = int(sys.argv[sys.argv.index("--k") + 1]) if "--k" in sys.argv else 8
     rep = int(sys.argv[sys.argv.index("--repair") + 1]) if "--repair" in sys.argv else 0
+    gram = grammar() if "--grammar" in sys.argv else None
     mt = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else (16000 if think else 2048)
     want = set(open(ids_file).read().split())
     X = [x for x in map(json.loads, open(os.path.join(PD, "problems.jsonl"))) if x["id"] in want]
@@ -117,15 +141,22 @@ def gen():
     out = f"{OUT}/gt_{tag}.jsonl"
     done = {(r["id"], r["sample"]) for r in map(json.loads, open(out))} if os.path.exists(out) else set()
     todo = [(x, s) for x in X for s in range(k) if (x["id"], s) not in done]
-    print(f"SIDE-GT gen {tag}: {len(todo)} translations of {len(X)} problems (think={think}, k={k}, repair={rep})", flush=True)
+    print(f"SIDE-GT gen {tag}: {len(todo)} translations of {len(X)} problems (think={think}, k={k}, repair={rep}, grammar={bool(gram)})",
+          flush=True)
 
     def one(x, s):
         msgs, rounds = [{"role": "user", "content": prompt(x["problem"])}], []
         for i in range(rep + 1):   # --repair R: up to R more turns, each told what the guard found (the main recipe's repair turn)
             r = chat_msgs(msgs, think=think, max_tokens=mt, temperature=0.6 if think else 0.7)
+            draft = dsl_of(r["text"])
+            if gram:   # --grammar: the free reply, then its final line rewritten under the grammar (quick, greedy)
+                q = chat_msgs(msgs + [{"role": "assistant", "content": r["text"]}, {"role": "user", "content": FINAL}], think=False,
+                              max_tokens=1024, temperature=0, extra={"guided_grammar": gram})
+                r = dict(r, text=q["text"], out_tokens=r["out_tokens"] + q["out_tokens"], in_tokens=r["in_tokens"] + q["in_tokens"])
             d = dsl_of(r["text"])
             st, msg = guard(d) if rep else ("", "")
-            rounds.append({"dsl": d, "status": st, "msg": msg[:300], "out_tokens": r["out_tokens"], "in_tokens": r["in_tokens"]})
+            rounds.append({"dsl": d, "status": st, "msg": msg[:300], "out_tokens": r["out_tokens"], "in_tokens": r["in_tokens"],
+                           **({"draft": draft} if gram else {})})
             if not rep or st in ("guarded", "unexpressible") or i == rep:
                 break
             what = {"goal fails": "The goal does not hold on any figure built from your constructions, so the constructions or the goal "
