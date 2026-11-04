@@ -5577,3 +5577,14 @@ On the 64 items that are statements to prove (34 false, 30 true):
   C0 (secondary) gains +6.80 [+0.68, +13.51] accuracy, with utility tied at 1.4× the tokens.
 - Decision as registered: for constructions the recipe stays one thinking answer with the full budget, and the 8B model's own quick
   checker is not a free check. side/README section D updated.
+
+## 2026-11-04 16:1x UTC: SIDE-GT aux, dev on IMO-AG-30's references: one random auxiliary point lifts DDAR from 11 to 14 of 30, far below HAGeo's random baseline (25)
+- `geo_translate.py aux refs --k 64 --timeout 60` (job 1316470, CPU, 16 workers). Per translation it runs DDAR alone, then adds one
+  auxiliary point at a time, up to 64, and stops at the first proof. Each point's construction type is drawn uniformly, then its
+  arguments: midpoint, point reflection, circumcentre, foot, line reflection, or intersection of two lines.
+- IMO-AG-30: DDAR alone proves 10 at 60 s (11 at 300 s, dev 1). With one auxiliary point, 4 more within 64 tries, 1–36 tries and
+  35–1,151 s each. Of these, IMO 2004 P1 and IMO 2010 P2 (the reflection of A in OK) are new against 300 s. In all, 14 of 30.
+- HAGeo (2512.00097) reports 25 of 30 for random auxiliary constructions and 28 for its heuristics, on its own engine. The 16 still
+  unproved here include IMO 2008 P1, 2012 P5, 2015 P3, 2019 P2 and 2020 P1. The gap comes from single points, 64 tries and Newclid's
+  DDAR. Two or more points and a larger budget come next.
+- The same search runs on the 53 faithful held-out translations as SIDE-GT-H's AUX arm (job 1317291).
