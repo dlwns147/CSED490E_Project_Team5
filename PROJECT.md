@@ -27,15 +27,35 @@ contest-like task, where one full think should go first, from the rest (PX: 30 l
 
 ## 1. Goal
 
-Many tasks give an LLM's answer a free, partial check: a program for a geometry, optimization, contest or word problem runs; a SQL
-query executes and returns rows; a tool call parses against its API; a text meets the constraints its instruction states; a proof is
-accepted. A cheap answer can pass that check and still be wrong, and thinking longer is expensive. **Goal: exactly right answers with
-the fewest tokens, with open models from 8B to 120B, on any such task (not only computational problems: user, 2026-10-30) — where to
-spend thinking, and how to tell without labels that a cheap answer is wrong.** Every result is accuracy *and* tokens. Compute: primarily the RTX 3090 partition (24 GB each; models larger than one GPU
-run tensor-parallel over several 3090s in one job), so as not to compete with other users (user, 2026-10-23: no longer limited to 24 GB
-models).
+**Purpose: exactly right answers from LLMs at the lowest cost**, with open models from 8B to 120B. Every result is reported as
+accuracy *and* cost: output tokens, with utility = 100 × right − 0.5 × thousand output tokens unless a task states its own price.
+Compute: mainly the RTX 3090 partition (24 GB each; larger models run tensor-parallel over several 3090s in one job), so as not to
+compete with other users (user, 2026-10-23: no longer limited to 24 GB models).
 
-**The recipe we test:** write a program → add the missing fact (a few lines of exact library usage, or the model's own checked program for
+**Problems are open, not fixed** (user, 2026-10-30 and 2026-11-05: the goal must not narrow the project to computational problems or to
+the methods we have). The project covers any task where a model's answer can be checked, selected or made exact by some means:
+- computation: geometry, optimization, contest code, text-to-SQL;
+- tool calls and multi-turn agents;
+- instruction following;
+- proofs (Lean, natural language, geometry through a symbolic engine);
+- constructions.
+
+A new problem type enters with a related-work check and a pre-registration.
+
+**Questions (examples, not a boundary):**
+- Where should a fixed budget go (thinking, sampling, search, a second model, tools) for each problem and model?
+- What can tell a right answer from a wrong one? Options are a free check, agreement with another model, a verifier trained with
+  labels used only in training, or a translation into a formal system whose engine is exact. How should the choice among candidates
+  be made?
+- What should be trained or built when prompting and checks run out? Candidates are quick answers trained for the cascade,
+  verifiers, translators, auxiliary-point search, and generated environments.
+- When does a method pay? We use theory here: bounds, how per-step gains compound over a conversation, and derived decision rules.
+
+**Methods are open too.** What follows is what we have established so far, not the scope. The free-check recipe is for programs.
+Other methods so far: trained verifiers choosing among quick, peer and thinking answers (SQL, tool calls, and at every turn of an
+agent loop: MT-SO), and translation into a formal language with a symbolic prover (SIDE-GT).
+
+**The recipe established for programs:** write a program → add the missing fact (a few lines of exact library usage, or the model's own checked program for
 a similar problem, found with no labels) → run a free check (the program runs; its outputs on moved / rotated / mirrored copies agree; the
 statement's examples pass) → when the check visibly fails, one cheap repair turn with the error (word problems), then think harder →
 reuse a checked program when the problem repeats. For models whose free check leaks (their passing non-thinking programs are often
@@ -152,7 +172,7 @@ table: `docs/REPORT.md` §5.1):
 
 ## 3. Scope
 
-- **In:** any task with a free partial check. Started with computational geometry (CG) and combinatorial optimization (CO) solved by
+- **In:** any task where answers can be checked, selected or made exact (§1); started with computational geometry (CG) and combinatorial optimization (CO) solved by
   LLM-written programs: generated geometry and optimization suites, OR word-problem benchmarks (NL4OPT, IndustryOR, MAMO, OptMATH,
   OptiBench, BWOR, LogiOR), Codeforces geometry, Solomon routing, job-shop scheduling; now also contest code (LiveCodeBench),
   text-to-SQL (BIRD), tool calls (BFCL), instruction following (IFEval) and proofs (miniF2F).

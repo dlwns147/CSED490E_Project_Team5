@@ -6,8 +6,11 @@ This is the manual: how to set up, run and analyze everything in this repository
 working rules: `PROJECT.md`.** The argument with all numbers: `docs/proposal/PROPOSAL.md` (Korean: `docs/proposal/PROPOSAL_ko.md`).
 
 Many LLM tasks come with a free, partial check: programs for geometry, optimization, contest and word problems, SQL queries, tool calls,
-instructions with checkable constraints. Cheap answers can be silently wrong, and thinking longer is expensive. We look for the cheapest
-way to get exactly right answers: a cheap answer, the missing fact, a free check, and thinking only when the check fails.
+instructions with checkable constraints; agent loops, proofs and constructions have their own ways to check or select an answer. Cheap
+answers can be silently wrong, and thinking longer is expensive. We look for the cheapest way to get exactly right answers; the problems
+and the methods are open (PROJECT.md §1). So far: a cheap answer, the missing fact, a free check and thinking only when the check fails
+(programs); verifiers trained to choose among answers (SQL, tool calls, every turn of an agent loop); translation into a formal language
+with a symbolic prover (geometry).
 
 ![Findings at a glance](figs/fig21_results_glance.png)
 

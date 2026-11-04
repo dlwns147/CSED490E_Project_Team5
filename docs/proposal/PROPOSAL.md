@@ -31,7 +31,7 @@ Programs are the right tool when the answer must be computed. On short-answer co
 
 But cheap answers fail **silently** (a wrong program still prints an answer, a wrong query still returns rows), and thinking is **expensive**: on 311 real contest problems, gpt-oss-120b solves 57% at medium effort (6.8k tokens per problem) and 66% at high effort (30k tokens), 4.4× the cost for 9 more points.
 
-**Goal.** Get exactly right answers on these tasks **effectively** (right under strict checks) and **efficiently** (the fewest tokens, the smallest GPU). The questions are *where* extra effort should go, and how to tell, without labels, that a cheap answer is wrong.
+**Goal.** Get exactly right answers **effectively** (right under strict checks) and **efficiently** (the fewest tokens, the smallest GPU), on these tasks and on any other where an answer can be checked, selected or made exact: agent loops, proofs, constructions. The questions include *where* extra effort should go; how to tell a right answer from a wrong one (a free check, another model, a verifier trained with labels used only in training, or an exact engine after translating into a formal language); and what to train or build when prompting and checks run out. Neither the problems nor the methods are fixed.
 
 **Why it matters.** Agents already write route planners, schedulers and geometry code, query databases and call tools; tokens are the cost and the waiting time; and many teams have one 24 GB GPU, not a 120B model.
 
