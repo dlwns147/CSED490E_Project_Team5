@@ -31,10 +31,8 @@ Statement:
 
 
 def lean_of(text):
-    b = re.findall(r"```(?:lean4|lean)?[ \t]*\n(.*?)```", text, flags=re.S)
-    if not b:
-        return None
-    t = b[-1].strip()
+    b = re.findall(r"```[a-zA-Z0-9]*[ \t]*\r?\n(.*?)```", text, flags=re.S)
+    t = (b[-1] if b else text).strip()   # no code block: the theorem is searched in the whole reply
     t = "\n".join(l for l in t.splitlines() if not l.startswith(("import ", "open ", "set_option")))
     m = re.search(r"(theorem|lemma)\s+\S+", t)
     return t[m.start():].strip() if m else None
@@ -55,7 +53,8 @@ def gen():
 
     def one(x):
         r = chat(PROMPT.format(problem=x["problem"]), think=think, max_tokens=mt, temperature=0.6 if think else 0.7)
-        return {"id": x["id"], "label": x["label"], "lean": lean_of(r["text"]), "out_tokens": r["out_tokens"], "finish": r["finish"]}
+        return {"id": x["id"], "label": x["label"], "lean": lean_of(r["text"]), "out_tokens": r["out_tokens"], "finish": r["finish"],
+                "text": r["text"][-2500:]}
     with ThreadPoolExecutor(32) as ex, open(out, "a") as f:
         for k, fu in enumerate(as_completed([ex.submit(one, x) for x in todo])):
             try:
