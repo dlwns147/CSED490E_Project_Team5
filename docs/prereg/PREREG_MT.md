@@ -683,3 +683,21 @@ The 132 items that use both groups are dropped from training and test.
   Next: the gate, then SIDE-ENV (beyond BFCL's classes).
 - **P1 refuted for either** → the claim is scoped to "a verifier trained on scenarios of the target environments", reported with
   the per-turn offline diagnostics and U − S.
+
+## Results of addendum MT-SO-ENV, offline part (written 2026-11-04 13:4x UTC; `results/mtsoenv_offline.txt`; jobs 1315451 / 1315452: training on 560 / 611 requests with a right and a wrong rollout, then 19,273 / 13,982 texts scored, none failed; the fits `results/tc/mt_soenv_fit_{q8b,q14a,q35}.json`)
+
+SEL3 − T on the env-pure pseudo-sets. Each set is scored by the verifier trained on the other environment group. Table cells give
+the gain with the AUROC within sets in parentheses.
+
+| model | turn 0 | turn 1 | turn 2 | turn 3+ |
+|---|---|---|---|---|
+| Qwen3-8B | +5.18 (0.847) | +2.28 (0.785) | +7.58 (0.915) | +3.40 (0.842) |
+| Qwen3-14B-AWQ | +7.07 (0.907) | +4.10 (0.765) | +7.68 (0.848) | +9.70 (0.786) |
+| Qwen3.5-9B | +5.04 (0.856) | +2.55 (0.801) | +5.29 (0.876) | +7.49 (0.814) |
+
+- **MT-SOENV-P4 holds:** later turns, three models pooled, +4.03 [+1.20, +6.71]. The script prints it under MT-SO-P3's label; it is
+  this addendum's P4.
+- Later-turn AUROC is 0.765–0.915, against the expected 0.75–0.85; three cells are above the range. The turn-0 gain, +5.0 to +7.1,
+  is above MT-SEL-ENV's turn-0-only verifiers (+3.0 to +3.9). The training with later turns helps at turn 0 too.
+- The online arm U was submitted at 13:39 UTC by the chain: jobs 1316461 / 1316463 / 1316465 `mtsoenv_q8b_s{1,2,3}` and 1316462 /
+  1316464 / 1316466 `mtsoenv_q35_s{1,2,3}` (vote_lane.sh, LoRAs mtsoenv_h0 / h1, `run_mt.py <m> U <s>`, 468 env-pure items).
