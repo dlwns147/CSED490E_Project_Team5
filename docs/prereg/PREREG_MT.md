@@ -730,3 +730,46 @@ registered expectation, +5 to +12, came from assuming a per-turn gain of +6, whi
 
 As a control, the same model with the scenario-split rates on these items gives +15.5 / +17.4, against online S − T of +16.5 /
 +15.1.
+
+## Addendum MT-PW: the within-set choice with the alternatives in view (written 2026-11-04 17:4x UTC, before any pairwise multi-turn training step or score)
+
+**Why (derived, FINDINGS 2026-11-04 17:4x).** The compounding model puts the ceilings as follows.
+- A perfect choice among the same N, P and T would lift whole conversations from SEL3's 52.5% / 59.4% (Qwen3-8B / Qwen3.5-9B) to
+  63.7% / 71.2%, at no output tokens.
+- A gate that skips the thinking rollout can gain at most +3.9 / +1.4 utility.
+- In mixed sets, the pointwise verifier picks a wrong rollout 148 / 155 times (Qwen3-8B / Qwen3.5-9B) out of about 1,320 / 1,400.
+  About half of those picks act where the right rollout makes fewer state-changing calls, mostly in the missing-parameter and
+  missing-function categories.
+- Telling "act" from "ask" is a comparison. A rollout that asks for a missing value only looks right next to ones that invent it.
+  The pointwise verifier never sees the alternatives.
+
+**Related work.**
+- ToolRM (2510.26167) builds pairwise preference data on BFCL.
+- Plan-RewardBench (2604.08178) has pairwise trajectory judges.
+- MOSAIC (2603.03205) finds pairwise rewards teach refusal better than scalar ones, in a safety setting.
+- Ours, SEL-PW-TC (single-turn tool calls): the pairwise verifier preferred a call to abstaining (380 of 386 disagreements), and
+  did not pay.
+- New here: the comparison within a live multi-turn choice set, whose training data holds many right non-actions (the miss_*
+  categories).
+
+**Run.**
+1. `MT_SEL_TAG=mt_sel2 SEL_IDS=mt_sel2_ids_h<h>.txt tc_train.py $POC_DATA/cv/mtpw_h<h> --pw --mt --pairs 4 --batch 8 --epochs 4`:
+   - the same requests and halves as `mtso_h<h>`;
+   - for each request, up to 4 (right, wrong) rollout pairs per epoch, in both orders;
+   - prompt `tc_pw_prompt` (the turn context, Response A, Response B; next token A or B).
+2. `analyze_mtb.py --pw-build` writes `results/conf/sel_req_mt2pw_h<h>.jsonl`: every ordered pair of distinct texts in every
+   pseudo-set of half h (sset mt2, kind pw). `cv_eval_lane.sh score-tc ... mtpw_h<1-h> sel_req_mt2pw_h<h>.jsonl mt2` scores them.
+3. Each rollout's score is the mean over its rivals b of (s(a, b) − s(b, a)) / 2. It replaces the pointwise score in the
+   set-choice fit, which is cross-fitted as in MT-SO.
+
+**Predictions** (offline, pseudo-sets, the three models pooled, intervals over items):
+- **MT-PW-P1 (decision):** per-turn choice accuracy, PW − SEL3 (pointwise mtso), lower bound > 0.
+- **MT-PW-P2:** on the miss_param and miss_func sets, the share of wrong picks that act where the right rollout makes fewer calls
+  falls.
+- **MT-PW-P3 (reported):** within-set AUROC, PW against pointwise, and the compounding model's conversation-level gain.
+- **Expected:** per-turn +1 to +3 points, conversation +2.5 to +7. The risk is SEL-PW-TC's preference for calls.
+
+**Decision.**
+- **P1 holds** → an online arm (MT-SO's S with the pairwise score) on the same items and seeds, decided on conversation utility.
+- **P1 refuted** → the comparison format does not fix the act-or-ask error here. Next is the training signal: on-policy sets from
+  the online S arm.
