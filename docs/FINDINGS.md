@@ -5631,3 +5631,13 @@ On the 64 items that are statements to prove (34 false, 30 true):
 - Related: AlphaGeometry and AlphaGeometry2 translate by hand or with Gemini and check by reading. NL2AGBench checks that a
   translation executes, not that it is faithful. We found no label-free faithfulness test of this kind. Its blind spot is a
   misreading shared by every sample.
+
+## 2026-11-04 22:3x UTC: MT-SO-ENV online (pre-registered): in environment classes the verifier never saw, the choice at every turn still beats thinking at every step (+7.6 / +6.6 utility)
+- 468 env-pure BFCL items × 3 seeds; the verifier and choice rule are trained on the other group of four environment classes.
+  - Qwen3-8B: 40.2% vs 32.1%, utility +7.56 [+4.52, +10.91].
+  - Qwen3.5-9B: 44.9% vs 37.8%, utility +6.63 [+3.73, +9.62].
+  - About half the in-environment gain stays: U − S is −8.3 / −8.1.
+- The compounding model, registered before any online row was read, predicted +9.7 / +10.4 accuracy. Measured: +8.2 / +7.1. That
+  is inside for Qwen3-8B and 0.4 above the interval for Qwen3.5-9B; the ratio form is inside for both.
+- Missing parameters gains least (+5.3 / +0.6), the act-or-ask choice that MT-PW (training) targets.
+- Claim: within BFCL, the per-turn choice transfers to unseen environment classes. Beyond BFCL is SIDE-ENV's test.

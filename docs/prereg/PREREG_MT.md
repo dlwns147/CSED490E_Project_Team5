@@ -773,3 +773,23 @@ As a control, the same model with the scenario-split rates on these items gives 
 - **P1 holds** → an online arm (MT-SO's S with the pairwise score) on the same items and seeds, decided on conversation utility.
 - **P1 refuted** → the comparison format does not fix the act-or-ask error here. Next is the training signal: on-policy sets from
   the online S arm.
+
+## Results of addendum MT-SO-ENV, online part (written 2026-11-04 22:3x UTC; `results/mtsoenv_online.txt`; jobs 1316461–1316466, 468 env-pure items × seeds 1–3)
+
+| model | U (unseen classes) | T | U − T utility | U − T accuracy | U − S (same items) | P5 prediction (additive / ratio) |
+|---|---|---|---|---|---|---|
+| Qwen3-8B | 40.2% @ 8.00k | 32.1% @ 6.74k | **+7.56 [+4.52, +10.91]** | +8.19 [+5.13, +11.54] | −8.33 [−10.97, −5.63] | +9.7 inside / +8.3 inside |
+| Qwen3.5-9B | 44.9% @ 3.37k | 37.8% @ 2.52k | **+6.63 [+3.73, +9.62]** | +7.05 [+4.13, +10.04] | −8.05 [−10.68, −5.34] | +10.4 just outside / +9.2 inside |
+
+- **MT-SOENV-P1 and P2 hold** for both models. U − S of −8.3 / −8.1 is inside the expected −4 to −10.
+- **P5:** the registered additive form holds for Qwen3-8B. For Qwen3.5-9B it misses: +10.4 against an upper bound of +10.04. The
+  ratio form is inside for both. So the compounding model, fed the offline per-turn rates, predicts the online gain in unseen
+  environments within 2.2 to 3.3 points (additive) or 0.1 to 2.2 (ratio).
+- By category, missing parameters carries the least: Qwen3.5-9B +0.64 [−5.56, +6.20], Qwen3-8B +5.34. This is the act-or-ask choice
+  MT-PW targets.
+- 1.5% of turns had a set structure the fit never saw (T committed), against 0.2–0.4% in the scenario split.
+
+**Decision (registered):** the agent-loop claim holds in environment classes the verifier never saw, within BFCL. A verifier
+trained on the other four classes still beats thinking at every step by +7.6 / +6.6 utility; one trained on the same classes does
+so by +17.2 / +15.5. The gate registered next was dropped by derivation (FINDINGS 11-04 17:4x). The test beyond BFCL's classes
+remains SIDE-ENV's.

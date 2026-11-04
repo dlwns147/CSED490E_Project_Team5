@@ -43,7 +43,7 @@ New types are welcome after a related-work check.
 | Contest code (Codeforces, LiveCodeBench) | A retry on a visible failure transfers (+4.5 / +6.4 over one think). A short think first saves nothing (HO-CC, LC-1). |
 | Text-to-SQL (BIRD, Spider) | The check (the query runs and returns rows) is weak: 41–43% of passing quick queries are wrong. The fix: a quick query trained for correctness (plain RL, labels only in training), kept when another model's quick query returns the same rows; otherwise the default; then a trained verifier chooses where the answers disagree. Result: 62.2% at 1.36k tokens vs the default's 59.5% at 1.68k on BIRD dev, confirmed on Spider, which was never used for a decision (CV-1, SEL, SEL-PW, FINAL). |
 | Tool calls (BFCL, ACEBench) | Plain RL on the quick calls (+5.1, mostly learning not to call); a call policy fitted on training data; and a verifier that may answer "no call", fitted for the choice it makes. Result: 88.3% vs the default's 83.9% on BFCL. Held out on ACEBench: 80.6% vs 74.0%, +6.5 utility (TC-RL, SEL-TC2-AB, SEL-CL, ACE). |
-| Multi-turn agents (BFCL v4, 600 conversations) | **At every turn, the quick turn, the peer model's quick turn and the thinking turn run in sandboxes, and a trained verifier picks one** (MT-SO). Thinking at every step gets 30.8% for Qwen3-8B; this gets 48.8% (Qwen3.5-9B: 38.0% → 53.9%; +17.2 / +15.5 utility). Fixed rules lose: think after an error, think at a request's first step, or a vote. The gain is large because per-turn gains multiply over a conversation; that model has no free parameters and predicts the gain within 2.4 points. |
+| Multi-turn agents (BFCL v4, 600 conversations) | **At every turn, the quick turn, the peer model's quick turn and the thinking turn run in sandboxes, and a trained verifier picks one** (MT-SO). Thinking at every step gets 30.8% for Qwen3-8B; this gets 48.8% (Qwen3.5-9B: 38.0% → 53.9%; +17.2 / +15.5 utility). Trained on four of BFCL's eight environment classes and tested on the other four, it still beats thinking by +7.6 / +6.6 utility (MT-SO-ENV). Fixed rules lose: think after an error, think at a request's first step, or a vote. The gain is large because per-turn gains multiply over a conversation; that model has no free parameters and predicts the gain within 2.4 points. |
 | Instructions (IFEval, IFBench) | A model-written, executed checker gating thinking beats both modes in 4 of 6 cells (+1.1 to +2.5), at 1.0–2.6× the tokens: a gain, not a saving (IF-1). |
 | Short-answer math (MATH-500, AIME) | Text with thinking is best. A program is a second opinion: when text and program agree, 0.3–0.9% are wrong. |
 | Lean proofs (miniF2F) | A specialised 8B prover proves the most (Goedel-Prover-V2-8B, 180 of 244). Facts and repair from compiler errors do not help. |
@@ -98,8 +98,6 @@ OptMATH is partly broken: its statements omit what its gold answers need.
 
 **Running:**
 
-- **MT-SO-ENV** (agents in unseen environments). The verifier is trained on 4 of BFCL's 8 environment classes and tested online
-  on the other 4. The compounding model's prediction (+9.7 / +10.4 accuracy) was registered before any online row was read.
 - **MT-PW** (agents; the hardest open gap). Within a turn, the verifier picks a wrong rollout 11% of the time, often acting where
   the right one asks. Over a conversation that compounds to 11 points of accuracy. A pairwise verifier that sees the alternatives
   is training.
@@ -108,9 +106,8 @@ OptMATH is partly broken: its statements omit what its gold answers need.
 **Next:**
 
 1. MT-PW offline, then online.
-2. The MT-SO-ENV verdict.
-3. For geometry, auxiliary points proposed by the model (SIDE-GT-AUXP, running) against random ones.
-4. The final report (`docs/REPORT.md`).
+2. For geometry, auxiliary points proposed by the model (SIDE-GT-AUXP, running) against random ones.
+3. The final report (`docs/REPORT.md`).
 
 ## 6. Documents
 

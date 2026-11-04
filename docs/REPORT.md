@@ -765,8 +765,10 @@ OR problems and the observation that the cross-model filter removes the harm but
   2.56k), in every category, committing the peer's quick turn on 20–37% of turns and the quick turn on 22–29%. The verifier's prefill
   (17k tokens per conversation) is not priced. The gain compounds: a conversation fails when any one of its turns fails (a wrong end
   state, a turn left without calls), and the choice avoids such turns one at a time. The verifier was trained
-  on scenarios of the same eight environment classes. At turn 0 it keeps about half its gain in classes it never saw (MT-SEL-ENV),
-  and the online test there is MT-SO-ENV.
+  on scenarios of the same eight environment classes. Trained on four classes and run online on the other four (MT-SO-ENV,
+  pre-registered), it still beats thinking at every step: +7.56 [+4.52, +10.91] and +6.63 [+3.73, +9.62] utility (40.2% vs 32.1%,
+  44.9% vs 37.8%). That is about half the in-environment gain. The compounding model predicted the online gain before any row was
+  read: inside the interval for Qwen3-8B, and 0.4 points above it for Qwen3.5-9B.
 
 ## 8. Limitations
 
