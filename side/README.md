@@ -10,7 +10,7 @@ server's GPUs: a model server and client commands run as one job through `poc/sl
 - Before any run that decides something, add a pre-registration to `PREREG_SIDE.md`: why, design, predictions, decision. Never edit a
   prediction afterwards; append dated results under it.
 - Never commit model outputs, logs, benchmark texts, server addresses or keys. `*.jsonl` and `*.log` are ignored on purpose.
-- Read `PROJECT.md` §0 for the goal: exactly right answers with the fewest tokens, utility = 100·right − 0.5·(thousand output tokens).
+- Read `PROJECT.md` §1 for the goal: exactly right answers at the lowest cost, utility = 100·right − 0.5·(thousand output tokens).
 
 ## A. Generated agent environments (`side/envs/`, `side/gen_*.py`)
 
