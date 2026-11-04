@@ -1,8 +1,9 @@
 # Second track: algorithmic components
 
-This folder is for work that needs algorithms, not model training or prompting. Each component plugs into the existing pipeline through
-a file format, runs on CPU, and is judged by a pre-registered test in `docs/prereg/PREREG_SIDE.md`. Model runs (GPU) and the
-verifier analyses stay in `poc/`, run by the main track.
+This folder is for the second track: components built around algorithms (search, checks, generators), plugged into the existing
+pipeline through a file format and judged by a pre-registered test in `docs/prereg/PREREG_SIDE.md`. Side work may use the Slurm
+server's GPUs: a model server and client commands run as one job through `poc/slurm/job.sh` and `poc/slurm/lane.sh` (see the root
+`README.md`, section on Slurm).
 
 **Working rules:**
 - Work in a fork, or on a branch of this repository. Add files under `side/`, and don't change `poc/` scripts.
@@ -85,3 +86,31 @@ finds a 1-minimal witness of about 3 rows for most pairs.
 
 **Data:** BIRD (bird-bench.github.io) and Spider (yale-lily.github.io/spider) are public. Develop and test the search on gold queries
 against mutated gold queries from BIRD train. The main track runs it on the stored candidate pairs.
+
+## C. Proofs (`side/proof_falsify.py`; being tested)
+
+**What the main track already knows** (`docs/prereg/PREREG_PROOF.md`):
+- Lean 4 (miniF2F): the compiler is a perfect check.
+  - A specialised 8B prover beats general models (Goedel-Prover-V2-8B 180 of 244 statements, Qwen3.6-35B 133).
+  - Hints in the prompt and repair from compiler errors do not help.
+  - Many cheap attempts before thinking is the right budget split, and 30 graded statements find it.
+- When to stop trying on a statement, from Lean's feedback, is published (2606.04883: −26% compute at matched accuracy), so it is not
+  a side project here.
+
+**The gap:** natural-language proofs, where nothing checks a proof for free.
+- In the Open Proof Corpus (OPC, 2506.21621; 4,934 proofs by frontier models, graded by humans), the judges' feedback on wrong proofs
+  names:
+  - a missing justification in 22%;
+  - a wrong final answer in 15%;
+  - a false claim or a counterexample in 10%;
+  - no solution in 5%;
+  - nothing at all in 51%.
+- Computation can catch only the wrong answers and the false claims.
+
+**Test running (SIDE-PF):** a model writes one program per proof that brute-forces the answer on small cases and tests the proof's
+concrete claims on instances. A printed counterexample flags the proof.
+- Measured on OPC's human labels: the share of wrong proofs flagged, against the share of right proofs flagged (the check's own
+  errors).
+- If it catches enough with few false flags, next:
+  - give the counterexample to a proof judge, as witnesses are given to the SQL verifier;
+  - BrokenMath (INSAIT), where models "prove" false statements: the statement itself can be tested on small cases.

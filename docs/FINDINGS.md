@@ -5316,3 +5316,24 @@ own classes. Goal link: the agent-loop gain is not a memorised environment.
   `poc/make_slides.js` and `poc/export_slide_figs.py` use `docs/proposal/`.
 - Paths updated in README (its file list now also names docs/proposal/ and side/), PROJECT, docs/REPORT, docs/SLURM_HANDOFF,
   docs/SLURM_PROMPT and docs/notes/REPORT_OUTLINE. docs/README indexes every document in docs/.
+
+## 2026-11-04 01:4x UTC: proofs as side work, exploratory (user: side work may use GPUs; test and suggest ideas on proofs)
+- **Lean budget per statement (stored PL1/PL3 attempts, offline).** Best fixed split vs a per-statement oracle (λ = 0.5): 20.1 → 31.3
+  (gpt-oss-20b), 23.0 → 36.3 (gpt-oss-120b), −0.1 → 11.1 (Qwen3-8B). Nearly all of it is not spending on statements no attempt
+  ever proves (skip-the-never-solved oracle 30.7 / 35.3 / 10.6).
+  - After 2 failed cheap attempts, a later success is predicted by the failed attempts' output tokens (AUROC 0.70 / 0.70 / 0.83,
+    fewer tokens → solved later) and by the statement's category (mathd: 0.65–0.72). Lean's error types predict little (0.45–0.55).
+  - Not pursued: per-problem adaptive compute from Lean feedback is published (Optimizing the Cost-Quality Tradeoff of Agentic
+    Theorem Provers in Lean, 2606.04883: −25.8% compute at matched accuracy, Goedel-Prover-V2-8B, PutnamBench subset).
+- **Natural-language proofs: what a free computational check could catch.** Open Proof Corpus (2506.21621; 4,934 human-graded proofs
+  by frontier models, downloaded to nlp_data/proof/opc). Of the 2,825 proofs every judge marked wrong, the feedback names:
+  - a missing justification in 22%;
+  - a wrong final answer in 15%;
+  - a false claim or a counterexample in 10%;
+  - no solution in 5%;
+  - nothing in 51% (keyword counts).
+  A read of 50 random wrong proofs agrees: 29 gaps or no rigour, 9–10 wrong answers, 5–7 numerically refutable claims (e.g. "if a_k
+  is even so is a_{k+1}", a_k = 6 gives 15; a reflection that maps B to C only when AB = AC).
+- Next: SIDE-PF, a model-written counterexample search per proof (`side/proof_falsify.py`); dev smoke job 1312455 on 60 generic proofs
+  (30 wrong, 30 right; Qwen3-8B without and with thinking) before the pre-registration. Goal link: a free check for proofs, the one
+  math type where the project has none.
