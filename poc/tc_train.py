@@ -227,8 +227,55 @@ def main_pw(out):
     print("done", out, step, "steps", flush=True)
 
 
+def main_sft_mt(out):
+    """addendum MT-RF (--sft-mt <rows file>, mt_peer0.py --rf-build): Qwen3-8B LoRA on multi-turn right rollouts: per request and epoch one
+    sampled right rollout; each step's target log-probability given the conversation (full system prompt, no gradient through the
+    prompt); loss = mean negative log-probability per target token"""
+    os.makedirs(out, exist_ok=True)
+    B, lr, ep, smoke = arg("--batch", 8), arg("--lr", 5e-5), arg("--epochs", 2), arg("--smoke", 0)
+    data = sys.argv[sys.argv.index("--sft-mt") + 1]
+    PD = os.path.dirname(data)
+    S = {p["id"]: p["system"] for p in map(json.loads, open(f"{PD}/mt_items.jsonl"))}
+    by = {}
+    for r in map(json.loads, open(data)):
+        by.setdefault(r["req"], []).append(r)
+    Q = sorted(by)
+    random.Random(0).shuffle(Q)
+    Q = Q[:smoke or len(Q)]
+    print(f"sft-mt: {len(Q)} requests, {sum(len(by[q]) for q in Q)} right rollouts; batch {B} rows, lr {lr}, epochs {ep}", flush=True)
+    pol = Policy(arg("--base", "/SSD/huggingface/Qwen/Qwen3-8B"), lr)
+    log = open(f"{out}/log.jsonl", "a")
+    step = 0
+    for e in range(ep):
+        rng = random.Random(1000 + e)
+        order = Q[:]
+        rng.shuffle(order)
+        rows = [(by[q][0]["item"], z) for q in order for z in rng.choice(by[q])["steps"]]
+        for a0 in range(0, len(rows), B):
+            t0, tot = time.time(), 0.0
+            batch = rows[a0:a0 + B]
+            for it, z in batch:
+                P = pol.ids([{"role": "system", "content": S[it]}] + z["msgs"])
+                c = pol.tok(z["target"], add_special_tokens=False)["input_ids"] + [pol.end]
+                kv = pol.prefix(P[:-1])
+                for _, lp in pol.turn1_logp(kv, P, [c]):
+                    lo = -lp.sum() / len(c)
+                    (lo / len(batch)).backward()
+                    tot += lo.item() / len(batch)
+                del kv
+            pol.step()
+            step += 1
+            rec = {"step": step, "epoch": e + 1, "rows": len(batch), "loss": tot, "t": round(time.time() - t0)}
+            log.write(json.dumps(rec) + "\n"); log.flush()
+            print(json.dumps(rec), flush=True)
+    pol.model.save_pretrained(f"{out}/adapter_final")
+    print("done", out, step, "steps", flush=True)
+
+
 def main():
     out = sys.argv[1]
+    if "--sft-mt" in sys.argv:
+        return main_sft_mt(out)
     if "--orm" in sys.argv:
         return main_orm(out)
     if "--pw" in sys.argv:

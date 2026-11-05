@@ -117,9 +117,9 @@ def is_err(res):
     return isinstance(d, dict) and "error" in d
 
 
-def answer(msgs, think, seed):
+def answer(msgs, think, seed, model="local"):
     try:
-        o = chat_msgs(msgs, think=think, max_tokens=TMAX if think else NMAX, temperature=0.7, seed=seed)
+        o = chat_msgs(msgs, model=model, think=think, max_tokens=TMAX if think else NMAX, temperature=0.7, seed=seed)
     except BadRequestError as e:   # the conversation outgrew the context: the item fails, as an inference error fails it in BFCL
         if "context" not in str(e).lower() and "too long" not in str(e).lower() and "maximum" not in str(e).lower():
             raise
@@ -356,6 +356,8 @@ def _policy(pid):
 
 def run_item(p, tag, arm, seed):
     name = f"{tag}_{arm}_s{seed}"
+    # addendum MT-RF: MT_N_LORA=<prefix>: quick steps come from the adapter <prefix><h> trained on the other half of the scenarios
+    nmodel = (os.environ["MT_N_LORA"] + str(1 - zlib.crc32(p["id"].rsplit("_", 1)[1].encode()) % 2)) if os.environ.get("MT_N_LORA") else "local"
     cfg, cls, lc = p["initial_config"], p["involved_classes"], "long_context" in p["cat"]
     U.execute_multi_turn_func_call([], cfg, cls, name, p["id"], long_context=lc)   # fresh instances for this trajectory
     msgs = [{"role": "system", "content": p["system"]}]
@@ -366,7 +368,7 @@ def run_item(p, tag, arm, seed):
         for k in range(STEPS + 1):
             think = arm == "T" or (arm in ("E", "F") and prev_err) or (arm == "F" and k == 0)
             sd = seed * 100003 + zlib.crc32(f"{p['id']}/{ti}/{k}".encode()) % 99991
-            text, n, fin = answer(msgs, think, sd)
+            text, n, fin = answer(msgs, think, sd, nmodel if not think else "local")
             tok += n
             if fin == "overflow":
                 steps.append({"calls": [], "think": think, "tok": 0, "fin": fin})

@@ -595,6 +595,11 @@ def main_rn():
         print(f"turn {g}: {a[0]} sets; oracle N,P,T {100 * a[1] / a[0]:.1f}%; with the trained turn {100 * a[2] / a[0]:.1f}%; the trained turn alone {100 * a[3] / a[0]:.1f}%", flush=True)
     for c in sorted({k[0] for k in A if isinstance(k, tuple)}):
         print(f"  {c}: rescued at turn 0 {100 * A[(c, '0')][2] / max(1, A[(c, '0')][0]):.1f}% of sets", flush=True)
+    import math
+    dist = Counter(len(p["turns"]) for p in P.values()); nn = sum(dist.values())
+    conv = lambda j: sum(w / nn * math.prod(A[tg(k)][j] / A[tg(k)][0] for k in range(K)) for K, w in dist.items())
+    print(f"compounding, conversation: oracle {100 * conv(1):.1f}% -> with the trained turn {100 * conv(2):.1f}%; at the verifier's 0.56 share "
+          f"{100 * 0.56 * (conv(2) - conv(1)):+.1f} points", flush=True)
     ids = sorted(D); rng = random.Random(0)
     per = {i: sum(D[i]) / len(D[i]) for i in ids}
     bs = sorted(sum(per[rng.choice(ids)] for _ in ids) / len(ids) for _ in range(2000))
@@ -603,8 +608,71 @@ def main_rn():
           f"{'holds' if bs[50] > 0 and 100 * m >= 1.9 else 'refuted'}", flush=True)
 
 
+def main_rf_build():
+    """addendum MT-RF (--rf-build): per request (item, turn k) the right rollouts of mt_sel2's pool, each as a list of rows: the conversation
+    so far (the source trajectory's right history, tool results replayed in full) -> the step's text; a step whose calls returned an
+    error is no target. Writes $POC_DATA/bfcl/mt_rf_h<half>.jsonl, one row per rollout: {req, item, steps: [{msgs, target}]} (msgs
+    without the system prompt)."""
+    P = {p["id"]: p for p in map(json.loads, open(DATA))}
+    R = {(m, a): rows(m, a) for m in SEL_MODELS for a in SEL_ARMS}
+    C = os.path.join(ROOT, "results", "conf")
+    PD = os.path.dirname(DATA)
+    need = {}
+    pool = [json.loads(l) for l in open(f"{C}/mt_sel2_pool.jsonl")]
+    for r in pool:
+        i = r["id"].split("/")[0]
+        for t, c in r["cands"].items():
+            if c["right"]:
+                m, a, s = c["src"][0]
+                need.setdefault((m, a, s, i), []).append((r["id"], r["turn"], r["half"]))
+    out = {0: [], 1: []}
+    for n, ((m, a, s, i), reqs) in enumerate(need.items()):
+        p, x = P[i], R[(m, a)][s][i]
+        cfg, cls = p["initial_config"], p["involved_classes"]
+        name = f"rf{n}"
+        ex = lambda c: U.execute_multi_turn_func_call(c, cfg, cls, name, p["id"], long_context=False)
+        want = {k: (j, h) for j, k, h in reqs}
+        hist = []
+        try:
+            ex([])
+            for k in range(max(want) + 1):
+                if k >= len(x["turns"]) or k >= len(p["turns"]):
+                    break
+                hist += p["turns"][k]
+                rowsk = []
+                for z in x["turns"][k]:
+                    if z["calls"]:
+                        text = "[" + ", ".join(z["calls"]) + "]"
+                        if not any(z.get("err") or []):
+                            rowsk.append({"msgs": list(hist), "target": text})
+                        res, _ = ex(z["calls"])
+                        hist.append({"role": "assistant", "content": text})
+                        hist += [{"role": "tool", "name": c, "content": r_} for c, r_ in zip(z["calls"], res)]
+                    else:
+                        text = (z.get("text") or "").strip()
+                        if text:
+                            rowsk.append({"msgs": list(hist), "target": text})
+                            hist.append({"role": "assistant", "content": text})
+                if k in want and rowsk:
+                    j, h = want[k]
+                    out[h].append({"req": j, "item": i, "steps": rowsk})
+        except Exception as e:
+            print(f"  {m} {a} {s} {i}: {type(e).__name__}: {str(e)[:100]}", flush=True)
+        finally:
+            for c in cls:
+                U.__dict__.pop(re.sub(r"[-./:]", "_", f"{name}_{p['id']}_{c}_instance"), None)
+    for h in (0, 1):
+        with open(f"{PD}/mt_rf_h{h}.jsonl", "w") as f:
+            for r in out[h]:
+                f.write(json.dumps(r) + "\n")
+        print(f"MT-RF half {h}: {len(out[h])} right rollouts of {len({r['req'] for r in out[h]})} requests, "
+              f"{sum(len(r['steps']) for r in out[h])} rows", flush=True)
+
+
 if __name__ == "__main__":
-    if "--rn" in sys.argv:
+    if "--rf-build" in sys.argv:
+        main_rf_build()
+    elif "--rn" in sys.argv:
         main_rn()
     elif "--judge" in sys.argv:
         main_judge()
