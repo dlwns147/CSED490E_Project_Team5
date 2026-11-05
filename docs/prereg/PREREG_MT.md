@@ -959,3 +959,22 @@ here: the trained turn as one candidate in a verifier's choice set, valued in ad
 - **P2 holds** → an online arm: S with the trained turn as a fourth candidate, the existing verifier unchanged.
 - **P2 refuted** → training for single calls does not add the answers conversations lack. Training on multi-turn rollouts
   themselves (labels by scenario half) is the next candidate.
+
+## Results of addendum MT-RN (written 2026-11-05 10:3x UTC; `results/mtrn_offline.txt`; job 1323864, 600 items × 3 seeds)
+
+- **MT-RN-P1 refuted:** the trained quick turn is right on 15.8% of whole conversations, against the base N's 16.7%. By category:
+  base 20.3% vs 26.2%, missing parameter 14.3% vs 10.7%, missing function 12.7% vs 13.2%. It learned not to act, which helps
+  where asking is right and costs where acting is. 0.36k tokens per conversation.
+- **Oracle of the set, per turn, on the sets where its trajectory is right through k−1** (N, P, T → with the trained turn): turn 0
+  85.8 → 87.4, turn 1 91.6 → 92.9, turn 2 95.5 → 96.4, turn 3+ 89.1 → 89.5. Rescues at turn 0: base 0.0%, missing function 2.0%,
+  missing parameter 2.9%.
+- **MT-RN-P2 as coded:** +1.95 [+1.24, +2.79], mean over items, just over the 1.9 bar. Pooled over sets it is +1.4, because items
+  with few sets (those that fail early) have more rescues. The item-weighted figure is what the code printed; the bar was derived
+  from the per-turn rates.
+- **Conversation level, the quantity the bar stood for:** the compounding model gives the oracle 64.6% → 67.7%. The verifier
+  realises 56% of oracle gains over T, so the choice gains about **+1.7 points**, against a detectable gain of about 3.
+
+**Decision (amended before any online row, with the reason).** The registered rule reads P2 → online arm. But P2 passes only under
+item weighting, by 0.05, and the conversation gain it stood for is +1.7, inside the online test's noise; the arm would also need a
+fourth role in the fit. As with MT-PW, by rule 2 it is not run. A quick turn trained for single calls does not add the answers
+conversations lack.

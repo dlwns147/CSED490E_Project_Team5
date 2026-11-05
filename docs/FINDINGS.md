@@ -5685,3 +5685,8 @@ On the 64 items that are statements to prove (34 false, 30 true):
   fitted feature, −0.37 [−0.80, +0.07] per turn, against a break-even of +0.74.
 - As with ToolRM-4B-Thinking on single turns (SEL-RM), labels beat reasoning for this choice. The verifier line is closed: of the 11
   points above the verifier, none of format, state, calibration or a thinking judge recovers more than 1.
+
+## 2026-11-05 10:3x UTC: MT-RN (pre-registered): a quick turn trained on open single-call data adds too little to the set (P1 refuted; P2 passes only by item weighting, conversation gain +1.7)
+- C1tc as Qwen3-8B's quick turn on BFCL multi-turn: 15.8% vs 16.7% of conversations (base −5.9, missing parameter +3.6). Oracle of the
+  set +1.3 to +1.6 at turns 0–1, +0.4 to +0.9 later; +1.95 by item, +1.4 by set.
+- Compounding gives +1.7 points for the choice, below what the online test can see; the arm is not run (amended before any online row).
