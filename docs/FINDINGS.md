@@ -5690,3 +5690,11 @@ On the 64 items that are statements to prove (34 false, 30 true):
 - C1tc as Qwen3-8B's quick turn on BFCL multi-turn: 15.8% vs 16.7% of conversations (base −5.9, missing parameter +3.6). Oracle of the
   set +1.3 to +1.6 at turns 0–1, +0.4 to +0.9 later; +1.95 by item, +1.4 by set.
 - Compounding gives +1.7 points for the choice, below what the online test can see; the arm is not run (amended before any online row).
+
+## 2026-11-05 14:4x UTC: SIDE-GT-SOUND: Newclid's proofs are not exact; earlier geometry proof counts withdrawn pending a rerun under a numerical guard
+- **How it surfaced.** SIDE-GT-POOL's first "proofs" came too easily, so I read one. ISL 2004 G8 listed CE = DE as a premise and derived AB ∥ CD, and neither holds in general.
+- **Audit** (`geo_translate.py audit`) of 68 recorded proofs, testing every statement on its own figure at 1e-4. Plain Newclid: 57 rerun, 16 use a false statement, some with 14–84 false ones such as a triangle's vertices being collinear, and 20 rows raise errors. With the guard (`GT_SOUND=1`, every derived fact and merge must hold on the run's figure): 47 rerun, none false, and no errors. So DDAR's crashes were mostly a symptom of the false facts.
+- **What this changes.** "DDAR proofs are exact" was wrong. Withdrawn until the rerun: 10 of 65, 8 of 65 with no human in the loop, the four shortlist problems, and IMO-AG-30's 14 of 30. Faithfulness by agreement is numerical and stands.
+- **Faults in my own SIDE-GT-POOL runs**, recorded in the prereg: lemmas passed within a round, against the registration; a recursion crash from injected lemmas; a confirmation that named too few points and was capped at 10,000 steps. Newclid's default step limit also means earlier 300 s and 600 s runs bought less than they appeared to.
+- **Related work.** HAGeo (2512.00097) has an appendix on a fallacious AlphaGeometry proof of IMO 2020 P1, so invalid proofs in this family of engines are known. Newclid 3.0.1 exists and has not been tried.
+- **Next.** The whole pipeline reruns under the guard, in `results/proof/sound/`, and SIDE-GT-POOL is decided there. Registered as SIDE-GT-SOUND in PREREG_SIDE.

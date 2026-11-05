@@ -25,9 +25,9 @@ checked, selected, or made exact. Every result is accuracy and output tokens; al
   it leaks.
 - **Proofs.**
   - In Lean, a specialised 8B prover wins.
-  - For olympiad geometry, the model writes no proof. It translates the statement for an exact symbolic engine, and agreement
-    between independent translations certifies faithfulness without human reading. The pipeline proves 8 of 65 held-out problems
-    with no human in the loop. Four of them are shortlist problems whose graded frontier natural-language proofs are all wrong.
+  - For olympiad geometry, the model writes no proof. It translates the statement for a symbolic engine, and agreement between
+    independent translations certifies faithfulness without human reading. **Proof counts are withdrawn pending a rerun:** the
+    engine derives false facts (§7, SIDE-GT-SOUND).
 
 We also report what did not work: label-free pseudo-labels, self-training, rewards shaped for the cascade, verifiers on word problems,
 and model-proposed auxiliary points.
@@ -773,13 +773,10 @@ OR problems and the observation that the cross-model filter removes the harm but
     independent translations certifies faithfulness.
   - **Faithfulness check.** On a figure built from one translation, the other's construction predicates and goal must hold, both
     ways. Against blind hand verdicts on 59 translations, it accepted no unfaithful translation and 98% of faithful ones.
-  - **Results on 65 held-out problems** (about 50k tokens per problem):
-    - translated faithfully: 19;
-    - proved by DDAR alone: 3 (the registered target of 5 was missed);
-    - proved with one auxiliary point: 10;
-    - proved with no human in the loop: 8.
-
-    The 8 include four shortlist problems whose graded frontier natural-language proofs (OPC) are right 0 of 26 times.
+  - **Results on 65 held-out problems** (about 50k tokens per problem): 19 translated faithfully. **Proof counts are withdrawn
+    pending a rerun.** The recorded 3 by DDAR alone, 10 with one auxiliary point and 8 with no human in the loop assumed DDAR's proofs
+    were exact. They are not: Newclid checks only the goal numerically, and an audit found a statement false on its own figure in 16
+    of the 57 recorded proofs that reran. A numerical guard on every derived fact removed them in the same audit (SIDE-GT-SOUND).
   - **Smaller translators.** Qwen3-8B translates faithfully only 1 of 24 dev problems. gpt-oss-120b declines most of them as
     unexpressible.
 - **The weakest model's check leak** (Section 5.2).

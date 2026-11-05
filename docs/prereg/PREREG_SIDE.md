@@ -715,3 +715,38 @@ The first run (jobs 1324967, 1324968) was stopped partway, 26 translations in. I
 - **Arm C, the accumulating variant:** `pool --cert` (jobs 1327631, 1327632), reported as a variant.
 - **Comparison:** the pair arm (jobs 1324969, 1324970) continues unchanged. Its DDAR is the same up to the point-name bug.
 - **Each proof is now checked** by the steps in Method's confirmation, and also by replaying each step with only the lemmas it needs and by testing those lemmas on 8 fresh diagrams.
+
+## SIDE-GT-SOUND: Newclid derives false facts; a numerical guard on every derived fact (written 2026-11-05 14:4x UTC, before any rerun of the pipeline under the guard; the guard has been tried only on re-runs of the 68 recorded proofs)
+
+**Why.** Reading a proof of ISL 2004 G8 from SIDE-GT-POOL's first run, I found CE = DE listed as a premise and AB ∥ CD derived from it. Neither holds in general. Newclid 2.0.2 checks the goal numerically and has an option, off by default, to check an added statement. So a false fact can stay, spread, and "prove" a true goal, and our guard (the goal holds on the figure) cannot see that. **Every geometry count recorded so far assumed DDAR's proofs were exact.**
+
+**Audit** (`geo_translate.py audit`, `one_audit`; `results/proof/gt_audit2.jsonl`). Each of the 68 recorded proofs was rerun, up to 6 diagrams at 120 s. Every statement a proof uses was tested on its own figure, where a sound derivation cannot fail. "False" means false at 1e-4, well above rounding.
+
+| | rows | reproved | a statement false on its own figure | a reason-free statement that is not a construction fact |
+|---|---|---|---|---|
+| plain Newclid | 68 | 57 | 16 | 5 |
+| with the guard | 68 | 47 | 0 | 1 (IMO 2000 P1, `cong e q p e`, true on all 8 fresh figures; to read) |
+
+- False proofs are often cascades, with 14–84 false statements out of 91–221, such as "a, b, c are collinear" for a triangle's vertices.
+- Plain Newclid raised errors in 20 of the 68 rows, such as a circle through three "collinear" points. With the guard, none did. So those crashes were mostly a symptom of the false facts.
+- A rerun is not the same run as the original, because Newclid's order is not deterministic, so these rows do not relabel the original counts one by one.
+
+**The guard** (`GT_SOUND=1`, `patch_newclid`). A rule's conclusion or an algebraic derivation is kept only if it holds on the run's own figure, and so is each statement it adds, and each merge of two symbols. Rejecting a fact only loses deductions. A fact that holds on one generic figure could still be a coincidence, which is why the audit's fresh figures stay in place.
+
+**Related work.** HAGeo (2512.00097) has an appendix on a fallacious AlphaGeometry proof of IMO 2020 P1, and Newclid's manual records a bug shared with AlphaGeometry on IMO 2004 P1. So invalid proofs in this family of engines are known. What we measure here is how often they occur on our own pipeline's proofs, and that a per-fact numerical guard removes them.
+
+**Rerun** under the guard (output in `results/proof/sound/`, 60 s per run, the same 64 candidates):
+- DDAR alone on the dev and held-out translations, and on the references;
+- one random point at a time;
+- SIDE-GT-POOL's arms A (registered form) and C (variant), and the 64 random pairs, on whichever problems no single point now proves;
+- the audit on every proof found.
+
+**Predictions.** I have seen the audit above, so these are not blind about it.
+- **SOUND-P1 (decision):** no proof found in the rerun uses a statement false on its own figure.
+- **SOUND-P2 (reported):** faithful held-out problems proved end to end, against the 10 of 65 recorded, with DDAR alone and with one point. **Expected:** 5–8 in all, with DDAR alone near its recorded 3. The auxiliary arm loses the most. IMO-AG-30 references, recorded at 14 of 30: expected 12–14.
+- **SOUND-P3 (reported):** the share of DDAR runs that raise an error, against plain Newclid. **Expected:** near zero.
+- **POOL-P1 to P3 are decided here, on the recomputed set.** The first run is already known to me: arm A proved USAMO 2005 P3, and plain DDAR confirmed the Indonesia 2007 proofs from arm C, whose lemmas hold on fresh figures. So P1 is likely to hold, and the informative results are P2 (against pairs) and P3.
+
+**Decision.**
+- **P1 holds** → guarded DDAR replaces plain Newclid everywhere in the geometry track, and every geometry claim is restated from this rerun.
+- **P1 refuted** → the guard is not enough, and geometry claims are withdrawn until proofs are read by hand.

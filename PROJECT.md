@@ -47,7 +47,7 @@ New types are welcome after a related-work check.
 | Instructions (IFEval, IFBench) | A model-written, executed checker gating thinking beats both modes in 4 of 6 cells (+1.1 to +2.5), at 1.0–2.6× the tokens: a gain, not a saving (IF-1). |
 | Short-answer math (MATH-500, AIME) | Text with thinking is best. A program is a second opinion: when text and program agree, 0.3–0.9% are wrong. |
 | Lean proofs (miniF2F) | A specialised 8B prover proves the most (Goedel-Prover-V2-8B, 180 of 244). Facts and repair from compiler errors do not help. |
-| Geometry proofs (side track, SIDE-GT) | The model translates the statement into a formal construction language, and a CPU engine (Newclid's DDAR) proves it exactly. With Qwen3.6-27B, 4 IMO problems are proved on dev. Held out: 19 of 65 problems are translated faithfully (judged blind). DDAR alone proves 3; adding one random auxiliary point brings it to 10. Four of the 10 are shortlist problems whose graded frontier natural-language proofs are all wrong. Agreement between independent translations certifies faithfulness without reading them: no unfaithful translation passed, and 98% of faithful ones did. With it, 8 of 65 are proved with no human in the loop (SIDE-GT-AGREE). The prover is the bottleneck. |
+| Geometry proofs (side track, SIDE-GT) | The model translates the statement into a formal construction language, and a CPU engine (Newclid's DDAR) proves it. Held out: 19 of 65 problems are translated faithfully (judged blind). Agreement between independent translations certifies faithfulness without reading them: no unfaithful translation passed, and 98% of faithful ones did (SIDE-GT-AGREE). **Proof counts are withdrawn pending a rerun** (the earlier 10 and 8 of 65, and the claim about four shortlist problems): Newclid derives false facts, and an audit found them in 16 of 57 recorded proofs that reran. A numerical guard on every derived fact removes them in the same audit (SIDE-GT-SOUND). |
 | Constructions (side track, SIDE-MC) | Unsolved for an 8B model. A thinking answer and a thinking program solve different instances (23% and 18% alone, 33% together). The model's own checker rejects 28% of right objects, so it cannot pick between them. |
 
 **Did not work** (do not retry without a new idea):
@@ -109,10 +109,14 @@ OptMATH is partly broken: its statements omit what its gold answers need.
 - **Running, MT-RF:** a quick turn trained on BFCL's own right rollouts, half the scenarios for the other half. An online arm only if the
   compounding model gives at least 3 points; otherwise the agent-loop method is final for this project.
 - **Geometry, second track:**
-  - 10 of 65 held-out problems are proved end to end, 8 of them certified without hand reading (SIDE-GT-AGREE).
-  - Model-proposed auxiliary points add nothing over random ones (SIDE-GT-AUXP).
-  - **Running, SIDE-GT-POOL:** the 31 problems one random point cannot prove need more than one. Rather than adding points together,
-    each point runs alone and the facts it proves about the original figure are pooled, which is k + 1 runs instead of k² / 2.
+  - **Correction (SIDE-GT-SOUND):** DDAR's "proofs" are not exact. Newclid checks only the goal numerically, and false facts spread:
+    16 of 57 rerun proofs use a statement false on their own figure. With a numerical guard on every derived fact, none of 47 does, and
+    DDAR's crashes disappear. Earlier proof counts are withdrawn until the rerun under the guard finishes.
+  - Faithfulness by agreement (SIDE-GT-AGREE) is numerical and stands. Model-proposed auxiliary points against random ones
+    (SIDE-GT-AUXP) needs rereading under the guard.
+  - **Running, SIDE-GT-POOL under the guard:** problems one random point cannot prove need more than one. Rather than adding points
+    together, each point runs alone and the facts it proves about the original figure are pooled, which is k + 1 runs instead of
+    k² / 2.
 
 **Next:**
 

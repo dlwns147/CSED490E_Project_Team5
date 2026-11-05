@@ -149,9 +149,13 @@ translates the statement into AlphaGeometry's construction language, and Newclid
       (4.6%; the registered bar of 5 was missed). One of the 3 is ISL 2012 G (2012_16), where frontier natural-language proofs are
       right 0 of 8 times.
   - **gpt-oss-120b:** declines 78 of 96 dev translations as unexpressible. It is faithful on 4 problems, and DDAR proves 1.
+- **Correction (11-05, SIDE-GT-SOUND):** the proof counts above and below assumed DDAR's proofs were exact. They are not. Newclid 2.0.2
+  checks only the goal numerically, and false facts spread: 16 of 57 recorded proofs that reran use a statement false on their own figure.
+  Run with `GT_SOUND=1` (a numerical guard on every derived fact), and audit proofs with `geo_translate.py audit`. A newer Newclid (3.0.1)
+  exists and has not been tried.
 - So with a 27B translator the prover is the bottleneck. A project for algorithms work: auxiliary constructions when DDAR stops.
   Our first search is uniform over construction type, then over arguments. HAGeo's heuristics (28 of 30 on IMO-AG-30, random
-  constructions 25) are the published target; their code is not released.
+  constructions 25) are the published target; their code is at github.com/boduan1/HAGeo.
 
 **Other hard proofs, the same question** (OPC graded proofs, wrong / right): is there a free check that sees the common error?
 

@@ -22,7 +22,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "poc"))
 PD = os.path.join(os.environ.get("POC_DATA", "/home1/leesangjun/SJ/POSTECH/nlp_data"), "geo")
-OUT = os.path.join(ROOT, "results", "proof")
+OUT = os.environ.get("GT_OUT", os.path.join(ROOT, "results", "proof"))
 
 LEGEND = """Predicates (points are lowercase names such as a, b, o1, h_a):
   coll a b c: a, b, c are collinear.            para a b c d: line ab is parallel to line cd.
@@ -183,6 +183,42 @@ def patch_newclid():
     """GT_CATCH=1 (SIDE-GT-POOL addendum): Newclid 2.0.2 aborts the whole DDAR run when one rule application names a numerically degenerate
     figure, such as a circle through three collinear points. With this, that one application fails and the run goes on; a failed
     application only loses facts."""
+    if os.environ.get("GT_SOUND") == "1":
+        # SIDE-GT-SOUND: Newclid checks only the goal numerically, and false facts do get in (results/proof/gt_audit.jsonl). A fact is kept, and two
+        # symbols are merged, only if it holds on the run's own figure. Rejecting a fact only loses deductions.
+        from newclid.agent.agents_interface import ImportDerivationFeedback
+        from newclid.numerical.check import check_numerical
+        from newclid.proof import Proof, mapping_to_names
+        from newclid.statements.adder import StatementAdder
+        from newclid.statements.statement import Statement
+        orig_t, orig_m = Proof._apply_theorem, StatementAdder._make_equal
+
+        def holds(st):
+            try:
+                return bool(check_numerical(st))
+            except Exception:
+                return False
+
+        def safe_t(self, theorem, mapping):
+            args = self.map_construction_args_to_objects(theorem.conclusion, mapping_to_names(mapping))
+            if not holds(Statement(theorem.conclusion.name, tuple(args))):
+                return [], [], False
+            added, to_cache, ok = orig_t(self, theorem, mapping)
+            return [d for d in added if holds(d.statement)], [c for c in to_cache if c is None or holds(c[0])], ok
+
+        def safe_d(self, action):
+            if not holds(action.derivation.statement):
+                return ImportDerivationFeedback([], [])
+            added, to_cache = self.resolve_statement_dependencies(action.derivation.statement, action.derivation.dep_body)
+            added, to_cache = [d for d in added if holds(d.statement)], [c for c in to_cache if holds(c[0])]
+            self.cache_deps(to_cache)
+            return ImportDerivationFeedback(added, to_cache)
+
+        def safe_m(self, x, y, dep):
+            if dep is not None and not holds(dep.statement):
+                return None
+            return orig_m(self, x, y, dep)
+        Proof._apply_theorem, Proof._step_apply_derivation, StatementAdder._make_equal = safe_t, safe_d, safe_m
     if os.environ.get("GT_CATCH") != "1":
         return
     from newclid.agent.agents_interface import ApplyTheoremFeedback
@@ -642,6 +678,115 @@ def one_true(dsl, lemmas, n=8):
     return {"diagrams": built, "held": held}
 
 
+def one_audit(dsl, lemmas, timeout):
+    """SIDE-GT audit: rerun a proof and test every statement it uses, numerically, on its own figure and on fresh ones. A rule that is sound
+    cannot derive a statement that fails on the figure it was derived on, so a failure there means the proof is not one."""
+    from newclid import GeometricSolverBuilder
+    from newclid.defs.clause import Construction
+    from newclid.dependencies.dependency import Reason
+    from newclid.dependencies.dependency_building import DependencyBody
+    from newclid.numerical.check import check_numerical
+    from newclid.statements.statement import Statement
+    import newclid.numerical.check as nc
+    nc.ATOM, nc.close_enough = 1e-7, (lambda a, b, tol=1e-7: abs(a - b) < tol)
+    out = {"proved": False, "tries": 0, "errs": []}
+    for seed in map(int, os.environ.get("GT_DDAR_SEEDS", "0,1,2,3,4,5").split(",")):
+        out["tries"] += 1
+        try:
+            s = GeometricSolverBuilder(seed=seed).load_problem_from_txt(dsl, translate=False).build()
+            P = s.proof_state
+            for l in lemmas:
+                n, *a = l.split()
+                added, to_cache = P.resolve_statement_dependencies(Statement(n, tuple(P.map_construction_args_to_objects(Construction(n, tuple(a), ())))),
+                                                                  DependencyBody(Reason("lemma"), ()))
+                P._init_added += added
+                P._init_to_cache += to_cache
+            if not s.run(timeout=timeout):
+                continue
+        except Exception as e:
+            out["errs"].append(type(e).__name__)
+            continue
+        P = s.proof_state
+        seen, stack, deps = set(), [P.statements.graph.build_resolved_dependency(g) for g in P.goals_as_statements()], []
+        while stack:
+            d = stack.pop()
+            if d is None or id(d) in seen:
+                continue
+            seen.add(id(d))
+            deps.append(d)
+            stack += list(d.why or ())
+        st = {}
+        for d in deps:
+            st.setdefault(str(d.statement), d)
+        out.update(proved=True, seed=seed, statements=len(st), roots=sorted(k for k, d in st.items() if not d.why and (d.reason is None or d.reason.name != "lemma")))
+        nc.ATOM, nc.close_enough = 1e-4, (lambda a, b, tol=1e-4: abs(a - b) < tol)   # false by far more than rounding
+        bad = []
+        for k, d in st.items():
+            try:
+                if d.statement.predicate.value in ("ncoll", "npara", "sameclock", "sameside", "diff", "ind") or check_numerical(d.statement):
+                    continue
+            except Exception:
+                continue
+            bad.append(k)
+        out["false_on_own_figure"] = sorted(bad)
+        # the same statements on fresh diagrams, with the proof's own goal required to hold there, so that a two-intersection branch is not blamed
+        fresh, built = {k: 0 for k in st}, 0
+        for seed2 in range(100, 108):
+            try:
+                Q = GeometricSolverBuilder(seed=seed2, no_goal=True).load_problem_from_txt(dsl, translate=False).build().proof_state
+                g = Construction.from_txt(dsl.split(" ? ")[1].strip())
+                if not check_numerical(Statement(g.name, Q.map_construction_args_to_objects(g))):
+                    continue
+            except Exception:
+                continue
+            built += 1
+            for k in st:
+                n, *a = k.split()
+                try:
+                    fresh[k] += bool(check_numerical(Statement(n, tuple(Q.map_construction_args_to_objects(Construction(n, tuple(a), ()))))))
+                except Exception:
+                    fresh[k] += 1   # a statement this figure cannot evaluate is not counted against the proof
+        out["fresh_diagrams"] = built
+        out["false_on_fresh"] = sorted(k for k, v in fresh.items() if built and v < built)
+        out["fresh_counts"] = {k: fresh[k] for k in out["false_on_fresh"]}
+        # a statement the proof uses with no reason must be a construction fact: one the state holds before any deduction
+        Q, unj = GeometricSolverBuilder(seed=seed, no_goal=True).load_problem_from_txt(dsl, translate=False).build().proof_state, []
+        Q.reset()
+        for k in out["roots"]:
+            n, *a = k.split()
+            if n in ("ncoll", "npara", "sameclock", "sameside", "diff", "ind"):
+                continue
+            try:
+                if not Q.check(Statement(n, tuple(Q.map_construction_args_to_objects(Construction(n, tuple(a), ()))))):
+                    unj.append(k)
+            except Exception:
+                unj.append(k)
+        out["unjustified_roots"] = unj
+        return out
+    return out
+
+
+def audit():
+    """audit <list.jsonl> <out.jsonl> [--timeout S] [--workers W]: each row {"id", "sample", "arm", "dsl", "lem"} -> one_audit"""
+    arg = lambda n, d: type(d)(sys.argv[sys.argv.index(n) + 1]) if n in sys.argv else d
+    timeout, workers = arg("--timeout", 120.0), arg("--workers", 16)
+    R = [json.loads(l) for l in open(sys.argv[2])]
+
+    def run(r):
+        import tempfile
+        with tempfile.NamedTemporaryFile("w", suffix=".json") as f:
+            json.dump(r.get("lem", []), f); f.flush()
+            try:
+                p = subprocess.run([sys.executable, os.path.abspath(__file__), "one_audit", r["dsl"], str(timeout), f.name], capture_output=True, text=True,
+                                   timeout=timeout * 6 + 900)
+                return {**r, **json.loads(p.stdout.strip().splitlines()[-1])}
+            except Exception as e:
+                return {**r, "proved": False, "errs": [type(e).__name__]}
+    with ThreadPoolExecutor(workers) as ex, open(sys.argv[3], "w") as f:
+        for fu in as_completed([ex.submit(run, r) for r in R]):
+            f.write(json.dumps(fu.result()) + "\n"); f.flush()
+
+
 def rename_aux(c, x, new):
     return " ".join(new if w == x else w for w in c.split())
 
@@ -662,6 +807,9 @@ def pool():
     k, timeout, workers, rounds, confirm = arg("--k", 64), arg("--timeout", 60.0), arg("--workers", 16), arg("--rounds", 2), arg("--confirm", 600.0)
     R = [json.loads(l) for l in open(f"{OUT}/gt_{tag}_aux.jsonl")]
     done = {r["id"] for r in R if r["aux"] or r["base_proved"]}
+    if os.path.exists(f"{OUT}/gt_{tag}_check.jsonl"):   # a problem DDAR alone proved from a translation that counts (--ids) is done too
+        ids = set(open(sys.argv[sys.argv.index("--ids") + 1]).read().split()) if "--ids" in sys.argv else None
+        done |= {q["id"] for q in map(json.loads, open(f"{OUT}/gt_{tag}_check.jsonl")) if q.get("proved") and (ids is None or f"{q['id']}:{q['sample']}" in ids)}
     B = [r for r in R if r["id"] not in done and r["base"] == "guarded"]
     alone, cert = "--alone" in sys.argv, "--alone" in sys.argv or "--cert" in sys.argv
     if "--only" in sys.argv:
@@ -688,7 +836,8 @@ def pool():
         except Exception as e:
             return ["build error", None, type(e).__name__, t]
 
-    def certify(r, pts, x, pre, goal, used, last, src, rest, by_call):
+    def certify(r, pts, x, pre, goal, used, last, src, rest, by_call, lem):
+        hof = {f: h for h, f in lem.items()}
         need, stack = set(), list(used)
         while stack:
             u = stack.pop()
@@ -702,8 +851,8 @@ def pool():
             mine = [u for u in need if by_call.get(u) == cid]
             lem = sorted({v for u in mine for v in rest.get(u, [])})
             q = call(d, pts, lem)
-            got = {f for _, f in q["facts"]} | set(lem)
-            miss = [u for u in mine if u not in got]
+            got = {h for h, _ in q["facts"]} | {hof[v] for v in lem}
+            miss = [u for u in mine if hof[u] not in got]
             steps.append({"point": c, "lemmas_in": len(lem), "facts_needed": len(mine), "missing": miss, "err": q["err"], "sec": round(q["sec"], 1)})
         os.makedirs(f"{OUT}/pool_proofs", exist_ok=True)
         lastc = [] if last is None else [last[0]]
@@ -770,7 +919,7 @@ def pool():
                 if q["proved"]:   # one point plus the lemmas (round 2 on; in round 1 the single-point arm would have found it)
                     out.update(proved=True, round=rd, via="point+lemmas", used_aux=sorted({c} | {src.get(u, "?") for u in q["used"]}))
                     if cert:
-                        out["cert"] = certify(r, pts, x, pre, goal, q["used"], (c, d), src, rest, by_call)
+                        out["cert"] = certify(r, pts, x, pre, goal, q["used"], (c, d), src, rest, by_call, lem)
                     break
             out["rounds"].append(info)
             if not out["proved"]:
@@ -780,7 +929,7 @@ def pool():
                 if q["proved"]:
                     out.update(proved=True, round=rd, via="pool", used_aux=sorted({src.get(u, "?") for u in q["used"]}))
                     if cert:
-                        out["cert"] = certify(r, pts, x, pre, goal, q["used"], None, src, rest, by_call)
+                        out["cert"] = certify(r, pts, x, pre, goal, q["used"], None, src, rest, by_call, lem)
             if out["proved"] or not info["new"]:   # proved, or a fixed point: another round cannot change anything
                 break
         if out["proved"] and not cert:
@@ -822,6 +971,12 @@ if __name__ == "__main__":
         patch_newclid()
         q = json.load(open(sys.argv[4]))
         deep(lambda: one_lem(sys.argv[2], set(q["pts"]), q["lem"], float(sys.argv[3]), q.get("trace", False), q.get("proof")))
+    elif sys.argv[1] == "one_audit":
+        import logging
+        logging.disable(logging.CRITICAL)
+        patch_newclid()
+        q = json.load(open(sys.argv[4]))
+        deep(lambda: one_audit(sys.argv[2], q, float(sys.argv[3])))
     elif sys.argv[1] == "one_true":
         import logging
         logging.disable(logging.CRITICAL)
@@ -831,4 +986,4 @@ if __name__ == "__main__":
         logging.disable(logging.CRITICAL)
         print(json.dumps(one_agree(sys.argv[2], sys.argv[3])))
     else:
-        {"gen": gen, "check": check, "aux": aux, "propose": propose, "agree": agree, "pool": pool}[sys.argv[1]]()
+        {"gen": gen, "check": check, "aux": aux, "propose": propose, "agree": agree, "pool": pool, "audit": audit}[sys.argv[1]]()
