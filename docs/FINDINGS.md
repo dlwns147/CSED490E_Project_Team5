@@ -5704,3 +5704,11 @@ On the 64 items that are statements to prove (34 false, 30 true):
 - With it replacing N in the set, the compounding model gives +2.6 points at the verifier's 0.56 share, below the bar of 3, so the online arm is not run. Added as a fourth candidate it gives +4.8; that was not registered.
 - Unlike MT-RN (open single-call data taught abstention, −0.9), training on the task's own conversations raises the quick turn itself. Thinking is still ahead of it alone: 30.8% at 6.84k tokens, utility 27.4 against 24.3, at about 1/22 of the tokens.
 
+
+## 2026-11-05 23:2x UTC: τ²-bench, first pilot read, and where per-turn labels can come from (PREREG_TAU)
+
+**What ran.** Qwen3-8B as agent and as simulated user on τ²-bench's train split, seed 1 (the judge of natural-language checks is also local, so these scores are not comparable with published ones). Retail: quick 12.2% of 74 tasks at 1.0k tokens per conversation, thinking 26.7% of 30 tasks at 8.8k. Airline and telecom are still running. An early reading of 0.67 on thinking was only the first 6 tasks.
+
+**Read raw.** Thinking fails on wrong write actions, and on missing writes where the conversation stalls. The simulated user is part of the problem: it invents facts (task 30: none of its listed orders holds the tablet) and repeats one message for most of a conversation (tasks 3, 7).
+
+**Design, pre-registered in `docs/prereg/PREREG_TAU.md`.** First, TAU-U tests the simulated users with an agent that is given the gold steps (Qwen3-8B quick and thinking, Qwen3.5-9B, Qwen3.6-35B), because a label is only as good as the simulator behind it. Then TAU-R plays each conversation by the rollout algorithm: at each user message, every candidate turn is continued to the end by thinking, and the turn whose rollout scored best is committed. That gives labels per turn from a global score, and an upper bound on the gain. A verifier follows only if the gain reaches the bar derived there, 9.5 points. Driver: `poc/tau2_q.py`. Jobs 1330774–77 are queued for TAU-U.

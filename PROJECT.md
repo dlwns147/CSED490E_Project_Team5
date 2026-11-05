@@ -117,7 +117,7 @@ OptMATH is partly broken: its statements omit what its gold answers need.
 
 1. The final report (`docs/REPORT.md`), with the agent-loop result and its derivation at its centre.
 2. Side project: see `side/README.md`.
-3. The per-turn choice beyond BFCL (τ²-bench, cloned to `$POC_DATA/tau2`; MIT; Python ≥ 3.12; train/test splits).
+3. The per-turn choice beyond BFCL (τ²-bench, `$POC_DATA/tau2`): it scores only a conversation's end, so per-turn labels are the gap. Rollouts continued to the end supply them; first a test of the simulated user (`docs/prereg/PREREG_TAU.md`).
 
 ## 6. Documents
 
