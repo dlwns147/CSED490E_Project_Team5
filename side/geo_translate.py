@@ -192,9 +192,9 @@ def num_holds(st, tol=1e-7):
     if nu == 0 or nv == 0:
         return False
     if st.predicate.value == "perp":
-        return abs(ux * vx + uy * vy) / (nu * nv) < tol
+        return bool(abs(ux * vx + uy * vy) / (nu * nv) < tol)
     # as in Newclid, a line is not parallel to itself
-    return abs(ux * vy - uy * vx) / (nu * nv) < tol and abs((c.x - a.x) * uy - (c.y - a.y) * ux) / nu >= tol
+    return bool(abs(ux * vy - uy * vx) / (nu * nv) < tol and abs((c.x - a.x) * uy - (c.y - a.y) * ux) / nu >= tol)
 
 
 def patch_newclid():
