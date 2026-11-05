@@ -818,3 +818,32 @@ online method keeps the pointwise verifier.
 
 What MT-PW shows: seeing the alternatives fixes about a seventh of the act-or-ask errors and closes about 1 of the 11 points
 between SEL3 and a perfect choice. The comparison format is not where the remaining room is.
+
+## Addendum MT-SD: show the verifier what each rollout changed in the environment (written 2026-11-05 02:0x UTC, before any state diff is computed)
+
+**Why (derived, FINDINGS 11-05 01:0x).**
+- A per-turn label is "the environment's state and the responses match the ground truth after the turn".
+- The verifier reads each rollout's calls and their returned results (`render`), but not the state they leave behind.
+- Its remaining wrong picks are confident: the 10% smallest-margin sets hold only 8% of them. So better calibration, the comparison
+  format (MT-PW, +0.9 per turn) or on-policy data will not reach them.
+- One candidate for what it lacks is the label's own subject: the state change. A rollout that acts where it should ask, or acts
+  twice, changes the state in a way its result strings show only indirectly ("None", a message id).
+
+**Method.**
+1. `mt_peer0.py --state-diff` replays every stored trajectory turn by turn on BFCL's instances, as `turn_track` does. It records
+   each turn's change of every involved instance's public attributes: added, removed and changed paths with short values, at most
+   40 lines, with parent links skipped.
+2. Each pseudo-set rollout's text becomes `render` + "State changes:" + its diff (from the first source trajectory of that text).
+3. The same pointwise recipe as mtso, with the same halves and requests: `MT_SEL_TAG=mt_sd ... tc_train.py --orm --mt`, then scoring
+   with the other half's verifier, then `analyze_mtb.py --sel2` on the rows with the new texts.
+
+**Predictions** (offline, pseudo-sets, three models pooled, intervals over items):
+- **MT-SD-P1 (decision):** per-turn choice accuracy, SD − SEL3, lower bound > 0.
+- **MT-SD-P2:** the act-where-the-right-one-asks wrong picks in miss_* fall by more than MT-PW's 14%.
+- **Diagnostic, before training:** among the 388 wrong picks of SEL3 in mixed sets, the share where the chosen and the right
+  rollout leave different state changes. If the share is small, the state is not the missing information, and the training is not
+  run.
+- **Expected:** per-turn +0.5 to +2. The compounding model's conversation gain is about 2.6 times the per-turn gain.
+
+**Decision.** An online arm needs a conversation gain the online test can see. Its half-width is about 3 points, which needs about
++1.2 per turn. With P1 holding and a per-turn gain of at least that, the arm runs; otherwise the result is offline only.
