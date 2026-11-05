@@ -912,3 +912,20 @@ choice set, judged on the turns where it matters.
 **Decision.**
 - **P2 holds** → an online arm with the judge on every turn.
 - **P2 refuted** → the choice stays the verifier's, and the agent-loop method is final for this project.
+
+## Results of addendum MT-JG (written 2026-11-05 09:2x UTC; `results/mtjg_offline.txt`; job 1322863; the first job 1322810 failed on import before any call)
+
+Qwen3-8B thinking, 4,098 mixed sets, 0.87k tokens per set (97 capped, 7 without a letter); random choice 52.5%.
+
+| rollouts of | SEL3 | judge alone | SEL3 + judge's pick (fitted) |
+|---|---|---|---|
+| Qwen3-8B | 88.9% | 82.5% | 88.2% |
+| Qwen3-14B-AWQ | 92.6% | 84.7% | 92.6% |
+| Qwen3.5-9B | 89.9% | 83.3% | 89.2% |
+
+- **MT-JG-P1 refuted:** judge − SEL3 on mixed sets −6.75 [−8.86, −4.72].
+- **MT-JG-P2 refuted:** combination − SEL3 per turn −0.37 [−0.80, +0.07], against a break-even of +0.74. The fitted weight is small
+  (γ 0.2–0.8), and it still loses on held-out halves.
+
+**Decision (registered):** the choice stays the verifier's, and the agent-loop verifier is final for this project. Format, state view,
+calibration and a thinking judge have all been tried. Thinking does not bring what the trained verifier lacks.

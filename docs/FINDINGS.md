@@ -5679,3 +5679,9 @@ On the 64 items that are statements to prove (34 false, 30 true):
 - Per-turn choice +0.06 [−0.78, +0.94]. Over-action wrong picks in miss_* go from 152 to 158.
 - With MT-PW (+0.9) and the confident-error analysis, the choice's remaining 10 points are not about what the verifier sees or how
   sure it is; they are about what it knows. The main track's method stays MT-SO's choice with the pointwise verifier.
+
+## 2026-11-05 09:2x UTC: MT-JG (pre-registered): a thinking judge chooses worse than the trained verifier and adds nothing to it (P1, P2 refuted)
+- Qwen3-8B thinking (0.87k tokens per set) on 4,098 mixed sets: 82.5–84.7% right, against the verifier's 88.9–92.6%. Added as a
+  fitted feature, −0.37 [−0.80, +0.07] per turn, against a break-even of +0.74.
+- As with ToolRM-4B-Thinking on single turns (SEL-RM), labels beat reasoning for this choice. The verifier line is closed: of the 11
+  points above the verifier, none of format, state, calibration or a thinking judge recovers more than 1.
