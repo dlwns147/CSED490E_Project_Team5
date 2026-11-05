@@ -847,3 +847,14 @@ between SEL3 and a perfect choice. The comparison format is not where the remain
 
 **Decision.** An online arm needs a conversation gain the online test can see. Its half-width is about 3 points, which needs about
 +1.2 per turn. With P1 holding and a per-turn gain of at least that, the arm runs; otherwise the result is offline only.
+
+### Note MT-SD, the registered diagnostic before training (2026-11-05 02:0x UTC)
+- `mt_peer0.py --state-diff` (login node) replayed 18,568 trajectories with no failure. It produced 42,079 rollout texts; 19,752 of
+  them change the state and 22,327 do not.
+- Of SEL3's 389 wrong picks in mixed sets, **282 (72%) leave a state change different from every right rollout's**. In the other 107
+  the difference lies in the response alone.
+- Examples:
+  - the chosen rollout changes nothing where the right one adds QUAS to the watch list;
+  - the chosen rollout writes content where the right one creates an empty file;
+  - the chosen rollout books nothing where the right one books and charges the card.
+- The state carries the label's information in most errors, so the training runs, as registered: jobs `mtsd_h<h>`.
