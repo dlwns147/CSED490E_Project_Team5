@@ -290,6 +290,9 @@ def main_sel2():
     VS = {"SEL3": {0: load(a[1]), 1: load(a[0])}}   # half h's sets are scored by the verifier trained on the other half
     if ref:
         VS["ref3"] = {0: load(ref[1]), 1: load(ref[0])}
+    pw = sys.argv[sys.argv.index("--pw") + 1].split(",") if "--pw" in sys.argv else None
+    if pw:   # addendum MT-PW: the pairwise verifier (pairs of the other half's training); a rollout's score is set-dependent
+        VS["PW"] = {0: dict(load(pw[1]), _pw=True), 1: dict(load(pw[0]), _pw=True)}
     rows = [json.loads(l) for l in open(f"{C}/mt_sel2_rows.jsonl")]
     f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
     tg = lambda k: str(k) if k < 3 else "3+"
@@ -299,9 +302,14 @@ def main_sel2():
         eh = env_half()
         rows = [dict(r, half=eh[base(r["id"])]) for r in rows if eh.get(base(r["id"])) is not None]
 
-    def sc(S, i, t):
+    def sc(S, i, t, texts=()):
         if synth:
             return random.Random(L.rv_key("tc", "mt2", i, "sel", t)).gauss(0, 2)
+        if S.get("_pw"):   # MT-PW: mean over the set's other texts b of (s(t, b) - s(b, t)) / 2; one distinct text scores 0
+            xs = [(S.get(L.rv_key("tc", "mt2", i, "pw", [t, b])), S.get(L.rv_key("tc", "mt2", i, "pw", [b, t]))) for b in texts if b != t]
+            if any(x is None or y is None for x, y in xs):
+                return None
+            return sum((x - y) / 2 for x, y in xs) / len(xs) if xs else 0.0
         return S.get(L.rv_key("tc", "mt2", i, "sel", t))
 
     def sets(rs, S):
@@ -312,7 +320,7 @@ def main_sel2():
                 g.setdefault(r["roll"][k][0], []).append(k)
             Cc = []
             for t, ks in g.items():
-                v = sc(S[r["half"]], r["id"], t)
+                v = sc(S[r["half"]], r["id"], t, list(g))
                 if v is None:
                     Cc = None; break
                 Cc.append({"r": r["roll"][ks[0]][1], "calls": tuple(sorted(ks)), "s": v, "t": t})
@@ -322,6 +330,7 @@ def main_sel2():
         return X, miss
     z0 = lambda X: [(i, s, [dict(c, s=0.0) for c in Cc], dr) for i, s, Cc, dr in X]
     later = {nm: defaultdict(list) for nm in VS}; vsref = defaultdict(list)
+    OK = {nm: {} for nm in VS}   # MT-PW: (model, request, seed) -> the chosen rollout right
     for m in ("q8b", "q14a", "q35"):
         R = [r for r in rows if r["model"] == m]
         D = {nm: defaultdict(lambda: defaultdict(list)) for nm in VS}   # name -> turn group -> item -> [utility - T's]
@@ -334,7 +343,7 @@ def main_sel2():
                 test, ms = sets(testR, S)
                 miss[nm] += ms
                 choose, beta = L.sel_fit_cl(z0(fit), fit)
-                if nm == "SEL3":
+                if nm == ("PW" if pw else "SEL3"):
                     st = choose.state
                     out[f"h{h}"] = {"cnt": {f"{k[0]!r}|{k[1]!r}": v for k, v in st["cnt"].items()},
                                     "rt": {f"{k[0]!r}|{k[1]!r}": v for k, v in st["rt"].items()}, "beta": st["beta"], "sd": st["sd"]}
@@ -347,6 +356,7 @@ def main_sel2():
                     D[nm][tg(r["turn"])][base(r["id"])].append(d)
                     A[nm][tg(r["turn"])].append(100 * ok)
                     U2[nm][(r["id"], r["seed"])] = u(ok, t)
+                    OK[nm][(m, r["id"], r["seed"])] = ok
                     if nm == "SEL3":
                         At[tg(r["turn"])].append(100 * r["roll"]["T"][1])
                     if r["turn"] >= 1:
@@ -357,7 +367,7 @@ def main_sel2():
             for k, v in U2["SEL3"].items():
                 if k in U2["ref3"] and "/t" in k[0]:
                     vsref[base(k[0])].append(v - U2["ref3"][k])
-        json.dump(out, open(f"{RES}/mt_so{'env' if env else ''}_fit_{m}{'_synth' if synth else ''}.json", "w"))
+        json.dump(out, open(f"{RES}/mt_so{'pw' if pw else 'env' if env else ''}_fit_{m}{'_synth' if synth else ''}.json", "w"))
         print(f"=== MT-SO offline {m}: missing scores {dict(miss)}, unseen structures keep T {dict(unseen)}; fit written "
               f"(beta_CL h0 {out['h0']['beta']:.2f}, h1 {out['h1']['beta']:.2f})", flush=True)
         for g in ("0", "1", "2", "3+"):
@@ -367,6 +377,14 @@ def main_sel2():
             au = lambda nm: sum(AU[nm][g]) / max(1, len(AU[nm][g]))
             print(f"    turn {g}: {len(A['SEL3'][g])} sets; T {sum(At[g]) / len(At[g]):.1f}%; "
                   + "; ".join(f"{nm} {sum(A[nm][g]) / len(A[nm][g]):.1f}%, AUROC {au(nm):.3f}, - T {f(per(nm))}" for nm in VS), flush=True)
+    if pw:   # MT-PW-P1: per-turn choice accuracy, PW - SEL3, all turns, three models pooled, intervals over items
+        dd = defaultdict(list)
+        for k, v in OK["PW"].items():
+            if k in OK["SEL3"]:
+                dd[base(k[1])].append(float(v) - float(OK["SEL3"][k]))
+        p1 = ci({i: sum(v) / len(v) for i, v in dd.items()})
+        print(f"*** MT-PW-P1 (per-turn choice accuracy, PW - SEL3, pooled, lower bound > 0): {p1[0]:+.2f} [{p1[1]:+.2f}, "
+              f"{p1[2]:+.2f}] points -> {'holds' if p1[1] > 0 else 'refuted'}")
     p3 = ci({i: sum(v) / len(v) / 100 for i, v in later["SEL3"].items()})
     print(f"*** MT-SO-P3 (SEL3 - T on the later turns' pseudo-sets, three models pooled, lower bound > 0): {f(p3)} -> "
           f"{'holds' if p3[1] > 0 else 'refuted'}")

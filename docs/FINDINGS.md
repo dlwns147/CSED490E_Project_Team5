@@ -5652,3 +5652,13 @@ On the 64 items that are statements to prove (34 false, 30 true):
   per translation. The points it misses are the less obvious ones, such as the reflection of A in OK for IMO 2010 P2.
 - Decision: random points stay. A derived point-selection criterion (new deductions about the goal's points) comes before training.
   This is a second-track item for the teammate.
+
+## 2026-11-05 01:0x UTC: MT-PW (pre-registered): a pairwise verifier that sees the alternatives improves the per-turn choice by +0.9 points (P1 holds, barely), too little to move whole conversations
+- Pairwise LoRA (Qwen3-8B; same halves and requests as mtso; 4 (right, wrong) pairs per request per epoch, both orders). A rollout's
+  score is the mean over the set's rivals of (s(a, b) − s(b, a)) / 2, used in the same cross-fitted set-choice fit.
+- Per-turn choice accuracy +0.89 [+0.02, +1.72] pooled. Act-where-the-right-one-asks errors fall by 14% in miss_* (152 → 131),
+  and all wrong picks by 12% (389 → 343).
+- The compounding model predicts +1.1 / −0.1 conversation points online, inside the online test's ±3-point noise, so the online
+  arm is not run (decision amended before any online row, PREREG_MT). The pointwise verifier stays.
+- Where the remaining room is: of the 11 points between the verifier and a perfect choice, the format recovers 1. Next candidates:
+  training on the states the deployed choice visits (on-policy sets), or what the verifier is shown.

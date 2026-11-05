@@ -793,3 +793,28 @@ As a control, the same model with the scenario-split rates on these items gives 
 trained on the other four classes still beats thinking at every step by +7.6 / +6.6 utility; one trained on the same classes does
 so by +17.2 / +15.5. The gate registered next was dropped by derivation (FINDINGS 11-04 17:4x). The test beyond BFCL's classes
 remains SIDE-ENV's.
+
+## Results of addendum MT-PW (written 2026-11-05 01:0x UTC; `results/mtpw_offline.txt`; jobs 1317909 / 1317910: 384 / 370 training steps, 22,222 / 24,924 ordered pairs scored, none failed; fits `results/tc/mt_sopw_fit_<model>.json`)
+
+Per-turn choice accuracy on the pseudo-sets, SEL3 (pointwise mtso) → PW (pairwise mtpw):
+
+| model | turn 0 | turn 1 | turn 2 | turn 3+ |
+|---|---|---|---|---|
+| Qwen3-8B | 80.5 → 81.4 | 87.2 → 87.5 | 92.3 → 91.0 | 84.5 → 85.9 |
+| Qwen3-14B-AWQ | 81.0 → 82.4 | 87.2 → 87.8 | 93.0 → 91.6 | 86.5 → 87.4 |
+| Qwen3.5-9B | 82.8 → 83.5 | 89.7 → 89.1 | 92.5 → 92.2 | 89.1 → 89.1 |
+
+- **MT-PW-P1 holds, barely:** PW − SEL3 = **+0.89 [+0.02, +1.72]** points per turn, pooled. This is below the expected +1 to +3.
+- **P2 holds:** in mixed sets, three models pooled (argmax of each score), picks that act where the right rollout acts less fall
+  from 152 to 131 in the miss_* categories and from 27 to 16 in base. All wrong picks fall from 389 to 343.
+- **P3:** within-set AUROC rises at turn 0 (0.909 → 0.922 for Qwen3-8B) and at turn 3+, and falls at turn 2. The compounding
+  model turns the per-turn rates into a conversation-level change of **+1.1 (Qwen3-8B) and −0.1 (Qwen3.5-9B) points** of
+  accuracy.
+
+**Decision (amended before any online row, with the reason).** The registered rule sent P1 → an online arm. But the compounding
+model predicts +1.1 / −0.1 points online, while the online test's interval is about ±3 points (MT-SO-ENV: half-widths 2.9–3.4). The
+arm could not tell the pairwise verifier from the pointwise one, so by rule 2 it cannot change the claim, and it is not run. The
+online method keeps the pointwise verifier.
+
+What MT-PW shows: seeing the alternatives fixes about a seventh of the act-or-ask errors and closes about 1 of the 11 points
+between SEL3 and a perfect choice. The comparison format is not where the remaining room is.
