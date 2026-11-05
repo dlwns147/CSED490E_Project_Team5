@@ -28,6 +28,16 @@ and random pairs, then the audit on every proof found.
 
 ## Log
 
+**2026-11-05 21:2x UTC: third rerun, one auxiliary point: 7 of 65 held out, 13 of 30 references, and the audit is clean.** All 44 proofs (dev, held out and
+references) were audited, with no false statement on their own figure or on 8 fresh figures, and no error. 43 reran within 120 s; USAMO 2010 P1 (DDAR alone) did not.
+- Held out: 4 by DDAR alone (Pan African 2002, Romanian NMO 2006, USAMO 2010 P1, ISL 2012_16) and 3 with one point (Pan African 2004, USAMO 2008 P2,
+  ISL 2012_18). The withdrawn count was 10.
+- IMO-AG-30: 10 by DDAR alone and 3 with one point (IMO 2004 P1, 2012 P1, 2014 P4). The withdrawn count was 14.
+- **One proof has a gap.** IMO 2000 P1 reaches its goal through `cong e p e q` with no recorded reason, and on one run the written proof has no steps at all. Newclid's
+  congruence lookup returns no reason when two segments already share a length symbol. So that run proves nothing I can read, and 13 is 12 until a run gives a full
+  derivation (job 1330465 tries 8 seeds).
+- Pooling and pairs are still running, so SOUND-P1 and POOL-P1 to P3 are not yet decided.
+
 **2026-11-05 20:1x UTC: plain Newclid, re-audited with the fixed test: 10 of 54.** The recorded proofs that reran under plain Newclid use a false statement
 in 10 of 54 cases, not the 16 of 57 first reported. SOUND-FIX-P3 (at most 13) holds.
 19 of 68 rows still raise an error. So the finding stands at its corrected size: plain Newclid can derive false facts and they spread.
