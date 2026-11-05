@@ -5662,3 +5662,14 @@ On the 64 items that are statements to prove (34 false, 30 true):
   arm is not run (decision amended before any online row, PREREG_MT). The pointwise verifier stays.
 - Where the remaining room is: of the 11 points between the verifier and a perfect choice, the format recovers 1. Next candidates:
   training on the states the deployed choice visits (on-policy sets), or what the verifier is shown.
+
+## 2026-11-05 01:0x UTC: Main track, derived: the verifier's remaining wrong picks are confident, so no escalation by confidence can reach them; on-policy training is not the gap either
+- **Margins.** Over the 9,085 pseudo-sets with at least two distinct rollouts, the pointwise verifier's 388 wrong picks in mixed sets
+  do not sit at small margins between its top two scores. The 10% of sets with the smallest margin hold 8% of them; the 30%
+  smallest hold 28%. A second, stronger judge run only where the verifier is unsure would see few of its errors.
+- **Distribution shift.** The compounding model, fed the offline per-turn rates, predicted MT-SO's online gain within 2.4 points and
+  MT-SO-ENV's within 0.1–3.3. The per-turn accuracy measured offline is the one realised online, so training on the states the
+  online choice visits would not change it much.
+- **So the 10 points left between the verifier and a perfect choice need a verifier that knows more,** not one that is better
+  calibrated, sees the alternatives (MT-PW: +1), or is trained on-policy. That means a stronger judge on every turn, at its full
+  cost. The main track's method stays MT-SO's choice.

@@ -96,24 +96,23 @@ OptMATH is partly broken: its statements omit what its gold answers need.
 
 ## 5. Status and next steps (2026-11-05)
 
-**Running:**
+**Settled since 11-04:**
 
-- **MT-PW** (agents; the hardest open gap). Within a turn, the verifier picks a wrong rollout 11% of the time, often acting where
-  the right one asks. Over a conversation that compounds to 11 points of accuracy. A pairwise verifier that sees the alternatives
-  is training.
-  - The derived alternative, a gate that skips thinking, is dropped: its ceiling is +3.9 utility.
+- **MT-SO-ENV:** the per-turn choice holds in BFCL environment classes the verifier never saw (+7.6 / +6.6 utility).
+- **MT-PW:** a pairwise verifier adds +0.9 points per turn, too little to move conversations, so the online arm was not run.
+- **Derived:** the verifier's remaining wrong picks are confident ones. A confidence gate, on-policy training and the comparison
+  format are therefore not where the last 10 points are; only a judge that knows more is, at its full cost.
+- **Geometry, second track:**
+  - 10 of 65 held-out problems are proved end to end, 8 of them certified without hand reading (SIDE-GT-AGREE).
+  - Model-proposed auxiliary points add nothing over random ones (SIDE-GT-AUXP).
 
 **Next:**
 
-1. MT-PW offline, then online.
-2. Geometry, second track: choose auxiliary points by a derived criterion, such as the new deductions about the goal's points.
-   Model-proposed points (SIDE-GT-AUXP) proved nothing that random points missed, though they needed a fifth of the DDAR calls.
-3. Later, as a confirmation rather than method work (rule 2): the per-turn choice beyond BFCL, on τ²-bench.
-   - τ²-bench has a simulated user, policy documents and final-database grading, with train/test splits (retail 74 / 40,
-     airline 30 / 20).
-   - Cloned to `$POC_DATA/tau2`; MIT licence; needs Python ≥ 3.12.
-   - A candidate for the second track (SIDE-ENV).
-4. The final report (`docs/REPORT.md`).
+1. The final report (`docs/REPORT.md`), with the agent-loop result and its derivation at its centre.
+2. Second track, for the teammate:
+   - a derived criterion for auxiliary points (new deductions about the goal's points);
+   - a free check for constructions;
+   - the per-turn choice beyond BFCL (τ²-bench, cloned to `$POC_DATA/tau2`; MIT; Python ≥ 3.12; train/test splits).
 
 ## 6. Documents
 
