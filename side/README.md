@@ -28,6 +28,10 @@ and random pairs, then the audit on every proof found.
 
 ## Log
 
+**2026-11-05 20:1x UTC: plain Newclid, re-audited with the fixed test: 10 of 54.** The recorded proofs that reran under plain Newclid use a false statement
+in 10 of 54 cases, not the 16 of 57 first reported. SOUND-FIX-P3 (at most 13) holds.
+19 of 68 rows still raise an error. So the finding stands at its corrected size: plain Newclid can derive false facts and they spread.
+
 **2026-11-05 19:1x UTC: a second fault in the same test; a third rerun.** My fix kept Newclid's rule that a line is not parallel to itself, but Newclid also
 writes `para c p c k` to say that c, p, k are collinear. The fixed test therefore rejected those true facts, and the plain re-audit flagged them
 (27 of 56). Now `para` only compares directions. In a guarded sample, 2 of tens of thousands of checks are rejected, both false by far more

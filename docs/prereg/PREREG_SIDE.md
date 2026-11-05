@@ -783,3 +783,5 @@ The first run (jobs 1324967, 1324968) was stopped partway, 26 translations in. I
 **Third rerun.** The whole pipeline in `results/proof/sound3/`, and a re-audit of plain Newclid. SOUND-P1 and POOL-P1 to P3 are decided on it. Earlier reruns' pooling runs are cancelled and count for nothing.
 
 **Predictions, written before the third rerun.** SOUND-FIX-P2 and P3 stand as written.
+
+**Result, SOUND-FIX-P3 (written 2026-11-05 20:1x UTC; job 1330096, `results/proof/gt_audit5.jsonl`):** plain Newclid, same list and seeds as the first audit, fixed test: 54 of 68 reran, 10 use a statement false on their own figure, 19 rows raise an error. At most 13: holds. The first audit's 16 of 57 is replaced by 10 of 54.
