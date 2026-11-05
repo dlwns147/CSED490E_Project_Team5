@@ -28,6 +28,15 @@ the audit on every proof found.
 
 ## Log
 
+**2026-11-05 16:5x UTC: one auxiliary point under the guard: 7 of 65 held out, 12 of 30 references (not yet audited).** Same 64 random points per
+translation, at 60 s, now with every derived fact checked on the run's figure.
+- Held out, faithful translations: 3 problems by DDAR alone (as before) plus 4 with one point (Pan African 2004, USAMO 2008 P2, USAMO 2010
+  P1, ISL 2012_18). That is 7 against the recorded 10, within the 5–8 registered. Lost: CAMO 2020 P3, ISL 2016_23, ISL 2017_19.
+- IMO-AG-30 references: 9 by DDAR alone plus 3 with one point (IMO 2004 P1, 2013 P4, 2014 P4). That is 12 against the recorded 14, the
+  bottom of the 12–14 registered. Lost: IMO 2010 P2, 2018 P1.
+- A lost proof is not yet known to have been false: runs have a random order, so a rerun is not the same run.
+- Next: the audit of these 43 proofs (job 1329373) decides SOUND-P1. Pooling and pairs are still running.
+
 **2026-11-05 14:5x UTC: DDAR alone survives the guard.** Rerun with `GT_SOUND=1` at 60 s, then read against the earlier run. The audit of these proofs
 is still to come.
 - Dev: the same 7 translations and 4 problems (IMO 2010 P4, 2014 P4, 2015 P4, 2017 P4).
