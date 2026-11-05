@@ -48,7 +48,7 @@ default, to check an added statement, so a false fact can spread and "prove" a t
   fail on some fresh figures where the goal holds, which may be another intersection point.
 - Newclid 3.0.1 exists and has not been tried. HAGeo (2512.00097) also has an appendix on a fallacious AlphaGeometry proof of IMO 2020 P1.
 
-**2026-11-05 12:0x UTC: pooling facts across auxiliary points (SIDE-GT-POOL, registered).** Each point runs alone, and every fact it proves about
+**2026-11-05 11:5x UTC: pooling facts across auxiliary points (SIDE-GT-POOL, registered).** Each point runs alone, and every fact it proves about
 the figure's own points goes into a pool, fed back as lemmas with no point added. That is k + 1 runs instead of k²/2 pairs. AlphaGeometry2's
 SKEST shares facts between trained-model search trees, with no ablation and no run without a language model, so the measurement here is
 what sharing adds on its own, with random points. Two faulty runs were stopped, as recorded in the prereg. No verdict yet.
