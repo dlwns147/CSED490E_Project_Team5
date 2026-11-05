@@ -879,3 +879,36 @@ Per-turn choice accuracy, SEL3 → SD (the verifier that reads each rollout's st
 **Decision (registered):** offline only, no online arm. The verifier line on this benchmark closes for now. Three fixes left the
 choice unchanged within about 1 point per turn: the comparison format (MT-PW, +0.9), the state view (MT-SD, +0.1), and calibration
 (errors are confident). The remaining 10 points need a judge that knows more, at its full cost on every turn, and are left open.
+
+## Addendum MT-JG: a judge that reasons before choosing (written 2026-11-05 07:5x UTC, before any judge call)
+
+**Why (derived).**
+- The choice's remaining 10 points are not about what the verifier sees (MT-SD: +0.1) or how it compares (MT-PW: +0.9).
+- They are not about calibration either: its errors are confident.
+- What is left is what the judge knows about the right action for the request. Thinking is the model's way to bring more of it to
+  bear.
+- The cost side: a judge's thinking tokens are paid on every turn, so the compounding model prices it. A judge that adds Δ points
+  per turn adds about 2.6 Δ conversation points. It costs about 0.5 × (thinking k-tokens per turn) × 4.4 utility per conversation.
+
+**Related.** Reasoning reward models for tool calls (ToolRM-4B-Thinking) lost to our trained verifier in single-turn selection
+(SEL-RM: −5.9 to −9.5 utility), mostly by preferring a call to no call. New here: a general model thinking over the multi-turn
+choice set, judged on the turns where it matters.
+
+**Run** (offline, `mt_peer0.py --judge`).
+- Qwen3-8B, thinking, max 4k tokens.
+- On every pseudo-set with a right and a wrong distinct rollout (all three models; about 4,100 sets), the judge reads the short
+  system prompt, the turn context and the distinct rollouts labelled A/B/C (rendered as the verifier sees them, in random order),
+  then names the response that correctly handles the latest request.
+
+**Predictions.**
+- **MT-JG-P1:** the judge's choice accuracy on mixed sets exceeds SEL3's on the same sets (lower bound > 0, pooled, intervals
+  over items).
+- **MT-JG-P2 (decision):** a choice that uses the judge's letter is the fitted choice with the judge's pick as an extra feature,
+  cross-fitted as SEL3. It beats SEL3 per turn by at least the break-even Δ = 0.5 × k × 4.4 / (2.6 × 100), where k is the judge's
+  mean thinking k-tokens per turn. That is about 0.9 points at 1k tokens.
+- **Expected:** the judge alone is below SEL3 (a general model against a trained one, as SEL-RM). The combination gains +0.5 to +2
+  per turn, so P2 is uncertain.
+
+**Decision.**
+- **P2 holds** → an online arm with the judge on every turn.
+- **P2 refuted** → the choice stays the verifier's, and the agent-loop method is final for this project.
