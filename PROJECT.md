@@ -106,7 +106,8 @@ OptMATH is partly broken: its statements omit what its gold answers need.
 **Next:**
 
 1. MT-PW offline, then online.
-2. For geometry, auxiliary points proposed by the model (SIDE-GT-AUXP, running) against random ones.
+2. Geometry, second track: choose auxiliary points by a derived criterion, such as the new deductions about the goal's points.
+   Model-proposed points (SIDE-GT-AUXP) proved nothing that random points missed, though they needed a fifth of the DDAR calls.
 3. Later, as a confirmation rather than method work (rule 2): the per-turn choice beyond BFCL, on τ²-bench.
    - τ²-bench has a simulated user, policy documents and final-database grading, with train/test splits (retail 74 / 40,
      airline 30 / 20).
