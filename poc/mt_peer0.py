@@ -507,8 +507,62 @@ def main_state_diff():
     print(f"MT-SD: {len(need)} trajectories replayed, {len(D)} turn changes, {len(newtext)} rollout texts", flush=True)
 
 
+JUDGE = """{context}
+
+Here are {n} candidate responses to the latest request. Each is shown as the function calls it made, their results, and its final
+reply:
+
+{cands}
+
+Which response correctly handles the latest request? Reply with the letter only."""
+
+
+def main_judge():
+    """addendum MT-JG (--judge <tag> [--max_tokens N]): on every pseudo-set (results/conf/mt_sel2_rows.jsonl) with a right and a wrong
+    distinct rollout, the generator server's model, thinking, reads the short system prompt (the set's functions), the turn context and
+    the distinct rollouts (render, labelled A/B/C in a seeded random order) and names one -> results/conf/mt_judge_<tag>.jsonl"""
+    import random, zlib
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    from llm import chat_msgs
+    tag = sys.argv[sys.argv.index("--judge") + 1]
+    mt = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else 4096
+    C = os.path.join(ROOT, "results", "conf")
+    PD = os.path.dirname(DATA)
+    items = {x["id"]: x for x in map(json.loads, open(f"{PD}/mt_sel2_items.jsonl"))}
+    rows = [r for r in map(json.loads, open(f"{C}/mt_sel2_rows.jsonl"))
+            if len({r["roll"][k][1] for k in ("N", "P", "T")}) == 2]
+    out = f"{C}/mt_judge_{tag}.jsonl"
+    done = {(r["model"], r["id"], r["seed"]) for r in map(json.loads, open(out))} if os.path.exists(out) else set()
+    todo = [r for r in rows if (r["model"], r["id"], r["seed"]) not in done]
+    print(f"MT-JG {tag}: {len(todo)} of {len(rows)} mixed sets", flush=True)
+
+    def one(r):
+        T = list(dict.fromkeys(r["roll"][k][0] for k in ("N", "P", "T")))
+        lab = {r["roll"][k][0]: r["roll"][k][1] for k in ("N", "P", "T")}
+        random.Random(zlib.crc32(f"{r['model']}{r['id']}{r['seed']}".encode())).shuffle(T)
+        L = "ABC"[:len(T)]
+        it = items[r["id"]]
+        msgs = [{"role": "system", "content": it["system"]},
+                {"role": "user", "content": JUDGE.format(context=it["user"], n=len(T),
+                                                         cands="\n\n".join(f"Response {L[j]}:\n{t}" for j, t in enumerate(T)))}]
+        a = chat_msgs(msgs, think=True, max_tokens=mt, temperature=0.6)
+        m = re.findall(r"\b([A-C])\b", a["text"])
+        pick = m[-1] if m and m[-1] in L else None
+        return {"model": r["model"], "id": r["id"], "seed": r["seed"], "half": r["half"], "turn": r["turn"], "pick": pick,
+                "right": lab[T[L.index(pick)]] if pick else None, "order": [lab[t] for t in T], "out_tokens": a["out_tokens"],
+                "finish": a["finish"], "text": a["text"][-300:]}
+    with ThreadPoolExecutor(32) as ex, open(out, "a") as f:
+        for fu in as_completed([ex.submit(one, r) for r in todo]):
+            try:
+                f.write(json.dumps(fu.result()) + "\n"); f.flush()
+            except Exception as e:
+                print(f"  failed: {type(e).__name__}: {str(e)[:200]}", flush=True)
+
+
 if __name__ == "__main__":
-    if "--state-diff" in sys.argv:
+    if "--judge" in sys.argv:
+        main_judge()
+    elif "--state-diff" in sys.argv:
         main_state_diff()
     elif "--sel-build" in sys.argv:
         main_sel_build()
