@@ -698,3 +698,20 @@ problems that single points already prove, which are not in this set.
   (Simon and Kadane, 1975).
 - **P1 refuted** → these proofs need points that interact, so facts over H's points do not compose. The next step is a candidate generator
   derived from what the goal lacks: DDAR's rules read backward from the goal, naming the missing premises.
+
+### SIDE-GT-POOL: faults found during the first run, and the restart (written 2026-11-05 13:3x UTC; predictions above unchanged)
+
+The first run (jobs 1324967, 1324968) was stopped partway, 26 translations in. Its rows are kept outside the repository and count for nothing. Reading them showed:
+
+1. **Not as registered.** Round 1 passed each run the lemmas of earlier runs in the same round. The registered form runs each point alone.
+2. **My injection crashed runs.** Newclid deep-copies the proof state at the start of a run, and with lemmas injected that often exceeds Python's recursion limit. Most runs on several hard problems failed this way (62–64 of 64), so they barely tested pooling. Each run now has a large stack.
+3. **The confirmation was too weak.** It added only the points the last step's lemmas named, not those that those lemmas rested on. It was also held to Newclid's default limit of 10,000 steps, which stops a run at 30–80 s whatever the time limit.
+4. **A candidate bug in IMO 2008 P6.** That reference fixes some coordinates (`x@4.96_-0.13`), and half the candidates used the full string as a point name and failed to build. So the single-point arm under-tested that one problem. The pair arm still running has the same bug for this problem.
+
+**The step limit, for reading every earlier geometry count.** At 60 s per run it costs little: a run reaches 10,000 steps at about the same time as the limit. Longer time limits, such as the 300 s and 600 s runs, did not buy what they appeared to. With no step limit, DDAR alone still does not prove IMO 2011 P6 or IMO 2008 P6 in 300 s (34,954–66,922 steps, not saturated).
+
+**Restart.**
+- **Arm A, the registered form:** `pool --alone` (jobs 1327629, 1327630). This one decides POOL-P1 and POOL-P3.
+- **Arm C, the accumulating variant:** `pool --cert` (jobs 1327631, 1327632), reported as a variant.
+- **Comparison:** the pair arm (jobs 1324969, 1324970) continues unchanged. Its DDAR is the same up to the point-name bug.
+- **Each proof is now checked** by the steps in Method's confirmation, and also by replaying each step with only the lemmas it needs and by testing those lemmas on 8 fresh diagrams.

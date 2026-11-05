@@ -179,6 +179,25 @@ def gen():
             f.write(json.dumps(r) + "\n"); f.flush()
 
 
+def patch_newclid():
+    """GT_CATCH=1 (SIDE-GT-POOL addendum): Newclid 2.0.2 aborts the whole DDAR run when one rule application names a numerically degenerate
+    figure, such as a circle through three collinear points. With this, that one application fails and the run goes on; a failed
+    application only loses facts."""
+    if os.environ.get("GT_CATCH") != "1":
+        return
+    from newclid.agent.agents_interface import ApplyTheoremFeedback
+    from newclid.numerical.geometries import InvalidLineIntersectError, InvalidQuadSolveError
+    from newclid.proof import Proof
+    orig = Proof._step_apply_theorem
+
+    def safe(self, action):
+        try:
+            return orig(self, action)
+        except (InvalidLineIntersectError, InvalidQuadSolveError):
+            return ApplyTheoremFeedback(False, [], [])
+    Proof._step_apply_theorem = safe
+
+
 def one_check(dsl, timeout):
     """(status, proved, seconds) for one translation; runs inside its own process (Newclid's diagram search can loop)"""
     import time
@@ -230,7 +249,7 @@ def one_check(dsl, timeout):
                 return "trivial", None, "the goal already holds among the construction's facts, before any deduction", time.time() - t0
             if timeout <= 0:
                 return "guarded", None, f"held on {held} of 8", time.time() - t0
-            proved = bool(s.run(timeout=timeout))
+            proved = bool(s.run(timeout=timeout, max_steps=int(os.environ.get("GT_MAX_STEPS", "10000"))))
             return "guarded", proved, f"held on {held} of 8" + (f"; DDAR diagram seed {seed}" if seed else ""), time.time() - t0
         except Exception as e:
             err = e
@@ -273,11 +292,7 @@ def aux_candidates(dsl, k, seed=0):
     point reflections, circumcentres, feet, line reflections, and intersections of two lines through point pairs. HAGeo (2512.00097)
     reports 25 of IMO-AG-30 for random auxiliary constructions and 28 for its heuristics (code: github.com/boduan1/HAGeo)."""
     import itertools, random
-    pts = []
-    for step in dsl.split(" ? ")[0].split("; "):
-        for q in step.split(" = ")[0].split():
-            if q not in pts:
-                pts.append(q)
+    pts, _ = aux_points(dsl)
     P2, P3 = list(itertools.combinations(pts, 2)), list(itertools.combinations(pts, 3))
     T = {"midpoint": [f"midpoint {{x}} {a} {b}" for a, b in P2],
          "mirror": [f"mirror {{x}} {a} {b}" for a, b in itertools.permutations(pts, 2)],
@@ -319,6 +334,7 @@ def aux_points(dsl):
     pts = []
     for step in dsl.split(" ? ")[0].split("; "):
         for q in step.split(" = ")[0].split():
+            q = q.split("@")[0]   # IMO-AG-30 fixes some points' coordinates: x@4.96_-0.13
             if q not in pts:
                 pts.append(q)
     return pts, next(n for n in ("aux", "aux0", "aux1", "zaux") if n not in pts)
@@ -528,12 +544,14 @@ def aux():
     print(f"SIDE-GT aux {tag}: {len(B)} translations -> {OUT}/gt_{name}.jsonl", flush=True)
 
 
-def one_lem(dsl, pts, lemmas, timeout):
+def one_lem(dsl, pts, lemmas, timeout, trace=False, proof=None):
     """SIDE-GT-POOL, one DDAR run in its own process: the translation dsl (possibly with auxiliary points) plus lemmas, which are facts
     ("name args") over the points pts that other runs proved. Returns whether the goal fell, the facts over pts this run holds as [hash,
     fact], the lemmas the proof uses, and how many lemmas were dropped because they fail on this figure (a run's facts hold on its own
-    figure; a step with two intersections can take the other one here)."""
+    figure; a step with two intersections can take the other one here). With trace, also which lemmas each new fact rests on; with proof,
+    the proof's steps are written to that file."""
     import time
+    from pathlib import Path
     from newclid import GeometricSolverBuilder
     from newclid.defs.clause import Construction
     from newclid.dependencies.dependency import Reason
@@ -543,21 +561,35 @@ def one_lem(dsl, pts, lemmas, timeout):
     from newclid.statements.statement import Statement
     import newclid.numerical.check as nc
     nc.ATOM, nc.close_enough = 1e-7, (lambda a, b, tol=1e-7: abs(a - b) < tol)
-    t0, facts, drop, err, inj = time.time(), {}, 0, None, 0
+    t0, facts, drop, err, inj, prov = time.time(), {}, 0, None, 0, {}
+
+    def leaves(deps):
+        seen, stack, out = set(), list(deps), set()
+        while stack:
+            d = stack.pop()
+            if d is None or id(d) in seen:
+                continue
+            seen.add(id(d))
+            if d.reason is not None and d.reason.name == "lemma":
+                out.add(str(d.statement))
+            elif d.reason is not None and d.reason.name.startswith("lemma:"):
+                out.add(lemmas[int(d.reason.name[6:])])
+            stack += list(d.why or ())
+        return out
     for seed in map(int, os.environ.get("GT_DDAR_SEEDS", "0").split(",")):
         s = None
         try:
             s = GeometricSolverBuilder(seed=seed).load_problem_from_txt(dsl, translate=False).build()
             P = s.proof_state
             drop, inj = 0, 0
-            for l in lemmas:
+            for i, l in enumerate(lemmas):
                 n, *a = l.split()
                 try:
                     st = Statement(n, tuple(P.map_construction_args_to_objects(Construction(n, tuple(a), ()))))
                     if not check_numerical(st):
                         drop += 1
                         continue
-                    added, to_cache = P.resolve_statement_dependencies(st, DependencyBody(Reason("lemma"), ()))
+                    added, to_cache = P.resolve_statement_dependencies(st, DependencyBody(Reason(f"lemma:{i}" if trace else "lemma"), ()))
                 except Exception:   # a lemma the figure cannot hold (degenerate here), like a failed numerical check
                     drop += 1
                     continue
@@ -574,21 +606,40 @@ def one_lem(dsl, pts, lemmas, timeout):
             st = d.statement
             if st.predicate in P.statements.adder.PREDICATE_TO_ADDER and all(a.name in pts for a in st.args if isinstance(a, Point)):
                 facts[" ".join(st.hash_tuple)] = str(st)
+                if trace:
+                    prov[" ".join(st.hash_tuple)] = sorted(leaves([d]))
         if err is None:
-            used = set()
-            if proved:
-                seen, stack = set(), [P.statements.graph.build_resolved_dependency(g) for g in P.goals_as_statements()]
-                while stack:
-                    d = stack.pop()
-                    if id(d) in seen or d is None:
-                        continue
-                    seen.add(id(d))
-                    if d.reason is not None and d.reason.name == "lemma":
-                        used.add(str(d.statement))
-                    stack += list(d.why or ())
+            used = leaves([P.statements.graph.build_resolved_dependency(g) for g in P.goals_as_statements()]) if proved else set()
+            if proved and proof:
+                s.write_solution(Path(proof))
             return {"proved": proved, "facts": list(facts.items()), "used": sorted(used), "drop": drop, "inj": inj, "err": None,
-                    "sec": time.time() - t0}
-    return {"proved": False, "facts": list(facts.items()), "used": [], "drop": drop, "inj": inj, "err": err, "sec": time.time() - t0}
+                    "sec": time.time() - t0, "prov": prov}
+    return {"proved": False, "facts": list(facts.items()), "used": [], "drop": drop, "inj": inj, "err": err, "sec": time.time() - t0,
+            "prov": prov}
+
+
+def one_true(dsl, lemmas, n=8):
+    """On how many of n fresh diagrams of the translation each lemma holds, numerically: an independent test of what a proof rests on"""
+    from newclid import GeometricSolverBuilder
+    from newclid.defs.clause import Construction
+    from newclid.numerical.check import check_numerical
+    from newclid.statements.statement import Statement
+    import newclid.numerical.check as nc
+    nc.ATOM, nc.close_enough = 1e-7, (lambda a, b, tol=1e-7: abs(a - b) < tol)
+    held, built = {l: 0 for l in lemmas}, 0
+    for seed in range(100, 100 + n):
+        try:
+            P = GeometricSolverBuilder(seed=seed, no_goal=True).load_problem_from_txt(dsl, translate=False).build().proof_state
+        except Exception:
+            continue
+        built += 1
+        for l in lemmas:
+            k, *a = l.split()
+            try:
+                held[l] += bool(check_numerical(Statement(k, tuple(P.map_construction_args_to_objects(Construction(k, tuple(a), ()))))))
+            except Exception:
+                pass
+    return {"diagrams": built, "held": held}
 
 
 def rename_aux(c, x, new):
@@ -600,7 +651,11 @@ def pool():
     random point proved (gt_<tag>_aux.jsonl), DDAR with each of the same k points, one at a time, keeping every fact a run proves over the
     translation's own points. The union goes back in as lemmas on the translation alone; if the goal does not fall, each point runs again
     with the lemmas, and so on. A proof that uses lemmas from several points is confirmed by plain DDAR with those points added together.
-    -> gt_<tag>_pool.jsonl. With --pairs: instead k random pairs of points added together -> gt_<tag>_pair.jsonl (the comparison)."""
+    -> gt_<tag>_pool.jsonl. With --pairs: instead k random pairs of points added together -> gt_<tag>_pair.jsonl (the comparison).
+    With --alone: as registered, a round's runs get only the previous rounds' lemmas (the default also passes those of the same round, run
+    by run) -> gt_<tag>_poolA.jsonl. --alone and --cert (the default's order, -> gt_<tag>_poolC.jsonl; --only keeps the translations
+    gt_<tag>_pool.jsonl proved) also record what each fact rests on and check each proof: every step replayed with only the lemmas it
+    needs, the lemmas tested on fresh diagrams, plain DDAR with all the points it needed."""
     import random, tempfile
     tag = sys.argv[2]
     arg = lambda n, d: type(d)(sys.argv[sys.argv.index(n) + 1]) if n in sys.argv else d
@@ -608,12 +663,16 @@ def pool():
     R = [json.loads(l) for l in open(f"{OUT}/gt_{tag}_aux.jsonl")]
     done = {r["id"] for r in R if r["aux"] or r["base_proved"]}
     B = [r for r in R if r["id"] not in done and r["base"] == "guarded"]
+    alone, cert = "--alone" in sys.argv, "--alone" in sys.argv or "--cert" in sys.argv
+    if "--only" in sys.argv:
+        keep = {(q["id"], q["sample"]) for q in map(json.loads, open(f"{OUT}/gt_{tag}_pool.jsonl")) if q["proved"]}
+        B = [r for r in B if (r["id"], r["sample"]) in keep]
     if "--limit" in sys.argv:
         B = B[:arg("--limit", 0)]
 
-    def call(dsl, pts, lem):
+    def call(dsl, pts, lem, proof=None):
         with tempfile.NamedTemporaryFile("w", suffix=".json") as f:
-            json.dump({"pts": pts, "lem": lem}, f); f.flush()
+            json.dump({"pts": pts, "lem": lem, "trace": cert, "proof": proof}, f); f.flush()
             try:
                 p = subprocess.run([sys.executable, os.path.abspath(__file__), "one_lem", dsl, str(timeout), f.name], capture_output=True,
                                    text=True, timeout=timeout + 600)
@@ -622,11 +681,50 @@ def pool():
                 return {"proved": False, "facts": [], "used": [], "drop": 0, "inj": 0, "err": type(e).__name__, "sec": 0}
 
     def plain(dsl, t):
-        try:
-            p = subprocess.run([sys.executable, os.path.abspath(__file__), "one", dsl, str(t)], capture_output=True, text=True, timeout=t + 600)
+        try:   # no step limit (Newclid's default of 10,000 steps stops a run at 30-80 s whatever the time limit), for the long confirmations
+            p = subprocess.run([sys.executable, os.path.abspath(__file__), "one", dsl, str(t)], capture_output=True, text=True, timeout=t + 600,
+                               env={**os.environ, "GT_MAX_STEPS": str(10 ** 8 if t > timeout else 10000)})
             return json.loads(p.stdout.strip().splitlines()[-1])
         except Exception as e:
             return ["build error", None, type(e).__name__, t]
+
+    def certify(r, pts, x, pre, goal, used, last, src, rest, by_call):
+        need, stack = set(), list(used)
+        while stack:
+            u = stack.pop()
+            if u not in need:
+                need.add(u)
+                stack += rest.get(u, [])
+        calls = sorted({by_call[u] for u in need if u in by_call})
+        steps = []
+        for cid in calls:
+            c, d = cid[1], cid[2]
+            mine = [u for u in need if by_call.get(u) == cid]
+            lem = sorted({v for u in mine for v in rest.get(u, [])})
+            q = call(d, pts, lem)
+            got = {f for _, f in q["facts"]} | set(lem)
+            miss = [u for u in mine if u not in got]
+            steps.append({"point": c, "lemmas_in": len(lem), "facts_needed": len(mine), "missing": miss, "err": q["err"], "sec": round(q["sec"], 1)})
+        os.makedirs(f"{OUT}/pool_proofs", exist_ok=True)
+        lastc = [] if last is None else [last[0]]
+        if last is None:
+            fin = call(r["dsl"], pts, sorted(need), proof=f"{OUT}/pool_proofs/{tag}_{r['id']}_{r['sample']}.txt")
+        else:
+            fin = call(last[1], pts, sorted(need), proof=f"{OUT}/pool_proofs/{tag}_{r['id']}_{r['sample']}.txt")
+        P = sorted({s["point"] for s in steps} | set(lastc))
+        names = [f"{x}{i}" for i in range(len(P))]
+        d = f"{pre}; " + "; ".join(f"{n} = {rename_aux(c, x, n)}" for n, c in zip(names, P)) + f" ? {goal}"
+        st, pr, msg, sec = plain(d, confirm)
+        tr = {"diagrams": 0, "held": {}}
+        try:
+            with tempfile.NamedTemporaryFile("w", suffix=".json") as f:
+                json.dump(sorted(need), f); f.flush()
+                tr = json.loads(subprocess.run([sys.executable, os.path.abspath(__file__), "one_true", r["dsl"], f.name], capture_output=True,
+                                               text=True, timeout=1200).stdout.strip().splitlines()[-1])
+        except Exception as e:
+            tr["err"] = type(e).__name__
+        return {"points": P, "lemmas": sorted(need), "steps": steps, "final": fin["proved"], "final_used": len(fin["used"]), "final_err": fin["err"],
+                "true_on": tr, "joint_dsl": d, "joint_status": st, "joint_proved": pr, "joint_msg": msg, "joint_sec": round(sec, 1)}
 
     def run_pair(r):
         pts, x = aux_points(r["dsl"])
@@ -651,11 +749,13 @@ def pool():
                "calls": 1, "sec": 0}
         b = call(r["dsl"], pts, [])
         out["sec"] += b["sec"]
-        known, src, lem = {h for h, _ in b["facts"]}, {}, {}
+        known, src, lem, rest, by_call, ncall = {h for h, _ in b["facts"]}, {}, {}, {}, {}, 0
         for rd in range(1, rounds + 1):
             info = {"round": rd, "with_new": 0, "new": 0, "errs": 0, "drop": 0}
+            given = list(lem.values())
             for c, d in C:
-                q = call(d, pts, list(lem.values()))
+                ncall += 1
+                q = call(d, pts, given if alone else list(lem.values()))
                 out["calls"] += 1; out["sec"] += q["sec"]
                 info["errs"] += q["err"] is not None
                 info["drop"] += q["drop"]
@@ -664,9 +764,13 @@ def pool():
                 for h, f in new:
                     lem[h] = f
                     src[f] = c
+                    if cert:
+                        rest[f], by_call[f] = q["prov"].get(h, []), (ncall, c, d)
                 info["new"] += len(new)
                 if q["proved"]:   # one point plus the lemmas (round 2 on; in round 1 the single-point arm would have found it)
                     out.update(proved=True, round=rd, via="point+lemmas", used_aux=sorted({c} | {src.get(u, "?") for u in q["used"]}))
+                    if cert:
+                        out["cert"] = certify(r, pts, x, pre, goal, q["used"], (c, d), src, rest, by_call)
                     break
             out["rounds"].append(info)
             if not out["proved"]:
@@ -675,32 +779,53 @@ def pool():
                 info.update(pool=len(lem), pool_drop=q["drop"], pool_sec=q["sec"], pool_err=q["err"])
                 if q["proved"]:
                     out.update(proved=True, round=rd, via="pool", used_aux=sorted({src.get(u, "?") for u in q["used"]}))
+                    if cert:
+                        out["cert"] = certify(r, pts, x, pre, goal, q["used"], None, src, rest, by_call)
             if out["proved"] or not info["new"]:   # proved, or a fixed point: another round cannot change anything
                 break
-        if out["proved"]:
+        if out["proved"] and not cert:
             U = [c for c in out["used_aux"] if c != "?"]
             names = [f"{x}{i}" for i in range(len(U))]
             d = f"{pre}; " + "; ".join(f"{n} = {rename_aux(c, x, n)}" for n, c in zip(names, U)) + f" ? {goal}"
             st, pr, _, sec = plain(d, confirm)
             out.update(joint_dsl=d, joint_status=st, joint_proved=pr, joint_sec=sec)
         return out
-    name, fn = (f"{tag}_pair", run_pair) if "--pairs" in sys.argv else (f"{tag}_pool", run)
+    name, fn = (f"{tag}_pair", run_pair) if "--pairs" in sys.argv else (f"{tag}_pool" + ("A" if alone else "C" if cert else ""), run)
     with ThreadPoolExecutor(workers) as ex, open(f"{OUT}/gt_{name}.jsonl", "w") as f:
         for fu in as_completed([ex.submit(fn, r) for r in B]):
             f.write(json.dumps(fu.result()) + "\n"); f.flush()
     print(f"SIDE-GT pool {tag}: {len(B)} translations -> {OUT}/gt_{name}.jsonl", flush=True)
 
 
+def deep(fn):
+    """Runs fn with a large stack and prints its result: Newclid deep-copies the proof state at the start of a run, which recurses through the
+    whole graph, and a state with injected lemmas exceeds Python's default depth (RecursionError)"""
+    import threading
+    sys.setrecursionlimit(10 ** 6)
+    threading.stack_size(2 ** 30)
+    out = []
+    t = threading.Thread(target=lambda: out.append(fn()))
+    t.start()
+    t.join()
+    print(json.dumps(out[0]))
+
+
 if __name__ == "__main__":
     if sys.argv[1] == "one":
         import logging
         logging.disable(logging.CRITICAL)
-        print(json.dumps(one_check(sys.argv[2], float(sys.argv[3]))))
+        patch_newclid()
+        deep(lambda: one_check(sys.argv[2], float(sys.argv[3])))
     elif sys.argv[1] == "one_lem":
         import logging
         logging.disable(logging.CRITICAL)
+        patch_newclid()
         q = json.load(open(sys.argv[4]))
-        print(json.dumps(one_lem(sys.argv[2], set(q["pts"]), q["lem"], float(sys.argv[3]))))
+        deep(lambda: one_lem(sys.argv[2], set(q["pts"]), q["lem"], float(sys.argv[3]), q.get("trace", False), q.get("proof")))
+    elif sys.argv[1] == "one_true":
+        import logging
+        logging.disable(logging.CRITICAL)
+        print(json.dumps(one_true(sys.argv[2], json.load(open(sys.argv[3])))))
     elif sys.argv[1] == "one_agree":
         import logging
         logging.disable(logging.CRITICAL)
