@@ -782,33 +782,19 @@ OR problems and the observation that the cross-model filter removes the harm but
   - **Smaller translators.** Qwen3-8B translates faithfully only 1 of 24 dev problems. gpt-oss-120b declines most of them as
     unexpressible.
 - **The weakest model's check leak** (Section 5.2).
-- **Agent loops** (BFCL v4 multi-turn, 600 items, MT): the environment's error is a free check at every step, but thinking only after
-  it loses to always thinking (E − T −5.5 and −7.7 utility for Qwen3-8B and Qwen3.5-9B), on visible failures as much as on silent
-  ones: a turn repaired from a damaged state rarely recovers, and even rolling the turn back before thinking stays 2.8–3.3 points
-  below thinking from the start (turn-0 counterfactual). With Qwen3-14B-AWQ, E − T is −12.5. Thinking only at each new request's
-  first step ties always thinking for Qwen3-8B and Qwen3.5-9B (F − T −0.96 [−3.52, +1.71], +1.08 [−1.32, +3.30], at 68–76% of its
-  output tokens) and loses for Qwen3-14B-AWQ (−8.11 [−10.68, −5.49]): no cheaper fixed rule matches thinking at every step for all
-  three models. A per-turn vote over the end states of quick, peer and thinking rollouts in a sandbox (MT-V, pre-registered) loses too
-  (−2.80 [−5.66, +0.25] and −3.24 [−5.96, −0.61] utility at 1.3× the tokens). Its offline turn-0 room (+7 to +8) was an artifact of
-  counting an end state right when any turn reaching it was right: BFCL also grades each turn's responses, and in 22–29% of turn-0
-  item-seeds one end state is reached by a right and a wrong turn; with the committed turn's own label the room is −0.6 to −9.4.
-  A verifier trained on the benchmark's own labels (Qwen3-8B LoRA, pairwise within a turn; cross-fitted by scenario) reads each
-  rollout's calls and results and chooses among the quick, the peer's quick and the thinking turn: at turn 0 it beats thinking by
-  +5.89 / +8.77 / +5.61 utility (Qwen3-8B / Qwen3-14B-AWQ / Qwen3.5-9B; within-set AUROC 0.84–0.91; MT-SEL, pre-registered, offline,
-  every rollout's tokens counted), mostly by taking a quick turn that recovered from an error and finished where thinking gave up or
-  over-ran. Online, choosing this way at every turn of the conversation (MT-SO, pre-registered; the verifier retrained with later
-  turns, whose labels are the turns still right given a right start) beats thinking at every step by +17.21 [+14.33, +20.12] and
-  +15.52 [+12.83, +18.52] utility for Qwen3-8B and Qwen3.5-9B (48.8% vs 30.8% at 8.31k vs 6.84k tokens; 53.9% vs 38.0% at 3.29k vs
-  2.56k), in every category, committing the peer's quick turn on 20–37% of turns and the quick turn on 22–29%. The verifier's prefill
-  (17k tokens per conversation) is not priced. The gain compounds: a conversation fails when any one of its turns fails (a wrong end
-  state, a turn left without calls), and the choice avoids such turns one at a time. The verifier was trained
-  on scenarios of the same eight environment classes. Trained on four classes and run online on the other four (MT-SO-ENV,
-  pre-registered), it still beats thinking at every step: +7.56 [+4.52, +10.91] and +6.63 [+3.73, +9.62] utility (40.2% vs 32.1%,
-  44.9% vs 37.8%). That is about half the in-environment gain. The compounding model predicted the online gain before any row was
-  read: inside the interval for Qwen3-8B, and 0.4 points above it for Qwen3.5-9B.
+- **Agent loops** (BFCL v4 multi-turn): the environment's error is a free check at every step, but thinking only after an error loses
+  to thinking at every step. The method that wins is a trained verifier choosing among candidate turns at every turn; see §2b.
 
 ## 8. Limitations
 
+- **Agent loops (§2b).**
+  - All of it is BFCL v4. "Unseen environments" means the four classes the verifier was not trained on, still inside BFCL's
+    protocol: no simulated user, per-turn ground truth.
+  - The verifier is trained on the benchmark's own per-turn labels, from scenarios not used in the test.
+  - The peer is another open model served beside the generator, so the method needs two models.
+  - The verifier's prefill (17k tokens per conversation) is not priced. At a tenth of an output token's price it would cost about
+    0.9 utility.
+  - Testing a benchmark with another protocol (τ²-bench: a simulated user, policy documents) is left as a confirmation.
 - **The break-even rule predicts only where the decisive strata are measured on enough problems** (THESIS, pre-registered): over 90
   stored cells split in halves, the rule's predictor from one half matches the sign of the other half's cascade gain in 19 / 20 SQL and
   28 / 29 tool-call cases, but in 10 / 24 word-problem cases (78% overall, under the 85% registered); the word-problem sets have 82–202
