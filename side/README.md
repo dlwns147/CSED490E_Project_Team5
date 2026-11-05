@@ -33,9 +33,10 @@ references) were audited, with no false statement on their own figure or on 8 fr
 - Held out: 4 by DDAR alone (Pan African 2002, Romanian NMO 2006, USAMO 2010 P1, ISL 2012_16) and 3 with one point (Pan African 2004, USAMO 2008 P2,
   ISL 2012_18). The withdrawn count was 10.
 - IMO-AG-30: 10 by DDAR alone and 3 with one point (IMO 2004 P1, 2012 P1, 2014 P4). The withdrawn count was 14.
-- **One proof has a gap.** IMO 2000 P1 reaches its goal through `cong e p e q` with no recorded reason, and on one run the written proof has no steps at all. Newclid's
-  congruence lookup returns no reason when two segments already share a length symbol. So that run proves nothing I can read, and 13 is 12 until a run gives a full
-  derivation (job 1330465 tries 8 seeds).
+- **IMO 2000 P1's gap (2026-11-05 22:0x UTC: resolved, the count stays 13).** Its goal comes through `cong e p e q` with no recorded reason, on all 6 seeds that finished, and one run's
+  written proof has no steps at all. Newclid's congruence lookup returns no reason when two segments already share a length symbol. A trace of that merge shows a
+  real rule application: EQ = EP by r10, from `eqratio e q p c e p p c`. So the step exists and the written proof loses it. The proof text is incomplete, and its statements
+  are all true.
 - Pooling and pairs are still running, so SOUND-P1 and POOL-P1 to P3 are not yet decided.
 
 **2026-11-05 20:1x UTC: plain Newclid, re-audited with the fixed test: 10 of 54.** The recorded proofs that reran under plain Newclid use a false statement
