@@ -387,8 +387,130 @@ def main_sel_build2():
     print(f"MT-SO build: scoring requests {len(req[0])} / {len(req[1])}", flush=True)
 
 
+def plain(o, depth=0, seen=None):
+    """MT-SD: an instance attribute as plain data (dicts, lists, scalars), object attributes as dicts, parent links skipped, depth <= 8"""
+    seen = set() if seen is None else seen
+    if isinstance(o, (str, int, float, bool)) or o is None:
+        return o
+    if depth > 8 or id(o) in seen:
+        return "..."
+    seen = seen | {id(o)}
+    if isinstance(o, dict):
+        return {str(k): plain(v, depth + 1, seen) for k, v in o.items()}
+    if isinstance(o, (list, tuple, set)):
+        return [plain(v, depth + 1, seen) for v in (sorted(o, key=str) if isinstance(o, set) else o)]
+    if hasattr(o, "__dict__"):
+        return {k: plain(v, depth + 1, seen) for k, v in vars(o).items() if not k.startswith("_") and k != "parent"}
+    return repr(o)[:200]
+
+
+def state_diff(a, b, path="", out=None, cap=40):
+    """MT-SD: added (+), removed (-) and changed (~) paths between two plain states, values cut at 100 characters, at most `cap` lines"""
+    out = [] if out is None else out
+    sh = lambda v: json.dumps(v, default=str)[:100]
+    if len(out) >= cap or a == b:
+        return out
+    if isinstance(a, dict) and isinstance(b, dict):
+        for k in sorted(set(a) | set(b)):
+            if len(out) >= cap:
+                break
+            if k not in a:
+                out.append(f"+ {path}{k}: {sh(b[k])}")
+            elif k not in b:
+                out.append(f"- {path}{k}")
+            elif a[k] != b[k]:
+                state_diff(a[k], b[k], f"{path}{k}.", out, cap)
+    elif isinstance(a, list) and isinstance(b, list):
+        if len(a) == len(b):
+            for j, (x, y) in enumerate(zip(a, b)):
+                if x != y:
+                    state_diff(x, y, f"{path}{j}.", out, cap)
+        else:
+            new = [y for y in b if y not in a]; gone = [x for x in a if x not in b]
+            out += [f"+ {path[:-1]}[]: {sh(y)}" for y in new][:max(0, cap - len(out))]
+            out += [f"- {path[:-1]}[]: {sh(x)}" for x in gone][:max(0, cap - len(out))]
+    else:
+        out.append(f"~ {path[:-1]}: {sh(a)} -> {sh(b)}")
+    return out
+
+
+def main_state_diff():
+    """addendum MT-SD (--state-diff): every stored trajectory (SEL_MODELS x SEL_ARMS x seeds 1-3) replayed turn by turn on BFCL's instances,
+    each turn's state change (state_diff of every involved instance's public attributes); every pseudo-set rollout text gets the change
+    of its first source trajectory's turn. Writes results/conf/mt_sd_diff.jsonl {id, text hash, diff} and the variant files with the
+    text 'render + State changes:' — $POC_DATA/bfcl/mt_sd_items.jsonl (= mt_sel2's), results/conf/mt_sd_pool.jsonl, mt_sd_rows.jsonl,
+    sel_req_mtsd_h<half>.jsonl (sset mt2)."""
+    import hashlib
+    P = {p["id"]: p for p in map(json.loads, open(DATA))}
+    R = {(m, a): rows(m, a) for m in SEL_MODELS for a in SEL_ARMS}
+    C = os.path.join(ROOT, "results", "conf")
+    PD = os.path.dirname(DATA)
+    key = lambda i, t: hashlib.sha1(json.dumps(["tc", "mt2", i, "sel", t]).encode()).hexdigest()[:20]
+    pool = [json.loads(l) for l in open(f"{C}/mt_sel2_pool.jsonl")]
+    need = {}
+    for r in pool:
+        i = r["id"].split("/")[0]
+        for t, c in r["cands"].items():
+            m, a, s = c["src"][0]
+            need.setdefault((m, a, s, i), set()).add(r["turn"])
+    D, n = {}, 0
+    for (m, a, s, i), turns in need.items():
+        p, x = P[i], R[(m, a)][s][i]
+        cfg, cls = p["initial_config"], p["involved_classes"]
+        name = f"sd{n}"; n += 1
+        ex = lambda c: U.execute_multi_turn_func_call(c, cfg, cls, name, p["id"], long_context=False, is_evaL_run=True)
+        inst = lambda: {c: plain(U.__dict__.get(re.sub(r"[-./:]", "_", f"{name}_eval_{p['id']}_{c}_instance"))) for c in cls}
+        try:
+            ex([])
+            for k in range(max(turns) + 1):
+                if k >= len(x["turns"]):
+                    break
+                before = inst()
+                for z in x["turns"][k]:
+                    if z["calls"]:
+                        ex(z["calls"])
+                if k in turns:
+                    D[(m, a, s, i, k)] = state_diff(before, inst()) or ["(no change)"]
+        except Exception as e:
+            print(f"  replay {m} {a} {s} {i}: {type(e).__name__}", flush=True)
+        finally:
+            for c in cls:
+                U.__dict__.pop(re.sub(r"[-./:]", "_", f"{name}_eval_{p['id']}_{c}_instance"), None)
+    nt = lambda t, d: t + "\nState changes:\n" + "\n".join(d)
+    newtext = {}
+    with open(f"{C}/mt_sd_diff.jsonl", "w") as f:
+        for r in pool:
+            i = r["id"].split("/")[0]
+            for t, c in r["cands"].items():
+                m, a, s = c["src"][0]
+                d = D.get((m, a, s, i, r["turn"]), ["(unknown)"])
+                newtext[(r["id"], t)] = nt(t, d)
+                f.write(json.dumps({"id": r["id"], "h": key(r["id"], t), "diff": d}) + "\n")
+    with open(f"{C}/mt_sd_pool.jsonl", "w") as f:
+        for r in pool:
+            f.write(json.dumps(dict(r, cands={newtext[(r["id"], t)]: c for t, c in r["cands"].items()})) + "\n")
+    with open(f"{C}/mt_sd_rows.jsonl", "w") as f:
+        for l in open(f"{C}/mt_sel2_rows.jsonl"):
+            r = json.loads(l)
+            r["roll"] = {k: [newtext.get((r["id"], v[0]), v[0])] + v[1:] for k, v in r["roll"].items()}
+            f.write(json.dumps(r) + "\n")
+    import shutil
+    shutil.copy(f"{PD}/mt_sel2_items.jsonl", f"{PD}/mt_sd_items.jsonl")
+    for h in (0, 1):
+        with open(f"{C}/sel_req_mtsd_h{h}.jsonl", "w") as f:
+            for l in open(f"{C}/sel_req_mt2_h{h}.jsonl"):
+                q = json.loads(l)
+                t2 = newtext.get((q["id"], q["text"]))
+                if t2 is None:
+                    continue
+                f.write(json.dumps(dict(q, h=key(q["id"], t2), text=t2)) + "\n")
+    print(f"MT-SD: {len(need)} trajectories replayed, {len(D)} turn changes, {len(newtext)} rollout texts", flush=True)
+
+
 if __name__ == "__main__":
-    if "--sel-build" in sys.argv:
+    if "--state-diff" in sys.argv:
+        main_state_diff()
+    elif "--sel-build" in sys.argv:
         main_sel_build()
     elif "--sel-build2" in sys.argv:
         main_sel_build2()
