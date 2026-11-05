@@ -23,10 +23,18 @@ Side work may use the Slurm server's GPUs: a model server and client commands ru
 | Lean (main track, `PREREG_PROOF.md`) | A specialised 8B prover is best; the compiler is a perfect check | Not a side-project gap at present |
 | Constructions (`construct.py`) | Unsolved for an 8B model; its own checker is not a usable free check | A derived free check, or a search the problem's structure makes exact |
 
-**Running now (geometry, SIDE-GT-SOUND and SIDE-GT-POOL):** single auxiliary points under the guard, then pooling and random pairs, then
-the audit on every proof found.
+**Running now (geometry, SIDE-GT-SOUND and SIDE-GT-POOL):** a second rerun with the guard's fault fixed: single auxiliary points, then pooling
+and random pairs, then the audit on every proof found.
 
 ## Log
+
+**2026-11-05 17:0x UTC: the guard and the audit had a fault; the pipeline reruns again.** The audit of those 43 proofs: all reran with no error, and I read
+the flagged statements. All are `para` or `perp`, and all are true (sine or cosine at most 1e-10). Newclid tests these two against an absolute
+1e-12 on an unnormalized product, which my tolerance setting did not reach.
+- So the flags were false alarms, and the guard rejected some true facts (9 of 219 in a quick sample). The 7 of 65 and 12 of 30 below are
+  lower bounds, and the earlier "16 of 57" is overstated: 3 of the 16 are flagged only on these two predicates.
+- The fix tests both on the normalized angle. Everything reruns in `results/proof/sound2/`, and SOUND-P1 and pooling are decided there.
+- Still to read by hand: IMO 2000 P1, whose proof has one statement (`cong p e q e`) with no reason given.
 
 **2026-11-05 16:5x UTC: one auxiliary point under the guard: 7 of 65 held out, 12 of 30 references (not yet audited).** Same 64 random points per
 translation, at 60 s, now with every derived fact checked on the run's figure.

@@ -16,7 +16,7 @@ usage: $P side/geo_translate.py gen <tag> <ids file> [--think] [--k K] [--max_to
        <python with newclid> side/geo_translate.py check <tag> [--timeout S] [--workers W]     (CPU job)
        <python with newclid> side/geo_translate.py aux <tag | refs> [--k K] [--timeout S] [--workers W] [--ids file | --prop <prop tag>]   (CPU job)
        $P side/geo_translate.py propose <tag> <aux file tag> [--think] [--k K] [--m M]   (lane.sh job: the model proposes auxiliary points)"""
-import json, os, re, subprocess, sys
+import json, math, os, re, subprocess, sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -179,6 +179,24 @@ def gen():
             f.write(json.dumps(r) + "\n"); f.flush()
 
 
+def num_holds(st, tol=1e-7):
+    """Is a statement true on its figure? Newclid's check of para and perp compares an unnormalized product with 1e-12 whatever tolerance is
+    set in numerical.check (LineNum, a module of its own), which fails true statements on rounding alone. Those two are tested here on the
+    sine or cosine of the angle between the lines; the rest go through Newclid's check, at the tolerance the caller set there."""
+    from newclid.numerical.check import check_numerical
+    if st.predicate.value not in ("para", "perp"):
+        return bool(check_numerical(st))
+    a, b, c, d = (p.num for p in st.args)
+    ux, uy, vx, vy = a.x - b.x, a.y - b.y, c.x - d.x, c.y - d.y
+    nu, nv = math.hypot(ux, uy), math.hypot(vx, vy)
+    if nu == 0 or nv == 0:
+        return False
+    if st.predicate.value == "perp":
+        return abs(ux * vx + uy * vy) / (nu * nv) < tol
+    # as in Newclid, a line is not parallel to itself
+    return abs(ux * vy - uy * vx) / (nu * nv) < tol and abs((c.x - a.x) * uy - (c.y - a.y) * ux) / nu >= tol
+
+
 def patch_newclid():
     """GT_CATCH=1 (SIDE-GT-POOL addendum): Newclid 2.0.2 aborts the whole DDAR run when one rule application names a numerically degenerate
     figure, such as a circle through three collinear points. With this, that one application fails and the run goes on; a failed
@@ -187,7 +205,6 @@ def patch_newclid():
         # SIDE-GT-SOUND: Newclid checks only the goal numerically, and false facts do get in (results/proof/gt_audit.jsonl). A fact is kept, and two
         # symbols are merged, only if it holds on the run's own figure. Rejecting a fact only loses deductions.
         from newclid.agent.agents_interface import ImportDerivationFeedback
-        from newclid.numerical.check import check_numerical
         from newclid.proof import Proof, mapping_to_names
         from newclid.statements.adder import StatementAdder
         from newclid.statements.statement import Statement
@@ -195,7 +212,7 @@ def patch_newclid():
 
         def holds(st):
             try:
-                return bool(check_numerical(st))
+                return num_holds(st)
             except Exception:
                 return False
 
@@ -260,7 +277,7 @@ def one_check(dsl, timeout):
         except Exception as e:
             return "build error", None, f"{type(e).__name__}: {str(e)[:200]}", time.time() - t0
         try:
-            held += bool(check_numerical(Statement(goal.name, s.proof_state.map_construction_args_to_objects(goal))))
+            held += num_holds(Statement(goal.name, s.proof_state.map_construction_args_to_objects(goal)))
         except Exception as e:
             return "syntax error", None, f"goal: {type(e).__name__}: {str(e)[:200]}", time.time() - t0
     # A construction step with two intersection points takes either at random, and a problem's claim usually holds for one of them
@@ -622,7 +639,7 @@ def one_lem(dsl, pts, lemmas, timeout, trace=False, proof=None):
                 n, *a = l.split()
                 try:
                     st = Statement(n, tuple(P.map_construction_args_to_objects(Construction(n, tuple(a), ()))))
-                    if not check_numerical(st):
+                    if not num_holds(st):
                         drop += 1
                         continue
                     added, to_cache = P.resolve_statement_dependencies(st, DependencyBody(Reason(f"lemma:{i}" if trace else "lemma"), ()))
@@ -672,7 +689,7 @@ def one_true(dsl, lemmas, n=8):
         for l in lemmas:
             k, *a = l.split()
             try:
-                held[l] += bool(check_numerical(Statement(k, tuple(P.map_construction_args_to_objects(Construction(k, tuple(a), ()))))))
+                held[l] += num_holds(Statement(k, tuple(P.map_construction_args_to_objects(Construction(k, tuple(a), ())))))
             except Exception:
                 pass
     return {"diagrams": built, "held": held}
@@ -723,7 +740,7 @@ def one_audit(dsl, lemmas, timeout):
         bad = []
         for k, d in st.items():
             try:
-                if d.statement.predicate.value in ("ncoll", "npara", "sameclock", "sameside", "diff", "ind") or check_numerical(d.statement):
+                if d.statement.predicate.value in ("ncoll", "npara", "sameclock", "sameside", "diff", "ind") or num_holds(d.statement, 1e-4):
                     continue
             except Exception:
                 continue
@@ -735,7 +752,7 @@ def one_audit(dsl, lemmas, timeout):
             try:
                 Q = GeometricSolverBuilder(seed=seed2, no_goal=True).load_problem_from_txt(dsl, translate=False).build().proof_state
                 g = Construction.from_txt(dsl.split(" ? ")[1].strip())
-                if not check_numerical(Statement(g.name, Q.map_construction_args_to_objects(g))):
+                if not num_holds(Statement(g.name, Q.map_construction_args_to_objects(g)), 1e-4):
                     continue
             except Exception:
                 continue
@@ -743,7 +760,7 @@ def one_audit(dsl, lemmas, timeout):
             for k in st:
                 n, *a = k.split()
                 try:
-                    fresh[k] += bool(check_numerical(Statement(n, tuple(Q.map_construction_args_to_objects(Construction(n, tuple(a), ()))))))
+                    fresh[k] += num_holds(Statement(n, tuple(Q.map_construction_args_to_objects(Construction(n, tuple(a), ())))), 1e-4)
                 except Exception:
                     fresh[k] += 1   # a statement this figure cannot evaluate is not counted against the proof
         out["fresh_diagrams"] = built

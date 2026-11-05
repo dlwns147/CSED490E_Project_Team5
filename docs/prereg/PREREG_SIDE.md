@@ -750,3 +750,22 @@ The first run (jobs 1324967, 1324968) was stopped partway, 26 translations in. I
 **Decision.**
 - **P1 holds** → guarded DDAR replaces plain Newclid everywhere in the geometry track, and every geometry claim is restated from this rerun.
 - **P1 refuted** → the guard is not enough, and geometry claims are withdrawn until proofs are read by hand.
+
+### SIDE-GT-SOUND: a fault in the guard and the audit, and a second rerun (written 2026-11-05 17:0x UTC; predictions above unchanged)
+
+**First rerun, as registered.** Held out 7 of 65 (3 by DDAR alone, 4 with one point); IMO-AG-30 12 of 30 (9 and 3). Its audit (43 proofs, job 1329373): all 43 reran, none raised an error, one statement flagged false on its own figure (`perp f g o x`, IMO 2015 P4), one root with no reason (`cong p e q e`, IMO 2000 P1), and five rows with statements flagged on fresh figures.
+
+**The fault.** I read the flagged statements. All are `para` or `perp`, and all are true: on each flagged figure the sine or cosine between the two lines is at most 1e-10. Newclid tests these two predicates by comparing an unnormalized product with an absolute 1e-12 (5e-12 for `perp`), in `numerical.geometries`, a module my tolerance setting did not reach. So:
+- the audit's one "false on own figure" and all its "false on fresh" flags are false alarms;
+- the guard rejected true `para` and `perp` facts on rounding alone (9 of 219 conclusions in a quick sample), which loses deductions, so the first rerun's counts are lower bounds;
+- the earlier audit of plain Newclid (16 of 57 use a false statement) is overstated: 3 of the 16 are flagged only on `para` or `perp`.
+
+**The fix.** `num_holds`: `para` and `perp` are tested on the normalized sine or cosine, at the same 1e-7 as every other predicate in the guard, and 1e-4 in the audit. Used by the guard, the audit, the goal test and the lemma tests. The agreement test (SIDE-GT-AGREE) is unchanged, because its result is registered.
+
+**Second rerun.** The whole pipeline again, in `results/proof/sound2/`: check, one point, pooling arms A and C, and pairs, then the audit. The first rerun's pooling and pair jobs were cancelled before any proof. The earlier audit list is also re-audited under plain Newclid.
+
+**Predictions, written before the second rerun.**
+- **SOUND-P1** is decided on the second rerun's audit, by the same rule.
+- **SOUND-FIX-P2:** with true facts no longer rejected, held out 7–9 of 65 and IMO-AG-30 12–14 of 30: equal or slightly more than the first rerun, because few facts were rejected.
+- **SOUND-FIX-P3:** plain Newclid's re-audit gives at most 13 of 57 with a false statement.
+- POOL-P1 to P3 stand as registered and are decided on the second rerun.
