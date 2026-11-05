@@ -978,3 +978,33 @@ here: the trained turn as one candidate in a verifier's choice set, valued in ad
 item weighting, by 0.05, and the conversation gain it stood for is +1.7, inside the online test's noise; the arm would also need a
 fourth role in the fit. As with MT-PW, by rule 2 it is not run. A quick turn trained for single calls does not add the answers
 conversations lack.
+
+## Addendum MT-RF: a quick turn trained on multi-turn right rollouts (written 2026-11-05 10:3x UTC, before any training step)
+
+**Why.** MT-RN's registered next step. Training for single calls (ToolACE) taught abstention, and conversation accuracy did not rise.
+The set's oracle (64–71% over whole conversations) is a ceiling no judge can pass; candidates must get better. The stored rollouts
+already hold, per scenario, which turns were right, with their results. Half the scenarios can teach the quick turn for the other
+half, labels only in training. If the quick turn gets much better, the choice also commits it more often, and the tokens fall.
+
+**Related.** RL on tool-calling models with BFCL-style rewards: TRUST (2606.06976), 2606.00135. RFT on the model's own right answers:
+the project's WP-RF and TD, where the quick mode's own right programs beat thinking programs as targets. New here: a trained
+quick turn as the candidate in the per-turn choice, valued in advance by the compounding model.
+
+**Run.**
+1. `mt_peer0.py --rf-build`: for each request (turn given a right start) of half h, the right rollouts of mt_sel2's pool. Each step
+   becomes a row: the conversation so far (the source trajectory's own right history, tool results replayed in full) → the step's
+   text. A step whose calls returned an error is not a target.
+2. `tc_train.py <out> --sft-mt <rows of h>`: Qwen3-8B LoRA (r 16), 2 epochs, one sampled right rollout per request per epoch, loss =
+   mean negative log-probability of the target given a no-gradient prompt, lr 5e-5, batch 8 rows.
+3. `run_mt.py q8brf N <s>` with `MT_N_LORA=mtrf_h`: each item uses the adapter trained on the other half. 600 items, seeds 1–3.
+4. `grade_mt.py q8brf N`, `mt_peer0.py --rn q8brf`.
+
+**Predictions** (paired, intervals over items).
+- **MT-RF-P1:** the trained turn's conversation accuracy − base N's (16.7%), lower bound > 0.
+- **MT-RF-P2 (decision):** with the trained turn replacing N in the set, the compounding model (per-turn rates pooled over sets, the
+  verifier's 0.56 share of oracle gains) gives a conversation gain ≥ 3 points, the size the online test can see.
+- **Expected:** P1 +5 to +15 (scenario-specific habits: environment usage, when to stop). P2 uncertain.
+
+**Decision.**
+- **P2 holds** → an online arm: S with the trained N, verifier and fit refitted on its rollouts.
+- **P2 refuted** → the agent-loop method is final for this project, and candidates stay as they are.
