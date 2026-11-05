@@ -4,7 +4,8 @@ the supervised planner of PREREG_LCM addendum B (lcm_bound.Supervised; cross-fit
 against always thinking (T), T with a retry on a visible failure (T->T), the rollback rule (N; on a visible failure T) and the peer rule
 (N; when the end states differ T); utility 100 x right - 0.5 x ktokens of turn 0; paired 95% intervals over items (seed means).
 usage: python3.11 poc/analyze_mtb.py [tags]"""
-import json, os, sys, zlib
+from collections import Counter
+import json, math, os, sys, zlib
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from analyze_ho3 import ci  # noqa: E402
@@ -404,8 +405,91 @@ def main_sel2():
               f"{'holds' if p4[1] > 0 else 'refuted'}")
 
 
+def main_judge_an():
+    """addendum MT-JG (--judge-an <tag>): on the pseudo-sets, cross-fitted by half as --sel2: SEL3 (mtso), the judge's letter alone on mixed
+    sets, and SEL3's conditional logit plus gamma x [the judge picked it], gamma fitted on the other half's mixed sets (grid 0-10). P1:
+    judge - SEL3 on mixed sets; P2: combination - SEL3 per turn over all sets, against the break-even 0.5 k 4.4 / 2.6 points (k = the
+    judge's mean k-tokens)."""
+    import random, zlib
+    from collections import defaultdict
+    import lcm_shift as L
+    tag = sys.argv[sys.argv.index("--judge-an") + 1]
+    C = os.path.join(os.path.dirname(RES), "conf")
+    load = lambda nm: {r["h"]: r["s"] for r in map(json.loads, open(f"{C}/sel_scores_{nm}.jsonl"))}
+    S = {0: load("mtso_h1"), 1: load("mtso_h0")}
+    J = {(r["model"], r["id"], r["seed"]): r for r in map(json.loads, open(f"{C}/mt_judge_{tag}.jsonl"))}
+    rows = [json.loads(l) for l in open(f"{C}/mt_sel2_rows.jsonl")]
+    base = lambda i: i.split("/")[0]
+
+    def cands(r):
+        g = {}
+        for k in ("N", "P", "T"):
+            g.setdefault(r["roll"][k][0], []).append(k)
+        Cc = [{"r": r["roll"][ks[0]][1], "calls": tuple(sorted(ks)), "s": S[r["half"]].get(L.rv_key("tc", "mt2", r["id"], "sel", t)), "t": t}
+              for t, ks in g.items()]
+        q = J.get((r["model"], r["id"], r["seed"]))
+        pick = None
+        if q and q.get("pick"):
+            T = list(g)
+            random.Random(zlib.crc32(f"{r['model']}{r['id']}{r['seed']}".encode())).shuffle(T)
+            pick = T["ABC".index(q["pick"])]
+        for c in Cc:
+            c["j"] = float(c["t"] == pick)
+        return Cc, pick is not None
+    toks = [q["out_tokens"] for q in J.values()]
+    k = sum(toks) / len(toks) / 1000
+    d1, d2, n = defaultdict(list), defaultdict(list), Counter()
+    for m in ("q8b", "q14a", "q35"):
+        R = [r for r in rows if r["model"] == m]
+        for h in (0, 1):
+            fitR, testR = [r for r in R if r["half"] != h], [r for r in R if r["half"] == h]
+            mk = lambda rs: [((r["id"], r["seed"]), r["seed"], cands(r)[0], r["roll"]["T"][1]) for r in rs]
+            fit = mk(fitR)
+            choose, beta = L.sel_fit_cl([(i, s, [dict(c, s=0.0) for c in Cc], dr) for i, s, Cc, dr in fit], fit)
+            st = choose.state
+            sk = lambda Cc: tuple(sorted(c["calls"] for c in Cc))
+            lg = lambda Cc, c: math.log((st["rt"][(sk(Cc), c["calls"])] + 0.5) / (st["cnt"][(sk(Cc), c["calls"])] + 1))
+            u0 = lambda Cc, c: lg(Cc, c) + st["beta"] * (c["s"] - sum(x["s"] for x in Cc) / len(Cc)) / st["sd"]
+            mixed = [Cc for _, _, Cc, _ in fit if any(c["r"] for c in Cc) and not all(c["r"] for c in Cc)]
+
+            def ll(g):
+                t = 0.0
+                for Cc in mixed:
+                    u = [u0(Cc, c) + g * c["j"] for c in Cc]
+                    mx = max(u)
+                    t += math.log(sum(math.exp(x - mx) for x, c in zip(u, Cc) if c["r"])) - math.log(sum(math.exp(x - mx) for x in u))
+                return t
+            gam = max((g / 10 for g in range(0, 101)), key=ll)
+            n[(m, h, "gamma")] = gam
+            for r in testR:
+                Cc, has = cands(r)
+                c0 = choose(((r["id"], r["seed"]), r["seed"], Cc, r["roll"]["T"][1]))
+                ok0 = c0["r"] if c0 else r["roll"]["T"][1]
+                if c0 is None:
+                    ok2 = ok0
+                else:
+                    ok2 = max(Cc, key=lambda c: u0(Cc, c) + gam * c["j"])["r"]
+                d2[base(r["id"])].append(float(ok2) - float(ok0))
+                if any(c["r"] for c in Cc) and not all(c["r"] for c in Cc) and has:
+                    q = J[(m, r["id"], r["seed"])]
+                    d1[base(r["id"])].append(float(bool(q["right"])) - float(ok0))
+                    n[("mixed", m)] += 1; n[("sel3", m)] += ok0; n[("judge", m)] += bool(q["right"]); n[("both", m)] += ok2
+    for m in ("q8b", "q14a", "q35"):
+        print(f"=== {m}: mixed sets {n[('mixed', m)]}: SEL3 {100 * n[('sel3', m)] / n[('mixed', m)]:.1f}%, judge {100 * n[('judge', m)] / n[('mixed', m)]:.1f}%, "
+              f"combination {100 * n[('both', m)] / n[('mixed', m)]:.1f}%; gamma h0 {n[(m, 0, 'gamma')]:.1f}, h1 {n[(m, 1, 'gamma')]:.1f}")
+    p1 = ci({i: sum(v) / len(v) for i, v in d1.items()})
+    p2 = ci({i: sum(v) / len(v) for i, v in d2.items()})
+    be = 0.5 * k * 4.4 / 2.6
+    print(f"judge tokens {k:.2f}k; capped {sum(q['finish'] == 'length' for q in J.values())}, no letter {sum(not q.get('pick') for q in J.values())} of {len(J)}")
+    print(f"*** MT-JG-P1 (judge - SEL3 on mixed sets, lower bound > 0): {p1[0]:+.2f} [{p1[1]:+.2f}, {p1[2]:+.2f}] -> {'holds' if p1[1] > 0 else 'refuted'}")
+    print(f"*** MT-JG-P2 (combination - SEL3 per turn, all sets, at least the break-even {be:.2f}): {p2[0]:+.2f} [{p2[1]:+.2f}, {p2[2]:+.2f}] -> "
+          f"{'holds' if p2[1] > 0 and p2[0] >= be else 'refuted'}")
+
+
 if __name__ == "__main__":
-    if "--sel-env-build" in sys.argv:
+    if "--judge-an" in sys.argv:
+        main_judge_an()
+    elif "--sel-env-build" in sys.argv:
         main_sel_env_build()
     elif "--so-env-build" in sys.argv:
         main_so_env_build()
