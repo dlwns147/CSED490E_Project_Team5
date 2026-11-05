@@ -769,3 +769,17 @@ The first run (jobs 1324967, 1324968) was stopped partway, 26 translations in. I
 - **SOUND-FIX-P2:** with true facts no longer rejected, held out 7–9 of 65 and IMO-AG-30 12–14 of 30: equal or slightly more than the first rerun, because few facts were rejected.
 - **SOUND-FIX-P3:** plain Newclid's re-audit gives at most 13 of 57 with a false statement.
 - POOL-P1 to P3 stand as registered and are decided on the second rerun.
+
+### SIDE-GT-SOUND: a second fault in the same test, and a third rerun (written 2026-11-05 19:1x UTC; predictions above unchanged)
+
+**Second rerun, first stage.** Held out 7 of 65 (the same 3 and 4 problems). IMO-AG-30 12 of 30 (10 by DDAR alone and 2 with one point); IMO 2013 P4 now falls to DDAR alone and IMO 2016 P1 is new, while IMO 2004 P1 is lost. SOUND-FIX-P2 (7–9 and 12–14) holds at its lower end on this rerun.
+
+**The fault.** The plain Newclid re-audit flagged 27 of 56 proofs, against the "at most 13" I predicted (SOUND-FIX-P3). I read the rows with few flags: they are statements like `para c p c k1` and `para a e a d`, where the two lines are one line. Newclid uses these to say that three points are collinear, so they are true. I had kept Newclid's exclusion of a line from being parallel to itself, which in its own check rarely fired because of rounding; on the normalized test it always fires. So the second rerun's guard rejected those true facts.
+
+**The fix.** `para` now tests only that the two directions agree.
+
+**Check before rerunning.** I logged every rejection in a guarded sample of the audit list, about 80 s in all (`nlp_data/geo/lem9.py`), tolerance 1e-7: tens of thousands of checks, 2 rejections (an `eqangle` and an `eqratio`), and both still fail at 1e-3. So on this sample the guard rejects only facts that are false by far more than rounding.
+
+**Third rerun.** The whole pipeline in `results/proof/sound3/`, and a re-audit of plain Newclid. SOUND-P1 and POOL-P1 to P3 are decided on it. Earlier reruns' pooling runs are cancelled and count for nothing.
+
+**Predictions, written before the third rerun.** SOUND-FIX-P2 and P3 stand as written.

@@ -193,8 +193,8 @@ def num_holds(st, tol=1e-7):
         return False
     if st.predicate.value == "perp":
         return bool(abs(ux * vx + uy * vy) / (nu * nv) < tol)
-    # as in Newclid, a line is not parallel to itself
-    return bool(abs(ux * vy - uy * vx) / (nu * nv) < tol and abs((c.x - a.x) * uy - (c.y - a.y) * ux) / nu >= tol)
+    # same direction: Newclid's `para c p c k` also says that c, p, k are collinear, so two lines that are one are not excluded here
+    return bool(abs(ux * vy - uy * vx) / (nu * nv) < tol)
 
 
 def patch_newclid():

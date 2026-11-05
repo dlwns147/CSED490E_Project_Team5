@@ -23,10 +23,16 @@ Side work may use the Slurm server's GPUs: a model server and client commands ru
 | Lean (main track, `PREREG_PROOF.md`) | A specialised 8B prover is best; the compiler is a perfect check | Not a side-project gap at present |
 | Constructions (`construct.py`) | Unsolved for an 8B model; its own checker is not a usable free check | A derived free check, or a search the problem's structure makes exact |
 
-**Running now (geometry, SIDE-GT-SOUND and SIDE-GT-POOL):** a second rerun with the guard's fault fixed: single auxiliary points, then pooling
+**Running now (geometry, SIDE-GT-SOUND and SIDE-GT-POOL):** a third rerun with the guard's faults fixed: single auxiliary points, then pooling
 and random pairs, then the audit on every proof found.
 
 ## Log
+
+**2026-11-05 19:1x UTC: a second fault in the same test; a third rerun.** My fix kept Newclid's rule that a line is not parallel to itself, but Newclid also
+writes `para c p c k` to say that c, p, k are collinear. The fixed test therefore rejected those true facts, and the plain re-audit flagged them
+(27 of 56). Now `para` only compares directions. In a guarded sample, 2 of tens of thousands of checks are rejected, both false by far more
+than rounding. Everything reruns in `results/proof/sound3/`. The second rerun's first stage gave the same counts, 7 of 65 and 12 of 30, with two problems
+changed in the references.
 
 **2026-11-05 17:0x UTC: the guard and the audit had a fault; the pipeline reruns again.** The audit of those 43 proofs: all reran with no error, and I read
 the flagged statements. All are `para` or `perp`, and all are true (sine or cosine at most 1e-10). Newclid tests these two against an absolute
