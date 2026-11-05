@@ -102,8 +102,10 @@ OptMATH is partly broken: its statements omit what its gold answers need.
 - **MT-PW:** a pairwise verifier adds +0.9 points per turn, too little to move conversations, so the online arm was not run.
 - **Derived:** the verifier's remaining wrong picks are confident ones. A confidence gate, on-policy training and the comparison
   format are therefore not where the last 10 points are.
-- **MT-SD:** showing the verifier each candidate's state change gives +0.1 per turn. The last 10 points need a judge that knows
-  more, at its full cost, and are left open.
+- **MT-SD and MT-JG:** showing the verifier each candidate's state change gives +0.1 per turn, and a thinking judge chooses worse
+  than the trained verifier and adds nothing to it. The verifier line is closed.
+- **Running, MT-RN:** better candidates instead of a better judge. In 5–14% of turns no candidate is right, so a quick turn trained
+  on open data joins the set if it adds at least 1.9 points of per-turn oracle.
 - **Geometry, second track:**
   - 10 of 65 held-out problems are proved end to end, 8 of them certified without hand reading (SIDE-GT-AGREE).
   - Model-proposed auxiliary points add nothing over random ones (SIDE-GT-AUXP).
