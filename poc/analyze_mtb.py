@@ -294,6 +294,14 @@ def main_sel2():
     if pw:   # addendum MT-PW: the pairwise verifier (pairs of the other half's training); a rollout's score is set-dependent
         VS["PW"] = {0: dict(load(pw[1]), _pw=True), 1: dict(load(pw[0]), _pw=True)}
     rows = [json.loads(l) for l in open(f"{C}/mt_sel2_rows.jsonl")]
+    sd = sys.argv[sys.argv.index("--sd") + 1].split(",") if "--sd" in sys.argv else None
+    SDMAP = {}
+    if sd:   # addendum MT-SD: the verifier that reads each rollout's state change; its texts are mt_sd_rows' (same order as mt_sel2_rows)
+        for r0, l in zip(rows, open(f"{C}/mt_sd_rows.jsonl")):
+            r1 = json.loads(l)
+            for k in r0["roll"]:
+                SDMAP[(r0["id"], r0["roll"][k][0])] = r1["roll"][k][0]
+        VS["SD"] = {0: dict(load(sd[1]), _sd=True), 1: dict(load(sd[0]), _sd=True)}
     f = lambda v: f"{v[0]:+.2f} [{v[1]:+.2f}, {v[2]:+.2f}]"
     tg = lambda k: str(k) if k < 3 else "3+"
     base = lambda i: i.split("/")[0]
@@ -305,6 +313,8 @@ def main_sel2():
     def sc(S, i, t, texts=()):
         if synth:
             return random.Random(L.rv_key("tc", "mt2", i, "sel", t)).gauss(0, 2)
+        if S.get("_sd"):   # MT-SD: the same rollout's text with its state change
+            return S.get(L.rv_key("tc", "mt2", i, "sel", SDMAP.get((i, t), t)))
         if S.get("_pw"):   # MT-PW: mean over the set's other texts b of (s(t, b) - s(b, t)) / 2; one distinct text scores 0
             xs = [(S.get(L.rv_key("tc", "mt2", i, "pw", [t, b])), S.get(L.rv_key("tc", "mt2", i, "pw", [b, t]))) for b in texts if b != t]
             if any(x is None or y is None for x, y in xs):
@@ -343,7 +353,7 @@ def main_sel2():
                 test, ms = sets(testR, S)
                 miss[nm] += ms
                 choose, beta = L.sel_fit_cl(z0(fit), fit)
-                if nm == ("PW" if pw else "SEL3"):
+                if nm == ("PW" if pw else "SD" if sd else "SEL3"):
                     st = choose.state
                     out[f"h{h}"] = {"cnt": {f"{k[0]!r}|{k[1]!r}": v for k, v in st["cnt"].items()},
                                     "rt": {f"{k[0]!r}|{k[1]!r}": v for k, v in st["rt"].items()}, "beta": st["beta"], "sd": st["sd"]}
@@ -367,7 +377,7 @@ def main_sel2():
             for k, v in U2["SEL3"].items():
                 if k in U2["ref3"] and "/t" in k[0]:
                     vsref[base(k[0])].append(v - U2["ref3"][k])
-        json.dump(out, open(f"{RES}/mt_so{'pw' if pw else 'env' if env else ''}_fit_{m}{'_synth' if synth else ''}.json", "w"))
+        json.dump(out, open(f"{RES}/mt_so{'pw' if pw else 'sd' if sd else 'env' if env else ''}_fit_{m}{'_synth' if synth else ''}.json", "w"))
         print(f"=== MT-SO offline {m}: missing scores {dict(miss)}, unseen structures keep T {dict(unseen)}; fit written "
               f"(beta_CL h0 {out['h0']['beta']:.2f}, h1 {out['h1']['beta']:.2f})", flush=True)
         for g in ("0", "1", "2", "3+"):
@@ -377,13 +387,13 @@ def main_sel2():
             au = lambda nm: sum(AU[nm][g]) / max(1, len(AU[nm][g]))
             print(f"    turn {g}: {len(A['SEL3'][g])} sets; T {sum(At[g]) / len(At[g]):.1f}%; "
                   + "; ".join(f"{nm} {sum(A[nm][g]) / len(A[nm][g]):.1f}%, AUROC {au(nm):.3f}, - T {f(per(nm))}" for nm in VS), flush=True)
-    if pw:   # MT-PW-P1: per-turn choice accuracy, PW - SEL3, all turns, three models pooled, intervals over items
+    for nm2 in [x for x in ("PW", "SD") if x in VS]:   # MT-PW-P1 / MT-SD-P1: per-turn choice accuracy against SEL3, pooled
         dd = defaultdict(list)
-        for k, v in OK["PW"].items():
+        for k, v in OK[nm2].items():
             if k in OK["SEL3"]:
                 dd[base(k[1])].append(float(v) - float(OK["SEL3"][k]))
         p1 = ci({i: sum(v) / len(v) for i, v in dd.items()})
-        print(f"*** MT-PW-P1 (per-turn choice accuracy, PW - SEL3, pooled, lower bound > 0): {p1[0]:+.2f} [{p1[1]:+.2f}, "
+        print(f"*** MT-{nm2}-P1 (per-turn choice accuracy, {nm2} - SEL3, pooled, lower bound > 0): {p1[0]:+.2f} [{p1[1]:+.2f}, "
               f"{p1[2]:+.2f}] points -> {'holds' if p1[1] > 0 else 'refuted'}")
     p3 = ci({i: sum(v) / len(v) / 100 for i, v in later["SEL3"].items()})
     print(f"*** MT-SO-P3 (SEL3 - T on the later turns' pseudo-sets, three models pooled, lower bound > 0): {f(p3)} -> "
