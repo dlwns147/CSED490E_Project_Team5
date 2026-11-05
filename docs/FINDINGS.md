@@ -5641,3 +5641,14 @@ On the 64 items that are statements to prove (34 false, 30 true):
   is inside for Qwen3-8B and 0.4 above the interval for Qwen3.5-9B; the ratio form is inside for both.
 - Missing parameters gains least (+5.3 / +0.6), the act-or-ask choice that MT-PW (training) targets.
 - Claim: within BFCL, the per-turn choice transfers to unseen environment classes. Beyond BFCL is SIDE-ENV's test.
+
+## 2026-11-05 00:3x UTC: SIDE-GT-AUXP (pre-registered): auxiliary points proposed by Qwen3.6-27B prove nothing random points miss (P1 refuted), at a fifth of the DDAR calls
+- Proposals (thinking, then a list under an input-dependent grammar; up to 16 per translation) against 64 random points, on
+  translations DDAR alone did not prove.
+  - Reference translations: model 2 problems, random 4.
+  - Held-out faithful translations: model 5, random 7.
+  - Problems proved only by the model: 0.
+- When both succeed, the model needs fewer tries (1–9 against 4–41) and 695 DDAR calls against 3,514 in total, at 26–31k tokens
+  per translation. The points it misses are the less obvious ones, such as the reflection of A in OK for IMO 2010 P2.
+- Decision: random points stay. A derived point-selection criterion (new deductions about the goal's points) comes before training.
+  This is a second-track item for the teammate.

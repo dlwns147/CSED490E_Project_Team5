@@ -615,3 +615,24 @@ over the points both name. A translation with an added or dropped hypothesis bre
 **Decision (registered):** corroboration replaces hand reading for counting end-to-end proofs in later geometry runs, with hand
 reading as an audit. It needs at least two guarded translations per problem, so k (samples per problem) now also buys
 certification. The check's blind spot stays as predicted: a misreading shared by every sample.
+
+## Results of SIDE-GT-AUXP (written 2026-11-05 00:3x UTC; proposals job 1318352, DDAR job 1319460; `results/proof/gt_{refs,gteval_q36_tg}_auxp.jsonl`)
+
+| set | problems | random (64 tries) | model (≤ 16 proposals) | model only | random only |
+|---|---|---|---|---|---|
+| references | 26 | 4 | 2 | 0 | 2 (IMO 2010 P2, IMO 2014 P4) |
+| held out (faithful) | 16 | 7 | 5 | 0 | 2 (USAMO 2010 P1, ISL 2016_23) |
+
+- **AUXP-P1 refuted:** the model's points prove no problem that random points miss.
+- **AUXP-P2:**
+  - Where both prove a problem, the model finds the point sooner: fewest tries per problem 1, 1, 2, 4, 9 on the held-out set,
+    against 4, 5, 12, 19, 41 for random. USAMO 2008 P2 falls on its first proposal, the circumcentre of ABC.
+  - DDAR calls in total: 695 for the model, 3,514 for random.
+  - The model spends 26–31k tokens per translation.
+- **Reading:** the model proposes the textbook points (circumcentres, feet, the second intersection with the circumcircle). The four
+  problems only random points prove need a less obvious point, such as the reflection of A in OK for IMO 2010 P2, which breadth
+  finds and the model does not propose.
+
+**Decision (registered):** an untrained general model does not know which point a solution needs in this language beyond the
+obvious ones. The pipeline keeps random points; model proposals would only save CPU. The next step is a derived criterion for
+choosing points, before any training. Example: rank candidates by the new facts a short DDAR run derives about the goal's points.
