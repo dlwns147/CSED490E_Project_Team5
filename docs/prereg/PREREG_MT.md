@@ -929,3 +929,33 @@ Qwen3-8B thinking, 4,098 mixed sets, 0.87k tokens per set (97 capped, 7 without 
 
 **Decision (registered):** the choice stays the verifier's, and the agent-loop verifier is final for this project. Format, state view,
 calibration and a thinking judge have all been tried. Thinking does not bring what the trained verifier lacks.
+
+## Addendum MT-RN: better candidates instead of a better judge: a quick turn trained on open data (written 2026-11-05 09:2x UTC, before any rollout of the trained model on BFCL multi-turn)
+
+**Why (derived).**
+- The verifier line is closed, but the compounding model names a second ceiling: the choice can only pick among what the set holds.
+  In 5–14% of Qwen3-8B's pseudo-sets (by turn) no candidate is right. Even a perfect choice stops at 63.7%.
+- SHARP (10-30) showed that plain RL's gain lies on items no base sample answers right: it adds answers.
+- The trained quick calls (C1tc, trained on 6,000 open ToolACE requests, none from BFCL) mainly learned when not to call. That is the
+  act-or-ask choice behind the verifier's errors and many none-right sets on the miss_* categories.
+- A quick turn costs about a tenth of a thinking turn, so swapping it in costs almost no tokens.
+
+**Related.** TRUST (2606.06976) and 2606.00135 train tool-calling models with RL and report gains on BFCL's multi-turn split. New
+here: the trained turn as one candidate in a verifier's choice set, valued in advance by the compounding model.
+
+**Run.**
+- Qwen3-8B with `$POC_DATA/cv/tc1/adapter_final`, arm N (`run_mt.py q8btc N <s>`), 600 items, seeds 1–3, tensor parallel on two
+  GPUs. Graded with `grade_mt.py q8btc N`.
+- `mt_peer0.py --rn q8btc`: per-turn labels by `turn_track`; on Qwen3-8B's pseudo-sets of the same item, seed and turn, where the
+  trained trajectory is still right through k−1, Δo = oracle{N, P, T, N_tr} − oracle{N, P, T}. Intervals over items.
+
+**Predictions.**
+- **MT-RN-P1:** the trained turn's whole-conversation accuracy exceeds the base N's (about 16.7%).
+- **MT-RN-P2 (decision):** an online arm can see a conversation gain of about 3 points. The gain is about 2.6 × (the verifier's share
+  of oracle gains, about 0.6) × Δo, so the bar is **Δo ≥ 1.9 points per turn**, with the lower bound > 0.
+- **Expected:** P1 holds (a +3 to +8 gain, mostly on miss_*). Δo +1 to +3, so P2 is uncertain.
+
+**Decision.**
+- **P2 holds** → an online arm: S with the trained turn as a fourth candidate, the existing verifier unchanged.
+- **P2 refuted** → training for single calls does not add the answers conversations lack. Training on multi-turn rollouts
+  themselves (labels by scenario half) is the next candidate.

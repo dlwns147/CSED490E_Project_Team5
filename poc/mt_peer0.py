@@ -559,8 +559,54 @@ def main_judge():
                 print(f"  failed: {type(e).__name__}: {str(e)[:200]}", flush=True)
 
 
+def main_rn():
+    """addendum MT-RN (--rn <tag>): the trained quick turn's trajectories (rows of <tag>, arm N) against Qwen3-8B's pseudo-sets: on a set of
+    the same item, seed and turn where the trajectory is right through k-1, the oracle of {N, P, T} with and without its turn"""
+    from collections import defaultdict
+    import random
+    tag = sys.argv[sys.argv.index("--rn") + 1]
+    P = {p["id"]: p for p in map(json.loads, open(DATA))}
+    X = rows(tag, "N")
+    C = os.path.join(ROOT, "results", "conf")
+    F, n = {}, 0
+    tg = lambda k: str(k) if k < 3 else "3+"
+    A = defaultdict(lambda: [0, 0, 0, 0])   # turn group: sets, oracle of three, oracle with the trained turn, the trained turn right
+    D = defaultdict(list)
+    for r in map(json.loads, open(f"{C}/mt_sel2_rows.jsonl")):
+        if r["model"] != "q8b":
+            continue
+        i, k, s = r["id"].split("/")[0], r["turn"], r["seed"]
+        x = X[s].get(i)
+        if x is None:
+            continue
+        if (i, s) not in F:
+            F[(i, s)] = turn_track(P[i], x, f"rn{n}"); n += 1
+        f = F[(i, s)]
+        if f < k or k >= len(x["turns"]):
+            continue
+        o3 = any(r["roll"][j][1] for j in ("N", "P", "T"))
+        ok = f > k
+        a = A[tg(k)]
+        a[0] += 1; a[1] += o3; a[2] += o3 or ok; a[3] += ok
+        D[i].append(float(ok and not o3))
+        A[(i.rsplit("_", 1)[0], tg(k))][0] += 1; A[(i.rsplit("_", 1)[0], tg(k))][2] += float(ok and not o3)
+    for g in ("0", "1", "2", "3+"):
+        a = A[g]
+        print(f"turn {g}: {a[0]} sets; oracle N,P,T {100 * a[1] / a[0]:.1f}%; with the trained turn {100 * a[2] / a[0]:.1f}%; the trained turn alone {100 * a[3] / a[0]:.1f}%", flush=True)
+    for c in sorted({k[0] for k in A if isinstance(k, tuple)}):
+        print(f"  {c}: rescued at turn 0 {100 * A[(c, '0')][2] / max(1, A[(c, '0')][0]):.1f}% of sets", flush=True)
+    ids = sorted(D); rng = random.Random(0)
+    per = {i: sum(D[i]) / len(D[i]) for i in ids}
+    bs = sorted(sum(per[rng.choice(ids)] for _ in ids) / len(ids) for _ in range(2000))
+    m = sum(per.values()) / len(ids)
+    print(f"*** MT-RN-P2: delta oracle per turn {100 * m:+.2f} [{100 * bs[50]:+.2f}, {100 * bs[1949]:+.2f}] points (bar 1.9, lower bound > 0): "
+          f"{'holds' if bs[50] > 0 and 100 * m >= 1.9 else 'refuted'}", flush=True)
+
+
 if __name__ == "__main__":
-    if "--judge" in sys.argv:
+    if "--rn" in sys.argv:
+        main_rn()
+    elif "--judge" in sys.argv:
         main_judge()
     elif "--state-diff" in sys.argv:
         main_state_diff()
