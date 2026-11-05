@@ -129,6 +129,12 @@ Every fixed rule loses to thinking at every step:
 - In 72% of wrong picks, the chosen candidate leaves a different state change from every right one. A verifier shown the state
   change still chooses no better (MT-SD: +0.1 per turn). What remains is what the verifier knows, not what it sees or how sure
   it is.
+- A thinking judge chooses worse than the trained verifier (82.5–84.7% of 4,098 mixed sets, against 88.9–92.6%) and, added as a
+  fitted feature, gives −0.37 [−0.80, +0.07] per turn (MT-JG). Labels beat reasoning for this choice, as they did on single tool
+  calls (SEL-RM).
+- Better candidates instead of a better judge: a quick turn trained on open single-call data gets 15.8% of conversations right
+  against 16.7%, because it learns not to act (MT-RN). By the compounding model it would add +1.7 points, below what an online test
+  can see, so that arm was not run.
 
 ## 3. Why each step: development findings
 
