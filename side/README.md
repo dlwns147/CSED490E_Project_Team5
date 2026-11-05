@@ -1,9 +1,11 @@
-# Second track: algorithmic components
+# Side project: proofs
 
-This folder is for the second track: components built around algorithms (search, checks, generators), plugged into the existing
-pipeline through a file format and judged by a pre-registered test in `docs/prereg/PREREG_SIDE.md`. Side work may use the Slurm
-server's GPUs: a model server and client commands run as one job through `poc/slurm/job.sh` and `poc/slurm/lane.sh` (see the root
-`README.md`, section on Slurm).
+The side project is **proofs**: getting exactly right proofs from open models at low cost, in natural language, in Lean, by translation
+into a symbolic engine, and by computing an object that proves a statement exists. Everything about it is recorded in this folder, with
+the status and the dated log in this file. Decisive runs are pre-registered in `docs/prereg/PREREG_SIDE.md`.
+
+Side work may use the Slurm server's GPUs: a model server and client commands run as one job through `poc/slurm/job.sh` and
+`poc/slurm/lane.sh` (see the root `README.md`, section on Slurm).
 
 **Working rules:**
 - Work in a fork, or on a branch of this repository. Add files under `side/`, and don't change `poc/` scripts.
@@ -12,77 +14,46 @@ server's GPUs: a model server and client commands run as one job through `poc/sl
 - Never commit model outputs, logs, benchmark texts, server addresses or keys. `*.jsonl` and `*.log` are ignored on purpose.
 - Read `PROJECT.md` §1 for the goal: exactly right answers at the lowest cost, utility = 100·right − 0.5·(thousand output tokens).
 
-## A. Generated agent environments (`side/envs/`, `side/gen_*.py`)
+## Where it stands
 
-**What for:** the multi-turn methods (a verifier choosing among sandboxed turn rollouts) are trained and tested on BFCL v4's 8
-environments. A new environment family with algorithmic ground truth is a test no verifier has seen.
+| Route | State | Hardest open gap |
+|---|---|---|
+| Geometry by translation (`geo_translate.py`) | Rerunning under a guard, because Newclid derives false facts (see the log) | A prover that is sound and goes beyond DDAR alone: more than one auxiliary point |
+| Natural-language proofs | Computational checks of a proof failed (SIDE-PF, SIDE-PG) | A free check that sees a step left unjustified while true, the most common error |
+| Lean (main track, `PREREG_PROOF.md`) | A specialised 8B prover is best; the compiler is a perfect check | Not a side-project gap at present |
+| Constructions (`construct.py`) | Unsolved for an 8B model; its own checker is not a usable free check | A derived free check, or a search the problem's structure makes exact |
 
-**What a family is:**
-1. **A class.** Methods are the tools, the state lives in public attributes, `_load_scenario(config)` loads the state, and errors are
-   returned as `{"error": ...}`. See `envs/package_manager.py`.
-   - A result must depend only on the call and the state before it. Never put counters or call order in a result.
-2. **A generator.** It writes BFCL-format items: `id`, `cat`, `system` (BFCL's header plus the function docs), `turns`,
-   `initial_config`, `involved_classes`, `ground_truth`.
-   - The ground truth of a turn is computed by an algorithm, such as a resolver, a search or a shortest plan, under a policy the
-     function docs state.
-   - The end state must be unique under that policy. BFCL grades by the end state plus an unordered check of the results.
-   - Each request must state the rule it implies (which dependencies, which version, what to clean up), as BFCL's requests do. The
-     first version of the package manager left two conventions to the function docs, and no model followed them, thinking or not:
-     2.5% right (`PREREG_SIDE.md`, SIDE-ENV results).
-   - Keep every request kind at no more than a third of the turns. In the second version (rules stated), half of the turns were
-     removals with clean-up, and those capped whole conversations at 17.5% with thinking (SIDE-ENV-2).
-   - See `gen_pkg.py` and `gen_cal.py`.
+**Running now (geometry, SIDE-GT-SOUND and SIDE-GT-POOL):** single auxiliary points under the guard, then pooling and random pairs, then
+the audit on every proof found.
 
-**What a family must show** (from three tries: SIDE-ENV, -2, -3):
-- Thinking pays. It did in both families, by +15 to +50 points.
-- Qwen3-8B with thinking is right in at least 20% of conversations. Both families missed this: 17.5% (packages) and 15% (calendar,
-  one booking, one move and one cancellation per conversation).
-  - A conversation is right only if every turn is: with a per-turn right rate q, k turns give about q^k. In the calendar, thinking
-    got 14 of 28 bookings, 16 of 21 moves and 8 of 23 cancellations right (each counted until the conversation's first wrong
-    turn), so three turns land near 0.5 × 0.76 × 0.35 ≈ 13%.
-  - Choose the number of turns and the request kinds from a small pilot's q, so that q^k for Qwen3-8B with thinking falls in
-    [20%, 85%].
-- An error in a turn tells a right turn from a wrong one no better than on BFCL. Otherwise a check that escalates on errors would
-  already do the verifier's job.
-  - Measure the error rate of right turns against wrong turns, up to each conversation's first wrong turn (`analyze_env.py`
-    prints it), and pre-register it that way.
-  - BFCL's anchor (turn 0, `results/conf/mt_sel_rows.jsonl`): Qwen3-8B's quick turns show an error in 33% of right turns and 75%
-    of wrong ones; with thinking, 29% and 57%.
-  - In the calendar it was 9 of 9 right turns and 35 of 40 wrong ones (quick), because the model guesses ids and room names in the
-    same step as the reads. That is less separation than BFCL's. SIDE-ENV-3 counted the share of failures without an error instead,
-    a measure that fails a family where errors are everywhere.
-3. **The CPU check**, which must pass before any model runs:
-   `python side/check_env.py <items.jsonl> <Class=side.envs.module> --negative '<a correct fragment>' '<a mistake>'`.
-   - The ground truth must be valid for every item.
-   - A deliberate mistake must make most items invalid.
+## Log
 
-**Ideas for the next families:** each should have real constraints and a policy with one answer. The package manager and the
-team calendar (`envs/team_calendar.py`) are closed as test beds, and they are examples of the interface.
-- Bank transfers under daily limits and fees: the cheapest valid sequence.
-- A warehouse: picking under capacity, shortest route.
+**2026-11-05 14:5x UTC: DDAR alone survives the guard.** Rerun with `GT_SOUND=1` at 60 s, then read against the earlier run. The audit of these proofs
+is still to come.
+- Dev: the same 7 translations and 4 problems (IMO 2010 P4, 2014 P4, 2015 P4, 2017 P4).
+- Held out: the same 8 translations and 5 problems, of which the same 3 count as faithful (Pan African 2002, Romanian NMO 2006,
+  ISL 2012_16).
+- Translations whose DDAR run raised an error: 21 → 3 on the held-out set, 5 → 0 on dev.
+- So the loss is expected in the auxiliary-point results, whose rerun is running. The withdrawn counts stay withdrawn until it finishes.
 
-Add a "missing parameter" variant: a turn that lacks a needed value has an empty ground truth, and the next turn supplies the value, as
-in BFCL's `multi_turn_miss_param`.
+**2026-11-05 14:4x UTC: Newclid's proofs are not exact (SIDE-GT-SOUND).** While reading an early proof of ISL 2004 G8, I found CE = DE given as
+a premise and AB ∥ CD derived from it, and neither holds in general. Newclid 2.0.2 checks the goal numerically and has an option, off by
+default, to check an added statement, so a false fact can spread and "prove" a true goal.
+- **Audit** of 68 recorded proofs (`geo_translate.py audit`), every statement tested on its own figure at 1e-4: with plain Newclid, 57
+  reran, 16 use a false statement, and 20 rows raised errors. With the guard (`GT_SOUND=1`, every derived fact and merge must hold on the
+  run's figure), 47 reran, none uses a false statement, and no row raised an error.
+- **Withdrawn until the rerun finishes:** 10 of 65 held-out problems with one auxiliary point, 8 of 65 with no human in the loop, the four
+  shortlist problems, and IMO-AG-30's 14 of 30.
+- **Still to read:** IMO 2000 P1's proof uses `cong e q p e` with no reason given, though it holds on all 8 fresh figures. A few statements
+  fail on some fresh figures where the goal holds, which may be another intersection point.
+- Newclid 3.0.1 exists and has not been tried. HAGeo (2512.00097) also has an appendix on a fallacious AlphaGeometry proof of IMO 2020 P1.
 
-**The main track runs** `poc/run_mt.py` and `poc/grade_mt.py` unchanged, with
-`MT_CLASSES=<Class>=side.envs.<module> MT_ITEMS=<items>`. Then `python side/analyze_env.py <Class=side.envs.module> <items.jsonl>
-<tag>` gives the registered numbers for any family: right and tokens per arm, thinking minus quick with its interval, and, for each
-failed conversation, the first turn where its state leaves the ground truth's, which attributes differ there, and whether that turn
-showed an error.
+**2026-11-05 12:0x UTC: pooling facts across auxiliary points (SIDE-GT-POOL, registered).** Each point runs alone, and every fact it proves about
+the figure's own points goes into a pool, fed back as lemmas with no point added. That is k + 1 runs instead of k²/2 pairs. AlphaGeometry2's
+SKEST shares facts between trained-model search trees, with no ablation and no run without a language model, so the measurement here is
+what sharing adds on its own, with random points. Two faulty runs were stopped, as recorded in the prereg. No verdict yet.
 
-## B. Distinguishing sub-databases for SQL (`poc/sql_witness.py`; closed)
-
-**What it was for:** when two candidate SQL queries return different rows, a trained pairwise verifier picks one. A witness shows the
-verifier why the two queries differ: a few rows of the real database on which they still disagree.
-
-**What it does:** delta debugging over rows, with foreign keys closed and the results' shape kept as on the real database. It finds a
-witness for 98.4% of the target pairs, with a median of 3 rows.
-
-**Result (SIDE-W, 11-04):** the verifier trained with witnesses equals the one without, in every test set. The witnesses are right and
-readable, but the 8B verifier does not use them: its choice changes less than retraining alone changes it. Side project B is closed.
-The code stays as an example of a delta-debugging component.
-
-## C. Proofs (`side/proof_falsify.py`, `side/geo_translate.py`; geometry pipeline held-out tested)
+## Proofs (`side/proof_falsify.py`, `side/geo_translate.py`; section C in older records)
 
 **What the main track already knows** (`docs/prereg/PREREG_PROOF.md`):
 - Lean 4 (miniF2F): the compiler is a perfect check.
@@ -149,10 +120,13 @@ translates the statement into AlphaGeometry's construction language, and Newclid
       (4.6%; the registered bar of 5 was missed). One of the 3 is ISL 2012 G (2012_16), where frontier natural-language proofs are
       right 0 of 8 times.
   - **gpt-oss-120b:** declines 78 of 96 dev translations as unexpressible. It is faithful on 4 problems, and DDAR proves 1.
-- **Correction (11-05, SIDE-GT-SOUND):** the proof counts above and below assumed DDAR's proofs were exact. They are not. Newclid 2.0.2
-  checks only the goal numerically, and false facts spread: 16 of 57 recorded proofs that reran use a statement false on their own figure.
-  Run with `GT_SOUND=1` (a numerical guard on every derived fact), and audit proofs with `geo_translate.py audit`. A newer Newclid (3.0.1)
-  exists and has not been tried.
+- **Correction (11-05, SIDE-GT-SOUND):** counts of proofs here assumed DDAR's proofs were exact; see the log. Run with `GT_SOUND=1`, and audit
+  proofs with `geo_translate.py audit`.
+- **No human in the loop (SIDE-GT-AGREE):** agreement between independent translations replaces hand reading. On a figure built from one
+  translation, the other's construction predicates and goal must hold, both ways. Of 59 translations with blind verdicts, it accepted
+  no unfaithful one (0 of 6) and 47 of 53 faithful ones. This check is numerical, so the correction above does not touch it.
+- **Auxiliary points from the model (SIDE-GT-AUXP):** Qwen3.6-27B's proposed points proved nothing random points missed, though they found a
+  point in fewer tries (695 DDAR calls against 3,514). That was measured with plain Newclid, so it needs rereading under the guard.
 - So with a 27B translator the prover is the bottleneck. A project for algorithms work: auxiliary constructions when DDAR stops.
   Our first search is uniform over construction type, then over arguments. HAGeo's heuristics (28 of 30 on IMO-AG-30, random
   constructions 25) are the published target; their code is at github.com/boduan1/HAGeo.
@@ -168,9 +142,9 @@ translates the statement into AlphaGeometry's construction language, and Newclid
 None of these sees a step left unjustified while true, the most common error (85% of solutions in IneqMath), so a symbolic engine
 that proves, as in geometry, is the stronger route where one exists.
 
-## D. Constructions: the computation side of proofs (`side/construct.py`; held-out test done)
+## Constructions: the computation side of proofs (`side/construct.py`; section D in older records)
 
-**Why:** the side work on math runs two ways (user, 11-04): proofs (section C; geometry) and computation. A constructive problem
+**Why:** the side work on math runs two ways (user, 11-04): proofs (geometry, above) and computation. A constructive problem
 ("show that an object with these properties exists") is proved by the object, and whether an object is right is decided by computing.
 
 **Data:** MathConstruct (Balunović et al., 2502.10197; eth-sri/mathconstruct, MIT): 121 competition problems, each with a
@@ -201,3 +175,78 @@ development, 75 held out).
 
 **For algorithms work:** the program route is search (backtracking, SAT encodings, local search), and "search small cases, find the
 pattern, build the large case" is a method of its own.
+
+## Earlier second-track work (no longer the side project)
+
+These two components were built before the side project became proofs. They stay as examples of the interface and as records of what was
+tried. Pick either up only as a new proposal.
+
+### Generated agent environments (`side/envs/`, `side/gen_*.py`)
+
+**What for:** the multi-turn methods (a verifier choosing among sandboxed turn rollouts) are trained and tested on BFCL v4's 8
+environments. A new environment family with algorithmic ground truth is a test no verifier has seen.
+
+**What a family is:**
+1. **A class.** Methods are the tools, the state lives in public attributes, `_load_scenario(config)` loads the state, and errors are
+   returned as `{"error": ...}`. See `envs/package_manager.py`.
+   - A result must depend only on the call and the state before it. Never put counters or call order in a result.
+2. **A generator.** It writes BFCL-format items: `id`, `cat`, `system` (BFCL's header plus the function docs), `turns`,
+   `initial_config`, `involved_classes`, `ground_truth`.
+   - The ground truth of a turn is computed by an algorithm, such as a resolver, a search or a shortest plan, under a policy the
+     function docs state.
+   - The end state must be unique under that policy. BFCL grades by the end state plus an unordered check of the results.
+   - Each request must state the rule it implies (which dependencies, which version, what to clean up), as BFCL's requests do. The
+     first version of the package manager left two conventions to the function docs, and no model followed them, thinking or not:
+     2.5% right (`PREREG_SIDE.md`, SIDE-ENV results).
+   - Keep every request kind at no more than a third of the turns. In the second version (rules stated), half of the turns were
+     removals with clean-up, and those capped whole conversations at 17.5% with thinking (SIDE-ENV-2).
+   - See `gen_pkg.py` and `gen_cal.py`.
+
+**What a family must show** (from three tries: SIDE-ENV, -2, -3):
+- Thinking pays. It did in both families, by +15 to +50 points.
+- Qwen3-8B with thinking is right in at least 20% of conversations. Both families missed this: 17.5% (packages) and 15% (calendar,
+  one booking, one move and one cancellation per conversation).
+  - A conversation is right only if every turn is: with a per-turn right rate q, k turns give about q^k. In the calendar, thinking
+    got 14 of 28 bookings, 16 of 21 moves and 8 of 23 cancellations right (each counted until the conversation's first wrong
+    turn), so three turns land near 0.5 × 0.76 × 0.35 ≈ 13%.
+  - Choose the number of turns and the request kinds from a small pilot's q, so that q^k for Qwen3-8B with thinking falls in
+    [20%, 85%].
+- An error in a turn tells a right turn from a wrong one no better than on BFCL. Otherwise a check that escalates on errors would
+  already do the verifier's job.
+  - Measure the error rate of right turns against wrong turns, up to each conversation's first wrong turn (`analyze_env.py`
+    prints it), and pre-register it that way.
+  - BFCL's anchor (turn 0, `results/conf/mt_sel_rows.jsonl`): Qwen3-8B's quick turns show an error in 33% of right turns and 75%
+    of wrong ones; with thinking, 29% and 57%.
+  - In the calendar it was 9 of 9 right turns and 35 of 40 wrong ones (quick), because the model guesses ids and room names in the
+    same step as the reads. That is less separation than BFCL's. SIDE-ENV-3 counted the share of failures without an error instead,
+    a measure that fails a family where errors are everywhere.
+3. **The CPU check**, which must pass before any model runs:
+   `python side/check_env.py <items.jsonl> <Class=side.envs.module> --negative '<a correct fragment>' '<a mistake>'`.
+   - The ground truth must be valid for every item.
+   - A deliberate mistake must make most items invalid.
+
+**Ideas for the next families:** each should have real constraints and a policy with one answer. The package manager and the
+team calendar (`envs/team_calendar.py`) are closed as test beds, and they are examples of the interface.
+- Bank transfers under daily limits and fees: the cheapest valid sequence.
+- A warehouse: picking under capacity, shortest route.
+
+Add a "missing parameter" variant: a turn that lacks a needed value has an empty ground truth, and the next turn supplies the value, as
+in BFCL's `multi_turn_miss_param`.
+
+**The main track runs** `poc/run_mt.py` and `poc/grade_mt.py` unchanged, with
+`MT_CLASSES=<Class>=side.envs.<module> MT_ITEMS=<items>`. Then `python side/analyze_env.py <Class=side.envs.module> <items.jsonl>
+<tag>` gives the registered numbers for any family: right and tokens per arm, thinking minus quick with its interval, and, for each
+failed conversation, the first turn where its state leaves the ground truth's, which attributes differ there, and whether that turn
+showed an error.
+
+### Distinguishing sub-databases for SQL (`poc/sql_witness.py`; closed)
+
+**What it was for:** when two candidate SQL queries return different rows, a trained pairwise verifier picks one. A witness shows the
+verifier why the two queries differ: a few rows of the real database on which they still disagree.
+
+**What it does:** delta debugging over rows, with foreign keys closed and the results' shape kept as on the real database. It finds a
+witness for 98.4% of the target pairs, with a median of 3 rows.
+
+**Result (SIDE-W, 11-04):** the verifier trained with witnesses equals the one without, in every test set. The witnesses are right and
+readable, but the 8B verifier does not use them: its choice changes less than retraining alone changes it. Side project B is closed.
+The code stays as an example of a delta-debugging component.

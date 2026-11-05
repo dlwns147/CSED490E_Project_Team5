@@ -47,8 +47,8 @@ New types are welcome after a related-work check.
 | Instructions (IFEval, IFBench) | A model-written, executed checker gating thinking beats both modes in 4 of 6 cells (+1.1 to +2.5), at 1.0–2.6× the tokens: a gain, not a saving (IF-1). |
 | Short-answer math (MATH-500, AIME) | Text with thinking is best. A program is a second opinion: when text and program agree, 0.3–0.9% are wrong. |
 | Lean proofs (miniF2F) | A specialised 8B prover proves the most (Goedel-Prover-V2-8B, 180 of 244). Facts and repair from compiler errors do not help. |
-| Geometry proofs (side track, SIDE-GT) | The model translates the statement into a formal construction language, and a CPU engine (Newclid's DDAR) proves it. Held out: 19 of 65 problems are translated faithfully (judged blind). Agreement between independent translations certifies faithfulness without reading them: no unfaithful translation passed, and 98% of faithful ones did (SIDE-GT-AGREE). **Proof counts are withdrawn pending a rerun** (the earlier 10 and 8 of 65, and the claim about four shortlist problems): Newclid derives false facts, and an audit found them in 16 of 57 recorded proofs that reran. A numerical guard on every derived fact removes them in the same audit (SIDE-GT-SOUND). |
-| Constructions (side track, SIDE-MC) | Unsolved for an 8B model. A thinking answer and a thinking program solve different instances (23% and 18% alone, 33% together). The model's own checker rejects 28% of right objects, so it cannot pick between them. |
+| Geometry proofs (side project, SIDE-GT) | The model translates the statement into a formal construction language, and a CPU engine (Newclid's DDAR) proves it. Held out: 19 of 65 problems are translated faithfully (judged blind). Agreement between independent translations certifies faithfulness without reading them: no unfaithful translation passed, and 98% of faithful ones did (SIDE-GT-AGREE). **Auxiliary-point proof counts are withdrawn pending a rerun** (the earlier 10 and 8 of 65, and the claim about four shortlist problems): Newclid derives false facts, and an audit found them in 16 of 57 recorded proofs that reran. A numerical guard on every derived fact removes them in the same audit (SIDE-GT-SOUND). DDAR alone keeps its 3 of 65 under the guard. Details: `side/README.md`. |
+| Constructions (side project, SIDE-MC) | Unsolved for an 8B model. A thinking answer and a thinking program solve different instances (23% and 18% alone, 33% together). The model's own checker rejects 28% of right objects, so it cannot pick between them. |
 
 **Did not work** (do not retry without a new idea):
 
@@ -67,8 +67,8 @@ OptMATH is partly broken: its statements omit what its gold answers need.
   - Qwen3 4B–32B, Qwen3.5-9B, Qwen3.6 (27B, 35B-A3B);
   - gpt-oss 20b and 120b, Nemotron-3-Nano, Seed-OSS-36B;
   - the trained baselines STORM and ORLM, run on the same harness.
-- **The teammate's second track:** geometry proofs, constructions and generated agent environments. See `side/README.md`; its
-  experiments are pre-registered in `docs/prereg/PREREG_SIDE.md`.
+- **The side project is proofs** (user, 11-05): geometry, natural language, Lean, constructions. Its status and log live in
+  `side/README.md`, and its experiments are pre-registered in `docs/prereg/PREREG_SIDE.md`.
 
 ## 4. Working rules
 
@@ -89,7 +89,8 @@ OptMATH is partly broken: its statements omit what its gold answers need.
 3. **At least 3 seeds** for a positive claim, with 95% intervals over problems. A tie is a tie.
 4. **Accuracy with its cost:** always report output tokens.
 5. **Read the raw outputs.** Treat a surprising number as a bug until the raw outputs say otherwise.
-6. **Record** every result as a dated UTC entry in `docs/FINDINGS.md`. Proposal updates are paused (user, 11-05).
+6. **Record** every result as a dated UTC entry in `docs/FINDINGS.md`; side-project (proof) results go in `side/README.md` instead (user,
+   11-05). Proposal updates are paused (user, 11-05).
 7. **Git:** commit and push after each change. The repository is public: no keys, server addresses or raw outputs (`*.jsonl`,
    logs), and no co-author lines.
 8. **Write for a first-time reader:** what ran, the result with its cost, and what is next.
@@ -108,23 +109,14 @@ OptMATH is partly broken: its statements omit what its gold answers need.
   against 16.7%: it learned not to act. By the compounding model it would add +1.7 points, so the online arm was not run.
 - **Running, MT-RF:** a quick turn trained on BFCL's own right rollouts, half the scenarios for the other half. An online arm only if the
   compounding model gives at least 3 points; otherwise the agent-loop method is final for this project.
-- **Geometry, second track:**
-  - **Correction (SIDE-GT-SOUND):** DDAR's "proofs" are not exact. Newclid checks only the goal numerically, and false facts spread:
-    16 of 57 rerun proofs use a statement false on their own figure. With a numerical guard on every derived fact, none of 47 does, and
-    DDAR's crashes disappear. Earlier proof counts are withdrawn until the rerun under the guard finishes.
-  - Faithfulness by agreement (SIDE-GT-AGREE) is numerical and stands. Model-proposed auxiliary points against random ones
-    (SIDE-GT-AUXP) needs rereading under the guard.
-  - **Running, SIDE-GT-POOL under the guard:** problems one random point cannot prove need more than one. Rather than adding points
-    together, each point runs alone and the facts it proves about the original figure are pooled, which is k + 1 runs instead of
-    k² / 2.
+- **Side project (proofs):** earlier geometry proof counts are withdrawn, because Newclid derives false facts. They rerun under a numerical
+  guard, and pooling across auxiliary points is decided there. See `side/README.md`.
 
 **Next:**
 
 1. The final report (`docs/REPORT.md`), with the agent-loop result and its derivation at its centre.
-2. Second track, for the teammate:
-   - what SIDE-GT-POOL decides next: candidates ordered by chance of success per second, or a generator read backward from the goal;
-   - a free check for constructions;
-   - the per-turn choice beyond BFCL (τ²-bench, cloned to `$POC_DATA/tau2`; MIT; Python ≥ 3.12; train/test splits).
+2. Side project: see `side/README.md`.
+3. The per-turn choice beyond BFCL (τ²-bench, cloned to `$POC_DATA/tau2`; MIT; Python ≥ 3.12; train/test splits).
 
 ## 6. Documents
 
@@ -135,6 +127,6 @@ OptMATH is partly broken: its statements omit what its gold answers need.
 | `docs/prereg/PREREG_<id>.md` | one file per experiment: predictions, then results (index: `docs/README.md`) |
 | `docs/REPORT.md` | the final-report draft |
 | `docs/SLURM_HANDOFF.md` | cluster state, running jobs, environment |
-| `side/README.md` | the second track |
+| `side/README.md` | the side project (proofs): status, log, methods |
 | `docs/notes/` | the report outline, self-critique and related work |
 | `docs/proposal/` | the proposal and slides (paused) |

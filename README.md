@@ -28,7 +28,7 @@ docs/                          lab log (FINDINGS.md), pre-registrations (prereg/
                                the report draft (REPORT.md); index docs/README.md
 docs/proposal/                 the proposal: PROPOSAL.md, PROPOSAL_ko.md (the argument with every number, English, Korean),
                                the talk (Proposal_Team5*.pptx), the full findings deck, earlier versions (archive/)
-side/                          the second track: algorithmic components (generated environments, SQL witnesses, proof checks); side/README.md
+side/                          the side project, proofs: geometry by translation, natural-language checks, constructions; side/README.md
 results/                       problem sets and reference data (model outputs *.jsonl and logs are not in git)
 figs/                          figures (the proposal, the report and this manual share them)
 ```
