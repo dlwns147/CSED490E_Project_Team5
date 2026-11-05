@@ -5,40 +5,32 @@ pre-registrations in `docs/prereg/` and `docs/notes/REPORT_OUTLINE.md`; format a
 
 ## Abstract
 
-Many tasks give a language model's answer a free, partial check — a program for a geometry, scheduling or optimization problem runs, a
-SQL query returns rows, a tool call parses, a text meets its stated constraints — but a cheap answer can pass it and still be wrong, and
-"thinking longer" (long reasoning before answering) is expensive. We ask where a fixed token budget should go,
-for open models from 8B to 120B on RTX 3090s. The recipe: write a program, add the missing fact (a few lines of exact library usage, or a
-checked program for a similar problem found without labels), run a free check (the program runs and prints a value; outputs on
-transformed copies agree), and spend more thinking only where the check visibly fails. The fact is the main lever: the label-free
-library raises the cheap program in 25 of 29 model × benchmark cells and raises thinking by up to 23 points. The comparison must be
-matched in the fact *and* in the check: one think that ignores its own visible failures is a weak baseline (it is never the best policy
-over 54 cells), and giving thinking the check — think again when its program visibly fails — adds +2.5 to +12.3 points on hard word
-problems. Against that baseline the recipe is a frontier, not a free lunch: a non-thinking program first costs 37–51% of the tokens and
-matches it where the check holds (Qwen3.5-9B, geometry), but trails it on the hardest word problems (2–10 points, even for gpt-oss). For
-models whose free check leaks (Qwen3, Nemotron-3-Nano: passing non-thinking programs are wrong 33–79% of the time), writing the first
-program after a short think (2,000 tokens with the fact) never loses to one full think in 14 cells it was not chosen on (−0.3 to +10.1),
-saves 8–51% of the tokens on word problems and closes the last losing cell (Qwen3-8B geometry: −16.7 → −0.3); for gpt-oss, a
-medium-effort think cut at 2,000 tokens instead of low effort closes its gap to the check-matched think on the hard word problems
-(tie at 69–83% of the tokens); on Qwen3-32B the order holds unchanged (best utility in 3 of 4 cells; HO-32), and on Seed-OSS-36B, a
-fourth family, in all 4 (HO-SEED; its own trained thinking budget overruns 2,048 tokens and is not a better first step). Without labels the best
-fixed order over 54 cells of four hybrid-thinking models is short think → full think → retry on a visible failure (1.74 utility points
-below each cell's best; one think: 7.64); 30 labelled problems choose per cell within 1.35, but on three task types they were not
-developed on the no-label default does as well or better (tool calls 0.23 vs 1.96, instructions 0.92 vs 1.77) except on contest code
-(3.07 vs 1.29; PX); on text-to-SQL, a fifth task type none of the rules was built on, the default loses 0.33 and the pilot 2.25, and
-the default ties the check-matched think at 69–90% of its tokens while the non-thinking query first loses 2.7–5.9 points (SQL-1).
-Trained with plain RL on open data (labels only in training) and checked by another model's quick answer, the non-thinking answer
-beats the no-label default on text-to-SQL (+2.0 utility, BIRD dev) and tool calls (+1.35, BFCL; Qwen3-4B +0.94; with the peer trained too
-+2.60, the two trainings adding without a cross term); trained to gate itself, it learns to defer everything, and trained for the cascade's exact reward it loses to plain RL on both tasks (it gives up learned abstention on tool calls; CV-1, TC-RL).
-Where the cheap checks disagree and two or three passing SQL queries remain, a verifier trained on BIRD-train labels for the
-within-question contrast chooses among them (AUROC 0.82 on BIRD dev; label-free scores 0.50) and adds +0.9 to +2.0 in all six cells at
-no output tokens, as a pre-registered bound predicted from its AUROC (+0.3 more when it sees both queries at once, SEL-PW); with it the untrained peer cascade also beats the default on SQL
-(61.1% at 1.39k tokens vs 59.5% at 1.68k on BIRD dev; Spider test 78.9% at 0.47k vs 76.2% at 1.08k; SEL). The same recipe on tool
-calls (ToolACE training labels, BFCL) adds +1.08 / +1.68 over the cascade, mostly by choosing a right abstention (SEL-TC); with the call
-policy and "no call" among the verifier's choices the tool-call pipeline beats the default by +4.4 / +5.4 utility on ACEBench, a
-benchmark never used for a decision (ACE).
-Where the check is perfect (Lean proofs) the
-rule becomes "sample cheaply, then think"; where it leaks, it bounds label-free self-training as it bounds the recipe.
+We look for exactly right answers from open language models (8B–120B, on RTX 3090s) at the lowest cost, on tasks where an answer can be
+checked, selected, or made exact. Every result is accuracy and output tokens; all decisive tests are pre-registered.
+
+- **Multi-turn agents (main result).** At every turn of a BFCL v4 conversation we run three candidate turns in sandboxes: the model's
+  quick turn, a second model's quick turn, and the model's thinking turn. A verifier trained on the benchmark's per-turn labels then
+  picks one.
+  - Against thinking at every step: 48.8% vs 30.8% for Qwen3-8B and 53.9% vs 38.0% for Qwen3.5-9B (+17.2 / +15.5 utility).
+  - In environment classes the verifier never saw: +7.6 / +6.6.
+  - A parameter-free model explains why the gain is so large: a conversation is right only if every turn is, so per-turn gains
+    multiply. It predicted the unseen-environment gain before the run.
+  - Fixed rules lose to thinking at every step: thinking after an error, thinking at a request's first step, voting.
+- **Single-turn executable tasks** (text-to-SQL, tool calls). We combine three things: quick answers trained for correctness, another
+  model's quick answer as the check, and a trained verifier choosing where answers disagree. Each beats the strongest default:
+  - SQL: 62.2% at 1.36k tokens vs 59.5% at 1.68k, confirmed on Spider, never used for a decision;
+  - tool calls: 88.3% vs 83.9% on BFCL, and 80.6% vs 74.0% on held-out ACEBench.
+- **Programs** (geometry, optimization, word problems, contest code). The missing fact (a few lines of exact library usage) is the
+  main lever. Thinking only when a free check visibly fails saves tokens where the check holds, and trades accuracy for tokens where
+  it leaks.
+- **Proofs.**
+  - In Lean, a specialised 8B prover wins.
+  - For olympiad geometry, the model writes no proof. It translates the statement for an exact symbolic engine, and agreement
+    between independent translations certifies faithfulness without human reading. The pipeline proves 8 of 65 held-out problems
+    with no human in the loop. Four of them are shortlist problems whose graded frontier natural-language proofs are all wrong.
+
+We also report what did not work: label-free pseudo-labels, self-training, rewards shaped for the cascade, verifiers on word problems,
+and model-proposed auxiliary points.
 
 ## 1. Introduction
 
