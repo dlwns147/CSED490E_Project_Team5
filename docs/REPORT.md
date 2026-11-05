@@ -84,6 +84,51 @@ generated tests. Routing / scheduling: every constraint satisfied, compared with
 with numerical predictions and a decision rule before running (`docs/prereg/`), run with 3 seeds, and refuted predictions are reported
 as such. Held-out comparisons carry paired bootstrap 95% intervals over problems.
 
+## 2b. Main result: choosing at every turn of an agent loop
+
+**Task.** BFCL v4 multi-turn: 600 conversations (base, missing function, missing parameter) over eight simulated environments (file
+system, trading, travel, messaging, …). A conversation is right only when the environment's state and the responses match the ground
+truth after every turn. Models: Qwen3-8B and Qwen3.5-9B; each one's peer is the other. Utility = 100 × right − 0.5 × thousand output
+tokens.
+
+**Method (MT-SO).**
+- At every turn, three candidate turns run on sandbox copies of the committed environment: the model's quick turn (N), the peer
+  model's quick turn (P), and the model's thinking turn (T).
+- A verifier scores each candidate from its calls and their results. It is a Qwen3-8B LoRA, trained on per-turn labels and
+  cross-fitted by scenario halves.
+- A choice rule fitted on the other half (a conditional logit over the candidates' roles and standardized scores) commits one
+  candidate. The conversation continues from it.
+- Every candidate's output tokens count. The verifier's prefill, 17k tokens per conversation, is reported, not priced.
+
+**Results (pre-registered, 3 seeds, 95% intervals over items).**
+
+| | Qwen3-8B | Qwen3.5-9B |
+|---|---|---|
+| Thinking at every step (T) | 30.8% at 6.84k tokens | 38.0% at 2.56k |
+| Choice at every turn (S) | 48.8% at 8.31k | 53.9% at 3.29k |
+| S − T utility | +17.21 [+14.33, +20.12] | +15.52 [+12.83, +18.52] |
+| Environment classes the verifier never saw (468 items): S − T utility | +7.56 [+4.52, +10.91] | +6.63 [+3.73, +9.62] |
+
+Every fixed rule loses to thinking at every step:
+- thinking only after an error: −5.5 / −7.7 utility;
+- thinking only at a request's first step: a tie, and −8.1 for Qwen3-14B-AWQ;
+- a vote over the candidates' end states: −2.8 / −3.2.
+
+**Why the gain is large (derivation).**
+- A conversation of K turns is right with probability ∏ p_t, where p_t is the per-turn success given a right start.
+- Fed the per-turn rates measured offline, this parameter-free model gives S − T = +15.5 / +17.4; online gave +17.9 / +15.9.
+- Registered before the unseen-environment run, it predicted +9.7 / +10.4 accuracy; the measured gain was +8.2 / +7.1.
+- Per-turn gains of 6–10 points multiply over 4–5 turns. A gain we had expected to be +5 to +12 came out about +17.
+
+**Where the remaining room is (derived and tested).**
+- The same model puts a perfect choice among the same three candidates 11 points above the verifier. A gate that skips the
+  thinking candidate can gain at most +3.9 / +1.4 utility, so it was dropped.
+- The verifier's wrong picks are confident: the 10% of sets with the smallest margin hold 8% of them. A confidence-gated second
+  judge cannot reach them.
+- A pairwise verifier that sees the alternatives adds +0.9 points per turn (MT-PW). That is too little for the online test to detect.
+- In 72% of wrong picks, the chosen candidate leaves a different state change from every right one. A verifier shown the state
+  change is being tested (MT-SD).
+
 ## 3. Why each step: development findings
 
 **Facts beat thinking when the model lacks knowledge.** Qwen3-32B routing deliveries with OR-Tools: with nothing 23%, thinking longer 3%,
