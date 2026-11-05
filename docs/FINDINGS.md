@@ -5673,3 +5673,9 @@ On the 64 items that are statements to prove (34 false, 30 true):
 - **So the 10 points left between the verifier and a perfect choice need a verifier that knows more,** not one that is better
   calibrated, sees the alternatives (MT-PW: +1), or is trained on-policy. That means a stronger judge on every turn, at its full
   cost. The main track's method stays MT-SO's choice.
+
+## 2026-11-05 07:5x UTC: MT-SD (pre-registered): showing the verifier each rollout's state change does not improve the choice (+0.06 per turn; P1, P2 refuted)
+- The verifier read render + "State changes:" (replayed per turn; 42,079 texts), with the same recipe, halves and fit as mtso.
+- Per-turn choice +0.06 [−0.78, +0.94]. Over-action wrong picks in miss_* go from 152 to 158.
+- With MT-PW (+0.9) and the confident-error analysis, the choice's remaining 10 points are not about what the verifier sees or how
+  sure it is; they are about what it knows. The main track's method stays MT-SO's choice with the pointwise verifier.

@@ -101,7 +101,9 @@ OptMATH is partly broken: its statements omit what its gold answers need.
 - **MT-SO-ENV:** the per-turn choice holds in BFCL environment classes the verifier never saw (+7.6 / +6.6 utility).
 - **MT-PW:** a pairwise verifier adds +0.9 points per turn, too little to move conversations, so the online arm was not run.
 - **Derived:** the verifier's remaining wrong picks are confident ones. A confidence gate, on-policy training and the comparison
-  format are therefore not where the last 10 points are; only a judge that knows more is, at its full cost.
+  format are therefore not where the last 10 points are.
+- **MT-SD:** showing the verifier each candidate's state change gives +0.1 per turn. The last 10 points need a judge that knows
+  more, at its full cost, and are left open.
 - **Geometry, second track:**
   - 10 of 65 held-out problems are proved end to end, 8 of them certified without hand reading (SIDE-GT-AGREE).
   - Model-proposed auxiliary points add nothing over random ones (SIDE-GT-AUXP).

@@ -858,3 +858,24 @@ between SEL3 and a perfect choice. The comparison format is not where the remain
   - the chosen rollout writes content where the right one creates an empty file;
   - the chosen rollout books nothing where the right one books and charges the card.
 - The state carries the label's information in most errors, so the training runs, as registered: jobs `mtsd_h<h>`.
+
+## Results of addendum MT-SD (written 2026-11-05 07:5x UTC; `results/mtsd_offline.txt`; jobs 1320257 / 1320258, then 21,363 / 20,716 texts scored, none failed)
+
+Per-turn choice accuracy, SEL3 → SD (the verifier that reads each rollout's state change):
+
+| model | turn 0 | turn 1 | turn 2 | turn 3+ |
+|---|---|---|---|---|
+| Qwen3-8B | 80.5 → 80.5 | 87.2 → 88.0 | 92.3 → 90.3 | 84.5 → 84.5 |
+| Qwen3-14B-AWQ | 81.0 → 80.4 | 87.2 → 87.2 | 93.0 → 93.0 | 86.5 → 86.0 |
+| Qwen3.5-9B | 82.8 → 83.3 | 89.7 → 90.8 | 92.5 → 91.1 | 89.1 → 89.1 |
+
+- **MT-SD-P1 refuted:** SD − SEL3 = +0.06 [−0.78, +0.94] points per turn, pooled.
+- **P2 refuted:** in the miss_* categories, picks that act where the right rollout acts less rise from 152 to 158 (base 27 → 42).
+  All wrong picks rise from 389 to 405.
+- So the state change is in front of the verifier now, and it still does not help. In 72% of the old wrong picks the state
+  changes differ, but telling which change is right needs knowing which change the request asked for. That is the verifier's
+  knowledge, not its view.
+
+**Decision (registered):** offline only, no online arm. The verifier line on this benchmark closes for now. Three fixes left the
+choice unchanged within about 1 point per turn: the comparison format (MT-PW, +0.9), the state view (MT-SD, +0.1), and calibration
+(errors are confident). The remaining 10 points need a judge that knows more, at its full cost on every turn, and are left open.

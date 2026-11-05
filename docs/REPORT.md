@@ -127,7 +127,8 @@ Every fixed rule loses to thinking at every step:
   judge cannot reach them.
 - A pairwise verifier that sees the alternatives adds +0.9 points per turn (MT-PW). That is too little for the online test to detect.
 - In 72% of wrong picks, the chosen candidate leaves a different state change from every right one. A verifier shown the state
-  change is being tested (MT-SD).
+  change still chooses no better (MT-SD: +0.1 per turn). What remains is what the verifier knows, not what it sees or how sure
+  it is.
 
 ## 3. Why each step: development findings
 
