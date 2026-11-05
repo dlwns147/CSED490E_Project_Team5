@@ -1008,3 +1008,12 @@ quick turn as the candidate in the per-turn choice, valued in advance by the com
 **Decision.**
 - **P2 holds** → an online arm: S with the trained N, verifier and fit refitted on its rollouts.
 - **P2 refuted** → the agent-loop method is final for this project, and candidates stay as they are.
+
+### Results of MT-RF (written 2026-11-05 20:5x UTC; rollouts job 1330121, `results/mtrf_offline.txt`)
+
+- **MT-RF-P1 holds.** The trained quick turn gets 24.5% of conversations right against base N's 16.7%, +7.83 [+5.00, +10.72], at 0.31k tokens (3 seeds, 600 items, adapter trained on the other half of the scenarios). By category: base 26.2 → 31.7, missing function 13.2 → 22.3, missing parameter 10.7 → 19.5. Within the expected +5 to +15.
+- **MT-RF-P2 refuted.** With the trained turn replacing N, the set's oracle over conversations goes from 64.0% to 68.7%, which at the verifier's 0.56 share is +2.6 points, below the bar of 3.
+- **Decision, as registered:** no online arm. The agent-loop method is final for this project, and candidates stay as they are.
+- **Not registered, for the record:** added as a fourth candidate instead of replacing N, the same calculation gives +4.8 points. I saw this number before thinking about that design, so it decides nothing here.
+- **Raw rollouts.** Forced termination falls from 545 to 192 of 1,800 runs, and empty turns rise from 114 to 219: it learned to stop, and it abstains somewhat more. On `multi_turn_base_113` it looks up the stock symbol before adding it to the watchlist, where base N skips the lookup and the state ends wrong, which is the environment habit we hoped for. It sometimes repeats a lookup three times within a step.
+

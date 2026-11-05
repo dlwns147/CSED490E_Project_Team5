@@ -107,8 +107,9 @@ OptMATH is partly broken: its statements omit what its gold answers need.
   than the trained verifier and adds nothing to it. The verifier line is closed.
 - **MT-RN:** better candidates instead of a better judge. A quick turn trained on open tool-call data is right on 15.8% of conversations
   against 16.7%: it learned not to act. By the compounding model it would add +1.7 points, so the online arm was not run.
-- **Running, MT-RF:** a quick turn trained on BFCL's own right rollouts, half the scenarios for the other half. An online arm only if the
-  compounding model gives at least 3 points; otherwise the agent-loop method is final for this project.
+- **MT-RF:** a quick turn trained on BFCL's own right rollouts, half the scenarios for the other half, rises from 16.7% to 24.5% of conversations
+  at 0.31k tokens (+7.8 [+5.0, +10.7]). Replacing N in the set, it gives +2.6 points by the compounding model, below the bar of 3. By the registered
+  rule, no online arm: the agent-loop method is final for this project.
 - **Side project (proofs):** earlier geometry proof counts are withdrawn, because Newclid derives false facts. They rerun under a numerical
   guard, and pooling across auxiliary points is decided there. See `side/README.md`.
 

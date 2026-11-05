@@ -5698,3 +5698,9 @@ On the 64 items that are statements to prove (34 false, 30 true):
 - **Faults in my own SIDE-GT-POOL runs**, recorded in the prereg: lemmas passed within a round, against the registration; a recursion crash from injected lemmas; a confirmation that named too few points and was capped at 10,000 steps. Newclid's default step limit also means earlier 300 s and 600 s runs bought less than they appeared to.
 - **Related work.** HAGeo (2512.00097) has an appendix on a fallacious AlphaGeometry proof of IMO 2020 P1, so invalid proofs in this family of engines are known. Newclid 3.0.1 exists and has not been tried.
 - **Next.** The whole pipeline reruns under the guard, in `results/proof/sound/`, and SIDE-GT-POOL is decided there. Registered as SIDE-GT-SOUND in PREREG_SIDE.
+
+## 2026-11-05 20:5x UTC: MT-RF (pre-registered): training the quick turn on right rollouts works (+7.8 points) but adds too little to the set, so the agent-loop method is final (P1 holds, P2 refuted)
+- Qwen3-8B's quick turn with a LoRA trained on BFCL's own right rollouts, half the scenarios for the other half: 24.5% of conversations right against 16.7%, +7.83 [+5.00, +10.72], at 0.31k tokens. Runs cut off at the step limit fall from 545 to 192 of 1,800, and empty turns rise from 114 to 219.
+- With it replacing N in the set, the compounding model gives +2.6 points at the verifier's 0.56 share, below the bar of 3, so the online arm is not run. Added as a fourth candidate it gives +4.8; that was not registered.
+- Unlike MT-RN (open single-call data taught abstention, −0.9), training on the task's own conversations raises the quick turn itself. Thinking is still ahead of it alone: 30.8% at 6.84k tokens, utility 27.4 against 24.3, at about 1/22 of the tokens.
+

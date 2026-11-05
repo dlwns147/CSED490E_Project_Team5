@@ -570,7 +570,7 @@ def main_rn():
     C = os.path.join(ROOT, "results", "conf")
     F, n = {}, 0
     tg = lambda k: str(k) if k < 3 else "3+"
-    A = defaultdict(lambda: [0, 0, 0, 0])   # turn group: sets, oracle of three, oracle with the trained turn, the trained turn right
+    A = defaultdict(lambda: [0, 0, 0, 0, 0])   # turn group: sets, oracle of three, oracle with the trained turn, the trained turn right, oracle with it replacing N
     D = defaultdict(list)
     for r in map(json.loads, open(f"{C}/mt_sel2_rows.jsonl")):
         if r["model"] != "q8b":
@@ -587,7 +587,7 @@ def main_rn():
         o3 = any(r["roll"][j][1] for j in ("N", "P", "T"))
         ok = f > k
         a = A[tg(k)]
-        a[0] += 1; a[1] += o3; a[2] += o3 or ok; a[3] += ok
+        a[0] += 1; a[1] += o3; a[2] += o3 or ok; a[3] += ok; a[4] += ok or r["roll"]["P"][1] or r["roll"]["T"][1]
         D[i].append(float(ok and not o3))
         A[(i.rsplit("_", 1)[0], tg(k))][0] += 1; A[(i.rsplit("_", 1)[0], tg(k))][2] += float(ok and not o3)
     for g in ("0", "1", "2", "3+"):
@@ -600,6 +600,8 @@ def main_rn():
     conv = lambda j: sum(w / nn * math.prod(A[tg(k)][j] / A[tg(k)][0] for k in range(K)) for K, w in dist.items())
     print(f"compounding, conversation: oracle {100 * conv(1):.1f}% -> with the trained turn {100 * conv(2):.1f}%; at the verifier's 0.56 share "
           f"{100 * 0.56 * (conv(2) - conv(1)):+.1f} points", flush=True)
+    print(f"compounding, the trained turn replacing N: oracle {100 * conv(1):.1f}% -> {100 * conv(4):.1f}%; at the verifier's 0.56 share "
+          f"{100 * 0.56 * (conv(4) - conv(1)):+.1f} points (MT-RF-P2: bar 3)", flush=True)
     ids = sorted(D); rng = random.Random(0)
     per = {i: sum(D[i]) / len(D[i]) for i in ids}
     bs = sorted(sum(per[rng.choice(ids)] for _ in ids) / len(ids) for _ in range(2000))

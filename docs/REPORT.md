@@ -135,6 +135,9 @@ Every fixed rule loses to thinking at every step:
 - Better candidates instead of a better judge: a quick turn trained on open single-call data gets 15.8% of conversations right
   against 16.7%, because it learns not to act (MT-RN). By the compounding model it would add +1.7 points, below what an online test
   can see, so that arm was not run.
+- Trained on the task's own right rollouts instead (half the scenarios for the other half), the quick turn rises from 16.7% to 24.5% of
+  conversations at 0.31k tokens, +7.83 [+5.00, +10.72] (MT-RF). It learns to stop and to look things up first. Replacing N in the set,
+  it adds +2.6 points by the compounding model, below the 3 an online test can see, so by the registered rule the method stays as it is.
 
 ## 3. Why each step: development findings
 
