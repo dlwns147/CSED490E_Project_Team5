@@ -104,17 +104,21 @@ OptMATH is partly broken: its statements omit what its gold answers need.
   format are therefore not where the last 10 points are.
 - **MT-SD and MT-JG:** showing the verifier each candidate's state change gives +0.1 per turn, and a thinking judge chooses worse
   than the trained verifier and adds nothing to it. The verifier line is closed.
-- **Running, MT-RN:** better candidates instead of a better judge. In 5–14% of turns no candidate is right, so a quick turn trained
-  on open data joins the set if it adds at least 1.9 points of per-turn oracle.
+- **MT-RN:** better candidates instead of a better judge. A quick turn trained on open tool-call data is right on 15.8% of conversations
+  against 16.7%: it learned not to act. By the compounding model it would add +1.7 points, so the online arm was not run.
+- **Running, MT-RF:** a quick turn trained on BFCL's own right rollouts, half the scenarios for the other half. An online arm only if the
+  compounding model gives at least 3 points; otherwise the agent-loop method is final for this project.
 - **Geometry, second track:**
   - 10 of 65 held-out problems are proved end to end, 8 of them certified without hand reading (SIDE-GT-AGREE).
   - Model-proposed auxiliary points add nothing over random ones (SIDE-GT-AUXP).
+  - **Running, SIDE-GT-POOL:** the 31 problems one random point cannot prove need more than one. Rather than adding points together,
+    each point runs alone and the facts it proves about the original figure are pooled, which is k + 1 runs instead of k² / 2.
 
 **Next:**
 
 1. The final report (`docs/REPORT.md`), with the agent-loop result and its derivation at its centre.
 2. Second track, for the teammate:
-   - a derived criterion for auxiliary points (new deductions about the goal's points);
+   - what SIDE-GT-POOL decides next: candidates ordered by chance of success per second, or a generator read backward from the goal;
    - a free check for constructions;
    - the per-turn choice beyond BFCL (τ²-bench, cloned to `$POC_DATA/tau2`; MIT; Python ≥ 3.12; train/test splits).
 

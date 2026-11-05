@@ -271,7 +271,7 @@ def check():
 def aux_candidates(dsl, k, seed=0):
     """k auxiliary points, drawn uniformly (seeded) from one-step classical constructions on the translation's points: midpoints,
     point reflections, circumcentres, feet, line reflections, and intersections of two lines through point pairs. HAGeo (2512.00097)
-    reports 25 of IMO-AG-30 for random auxiliary constructions and 28 for its heuristics; its code is not released."""
+    reports 25 of IMO-AG-30 for random auxiliary constructions and 28 for its heuristics (code: github.com/boduan1/HAGeo)."""
     import itertools, random
     pts = []
     for step in dsl.split(" ? ")[0].split("; "):
@@ -528,14 +528,182 @@ def aux():
     print(f"SIDE-GT aux {tag}: {len(B)} translations -> {OUT}/gt_{name}.jsonl", flush=True)
 
 
+def one_lem(dsl, pts, lemmas, timeout):
+    """SIDE-GT-POOL, one DDAR run in its own process: the translation dsl (possibly with auxiliary points) plus lemmas, which are facts
+    ("name args") over the points pts that other runs proved. Returns whether the goal fell, the facts over pts this run holds as [hash,
+    fact], the lemmas the proof uses, and how many lemmas were dropped because they fail on this figure (a run's facts hold on its own
+    figure; a step with two intersections can take the other one here)."""
+    import time
+    from newclid import GeometricSolverBuilder
+    from newclid.defs.clause import Construction
+    from newclid.dependencies.dependency import Reason
+    from newclid.dependencies.dependency_building import DependencyBody
+    from newclid.geometry import Point
+    from newclid.numerical.check import check_numerical
+    from newclid.statements.statement import Statement
+    import newclid.numerical.check as nc
+    nc.ATOM, nc.close_enough = 1e-7, (lambda a, b, tol=1e-7: abs(a - b) < tol)
+    t0, facts, drop, err, inj = time.time(), {}, 0, None, 0
+    for seed in map(int, os.environ.get("GT_DDAR_SEEDS", "0").split(",")):
+        s = None
+        try:
+            s = GeometricSolverBuilder(seed=seed).load_problem_from_txt(dsl, translate=False).build()
+            P = s.proof_state
+            drop, inj = 0, 0
+            for l in lemmas:
+                n, *a = l.split()
+                try:
+                    st = Statement(n, tuple(P.map_construction_args_to_objects(Construction(n, tuple(a), ()))))
+                    if not check_numerical(st):
+                        drop += 1
+                        continue
+                    added, to_cache = P.resolve_statement_dependencies(st, DependencyBody(Reason("lemma"), ()))
+                except Exception:   # a lemma the figure cannot hold (degenerate here), like a failed numerical check
+                    drop += 1
+                    continue
+                inj += 1
+                P._init_added += added
+                P._init_to_cache += to_cache
+            proved, err = bool(s.run(timeout=timeout)), None
+        except Exception as e:   # the facts derived before a mid-run failure stand; the next diagram may run clean
+            proved, err = False, f"{type(e).__name__}"
+        if s is None:
+            continue
+        P = s.proof_state
+        for d in P.dependency_cache.cache.values():
+            st = d.statement
+            if st.predicate in P.statements.adder.PREDICATE_TO_ADDER and all(a.name in pts for a in st.args if isinstance(a, Point)):
+                facts[" ".join(st.hash_tuple)] = str(st)
+        if err is None:
+            used = set()
+            if proved:
+                seen, stack = set(), [P.statements.graph.build_resolved_dependency(g) for g in P.goals_as_statements()]
+                while stack:
+                    d = stack.pop()
+                    if id(d) in seen or d is None:
+                        continue
+                    seen.add(id(d))
+                    if d.reason is not None and d.reason.name == "lemma":
+                        used.add(str(d.statement))
+                    stack += list(d.why or ())
+            return {"proved": proved, "facts": list(facts.items()), "used": sorted(used), "drop": drop, "inj": inj, "err": None,
+                    "sec": time.time() - t0}
+    return {"proved": False, "facts": list(facts.items()), "used": [], "drop": drop, "inj": inj, "err": err, "sec": time.time() - t0}
+
+
+def rename_aux(c, x, new):
+    return " ".join(new if w == x else w for w in c.split())
+
+
+def pool():
+    """pool <tag | refs> [--k K] [--timeout S] [--workers W] [--rounds R] (SIDE-GT-POOL): for each translation of a problem that no single
+    random point proved (gt_<tag>_aux.jsonl), DDAR with each of the same k points, one at a time, keeping every fact a run proves over the
+    translation's own points. The union goes back in as lemmas on the translation alone; if the goal does not fall, each point runs again
+    with the lemmas, and so on. A proof that uses lemmas from several points is confirmed by plain DDAR with those points added together.
+    -> gt_<tag>_pool.jsonl. With --pairs: instead k random pairs of points added together -> gt_<tag>_pair.jsonl (the comparison)."""
+    import random, tempfile
+    tag = sys.argv[2]
+    arg = lambda n, d: type(d)(sys.argv[sys.argv.index(n) + 1]) if n in sys.argv else d
+    k, timeout, workers, rounds, confirm = arg("--k", 64), arg("--timeout", 60.0), arg("--workers", 16), arg("--rounds", 2), arg("--confirm", 600.0)
+    R = [json.loads(l) for l in open(f"{OUT}/gt_{tag}_aux.jsonl")]
+    done = {r["id"] for r in R if r["aux"] or r["base_proved"]}
+    B = [r for r in R if r["id"] not in done and r["base"] == "guarded"]
+    if "--limit" in sys.argv:
+        B = B[:arg("--limit", 0)]
+
+    def call(dsl, pts, lem):
+        with tempfile.NamedTemporaryFile("w", suffix=".json") as f:
+            json.dump({"pts": pts, "lem": lem}, f); f.flush()
+            try:
+                p = subprocess.run([sys.executable, os.path.abspath(__file__), "one_lem", dsl, str(timeout), f.name], capture_output=True,
+                                   text=True, timeout=timeout + 600)
+                return json.loads(p.stdout.strip().splitlines()[-1])
+            except Exception as e:
+                return {"proved": False, "facts": [], "used": [], "drop": 0, "inj": 0, "err": type(e).__name__, "sec": 0}
+
+    def plain(dsl, t):
+        try:
+            p = subprocess.run([sys.executable, os.path.abspath(__file__), "one", dsl, str(t)], capture_output=True, text=True, timeout=t + 600)
+            return json.loads(p.stdout.strip().splitlines()[-1])
+        except Exception as e:
+            return ["build error", None, type(e).__name__, t]
+
+    def run_pair(r):
+        pts, x = aux_points(r["dsl"])
+        pre, goal = r["dsl"].split(" ? ")
+        C, rng = [c for c, _ in aux_candidates(r["dsl"], k)], random.Random(1)
+        out = {"id": r["id"], "sample": r["sample"], "dsl": r["dsl"], "aux": None, "tried": 0, "sec": 0}
+        for _ in range(k):
+            a, b = rng.sample(C, 2)
+            d = f"{pre}; {x}0 = {rename_aux(a, x, x + '0')}; {x}1 = {rename_aux(b, x, x + '1')} ? {goal}"
+            st, pr, _, s2 = plain(d, timeout)
+            out["tried"] += 1; out["sec"] += s2
+            if pr:
+                out["aux"] = [a, b]
+                break
+        return out
+
+    def run(r):
+        pts, x = aux_points(r["dsl"])
+        pre, goal = r["dsl"].split(" ? ")
+        C = aux_candidates(r["dsl"], k)
+        out = {"id": r["id"], "sample": r["sample"], "dsl": r["dsl"], "proved": False, "round": None, "via": None, "used_aux": None, "rounds": [],
+               "calls": 1, "sec": 0}
+        b = call(r["dsl"], pts, [])
+        out["sec"] += b["sec"]
+        known, src, lem = {h for h, _ in b["facts"]}, {}, {}
+        for rd in range(1, rounds + 1):
+            info = {"round": rd, "with_new": 0, "new": 0, "errs": 0, "drop": 0}
+            for c, d in C:
+                q = call(d, pts, list(lem.values()))
+                out["calls"] += 1; out["sec"] += q["sec"]
+                info["errs"] += q["err"] is not None
+                info["drop"] += q["drop"]
+                new = [(h, f) for h, f in q["facts"] if h not in known and h not in lem]
+                info["with_new"] += bool(new)
+                for h, f in new:
+                    lem[h] = f
+                    src[f] = c
+                info["new"] += len(new)
+                if q["proved"]:   # one point plus the lemmas (round 2 on; in round 1 the single-point arm would have found it)
+                    out.update(proved=True, round=rd, via="point+lemmas", used_aux=sorted({c} | {src.get(u, "?") for u in q["used"]}))
+                    break
+            out["rounds"].append(info)
+            if not out["proved"]:
+                q = call(r["dsl"], pts, list(lem.values()))
+                out["calls"] += 1; out["sec"] += q["sec"]
+                info.update(pool=len(lem), pool_drop=q["drop"], pool_sec=q["sec"], pool_err=q["err"])
+                if q["proved"]:
+                    out.update(proved=True, round=rd, via="pool", used_aux=sorted({src.get(u, "?") for u in q["used"]}))
+            if out["proved"] or not info["new"]:   # proved, or a fixed point: another round cannot change anything
+                break
+        if out["proved"]:
+            U = [c for c in out["used_aux"] if c != "?"]
+            names = [f"{x}{i}" for i in range(len(U))]
+            d = f"{pre}; " + "; ".join(f"{n} = {rename_aux(c, x, n)}" for n, c in zip(names, U)) + f" ? {goal}"
+            st, pr, _, sec = plain(d, confirm)
+            out.update(joint_dsl=d, joint_status=st, joint_proved=pr, joint_sec=sec)
+        return out
+    name, fn = (f"{tag}_pair", run_pair) if "--pairs" in sys.argv else (f"{tag}_pool", run)
+    with ThreadPoolExecutor(workers) as ex, open(f"{OUT}/gt_{name}.jsonl", "w") as f:
+        for fu in as_completed([ex.submit(fn, r) for r in B]):
+            f.write(json.dumps(fu.result()) + "\n"); f.flush()
+    print(f"SIDE-GT pool {tag}: {len(B)} translations -> {OUT}/gt_{name}.jsonl", flush=True)
+
+
 if __name__ == "__main__":
     if sys.argv[1] == "one":
         import logging
         logging.disable(logging.CRITICAL)
         print(json.dumps(one_check(sys.argv[2], float(sys.argv[3]))))
+    elif sys.argv[1] == "one_lem":
+        import logging
+        logging.disable(logging.CRITICAL)
+        q = json.load(open(sys.argv[4]))
+        print(json.dumps(one_lem(sys.argv[2], set(q["pts"]), q["lem"], float(sys.argv[3]))))
     elif sys.argv[1] == "one_agree":
         import logging
         logging.disable(logging.CRITICAL)
         print(json.dumps(one_agree(sys.argv[2], sys.argv[3])))
     else:
-        {"gen": gen, "check": check, "aux": aux, "propose": propose, "agree": agree}[sys.argv[1]]()
+        {"gen": gen, "check": check, "aux": aux, "propose": propose, "agree": agree, "pool": pool}[sys.argv[1]]()

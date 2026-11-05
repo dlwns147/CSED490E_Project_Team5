@@ -636,3 +636,65 @@ certification. The check's blind spot stays as predicted: a misreading shared by
 **Decision (registered):** an untrained general model does not know which point a solution needs in this language beyond the
 obvious ones. The pipeline keeps random points; model proposals would only save CPU. The next step is a derived criterion for
 choosing points, before any training. Example: rank candidates by the new facts a short DDAR run derives about the goal's points.
+
+## SIDE-GT-POOL: pooling what single auxiliary points prove, instead of adding points together (written 2026-11-05 11:5x UTC, before any pooled run; one smoke run on problems single points already prove)
+
+**Why.** The prover is the geometry pipeline's bottleneck, and 31 problems resist one random point (22 references, 9 held out). Their
+proofs need more than one point. Adding m points together is the usual way (HAGeo: 6 points per attempt, K = 4096 attempts on IMO-AG-30,
+DDAR rerun for each). That search is costly twice over: pairs alone grow as k², and DDAR's candidate search is polynomial in the number
+of points. At 60 s, most of our single-point runs already hit the limit (about 53 s per run on these problems).
+
+**Derivation.** Let H be the translation, Cl the fixed point of DDAR's rules, and L(x) the facts in Cl(H + x) that mention only H's own
+points.
+1. Every fact in L(x) is a theorem about H's figure: x is built from H's points, so it exists wherever its construction does, and it
+   appears nowhere in the statement of the fact. So L(x) can be added to H without changing what is true.
+2. DDAR is monotone: more facts can only derive more. So Cl(H + L(x) + L(y)) contains every proof that uses x and y *only through facts
+   about H's points*.
+3. For k candidates, that closure costs k + 1 runs with at most |H| + 1 points each. Running the pairs costs k(k−1)/2 runs with |H| + 2
+   points. Pairs do cover one kind of proof that pooling cannot: one where x and y interact directly, through a fact that mentions both.
+   That is the testable limit of this theory. A second round (each point again, with the pool as lemmas) reaches some of those, since
+   y's run can use what x's facts gave.
+4. A consequence to check: a pooled proof that uses lemmas from only one point is already in that point's own closure, so it can
+   appear only if that point's single run hit the time limit.
+
+No threshold, ranking or hand-set order is involved. The pool is every fact, from every candidate.
+
+**Related work.**
+- AlphaGeometry2 (2502.03544) has this mechanism inside SKEST: when a node fails, it writes down the facts the engine proved, keeping those
+  relevant to the original problem, and other nodes and trees can use them. There the nodes' points come from trained language models.
+  The paper reports no ablation and no number for the sharing itself ("this boosts the overall performance"), and no run of it without a
+  language model.
+- HAGeo (2512.00097; code at github.com/boduan1/HAGeo, so our earlier note that it is unreleased is out of date) needs no network but
+  accumulates points inside an attempt. Its paper describes DDAR as rerun per attempt, and describes no reuse of a failed attempt's facts.
+- So what is new here is a measurement: what sharing alone adds, with random points and no model, on one CPU budget.
+
+**Method** (`geo_translate.py pool`, `one_lem`).
+- The same 64 candidates as the single-point arm (`aux_candidates`, seed 0), 60 s per DDAR run, diagram seeds 0, 1, 2 on failure.
+- Round 1: each point runs alone. Facts over H's points that the base run does not hold join the pool. Then H plus the pool, no point.
+- Round 2, if the goal has not fallen and the pool grew: each point again with the pool as lemmas, then H plus the larger pool. It stops
+  early at a fixed point.
+- A lemma is dropped if it fails numerically on the receiving figure (a step with two intersections can take the other one); the
+  number dropped is reported.
+- **Comparison, same DDAR calls:** 64 random pairs of the same candidates, added together, one round's worth (`pool --pairs`).
+- **Confirmation:** each pooled proof names the points whose lemmas it used. Plain DDAR then runs with those points added together, up
+  to 600 s, with no lemmas. A proof it reproduces is an ordinary DDAR proof. One it does not reproduce rests on the lemmas' own
+  derivations, and is reported separately.
+
+**Data.** The 46 translations of the 31 problems no single point proved: 22 references (1 translation each), and 24 faithful held-out
+translations of 9 problems. These were used only by the random and proposal arms; nothing here is tuned on them. The smoke runs on
+problems that single points already prove, which are not in this set.
+
+**Predictions** (problems; DDAR proofs are exact, so a count is not a noisy estimate of itself):
+- **POOL-P1 (decision):** pooling proves at least one of the 31 problems.
+- **POOL-P2 (reported):** problems proved by pooling and by the 64 random pairs, and by each alone, with the seconds per DDAR run for each.
+- **POOL-P3 (theory check, step 4):** every pooled proof uses lemmas from at least two points, or from one point whose single run hit the
+  limit or failed.
+- **Expected:** pooling proves 1–4 of the 31, and pairs 0–2. Most pooled proofs come in round 1. Their confirmation at 600 s succeeds
+  on about half, since joint DDAR is the slow route the theory avoids.
+
+**Decision.**
+- **P1 holds** → pooling replaces single random points in the pipeline's auxiliary step, and the record of which points' lemmas proofs use
+  becomes the data for the next method: ordering candidates by chance of success per second, the optimal order for all-or-none search
+  (Simon and Kadane, 1975).
+- **P1 refuted** → these proofs need points that interact, so facts over H's points do not compose. The next step is a candidate generator
+  derived from what the goal lacks: DDAR's rules read backward from the goal, naming the missing premises.
