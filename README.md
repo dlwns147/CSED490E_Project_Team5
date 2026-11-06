@@ -3,7 +3,7 @@
 POSTECH CSED490E team project, Team 5.
 
 This is the manual: how to set up, run and analyze everything in this repository. **What the project is for, its claim, scope and
-working rules: `PROJECT.md`.** The argument with all numbers: `docs/proposal/PROPOSAL.md` (Korean: `docs/proposal/PROPOSAL_ko.md`).
+working rules: `PROJECT.md`.**
 
 Many LLM tasks come with a free, partial check: programs for geometry, optimization, contest and word problems, SQL queries, tool calls,
 instructions with checkable constraints; agent loops, proofs and constructions have their own ways to check or select an answer. Cheap
@@ -26,7 +26,7 @@ poc/slurm/                     Slurm job template (job.sh), generic lane (lane.s
 poc/queues/                    the exact commands of the old servers' runs (records; see poc/queues/README.md)
 docs/                          lab log (FINDINGS.md), pre-registrations (prereg/), notes, cluster state (SLURM_HANDOFF.md),
                                the report draft (REPORT.md); index docs/README.md
-docs/proposal/                 the proposal: PROPOSAL.md, PROPOSAL_ko.md (the argument with every number, English, Korean),
+docs/proposal/                 the proposal (paused; the project does not follow it): PROPOSAL.md, PROPOSAL_ko.md,
                                the talk (Proposal_Team5*.pptx), the full findings deck, earlier versions (archive/)
 side/                          the side project, proofs: geometry by translation, natural-language checks, constructions; side/README.md
 results/                       problem sets and reference data (model outputs *.jsonl and logs are not in git)
