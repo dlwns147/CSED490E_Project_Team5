@@ -1082,3 +1082,16 @@ Same model, same 24 problems, 4 translations each, against the construction lang
 | Tokens per translation | 20.1k | 19.2k |
 
 Passing the guard is not faithfulness: one translation of ISL 2017 G18 states a different figure, and hand reading is still to come. USAJMO 2012 P1, unexpressible or a build error in the construction language, goes through the guard, the closure (24 s, one point) and the checker. Tokens run well above DECL-P4's 12.5k, as they do for the construction run on this set. Running: the closure on the 43 statements (job 1341956), and whether 5 times the starts finds figures for the 16 without one.
+
+### SIDE-GT-DECL dev: proofs and the step to held out (2026-11-06 18:1x UTC)
+
+The closure with restarts proves 42 of the 43 statements, all 15 problems with a passing statement, mostly within 60 s. Certificates are running (job 1342110). **I treat this number as suspect until the raw statements are read, and I read them.** What I saw:
+- **Faithful as far as I can read:** USAJMO 2012 P1, IMO 2014 P4 (the two with a point X), IMO 2010 P2, ISL 2012 G19, ISL 2008 G14, ISL 2011 G11, Romanian NMO 2006 P2 (goal: only the midpoint half).
+- **Half of an "if and only if":** USAMO 2003 P4 and ISL 2010 G17. Each proof is one direction.
+- **Changed problem:** Canadian 2006 P2 asks for a locus, and the statement picks a claim; IMO 2007 P4 asks about areas, and the statement gives a ratio.
+- **Fewer hypotheses:** IMO 2020 P1 drops the 1 : 2 : 3 ratios. A proof from fewer hypotheses still proves the problem, if the configuration matches, and the fresh figures hold.
+- **Wrong:** one translation of ISL 2017 G18 copies the prompt's own example. A goal changed like this should fail agreement with the others; it does not fall to the guard.
+
+So 42 of 43 is what a sound engine does on true statements, and it counts for nothing until faithfulness is settled. The registered rule stands: faithfulness on the held-out set is judged before any closure run on it.
+
+**Changes from dev, frozen now:** figures from 240 starts instead of 80, because 400 starts found figures for about half of the 16 statements that had none. Nothing else changes. **Held out: job submitted now, same prompt and model, tag `gtdecl_eval`, 65 problems × 4.**
