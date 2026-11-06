@@ -12,14 +12,14 @@ Order, which only selects the figure: between a b c (b strictly inside segment a
 obtuse a b c, convex a b c d, ncoll a b c. Distinct names are distinct points.
   python side/geo_decl.py one '<statement>'     (solve and print the figures found and whether the goal holds on them)
   python side/geo_decl.py guard '<statement>'   (the status alone, for geo_translate.py)"""
-import cmath, json, math, sys
+import cmath, json, math, os, sys
 import numpy as np
 
 FACT = {"coll": 3, "para": 4, "perp": 4, "cong": 4, "cyclic": 4, "midp": 3, "circle": 3, "eqangle": 8, "eqratio": 8, "aconst": 5, "rconst": 5, "uangle": 6, "uconst": 4}
 ORDER = {"between": 3, "inside": 4, "sameside": 4, "opposite": 4, "acute": 3, "obtuse": 3, "convex": 4, "ncoll": 3}
 GOAL = ("coll", "para", "perp", "cong", "cyclic", "midp", "circle", "eqangle", "eqratio", "uangle")
 MARGIN = 0.02  # how far an order condition must hold, as a fraction of the sizes in it; a figure is rejected only by the exact test
-STARTS, KEEP = 80, 12
+STARTS, KEEP = int(os.environ.get("GT_DECL_STARTS", 80)), 12
 
 
 def parse(text):
