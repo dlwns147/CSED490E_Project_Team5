@@ -5712,3 +5712,21 @@ On the 64 items that are statements to prove (34 false, 30 true):
 **Read raw.** Thinking fails on wrong write actions, and on missing writes where the conversation stalls. The simulated user is part of the problem: it invents facts (task 30: none of its listed orders holds the tablet) and repeats one message for most of a conversation (tasks 3, 7).
 
 **Design, pre-registered in `docs/prereg/PREREG_TAU.md`.** First, TAU-U tests the simulated users with an agent that is given the gold steps (Qwen3-8B quick and thinking, Qwen3.5-9B, Qwen3.6-35B), because a label is only as good as the simulator behind it. Then TAU-R plays each conversation by the rollout algorithm: at each user message, every candidate turn is continued to the end by thinking, and the turn whose rollout scored best is committed. That gives labels per turn from a global score, and an upper bound on the gain. A verifier follows only if the gain reaches the bar derived there, 9.5 points. Driver: `poc/tau2_q.py`. Jobs 1330774–77 are queued for TAU-U.
+
+## 2026-11-06 00:3x UTC: τ² pilot, all three domains; a second judge fault; the simulated user fails on telecom
+
+**What ran.** The pilot's other two domains, Qwen3-8B as agent and simulated user, train split, seed 1. Right / tokens per conversation:
+
+| Domain | Quick | Thinking (30 tasks) |
+|---|---|---|
+| Retail | 12.2% / 1.0k (74 tasks) | 26.7% / 8.8k |
+| Airline | 27.6% / 1.2k (29 of 30 scored) | 44.4% / 7.3k (27 of 30 scored) |
+| Telecom | 2.7% / 0.8k (74 tasks) | 3.3% / 5.8k |
+
+**Fault.** Airline's communicate judge is pinned to `gpt-5.5`, which my server does not have, so conversations reaching it end in an error with no reward (3 thinking, 1 quick). I had patched only the other judge. It now points at the local model too, and those scores count only what was scored, so airline's numbers above are provisional. `poc/tau2_q.py` would have hit the same fault.
+
+**Read raw.** On telecom the simulated user does not follow its scenario. In one conversation whose scenario is a mobile-data fault, its first message says it is calling about an order, and the agent transfers it at once. So telecom's near-zero says little about the agent yet. That is what TAU-U measures.
+
+**Also found.** Qwen3-8B thinking as a simulated user sometimes returns no message, which τ² retries and then drops the task (retail tasks 3 and 13 so far). In TAU-U a dropped task counts as a failure for that user, because it was the user that failed. This is added to the rule of `docs/prereg/PREREG_TAU.md` before any comparison is read.
+
+**Next.** TAU-U decides the simulated user: U8 and U8t run; U9 and U36 wait for GPUs.
