@@ -23,9 +23,14 @@ Side work may use the Slurm server's GPUs: a model server and client commands ru
 | Lean (main track, `PREREG_PROOF.md`) | A specialised 8B prover is best; the compiler is a perfect check | Not a side-project gap at present |
 | Constructions (`construct.py`) | Unsolved for an 8B model; its own checker is not a usable free check | A derived free check, or a search the problem's structure makes exact |
 
-**Running now (geometry):** HAGeo-409 (SIDE-GT-H409, jobs 1341668–70, `results/proof/h409/`), and declarative translations of the dev problems (SIDE-GT-DECL, job 1337117).
+**Running now (geometry):** HAGeo-409 (SIDE-GT-H409, jobs 1341669–70, `results/proof/h409/`), and closure on the 97 held-out declarative statements (SIDE-GT-DECL, job 1343465).
 
 ## Log
+
+**2026-11-06 23:1x UTC: two faults found.**
+- **Agreement fails on the declarative language.** It passes 5 of 7 unfaithful statements and all 25 half ones. All four translations of USAMO 2006 P6 assume three circles concur, which is the claim. Agreement therefore can't support a no-human count here.
+- **The engine has a soundness fault, and the checker catches it.** On HAGeo-409 so far, 252 of 259 certificates pass. Four rejections accept equal chords on a premise whose constant is 1/2, not 0, as in the false IMO 2011 P6 proof. The fix waits for the running jobs.
+- **Interim count:** 257 of 374 finished rows are proved with all fresh figures, before the checker (HAGeo at K = 2,048: 263 of 409). Not the registered reading.
 
 **2026-11-06 21:5x UTC: declarative translations on the held-out 65, with verdicts before any proof.** Problems with a faithful whole-claim translation rise from 14 to 20, and with parts counted from 19 to 27. **A correction: 5 of the earlier 19 "faithful" problems were one direction or one part, so the reported 17 of 65 end to end means 12 whole problems and 5 parts.** Half statements are now counted apart. Proofs and agreement on these statements are running.
 

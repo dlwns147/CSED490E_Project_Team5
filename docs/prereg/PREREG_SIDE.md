@@ -1124,3 +1124,18 @@ So 42 of 43 is what a sound engine does on true statements, and it counts for no
 - **Two judgment calls, reported:** I count USAMO 2010 P1's goal as faithful (XAZ for half of XOZ, one inscribed-angle step, as I did before); and order conditions narrower than the statement, such as "inside triangle ABC" for "inside ABCD" in ISL 2008 G16, as a sub-case of a figure, since a proof holds for its figure's configuration anyway.
 
 Closure on all 97 (job 1343465) and agreement (job 1343466) are now running. DECL-P3 is read from them.
+
+### SIDE-GT-DECL: agreement read against the verdicts (2026-11-06 23:0x UTC; job 1343466, `results/proof/gt_gtdecl_eval_agree.jsonl`, 254 ordered pairs; verdicts were fixed before this ran)
+
+| Verdict | Statements | Corroborated |
+|---|---|---|
+| Faithful | 65 | 57 (88%) |
+| Half | 25 | 25 |
+| Changed | 5 | 4 |
+| Wrong | 2 | 1 |
+
+**The rebuilt agreement check fails as a certificate: precision is not 1.** AGREE-P1 held on the construction language; here 5 of 7 unfaithful statements pass. On one problem every statement is unfaithful: USAMO 2006 P6 asks that four circles pass through a common point, and each translation assumes three of them concur (`cyclic s a e p; cyclic s b f p; cyclic t c f p`), one with the empty goal `cong p p p p`. They agree because they share the error. The other is USAMO 2012 P5, sample 0. Half translations pass by construction: all of a problem's translations drop the same direction. So in this language the no-human count cannot use agreement alone. Eight faithful statements fail agreement, mostly on ISL 2001 G1 and ISL 2017 G19, not yet read.
+
+### SIDE-GT-H409: interim (2026-11-06 23:0x UTC; shard 0 done; two shards running; **not the registered reading**)
+
+374 of 409 rows done: 261 proved, 257 with 8 of 8 fresh figures; by band [1,3) 139 of 160, [3,4) 84 of 111, [4,5) 29 of 68, [5,6) 5 of 28, [6,7] 0 of 7. Median proved 1.8 s. Checker on 259 certificates: 252 pass, 7 rejected, 97.3% (P2 predicted at least 99%, final reading pending). Four rejections have a chord premise with constant ±1/2, the same fault as the false IMO 2011 P6. I read one, USA TST 2013 P2: C and T are antipodal, so t(C) − t(T) = 1/2, but the engine accepts equal chords as if the difference were 0, which assumes the theorem's key step. **That is an engine soundness fault, and the checker is what catches it.** The fix (the premise's constant must be 0) waits for the running jobs; rejected rows are then rerun and reported apart.
