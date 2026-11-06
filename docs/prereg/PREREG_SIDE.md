@@ -1066,3 +1066,19 @@ Correction to the comparison in SIDE-GT-CHECK's results (2026-11-06 16:4x UTC): 
 - **At least 263 (HAGeo at K = 2,048):** the engine and search compete with published work, with certificates. The next step is the same benchmark end to end from its natural-language statements.
 - **218 to 262 (above random at K = 8,192):** the search is doing something, but less than HAGeo's construction rules. Next: run the same engine with uniformly random points, the published baseline's design, so that the greedy's own value is measured on the same engine and CPU.
 - **Below 218:** the engine is the limit. Next: read the unproved problems below difficulty 3, where HAGeo proves 92.5%, and find which rules or theories are missing.
+
+### SIDE-GT-DECL dev: first read (2026-11-06 17:3x UTC; job 1337117, `results/proof/gt_gtdecl_dev.jsonl`; dev problems only)
+
+Same model, same 24 problems, 4 translations each, against the construction language.
+
+| Last status | Declarative | Construction |
+|---|---|---|
+| Passes the guard | 43 | 15 |
+| Problems with one that passes | 15 of 24 | 7 of 24 |
+| Build error | 0 | 35 |
+| No figure | 16 | 0 |
+| Goal fails | 5 | 11 |
+| Unexpressible | 32 | 34 |
+| Tokens per translation | 20.1k | 19.2k |
+
+Passing the guard is not faithfulness: one translation of ISL 2017 G18 states a different figure, and hand reading is still to come. USAJMO 2012 P1, unexpressible or a build error in the construction language, goes through the guard, the closure (24 s, one point) and the checker. Tokens run well above DECL-P4's 12.5k, as they do for the construction run on this set. Running: the closure on the 43 statements (job 1341956), and whether 5 times the starts finds figures for the 16 without one.
