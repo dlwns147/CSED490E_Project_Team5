@@ -276,9 +276,83 @@ def guard(text):
     return "guarded", f"{len(figs)} figures, {solved} solved"
 
 
+def holds_on(b, figs_a, pts_a, tol=1e-6):
+    """does statement b hold on translation a's figures? Points are matched by name, and b's other points to a's other points by trying every assignment (translations name auxiliary
+    points differently). Holding means: on every figure of a that meets b's order conditions, all b's facts and its goal are true, and at least one figure meets them. A fact over a point
+    a has no match for is skipped; the goal must be evaluable. -> (holds, share of b's facts evaluated)"""
+    import itertools
+    pts_b, hyps, goal = parse(b)
+    rest_b = [q for q in pts_b if q not in pts_a]
+    rest_a = [q for q in pts_a if q not in pts_b]
+    maps = []
+    k = min(len(rest_a), len(rest_b))
+    for sub in itertools.permutations(rest_b, k):
+        for img in itertools.combinations(rest_a, k):
+            maps.append(dict(zip(sub, img)))
+        if len(maps) > 720:
+            break
+    ix_a = {q: i for i, q in enumerate(pts_a)}
+    best = (False, 0.0)
+    for m in maps or [{}]:
+        name = {q: (q if q in ix_a else m.get(q)) for q in pts_b}
+
+        def args(a):
+            out = []
+            for x in a:
+                if isinstance(x, str):
+                    if name[x] is None:
+                        return None
+                    out.append(ix_a[name[x]])
+                else:
+                    out.append(x)
+            return out
+        g = args(goal[1])
+        if g is None:
+            continue
+        facts = [(k_, args(a)) for k_, a in hyps if k_ in FACT and args(a) is not None]
+        orders = [(k_, args(a)) for k_, a in hyps if k_ in ORDER and args(a) is not None]
+        share = len(facts) / max(1, sum(1 for k_, _ in hyps if k_ in FACT))
+        met = [P for P in figs_a if all(x > 0 for k_, a in orders for x in order_value(k_, a, P))]
+        if met and all(abs(v) < tol for P in met for k_, a in facts + [(goal[0], g)] for v in residual(k_, a, P)):
+            if share >= best[1]:
+                best = (True, share)
+    return best
+
+
+def _figs(x):
+    try:
+        pts, _, _, figs, _ = solve(x["dsl"], seed=0)
+        return dict(x, pts=pts, figs=[(list(P.real), list(P.imag)) for P in figs])
+    except Exception:
+        return dict(x, pts=[], figs=[])
+
+
+def agree_rows():
+    """agree <rows.jsonl> <out.jsonl> [--workers W]: every ordered pair of statements of one problem -> id, a, b, b_holds_on_a, share. SIDE-GT-AGREE rebuilt for statements: two translations
+    corroborate each other when each holds on the other's figures"""
+    from concurrent.futures import ProcessPoolExecutor
+    rows = [json.loads(l) for l in open(sys.argv[2])]
+    w = int(sys.argv[sys.argv.index("--workers") + 1]) if "--workers" in sys.argv else 4
+    with ProcessPoolExecutor(w) as ex:
+        F = list(ex.map(_figs, rows))
+    with open(sys.argv[3], "w") as f:
+        for x in F:
+            for y in F:
+                if x["id"] != y["id"] or x["sample"] == y["sample"]:
+                    continue
+                figs = [np.array(re) + 1j * np.array(im) for re, im in x["figs"]]
+                try:
+                    h, sh = holds_on(y["dsl"], figs, x["pts"]) if figs else (False, 0.0)
+                except Exception as e:
+                    h, sh = False, 0.0
+                f.write(json.dumps(dict(id=x["id"], a=x["sample"], b=y["sample"], b_holds_on_a=bool(h), share=round(sh, 3))) + "\n")
+
+
 if __name__ == "__main__":
     if sys.argv[1] == "guard":
         print(json.dumps(guard(sys.argv[2])))
+    if sys.argv[1] == "agree":
+        agree_rows()
     if sys.argv[1] == "one":
         print(json.dumps(guard(sys.argv[2])))
         print(figure(sys.argv[2])[2])
