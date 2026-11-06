@@ -2,6 +2,8 @@
 
 *Solving Problems with LLMs, Accurately and Cheaply.* POSTECH CSED490E, Team 5
 
+**Standard:** this is a project for an NLP class, and we hold it to the standard of an ML paper (rule 9 in §4).
+
 This file holds what the project is for, what we found, how we work, and where things stand. The details live elsewhere: setup in
 `README.md`, every result (dated) in `docs/FINDINGS.md`, each experiment's predictions and verdict in `docs/prereg/`, and cluster
 state in `docs/SLURM_HANDOFF.md`.
@@ -94,7 +96,7 @@ OptMATH is partly broken: its statements omit what its gold answers need.
 7. **Git:** commit and push after each change. The repository is public: no keys, server addresses or raw outputs (`*.jsonl`,
    logs), and no co-author lines.
 8. **Write for a first-time reader:** what ran, the result with its cost, and what is next.
-9. **Work as if this were an ML paper, though it is a class project** (user, 11-06).
+9. **Treat this as an ML paper, though it is a project for an NLP class** (user, 11-06, twice).
    - **Before building a method,** read the closest prior work in full, not search snippets, and record in `docs/notes/RELATED_WORK.md` what it did, its numbers, and what differs from ours.
    - **Compare with the state of the art on standard benchmarks,** with the conditions stated, not with the most convenient number. Run the published baselines on the same data where possible.
    - **Claim novelty only after naming the nearest prior work.** "No paper found" must say what was searched, and it never means new.
