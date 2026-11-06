@@ -144,7 +144,7 @@ def play(cfg, task, sim, arms, base_arm, r_each, inner):
         step = next_state(new, end)
         if step is None:  # the committed rollout itself ended the conversation before another turn: its reward is the conversation's
             msgs = prefix + new
-            return rows + [dict(kind="final", domain=cfg.domain, task=task.id, reward=reward, term=term, turns=t + 1, base_reward=sim.reward_info.reward, ktok=ktok(msgs),
+            return rows + [dict(kind="final", domain=cfg.domain, task=task.id, reward=reward, term=term, turns=t + 1, base_reward=sim.reward_info.reward if sim.reward_info else None, ktok=ktok(msgs),
                                 messages=[m.model_dump(mode="json", exclude={"raw_data"}) for m in msgs])]
         prefix = prefix + step
         t += 1
