@@ -203,7 +203,13 @@ class Closure:
         self.D, self.W = Lin(seed), Lin(seed + 1)
         self.Z = ZSpan() if os.environ.get("GT_STRICT") else None
         self.zver, self.zseen, self.zfail = 0, set(), {}
+        self.Q = Lin(seed + 2) if os.environ.get("GT_SQ") else None     # squared lengths, a third linear system (SIDE-GT-SQ)
         n = self.n
+        if self.Q is not None:
+            self.s = [[None] * n for _ in range(n)]
+            self.q_mid = set()
+            for a, b in itertools.combinations(range(n), 2):
+                self.s[a][b] = self.s[b][a] = self.Q.var(("s", a, b))
         self.u = [[0] * n for _ in range(n)]
         self.w = [[0] * n for _ in range(n)]
         for a, b in itertools.combinations(range(n), 2):
@@ -215,6 +221,8 @@ class Closure:
         self.groups, self.gid, self.done_center, self.mid_done = {}, 0, set(), set()
         self.cur_group, self.group_rows = None, {}
         self.prep()
+        if self.Q is not None:
+            self.sq_prep()
         for f in facts:
             self.ingest(*f)
 
@@ -259,6 +267,61 @@ class Closure:
         if new and self.log is not None:
             self.log.append(("W", rel, tag, prem, concl))
         return new
+
+    def qa(self, rel, tag, prem, concl):
+        """a relation among squared lengths: an identity of the plane, so nothing comes from the figure"""
+        if not self.zok(prem):
+            return False
+        new = self.Q.add(rel)
+        if new and self.log is not None:
+            self.log.append(("Q", rel, tag, prem, concl))
+        return new
+
+    def sq_prep(self):
+        """numerically true instances: perpendicular pairs of point pairs on two lines, and equal lengths"""
+        L, ids = self.L, list(self.lines)
+        self.q_perp, self.q_eq = [], []
+        if ids:
+            A = np.array([self.lines[i][0] for i in ids])
+            B = np.array([self.lines[i][1] for i in ids])
+            vx, vy = self.dx[B, A] / L[A, B], self.dy[B, A] / L[A, B]
+            near = np.abs(np.outer(vx, vx) + np.outer(vy, vy)) <= TOL
+            for i, j in zip(*np.nonzero(np.triu(near, 1))):
+                for (a, b), (c, e) in itertools.product(itertools.combinations(self.lines[ids[i]], 2), itertools.combinations(self.lines[ids[j]], 2)):
+                    self.q_perp.append((a, b, c, e))
+        by = {}
+        for a, b in itertools.combinations(range(self.n), 2):
+            if L[a, b] > 1e-9:
+                by.setdefault(round(L[a, b] * 1e6), []).append((a, b))
+        for g in by.values():
+            self.q_eq += [(a, b, c, e) for (a, b), (c, e) in itertools.combinations(g, 2)]
+
+    def sq_round(self, pm):
+        """cong and perp, in and out, and the median identity at proved midpoints"""
+        u, w, s = self.u, self.w, self.s
+        Dv, Wv, Qv = self.D.val, self.W.val, self.Q.val
+        for a, b, c, e in self.q_perp:
+            F = ("sqperp", a, b, c, e)
+            if Dv[u[a][b]] == Dv[u[c][e]]:
+                if self.zok((("perp", a, b, c, e),)):
+                    self.qa(lform(self, F)[1], "pyth", (("perp", a, b, c, e),), F)
+            elif not sum(k * Qv[v] for v, k in lform(self, F)[1]) % P:
+                self.da([(u[a][b], 1), (u[c][e], -1)], "pyth", (F,), ("perp", a, b, c, e))
+        for a, b, c, e in self.q_eq:
+            F = ("sqcong", a, b, c, e)
+            if Wv[w[a][b]] == Wv[w[c][e]]:
+                self.qa(lform(self, F)[1], "sq_cong", (("cong", a, b, c, e),), F)
+            elif Qv[s[a][b]] == Qv[s[c][e]]:
+                self.wa([(w[a][b], 1), (w[c][e], -1)], "sq_cong", (F,), ("cong", a, b, c, e))
+        for m, a, b in pm:
+            if (m, a, b) in self.q_mid:
+                continue
+            self.q_mid.add((m, a, b))
+            prem = (("coll", m, a, b), ("cong", m, a, m, b))
+            self.qa([(s[a][b], 1), (s[m][a], -4)], "median", prem, ("sqmid", m, a, b))
+            for x in range(self.n):
+                if x not in (m, a, b):
+                    self.qa([(s[x][m], 2), (s[m][a], 2), (s[x][a], -1), (s[x][b], -1)], "median", prem, ("sqmedian", x, m, a, b))
 
     def tick(self):
         if self.deadline and time.time() > self.deadline:
@@ -682,6 +745,10 @@ class Closure:
                     self.da([(u[m][k], 1), (u[a][b], -1)], "trapezoid", base + (("eqratio", m, a, m, e, k, b, k, c),), ("para", m, k, a, b))
                 elif d(m, k) == d(a, b):
                     self.wa([(w[m][a], 1), (w[m][e], -1), (w[k][b], -1), (w[k][c], 1)], "trapezoid", base + (("para", m, k, a, b),), ("eqratio", m, a, m, e, k, b, k, c))
+        if self.Q is not None:
+            q0 = self.Q.rank
+            self.sq_round(pm)
+            return self.D.rank + self.W.rank != r0 or len(self.groups) != g0 or self.zver != z0 or self.Q.rank != q0
         return self.D.rank + self.W.rank != r0 or len(self.groups) != g0 or self.zver != z0
 
     def holds(self, name, *a):
@@ -763,6 +830,20 @@ def numeric_cand(c, P_):
             return None
         t = ((A[0] - C[0]) * (C[1] - E[1]) - (A[1] - C[1]) * (C[0] - E[0])) / D
         return tuple(A + t * (B - A)), [("coll", x_, a[0], a[1]), ("coll", x_, a[2], a[3])]
+    if kind == "second_lc":     # the line through p and q meets the circle through p, b, c again
+        A, B, C, E = pt(a[0]), pt(a[1]), pt(a[2]), pt(a[3])
+        o = circum(A, C, E)
+        v = B - A
+        if o is None or v @ v < 1e-12:
+            return None
+        return tuple(A + v * (2 * ((o - A) @ v) / (v @ v))), [("coll", x_, a[0], a[1]), ("cyclic", x_, a[0], a[2], a[3])]
+    if kind == "second_cc":     # the circles through p, a, b and p, c, d meet again
+        A, B, C, E, G = pt(a[0]), pt(a[1]), pt(a[2]), pt(a[3]), pt(a[4])
+        o1, o2 = circum(A, B, C), circum(A, E, G)
+        if o1 is None or o2 is None or (o2 - o1) @ (o2 - o1) < 1e-12:
+            return None
+        F = o1 + (o2 - o1) * (((A - o1) @ (o2 - o1)) / ((o2 - o1) @ (o2 - o1)))
+        return tuple(2 * F - A), [("cyclic", x_, a[0], a[1], a[2]), ("cyclic", x_, a[0], a[3], a[4])]
     raise ValueError(kind)
 
 
@@ -843,6 +924,14 @@ def lform(e, F):
     """a fact as (system, linear form over base variables)"""
     u, w = e.u, e.w
     k, *a = F
+    if k == "sqperp":
+        rel = {}
+        for x, y, c in ((a[0], a[2], 1), (a[0], a[3], -1), (a[1], a[2], -1), (a[1], a[3], 1)):
+            if x != y:
+                rel[e.s[x][y]] = rel.get(e.s[x][y], 0) + c
+        return "Q", [(v, c) for v, c in rel.items() if c]
+    if k == "sqcong":
+        return "Q", [(e.s[a[0]][a[1]], 1), (e.s[a[2]][a[3]], -1)]
     if k == "coll":
         return "D", [(u[a[0]][a[1]], 1), (u[a[0]][a[2]], -1)]
     if k in ("para", "perp"):
@@ -862,7 +951,7 @@ def lform(e, F):
 
 def explain(e, goal):
     """the proof behind the goal, from the log: the rows it rests on, by the exact linear combination behind each premise"""
-    Ech = {"D": ({}, []), "W": ({}, [])}   # pivot variable -> (log index, vector, provenance)
+    Ech = {"D": ({}, []), "W": ({}, []), "Q": ({}, [])}   # pivot variable -> (log index, vector, provenance)
 
     def reduce(sys_, v, t):
         piv = Ech[sys_][0]
@@ -1004,6 +1093,14 @@ def num_fact(F, xy, tol=1e-6):
         return c is not None and all(abs(float(np.hypot(*(X[r] - c))) - float(np.hypot(*(X[a[0]] - c)))) < tol for r in a[3:])
     if k == "circle":
         return all(abs(ln(a[0], a[1]) - ln(a[0], r)) < tol * max(ln(a[0], a[1]), 1e-3) for r in a[2:])
+    if k == "sqperp":
+        return abs(float(vec(a[0], a[1]) @ vec(a[2], a[3]))) < tol * max(ln(a[0], a[1]) * ln(a[2], a[3]), 1e-3)
+    if k == "sqcong":
+        return abs(ln(a[0], a[1]) - ln(a[2], a[3])) < tol * max(ln(a[0], a[1]), 1e-3)
+    if k == "sqmid":
+        return abs(ln(a[1], a[2]) - 2 * ln(a[0], a[1])) < tol * max(ln(a[1], a[2]), 1e-3)
+    if k == "sqmedian":
+        return abs(2 * ln(a[0], a[1]) ** 2 + 2 * ln(a[1], a[2]) ** 2 - ln(a[0], a[2]) ** 2 - ln(a[0], a[3]) ** 2) < tol * max(ln(a[0], a[2]) ** 2, 1e-3)
     if k in ("simtri", "simtri2"):
         p, q, r, s, t, v = a
         sides = [(ln(p, q), ln(s, t)), (ln(q, r), ln(t, v)), (ln(r, p), ln(v, s))]
@@ -1040,7 +1137,7 @@ def pretty(e, F):
 def relations(e, m):
     """how many independent relations hold among the direction and log-length variables of the first m points"""
     out = 0
-    for lin, tab in ((e.D, e.u), (e.W, e.w)):
+    for lin, tab in ((e.D, e.u), (e.W, e.w)) + (((e.Q, e.s),) if e.Q is not None else ()):
         piv, n, rank = {}, 0, 0
         for a, b in itertools.combinations(range(m), 2):
             n += 1
@@ -1075,6 +1172,16 @@ def one_sat(row, budget, timeout, proofs, fresh=8):
     n, x, f, g = figure(row["dsl"])
     N, X, F = list(n), [tuple(q) for q in x], [q[:-1] if q[-1] == "_" else q for q in f]
     defs, kept_by_round, ok, tried = [], [], False, 0
+    two = None     # a second figure: a relation true by accident on one figure gains nothing on the other
+    if os.environ.get("GT_TWOFIG"):
+        for sd in range(1, 9):
+            try:
+                n2, x2, f2, _ = figure(row["dsl"], seed=sd)
+            except Exception:
+                continue
+            if set(n2) == set(n):
+                two = [list(n2), [tuple(q) for q in x2], [q[:-1] if q[-1] == "_" else q for q in f2]]
+                break
     try:
         for rnd in range(1000):
             e = Closure(N, X, F, deadline=end, log=False)
@@ -1082,6 +1189,10 @@ def one_sat(row, budget, timeout, proofs, fresh=8):
             if ok:
                 break
             r0 = relations(e, len(N))
+            if two:
+                e_b = Closure(two[0], two[1], two[2], deadline=end, log=False)
+                e_b.run(None)
+                r0b = relations(e_b, len(two[0]))
             best, fell = None, False
             for c, _ in GT.aux_candidates(f"{' '.join(N)} = free ? {g[0][0]}", budget, seed=rnd):
                 q = numeric_cand(c, dict(zip(N, X)))
@@ -1093,8 +1204,20 @@ def one_sat(row, budget, timeout, proofs, fresh=8):
                 e2 = Closure(N + ["_x"], X + [tuple(q[0])], F + list(q[1]), deadline=end, log=False)
                 fell, _ = e2.run(g[0])
                 gain = relations(e2, len(N) + 1) - r0 - relations(alone, len(N) + 1)
+                qb = None
+                if two and (fell or best is None or gain > best[0]):
+                    qb = numeric_cand(c, dict(zip(two[0], two[1])))
+                    if qb is None or not all(math.isfinite(v) and abs(v) < 1e4 for v in qb[0]) or any(math.dist(qb[0], v) < 1e-6 for v in two[1]):
+                        fell = False
+                        continue
+                    alone_b = Closure(two[0] + ["_x"], two[1] + [tuple(qb[0])], list(qb[1]), deadline=end, log=False)
+                    alone_b.run(None)
+                    e2b = Closure(two[0] + ["_x"], two[1] + [tuple(qb[0])], two[2] + list(qb[1]), deadline=end, log=False)
+                    fell_b, _ = e2b.run(g[0])
+                    fell = fell and fell_b
+                    gain = min(gain, relations(e2b, len(two[0]) + 1) - r0b - relations(alone_b, len(two[0]) + 1))
                 if fell or best is None or gain > best[0]:
-                    best = (gain, c, tuple(q[0]), q[1])
+                    best = (gain, c, tuple(q[0]), q[1], qb)
                 if fell:
                     break
             if best is None or (best[0] <= 0 and not fell):
@@ -1105,6 +1228,10 @@ def one_sat(row, budget, timeout, proofs, fresh=8):
             N.append(nm)
             X.append(best[2])
             F += [tuple(nm if v == "_x" else v for v in h) for h in best[3]]
+            if two:
+                two[0].append(nm)
+                two[1].append(tuple(best[4][0]))
+                two[2] += [tuple(nm if v == "_x" else v for v in h) for h in best[4][1]]
     except TimeoutError:
         pass
     out.update(kept=kept_by_round, tried=tried, sec=round(time.time() - t0, 2), timeout=time.time() > end)
@@ -1140,7 +1267,7 @@ def one_sat(row, budget, timeout, proofs, fresh=8):
         defs_ = defs
         rows, chases = explain(e, g[0])
     out.update(proved=True, sec=round(time.time() - t0, 2), points=[c for _, c in defs_], steps=len(rows), chases=len(chases),
-               fractional_angle=sum(1 for H, t, ctx, r in chases if H[0] not in ("cong", "eqratio", "half") and any("/" in rat(c) for c in r.values()) and not (H[0] == "midp" and e.log[next(iter(r))][0] == "W")),
+               fractional_angle=sum(1 for H, t, ctx, r in chases if H[0] not in ("cong", "eqratio", "half", "sqperp", "sqcong") and any("/" in rat(c) for c in r.values()) and not (H[0] == "midp" and e.log[next(iter(r))][0] == "W")),
                rules={tg: sum(1 for j in rows if e.log[j][2] == tg) for tg in {e.log[j][2] for j in rows}})
     facts = [e.log[j][4] for j in rows] + [H for j in rows for H in e.log[j][3] if H[0] not in ("tdiff", "cyclic_group")]
     tried_f, held, false_ = 0, 0, {}

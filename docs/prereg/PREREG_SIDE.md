@@ -945,3 +945,29 @@ New design: **greedy on gain.** In a round, each of 2,000 one-step candidates ov
 What I saw before writing this, at a budget of 300 on 8 rows already proved at K = 256 (IMO 2018 P1, 2009 P2, 2012 P5, 2019 P6, 2015 P3, 2000 P6, ISL 2022_19, USAMO 2009 P5): all 8 are proved, by 1 to 10 points, in 2.5 to 82 s, with no fractional angle and every step on 8 of 8 fresh figures. IMO 2018 P1 takes 2.7 s with two reflections. That is above SAT-P2's range on its small sample, so I add **SAT-P4 (reported, made now):** at the full budget, at least 18 of the 21 are proved, at a mean under 105 s per translation.
 
 Same rows and output. SAT-P1 and its decision stand, and the new proofs of the 8 problems go to the step replay and to reading by hand before any count changes.
+
+---
+
+## SIDE-GT-SQ: squared lengths as a third linear system (registered 2026-11-06 11:5x UTC)
+
+**Why.** SAT's first rows show two separate things (it is still running, and those rows are the only evidence read so far). IMO 2020 P1 is proved, by the points of the textbook solution. IMO 2011 P6 is "proved" by a false proof: a reflection fell 7e-5 from an existing point in the one figure, so facts about that near-coincident pair passed the numeric test, gained 71 relations, and every fresh figure rejected the result. Maximising gain selects exactly such accidents. Reading what the unproved problems lack gives a third thing: the engine chases angles and log lengths, and nothing additive. IMO 2008 P1b has a known proof by Pythagoras that needs neither.
+
+**Theory.** For any four points of the plane, ab ⟂ cd holds exactly when ac² − ad² − bc² + bd² = 0. It is an identity in the dot product, so it is linear in squared lengths and has no branch or orientation. Equal lengths are s_ab = s_cd. A midpoint m of ab gives, for every x, 2·xm² + 2·ma² = xa² + xb², and ab² = 4·ma². So squared lengths form a third linear system with membership tested the same way, with two-way bridges: a perpendicular proved in angles enters squares, one proved in squares enters angles, and likewise equal lengths. Chou, Gao and Zhang's Pythagoras differences (1993–94) use these quantities by elimination in a constructive order; I found no account of one as a span inside a forward closure, and Newclid's Pythagorean rules are single rule instances. That search was short, so this is not a claim of priority.
+
+**Derivation for IMO 2008 P1b (done by hand, before any run).** With O the circumcentre and D the midpoint of BC: OA1² = OD² + DA1² (OD ⟂ BC) = OD² + DH²; OD² = R² − BC²/4 by the median identity at O; DH² = (HB² + HC²)/2 − BC²/4 by the median identity at H. So OA1² = R² + (HB² + HC² − BC²)/2. This is the same for each side exactly when HB² − HA² = BC² − CA², which is the four-point identity for CH ⟂ AB. So the proof is linear in squares, and takes one point, the circumcentre.
+
+**Design.** Same rows and output format as SIDE-GT-SAT, on the strict engine (`GT_STRICT=1 GT_SQ=1`), with two changes to the greedy:
+- **Two figures (`GT_TWOFIG=1`):** a candidate that would lead a round has its gain recomputed on a second independent figure, and the lower counts; the goal must fall on both. This uses no distance threshold.
+- **Second intersections (`GT_SECOND=1`):** the candidate language lacked them. A line through a point of a circle meets it again; two circles through a point meet again. Each has one root and no branch. Known solutions use them often, for example IMO 2019 P2.
+
+**Predictions.**
+- **SQ-P1 (decision):** IMO 2008 P1b is proved, with a proof that uses the squares system. This is a derivation, so failure means the engine or the translation is wrong.
+- **SQ-P2:** IMO 2011 P6 is no longer proved. Every proof holds on 8 of 8 fresh figures.
+- **SQ-P3:** of the other 6 unproved problems (2008 P6, 2019 P2, 2021 P3, 2011 P6, USAMO 2005 P3, ISL 2012_22), 1 is proved, range 0–2. 2019 P2 is the likeliest. 2008 P6 and 2011 P6 are not.
+- **SQ-P4:** no problem SAT proves in under 1,800 s is lost, except through the second figure rejecting an accident.
+
+**Decision.** SQ-P1 holds and the proof reads as derived: the squares system stays in the engine, and the counts are restated with it, each new proof being read first. SQ-P1 fails: read why before anything else runs on it. If SQ-P3 gives 0 although hand-added points prove those problems, the gap is search, and the greedy's drift (below) is next. If hand-added points do not prove them, the gap is theories or order.
+
+**Open, and not part of this test:** on all 8 timed-out rows the gain rises by round (for example 7, 10, 7, ..., 45 on IMO 2019 P2). Rank among new points grows on its own, so the score drifts away from the goal, which fails the diminishing returns the greedy's motivation assumed.
+
+**Hand checks, 2026-11-06 11:5x UTC, made after the text above and before reading the run (job 1337925).** With the circumcentre given, IMO 2008 P1b is proved at once, with no fractional coefficient and every step on 8 of 8 fresh figures. The proof is simpler than my derivation: no median identity, only midlines and six four-point identities. So SQ-P1's engine half is already seen; the test that remains is the greedy finding that point itself. With the two second intersections of the known solution given (A2 on AA1, B2 on BB1), IMO 2019 P2 is proved in one round. So its gap was the candidate language, not the rules.

@@ -23,9 +23,16 @@ Side work may use the Slurm server's GPUs: a model server and client commands ru
 | Lean (main track, `PREREG_PROOF.md`) | A specialised 8B prover is best; the compiler is a perfect check | Not a side-project gap at present |
 | Constructions (`construct.py`) | Unsolved for an 8B model; its own checker is not a usable free check | A derived free check, or a search the problem's structure makes exact |
 
-**Running now (geometry):** the strict closure at a pool of 256 and the step replay (SIDE-GT-CLOSE), output in `results/proof/sound3/`. Queued: declarative translations on the dev problems (SIDE-GT-DECL), output `results/proof/gt_gtdecl_dev.jsonl`.
+**Running now (geometry):** in `results/proof/sound3/`: the greedy point choice (SIDE-GT-SAT), the strict step replay (SIDE-GT-CLOSE), and the greedy with squared lengths, two figures and second intersections (SIDE-GT-SQ). Queued: declarative translations on the dev problems (SIDE-GT-DECL), output `results/proof/gt_gtdecl_dev.jsonl`.
 
 ## Log
+
+**2026-11-06 11:5x UTC: IMO 2020 P1 proved by the textbook's points; one false proof caught; squared lengths added (SIDE-GT-SQ, registered, running).**
+- **IMO 2020 P1:** the greedy's two points are the known solution's X and Y, in 16 s. It then proves DP = DX, that P, A, B, X, Y are concyclic, and that the bisectors at D and C are perpendicular bisectors of PX and PY. Not counted until replayed.
+- **IMO 2011 P6 is a false proof, caught by the fresh figures:** a reflection fell 7e-5 from an existing point in the one figure, so facts about that near-coincident pair passed the numeric test and gained 71 relations. No step set held on any of the 8 fresh figures. Maximising gain selects such accidents, so a candidate's gain now counts on a second figure too.
+- **Squared lengths as a third linear system:** ab ⟂ cd holds exactly when ac² − ad² − bc² + bd² = 0, an identity with no branch or orientation. With the circumcentre given, IMO 2008 P1b follows in 0.02 s from six such identities and two midlines. The engine could not reach it before, because it had nothing additive.
+- **Candidate language:** it had no second intersections. Given the known solution's two, IMO 2019 P2 is proved in one round. Both kinds are now candidates.
+- **The score drifts:** on all 8 rows that timed out, gain rises round by round, because relations among new points grow on their own. So the greedy wanders from the goal. This is the open search gap.
 
 **2026-11-06 10:4x UTC: strict counts, and a point choice that takes seconds.**
 - **Strict closure, decided (CLOSE-P6 holds):** 21 of the 29 problems no single point proved, 20 at a pool of 256 and IMO 2002 P2a at 64. No proof halves an angle, and every step holds on 8 of 8 fresh figures. So the halved angles cost almost nothing. **Correction:** I reported 23 of 31 earlier, counting some problems under two ids; the right figures are 21 of 29.

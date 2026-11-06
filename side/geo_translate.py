@@ -415,6 +415,10 @@ def aux_candidates(dsl, k, seed=0):
          "reflect": [f"reflect {{x}} {a} {b} {c}" for a in pts for b, c in itertools.combinations([q for q in pts if q != a], 2)],
          "intersection_ll": [f"intersection_ll {{x}} {a} {b} {c} {d}" for (a, b), (c, d) in itertools.combinations(P2, 2)
                              if len({a, b, c, d}) == 4]}
+    if os.environ.get("GT_SECOND"):      # second intersections: line and circle through a point, two circles through a point
+        T["second_lc"] = [f"second_lc {{x}} {a} {b} {c} {d}" for a in pts for b in pts if b != a for c, d in itertools.combinations([q for q in pts if q != a and q != b], 2)]
+        r0 = random.Random(seed + 1)      # too many to list: k drawn uniformly
+        T["second_cc"] = list({f"second_cc {{x}} {' '.join(r0.sample(pts, 5))}" for _ in range(k)}) if len(pts) >= 5 else []
     rng = random.Random(seed)
     for v in T.values():
         rng.shuffle(v)
