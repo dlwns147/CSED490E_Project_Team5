@@ -849,3 +849,15 @@ The first run (jobs 1324967, 1324968) was stopped partway, 26 translations in. I
 - **P3 refuted** → the engine's rules are wrong somewhere, and its counts are withdrawn until that is found.
 
 **Correction to CLOSE-P1 (written 2026-11-06 06:2x UTC, before any full-run result).** The CPU figure I gave for the comparison was wrong. The recorded CPU per translation is 5,400 s (held out) and 6,500 s (references) for pooling arm A, and 2,600 s and 3,100 s for the pairs, so about 8,000 s and 9,600 s for those two arms together. The prediction itself is unchanged. The comparison is against those figures, and a closure run's limit is 1,800 s.
+
+### SIDE-GT-CLOSE: a stricter check, and one arm stopped (written 2026-11-06 07:3x UTC, after the arms with pools of 0, 64 and 256 and before any Newclid check)
+
+**Results so far, as run.** Pool of 0: 4 problems. Pool of 64: 11. Pool of 256: 23 of 31, against my 12 (7–18), so I treat this as a possible bug until the checks below finish. Every step of all 44 proofs holds on 8 of 8 fresh figures.
+
+**Why a stricter check.** Fresh figures show that each step is true, not that it follows from the steps before it. Whole-proof Newclid runs (CLOSE-P4) may time out on many points and would not say which step is at fault.
+
+**Method** (`geo_closure.py certify`, one translation per problem, its fewest points). Newclid replays a proof one conclusion at a time. Each DDAR run gets the translation, the proof's points, and as lemmas only the conclusions this step's premises were chased from. It has to reach the step's conclusion within 120 s. So another engine checks both the rules and the arithmetic, one step at a time.
+
+**CLOSE-P5 (reported, predicted before any full replay; I saw one proof at 20 s, where the 12 isosceles steps pass and the 3 similar-triangle steps and the goal do not).** At least 80% of steps reproduce. Failures concentrate in steps where Newclid has to do long chases or check a similar-triangle goal, because of its time limits and goal tests rather than a wrong step. Every proof with a failing step is reported, and I read the failing steps of each headline proof. A proof counts as certified only if all its steps reproduce or the failing ones are read by hand and valid; a step I find invalid withdraws that proof and starts a search for the same fault in all the others.
+
+**The arm with every candidate is stopped** (job 1334653, after 10 rows). Pools of 1,100 or more hit the 1,800 s limit, three runs ended with no output, which is probably memory, and it proved nothing the pool of 256 had not. CLOSE-P2's K = all stays undecided. A larger pool needs a faster engine, and that is not the first gap until the proofs are trusted.

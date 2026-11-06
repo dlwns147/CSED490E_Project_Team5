@@ -941,8 +941,108 @@ def one(row, k, timeout, proofs, fresh=8):
     return out
 
 
+def lemma_of(c):
+    """a conclusion in a proof file as Newclid statements"""
+    k, *a = c.split()
+    if k in ("given", "const") or k == "half" and len(a) != 4:
+        return []
+    if k == "half":
+        return [f"midp {a[2]} {a[0]} {a[1]}"]
+    if k == "coll":
+        q = list(dict.fromkeys(a))
+        return [" ".join(["coll"] + q)] if len(q) >= 3 else []
+    if k == "cyclic":
+        return [c] if len(a) >= 4 else []
+    if k == "circle":
+        return [f"cong {a[0]} {a[1]} {a[0]} {x}" for x in a[2:]]
+    return [c]
+
+
+def certify_file(path, timeout):
+    """replay a proof file in Newclid, one conclusion at a time: DDAR gets the translation, the proof's points and only the conclusions that this
+    step's premises were chased from, as lemmas, and has to reach the step's conclusion. So the rules and the arithmetic are checked by another engine."""
+    import re, tempfile
+    L = open(path).read().split("\n")
+    pre, goal = L[0].split(" ? ")
+    defs, steps, cur = {}, {}, None
+    rows, goals = {}, []
+    for ln in L[1:]:
+        m = re.match(r"_x(\d+) = (\S+) aux (.*)", ln)
+        if m:
+            defs[m[1]] = f"{m[2]} zx{m[1]} {m[3]}"
+            continue
+        m = re.match(r"\[(\d+)\] (\w+): (.*) => (.*)", ln)
+        if m:
+            cur = int(m[1])
+            rows[cur] = {"tag": m[2], "prem": m[3], "concl": m[4].replace("_x", "zx"), "from": set()}
+            continue
+        m = re.match(r"      .* = (.*)", ln)
+        if m and cur is not None:
+            rows[cur]["from"] |= {int(x) for x in re.findall(r"\[(\d+)\]", m[1])}
+            continue
+        if ln.startswith("GOAL"):
+            goals.append({int(x) for x in re.findall(r"\[(\d+)\]", ln)})
+    d0 = pre + "".join(f"; zx{k} = {v}" for k, v in defs.items())
+    names = set(re.findall(r"\b[a-z_][a-z0-9_]*\b", " ".join(rows[j]["concl"] for j in rows)))
+    tasks, merged = {}, {}
+    for j, r in rows.items():
+        if r["tag"] in ("given", "centre", "midp_half"):
+            continue
+        c = r["concl"]
+        merged.setdefault(c, set()).update(r["from"])
+        if "cyclic_group" in r["prem"]:
+            k = set(c.split()[1:])
+            merged[c] |= {i for i, q in rows.items() if i < j and q["concl"].startswith("cyclic") and set(q["concl"].split()[1:]) <= k and q["concl"] != c}
+    merged["GOAL"] = set().union(*goals) if goals else set()
+    out = []
+
+    def one(item):
+        c, frm = item
+        tgt = goal if c == "GOAL" else (lemma_of(c)[0] if lemma_of(c) else None)
+        if tgt is None:
+            return {"concl": c, "skip": True}
+        lem = sorted({x for i in frm for x in lemma_of(rows[i]["concl"]) if rows[i]["tag"] != "given" and x != tgt})
+        ptn = sorted(set(re.findall(r"\b[a-z_][a-z0-9_]*\b", d0)))
+        with tempfile.NamedTemporaryFile("w", suffix=".json") as f:
+            json.dump({"pts": [], "lem": lem, "trace": False, "proof": None}, f)
+            f.flush()
+            try:
+                p = subprocess.run([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "geo_translate.py"), "one_lem", f"{d0} ? {tgt}", str(timeout), f.name],
+                                   capture_output=True, text=True, timeout=timeout * 4 + 600)
+                q = json.loads(p.stdout.strip().splitlines()[-1])
+                return {"concl": c, "target": tgt, "lemmas": len(lem), "proved": q["proved"], "drop": q["drop"], "err": q["err"], "sec": round(q["sec"], 1), "tag": next((r["tag"] for r in rows.values() if r["concl"] == c), "goal")}
+            except Exception as e:
+                return {"concl": c, "target": tgt, "lemmas": len(lem), "proved": False, "err": type(e).__name__, "tag": next((r["tag"] for r in rows.values() if r["concl"] == c), "goal")}
+    return [one(x) for x in merged.items()]
+
+
+def certify():
+    """certify <list.txt of proof files> <out.jsonl> [--timeout S] [--workers W]"""
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    arg = lambda n, d: type(d)(sys.argv[sys.argv.index(n) + 1]) if n in sys.argv else d
+    timeout, workers = arg("--timeout", 60.0), arg("--workers", 16)
+    files = open(sys.argv[2]).read().split()
+
+    def run(fn):
+        p = subprocess.run([sys.executable, os.path.abspath(__file__), "certify_one", fn, "--timeout", str(timeout)], capture_output=True, text=True)
+        try:
+            return json.loads(p.stdout.strip().splitlines()[-1])
+        except Exception as e:
+            return {"file": fn, "err": type(e).__name__, "stderr": p.stderr[-300:]}
+    with ThreadPoolExecutor(workers) as ex, open(sys.argv[3], "w") as f:
+        for fu in as_completed([ex.submit(run, x) for x in files]):
+            f.write(json.dumps(fu.result()) + "\n")
+            f.flush()
+
+
 def main():
     cmd = sys.argv[1]
+    if cmd == "certify":
+        return certify()
+    if cmd == "certify_one":
+        arg_t = float(sys.argv[sys.argv.index("--timeout") + 1])
+        print(json.dumps({"file": sys.argv[2], "steps": certify_file(sys.argv[2], arg_t)}))
+        return
     arg = lambda n, d: type(d)(sys.argv[sys.argv.index(n) + 1]) if n in sys.argv else d
     if cmd == "one":
         r = json.loads(sys.argv[2])
