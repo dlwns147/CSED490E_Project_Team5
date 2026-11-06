@@ -362,7 +362,7 @@ def solve(src, budget=40.0, starts=96, keep=16, seed=0):
                 continue
             P = c.names
             size = max([float(np.linalg.norm(p - q)) for p, q in itertools.combinations(P, 2)] + [1e-12])
-            if any(float(np.linalg.norm(p - q)) < SAME * size for p, q in itertools.combinations(P, 2)):
+            if size < SAME or any(float(np.linalg.norm(p - q)) < SAME * size for p, q in itertools.combinations(P, 2)):  # a figure shrunk to a point meets any condition with no stated size
                 continue
             if any(a <= b + 1e-9 * max(1.0, abs(a), abs(b)) for a, b in c.hinge):  # a strict inequality met only at its boundary
                 continue
