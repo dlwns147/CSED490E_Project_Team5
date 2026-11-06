@@ -254,3 +254,5 @@ This claim had no entry here, which was a gap. Read: passages of TwinCheck, MUA-
 - **Strength:** an open 8B model above published training-only results for 8B models. BFCL versions and categories differ, so this needs a row-by-row check before it is stated.
 - **Weakness:** the verifier is trained on BFCL's own per-turn labels. MT-SO-ENV answers this inside BFCL, and τ²-bench's rollout labels turned out mostly noise (TAU-R), so the method's reach beyond benchmarks with per-turn ground truth is unproven. The cost is also real: every turn runs three candidates.
 - **Not done:** the same verifier on top of a model trained like ToolACE-MT, which is the natural baseline and combination. MT-RN tried a quick turn trained on open data and found it learned not to act.
+
+**2026-11-06 21:1x UTC: correction.** "This claim had no entry here" holds only for this file: `docs/prereg/PREREG_MT.md` has a related-work check from 10-31 (TAB 2604.05164, Structured Reflection 2509.18847, ReGRPO 2606.31392 and others), with IDs opened. The table above should be read together with it.
