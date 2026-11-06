@@ -18,7 +18,7 @@ Side work may use the Slurm server's GPUs: a model server and client commands ru
 
 | Route | State | Hardest open gap |
 |---|---|---|
-| Geometry by translation (`geo_translate.py`, `geo_closure.py`, `geo_check.py`) | Certified by an independent checker: **27 of IMO-AG-30**, and held out **17 of 65** with faithfulness read by hand, **13 of 65** with no human | Half of the held-out translations cannot be written in a construction language, so the translator is now the limit (SIDE-GT-DECL). Most proofs read a configuration from the figure. IMO 2008 P6, 2011 P6 and 2021 P3 need theories the engine lacks |
+| Geometry by translation (`geo_translate.py`, `geo_closure.py`, `geo_check.py`) | Certified by an independent checker: **27 of IMO-AG-30**, and held out **17 of 65** with faithfulness read by hand (12 whole problems, 5 one direction or part), **13 of 65** with no human | Half of the held-out translations cannot be written in a construction language, so the translator is now the limit (SIDE-GT-DECL). Most proofs read a configuration from the figure. IMO 2008 P6, 2011 P6 and 2021 P3 need theories the engine lacks |
 | Natural-language proofs | Computational checks of a proof failed (SIDE-PF, SIDE-PG) | A free check that sees a step left unjustified while true, the most common error |
 | Lean (main track, `PREREG_PROOF.md`) | A specialised 8B prover is best; the compiler is a perfect check | Not a side-project gap at present |
 | Constructions (`construct.py`) | Unsolved for an 8B model; its own checker is not a usable free check | A derived free check, or a search the problem's structure makes exact |
@@ -26,6 +26,8 @@ Side work may use the Slurm server's GPUs: a model server and client commands ru
 **Running now (geometry):** HAGeo-409 (SIDE-GT-H409, jobs 1341668–70, `results/proof/h409/`), and declarative translations of the dev problems (SIDE-GT-DECL, job 1337117).
 
 ## Log
+
+**2026-11-06 21:5x UTC: declarative translations on the held-out 65, with verdicts before any proof.** Problems with a faithful whole-claim translation rise from 14 to 20, and with parts counted from 19 to 27. **A correction: 5 of the earlier 19 "faithful" problems were one direction or one part, so the reported 17 of 65 end to end means 12 whole problems and 5 parts.** Half statements are now counted apart. Proofs and agreement on these statements are running.
 
 **2026-11-06 17:0x UTC: restarts decided; the search goes to HAGeo-409.**
 - **SIDE-GT-LUBY:** 47 of 59 rows against 43, all passing the checker. It proves CAMO 2020 P3 with no random pool and loses nothing, so restarts become the default. It is 2.9 times slower on rows both prove (limit 2). The certified counts do not change, because that problem was already in the union.

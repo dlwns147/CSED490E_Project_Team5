@@ -1105,3 +1105,22 @@ So 42 of 43 is what a sound engine does on true statements, and it counts for no
 - **Half:** one direction of an "if and only if", or one part of a claim with several. Reported apart, and not counted in the faithful or the end-to-end count. In the 19 faithful constructive problems, the same rule is applied by rereading those verdicts, and any change is reported.
 - **Changed:** the goal is the model's own reformulation, or a locus or value question turned into a chosen claim. Not faithful.
 - **Wrong:** anything else.
+
+### SIDE-GT-DECL held out: translations and verdicts (2026-11-06 21:5x UTC; job 1342116; verdicts written before any closure or agreement run on these statements, `results/proof/gtdecl_eval_faithful.json`)
+
+65 problems × 4. Last status: 97 pass the guard (on 29 problems), 114 unexpressible, 27 goal fails, 20 no figure, 2 syntax errors. 17.3k tokens per translation. I judged the 97 by hand: 65 faithful, 25 half, 5 changed, 2 wrong.
+
+| Problems | Declarative | Construction |
+|---|---|---|
+| At least one faithful translation, whole claim | **20** | 14 |
+| Faithful for one part of the claim only (half) | 7 | 5 |
+| Total, the count DECL-P1 was registered on | **27** | 19 |
+| Every translation unexpressible | 24 | 30 |
+
+- **DECL-P1 holds:** 27 against 19, in the range 24–40 and below the expected 32. New with a whole-claim translation: ISL 2001 G1, ISL 2004 G2, ISL 2006 G2, IMO 2007 P2, ISL 2008 G16, USAMO 2009 P1, ISL 2013 G18. Lost: USAMO 2001 P2.
+- **DECL-P2 holds:** 24 (expected 20, range 15–25).
+- **DECL-P4 fails:** 17.3k tokens against a predicted 12.5k.
+- **A correction to the earlier counts, by the rule fixed above.** Rereading my construction verdicts' notes, 5 of the 19 "faithful" problems were one direction or one part: Pan African 2004 P6, Romanian NMO 2006 grade 9 P3, Indonesia 2007 P7, USAMO 2009 P5, ISL 2016 G23. All five are among the 17 reported as proved end to end. **So 17 of 65 end to end means 12 whole problems and 5 parts.** The no-human 13 is restated when agreement is rebuilt.
+- **Two judgment calls, reported:** I count USAMO 2010 P1's goal as faithful (XAZ for half of XOZ, one inscribed-angle step, as I did before); and order conditions narrower than the statement, such as "inside triangle ABC" for "inside ABCD" in ISL 2008 G16, as a sub-case of a figure, since a proof holds for its figure's configuration anyway.
+
+Closure on all 97 (job 1343465) and agreement (job 1343466) are now running. DECL-P3 is read from them.
