@@ -23,9 +23,11 @@ Side work may use the Slurm server's GPUs: a model server and client commands ru
 | Lean (main track, `PREREG_PROOF.md`) | A specialised 8B prover is best; the compiler is a perfect check | Not a side-project gap at present |
 | Constructions (`construct.py`) | Unsolved for an 8B model; its own checker is not a usable free check | A derived free check, or a search the problem's structure makes exact |
 
-**Running now (geometry, SIDE-GT-CLOSE):** one closure over a whole pool of auxiliary points (`geo_closure.py`), at pool sizes 0, 64, 256 and every one-step candidate, on the 59 translations no single point proved. Output: `results/proof/sound3/gt_close_k*.jsonl`.
+**Running now (geometry):** the strict closure at a pool of 256 and the step replay (SIDE-GT-CLOSE), output in `results/proof/sound3/`. Queued: declarative translations on the dev problems (SIDE-GT-DECL), output `results/proof/gt_gtdecl_dev.jsonl`.
 
 ## Log
+
+**2026-11-06 09:5x UTC: the translator is now the limit, so statements no longer need a construction order (SIDE-GT-DECL, registered, dev queued).** Half of the 260 held-out translations came back UNEXPRESSIBLE, because AlphaGeometry's language builds each point from earlier ones. The closure needs only a figure and facts. `geo_decl.py` takes points, hypotheses and a goal, and finds figures by least squares from random starts. A hand-written IMO 2007 P2, which the constructive language has no way to write, is proved by the strict closure with 5 points; that is my own translation and is not counted. A control I wrote shows a limit: a statement true only for a point inside the triangle is proved from facts that also hold outside, because a similar-triangles step reads its orientation from the figure, as Newclid's and AlphaGeometry's sameclock test does. So proofs hold for the figure's configuration.
 
 **2026-11-06 08:4x UTC: most proofs halved an angle, so the closure now has a strict arm; the pool of 64 keeps 10 of its 11 problems.** Directed angles live modulo π, so 2a = 2b gives a = b or a = b + π/2, and the first engine, working over the rationals, picked the branch from the figure. 37 of the 44 proofs at K = 256 contain such a fraction. Fresh figures can't catch this, because they test the conclusion and not the deduction.
 - **Strict arm (`GT_STRICT=1`):** an exact integer lattice with torsion runs beside the rational span. A premise or goal must be an integer combination of earlier relations, so no branch comes from the figure. Tested against brute-force enumeration on 12,000 small cases with no mismatch.
