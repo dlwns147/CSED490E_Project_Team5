@@ -390,8 +390,21 @@ def check(c):
         forms = by.get(-1, [])
         if not forms:
             raise Bad("goal has no combination")
-        for ch in forms:
-            verify(ch, 10 ** 9)
+        if goal[0] == "midp":  # a midpoint goal is two combinations, a collinearity and an equal length; each must be exact
+            m, x, y = goal[1:]
+            need = {"coll": ["coll", m, x, y], "cong": ["cong", m, x, m, y]}
+            for k, F in need.items():
+                for ch in forms:
+                    try:
+                        verify(dict(ch, fact=F), 10 ** 9)
+                        break
+                    except Bad:
+                        pass
+                else:
+                    raise Bad(f"goal {goal}: no exact combination for its {k}")
+        else:
+            for ch in forms:
+                verify(ch, 10 ** 9)
         if json.dumps(goal) not in {json.dumps(ch["fact"]) for ch in forms} and goal[0] != "midp":
             raise Bad(f"goal {goal} is not what was combined")
     return stats
