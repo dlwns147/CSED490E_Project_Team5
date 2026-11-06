@@ -4,6 +4,7 @@ State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Tea
 (/NAS/SJ/POSTECH/nlp, 8 × RTX PRO 6000 Blackwell, GPUs 0–3) was stopped on 2026-10-20 04:2x UTC; no job is running there.
 
 ## 0. Status on the Slurm cluster (updated 2026-10-27 16:3x UTC)
+- **GPU cap (user, 11-06):** this project uses at most 8 GPUs at any time, counting running and queued jobs.
 - **Running (2026-11-06 06:2x UTC; PREREG_TAU, TAU-R):** rollout algorithm jobs 1334516 `taur_retail`, 1334517 `taur_telecom`, `taur_airline` (resubmitted with --seq: the first submission ran the rollouts alongside the thinking rerun) (lane.sh, Qwen3-8B, `poc/tau2_q.py r_<domain>`; output `$POC_DATA/tau2/runs/q_r_*.jsonl`, a conversation's rows are written at its end, reruns skip finished conversations). TAU-U is done: keep U8.
 - **Running (2026-11-06 08:4x UTC; PREREG_SIDE SIDE-GT-CLOSE, CPU only):** job 1337021 `clstr` (strict K = 256, `GT_STRICT=1 side/geo_closure.py run`; output `results/proof/sound3/gt_strict_k256.jsonl`, proofs in `strict_proofs/`), 1337022 `clcert` (step replay). Plain Newclid (`clcon`, 1334911) was stopped at 42 of 44 rows, and the K = all arm is stopped.
 - **Running (2026-11-06 09:5x UTC; PREREG_SIDE SIDE-GT-DECL, dev):** job 1337117 `gtdecl` (Qwen3.6-27B-AWQ on 2 GPUs; `GT_DECL=1 side/geo_translate.py gen gtdecl_dev ids_gtdev.txt --think --k 4 --repair 2 --grammar`; output `results/proof/gt_gtdecl_dev.jsonl`).
