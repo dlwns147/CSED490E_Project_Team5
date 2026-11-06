@@ -123,7 +123,7 @@ OptMATH is partly broken: its statements omit what its gold answers need.
 
 1. The final report (`docs/REPORT.md`), with the agent-loop result and its derivation at its centre.
 2. Side project: see `side/README.md`.
-3. Computation track: a new hard gap needs naming after the report's agent-loop section, with a related-work check first.
+3. Computation track: COMP-FIG (describing a figure for a solver) stopped on dev, because plain agreement between quick answers beats it. A new hard gap still needs naming, with the related work read first.
 
 ## 6. Documents
 

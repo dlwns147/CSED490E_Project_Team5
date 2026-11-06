@@ -5784,3 +5784,22 @@ Same dev set, no thinking, two repairs, worked examples leaving out the problem 
 ## 2026-11-06 16:4x UTC: correction to COMP-FIG's related work
 
 The entries above say no related work uses invariance as a check on an answer. That is wrong in substance: SatLM (2305.09656) has the model write a declarative specification and abstains when the solver reports UNSAT or AMBIG. COMP-FIG's none / multi statuses are the numerical version of this for geometry. The claim to test is therefore whether this beats program-aided baselines in selective prediction on contest geometry, not that the check is new. Details: `docs/notes/RELATED_WORK.md`.
+
+## 2026-11-06 18:1x UTC: COMP-FIG stops on dev: plain agreement between quick answers beats it
+
+**Why this test:** a reviewer would ask whether describing a figure beats a program or a text answer in selective prediction. Qwen3.6-27B, no thinking, dev set, three seeds; the fallback is the same model's thinking at the card's settings, 3 seeds (run q36c, 95.8% at 33.1k tokens on AIME, 97.5% at 12.2k on MATH). Numbers are means over seed pairs. The program and text answers are from the X1 runs, so these are simulations of cascades from recorded runs.
+
+| Accept when | AIME (24): accepted, precision, utility | MATH (27): accepted, precision, utility |
+|---|---|---|
+| Always think | 0, –, 79.3 | 0, –, 91.4 |
+| One script passes | 5.7, 88%, 78.9 | 16.0, 88%, 88.2 |
+| Two scripts agree, the second only if the first passes | 3.7, 100%, 80.2 | 10.7, 100%, 92.6 |
+| A program runs | 13.3, 90%, 79.6 | 17.7, 96%, 90.7 |
+| Two programs agree | 10.7, 100%, 81.5 | 16.7, 100%, 92.4 |
+| A text answer and a program agree | 11.7, 100%, 81.4 | 17.3, 100%, 92.2 |
+| Two text answers agree | 13.7, 98%, 82.1 | 21.0, 97%, 91.7 |
+
+- **Result:** on AIME, the program and text arms accept about three times as many problems at the same or nearly the same precision, and they score higher. On MATH the arms are level. My number parser fails on 20 of 51 program outputs and 7 of 51 text answers, so these agreement counts are lower bounds, which favours scripts.
+- **The limit of the method does not rescue it.** My hand scripts reach 12 of 24 on AIME, about the coverage two programs already give, so even a perfect translator would save only the token difference, about 3.5 points of utility on those problems.
+- **Decision (my call; nothing was registered for this):** COMP-FIG stops here, and no held-out run goes ahead. It remains the numerical form of SatLM's AMBIG signal, and it works as a check, but for contest geometry it is dominated by simpler methods on this model.
+- **What it leaves:** the free solver is real value for proofs, where the same figure step (SIDE-GT-DECL) is what the translator now uses. The 8B model cannot use either.
