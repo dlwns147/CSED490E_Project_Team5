@@ -29,7 +29,8 @@ def squarefree(limit):
 SF = squarefree(20000)
 
 
-def rat(v, den=100000, tol=1e-7):
+def rat(v, den=2000, tol=1e-9):
+    """v as a fraction. A real number falls this close to some fraction with denominator up to Q with chance about Q^2 * tol, so both are small, and the figures hold about 1e-11"""
     f = Fraction(v).limit_denominator(den)
     return f if abs(float(f) - v) <= tol * max(1, abs(v)) else None
 
@@ -40,9 +41,9 @@ class Ctx:
         self.names, self.ans, self.hinge = [], None, []
 
     def take(self, n):
-        if self.x is None:
+        if self.x is None:  # the first pass only counts the unknowns; distinct values keep a script's divisions alive
             self.i += n
-            return np.ones(n)
+            return np.random.default_rng(self.i).normal(0, 1, n)
         v = self.x[self.i:self.i + n]
         self.i += n
         return v
@@ -89,20 +90,42 @@ def lib(c):
     def volume(a, b, c_, d):
         return abs(float(np.dot(b - a, np.cross(c_ - a, d - a)))) / 6
 
-    def midpoint(a, b):
-        return (np.asarray(a) + np.asarray(b)) / 2
+    # A built point returns the point. Given one more point first, it also works as the condition that this point is the built one: foot(D, C, A, B) is D = foot(C, A, B).
+    def midpoint(*q):
+        m = (np.asarray(q[-2]) + np.asarray(q[-1])) / 2
+        if len(q) == 3:
+            eq(q[0], m)
+        return m
 
-    def foot(p, a, b):
+    def foot(*q):
+        p, a, b = q[-3:]
         d = b - a
-        return a + d * float(np.dot(p - a, d)) / max(float(np.dot(d, d)), 1e-300)
+        f = a + d * float(np.dot(p - a, d)) / max(float(np.dot(d, d)), 1e-300)
+        if len(q) == 4:
+            eq(q[0], f)
+        return f
 
-    def reflect(p, a, b):
-        return 2 * foot(p, a, b) - p
+    def reflect(*q):
+        r_ = 2 * foot(*q[-3:]) - q[-3]
+        if len(q) == 4:
+            eq(q[0], r_)
+        return r_
 
-    def intersection(a, b, c_, d):
+    def mirror(*q):
+        """the point P through the point Q; mirror(M, P, Q) is the condition M = mirror(P, Q)"""
+        m = 2 * np.asarray(q[-1]) - np.asarray(q[-2])
+        if len(q) == 3:
+            eq(q[0], m)
+        return m
+
+    def intersection(*q):
+        a, b, c_, d = q[-4:]
         u, v = b - a, d - c_
         den = cross2(u, v)
-        return a + u * (cross2(c_ - a, v) / (den if abs(den) > 1e-300 else 1e-300))
+        x = a + u * (cross2(c_ - a, v) / (den if abs(den) > 1e-300 else 1e-300))
+        if len(q) == 5:
+            eq(q[0], x)
+        return x
 
     def centroid(*p):
         return sum(p) / len(p)
@@ -149,16 +172,22 @@ def lib(c):
     def collinear(a, b, c_):
         parallel(a, b, a, c_)
 
-    def between(p, a, b):
-        collinear(a, p, b)
-        gt(-float(np.dot(a - p, b - p)), 0.0)
+    def order(*p):
+        """the points lie on one line in this order"""
+        for i in range(2, len(p)):
+            collinear(p[0], p[1], p[i])
+        for i in range(1, len(p) - 1):
+            gt(-float(np.dot(p[i - 1] - p[i], p[i + 1] - p[i])), 0.0)
 
     def on_ray(p, a, b):
         collinear(a, b, p)
         gt(float(np.dot(p - a, b - a)), 0.0)
 
-    def on_circle(p, o, r):
-        eq(dist(p, o), r)
+    def on_circle(p, o, r, *more):
+        if more:  # on_circle(A, B, C, D): four points on one circle
+            concyclic(p, o, r, more[0])
+        else:
+            eq(dist(p, o), r)
 
     def concyclic(a, b, c_, d):
         rows = [[*(q - a), float(np.dot(q - a, q - a))] for q in (b, c_, d)]
@@ -235,11 +264,16 @@ def lib(c):
         """v = m*sqrt(n)/p, n squarefree, m and p coprime -> m, n, p"""
         if not c.final:
             return v, 1, 1
-        for n in SF:
-            f = rat(v / math.sqrt(n), den=5000, tol=1e-8)
+        best = None
+        for n in SF[:3100]:  # the simplest form: a number close to a large fraction is not that fraction
+            f = rat(v / math.sqrt(n), den=500, tol=1e-10)
             if f is not None:
-                return f.numerator, n, f.denominator
-        raise Form(f"{v} is not m*sqrt(n)/p")
+                h = abs(f.numerator) + n + f.denominator
+                if best is None or h < best[0]:
+                    best = (h, f.numerator, n, f.denominator)
+        if best is None:
+            raise Form(f"{v} is not m*sqrt(n)/p")
+        return best[1:]
 
     def surd2(v):
         """v = (a + b*sqrt(n))/d, n squarefree > 1, d > 0 -> a, b, n, d, in the smallest integers found"""
@@ -267,7 +301,7 @@ def lib(c):
 
     names = dict(points=points, var=var, dist=dist, angle=angle, area=area, perimeter=perimeter, volume=volume, midpoint=midpoint, foot=foot, reflect=reflect,
                  intersection=intersection, centroid=centroid, circumcenter=circumcenter, incenter=incenter, inradius=inradius, circumradius=circumradius, eq=eq, gt=gt, lt=lt,
-                 perp=perp, parallel=parallel, collinear=collinear, between=between, on_ray=on_ray, on_circle=on_circle, concyclic=concyclic, tangent_line=tangent_line,
+                 perp=perp, parallel=parallel, collinear=collinear, order=order, mirror=mirror, on_ray=on_ray, on_circle=on_circle, concyclic=concyclic, tangent_line=tangent_line,
                  tangent_circles=tangent_circles, tangent_inside=tangent_inside, same_side=same_side, opposite_side=opposite_side, inside=inside, convex=convex,
                  parallelogram=parallelogram, rectangle=rectangle, rhombus=rhombus, square=square, regular=regular, answer=answer, frac=frac, surd=surd, surd2=surd2, dot=lambda u, v: float(np.dot(u, v)), sqrt=math.sqrt, pi=math.pi,
                  sin=lambda d: math.sin(math.radians(d)), cos=lambda d: math.cos(math.radians(d)), tan=lambda d: math.tan(math.radians(d)))

@@ -19,42 +19,31 @@ Declare the unknowns, then state every condition:
   A, B, C = points("A B C")      # points in the plane, with unknown coordinates; points("P Q", dim=3) in space. Different names are different points.
   r = var("r")                    # an unknown number (a radius, a length, a ratio)
 Values: dist(A,B), angle(A,B,C) (degrees, at B, between 0 and 180), area(A,B,C,...) (polygon in order), perimeter(A,B,C,...), volume(A,B,C,D), dot(u,v), sqrt(x), pi, sin/cos/tan (degrees). Points are vectors: A+B, (A+B)/2, B-A work.
-Built points (give a point, no condition needed): midpoint(A,B), foot(P,A,B), reflect(P,A,B) (over line AB), intersection(A,B,C,D) (of lines), centroid(A,B,C), incenter(A,B,C), circumcenter(A,B,C). inradius(A,B,C), circumradius(A,B,C) give numbers.
-Conditions: eq(x,y), gt(x,y), lt(x,y), perp(A,B,C,D), parallel(A,B,C,D), collinear(A,B,C), between(P,A,B) (P strictly inside segment AB), on_ray(P,A,B), on_circle(P,O,r), concyclic(A,B,C,D), tangent_line(A,B,O,r) (line AB tangent to the circle), tangent_circles(O1,r1,O2,r2) (externally), tangent_inside(O1,r1,O2,r2) (circle 2 inside circle 1), same_side(P,Q,A,B), opposite_side(P,Q,A,B), inside(P,A,B,C,...), convex(A,B,C,...), parallelogram(A,B,C,D), rectangle(A,B,C,D), rhombus(A,B,C,D), square(A,B,C,D), regular(A,B,C,...) (vertices in order).
+Built points (each gives a point: D = foot(C,A,B), and then D is not listed in points()): midpoint(A,B), foot(P,A,B), reflect(P,A,B) (over line AB), mirror(P,Q) (through the point Q), intersection(A,B,C,D) (of lines), centroid(A,B,C), incenter(A,B,C), circumcenter(A,B,C). inradius(A,B,C), circumradius(A,B,C) give numbers.
+Conditions: eq(x,y), gt(x,y), lt(x,y), perp(A,B,C,D), parallel(A,B,C,D), collinear(A,B,C), order(A,B,C,...) (on one line, in this order), on_ray(P,A,B), on_circle(P,O,r), concyclic(A,B,C,D), tangent_line(A,B,O,r) (line AB tangent to the circle), tangent_circles(O1,r1,O2,r2) (externally), tangent_inside(O1,r1,O2,r2) (circle 2 inside circle 1), same_side(P,Q,A,B), opposite_side(P,Q,A,B), inside(P,A,B,C,...), convex(A,B,C,...), parallelogram(A,B,C,D), rectangle(A,B,C,D), rhombus(A,B,C,D), square(A,B,C,D), regular(A,B,C,...) (vertices in order).
 End with answer(x): the number the problem asks for. If it asks for m+n with the value written m/n, use frac: m, n = frac(x); answer(m+n). For m*sqrt(n)/p use m, n, p = surd(x). For (a+b*sqrt(n))/d use a, b, n, d = surd2(x). Use these only on the final value.
 
-Every sentence of the problem must become a condition, including order: "E is on side AB" is between(E,A,B), "ABCD is convex" is convex(A,B,C,D), and "acute", "inside", "on the same side" must be stated. The solver picks at random among all figures your conditions allow, so a condition you leave out gives a wrong or changing answer. If a problem says "for all" or asks for an extreme value, write the figure that attains it only when the problem tells you which it is. If the problem is not a single figure with a number to read off (counting, a sum over many cases), reply with only the word UNEXPRESSIBLE.
+Every sentence of the problem must become a condition, including order: "E is on side AB" is order(A,E,B), "ABCD is convex" is convex(A,B,C,D), and "acute", "inside", "on the same side" must be stated. The solver picks at random among all figures your conditions allow, so a condition you leave out gives a wrong or changing answer. If a problem says "for all" or asks for an extreme value, write the figure that attains it only when the problem tells you which it is. If the problem is not a single figure with a number to read off (counting, a sum over many cases), reply with only the word UNEXPRESSIBLE.
 
-Example. "In triangle ABC, AB=13, BC=14, CA=15. D is on BC with AD perpendicular to BC. Find BD."
-```python
-A, B, C, D = points("A B C D")
-eq(dist(A,B), 13); eq(dist(B,C), 14); eq(dist(C,A), 15)
-between(D, B, C)
-perp(A, D, B, C)
-answer(dist(B, D))
-```
-Example. "Circles of radius 1 and 2 are externally tangent, and a line touches both at P and Q. PQ^2 is m/n with m, n coprime. Find m+n."
-```python
-O1, O2, P, Q = points("O1 O2 P Q")
-tangent_circles(O1, 1, O2, 2)
-on_circle(P, O1, 1); on_circle(Q, O2, 2)
-perp(O1, P, P, Q); perp(O2, Q, P, Q)
-same_side(O1, O2, P, Q)
-m, n = frac(dist(P, Q)**2)
-answer(m + n)
-```
+{examples}
 
 Problem: {p}
 
 Give the script in one ```python block."""
 
-USE = """Exact use: points("A B") returns points; eq(x,y) takes two values or two points; foot(P,A,B), midpoint(A,B), intersection(A,B,C,D), reflect(P,A,B) RETURN a point (write D = foot(C,A,B) and do not list D in points()); volume takes 4 points; dist, angle, area and perimeter take points, not numbers. There is no solve() and no other function: state conditions and let the solver work."""
+USE = """Exact use: points("A B") returns points; eq(x,y) takes two values or two points; foot(P,A,B), midpoint(A,B), intersection(A,B,C,D), reflect(P,A,B), mirror(P,Q) return a point; volume takes 4 points; dist, angle, area and perimeter take points, not numbers. There is no solve() and no other function: state conditions and let the solver work."""
 MSG = {"err": "The script failed: {msg}. " + USE + " Give the whole script again.",
        "const": "Your answer does not read the figure: it stays the same on any points at all. answer() must use dist, angle, area and so on of the points you declared. If the problem is not a figure with a number to read off, reply with only the word UNEXPRESSIBLE.",
        "nonint": "The value {values} is not an integer, and this contest's answers are integers from 0 to 999. So the value is right only if the problem asks for a form of it: use frac, surd or surd2 as the statement says, and answer the number it asks for. If the value itself looks wrong, compare the conditions with the statement.",
        "none": "No figure satisfies these conditions: the solver tried {starts} random starts. A condition is wrong, or two conflict. Compare each one with the statement and fix the script.",
        "multi": "The conditions allow different answers: {values}. So a condition is missing, or an order or side is not stated. Compare with the statement and add what is missing, without solving the problem."}
+EXAMPLES = json.load(open(os.path.join(HERE, "fig_examples.json")))
 SOLVERS = threading.Semaphore(int(os.environ.get("FIG_SOLVERS", 4)))
+
+
+def examples(pid):
+    """worked examples, without the problem itself: input tokens are free in the utility, so the manual can be long"""
+    return "\n\n".join(f"Example. {e['problem']}\n```python\n{e['script']}\n```" for e in EXAMPLES if e["id"] != pid)
 
 
 def problems(which):
@@ -127,13 +116,13 @@ def main():
 
     def one(p):
         sd = seed * 1000 + zlib.crc32(p["id"].encode()) % 997
-        msgs, toks, trace, code, res, turns = [dict(role="user", content=MANUAL.replace("{p}", p["problem"]))], 0, [], None, dict(status="unexpressible", values=[]), 0
+        msgs, toks, trace, code, res, turns = [dict(role="user", content=MANUAL.replace("{examples}", examples(p["id"])).replace("{p}", p["problem"]))], 0, [], None, dict(status="unexpressible", values=[]), 0
         for t in range(repair + 1):
             o = chat_msgs(msgs, think=think, max_tokens=mt, temperature=0.7, seed=sd + t)
             text, turns = o["text"] or "", t + 1
             toks += o.get("out_tokens") or 0
             code = last_block(text, ("python", "py", "python3"))
-            if not code:
+            if not code or "UNEXPRESSIBLE" in text:
                 res = dict(status="unexpressible" if "UNEXPRESSIBLE" in text else "nocode", values=[])
                 trace.append(dict(status=res["status"], tail=text[-200:]))
                 break
