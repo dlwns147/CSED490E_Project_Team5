@@ -27,6 +27,13 @@ Side work may use the Slurm server's GPUs: a model server and client commands ru
 
 ## Log
 
+**2026-11-06 08:4x UTC: most proofs halved an angle, so the closure now has a strict arm; the pool of 64 keeps 10 of its 11 problems.** Directed angles live modulo π, so 2a = 2b gives a = b or a = b + π/2, and the first engine, working over the rationals, picked the branch from the figure. 37 of the 44 proofs at K = 256 contain such a fraction. Fresh figures can't catch this, because they test the conclusion and not the deduction.
+- **Strict arm (`GT_STRICT=1`):** an exact integer lattice with torsion runs beside the rational span. A premise or goal must be an integer combination of earlier relations, so no branch comes from the figure. Tested against brute-force enumeration on 12,000 small cases with no mismatch.
+- **K = 64:** 10 problems, against 11 without the restriction, and no proof has a fractional angle coefficient. The loss is ISL 2016_23, an incentre problem, where a real branch was expected. So most of the fractions were an artefact of the log, which kept only relations independent over the rationals.
+- **A false start:** my first version skipped relations like 2(a − b) = 0 and fell to 2 problems. That measured the shortcut, and I replaced it (recorded in `PREREG_SIDE.md`).
+- **Plain Newclid (CLOSE-P4), 42 of 44 rows so far:** it reproduces only 3 problems within 600 s. The prediction of at least half looks refuted, so the step replay and hand reading carry the check.
+- **Running:** strict K = 256 (job 1336308), the count that decides (CLOSE-P6), and the step replay (job 1335430). Still not a claim.
+
 **2026-11-06 06:3x UTC: SIDE-GT-CLOSE, first full arms: 23 of the 31 problems no single point proved. Not yet a claim.** All candidates in one closure, same candidate generator as the random arms:
 - Pool of 0: 4 problems. Pool of 64 (the exact pool the random arms searched): 11, in about 0.6 s per translation. Pool of 256: 23, in 53 s per translation. Pooling and pairs together proved 2 at 8,000–9,600 s.
 - I predicted 12 (7–18) for 256, so this is above my range, which by the project's rule makes it a suspected bug until read. So far: every step of all 44 proofs holds on 8 of 8 fresh figures, and I read one proof by hand, IMO 2000 P6's row, at the level of its key steps. Its key lemma, that triangle x2 y2 t2 is similar to t1 t3 i because reflections double an angle, is a real argument.
