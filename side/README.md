@@ -27,6 +27,11 @@ Side work may use the Slurm server's GPUs: a model server and client commands ru
 
 ## Log
 
+**2026-11-06 13:3x UTC: the greedy finds IMO 2008 P1b and 2019 P2 alone; 27 of IMO-AG-30 if the checker passes them.**
+- **SIDE-GT-SQ:** all predictions hold. IMO 2008 P1b takes 4 s and the circumcentre, IMO 2019 P2 28 s and two points. The false IMO 2011 P6 proof is gone, and all 43 proved rows hold on 8 of 8 fresh figures. Still unproved of IMO-AG-30: 2008 P6, 2011 P6, 2021 P3.
+- **Step replay failed its bar:** 490 of 614 steps (79.8%, bar 80%), with only 2 of 21 proofs reproduced whole. Newclid mostly stops without reaching the step. So `geo_check.py`, an independent checker with exact fractions, now decides certification, and it is running on every proof (job 1338729).
+- **SIDE-GT-LUBY, registered and running:** the greedy chain's run time is heavy-tailed, so it restarts on Luby's universal schedule with no hand-set cut-off. It has to recover USAMO 2012 P5 or CAMO 2020 P3, which only a random pool proves.
+
 **2026-11-06 11:5x UTC: IMO 2020 P1 proved by the textbook's points; one false proof caught; squared lengths added (SIDE-GT-SQ, registered, running).**
 - **IMO 2020 P1:** the greedy's two points are the known solution's X and Y, in 16 s. It then proves DP = DX, that P, A, B, X, Y are concyclic, and that the bisectors at D and C are perpendicular bisectors of PX and PY. Not counted until replayed.
 - **IMO 2011 P6 is a false proof, caught by the fresh figures:** a reflection fell 7e-5 from an existing point in the one figure, so facts about that near-coincident pair passed the numeric test and gained 71 relations. No step set held on any of the 8 fresh figures. Maximising gain selects such accidents, so a candidate's gain now counts on a second figure too.

@@ -993,3 +993,27 @@ Same rows and output. SAT-P1 and its decision stand, and the new proofs of the 8
 - **CHECK-P3:** at most half of the proofs of the 27 problems use a configuration step.
 
 **Decision.** A proof counts as certified if it passes this checker and holds on 8 of 8 fresh figures; its configuration steps are reported with it. This replaces, for certification, the requirement that Newclid reproduce each step. The replay's numbers remain reported as they are.
+
+Correction to the paragraph above: the mutation count was 891, not 800.
+
+### Results of SIDE-GT-SQ (2026-11-06 13:3x UTC; job 1337925; the checker's verdict is still to come)
+
+- **SQ-P1 holds:** the greedy finds the circumcentre and proves IMO 2008 P1b in 4 s, by the squares system.
+- **SQ-P2 holds:** IMO 2011 P6 is no longer proved, and all 43 proved rows hold on 8 of 8 fresh figures.
+- **SQ-P3 holds at 1:** IMO 2019 P2, in 28 s; its two points reach the known solution's points on the circumcircle by other constructions. Unproved: IMO 2008 P6, 2011 P6, 2021 P3, USAMO 2005 P3, ISL 2012_22.
+- **22 problems proved,** one more of them over SAT than the predictions counted: ISL 2004 G8, which SAT lost, is back at 149 s. USAMO 2012 P5 and CAMO 2020 P3 stay lost; only the pool of 256 proves them.
+
+## SIDE-GT-LUBY: restarts, because a single greedy chain has a heavy tail (registered 2026-11-06 13:3x UTC)
+
+**Why.** The run times are heavy-tailed: proved rows mostly take seconds (median below), and the rest run to the limit with gain rising, because the chain has drifted and each round gets slower as points are added. USAMO 2012 P5 and CAMO 2020 P3 show the cost: a random pool proves them and the chain does not.
+
+**Theory.** Gomes and Selman (1998) showed that restarts remove heavy tails in randomised search. Luby, Sinclair and Zuckerman (1993) give a universal schedule 1, 1, 2, 1, 1, 2, 4, ...: with no knowledge of the distribution, its expected time is within a logarithmic factor of the best fixed cut-off. So no cut-off is chosen by hand. The unit only changes a constant.
+
+**Design.** Same 59 rows, 1,800 s, with the engine of SIDE-GT-SQ. Run j stops after luby(j) × 300 candidates and restarts from the statement with a fresh sample, so a run of unit 2^i can reach 2^i rounds. The budget of 300 per round is the one used in the smoke test, and a larger one only makes each round's choice more exacting: it is not tuned on the outcome rows.
+
+**Predictions.**
+- **LUBY-P1 (decision):** it proves at least one of USAMO 2012 P5, CAMO 2020 P3 with no loss among the 22 problems SIDE-GT-SQ proves. Expected: both. Loss of up to one problem is allowed only in the prediction below.
+- **LUBY-P2:** of USAMO 2005 P3 and ISL 2012_22, it proves 1, range 0–2. IMO 2008 P6, 2011 P6 and 2021 P3 stay unproved: they lack theories, not search.
+- **LUBY-P3:** mean time on the rows both arms prove is no worse than twice SQ's, as the bound's log factor allows.
+
+**Decision.** LUBY-P1 holds: restarts become the default search, and the counts are restated from the union with the checker. It fails: drift is not what separates those rows, and the score itself is the next thing to replace, for example by counting only relations among the statement's own points.

@@ -1160,6 +1160,14 @@ def relations(e, m):
     return out
 
 
+def luby(j):
+    """the j-th term of Luby, Sinclair and Zuckerman's universal restart sequence: 1, 1, 2, 1, 1, 2, 4, ..."""
+    k = 1
+    while (1 << k) - 1 < j:
+        k += 1
+    return 1 << (k - 1) if (1 << k) - 1 == j else luby(j - (1 << (k - 1)) + 1)
+
+
 def one_sat(row, budget, timeout, proofs, fresh=8):
     """SIDE-GT-SAT: greedy on the relations a point adds. In a round, each of -k one-step candidates over the current points gets a closure with the current facts, and its gain is the
     relations among the current points and it, less those of the two closures apart. The best becomes a point. Rank is submodular on linear relations, so this is the
@@ -1170,9 +1178,9 @@ def one_sat(row, budget, timeout, proofs, fresh=8):
     t0 = time.time()
     end = t0 + timeout
     n, x, f, g = figure(row["dsl"])
-    N, X, F = list(n), [tuple(q) for q in x], [q[:-1] if q[-1] == "_" else q for q in f]
-    defs, kept_by_round, ok, tried = [], [], False, 0
-    two = None     # a second figure: a relation true by accident on one figure gains nothing on the other
+    defs, kept_by_round, ok, tried, runs = [], [], False, 0, 0
+    lub = bool(os.environ.get("GT_LUBY"))    # restarts: a run stops after luby(j) * budget candidates, and the next uses a fresh sample
+    two0 = None     # a second figure: a relation true by accident on one figure gains nothing on the other
     if os.environ.get("GT_TWOFIG"):
         for sd in range(1, 9):
             try:
@@ -1180,9 +1188,15 @@ def one_sat(row, budget, timeout, proofs, fresh=8):
             except Exception:
                 continue
             if set(n2) == set(n):
-                two = [list(n2), [tuple(q) for q in x2], [q[:-1] if q[-1] == "_" else q for q in f2]]
+                two0 = [list(n2), [tuple(q) for q in x2], [q[:-1] if q[-1] == "_" else q for q in f2]]
                 break
     try:
+      while True:
+        runs += 1
+        cap = luby(runs) * budget if lub else None
+        N, X, F = list(n), [tuple(q) for q in x], [q[:-1] if q[-1] == "_" else q for q in f]
+        defs, kept_by_round, ok, used = [], [], False, 0
+        two = [list(two0[0]), list(two0[1]), list(two0[2])] if two0 else None
         for rnd in range(1000):
             e = Closure(N, X, F, deadline=end, log=False)
             ok, _ = e.run(g[0])
@@ -1194,11 +1208,14 @@ def one_sat(row, budget, timeout, proofs, fresh=8):
                 e_b.run(None)
                 r0b = relations(e_b, len(two[0]))
             best, fell = None, False
-            for c, _ in GT.aux_candidates(f"{' '.join(N)} = free ? {g[0][0]}", budget, seed=rnd):
+            for c, _ in GT.aux_candidates(f"{' '.join(N)} = free ? {g[0][0]}", budget, seed=rnd + 1000 * (runs - 1)):
+                if cap and used >= cap:
+                    break
                 q = numeric_cand(c, dict(zip(N, X)))
                 if q is None or not all(math.isfinite(v) and abs(v) < 1e4 for v in q[0]) or any(math.dist(q[0], v) < 1e-6 for v in X):
                     continue
                 tried += 1
+                used += 1
                 alone = Closure(N + ["_x"], X + [tuple(q[0])], list(q[1]), deadline=end, log=False)
                 alone.run(None)
                 e2 = Closure(N + ["_x"], X + [tuple(q[0])], F + list(q[1]), deadline=end, log=False)
@@ -1220,7 +1237,7 @@ def one_sat(row, budget, timeout, proofs, fresh=8):
                     best = (gain, c, tuple(q[0]), q[1], qb)
                 if fell:
                     break
-            if best is None or (best[0] <= 0 and not fell):
+            if best is None or (best[0] <= 0 and not fell) or (cap and used >= cap and not fell):
                 break
             kept_by_round.append(best[0])
             nm = f"_x{len(defs)}"
@@ -1232,9 +1249,11 @@ def one_sat(row, budget, timeout, proofs, fresh=8):
                 two[0].append(nm)
                 two[1].append(tuple(best[4][0]))
                 two[2] += [tuple(nm if v == "_x" else v for v in h) for h in best[4][1]]
+        if ok or not lub or time.time() > end:
+            break
     except TimeoutError:
         pass
-    out.update(kept=kept_by_round, tried=tried, sec=round(time.time() - t0, 2), timeout=time.time() > end)
+    out.update(kept=kept_by_round, tried=tried, runs=runs, sec=round(time.time() - t0, 2), timeout=time.time() > end)
     if not ok:
         return out
     # the proof, then only the points it needs and their parents
