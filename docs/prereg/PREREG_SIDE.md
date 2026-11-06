@@ -1095,3 +1095,13 @@ The closure with restarts proves 42 of the 43 statements, all 15 problems with a
 So 42 of 43 is what a sound engine does on true statements, and it counts for nothing until faithfulness is settled. The registered rule stands: faithfulness on the held-out set is judged before any closure run on it.
 
 **Changes from dev, frozen now:** figures from 240 starts instead of 80, because 400 starts found figures for about half of the 16 statements that had none. Nothing else changes. **Held out: job submitted now, same prompt and model, tag `gtdecl_eval`, 65 problems × 4.**
+
+### SIDE-GT-DECL: agreement rebuilt, and how held-out statements will be judged (2026-11-06 19:2x UTC; before reading any held-out statement)
+
+**Agreement (`geo_decl.py agree`).** Statement b holds on a's figures when, on every figure of a that meets b's order conditions, all b's facts and its goal are true, with at least one such figure. Points match by name; the rest by trying assignments. Two statements corroborate each other when each holds on the other. On the 43 dev statements: 34 are corroborated, on 10 of 15 problems. The copied prompt example (ISL 2017 G18 T3) is rejected against all three others, and T0 is not corroborated either. **It does not catch shared changes.** All four USAMO 2003 P4 statements agree, though each states one direction of an "if and only if", and IMO 2007 P4's two ratio statements agree with each other.
+
+**Verdicts, fixed now, each translation read before any closure on it:**
+- **Faithful:** every hypothesis is stated, or dropping it only makes the claim stronger; the goal is the claim asked. Naming one of several open objects counts, as registered in SIDE-GT-AGREE.
+- **Half:** one direction of an "if and only if", or one part of a claim with several. Reported apart, and not counted in the faithful or the end-to-end count. In the 19 faithful constructive problems, the same rule is applied by rereading those verdicts, and any change is reported.
+- **Changed:** the goal is the model's own reformulation, or a locus or value question turned into a chosen claim. Not faithful.
+- **Wrong:** anything else.
