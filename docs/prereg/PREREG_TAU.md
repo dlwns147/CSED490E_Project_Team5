@@ -54,3 +54,28 @@ An agent with the gold steps (`llm_agent_gt`, Qwen3-8B thinking) against four si
 - **What this means for TAU-R.** Telecom will give almost no reward to learn from under U8. The registered design stays as written, 30 tasks per domain, and P2 reports the split by domain. Retail and airline carry the test.
 
 **TAU-R is running** (written 2026-11-06 06:2x UTC): jobs 1334516 `taur_retail`, 1334517 `taur_telecom`, `taur_airline` (resubmitted with --seq: the first submission ran the rollouts alongside the thinking rerun) (airline first reruns thinking with the fixed judge; the earlier file is kept as `pilot_airline_T_s1_oldjudge.json`). The peer's quick arm is not used, since no second server is up under U8.
+
+## Results of TAU-R (written 2026-11-06 13:5x UTC; `$POC_DATA/tau2/runs/q_r_<domain>.jsonl`)
+
+Qwen3-8B, simulated user U8, 90 train tasks, base thinking, candidates two thinking and two quick turns.
+
+| Domain | Rollout policy | Thinking | Thousand output tokens per conversation |
+|---|---|---|---|
+| Airline (30) | 19 | 15 | 6.9 |
+| Retail (30) | 14 | 8 | 6.8 |
+| Telecom (30) | 1 | 1 | 5.8 |
+| All (90) | 34 (37.8%) | 24 (26.7%) | 6.5 |
+
+- **TAU-R-P1 refuted on its size:** +11.1 points [+3.9, +18.3], not +25, just below the range of +12 to +40. The lower bound is above 0. 11 conversations are won and 1 lost.
+- **Bar:** the standard deviation is 0.35, not 0.45, so the bar is 1.96 × 0.35 / √278 / 0.56 = 7.3 points, and the gain reaches it.
+- **TAU-R-P2:** quick turns are 18 of 443 committed turns (4%). By domain the gain is +13.3 airline, +20.0 retail, 0 telecom.
+- **TAU-R-P3 holds:** 45 of the 53 turns that replace the base's come before the first write.
+
+**How much of a rollout's success belongs to the turn (read after the above, not registered).** Only 90 of 443 states have rollouts that disagree, and two thinking rollouts differ on 52 of them, about as often as two quick ones (40). So I asked whether a turn that won a disagreement is really better. The rollouts at the next state are independent samples of its value. Over the 79 such states, committing the winner moves the success rate from 44.7% to 54.7%, which is 18% of the room up to 100% [7%, 30%, bootstrap over tasks]. If the turn decided the outcome this would be near 100%, and if it were all noise, near 0. So about four fifths of a label's contrast is the continuation's noise. Two limits: the estimate is rough, because selecting on disagreement also moves the mean, and it rests on 34 tasks.
+
+**Decision.** The registered rule covers P1 holding with the gain above the bar, and the gain below the bar. Here P1 narrowly fails and the gain is above the bar, so the rule is silent and this is my call: **no verifier, and the τ² line stops here.**
+- A verifier's online gain is visible at half-width 1.96 × 0.35 / √278 = 4.1 points, so it must realise at least 37% of the +11.1. On BFCL it realised 56%, from thousands of clean per-turn labels.
+- Here it has 90 contrasts with about 18% signal. Even one feature perfectly aligned with the signal would reach t ≈ 0.18 × √90 = 1.7 on them, and a text model has to find that feature first. More rollouts cost about 7 GPU-hours per 90 tasks, and they would raise the count, not the signal share of a label.
+- Replicates at disagreeing states would raise that share, but this is the upper bound of a policy that itself gained only +11 and is below the prediction, on a simulated user that fails its own part.
+
+**What it shows.** Per-turn choice has real room on τ² (+11.1, lower bound above 0), but its labels are mostly noise because thinking succeeds on only a quarter of conversations. That is the reach of MT-SO's approach: it works where a turn's own quality is scored or decides.

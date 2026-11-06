@@ -5740,3 +5740,13 @@ On the 64 items that are statements to prove (34 false, 30 true):
 **Raw reading.** The low scores are not all the user's doing, since the gold-steps agent also transfers and writes wrongly. Telecom needs the user to run tools on their phone, and only the thinking user does so regularly (21 of 30 conversations; quick Qwen3-8B 8; the two other models none).
 
 **Next.** The rollout algorithm (TAU-R) is running on 30 tasks per domain, on three lanes. It asks how much a per-turn choice could gain at most. Telecom will give little to learn from; retail and airline carry the test. Details: `docs/prereg/PREREG_TAU.md`.
+
+## 2026-11-06 13:5x UTC: τ²-bench rollouts decided, and the τ² line stops (TAU-R)
+
+**What ran.** The rollout algorithm on 90 train tasks of τ²-bench with Qwen3-8B as agent and simulated user: at each user message, two thinking and two quick turns each continue to the conversation's end in a sandbox, and the best is committed.
+
+**Result.** 37.8% against thinking's 26.7%, +11.1 points [+3.9, +18.3], at 6.5k tokens per conversation (airline +13.3, retail +20.0, telecom 0). I predicted +25, range +12 to +40, so this is below the range. It reaches the bar of 7.3 points.
+
+**Why no verifier.** Only 90 of 443 states have disagreeing rollouts, and when a turn wins one, the next state's independent rollouts show only 18% [7%, 30%] of what its win suggested. So most of a label is continuation noise. A verifier would need to realise at least 37% of the gain to be visible, from 90 noisy contrasts, where BFCL's realised 56% from thousands of clean labels. The registered rule did not cover this case, so this is my call (`docs/prereg/PREREG_TAU.md`).
+
+**Next.** No more τ² runs. The agent-loop method stays final on BFCL.

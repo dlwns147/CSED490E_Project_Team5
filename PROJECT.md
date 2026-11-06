@@ -110,14 +110,15 @@ OptMATH is partly broken: its statements omit what its gold answers need.
 - **MT-RF:** a quick turn trained on BFCL's own right rollouts, half the scenarios for the other half, rises from 16.7% to 24.5% of conversations
   at 0.31k tokens (+7.8 [+5.0, +10.7]). Replacing N in the set, it gives +2.6 points by the compounding model, below the bar of 3. By the registered
   rule, no online arm: the agent-loop method is final for this project.
-- **Side project (proofs):** geometry counts are restated under a numerical guard (8 of 65 held out, 13 of IMO-AG-30). Pooling is decided and withdrawn. See
-  `side/README.md`.
+- **TAU-R:** on τ²-bench, the rollout upper bound is +11.1 points over thinking [+3.9, +18.3]. Only about a fifth of a per-turn label is signal, so no verifier
+  is trained and the τ² line stops (`docs/prereg/PREREG_TAU.md`).
+- **Side project (proofs):** a sound closure engine, a greedy point choice and squared lengths, awaiting an independent checker. See `side/README.md`.
 
 **Next:**
 
 1. The final report (`docs/REPORT.md`), with the agent-loop result and its derivation at its centre.
 2. Side project: see `side/README.md`.
-3. The per-turn choice beyond BFCL (τ²-bench, `$POC_DATA/tau2`): it scores only a conversation's end, so per-turn labels are the gap. Rollouts continued to the end supply them. The simulated user is decided, and the rollout algorithm is running to measure the most a per-turn choice could gain (`docs/prereg/PREREG_TAU.md`).
+3. Computation track: a new hard gap needs naming after the report's agent-loop section, with a related-work check first.
 
 ## 6. Documents
 
