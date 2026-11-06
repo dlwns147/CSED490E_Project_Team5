@@ -785,3 +785,65 @@ The first run (jobs 1324967, 1324968) was stopped partway, 26 translations in. I
 **Predictions, written before the third rerun.** SOUND-FIX-P2 and P3 stand as written.
 
 **Result, SOUND-FIX-P3 (written 2026-11-05 20:1x UTC; job 1330096, `results/proof/gt_audit5.jsonl`):** plain Newclid, same list and seeds as the first audit, fixed test: 54 of 68 reran, 10 use a statement false on their own figure, 19 rows raise an error. At most 13: holds. The first audit's 16 of 57 is replaced by 10 of 54.
+
+
+## Results of SIDE-GT-SOUND and SIDE-GT-POOL, third rerun (written 2026-11-06 06:2x UTC; `results/proof/sound3/`, audit `gt_audit_pool3.jsonl`, job 1334295)
+
+**SOUND-P1 holds, so guarded DDAR replaces plain Newclid in the geometry track.** Across the 44 proofs of the first stage and the pooling and pair proofs that reran, no statement is false on its own figure or on 8 fresh figures.
+
+**SOUND-P2.** Held out: 8 of 65 (4 by DDAR alone, 3 with one point, 1 from pooling), within the expected 5–8. IMO-AG-30: 13 of 30, within 12–14. The withdrawn counts were 10 and 14.
+
+| | Pooling, arm A | Pooling, arm C | 64 random pairs |
+|---|---|---|---|
+| Held out (9 problems) | Indonesia 2007 P7 (4 translations) | Indonesia 2007 P7 (4), USAMO 2005 P3 (1, not confirmed) | none |
+| References (23 translations) | none | none | IMO 2010 P2 (1 translation, not the IMO-AG-30 row) |
+| Seconds per DDAR call | 49 held out, 50 references | 40, 52 | 41, 49 |
+
+**POOL-P1 holds as written, on one problem.** It proves Indonesia 2007 P7. **POOL-P2:** pooling 1 problem (2 with USAMO 2005 P3, which did not rerun on 6 seeds, and whose certificate fails), pairs 1. **POOL-P3 holds, but says little:** Indonesia's proofs use lemmas from one point, whose single run failed. Both counts are inside what I expected (1–4 and 0–2).
+
+**How to read that.** Pooling has not shown what it was for, facts from different points adding up:
+- Indonesia's lemma is the goal restated, and plain DDAR with that one point proved it in 47 s during the pooling run. So this is a single point missed once, not a composition.
+- Neither plain confirmation reran in the audit (6 seeds, 600 s each). Newclid's order is not deterministic, and this proof depends on it.
+- The one proof that composes two points, USAMO 2005 P3, is the one that fails its certificate.
+
+**Decision, as registered:** P1 holds, so pooling would replace single points, and the next method would order candidates by chance of success per second (Simon and Kadane, 1975). **I withdraw both.** Ordering needs success rates per candidate type, and pooling gives one problem's worth of data, so it could only be a guess. Pooling cost 3,000 to 4,500 DDAR calls per arm for that one problem. SIDE-GT-CLOSE below contains pooling by monotonicity, and replaces it if it holds.
+
+**A correction.** My SIDE-GT-POOL note that HAGeo's code is at github.com/boduan1/HAGeo is wrong in substance. On 2026-11-06 that repository holds only a README and figures, and says the full code awaits review. Its benchmark, HAGeo-409, is released.
+
+## SIDE-GT-CLOSE: one closure over a whole pool of points, instead of a search over which points to add (written 2026-11-06 06:2x UTC, before the full runs)
+
+**Why.** The prover is the geometry pipeline's bottleneck. Everything tried so far (one point, pairs, pooling) runs Newclid once per attempt. So the budget buys few attempts, and HAGeo's result needs thousands of them (K = 4096, 6 points each).
+
+**Derivation.**
+1. DDAR is monotone. The closure of H plus a pool of points contains every proof that uses any subset of the pool. So which points to add is a question only because DDAR on many points is slow. With a fast enough closure, there is no search over subsets at all.
+2. DDAR is slow because it matches rules over all point tuples. A sound rule concludes only facts true on the figure, so go the other way: compute what is true, numerically, and test each true instance's premises.
+3. Angle and length chasing are membership in a linear span. Keep one value per line direction and per log-length, drawn at random mod a 61-bit prime and updated so that every relation evaluates to 0. Then testing a fact costs a few additions, and a wrong "yes" has probability about 2^-61 per test.
+4. A circle is linear too: a chord (x, y) has direction t_x + t_y, and a radius to x has direction 2 t_x. This absorbs the inscribed-angle, central-angle, tangent-chord, Thales-circle and parallel-chord rules of Newclid's 43.
+5. Constants are dropped: a conclusion is drawn only when true on the figure, which fixes the constant. The price is a known one: a chase with a fractional coefficient (2θ = 0, so θ = 0) picks its branch from the figure. Those chases are counted, and the fresh figures test them.
+
+**Related work.**
+- AlphaGeometry 2 (2502.03544) uses numerics to speed up matching of similar triangles and cyclic quadrilaterals, and then still adds points from language models and runs DDAR per node.
+- HAGeo (2512.00097) adds batches of 6 and reruns.
+- Chou, Gao and Zhang's deductive database (2000) uses numeric diagrams and forward chaining, with heuristics to limit growth.
+- I found no paper that closes over a whole candidate pool at once to replace the search over points, in two rounds of search. That does not settle it.
+
+**Already seen, so not blind.**
+- Reproduction: 42 of the 44 recorded proofs, in about 0.01 s each against Newclid's seconds to a minute (seeds 0, 1, 2 give 42 each). The misses are USAMO 2006 P6 and IMO 2004 P1.
+- Negative controls, on the same 44: with no construction facts it proves 0, with half of them 1.
+- K = 0 on the 59 rows below: 7 translations, namely IMO 2016 P1, IMO 2003 P4, IMO 2002 P2a, and Indonesia 2007 P7 (4).
+- A timing test of K = 64, 256 and 1000 on 5 rows: K = 256 proves IMO 2018 P1 and ISL 2012 (opc_IMOSL_2012_19) in about 35 s, with 8 of 8 fresh figures. K = 1000 did not finish in 60 s. I read those proofs' statements only in part.
+
+**Method** (`side/geo_closure.py`). The 59 translations of problems that no single point proved in the third rerun (`close_rows.jsonl`: 23 references, 36 faithful held-out translations of 12 problems). Arms K = 0, 64, 256, and every one-step candidate (K = all, up to 1,800 s each). The candidates come from the same generator and seed as the random arms, so K = 64 is the same pool. All candidates go in at once.
+
+**What counts.** A proof counts if its log reads back to the goal and every step holds on every fresh figure tried (8 figures). It is first reduced to the smallest set of points found. Plain guarded Newclid is then run on those points, up to 600 s, as a separate check.
+
+**Predictions** (problems proved, of those in the list):
+- **CLOSE-P1 (decision):** K = 256 proves more problems than pooling and pairs together (2), using less CPU than those arms' 13,000 to 19,000 s per translation. Expected: 12 problems, range 7–18.
+- **CLOSE-P2 (reported):** K = 64 proves 6 (4–9). K = all proves 16 (9–24), with many time limits.
+- **CLOSE-P3 (soundness):** every proof's steps hold on every fresh figure. A proof that fails is withheld and read.
+- **CLOSE-P4 (reported):** plain guarded Newclid reproduces at least half of the proofs within 600 s. The rest are reported as found by the closure only, and at least one such proof is read by hand.
+
+**Decision.**
+- **P1 and P3 hold** → the closure replaces single points, pairs and pooling. Every geometry count is restated with it, with proofs read by hand first for the headline problems. The hardest gap then is the pool's vocabulary: points built from other auxiliary points.
+- **P1 refuted** → the closure is only a faster engine. Next is a candidate generator derived from what the goal lacks, the alternative already registered under SIDE-GT-POOL.
+- **P3 refuted** → the engine's rules are wrong somewhere, and its counts are withdrawn until that is found.

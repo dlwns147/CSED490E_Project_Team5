@@ -34,3 +34,23 @@ Written 2026-11-05 23:2x UTC, before any rollout or simulated-user comparison ha
 **Decision.** If P1 holds and the gain reaches the bar, train a cross-fitted verifier on the labels (Qwen3-8B LoRA, conditional logit over the candidate set, as MT-SO), pre-register its online test here, and run it. If the gain is below the bar, per-turn choice has no visible room on τ²: stop, and report that its reach is limited to benchmarks where a turn's own quality decides. The result is reported in either case.
 
 **Addendum, 2026-11-06 00:3x UTC, before any comparison of users was read.** Partial retail status lines of U8 and U8t had been seen. (1) A task dropped because the simulated user returned nothing after retries counts as a failure for that user. (2) Airline's communicate judge was pinned to a model the server does not have; it now uses the local model, in force for the airline stage of every TAU-U arm that had not reached it. It was changed while U8 and U8t ran retail, before they reached airline, so all four arms use it. (3) Airline's pilot scores count only conversations that were scored; thinking is rerun as the base of TAU-R in any case.
+
+
+## Results of TAU-U (written 2026-11-06 06:2x UTC; jobs 1330774–1330777, `$POC_DATA/tau2/runs/ugt_*.json`)
+
+An agent with the gold steps (`llm_agent_gt`, Qwen3-8B thinking) against four simulated users, train split, the tasks it supports: retail 29, airline 25, telecom 30, 84 in all, not the 90 registered. A dropped task counts as that user's failure.
+
+| Simulated user | Retail | Airline | Telecom | All, minus U8 (95% interval) |
+|---|---|---|---|---|
+| U8, Qwen3-8B quick | 27.6% | 60.0% | 3.3% | |
+| U8t, Qwen3-8B thinking | 24.1% | 52.0% | 13.3% | 0.0 [−10.7, +10.7] |
+| U9, Qwen3.5-9B quick | 41.4% | 60.0% | 0.0% | +3.6 [−7.1, +14.3] |
+| U36, Qwen3.6-35B quick | 34.5% | 16.0% | 3.3% | −10.7 [−22.6, +1.2] |
+
+- **TAU-U-P1 refuted:** under U8 the gold-steps agent is right on 28.6% of tasks, not 40–65%. Most of the shortfall is telecom. Airline, at 60.0%, is near the top of the range.
+- **TAU-U-P2:** the best other user is U9 at +3.6, inside the predicted +3 to +20, with an interval that spans zero.
+- **Decision: keep U8.** No user's lower bound is above 0. The pilot's thinking runs used U8, so retail and telecom need no rerun; airline is rerun because its judge changed.
+- **Raw reading.** These scores are not the user's alone. The agent with gold steps still transfers or writes wrongly, as a retail example showed. Telecom needs the user to run tools on their phone: U8t makes user tool calls in 21 of 30 conversations and U8 in 8, while U9 and U36 make none in 30. U36's airline score falls to 16% with no sign yet of why; I have not read those conversations.
+- **What this means for TAU-R.** Telecom will give almost no reward to learn from under U8. The registered design stays as written, 30 tasks per domain, and P2 reports the split by domain. Retail and airline carry the test.
+
+**TAU-R is running** (written 2026-11-06 06:2x UTC): jobs 1334516 `taur_retail`, 1334517 `taur_telecom`, 1334518 `taur_airline` (airline first reruns thinking with the fixed judge; the earlier file is kept as `pilot_airline_T_s1_oldjudge.json`). The peer's quick arm is not used, since no second server is up under U8.
