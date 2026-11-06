@@ -386,6 +386,8 @@ def solve(src, budget=40.0, starts=96, keep=16, seed=0):
             groups.append([v, 1])
     groups.sort(key=lambda g: -g[1])
     st = "none" if not groups else "inv" if len(groups) == 1 else "multi"
+    if st == "inv" and not c0.names:  # unknowns with no points: the model did the mathematics, and there is no figure to check it
+        st = "const"
     if st == "inv":  # the same answer on every figure means nothing if the answer never reads the figure
         seen = []
         for _ in range(3):
