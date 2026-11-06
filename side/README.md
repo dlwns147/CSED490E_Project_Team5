@@ -27,6 +27,12 @@ Side work may use the Slurm server's GPUs: a model server and client commands ru
 
 ## Log
 
+**2026-11-06 06:3x UTC: SIDE-GT-CLOSE, first full arms: 23 of the 31 problems no single point proved. Not yet a claim.** All candidates in one closure, same candidate generator as the random arms:
+- Pool of 0: 4 problems. Pool of 64 (the exact pool the random arms searched): 11, in about 0.6 s per translation. Pool of 256: 23, in 53 s per translation. Pooling and pairs together proved 2 at 8,000–9,600 s.
+- I predicted 12 (7–18) for 256, so this is above my range, which by the project's rule makes it a suspected bug until read. So far: every step of all 44 proofs holds on 8 of 8 fresh figures, and I read one proof by hand, IMO 2000 P6's row, at the level of its key steps. Its key lemma, that triangle x2 y2 t2 is similar to t1 t3 i because reflections double an angle, is a real argument.
+- Still open: plain guarded Newclid on the same points (job 1334911), the arm with every candidate (job 1334653), and how much fractional chases matter.
+- If this stands, the proof step stops being the bottleneck: 10 of the 12 faithful held-out problems that remained unproved fall here, which would make 17 of 65 end to end out of 19 faithful, and the translator becomes the limit.
+
 **2026-11-06 06:2x UTC: guarded counts decided, pooling withdrawn, and a new engine that may replace the search over points.**
 - **Counts under the guard (SOUND-P1 holds):** held out 8 of 65 (4 by DDAR alone, 3 with one point, 1 by pooling), IMO-AG-30 13 of 30. No proof uses a false statement.
 - **Pooling (POOL-P1 holds as written, on one problem):** it proves Indonesia 2007 P7, but that is one point missed once by a time limit, not facts adding up. Its one real composition, USAMO 2005 P3, fails its certificate. The 64 random pairs prove IMO 2010 P2 in one translation. I withdraw pooling and the planned ordering of candidates: there is no data to order by.
