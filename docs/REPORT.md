@@ -782,10 +782,9 @@ OR problems and the observation that the cross-model filter removes the harm but
     independent translations certifies faithfulness.
   - **Faithfulness check.** On a figure built from one translation, the other's construction predicates and goal must hold, both
     ways. Against blind hand verdicts on 59 translations, it accepted no unfaithful translation and 98% of faithful ones.
-  - **Results on 65 held-out problems** (about 50k tokens per problem): 19 translated faithfully. **Proof counts are withdrawn
-    pending a rerun.** The recorded 3 by DDAR alone, 10 with one auxiliary point and 8 with no human in the loop assumed DDAR's proofs
-    were exact. They are not: Newclid checks only the goal numerically, and an audit found a statement false on its own figure in 16
-    of the 57 recorded proofs that reran. A numerical guard on every derived fact removed them in the same audit (SIDE-GT-SOUND).
+  - **Prover.** DDAR's proofs turned out not to be exact: an audit found a statement false on its own figure in 16 of 57 recorded proofs that reran (SIDE-GT-SOUND). So a new closure engine replaces it. It searches for auxiliary points greedily, and it tests every derived fact on the figure before using it (SIDE-GT-CLOSE, -SAT, -SQ).
+  - **Certificates.** An independent checker in exact arithmetic reads each proof: every relation must be what its rule says, and every premise and goal an exact integer combination of earlier rows. 194 of 195 proofs pass, and the one rejected is the one false proof known to the engine's run (IMO 2011 P6), which a nearly coincident point had hidden from the figure. All 194 hold on 8 of 8 fresh figures. 90% read a configuration from the figure, mostly in similar triangles, so they hold for that configuration only. The checker trusts about 20 classical lemmas and does not test non-degeneracy (SIDE-GT-CHECK).
+  - **Results.** 27 of IMO-AG-30 from reference translations (HAGeo reports 28, with different proof conditions). On 65 held-out problems (about 50k tokens per problem), 19 translated faithfully and **17 are proved end to end; 13 with no human reading at all.**
   - **Smaller translators.** Qwen3-8B translates faithfully only 1 of 24 dev problems. gpt-oss-120b declines most of them as
     unexpressible.
 - **The weakest model's check leak** (Section 5.2).

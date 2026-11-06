@@ -18,14 +18,22 @@ Side work may use the Slurm server's GPUs: a model server and client commands ru
 
 | Route | State | Hardest open gap |
 |---|---|---|
-| Geometry by translation (`geo_translate.py`, `geo_closure.py`) | 8 of 65 held out and 13 of IMO-AG-30 under a guard (see the log); a new closure engine is running | A prover that is sound and goes beyond one auxiliary point: the closure may close this gap; its proofs must then be trusted |
+| Geometry by translation (`geo_translate.py`, `geo_closure.py`, `geo_check.py`) | Certified by an independent checker: **27 of IMO-AG-30**, and held out **17 of 65** with faithfulness read by hand, **13 of 65** with no human | Half of the held-out translations cannot be written in a construction language, so the translator is now the limit (SIDE-GT-DECL). Most proofs read a configuration from the figure. IMO 2008 P6, 2011 P6 and 2021 P3 need theories the engine lacks |
 | Natural-language proofs | Computational checks of a proof failed (SIDE-PF, SIDE-PG) | A free check that sees a step left unjustified while true, the most common error |
 | Lean (main track, `PREREG_PROOF.md`) | A specialised 8B prover is best; the compiler is a perfect check | Not a side-project gap at present |
 | Constructions (`construct.py`) | Unsolved for an 8B model; its own checker is not a usable free check | A derived free check, or a search the problem's structure makes exact |
 
-**Running now (geometry):** in `results/proof/sound3/`: the greedy point choice (SIDE-GT-SAT), the strict step replay (SIDE-GT-CLOSE), and the greedy with squared lengths, two figures and second intersections (SIDE-GT-SQ). Queued: declarative translations on the dev problems (SIDE-GT-DECL), output `results/proof/gt_gtdecl_dev.jsonl`.
+**Running now (geometry):** restarts (SIDE-GT-LUBY, job 1339457, `results/proof/sound3/gt_luby.jsonl`). Queued: declarative translations of the dev problems (SIDE-GT-DECL, job 1337117).
 
 ## Log
+
+**2026-11-06 15:0x UTC: the independent checker passes 150 of 151 proofs and rejects the false one. Certified: 27 of IMO-AG-30, 17 of 65 held out (13 with no human).**
+- **The control worked:** the false IMO 2011 P6 proof fails on exact arithmetic. Its combination proves two lines perpendicular, and the proof uses them as parallel. The figure could not show this, because a point nearly coincided with another.
+- **Four other proofs failed first on a fault in the checker,** which is fixed: it looked up a chord premise under the wrong name.
+- **My prediction on configuration was wrong:** 91% of proofs read a configuration from the figure, mostly in similar triangles (predicted at most half). Those proofs hold for the figure's configuration only. 7 of the 27 and 3 of the 17 have a proof free of it.
+- **The earlier counts were rechecked too:** their 44 rows were rerun through the closure, and all pass. Totals: 194 of 195 proofs pass.
+- **Not checked:** non-degeneracy, the construction facts from Newclid's language, and about 20 classical lemmas stated in the checker's code.
+- **Next:** the translator is the limit now. Restarts (SIDE-GT-LUBY) run on the last rows of the search, and declarative translations (SIDE-GT-DECL) wait for GPUs.
 
 **2026-11-06 13:3x UTC: the greedy finds IMO 2008 P1b and 2019 P2 alone; 27 of IMO-AG-30 if the checker passes them.**
 - **SIDE-GT-SQ:** all predictions hold. IMO 2008 P1b takes 4 s and the circumcentre, IMO 2019 P2 28 s and two points. The false IMO 2011 P6 proof is gone, and all 43 proved rows hold on 8 of 8 fresh figures. Still unproved of IMO-AG-30: 2008 P6, 2011 P6, 2021 P3.

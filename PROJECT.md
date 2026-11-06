@@ -47,7 +47,7 @@ New types are welcome after a related-work check.
 | Instructions (IFEval, IFBench) | A model-written, executed checker gating thinking beats both modes in 4 of 6 cells (+1.1 to +2.5), at 1.0–2.6× the tokens: a gain, not a saving (IF-1). |
 | Short-answer math (MATH-500, AIME) | Text with thinking is best. A program is a second opinion: when text and program agree, 0.3–0.9% are wrong. |
 | Lean proofs (miniF2F) | A specialised 8B prover proves the most (Goedel-Prover-V2-8B, 180 of 244). Facts and repair from compiler errors do not help. |
-| Geometry proofs (side project, SIDE-GT) | The model translates the statement into a formal construction language, and a CPU engine (Newclid's DDAR) proves it. Agreement between independent translations certifies faithfulness without reading them: no unfaithful translation passed, and 98% of faithful ones did (SIDE-GT-AGREE). Newclid derives false facts (10 of 54 recorded proofs that reran), and a numerical guard on every derived fact removes them (SIDE-GT-SOUND). Under the guard: **8 of 65 held-out problems end to end and 13 of IMO-AG-30**, replacing the withdrawn 10 and 14. Pooling what single auxiliary points prove adds one problem, and it is not a real composition (SIDE-GT-POOL). A new closure engine runs now (SIDE-GT-CLOSE). Details: `side/README.md`. |
+| Geometry proofs (side project, SIDE-GT) | The model translates the statement into a formal construction language, and a CPU engine (Newclid's DDAR) proves it. Agreement between independent translations certifies faithfulness without reading them: no unfaithful translation passed, and 98% of faithful ones did (SIDE-GT-AGREE). Newclid derives false facts (10 of 54 recorded proofs that reran), and a numerical guard on every derived fact removes them (SIDE-GT-SOUND). A closure engine proves what a single auxiliary point cannot, and an independent checker with exact arithmetic certifies its proofs (SIDE-GT-CLOSE, -SQ, -CHECK): **27 of IMO-AG-30, and 17 of 65 held-out problems end to end (13 with no human reading)**. The checker rejects the one false proof the engine produced. 90% of proofs read a configuration from the figure, so they hold for that configuration. Details: `side/README.md`. |
 | Constructions (side project, SIDE-MC) | Unsolved for an 8B model. A thinking answer and a thinking program solve different instances (23% and 18% alone, 33% together). The model's own checker rejects 28% of right objects, so it cannot pick between them. |
 
 **Did not work** (do not retry without a new idea):
@@ -112,7 +112,7 @@ OptMATH is partly broken: its statements omit what its gold answers need.
   rule, no online arm: the agent-loop method is final for this project.
 - **TAU-R:** on τ²-bench, the rollout upper bound is +11.1 points over thinking [+3.9, +18.3]. Only about a fifth of a per-turn label is signal, so no verifier
   is trained and the τ² line stops (`docs/prereg/PREREG_TAU.md`).
-- **Side project (proofs):** a sound closure engine, a greedy point choice and squared lengths, awaiting an independent checker. See `side/README.md`.
+- **Side project (proofs):** an independent checker passes 194 of 195 closure proofs and rejects the false one; certified counts are in §2. The translator is now the limit. See `side/README.md`.
 
 **Next:**
 

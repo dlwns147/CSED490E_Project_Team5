@@ -212,7 +212,7 @@ def check(c):
         for ch in by.get(j, []):
             verify(ch, j)
         want = [F for F in expand(real) if F[0] not in ("half_", "cyclic")]
-        got = {json.dumps(ch["fact"]) for ch in by.get(j, [])}
+        got = {json.dumps(["tdiff", ch["form"][0][0][1]] if ch["fact"][0] == "tdiff" else ch["fact"]) for ch in by.get(j, [])}  # a chord premise names its circle
         for F in want:
             if json.dumps(F) not in got:
                 raise Bad(f"row {j}: premise {F} has no combination")

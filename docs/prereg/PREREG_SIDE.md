@@ -1017,3 +1017,21 @@ Correction to the paragraph above: the mutation count was 891, not 800.
 - **LUBY-P3:** mean time on the rows both arms prove is no worse than twice SQ's, as the bound's log factor allows.
 
 **Decision.** LUBY-P1 holds: restarts become the default search, and the counts are restated from the union with the checker. It fails: drift is not what separates those rows, and the score itself is the next thing to replace, for example by counting only relations among the statement's own points.
+
+Note to SIDE-GT-LUBY's "Why": the proved rows of SIDE-GT-SQ have median 4.5 s, mean 22.3 s and maximum 257 s. Job change (2026-11-06 15:0x UTC): the CPU queue offered a start 2 days away, so `clluby` runs as job 1339457 with 4 workers on a GPU node's CPUs instead of 8. The time limit per row (1,800 s) is unchanged. No results had been read.
+
+### Results of SIDE-GT-CHECK (2026-11-06 15:0x UTC; `results/proof/sound3/gt_check_*.jsonl`; run on the login node, about 1 s per proof, because the CPU queue offered a start a day away)
+
+- **CHECK-P1 holds:** 150 of 151 proofs pass (99.3%, bar 95%). Four proofs failed at first on a fault of the checker's: a chord premise is written `tdiff <circle>` in the row and `tdiff` in its combination, so the lookup missed it. Fixed, and the fix also requires the combination to be on the named circle. All four then pass.
+- **CHECK-P2 holds, in its strong form:** the false IMO 2011 P6 proof is rejected, with no configuration step involved: "row 76: premise para pc _x3 _x2 _x3 has constant -1/2, not 0". The exact combination proves those lines perpendicular, and the proof uses them as parallel. The engine drops constants and takes them from the figure, where a nearly coincident point (7e-5) made the wrong one look true. So the checker catches what the engine's numerical truth test misses, and no other proof of the 151 has this fault.
+- **CHECK-P3 refuted:** 137 of the 150 passing proofs use a configuration step (91%, predicted at most half), nearly all similar triangles by side-angle-side. By problem, 20 of the 27 of IMO-AG-30 have no proof without one. Such a proof holds for the figure's configuration, not for every configuration, and is reported that way. No proof needs a fractional direction coefficient or a constant from the figure.
+
+**Decision applied: certified = passes the checker and holds on 8 of 8 fresh figures.** The earlier guarded counts rested on Newclid's proofs, which the checker cannot read, so their 44 rows were rerun through the closure: 33 with no new point (at most 0.02 s), 6 by the greedy (at most 73 s), 5 by the greedy after removing a fixed auxiliary point the search could not parse (at most 3.3 s). All 44 pass the checker and hold on 8 of 8 fresh figures. Totals, 195 proofs: 194 pass, 176 with a configuration step.
+
+| Count | Certified | Before |
+|---|---|---|
+| IMO-AG-30, from reference translations | **27 of 30** (unproved: 2008 P6, 2011 P6, 2021 P3); 7 with a proof free of configuration steps | 13 |
+| Held out, end to end, translations judged faithful by hand | **17 of 65**, of 19 faithful (unproved: USAMO 2005 P3, ISL 2012_22); 3 free of configuration steps | 8 |
+| Held out, end to end, no human (corroborated by SIDE-GT-AGREE) | **13 of 65** | withdrawn 8 |
+
+Comparison: HAGeo reports 28 of IMO-AG-30 (2512.00097). Its code is not public, and we do not know how its proofs treat configurations, so this is not a like-for-like comparison. Each of our numbers depends on the checker's trust base: about 20 classical lemmas, the construction facts from Newclid's language, and non-degeneracy, none of which it proves.
