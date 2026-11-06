@@ -76,7 +76,48 @@ def reference():
     return "Constructions (name and arguments: what the new point satisfies):\n" + "\n".join(out)
 
 
+DECL = bool(os.environ.get("GT_DECL"))   # SIDE-GT-DECL: the statement as points, hypotheses and a goal, with no construction (geo_decl.py)
+
+DECL_LANG = """A statement is one line: `decl:` then the points, then hypotheses, each separated by "; ", then " ? " and exactly one goal.
+Hypotheses and goals:
+  coll a b c: a, b, c are on one line.   para a b c d: line ab is parallel to line cd.   perp a b c d: line ab is perpendicular to line cd.
+  cong a b c d: segments ab and cd have equal length.   midp m a b: m is the midpoint of ab.
+  cyclic a b c d: the four points lie on one circle (more points allowed).   circle o a b c: o is the centre of a circle through a, b, c (one or more points after the centre).
+  uangle a b c d e f: the angles abc and def (at b and at e, unsigned, as drawn) are equal.
+  eqangle a b c d e f g h: the directed angle from line ab to line cd equals that from line ef to line gh, modulo 180 degrees.
+  eqratio a b c d e f g h: ab / cd = ef / gh.
+Hypotheses only:
+  uconst a b c 60: angle abc is 60 degrees.   rconst a b c d 2/3: ab / cd = 2/3.
+Order conditions, hypotheses only, which say which configuration is meant:
+  between a b c: b is strictly inside segment ac (this also says the three are on one line).   inside p a b c: p is inside triangle abc.
+  sameside p q a b: p and q are on the same side of line ab.   opposite p q a b: on opposite sides.   convex a b c d: the quadrilateral is convex, in this order.
+  acute a b c: angle abc is acute.   obtuse a b c: it is obtuse.   ncoll a b c: a, b, c are not on one line (write this for every triangle the problem names)."""
+
+DECL_RULES = """Rules:
+- Write what the problem states, not how to construct it. Points need no order, and a point may be fixed by conditions that involve later points.
+- List every named point, in lowercase. A line gets two named points on it; a circle gets its centre as a new point, or use cyclic. Different names are always different points.
+- Write every hypothesis of the problem, and no others. Write the order conditions the problem states (on a side, inside, beyond, convex, acute, between).
+- A tangent line at a to a circle with centre o: `perp o a a t` for a point t on the line. Two tangent circles: their centres and the point of tangency are on one line.
+- If the statement has several parts, translate the first claim to prove. For "if and only if", put one side in the hypotheses and the other in the goal.
+- If the problem or its claim needs sums of lengths, inequalities, areas, a numerical answer, counting, varying n or three dimensions, reply `UNEXPRESSIBLE`.
+Reply with the statement only, in one ``` code block."""
+
+DECL_EXAMPLES = [    # each passes the guard of geo_decl.py (written 11-06)
+    ("Points E and F lie on sides AB and AC of triangle ABC, with EF parallel to BC and BE = CF. Prove that AB = AC.",
+     "decl: a b c e f; ncoll a b c; between a e b; between a f c; para e f b c; cong b e c f ? cong a b a c"),
+    ("The incircle of triangle ABC has centre I and touches BC, CA, AB at D, E, F. Prove that angle BID = angle BIF.",
+     "decl: a b c i d e f; ncoll a b c; between b d c; between c e a; between a f b; inside i a b c; perp i d b c; perp i e c a; perp i f a b; cong i d i e; cong i e i f ? uangle b i d b i f"),
+    ("The tangent at A to the circumcircle of triangle ABC meets line BC at T. Prove that TA^2 = TB * TC.",
+     "decl: a b c o t; ncoll a b c; circle o a b c; perp o a a t; coll t b c ? eqratio t a t b t c t a"),
+    ("Let P be a point inside triangle ABC with angle PBC = angle PCB and angle PAB = angle PAC. Prove that AB = AC.",
+     "decl: a b c p; ncoll a b c; inside p a b c; uangle p b c p c b; uangle p a b p a c ? cong a b a c"),
+]
+
+
 def prompt(problem):
+    if DECL:
+        ex = "\n\n".join(f"Problem: {p}\nStatement:\n```\n{t}\n```" for p, t in DECL_EXAMPLES)
+        return (f"Write the following olympiad geometry problem as a formal statement. Do not prove it.\n\n{DECL_LANG}\n\n{DECL_RULES}\n\nExamples:\n\n{ex}\n\nProblem: {problem}\nStatement:")
     ex = "\n\n".join(f"Problem: {p}\nTranslation:\n```\n{t}\n```" for p, t in EXAMPLES)
     return (f"Translate the following olympiad geometry problem into AlphaGeometry's construction language. Do not prove it.\n\n"
             f"{reference()}\n\n{LEGEND}\n\n{RULES}\n\nExamples:\n\n{ex}\n\nProblem: {problem}\nTranslation:")
@@ -87,6 +128,9 @@ def dsl_of(text):
     t = (b[-1] if b else text).strip()
     if "UNEXPRESSIBLE" in t:
         return "UNEXPRESSIBLE"
+    if DECL:
+        lines = [l.strip() for l in t.splitlines() if l.strip().startswith("decl:") and " ? " in l]
+        return lines[-1] if lines else None
     lines = [l.strip() for l in t.splitlines() if " ? " in l]
     return lines[-1] if lines else None
 
@@ -95,6 +139,12 @@ def grammar():
     """EBNF (vLLM structured_outputs grammar, xgrammar) of a reply: one code block holding UNEXPRESSIBLE or steps of the listed constructions, each
     with its own number of arguments (typed ones as constants: Angle 2pi/3 or 60o, Ratio 1/2, Length 3), ' ? ' and one goal predicate
     with its number of points. It removes the unknown constructions and wrong argument counts; it does not check meaning."""
+    if DECL:
+        arg = {"coll": 3, "para": 4, "perp": 4, "cong": 4, "midp": 3, "eqangle": 8, "eqratio": 8, "uangle": 6}
+        goal = [f'"{p}"' + ' " " nm' * n for p, n in arg.items()] + ['"cyclic" " " nm " " nm " " nm " " nm (" " nm)*', '"circle" " " nm " " nm (" " nm)+']
+        hyp = goal + ['"uconst" " " nm " " nm " " nm " " [0-9]+', '"rconst" " " nm " " nm " " nm " " nm " " [0-9]+ "/" [0-9]+'] + \
+            [f'"{p}"' + ' " " nm' * n for p, n in (("between", 3), ("inside", 4), ("sameside", 4), ("opposite", 4), ("acute", 3), ("obtuse", 3), ("convex", 4), ("ncoll", 3))]
+        return "\n".join(['root ::= "```\\n" body "\\n```"', 'body ::= "UNEXPRESSIBLE" | "decl: " nm (" " nm)* ("; " hyp)* " ? " goal', "hyp ::= " + " | ".join(hyp), "goal ::= " + " | ".join(goal), "nm ::= [a-z] [a-z0-9_]*"])
     kind = {"Angle": "ang", "Ratio": "rat", "Length": "len"}
     con = []
     for block in open(os.path.join(PD, "newclid_defs.txt")).read().strip().split("\n\n"):
@@ -112,15 +162,26 @@ def grammar():
 
 FINAL = """Now write the final translation in the required form: steps that use only the listed constructions, each with exactly its listed
 arguments, then " ? " and one goal predicate (or UNEXPRESSIBLE), in one ``` code block."""
+if DECL:
+    FINAL = """Now write the final statement in the required form: `decl:`, the points, the hypotheses, then " ? " and one goal (or UNEXPRESSIBLE), in one ``` code block."""
 
 REPAIR = """Newclid cannot use this translation. {what}
 Write a corrected translation of the same problem, following the same rules. Reply with the translation only, in one ``` code block."""
+if DECL:
+    REPAIR = """The checker cannot use this statement. {what}
+Write a corrected statement of the same problem, following the same rules. Reply with the statement only, in one ``` code block."""
 
 
 def guard(dsl):
     """the checker's verdict without DDAR, in a subprocess (needs Newclid on PYTHONPATH): (status, message)"""
     if dsl in (None, "UNEXPRESSIBLE"):
         return ("no translation" if dsl is None else "unexpressible"), ""
+    if DECL:
+        try:
+            p = subprocess.run([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "geo_decl.py"), "guard", dsl], capture_output=True, text=True, timeout=900)
+            return tuple(json.loads(p.stdout.strip().splitlines()[-1]))
+        except Exception as e:
+            return "no figure", f"checker: {type(e).__name__}"
     try:
         p = subprocess.run([sys.executable, os.path.abspath(__file__), "one", dsl, "0"], capture_output=True, text=True, timeout=900)
         st, _, msg, _ = json.loads(p.stdout.strip().splitlines()[-1])
@@ -161,7 +222,7 @@ def gen():
                            **({"draft": draft} if gram else {})})
             if not rep or st in ("guarded", "unexpressible") or i == rep:
                 break
-            what = {"goal fails": "The goal does not hold on any figure built from your constructions, so the constructions or the goal "
+            what = f"{st}: {msg}" if DECL else {"goal fails": "The goal does not hold on any figure built from your constructions, so the constructions or the goal "
                                   "do not match the problem.",
                     "copied example": "It repeats one of the examples instead of translating this problem.",
                     "trivial": "The goal already follows from the constructions themselves, before any reasoning, so it is not the "

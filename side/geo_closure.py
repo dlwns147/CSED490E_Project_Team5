@@ -766,7 +766,10 @@ def numeric_cand(c, P_):
 
 
 def figure(dsl, seed=0):
-    """the translation's figure and facts from Newclid's builder -> names, coordinates, facts, goals"""
+    """the translation's figure and facts from Newclid's builder (or geo_decl for a statement with no construction) -> names, coordinates, facts, goals"""
+    if dsl.startswith("decl:"):
+        import geo_decl
+        return geo_decl.figure(dsl, seed)
     from newclid import GeometricSolverBuilder
     from newclid.geometry import Point
     from newclid.predicates import Predicate
@@ -1043,12 +1046,16 @@ def one(row, k, timeout, proofs, fresh=8):
     P_ = dict(zip(n, x))
     cand = []
     if k:
-        for c, _ in GT.aux_candidates(row["dsl"], k):
+        for c, _ in GT.aux_candidates(f"{' '.join(n)} = free ? {g[0][0]}" if row["dsl"].startswith("decl:") else row["dsl"], k):
             q = numeric_cand(c, P_)
             if q is not None and all(math.isfinite(v) and abs(v) < 1e4 for v in q[0]) and not any(math.dist(q[0], v) < 1e-6 for v in x) \
                     and not any(math.dist(q[0], cc[1]) < 1e-6 for cc in cand):
                 cand.append((c, q[0], q[1]))
     out["cands"] = len(cand)
+    gi = [n.index(v) for v in g[0][1:]]
+    if not num_fact((g[0][0], *gi), x):     # the engine drops constants and relies on the goal being true on the figure
+        out.update(rounds=0, sec=round(time.time() - t0, 2), goal_false=True)
+        return out
     try:
         ok, rounds, sec, info, e = close(n, x, f, g[0], cand, timeout)
     except TimeoutError:
