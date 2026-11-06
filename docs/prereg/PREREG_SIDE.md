@@ -900,3 +900,40 @@ The first run (jobs 1324967, 1324968) was stopped partway, 26 translations in. I
 **Decision.** P1 and P3 hold: the declarative form replaces the construction language for the pipeline, and the agreement check is rebuilt on it (each statement's hypotheses and goal on the other's figures). P1 holds and P3 fails: the new problems are beyond the engine, which is then the gap again. P1 fails: reading the statements decides between the model and the language.
 
 **Dev result rule.** On dev I may change the prompt and language. Nothing from the held-out 65 is read for that, beyond what is already written above. Disclosure: writing this, I read the statements of the 46 held-out problems without a faithful translation, and hand-wrote three of them (IMO 2007 P2, ISL 2006 G2, opc_IMOSL_2008_16) to test the solver and closure. The prompt's examples are my own and none of them. The closure proved IMO 2007 P2 from my hand statement with 5 points. That is not counted: only the model's statements count.
+
+
+**Results of the strict arm (2026-11-06 10:4x UTC; job 1337021 at K = 256, K = 64 on the login node; step replay still running).**
+
+A correction to my own counts first. I reported 23 of 31 problems at K = 256. Four row ids are second names of IMO-AG-30 problems (hf_2010, hf_2015, opc_IMOSL_2008_14, opc_IMOSL_2012_19), and two more among the unproved (hf_2020, hf_2021), and I had merged only some of them. Distinct problems: **21 of 29** for the rational arm at K = 256, not 23 of 31. K = 64's 11 was right. All counts below are distinct problems.
+
+| Arm | K = 64 | K = 256 |
+|---|---|---|
+| Rational span (halves an angle using the figure) | 11 | 21 |
+| Strict integer lattice | 10 | 20 (+ IMO 2002 P2a, which times out at K = 256 and is proved at K = 64: 21 together) |
+
+- **CLOSE-P6 holds:** 20 problems, above the 2 of pooling and pairs, at the top of my range (8–20). CPU per translation: 105 s mean, against about 8,000 s held out and 9,600 s on the references for the pooling and pairs arms. So the halved angles cost almost nothing. ISL 2016_23, lost at K = 64, comes back at K = 256 with more points, so my guess that it needed a real branch was wrong.
+- **CLOSE-P7 holds:** none of the 43 strict proofs has a fractional angle coefficient.
+- **CLOSE-P8:** 10, in the range (4–11), above the 7 expected.
+- **CLOSE-P3 holds on the strict proofs:** every step on 8 of 8 fresh figures. This shows truth on the figures, not the deduction.
+- **CLOSE-P4 refuted:** plain guarded Newclid reproduces 3 of the 21 problems (4 of 44 rows, 2 rows stopped unfinished after over an hour), not half.
+- **CLOSE-P1 stands, as decided by P6.** The closure replaces single points, pairs and pooling, once the proofs are certified.
+- **Counts if the certificate holds:** IMO-AG-30 **24 of 30** (13 + 11; the row ids match the benchmark's names), unproved: 2008 P1b, 2008 P6, 2011 P6, 2019 P2, 2020 P1, 2021 P3. Held out, end to end, **17 of 65** out of 19 faithful (7 + 10, each with a translation judged faithful before any proof). These are proofs for the figure's configuration: a similar-triangles step from side ratios reads its orientation from the figure, as Newclid's and AlphaGeometry's sameclock test does.
+- **Step replay (CLOSE-P5), first run: not usable for similar triangles.** 810 steps, 512 reproduced, and no proof fully. Isosceles 203 of 203, lines 81 of 86, inscribed 57 of 60, midline 34 of 34, perpendicular bisector 42 of 42. But 275 of 298 similar-triangle steps failed, 201 of them with an IndexError, because Newclid can't take simtri as a goal here. That is the replay's fault and says nothing of the step. Fixed: a similar pair is replaced by its angle and ratio statements, as goal and as lemma. Rerun on 21 strict proofs, one per problem (job 1337470).
+- **Hand reading:** IMO 2016 P1 (no extra points): triangles ABF, ACD, ADE similar, then A, B, D, E, M concyclic, MB = MF from the right median, and B, F, M, Y and D, M, X, Y concyclic carry it to the collinearity. This is the shape of the known solution. With IMO 2000 P6 and IMO 2018 P1, three are read at the level of key lemmas.
+
+---
+
+## SIDE-GT-SAT: a pool the closure grows itself (written 2026-11-06 10:4x UTC, before any run)
+
+**Why.** Six IMO-AG-30 problems and two faithful held-out ones stay unproved. A random pool of one-step points can't reach points built on auxiliary points, and pools over 1,100 points run out of time and memory. A point that adds no relation among the existing points can't contribute through linear chasing, so the pool needs only points that add something.
+
+**Design.** Round by round from the statement's points: draw a budget of 2,000 one-step candidates over the current points, seeded by the round. For each, run the strict closure on the current points plus that one candidate, and test whether the relations among the current points grew: the rank of their direction and log-length variables, computed exactly mod P. Keep every candidate that adds one, promote them all to points at once (closure is monotone, so this can't lose a proof), and repeat. Stop when the goal falls, no candidate adds anything, or the time limit (1,200 s) comes. Then read the proof back and keep only the points it needs and their parents. Fresh figures as before. Limit: two points each useless alone but useful together are missed unless something else makes one productive. Same 59 translations. Output \`results/proof/sound3/gt_sat.jsonl\`.
+
+**Related work.** Chou, Gao and Zhang (2000) add points inside a deductive database and AG2 (2502.03544) and HAGeo (2512.00097) choose points by language model or heuristics, then search. I found none that keep points by a measured rank gain.
+
+**Predictions.**
+- **SAT-P1 (decision):** proves at least one of the 8 problems the strict closure leaves unproved at K = 256 (2002 P2a excluded, which K = 64 proves). Expected 2, range 0–4.
+- **SAT-P2 (reported):** of the 21 proved, it proves 15 (10–21), at less CPU per translation than K = 256's 105 s on average.
+- **SAT-P3:** every step on every fresh figure.
+
+**Decision.** SAT-P1 holds and the new proof certifies: saturation replaces the random pool, and the counts are restated. It fails: the remaining gap is not points. The unproved problems' known solutions are then read for what the engine lacks (rules, or inequalities and order), and that is the next step.

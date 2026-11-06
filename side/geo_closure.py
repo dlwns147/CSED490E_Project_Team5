@@ -13,7 +13,8 @@ The engine finds proofs. Every relation it adds is logged with its rule and prem
 linear combination behind each premise, the points the proof needs, and each step's truth on fresh figures. Plain guarded Newclid is tried on the
 same points as a second, separate check.
   python side/geo_closure.py run <rows.jsonl> <out.jsonl> --k K [--timeout S] [--workers W] [--proofs DIR]
-K = 0: the translation alone; K > 0: K candidates (geo_translate.aux_candidates, seed 0) all at once."""
+K = 0: the translation alone; K > 0: K candidates (geo_translate.aux_candidates, seed 0) all at once; K < 0: SIDE-GT-SAT, -K candidates a round, keeping those that add a relation.
+GT_STRICT=1: angle chases in integers only (ZSpan)."""
 import itertools, json, math, os, random, subprocess, sys, time
 import numpy as np
 
@@ -1036,8 +1037,157 @@ def pretty(e, F):
     return k + " " + " ".join(e.names[x] for x in a if isinstance(x, (int, np.integer)))
 
 
+def relations(e, m):
+    """how many independent relations hold among the direction and log-length variables of the first m points"""
+    out = 0
+    for lin, tab in ((e.D, e.u), (e.W, e.w)):
+        piv, n, rank = {}, 0, 0
+        for a, b in itertools.combinations(range(m), 2):
+            n += 1
+            v = dict(lin.expr[tab[a][b]])
+            while v:
+                k = max(v)
+                if k not in piv:
+                    ic = pow(v[k], P - 2, P)
+                    piv[k] = {f: q * ic % P for f, q in v.items()}
+                    rank += 1
+                    break
+                c = v[k]
+                for f, q in piv[k].items():
+                    w = (v.get(f, 0) - c * q) % P
+                    if w:
+                        v[f] = w
+                    else:
+                        v.pop(f, None)
+        out += n - rank
+    return out
+
+
+def one_sat(row, budget, timeout, proofs, fresh=8):
+    """SIDE-GT-SAT: rounds of one-step candidates over the current points. A candidate is kept when it adds a relation among the current points; all kept
+    ones become points at once, and the closure is monotone, so that cannot lose a proof. -> a result row"""
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import geo_translate as GT
+    out = {"id": row["id"], "sample": row.get("sample", 0), "dsl": row["dsl"], "k": -budget, "proved": False}
+    t0 = time.time()
+    end = t0 + timeout
+    n, x, f, g = figure(row["dsl"])
+    N, X, F = list(n), [tuple(q) for q in x], [q[:-1] if q[-1] == "_" else q for q in f]
+    defs, kept_by_round, ok, tried = [], [], False, 0
+    try:
+        for rnd in range(100):
+            e = Closure(N, X, F, deadline=end, log=False)
+            ok, _ = e.run(g[0])
+            if ok:
+                break
+            r0 = relations(e, len(N))
+            keep = []
+            for c, _ in GT.aux_candidates(f"{' '.join(N)} = free ? {g[0][0]}", budget, seed=rnd):
+                q = numeric_cand(c, dict(zip(N, X)))
+                if q is None or not all(math.isfinite(v) and abs(v) < 1e4 for v in q[0]) or any(math.dist(q[0], v) < 1e-6 for v in X):
+                    continue
+                if any(math.dist(q[0], k_[1]) < 1e-6 for k_ in keep):
+                    continue
+                tried += 1
+                e2 = Closure(N + ["_x"], X + [tuple(q[0])], F + list(q[1]), deadline=end, log=False)
+                fell, _ = e2.run(g[0])
+                if fell or relations(e2, len(N)) > r0:
+                    keep.append((c, tuple(q[0]), q[1]))
+                    if fell:
+                        break
+            kept_by_round.append(len(keep))
+            if not keep:
+                break
+            for c, q, own in keep:
+                nm = f"_x{len(defs)}"
+                defs.append((nm, c))
+                N.append(nm)
+                X.append(q)
+                F += [tuple(nm if v == "_x" else v for v in h) for h in own]
+    except TimeoutError:
+        pass
+    out.update(kept=kept_by_round, tried=tried, sec=round(time.time() - t0, 2), timeout=time.time() > end)
+    if not ok:
+        return out
+    # the proof, then only the points it needs and their parents
+    e = Closure(N, X, F, deadline=time.time() + timeout)
+    e.run(g[0])
+    rows, chases = explain(e, g[0])
+    pts = {e.names[v] for j in rows for H in (e.log[j][4],) + tuple(e.log[j][3]) for v in H[1:] if isinstance(v, (int, np.integer)) and H[0] not in ("tdiff", "cyclic_group")}
+    dep = dict(defs)
+    need = set()
+    stack = [q for q in pts if q in dep]
+    while stack:
+        q = stack.pop()
+        if q not in need:
+            need.add(q)
+            stack += [a for a in dep[q].split()[1:] if a in dep]
+    kept = [(nm, c) for nm, c in defs if nm in need]
+    N2, X2, F2 = list(n), [tuple(q) for q in x], [q[:-1] if q[-1] == "_" else q for q in f]
+    for nm, c in kept:
+        q = numeric_cand(c, dict(zip(N2, X2)))
+        N2.append(nm)
+        X2.append(tuple(q[0]))
+        F2 += [tuple(nm if v == "_x" else v for v in h) for h in q[1]]
+    e = Closure(N2, X2, F2, deadline=time.time() + timeout)
+    fell, _ = e.run(g[0])
+    if fell:        # it can fail when a dropped point's facts mattered only through the span; then the full list stands
+        defs_, rows, chases = kept, *explain(e, g[0])
+    else:
+        e = Closure(N, X, F, deadline=time.time() + timeout)
+        e.run(g[0])
+        defs_ = defs
+        rows, chases = explain(e, g[0])
+    out.update(proved=True, sec=round(time.time() - t0, 2), points=[c for _, c in defs_], steps=len(rows), chases=len(chases),
+               fractional_angle=sum(1 for H, t, ctx, r in chases if H[0] not in ("cong", "eqratio", "half") and any("/" in rat(c) for c in r.values()) and not (H[0] == "midp" and e.log[next(iter(r))][0] == "W")),
+               rules={tg: sum(1 for j in rows if e.log[j][2] == tg) for tg in {e.log[j][2] for j in rows}})
+    facts = [e.log[j][4] for j in rows] + [H for j in rows for H in e.log[j][3] if H[0] not in ("tdiff", "cyclic_group")]
+    tried_f, held, false_ = 0, 0, {}
+    for sd in range(1, fresh + 1):
+        try:
+            n3, x3, _, _ = figure(row["dsl"], seed=sd)
+        except Exception:
+            continue
+        C = dict(zip(n3, x3))
+        bad = set(C) != set(n)
+        for nm, c in defs_:
+            q = None if bad else numeric_cand(c, C)
+            if q is None:
+                bad = True
+                break
+            C[nm] = q[0]
+        if bad:
+            continue
+        tried_f += 1
+        XY = [C[v] for v in e.names]
+        wrong = [H for H in facts if H[0] not in ("given_", "const") and not num_fact(H, XY)]
+        held += not wrong
+        for H in wrong[:5]:
+            false_[pretty(e, H)] = false_.get(pretty(e, H), 0) + 1
+    out.update(fresh=tried_f, fresh_held=held, fresh_false=false_)
+    if proofs:
+        os.makedirs(proofs, exist_ok=True)
+        with open(os.path.join(proofs, f"{row.get('tag', 'x')}_{row['id']}_{row.get('sample', 0)}_sat.txt"), "w") as fh:
+            fh.write(row["dsl"] + "\n")
+            for nm, c in defs_:
+                fh.write(f"{nm} = {c}\n")
+            by = {}
+            for H, t, ctx, r in chases:
+                by.setdefault(ctx, []).append((H, r))
+            for j in rows:
+                sy, rel, tag, prem, concl = e.log[j]
+                fh.write(f"[{j}] {tag}: " + ", ".join(pretty(e, H) for H in prem) + " => " + pretty(e, concl) + "\n")
+                for H, r in by.get(j, []):
+                    fh.write(f"      {pretty(e, H)} = " + " + ".join(f"{rat(c)}*[{i}]" for i, c in sorted(r.items())) + "\n")
+            for H, r in by.get(-1, []):
+                fh.write(f"GOAL {pretty(e, H)} = " + " + ".join(f"{rat(c)}*[{i}]" for i, c in sorted(r.items())) + "\n")
+    return out
+
+
 def one(row, k, timeout, proofs, fresh=8):
-    """the arm on one translation -> a result row"""
+    """the arm on one translation -> a result row; k < 0: SIDE-GT-SAT with a budget of -k candidates a round"""
+    if k < 0:
+        return one_sat(row, -k, timeout, proofs, fresh)
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import geo_translate as GT
     out = {"id": row["id"], "sample": row.get("sample", 0), "dsl": row["dsl"], "k": k, "proved": False}
@@ -1150,6 +1300,10 @@ def lemma_of(c):
         return [c] if len(a) >= 4 else []
     if k == "circle":
         return [f"cong {a[0]} {a[1]} {a[0]} {x}" for x in a[2:]]
+    if k in ("simtri", "simtri2"):      # what a similar pair adds to the spans; Newclid cannot take simtri as a goal or a lemma here
+        x, y, z, p, q, r = a
+        ang = [f"eqangle {x} {y} {x} {z} {p} {q} {p} {r}", f"eqangle {y} {x} {y} {z} {q} {p} {q} {r}"] if k == "simtri" else [f"eqangle {x} {y} {x} {z} {p} {r} {p} {q}", f"eqangle {y} {x} {y} {z} {q} {r} {q} {p}"]
+        return ang + [f"eqratio {x} {y} {p} {q} {y} {z} {q} {r}", f"eqratio {x} {y} {p} {q} {z} {x} {r} {p}"]
     return [c]
 
 
@@ -1164,7 +1318,7 @@ def certify_file(path, timeout):
     for ln in L[1:]:
         m = re.match(r"_x(\d+) = (\S+) aux (.*)", ln)
         if m:
-            defs[m[1]] = f"{m[2]} zx{m[1]} {m[3]}"
+            defs[m[1]] = f"{m[2]} zx{m[1]} {m[3]}".replace("_x", "zx")
             continue
         m = re.match(r"\[(\d+)\] (\w+): (.*) => (.*)", ln)
         if m:
@@ -1193,11 +1347,14 @@ def certify_file(path, timeout):
 
     def one(item):
         c, frm = item
-        tgt = goal if c == "GOAL" else (lemma_of(c)[0] if lemma_of(c) else None)
-        if tgt is None:
+        tgts = [goal] if c == "GOAL" else lemma_of(c)[:1] if not c.startswith("simtri") else [lemma_of(c)[0], lemma_of(c)[2]]
+        if not tgts:
             return {"concl": c, "skip": True}
+        rs = [one_t(c, frm, t) for t in tgts]
+        return next((r for r in rs if not r["proved"]), rs[0])
+
+    def one_t(c, frm, tgt):
         lem = sorted({x for i in frm for x in lemma_of(rows[i]["concl"]) if rows[i]["tag"] != "given" and x != tgt})
-        ptn = sorted(set(re.findall(r"\b[a-z_][a-z0-9_]*\b", d0)))
         with tempfile.NamedTemporaryFile("w", suffix=".json") as f:
             json.dump({"pts": [], "lem": lem, "trace": False, "proof": None}, f)
             f.flush()
