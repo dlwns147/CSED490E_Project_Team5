@@ -27,6 +27,8 @@ Side work may use the Slurm server's GPUs: a model server and client commands ru
 
 ## Log
 
+**2026-11-06 16:4x UTC: a correction, after reading the prior work properly.** 27 of IMO-AG-30 is not state of the art: AG2 and TongGeometry report 30, HAGeo 28, and random points in HAGeo's engine 25. So that count says little about the greedy. HAGeo-409 (409 problems, public) is the benchmark to report on next. What may be new is the independent checker and the end-to-end pipeline with an open model. The agreement check has a precedent (Li et al., 2410.20936). See `docs/notes/RELATED_WORK.md`.
+
 **2026-11-06 15:0x UTC: the independent checker passes 150 of 151 proofs and rejects the false one. Certified: 27 of IMO-AG-30, 17 of 65 held out (13 with no human).**
 - **The control worked:** the false IMO 2011 P6 proof fails on exact arithmetic. Its combination proves two lines perpendicular, and the proof uses them as parallel. The figure could not show this, because a point nearly coincided with another.
 - **Four other proofs failed first on a fault in the checker,** which is fixed: it looked up a chord premise under the wrong name.

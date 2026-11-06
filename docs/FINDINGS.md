@@ -5779,3 +5779,8 @@ Same dev set, no thinking, two repairs, worked examples leaving out the problem 
 - **Wrong passes read:** a script that solved the problem itself and wrote `eq(n, 13)`; a form helper used where the problem did not ask for one; a sign in `surd2`; a problem whose diagram holds a fact. Scripts with no points are now rejected: they have no figure to check.
 
 **Next:** seeds 1–3 with the same language (job 1340209), to measure agreement between scripts on dev. Then the registered held-out test, AIME 1983–2023 by the same keywords (334 problems).
+
+
+## 2026-11-06 16:4x UTC: correction to COMP-FIG's related work
+
+The entries above say no related work uses invariance as a check on an answer. That is wrong in substance: SatLM (2305.09656) has the model write a declarative specification and abstains when the solver reports UNSAT or AMBIG. COMP-FIG's none / multi statuses are the numerical version of this for geometry. The claim to test is therefore whether this beats program-aided baselines in selective prediction on contest geometry, not that the check is new. Details: `docs/notes/RELATED_WORK.md`.

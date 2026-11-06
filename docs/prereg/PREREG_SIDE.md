@@ -1035,3 +1035,5 @@ Note to SIDE-GT-LUBY's "Why": the proved rows of SIDE-GT-SQ have median 4.5 s, m
 | Held out, end to end, no human (corroborated by SIDE-GT-AGREE) | **13 of 65** | withdrawn 8 |
 
 Comparison: HAGeo reports 28 of IMO-AG-30 (2512.00097). Its code is not public, and we do not know how its proofs treat configurations, so this is not a like-for-like comparison. Each of our numbers depends on the checker's trust base: about 20 classical lemmas, the construction facts from Newclid's language, and non-degeneracy, none of which it proves.
+
+Correction to the comparison in SIDE-GT-CHECK's results (2026-11-06 16:4x UTC): naming only HAGeo was too narrow. On IMO-AG-30, AG2 and TongGeometry report 30, HAGeo 28, Wu with AG1 27, and random points in HAGeo's engine 25. HAGeo-409 is the harder public benchmark. Details: `docs/notes/RELATED_WORK.md`.

@@ -47,7 +47,7 @@ New types are welcome after a related-work check.
 | Instructions (IFEval, IFBench) | A model-written, executed checker gating thinking beats both modes in 4 of 6 cells (+1.1 to +2.5), at 1.0–2.6× the tokens: a gain, not a saving (IF-1). |
 | Short-answer math (MATH-500, AIME) | Text with thinking is best. A program is a second opinion: when text and program agree, 0.3–0.9% are wrong. |
 | Lean proofs (miniF2F) | A specialised 8B prover proves the most (Goedel-Prover-V2-8B, 180 of 244). Facts and repair from compiler errors do not help. |
-| Geometry proofs (side project, SIDE-GT) | The model translates the statement into a formal construction language, and a CPU engine (Newclid's DDAR) proves it. Agreement between independent translations certifies faithfulness without reading them: no unfaithful translation passed, and 98% of faithful ones did (SIDE-GT-AGREE). Newclid derives false facts (10 of 54 recorded proofs that reran), and a numerical guard on every derived fact removes them (SIDE-GT-SOUND). A closure engine proves what a single auxiliary point cannot, and an independent checker with exact arithmetic certifies its proofs (SIDE-GT-CLOSE, -SQ, -CHECK): **27 of IMO-AG-30, and 17 of 65 held-out problems end to end (13 with no human reading)**. The checker rejects the one false proof the engine produced. 90% of proofs read a configuration from the figure, so they hold for that configuration. Details: `side/README.md`. |
+| Geometry proofs (side project, SIDE-GT) | The model translates the statement into a formal construction language, and a CPU engine (Newclid's DDAR) proves it. Agreement between independent translations certifies faithfulness without reading them: no unfaithful translation passed, and 98% of faithful ones did (SIDE-GT-AGREE). Newclid derives false facts (10 of 54 recorded proofs that reran), and a numerical guard on every derived fact removes them (SIDE-GT-SOUND). A closure engine proves what a single auxiliary point cannot, and an independent checker with exact arithmetic certifies its proofs (SIDE-GT-CLOSE, -SQ, -CHECK): **27 of IMO-AG-30, and 17 of 65 held-out problems end to end (13 with no human reading)**. For comparison on IMO-AG-30: AG2 and TongGeometry 30, HAGeo 28, Wu with AG1 27, and random auxiliary points 25 in HAGeo's engine. So the count is not the contribution. The candidates are the independent checker, which rejects the one false proof the engine produced, and the end-to-end pipeline from the statement with an open model. 90% of proofs read a configuration from the figure, as AG2's diagram checks do. Details: `side/README.md`. |
 | Constructions (side project, SIDE-MC) | Unsolved for an 8B model. A thinking answer and a thinking program solve different instances (23% and 18% alone, 33% together). The model's own checker rejects 28% of right objects, so it cannot pick between them. |
 
 **Did not work** (do not retry without a new idea):
@@ -94,6 +94,11 @@ OptMATH is partly broken: its statements omit what its gold answers need.
 7. **Git:** commit and push after each change. The repository is public: no keys, server addresses or raw outputs (`*.jsonl`,
    logs), and no co-author lines.
 8. **Write for a first-time reader:** what ran, the result with its cost, and what is next.
+9. **Work as if this were an ML paper, though it is a class project** (user, 11-06).
+   - **Before building a method,** read the closest prior work in full, not search snippets, and record in `docs/notes/RELATED_WORK.md` what it did, its numbers, and what differs from ours.
+   - **Compare with the state of the art on standard benchmarks,** with the conditions stated, not with the most convenient number. Run the published baselines on the same data where possible.
+   - **Claim novelty only after naming the nearest prior work.** "No paper found" must say what was searched, and it never means new.
+   - **State each result's contribution** as a reviewer would judge it: what is new, what is known, and what would make it publishable or not.
 
 ## 5. Status and next steps (2026-11-06)
 

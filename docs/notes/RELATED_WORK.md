@@ -198,3 +198,34 @@ reference; LC-1 asks whether their contest boundary is contest code or that set.
   (Qwen3 thinks −3 to −6 points with none or one right, +1 to +2 with all three). Min et al. (2202.12837) found wrong labels in
   demonstrations barely matter for classification; in SQL generation the example's structure (join path, output columns) is copied,
   so a wrong one costs. What is ours: the same fact given to thinking, tokens counted, and the link to the check's leak.
+
+
+## Related-work check 2026-11-06 16:4x UTC: geometry proofs and COMP-FIG, read as a reviewer would (user: treat this as an ML paper)
+
+**Proofs: IMO-AG-30 (solved of 30).**
+
+| System | Solved | Conditions |
+|---|---|---|
+| AG2 full (2502.03544, Table 4) | 30 | language model, many search trees; 42 of IMO-AG-50 |
+| TongGeometry full (2412.10673) | 30 | guided tree search with learned models |
+| HAGeo (2512.00097) | 28 | no language model, heuristic points, K up to 8192, 60 s per DDAR run, 64 cores; proofs checked by hand by an IMO gold medalist |
+| Wu + AG1 (2404.06405) | 27 | ensemble, reference translations in JGEX where possible |
+| AG1 (Nature 2024) | 25 | 24 after correcting a fallacious IMO 2020 P1 proof, per HAGeo's appendix |
+| Random points in HAGeo's engine | 25 | HAGeo's own baseline |
+| Wu with AG1 DDAR (2404.06405) | 21 | fully symbolic |
+| AG2 DDAR alone / AG1 DDAR alone | 15 / 14 | no auxiliary points |
+| **Ours, closure with greedy points** | **27** | no language model, 1,800 s per row, checker plus 8 of 8 fresh figures |
+
+- **What this means for us.** IMO-AG-30 is saturated, and random points already reach 25 in a good engine, so 27 is no claim about the greedy. **HAGeo-409** (409 problems with difficulty scores, natural language, AlphaGeometry and HAGeo statements; public) is the benchmark to report: HAGeo gets 287 at K = 8192. HAGeo's code is still not public (README and figures only, checked today).
+- **Soundness is a known problem.** Newclid (2411.11938) shows AG1's IMO 2009 P2 proof depends on a random choice. HAGeo finds AG1's IMO 2020 P1 proof fallacious and relies on a human medalist. Euclean (2607.19374, Appendix E) lists orientation read from numerical diagrams and a rule false in general. AG2 writes its diagram checks (`sameclock`, `noverlap`, `lessthan`) into proofs. So our 90% of proofs reading a configuration is the field's normal position, not a special weakness.
+- **Independent checker: candidate contribution.** One extended search found no established certificate checker for AG-style proofs. The GeoForge prototype says it is not an independent certificate. The other route is formal: Euclean, LeanEuclid and LeanGeo work in Lean, with far lower proof rates (Euclean reports 13.6–15.1% on its formalized set). One search does not establish that nothing exists.
+- **Translation.** NL2AGBench (2608.28481): 48 problems, executable rate only, no faithfulness check, no proofs; Qwen3-235B reaches 45.8% with 54 examples, and models of 8B and below stay near 0–8%. HAGeo: about 50% of statements can be written as a construction, and under 20% convert automatically; this matches our 130 of 260 unexpressible and is the reason for SIDE-GT-DECL. Euclean: Lean, 48.89% top-1 by human reading. **End-to-end with proofs and a label-free faithfulness check, from an open model, is a candidate contribution**, measured on our 65 so far.
+- **SIDE-GT-AGREE has a precedent.** Li et al. (2410.20936, NeurIPS 2024) select among k autoformalizations by logical equivalence with automated provers. Ours replaces the prover with numerical agreement on figures, in a domain where such provers do not apply. The idea of agreement among candidates is theirs.
+
+**COMP-FIG.**
+
+- **SatLM (2305.09656, NeurIPS 2023) has the same check in logic.** The model writes a declarative specification, and a SAT solver returns UNSAT (no solution) or AMBIG (several solutions), so it can abstain, which it reports as selective prediction beating program-aided models. It leaves re-prompting on these signals as an idea. **Our none / multi statuses are the continuous, numerical version of UNSAT / AMBIG. I wrote earlier that no paper uses this check: that was wrong in substance.** What differs: real-valued geometry with no exact solver, so least squares from random starts stands in for the solver; repair on the signals; and the test is contest geometry.
+- **He-Yueya et al. (2304.09102, NeurIPS 2023 workshop):** declarative word-problem formalization with a symbolic solver beats PAL by 20 points on a harder algebra set. Same idea for algebra.
+- **Geometry with solvers:** GeoS (2015) and Inter-GPS (2105.04165) solve diagram problems by parsing into formal language, with accuracy 67% on GEOS for Inter-GPS, using rule and theorem search, not free LLM translation. MagicGeo (2502.13855) goes from text to a formal language and a solver to draw diagrams, not to answer. VeriGeo (2606.14176) uses random-start numerical solving to verify generated questions. PyGeoX (2606.09278) trains on solver residuals. VCSearch (2406.05055) has the model draft variables and constraints for an SMT solver.
+- **Search scope for the rest:** three searches on numerical figures plus answer invariance as a check on contest problems found no match. This is weak evidence, and the new element would be narrow: the numerical analogue of AMBIG, on geometry.
+- **A reviewer's questions for COMP-FIG:** does it beat program-aided models (PAL / PoT, our `prog` arm) in selective prediction, at each coverage? Does it beat a coordinate-bashing program that also runs on random figures? Report a precision–coverage curve, not one operating point.
