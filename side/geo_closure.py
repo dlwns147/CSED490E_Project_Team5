@@ -68,47 +68,127 @@ class Lin:
         return True
 
 
-class LinZ(Lin):
-    """The angle span over the integers (GT_STRICT): directed angles live modulo pi, where 2a = 2b does not give a = b. Elimination only on a
-    coefficient of 1 or -1, in exact integers, so the quotient stays free and the random values test membership in the integer span. A relation
-    with a common factor says only that a multiple vanishes, and it is not added; nor is one with no unit coefficient (counted in dropped)."""
+class ZSpan:
+    """The angle relations as an exact integer lattice (GT_STRICT): directed angles live modulo pi, where 2a = 2b does not give a = b, so a chase may
+    only use integer combinations. Variables are eliminated on a coefficient of 1 or -1; what is left (multiples like 2(a - b) = 0) stays in an
+    integer echelon form, so a member is exactly an integer combination of the relations added. With track, each answer carries that combination."""
 
-    def __init__(self, seed=0):
-        super().__init__(seed)
-        self.dropped = 0
+    def __init__(self, track=False):
+        self.expr, self.users, self.ech, self.track, self.prov = {}, {}, {}, track, {}
 
-    def add(self, rel):
-        if not sum(c * self.val[v] for v, c in rel) % P:
-            return False
-        e = {}
+    def _reduce(self, rel):
+        e, pr = {}, {}
         for v, c in rel:
-            for f, q in self.expr[v].items():
+            for f, q in self.expr.get(v, {v: 1}).items():
                 e[f] = e.get(f, 0) + c * q
-        e = {f: q for f, q in e.items() if q}
-        if not e:
+            if self.track:
+                for j, q in self.prov.get(v, {}).items():
+                    pr[j] = pr.get(j, 0) + c * q
+        return {f: q for f, q in e.items() if q}, pr
+
+    def _echelon(self, e, pr):
+        """reduce by the echelon form as far as it goes -> what is left, its combination"""
+        out = {}
+        while e:
+            k = max(e)
+            row = self.ech.get(k)
+            if row is None or e[k] % row[0][k]:
+                out[k] = e.pop(k)
+                continue
+            m = e[k] // row[0][k]
+            for f, q in row[0].items():
+                n = e.get(f, 0) - m * q
+                if n:
+                    e[f] = n
+                else:
+                    e.pop(f, None)
+            if self.track:
+                for j, q in row[1].items():
+                    pr[j] = pr.get(j, 0) + m * q
+        return out, pr
+
+    def comb(self, rel):
+        """the integer combination of added relations that gives rel, or None if it is not a member"""
+        e, pr = self._reduce(rel)
+        e, pr = self._echelon(e, pr)
+        return None if e else pr
+
+    def member(self, rel):
+        return self.comb(rel) is not None
+
+    def _insert(self, e, pr):
+        """e into the echelon form, by Euclid on the leading variable. -> changed"""
+        new = False
+        while e:
+            k = max(e)
+            row = self.ech.get(k)
+            if row is None:
+                self.ech[k] = (e, pr)
+                return True
+            a, b = row[0][k], e[k]
+            if not b % a:
+                m = b // a
+                e = {f: e.get(f, 0) - m * row[0].get(f, 0) for f in set(e) | set(row[0])}
+                pr = {j: pr.get(j, 0) - m * row[1].get(j, 0) for j in set(pr) | set(row[1])}
+                e = {f: q for f, q in e.items() if q}
+                continue
+            new = True
+            m = a // b      # the pivot row becomes the remainder, and the two swap
+            ne = {f: row[0].get(f, 0) - m * e.get(f, 0) for f in set(e) | set(row[0])}
+            np_ = {j: row[1].get(j, 0) - m * pr.get(j, 0) for j in set(pr) | set(row[1])}
+            self.ech[k] = (e, pr)
+            e, pr = {f: q for f, q in ne.items() if q}, np_
+        return new
+
+    def add(self, rel, j=None):
+        """-> True if the lattice grew"""
+        e, pr = self._reduce(rel)
+        pr = {i: -q for i, q in pr.items()}     # e = rel - (the combination so far)
+        if self.track:
+            pr[j] = pr.get(j, 0) + 1
+        out, red = self._echelon(dict(e), {i: -q for i, q in pr.items()})
+        red = {i: -q for i, q in red.items()}
+        if not out:
             return False
+        e, pr = out, red
         units = [f for f, q in e.items() if abs(q) == 1]
         if not units or math.gcd(*e.values()) > 1:
-            self.dropped += 1
-            return False
-        w = min(units, key=lambda f: len(self.users[f]))
+            return self._insert(e, pr)
+        w = min(units, key=lambda f: len(self.users.get(f, ())))
         s = e.pop(w)
-        sol = {f: -s * q for f, q in e.items()}   # w = sum(q * f)
-        d = (sum(q * self.rv[f] for f, q in sol.items()) - self.rv[w]) % P
-        for v in self.users.pop(w):
-            ex = self.expr[v]
+        sol = {f: -s * q for f, q in e.items()}     # w = sum(q * f)
+        us = self.users.pop(w, set()) | {w}
+        for v in us:
+            ex = self.expr.get(v) or {v: 1}
+            self.expr[v] = ex
             cv = ex.pop(w)
             for f, q in sol.items():
                 n = ex.get(f, 0) + cv * q
                 if n:
                     ex[f] = n
-                    self.users[f].add(v)
+                    self.users.setdefault(f, set()).add(v)
                 else:
                     ex.pop(f, None)
-                    self.users[f].discard(v)
-            self.val[v] = (self.val[v] + cv * d) % P
-        del self.rv[w]
-        self.rank += 1
+                    self.users.get(f, set()).discard(v)
+            if self.track:
+                d = self.prov.setdefault(v, {})
+                for i, q in pr.items():
+                    d[i] = d.get(i, 0) + cv * s * q
+        if any(w in r[0] for r in self.ech.values()):       # the echelon form is rewritten without w
+            rows, self.ech = list(self.ech.values()), {}
+            for r, rp in rows:
+                x, y = {}, dict(rp)
+                for f, q in r.items():
+                    if f == w:
+                        for g, h in sol.items():
+                            x[g] = x.get(g, 0) + q * h
+                        if self.track:
+                            for i, h in pr.items():
+                                y[i] = y.get(i, 0) - q * s * h
+                    else:
+                        x[f] = x.get(f, 0) + q
+                x = {f: q for f, q in x.items() if q}
+                self._insert(x, y)
         return True
 
 
@@ -119,7 +199,9 @@ class Closure:
         self.ix = {a: i for i, a in enumerate(self.names)}
         self.xy = np.array(xy, float)
         self.deadline = deadline
-        self.D, self.W = (LinZ if os.environ.get("GT_STRICT") else Lin)(seed), Lin(seed + 1)
+        self.D, self.W = Lin(seed), Lin(seed + 1)
+        self.Z = ZSpan() if os.environ.get("GT_STRICT") else None
+        self.zver, self.zseen, self.zfail = 0, set(), {}
         n = self.n
         self.u = [[0] * n for _ in range(n)]
         self.w = [[0] * n for _ in range(n)]
@@ -137,14 +219,41 @@ class Closure:
 
     def da(self, rel, tag, prem, concl):
         """an angle relation, with the rule, its premises and its conclusion (facts over point numbers), kept in the log if it was new"""
-        new = self.D.add(rel)
+        if self.Z is not None:
+            key = tuple(sorted(rel))
+            if key in self.zseen or not self.zok(prem):
+                return False
+            self.zseen.add(key)
+            new = self.D.add(rel)
+            znew = self.Z.add(rel)
+            self.zver += znew
+            new = new or znew
+        else:
+            new = self.D.add(rel)
         if new and self.log is not None:
             self.log.append(("D", rel, tag, prem, concl))
             if self.cur_group is not None:
                 self.group_rows.setdefault(self.cur_group, []).append(len(self.log) - 1)
         return new
 
+    def zok(self, prem):
+        """under GT_STRICT: every angle premise is an exact member of the integer lattice"""
+        if self.Z is None or not prem:
+            return True
+        if self.zfail.get(prem) == self.zver:
+            return False
+        for F in prem:
+            if F[0] in ("cyclic_group", "cyclic", "half"):
+                continue
+            sy, rel = lform(self, ("coll", F[1], F[2], F[3]) if F[0] == "midp" else F)
+            if sy == "D" and not self.Z.member(rel):
+                self.zfail[prem] = self.zver
+                return False
+        return True
+
     def wa(self, rel, tag, prem, concl):
+        if not self.zok(prem):
+            return False
         new = self.W.add(rel)
         if new and self.log is not None:
             self.log.append(("W", rel, tag, prem, concl))
@@ -390,7 +499,7 @@ class Closure:
         Dv, Wv = self.D.val, self.W.val
         u, w, L = self.u, self.w, self.L
         r0 = self.D.rank + self.W.rank
-        g0 = len(self.groups)
+        g0, z0 = len(self.groups), self.zver
 
         def d(a, b):
             return Dv[u[a][b]]
@@ -454,7 +563,7 @@ class Closure:
                     continue
                 a, b, p, s = q
                 for x, y, e, f in ((p, s, a, b), (b, s, a, p), (b, p, a, s)):
-                    if ang(x, e, f, y, e, f):
+                    if ang(x, e, f, y, e, f) and self.zok((("eqangle", x, e, x, f, y, e, y, f),)):
                         self.quad_done.add((cid, q))
                         self.new_group(set(q), None, "inscribed", (("eqangle", x, e, x, f, y, e, y, f),))
                         break
@@ -572,7 +681,7 @@ class Closure:
                     self.da([(u[m][k], 1), (u[a][b], -1)], "trapezoid", base + (("eqratio", m, a, m, e, k, b, k, c),), ("para", m, k, a, b))
                 elif d(m, k) == d(a, b):
                     self.wa([(w[m][a], 1), (w[m][e], -1), (w[k][b], -1), (w[k][c], 1)], "trapezoid", base + (("para", m, k, a, b),), ("eqratio", m, a, m, e, k, b, k, c))
-        return self.D.rank + self.W.rank != r0 or len(self.groups) != g0
+        return self.D.rank + self.W.rank != r0 or len(self.groups) != g0 or self.zver != z0
 
     def holds(self, name, *a):
         i = [self.ix[x] for x in a]
@@ -595,17 +704,26 @@ class Closure:
             return not (Wv[w[i[0]][i[1]]] - Wv[w[i[2]][i[3]]] - Wv[w[i[4]][i[5]]] + Wv[w[i[6]][i[7]]]) % P
         return False
 
+    def zgoal(self, goal):
+        if self.Z is None or goal[0] in ("cyclic", "cong", "eqratio", "circle", "eqratio6"):
+            return True
+        k, *a = goal
+        i = [self.ix[x] for x in a]
+        if k in ("coll", "collx"):
+            return all(self.Z.member(lform(self, ("coll", i[0], i[1], c))[1]) for c in i[2:])
+        return self.Z.member(lform(self, ("coll", i[0], i[1], i[2]) if k == "midp" else ("eqangle" if k == "eqangle6" else k, *i))[1])
+
     def run(self, goal=None):
         """-> goal fell, rounds"""
         k = 0
         while True:
-            if goal and self.holds(*goal):
+            if goal and self.holds(*goal) and self.zgoal(goal):
                 return True, k
             if self.deadline and time.time() > self.deadline:
                 return False, k
             k += 1
             if not self.round():
-                return bool(goal and self.holds(*goal)), k
+                return bool(goal and self.holds(*goal) and self.zgoal(goal)), k
 
 
 def numeric_cand(c, P_):
@@ -763,7 +881,26 @@ def explain(e, goal):
             for j, q in pr.items():
                 prov[j] = (prov.get(j, 0) - c * q) % P
         return v, prov
+    zans = {}
+    if e.Z is not None:     # the exact integer combination behind every angle premise, by replaying the log
+        Z = ZSpan(track=True)
+
+        def zq(F, t):
+            forms = [lform(e, ("coll", F[1], F[2], F[3]))] if F[0] == "midp" else [] if F[0] in ("cyclic_group", "cyclic", "half") else [lform(e, F)]
+            for sy, rel in forms:
+                if sy == "D":
+                    zans[(t, tuple(sorted(rel)))] = Z.comb(rel)
+        gF = ("coll", e.ix[goal[1]], e.ix[goal[2]], e.ix[goal[3]]) if goal[0] in ("coll", "midp") else None if goal[0] == "cyclic" else ("eqangle" if goal[0] == "eqangle6" else goal[0], *[e.ix[x] for x in goal[1:]])
+        for t, (sy, rel, _tag, prem, _c) in enumerate(e.log):
+            for F in prem:
+                zq(F, t)
+            if sy == "D":
+                Z.add(rel, t)
+        if gF is not None:
+            zq(gF, len(e.log))
     for t, (sy, rel, *_x) in enumerate(e.log):
+        if e.Z is not None and sy == "D":
+            continue
         v = {}
         for k, c in rel:
             v[k] = v.get(k, 0) + c
@@ -796,10 +933,16 @@ def explain(e, goal):
             v = {}
             for j, c in rel:
                 v[j] = v.get(j, 0) + c
-            r, prov = reduce(sy, v, t)
-            if r:
-                raise RuntimeError(f"not in the span: {F} at {t}")
-            rows = {j: (-q) % P for j, q in prov.items() if q}
+            if e.Z is not None and sy == "D":
+                pr_ = zans.get((t, tuple(sorted(rel))))
+                if pr_ is None:
+                    raise RuntimeError(f"not in the lattice: {F} at {t}")
+                rows = {j: q % P for j, q in pr_.items() if q}
+            else:
+                r, prov = reduce(sy, v, t)
+                if r:
+                    raise RuntimeError(f"not in the span: {F} at {t}")
+                rows = {j: (-q) % P for j, q in prov.items() if q}
             chases.append((F, t, ctx, rows))
             for j in rows:
                 add(j)
@@ -936,7 +1079,7 @@ def one(row, k, timeout, proofs, fresh=8):
     tags = {}
     for j in rows:
         tags[e.log[j][2]] = tags.get(e.log[j][2], 0) + 1
-    out.update(points=needed, steps=len(rows), chases=len(chases), fractional_chases=denom, fractional_angle=denom_a, dropped=getattr(e.D, "dropped", None), rules=tags)
+    out.update(points=needed, steps=len(rows), chases=len(chases), fractional_chases=denom, fractional_angle=denom_a, torsion=len(e.Z.ech) if e.Z is not None else None, rules=tags)
     # each step's conclusion and premises on fresh figures of the translation, with the points it needs
     facts = [e.log[j][4] for j in rows] + [F for j in rows for F in e.log[j][3] if F[0] not in ("tdiff", "cyclic_group")]
     held, tried = 0, 0
