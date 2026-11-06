@@ -1,8 +1,8 @@
 """COMP-FIG: a geometry problem as a figure the model only describes. The model writes a short script of points, unknowns and conditions; least squares finds figures
 from random starts, and the script's answer is read on each. A determined problem has one answer on every figure, so an answer that changes between figures, or a
 statement with no figure, is a free check on the translation. The model computes nothing and picks no coordinates.
-  python poc/figlib.py <script.py> [--budget S] [--starts N] [--keep K]   -> one JSON line: status (err / none / inv / multi), values [[value, figures]], figures, starts, msg, sec
-Status: inv = every figure kept gives one answer; multi = at least two; none = no figure satisfies the conditions; err = the script failed.
+  python poc/figlib.py <script.py> [--budget S] [--starts N] [--keep K]   -> one JSON line: status (err / none / inv / multi / const), values [[value, figures]], figures, starts, msg, sec
+Status: inv = every figure kept gives one answer; multi = at least two; none = no figure satisfies the conditions; const = the answer does not depend on the figure; err = the script failed.
 The script runs once per evaluation on plain floats and numpy vectors, so ordinary arithmetic and loops are allowed. Runs in a subprocess with limits from run_fig.py."""
 import ast, itertools, json, math, sys, time
 from fractions import Fraction
@@ -125,6 +125,10 @@ def lib(c):
         return dist(a, b) * dist(b, c_) * dist(c_, a) / max(4 * area(a, b, c_), 1e-300)
 
     def eq(a, b):
+        if np.ndim(a) or np.ndim(b):  # two points, or a point and its coordinates
+            for x, y in zip(np.asarray(a, dtype=float), np.asarray(b, dtype=float)):
+                eq(float(x), float(y))
+            return
         c.add(a - b, max(abs(a), abs(b)))
 
     def gt(a, b):
@@ -298,18 +302,26 @@ def solve(src, budget=40.0, starts=96, keep=16, seed=0):
     rng = np.random.default_rng(seed)
     last_err, kept, tried = None, [], 0
 
-    def fun(x):
+    def fun(x, sc):
         c = run(code, x)
         if c.i != n:
             raise ValueError("the number of unknowns changed")
-        return np.array(c.res + [0.0], dtype=float) / np.array(c.scale + [1.0], dtype=float)  # relative, so a determinant of size s^4 does not drown a length
+        return np.array(c.res + [0.0], dtype=float) / sc
+
+    def scales(x):
+        return np.array(run(code, x).scale + [1.0], dtype=float)
 
     while tried < starts and len(kept) < keep and time.time() - t0 < budget:
         s = math.exp(rng.uniform(0, math.log(max(big, 2.0))))
         x0 = rng.normal(0, s, n)
         tried += 1
         try:
-            sol = least_squares(fun, x0, method="trf", xtol=1e-14, ftol=1e-14, gtol=1e-14, max_nfev=120)
+            # relative residuals, so a determinant of size s^4 does not drown a length; the sizes are held fixed within a round, because a residual
+            # divided by its own moving size has a false minimum far away on the wrong side of a coordinate
+            xk = x0
+            for _ in range(3):
+                sol = least_squares(fun, xk, method="trf", xtol=1e-14, ftol=1e-14, gtol=1e-14, max_nfev=60, args=(scales(xk),))
+                xk = sol.x
             c = run(code, sol.x)
             r = np.abs(np.array(c.res, dtype=float)) / np.array(c.scale, dtype=float) if c.res else np.zeros(1)
             if not np.all(np.isfinite(sol.x)) or r.max(initial=0.0) > TOL:
@@ -340,6 +352,15 @@ def solve(src, budget=40.0, starts=96, keep=16, seed=0):
             groups.append([v, 1])
     groups.sort(key=lambda g: -g[1])
     st = "none" if not groups else "inv" if len(groups) == 1 else "multi"
+    if st == "inv":  # the same answer on every figure means nothing if the answer never reads the figure
+        seen = []
+        for _ in range(3):
+            try:
+                seen.append(float(run(code, rng.normal(0, big, n)).ans))
+            except Exception:
+                pass
+        if len(seen) == 3 and max(seen) - min(seen) <= AGREE * max(1.0, abs(seen[0])):
+            st = "const"
     return dict(status=st, values=groups[:6], figures=len(kept), starts=tried, msg=last_err or "", sec=round(time.time() - t0, 2))
 
 

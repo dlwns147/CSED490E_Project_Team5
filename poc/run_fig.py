@@ -48,7 +48,10 @@ Problem: {p}
 
 Give the script in one ```python block."""
 
-MSG = {"err": "The script failed: {msg}. Fix it. Use only the functions listed.",
+USE = """Exact use: points("A B") returns points; eq(x,y) takes two values or two points; foot(P,A,B), midpoint(A,B), intersection(A,B,C,D), reflect(P,A,B) RETURN a point (write D = foot(C,A,B) and do not list D in points()); volume takes 4 points; dist, angle, area and perimeter take points, not numbers. There is no solve() and no other function: state conditions and let the solver work."""
+MSG = {"err": "The script failed: {msg}. " + USE + " Give the whole script again.",
+       "const": "Your answer does not read the figure: it stays the same on any points at all. answer() must use dist, angle, area and so on of the points you declared. If the problem is not a figure with a number to read off, reply with only the word UNEXPRESSIBLE.",
+       "nonint": "The value {values} is not an integer, and this contest's answers are integers from 0 to 999. So the value is right only if the problem asks for a form of it: use frac, surd or surd2 as the statement says, and answer the number it asks for. If the value itself looks wrong, compare the conditions with the statement.",
        "none": "No figure satisfies these conditions: the solver tried {starts} random starts. A condition is wrong, or two conflict. Compare each one with the statement and fix the script.",
        "multi": "The conditions allow different answers: {values}. So a condition is missing, or an order or side is not stated. Compare with the statement and add what is missing, without solving the problem."}
 SOLVERS = threading.Semaphore(int(os.environ.get("FIG_SOLVERS", 4)))
@@ -135,6 +138,8 @@ def main():
                 trace.append(dict(status=res["status"], tail=text[-200:]))
                 break
             res = solve(code, budget)
+            if res["status"] == "inv" and p["src"].startswith("aime") and not (abs(res["values"][0][0] - round(res["values"][0][0])) < 1e-6 and 0 <= round(res["values"][0][0]) <= 999):
+                res["status"] = "nonint"  # the contest's own rule, a free check; not an answer
             trace.append(dict(code=code, **res))
             if res["status"] == "inv" or t == repair:
                 break
