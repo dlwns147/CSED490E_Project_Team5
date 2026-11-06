@@ -1017,3 +1017,34 @@ quick turn as the candidate in the per-turn choice, valued in advance by the com
 - **Not registered, for the record:** added as a fourth candidate instead of replacing N, the same calculation gives +4.8 points. I saw this number before thinking about that design, so it decides nothing here.
 - **Raw rollouts.** Forced termination falls from 545 to 192 of 1,800 runs, and empty turns rise from 114 to 219: it learned to stop, and it abstains somewhat more. On `multi_turn_base_113` it looks up the stock symbol before adding it to the watchlist, where base N skips the lookup and the state ends wrong, which is the environment habit we hoped for. It sometimes repeats a lookup three times within a step.
 
+
+## Addendum MT-FC: is our baseline the benchmark's baseline? (written 2026-11-06 22:5x UTC, before any native-form row; item file and loop mode only)
+
+**Why.** Reading the agent-loop claim as a reviewer (rule 9), I read EnvACE (2608.06197, Table 1 and Table 3) in full. It runs the same base model on the same benchmark with public weights, under BFCL's "official protocol":
+
+| Model (BFCL v4 multi-turn, mean of four categories, Avg@4) | Published |
+|---|---|
+| Qwen3-8B | 42.09 |
+| Arctic-AWM-8B | 42.81 |
+| EnvACE-8B (base 47.5, miss func 45.5, miss param 35.0, long context 39.5 in its own Table 3 run) | 45.29 |
+| AWM-14B | 49.06 |
+| EnvScaler-8B | 52.25 |
+
+Ours on three of those categories: Qwen3-8B thinking at every step 30.8 (base 37.3, miss param 24.2, miss func 31.0); MT-SO 48.8 (54.8, 39.8, 51.7). So the same model at the same setting sits about 11 points lower here, and a trained 8B model is published above our method. **Our statement "an open 8B model above published training-only results" is therefore unproven and possibly false, and "+18 over thinking" may be measured against a baseline weakened by our prompt format.** Surprising numbers are bugs until shown otherwise (rule 5).
+
+**What differs.** We use BFCL's *prompt* mode: its default system prompt, function docs as text, calls as Python syntax, reasoning dropped from the context between steps, temperature 0.7. Those checkpoints were trained on the *native* form: tools in the chat template, calls as `<tool_call>` JSON (their cards: "drop into any standard Qwen3 tool-calling client"). BFCL's own local handler for Qwen3 (`QwenFCHandler`) keeps the reasoning of the current request's earlier steps in the context.
+
+**Run.** `poc/prep_mt.py --fc` writes `mt_fc_items.jsonl`: all four categories (800 items), no default system prompt, functions as OpenAI tools through BFCL's `convert_to_tool`, holdout turns with BFCL's user message as its local handlers do. `poc/run_mt.py` with `MT_FC=1`: tools through the chat template, decoded as `QwenFCHandler`, reasoning kept as the template keeps it, 20-step limit, thinking cap 8,192, temperature 0.6 and top-p 0.95 (EnvACE's stated setting; top_k not set). Graded by BFCL's checker with the same `poc/grade_mt.py`. These change three things at once on purpose: this tests whether the official form reproduces the published number, and only if it does is there a reason to separate them. Lanes: T and N on Qwen3-8B; T on EnvScaler-Qwen3-8B, EnvACE-Qwen3-8B, Arctic-AWM-8B, all from public weights, on two RTX 3090s, seed 1 first. An overflow at 32,768 counts as a failure, as in BFCL.
+
+**Predictions (seed 1; 95% intervals over items; "mean of four" as the papers report it).**
+
+- **MT-FC-P1:** Qwen3-8B T, mean of four = 40 (range 36 to 46; published 42.09).
+- **MT-FC-P2 (decision):** on our 600 items, Qwen3-8B T in native form minus T in prompt mode (seed 1, paired): lower bound > 0.
+- **MT-FC-P3:** published checkpoints, mean of four: EnvScaler-8B 50 (46 to 55), EnvACE-8B 45 (41 to 49), AWM-8B 43 (39 to 47). A checkpoint below its range would mean our loop differs from theirs in a way I have not found.
+- **MT-FC-P4 (reported):** Qwen3-8B N in native form against N in prompt mode (16.7), because N is one of MT-SO's three candidates.
+
+**Decision.**
+
+1. P2 holds: the prompt format was weakening our baseline. "+18 over thinking" is withdrawn as the method's gain, and the main claim is restated against the best form of the base model and the best public checkpoint on the same items. Next, per-turn selection is rerun in native form, since candidates from a stronger form change the compounding prediction (registered after the per-turn numbers exist, before any online row).
+2. P2 fails: the format is not the reason. Then long context and their seed count are read first, and BFCL's own CLI path (`bfcl generate`) settles whether the published number reproduces at all.
+3. Either way, if the best public checkpoint's interval on the 600 items lies above MT-SO's 48.8, then our method is not the best open 8B result, and the claim says so.
