@@ -1496,6 +1496,58 @@ def certify_file(path, timeout):
     return [one(x) for x in merged.items()]
 
 
+def recon(c):
+    """a coefficient mod P as a fraction, by rational reconstruction; the checker tests it exactly"""
+    r0, r1, t0, t1 = P, c % P, 0, 1
+    while r1 * r1 * 2 > P:
+        q = r0 // r1
+        r0, r1, t0, t1 = r1, r0 - q * r1, t1, t0 - q * t1
+    return f"{-r1}/{-t1}" if t1 < 0 else f"{r1}/{t1}"
+
+
+def cert_file(path, out):
+    """a proof file -> a certificate for geo_check.py: the closure is rerun on the proof's points, and every row carries its relation by variable names"""
+    L = open(path).read().split("\n")
+    dsl = L[0]
+    n, x, f, g = figure(dsl)
+    N, X, F = list(n), [tuple(q) for q in x], [q[:-1] if q[-1] == "_" else q for q in f]
+    defs = []
+    for ln in L[1:]:
+        if not ln.startswith("_x"):
+            break
+        nm, c = ln.split(" = ", 1)
+        q = numeric_cand(c, dict(zip(N, X)))
+        N.append(nm)
+        X.append(tuple(q[0]))
+        F += [tuple(nm if v == "_x" else v for v in h) for h in q[1]]
+        defs.append((nm, c))
+    e = Closure(N, X, F, deadline=time.time() + 1800)
+    fell, _ = e.run(g[0])
+    if not fell:
+        raise RuntimeError("the goal does not fall on the proof's points")
+    rows, chases = explain(e, g[0])
+    keys = {}
+    for sy, lin in (("D", e.D), ("W", e.W)) + ((("Q", e.Q),) if e.Q is not None else ()):
+        for key, i in lin.idx.items():
+            keys[sy, i] = [key[0], *[e.names[v] for v in key[1:]]] if key[0] != "t" else ["t", key[1], e.names[key[2]]]
+    nm = lambda H: [H[0], *[e.names[v] if isinstance(v, (int, np.integer)) else v for v in H[1:]]]
+    gid = {j: g_ for g_, rs in e.group_rows.items() for j in rs}
+    Rows = []
+    for j in rows:
+        sy, rel, tag, prem, concl = e.log[j]
+        cn = nm(concl)
+        if concl[0] == "circle" and concl[1] is None:
+            cn = ["cyclic", *cn[2:]]
+        Rows.append({"j": j, "sys": sy, "rel": [[keys[sy, v], c] for v, c in rel], "tag": tag, "prem": [[H[0], H[1]] if H[0] == "cyclic_group" else ["tdiff", H[1]] if H[0] == "tdiff" else nm(H) for H in prem], "concl": cn, "gid": gid.get(j)})
+    Ch = []
+    for H, t, ctx, r in chases:
+        ent = {"fact": ["tdiff"] if H[0] == "tdiff" else nm(H), "ctx": ctx, "rows": {str(i): recon(c) for i, c in r.items()}}
+        if H[0] == "tdiff":
+            ent["form"] = [[keys["D", v], c] for v, c in lform(e, H)[1]]
+        Ch.append(ent)
+    json.dump({"dsl": dsl, "defs": defs, "goal": list(g[0]), "facts": [list(q) for q in F], "rows": Rows, "chases": Ch}, open(out, "w"))
+
+
 def certify():
     """certify <list.txt of proof files> <out.jsonl> [--timeout S] [--workers W]"""
     from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -1519,6 +1571,8 @@ def main():
     cmd = sys.argv[1]
     if cmd == "certify":
         return certify()
+    if cmd == "cert":
+        return cert_file(sys.argv[2], sys.argv[3])
     if cmd == "certify_one":
         arg_t = float(sys.argv[sys.argv.index("--timeout") + 1])
         print(json.dumps({"file": sys.argv[2], "steps": certify_file(sys.argv[2], arg_t)}))

@@ -971,3 +971,25 @@ Same rows and output. SAT-P1 and its decision stand, and the new proofs of the 8
 **Open, and not part of this test:** on all 8 timed-out rows the gain rises by round (for example 7, 10, 7, ..., 45 on IMO 2019 P2). Rank among new points grows on its own, so the score drifts away from the goal, which fails the diminishing returns the greedy's motivation assumed.
 
 **Hand checks, 2026-11-06 11:5x UTC, made after the text above and before reading the run (job 1337925).** With the circumcentre given, IMO 2008 P1b is proved at once, with no fractional coefficient and every step on 8 of 8 fresh figures. The proof is simpler than my derivation: no median identity, only midlines and six four-point identities. So SQ-P1's engine half is already seen; the test that remains is the greedy finding that point itself. With the two second intersections of the known solution given (A2 on AA1, B2 on BB1), IMO 2019 P2 is proved in one round. So its gap was the candidate language, not the rules.
+
+### Results of SIDE-GT-SAT and the step replay (2026-11-06 12:3x UTC)
+
+- **SAT-P1 holds, pending the check below:** 1 of the 8 (IMO 2020 P1), expected 2, range 0–4. Its points are the known solution's X and Y. A second "proof" (IMO 2011 P6) is false: every fresh figure rejects it.
+- **SAT-P2:** 18 of the 21, in range, but not at less CPU: the mean over all rows is 566 s against 105 s, because 18 rows run to the 1,800 s limit. On rows it proves it usually takes seconds. So greedy and pool are complementary, and it loses USAMO 2012 P5, CAMO 2020 P3 and ISL 2004 G8. "Replaces the random pool" stands only for what it proves; counts are the union of arms.
+- **SAT-P3 refuted:** the false proof above. **SAT-P4:** 18 of 21 holds, the mean under 105 s does not.
+- **CLOSE-P5 refuted by 0.2 points:** 490 of 614 steps reproduce (79.8%), and only 2 of the 21 proofs reproduce whole (Indonesia 2007 P7, IMO 2009 P2). Similar triangles fail 96 of 237. Failures are mostly Newclid stopping without the goal, not timeouts. By the registered rule, the other 19 are not certified until their failing steps are read.
+
+## SIDE-GT-CHECK: an independent checker instead of reading 124 failing steps (registered 2026-11-06 12:3x UTC)
+
+**Why.** Newclid's failure to reproduce a step says little, since it fails on steps I can verify by hand, and 124 steps cannot be read reliably. The rule's purpose is that an independent party confirms each step. So: `side/geo_check.py`, which imports nothing from the engine and uses exact fractions. It checks three things for every row: the relation is what the rule's conclusion says, including its constant (0 or π/2 for directions, multiples of log 2 for log lengths), which the engine drops; the premises and conclusion fit the rule's statement; each premise and the goal are exact combinations of earlier rows, integer for directions. A fact about an auxiliary point must be what its construction states.
+
+**What it does not check.** Non-degeneracy, the statement's own facts (they come from Newclid's construction language), and rules that read a configuration from the figure, which it counts per proof: similar triangles from sides, and side-angle-side, since a directed angle mod π does not fix an interior angle; Thales' converse; the trapezoid rule. Its trust base is about 20 classical lemmas stated in code that a reader can check.
+
+**Seen before registering:** three proofs pass (IMO 2018 P1, with one similar-from-sides step; IMO 2008 P1b; IMO 2019 P2, both with no configuration step). Mutating those certificates 800 times, all changes to coefficients, relations and constants are rejected; those that pass change only a tag or a dropped row on a circle's chord that nothing uses.
+
+**Predictions, on every proof of the strict, greedy and squares runs.**
+- **CHECK-P1 (decision):** at least 95% of proofs pass. A failure is read: if the proof step is wrong, the proof is withdrawn and the same fault searched for; if my checker lacks a form, that is fixed and reported.
+- **CHECK-P2:** the false IMO 2011 P6 proof is rejected or rests on a configuration step. If it passes clean, the checker's guarantee is weaker than stated, and this is the most important result of the run.
+- **CHECK-P3:** at most half of the proofs of the 27 problems use a configuration step.
+
+**Decision.** A proof counts as certified if it passes this checker and holds on 8 of 8 fresh figures; its configuration steps are reported with it. This replaces, for certification, the requirement that Newclid reproduce each step. The replay's numbers remain reported as they are.
