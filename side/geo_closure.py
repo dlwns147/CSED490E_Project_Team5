@@ -13,7 +13,7 @@ The engine finds proofs. Every relation it adds is logged with its rule and prem
 linear combination behind each premise, the points the proof needs, and each step's truth on fresh figures. Plain guarded Newclid is tried on the
 same points as a second, separate check.
   python side/geo_closure.py run <rows.jsonl> <out.jsonl> --k K [--timeout S] [--workers W] [--proofs DIR]
-K = 0: the translation alone; K > 0: K candidates (geo_translate.aux_candidates, seed 0) all at once; K < 0: SIDE-GT-SAT, -K candidates a round, keeping those that add a relation.
+K = 0: the translation alone; K > 0: K candidates (geo_translate.aux_candidates, seed 0) all at once; K < 0: SIDE-GT-SAT, -K candidates a round, the one that adds most relations becomes a point.
 GT_STRICT=1: angle chases in integers only (ZSpan)."""
 import itertools, json, math, os, random, subprocess, sys, time
 import numpy as np
@@ -1064,8 +1064,9 @@ def relations(e, m):
 
 
 def one_sat(row, budget, timeout, proofs, fresh=8):
-    """SIDE-GT-SAT: rounds of one-step candidates over the current points. A candidate is kept when it adds a relation among the current points; all kept
-    ones become points at once, and the closure is monotone, so that cannot lose a proof. -> a result row"""
+    """SIDE-GT-SAT: greedy on the relations a point adds. In a round, each of -k one-step candidates over the current points gets a closure with the current facts, and its gain is the
+    relations among the current points and it, less those of the two closures apart. The best becomes a point. Rank is submodular on linear relations, so this is the
+    greedy algorithm for a monotone submodular objective (Nemhauser, Wolsey, Fisher 1978) when the other rules add nothing. -> a result row"""
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import geo_translate as GT
     out = {"id": row["id"], "sample": row.get("sample", 0), "dsl": row["dsl"], "k": -budget, "proved": False}
@@ -1075,35 +1076,35 @@ def one_sat(row, budget, timeout, proofs, fresh=8):
     N, X, F = list(n), [tuple(q) for q in x], [q[:-1] if q[-1] == "_" else q for q in f]
     defs, kept_by_round, ok, tried = [], [], False, 0
     try:
-        for rnd in range(100):
+        for rnd in range(1000):
             e = Closure(N, X, F, deadline=end, log=False)
             ok, _ = e.run(g[0])
             if ok:
                 break
             r0 = relations(e, len(N))
-            keep = []
+            best, fell = None, False
             for c, _ in GT.aux_candidates(f"{' '.join(N)} = free ? {g[0][0]}", budget, seed=rnd):
                 q = numeric_cand(c, dict(zip(N, X)))
                 if q is None or not all(math.isfinite(v) and abs(v) < 1e4 for v in q[0]) or any(math.dist(q[0], v) < 1e-6 for v in X):
                     continue
-                if any(math.dist(q[0], k_[1]) < 1e-6 for k_ in keep):
-                    continue
                 tried += 1
+                alone = Closure(N + ["_x"], X + [tuple(q[0])], list(q[1]), deadline=end, log=False)
+                alone.run(None)
                 e2 = Closure(N + ["_x"], X + [tuple(q[0])], F + list(q[1]), deadline=end, log=False)
                 fell, _ = e2.run(g[0])
-                if fell or relations(e2, len(N)) > r0:
-                    keep.append((c, tuple(q[0]), q[1]))
-                    if fell:
-                        break
-            kept_by_round.append(len(keep))
-            if not keep:
+                gain = relations(e2, len(N) + 1) - r0 - relations(alone, len(N) + 1)
+                if fell or best is None or gain > best[0]:
+                    best = (gain, c, tuple(q[0]), q[1])
+                if fell:
+                    break
+            if best is None or (best[0] <= 0 and not fell):
                 break
-            for c, q, own in keep:
-                nm = f"_x{len(defs)}"
-                defs.append((nm, c))
-                N.append(nm)
-                X.append(q)
-                F += [tuple(nm if v == "_x" else v for v in h) for h in own]
+            kept_by_round.append(best[0])
+            nm = f"_x{len(defs)}"
+            defs.append((nm, best[1]))
+            N.append(nm)
+            X.append(best[2])
+            F += [tuple(nm if v == "_x" else v for v in h) for h in best[3]]
     except TimeoutError:
         pass
     out.update(kept=kept_by_round, tried=tried, sec=round(time.time() - t0, 2), timeout=time.time() > end)

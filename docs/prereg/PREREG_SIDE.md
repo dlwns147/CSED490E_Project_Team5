@@ -937,3 +937,11 @@ A correction to my own counts first. I reported 23 of 31 problems at K = 256. Fo
 - **SAT-P3:** every step on every fresh figure.
 
 **Decision.** SAT-P1 holds and the new proof certifies: saturation replaces the random pool, and the counts are restated. It fails: the remaining gap is not points. The unproved problems' known solutions are then read for what the engine lacks (rules, or inequalities and order), and that is the next step.
+
+**Change to SIDE-GT-SAT's design (2026-11-06 10:4x UTC, before any run on the 8 unproved problems; the predictions above stay, and one is added).** A smoke test on proved rows refuted the keep-if-it-adds rule. For IMO 2018 P1, none of 279 candidates adds a relation among the existing points alone, because its two needed points only help together. Counting relations that involve the new point instead, against the two closures apart (the statement's, and the candidate's own definition's), needed points have a gain above 0 in 83 of 110 cases and random candidates in 598 of 1,124. That is too many to keep them all, but a needed point's gain is often large (IMO 2000 P6: 54).
+
+New design: **greedy on gain.** In a round, each of 2,000 one-step candidates over the current points is scored by its gain, and the best one becomes a point, so later rounds can build on earlier points. Stop when the goal falls, no gain is above 0, or at 1,800 s. Why greedy: the rank of linear relations is submodular, so this is the greedy algorithm for a monotone submodular objective (Nemhauser, Wolsey, Fisher 1978), when the other rules add nothing. They do add, so this motivates the method and doesn't guarantee anything.
+
+What I saw before writing this, at a budget of 300 on 8 rows already proved at K = 256 (IMO 2018 P1, 2009 P2, 2012 P5, 2019 P6, 2015 P3, 2000 P6, ISL 2022_19, USAMO 2009 P5): all 8 are proved, by 1 to 10 points, in 2.5 to 82 s, with no fractional angle and every step on 8 of 8 fresh figures. IMO 2018 P1 takes 2.7 s with two reflections. That is above SAT-P2's range on its small sample, so I add **SAT-P4 (reported, made now):** at the full budget, at least 18 of the 21 are proved, at a mean under 105 s per translation.
+
+Same rows and output. SAT-P1 and its decision stand, and the new proofs of the 8 problems go to the step replay and to reading by hand before any count changes.
