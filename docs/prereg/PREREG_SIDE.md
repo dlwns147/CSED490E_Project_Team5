@@ -1037,3 +1037,14 @@ Note to SIDE-GT-LUBY's "Why": the proved rows of SIDE-GT-SQ have median 4.5 s, m
 Comparison: HAGeo reports 28 of IMO-AG-30 (2512.00097). Its code is not public, and we do not know how its proofs treat configurations, so this is not a like-for-like comparison. Each of our numbers depends on the checker's trust base: about 20 classical lemmas, the construction facts from Newclid's language, and non-degeneracy, none of which it proves.
 
 Correction to the comparison in SIDE-GT-CHECK's results (2026-11-06 16:4x UTC): naming only HAGeo was too narrow. On IMO-AG-30, AG2 and TongGeometry report 30, HAGeo 28, Wu with AG1 27, and random points in HAGeo's engine 25. HAGeo-409 is the harder public benchmark. Details: `docs/notes/RELATED_WORK.md`.
+
+### Results of SIDE-GT-LUBY (2026-11-06 17:0x UTC; job 1339457, `results/proof/sound3/gt_luby.jsonl`)
+
+59 rows, 47 proved, against 43 for SIDE-GT-SQ. All 47 pass the checker after one fix, and all hold on 8 of 8 fresh figures.
+
+- **LUBY-P1 holds, at its low end:** it proves CAMO 2020 P3 on all 4 translations (390–1,088 s, up to 31 restarts) and loses none of the 22 problems. It does not prove USAMO 2012 P5, which only a random pool does. I expected both.
+- **LUBY-P2:** USAMO 2005 P3 and ISL 2012_22 stay unproved (predicted 1, range 0–2: in range, below the point). IMO 2008 P6, 2011 P6 and 2021 P3 stay unproved, as predicted.
+- **LUBY-P3 fails:** mean time on the 43 rows both prove is 65.0 s against 22.3 s, 2.9 times (limit 2). This run had 4 workers on another node against 8, so the ratio is rough.
+- **A checker fault, fixed:** three CAMO 2020 P3 proofs failed at a step uniting collinear triples, because my merge stopped before reaching a fixed point. Read by hand: the chain from the premises reaches the conclusion. All proof sets were rechecked with the fix, with no change in any other verdict.
+
+**Decision applied: restarts become the default search.** The counts do not change: USAMO 2012 P5 and CAMO 2020 P3 were already in the union, by random pools. What restarts add is that the same search finds CAMO 2020 P3 with no pool. This says little against prior work: HAGeo finds random points already strong at scale, so the comparison that matters is HAGeo-409.

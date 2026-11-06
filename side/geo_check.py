@@ -313,7 +313,10 @@ def check(c):
                     if F[0] != "para" or len({F[1], F[2], F[3], F[4]}) != 3 or not ({F[1], F[2]} & {F[3], F[4]}):
                         raise Bad(f"row {j}: not a collinear triple {F}")
                     new = {F[1], F[2], F[3], F[4]}
-                    for t in [t for t in groups_ if len(t & new) >= 2]:
+                    while True:  # a merge can bring in a line that shares two points only with what was merged
+                        t = next((t for t in groups_ if len(t & new) >= 2), None)
+                        if t is None:
+                            break
                         new |= t
                         groups_.remove(t)
                     groups_.append(new)
