@@ -23,9 +23,14 @@ Side work may use the Slurm server's GPUs: a model server and client commands ru
 | Lean (main track, `PREREG_PROOF.md`) | A specialised 8B prover is best; the compiler is a perfect check | Not a side-project gap at present |
 | Constructions (`construct.py`) | Unsolved for an 8B model; its own checker is not a usable free check | A derived free check, or a search the problem's structure makes exact |
 
-**Running now (geometry):** restarts (SIDE-GT-LUBY, job 1339457, `results/proof/sound3/gt_luby.jsonl`). Queued: declarative translations of the dev problems (SIDE-GT-DECL, job 1337117).
+**Running now (geometry):** HAGeo-409 (SIDE-GT-H409, jobs 1341668–70, `results/proof/h409/`), and declarative translations of the dev problems (SIDE-GT-DECL, job 1337117).
 
 ## Log
+
+**2026-11-06 17:0x UTC: restarts decided; the search goes to HAGeo-409.**
+- **SIDE-GT-LUBY:** 47 of 59 rows against 43, all passing the checker. It proves CAMO 2020 P3 with no random pool and loses nothing, so restarts become the default. It is 2.9 times slower on rows both prove (limit 2). The certified counts do not change, because that problem was already in the union.
+- **Checker fault fixed:** its merge of collinear triples stopped too early, so three proofs failed wrongly. All sets were rechecked, with no other change: 241 of 242 proofs pass, and the false IMO 2011 P6 proof stays rejected.
+- **SIDE-GT-H409, registered and queued:** the same search on the 409 problems of HAGeo's benchmark, counting only certified proofs. HAGeo reports 287, random points 218, AG1 177. I predict 234, range 190–280.
 
 **2026-11-06 16:4x UTC: a correction, after reading the prior work properly.** 27 of IMO-AG-30 is not state of the art: AG2 and TongGeometry report 30, HAGeo 28, and random points in HAGeo's engine 25. So that count says little about the greedy. HAGeo-409 (409 problems, public) is the benchmark to report on next. What may be new is the independent checker and the end-to-end pipeline with an open model. The agreement check has a precedent (Li et al., 2410.20936). See `docs/notes/RELATED_WORK.md`.
 
