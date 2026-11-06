@@ -861,3 +861,20 @@ The first run (jobs 1324967, 1324968) was stopped partway, 26 translations in. I
 **CLOSE-P5 (reported, predicted before any full replay; I saw one proof at 20 s, where the 12 isosceles steps pass and the 3 similar-triangle steps and the goal do not).** At least 80% of steps reproduce. Failures concentrate in steps where Newclid has to do long chases or check a similar-triangle goal, because of its time limits and goal tests rather than a wrong step. Every proof with a failing step is reported, and I read the failing steps of each headline proof. A proof counts as certified only if all its steps reproduce or the failing ones are read by hand and valid; a step I find invalid withdraws that proof and starts a search for the same fault in all the others.
 
 **The arm with every candidate is stopped** (job 1334653, after 10 rows). Pools of 1,100 or more hit the 1,800 s limit, three runs ended with no output, which is probably memory, and it proved nothing the pool of 256 had not. CLOSE-P2's K = all stays undecided. A larger pool needs a faster engine, and that is not the first gap until the proofs are trusted.
+
+---
+
+### Addendum to SIDE-GT-CLOSE: halved angles, and a strict arm (written 2026-11-06 08:3x UTC, before any strict result)
+
+**Why.** Directed angles live modulo π, so 2a = 2b gives a = b or a = b + π/2. The closure's span is over the rationals and its constants are dropped, so a chase with a coefficient 1/2 picks that branch from the figure. I had this down as a later check. I have now counted it: **37 of the 44 proofs at K = 256 use at least one halved angle relation; all those fractions are in the angle system** (halving a log-length is sound, since lengths are positive). Fresh figures test the conclusion, not the deduction, so they can't settle it. Plain Newclid so far reproduces 3 of 22 problems within 600 s on 40 of the 44 rows. A fraction is not always a real branch: the log keeps only relations independent over the rationals, so an integer route can go unlogged because it was "not new".
+
+**Design.** `GT_STRICT=1` replaces the angle span by one over the integers (`LinZ` in `geo_closure.py`): exact integer elimination on a coefficient ±1 only. A relation whose reduced form has a common factor g > 1 says only that g·x = 0, so it is not added, and x stays unproved. A relation with no ±1 coefficient and no common factor is also skipped and counted. This gives a sound lower bound on what integer chasing proves: a relation of the group is only used as an integer combination of relations true modulo π, whose constant is fixed exactly by its premises, and the figure then reads that constant. Same 59 translations, same pools, K = 64 and K = 256. Rules, the 8 fresh figures and the length system are unchanged. Output: `results/proof/sound3/gt_strict_k{64,256}.jsonl`.
+
+**Predictions.**
+- **CLOSE-P6 (decision):** strict K = 256 proves more than 2 problems, the pooling and pairs total that CLOSE-P1 compared against. Expected 14 of the 31, range 8–20. A real branch is likely on incentre problems (ISL 2016_23, IMO 2019 P6), and many other fractions look like circle rows with an unlogged integer route.
+- **CLOSE-P7 (internal check):** no strict proof has a fractional coefficient in an angle chase. One violation is a bug, and the strict counts wait until it is found.
+- **CLOSE-P8 (reported):** strict K = 64 proves 7 problems (4–11, the full arm's count).
+
+**Decision.**
+- CLOSE-P6 holds: the headline geometry counts use strict proofs only. Proofs that need a halved angle are reported separately as "proved given a branch read from the figure", and are never added to the headline.
+- CLOSE-P6 refuted: the closure's gain is branch choice, CLOSE-P1 is withdrawn, and the next gap is proving the branch (running both cases of each halving), ahead of a larger candidate vocabulary.

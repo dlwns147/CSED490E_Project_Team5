@@ -68,6 +68,50 @@ class Lin:
         return True
 
 
+class LinZ(Lin):
+    """The angle span over the integers (GT_STRICT): directed angles live modulo pi, where 2a = 2b does not give a = b. Elimination only on a
+    coefficient of 1 or -1, in exact integers, so the quotient stays free and the random values test membership in the integer span. A relation
+    with a common factor says only that a multiple vanishes, and it is not added; nor is one with no unit coefficient (counted in dropped)."""
+
+    def __init__(self, seed=0):
+        super().__init__(seed)
+        self.dropped = 0
+
+    def add(self, rel):
+        if not sum(c * self.val[v] for v, c in rel) % P:
+            return False
+        e = {}
+        for v, c in rel:
+            for f, q in self.expr[v].items():
+                e[f] = e.get(f, 0) + c * q
+        e = {f: q for f, q in e.items() if q}
+        if not e:
+            return False
+        units = [f for f, q in e.items() if abs(q) == 1]
+        if not units or math.gcd(*e.values()) > 1:
+            self.dropped += 1
+            return False
+        w = min(units, key=lambda f: len(self.users[f]))
+        s = e.pop(w)
+        sol = {f: -s * q for f, q in e.items()}   # w = sum(q * f)
+        d = (sum(q * self.rv[f] for f, q in sol.items()) - self.rv[w]) % P
+        for v in self.users.pop(w):
+            ex = self.expr[v]
+            cv = ex.pop(w)
+            for f, q in sol.items():
+                n = ex.get(f, 0) + cv * q
+                if n:
+                    ex[f] = n
+                    self.users[f].add(v)
+                else:
+                    ex.pop(f, None)
+                    self.users[f].discard(v)
+            self.val[v] = (self.val[v] + cv * d) % P
+        del self.rv[w]
+        self.rank += 1
+        return True
+
+
 class Closure:
     def __init__(self, names, xy, facts, deadline=None, seed=0, log=True):
         self.names, self.n = list(names), len(names)
@@ -75,7 +119,7 @@ class Closure:
         self.ix = {a: i for i, a in enumerate(self.names)}
         self.xy = np.array(xy, float)
         self.deadline = deadline
-        self.D, self.W = Lin(seed), Lin(seed + 1)
+        self.D, self.W = (LinZ if os.environ.get("GT_STRICT") else Lin)(seed), Lin(seed + 1)
         n = self.n
         self.u = [[0] * n for _ in range(n)]
         self.w = [[0] * n for _ in range(n)]
@@ -888,10 +932,11 @@ def one(row, k, timeout, proofs, fresh=8):
                 pts |= {v for v in F[1:] if isinstance(v, (int, np.integer)) and F[0] not in ("tdiff", "cyclic_group")}
     needed = sorted(c[0] for c in needed)
     denom = sum(1 for F, t, ctx, r in chases if any("/" in rat(c) for c in r.values()))
+    denom_a = sum(1 for F, t, ctx, r in chases if F[0] not in ("cong", "eqratio", "half") and any("/" in rat(c) for c in r.values()) and not (F[0] == "midp" and e.log[next(iter(r))][0] == "W"))
     tags = {}
     for j in rows:
         tags[e.log[j][2]] = tags.get(e.log[j][2], 0) + 1
-    out.update(points=needed, steps=len(rows), chases=len(chases), fractional_chases=denom, rules=tags)
+    out.update(points=needed, steps=len(rows), chases=len(chases), fractional_chases=denom, fractional_angle=denom_a, dropped=getattr(e.D, "dropped", None), rules=tags)
     # each step's conclusion and premises on fresh figures of the translation, with the points it needs
     facts = [e.log[j][4] for j in rows] + [F for j in rows for F in e.log[j][3] if F[0] not in ("tdiff", "cyclic_group")]
     held, tried = 0, 0
