@@ -5761,3 +5761,21 @@ On the 64 items that are statements to prove (34 false, 30 true):
 - **Faults found and fixed on dev:** residuals divided by their own moving size had false minima far away; constant answers passed the check trivially (`frac(1/8)` on a counting problem), and they are now rejected; `surd` returned the first fraction close enough instead of the simplest form.
 
 **Next (dev only):** input tokens are free in the utility, so the manual now carries the 12 worked scripts, leaving out the problem itself, and built points also work as conditions, the way the model writes them. Qwen3-8B (job 1340002) and Qwen3.6-27B (job 1339853) rerun with this. Predictions get registered before the held-out test.
+
+## 2026-11-06 16:1x UTC: COMP-FIG dev: Qwen3.6-27B writes the scripts; Qwen3-8B does not
+
+Same dev set, no thinking, two repairs, worked examples leaving out the problem itself.
+
+| | Passes the check | Right when it passes | Tokens |
+|---|---|---|---|
+| Qwen3-8B, MATH (27) | 9 | 5 | 0.37k |
+| Qwen3-8B, AIME (24) | 1 | 0 | 0.87k |
+| Qwen3.6-27B, MATH (27) | 19 | 16 | 1.39k |
+| Qwen3.6-27B, AIME (24) | 7 | 6 | 1.17k |
+
+- **Examples did not help the 8B** (7 of 8 right without them on MATH, 5 of 9 with), so its prompt work stops.
+- **On 27B, 86% right on passing AIME scripts is below its thinking (95.8% at 33k tokens).** Accepting them alone gives 91.7% at 26.1k, utility 78.6 against 79.3, so a pass alone is not good enough.
+- **Agreement looks like the way to raise precision:** a figure answer that agrees with the same model's quick text answer was right every time over three text seeds (16 of 16 on AIME, 41 of 41 on MATH). Text costs 5k tokens on AIME, which uses up the saving (33.5k against 33.1k). So the cheap version to test is agreement between two scripts.
+- **Wrong passes read:** a script that solved the problem itself and wrote `eq(n, 13)`; a form helper used where the problem did not ask for one; a sign in `surd2`; a problem whose diagram holds a fact. Scripts with no points are now rejected: they have no figure to check.
+
+**Next:** seeds 1–3 with the same language (job 1340209), to measure agreement between scripts on dev. Then the registered held-out test, AIME 1983–2023 by the same keywords (334 problems).
