@@ -5,6 +5,7 @@ State at commit `7d0d055` (origin/main, github.com/dlwns147/CSED490E_Project_Tea
 
 ## 0. Status on the Slurm cluster (updated 2026-10-27 16:3x UTC)
 - **GPU cap (user, 11-06):** this project uses at most 8 GPUs at any time, counting running and queued jobs.
+- **Running (2026-11-06 15:2x UTC; COMP-FIG dev):** job 1339673 `figdev` (Qwen3-8B, `poc/run_fig.py q8b|q8bt dev 1`; output `results/x1/fig_*_dev_s1.jsonl`). RTX2080Ti cannot serve vLLM here: FlashAttention needs compute capability 8 and the card has 7.5, so the first request fails with `BatchPrefillWithPagedKVCache ... invalid argument`. Those nodes are good only for CPU work.
 - **Done (2026-11-06 13:5x UTC; PREREG_TAU, TAU-R):** the rollout jobs ended; the τ² line stops, so no further τ² jobs.
 - **Running (2026-11-06 15:0x UTC; PREREG_SIDE, CPU work on one GPU node):** 1339457 `clluby` (SIDE-GT-LUBY, output `results/proof/sound3/gt_luby.jsonl`). The checker (SIDE-GT-CHECK) is done, on the login node: `host/cert_login.sh <proof set> ...` takes about 1 s per proof. Note: `poc/slurm/job.sh` treats a command ending in `.sh` as a lane script, so end such a command with `; echo finished`. CPU partitions offer starts days away for 8 CPUs; `-p RTX2080Ti,RTX3090 --qos=normal --gres=gpu:1 --cpus-per-task=4` started in minutes.
 - **Running (2026-11-06 09:5x UTC; PREREG_SIDE SIDE-GT-DECL, dev):** job 1337117 `gtdecl` (Qwen3.6-27B-AWQ on 2 GPUs; `GT_DECL=1 side/geo_translate.py gen gtdecl_dev ids_gtdev.txt --think --k 4 --repair 2 --grammar`; output `results/proof/gt_gtdecl_dev.jsonl`).
