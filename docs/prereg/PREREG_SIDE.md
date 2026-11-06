@@ -1048,3 +1048,21 @@ Correction to the comparison in SIDE-GT-CHECK's results (2026-11-06 16:4x UTC): 
 - **A checker fault, fixed:** three CAMO 2020 P3 proofs failed at a step uniting collinear triples, because my merge stopped before reaching a fixed point. Read by hand: the chain from the premises reaches the conclusion. All proof sets were rechecked with the fix, with no change in any other verdict.
 
 **Decision applied: restarts become the default search.** The counts do not change: USAMO 2012 P5 and CAMO 2020 P3 were already in the union, by random pools. What restarts add is that the same search finds CAMO 2020 P3 with no pool. This says little against prior work: HAGeo finds random points already strong at scale, so the comparison that matters is HAGeo-409.
+
+## SIDE-GT-H409: the closure with restarts on HAGeo-409 (registered 2026-11-06 17:0x UTC)
+
+**Why.** IMO-AG-30 is saturated and easy: AG2 and TongGeometry report 30, and random points in HAGeo's engine reach 25. HAGeo-409 (Duan et al., 2512.00097, public) is harder (mean difficulty 3.47 against 2.85) and carries difficulty scores. Whether our engine and search compete has to be answered there.
+
+**Published results, of 409.** AG1 with beam (16, 64, 8): 177. Random points in HAGeo's engine: 204 at K = 2,048, 218 at K = 8,192. HAGeo: 263 at K = 2,048, 287 at K = 8,192. Their conditions: up to 6 points per attempt, 60 s per DDAR run, a 64-core machine. Proofs on HAGeo-409 are not reported as checked by hand; on IMO-30 they are. HAGeo's code is not public, so its numbers are cited, not rerun.
+
+**Design.** The dataset's AlphaGeometry statements, which its authors corrected by hand; the point's own name is added where its clauses omit it (`nlp_data/geo/hageo409/conv.py`). 399 build a figure within 4 s on seed 0; 5 time out in that test and 5 fail, 4 of them for a construction (`eq_trapezoid`) our language lacks. Failures count as unproved. Engine as in SIDE-GT-LUBY, the search by its decision: strict lattice, squared lengths, two-figure gain, second intersections, restarts, 1,800 s per problem on one core. **A problem counts only if its proof passes `geo_check.py` and holds on 8 of 8 fresh figures,** a stricter bar than the published numbers, and on far less CPU than K = 8,192 attempts of up to 60 s.
+
+**Predictions.**
+- **H409-P1 (decision):** 234 of 409, range 190–280. By band: [1,3) 140 of 161; [3,4) 70 of 112; [4,5) 20 of 71; [5,6) 4 of 43; [6,7] 0 of 22.
+- **H409-P2:** at least 99% of proofs pass the checker. Any failure is read as in SIDE-GT-CHECK.
+- **H409-P3:** on the problems proved, the median is below 60 s, because proved rows of SIDE-GT-SQ have median 4.5 s and these are easier on average than those 59 rows, which were selected as hard.
+
+**Decision.**
+- **At least 263 (HAGeo at K = 2,048):** the engine and search compete with published work, with certificates. The next step is the same benchmark end to end from its natural-language statements.
+- **218 to 262 (above random at K = 8,192):** the search is doing something, but less than HAGeo's construction rules. Next: run the same engine with uniformly random points, the published baseline's design, so that the greedy's own value is measured on the same engine and CPU.
+- **Below 218:** the engine is the limit. Next: read the unproved problems below difficulty 3, where HAGeo proves 92.5%, and find which rules or theories are missing.
