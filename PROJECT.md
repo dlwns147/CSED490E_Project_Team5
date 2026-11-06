@@ -47,7 +47,7 @@ New types are welcome after a related-work check.
 | Instructions (IFEval, IFBench) | A model-written, executed checker gating thinking beats both modes in 4 of 6 cells (+1.1 to +2.5), at 1.0–2.6× the tokens: a gain, not a saving (IF-1). |
 | Short-answer math (MATH-500, AIME) | Text with thinking is best. A program is a second opinion: when text and program agree, 0.3–0.9% are wrong. |
 | Lean proofs (miniF2F) | A specialised 8B prover proves the most (Goedel-Prover-V2-8B, 180 of 244). Facts and repair from compiler errors do not help. |
-| Geometry proofs (side project, SIDE-GT) | The model translates the statement into a formal construction language, and a CPU engine (Newclid's DDAR) proves it. Held out: 19 of 65 problems are translated faithfully (judged blind). Agreement between independent translations certifies faithfulness without reading them: no unfaithful translation passed, and 98% of faithful ones did (SIDE-GT-AGREE). **Auxiliary-point proof counts are withdrawn pending a rerun** (the earlier 10 and 8 of 65, and the claim about four shortlist problems): Newclid derives false facts, and an audit found them in 10 of 54 recorded proofs that reran. A numerical guard on every derived fact removes them in the same audit (SIDE-GT-SOUND). DDAR alone keeps its 3 of 65 under the guard. Details: `side/README.md`. |
+| Geometry proofs (side project, SIDE-GT) | The model translates the statement into a formal construction language, and a CPU engine (Newclid's DDAR) proves it. Agreement between independent translations certifies faithfulness without reading them: no unfaithful translation passed, and 98% of faithful ones did (SIDE-GT-AGREE). Newclid derives false facts (10 of 54 recorded proofs that reran), and a numerical guard on every derived fact removes them (SIDE-GT-SOUND). Under the guard: **8 of 65 held-out problems end to end and 13 of IMO-AG-30**, replacing the withdrawn 10 and 14. Pooling what single auxiliary points prove adds one problem, and it is not a real composition (SIDE-GT-POOL). A new closure engine runs now (SIDE-GT-CLOSE). Details: `side/README.md`. |
 | Constructions (side project, SIDE-MC) | Unsolved for an 8B model. A thinking answer and a thinking program solve different instances (23% and 18% alone, 33% together). The model's own checker rejects 28% of right objects, so it cannot pick between them. |
 
 **Did not work** (do not retry without a new idea):
@@ -95,7 +95,7 @@ OptMATH is partly broken: its statements omit what its gold answers need.
    logs), and no co-author lines.
 8. **Write for a first-time reader:** what ran, the result with its cost, and what is next.
 
-## 5. Status and next steps (2026-11-05)
+## 5. Status and next steps (2026-11-06)
 
 **Settled since 11-04:**
 
@@ -110,14 +110,14 @@ OptMATH is partly broken: its statements omit what its gold answers need.
 - **MT-RF:** a quick turn trained on BFCL's own right rollouts, half the scenarios for the other half, rises from 16.7% to 24.5% of conversations
   at 0.31k tokens (+7.8 [+5.0, +10.7]). Replacing N in the set, it gives +2.6 points by the compounding model, below the bar of 3. By the registered
   rule, no online arm: the agent-loop method is final for this project.
-- **Side project (proofs):** earlier geometry proof counts are withdrawn, because Newclid derives false facts. They rerun under a numerical
-  guard, and pooling across auxiliary points is decided there. See `side/README.md`.
+- **Side project (proofs):** geometry counts are restated under a numerical guard (8 of 65 held out, 13 of IMO-AG-30). Pooling is decided and withdrawn. See
+  `side/README.md`.
 
 **Next:**
 
 1. The final report (`docs/REPORT.md`), with the agent-loop result and its derivation at its centre.
 2. Side project: see `side/README.md`.
-3. The per-turn choice beyond BFCL (τ²-bench, `$POC_DATA/tau2`): it scores only a conversation's end, so per-turn labels are the gap. Rollouts continued to the end supply them; first a test of the simulated user (`docs/prereg/PREREG_TAU.md`).
+3. The per-turn choice beyond BFCL (τ²-bench, `$POC_DATA/tau2`): it scores only a conversation's end, so per-turn labels are the gap. Rollouts continued to the end supply them. The simulated user is decided, and the rollout algorithm is running to measure the most a per-turn choice could gain (`docs/prereg/PREREG_TAU.md`).
 
 ## 6. Documents
 

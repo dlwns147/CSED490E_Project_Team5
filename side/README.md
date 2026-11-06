@@ -18,15 +18,20 @@ Side work may use the Slurm server's GPUs: a model server and client commands ru
 
 | Route | State | Hardest open gap |
 |---|---|---|
-| Geometry by translation (`geo_translate.py`) | Rerunning under a guard, because Newclid derives false facts (see the log) | A prover that is sound and goes beyond DDAR alone: more than one auxiliary point |
+| Geometry by translation (`geo_translate.py`, `geo_closure.py`) | 8 of 65 held out and 13 of IMO-AG-30 under a guard (see the log); a new closure engine is running | A prover that is sound and goes beyond one auxiliary point: the closure may close this gap; its proofs must then be trusted |
 | Natural-language proofs | Computational checks of a proof failed (SIDE-PF, SIDE-PG) | A free check that sees a step left unjustified while true, the most common error |
 | Lean (main track, `PREREG_PROOF.md`) | A specialised 8B prover is best; the compiler is a perfect check | Not a side-project gap at present |
 | Constructions (`construct.py`) | Unsolved for an 8B model; its own checker is not a usable free check | A derived free check, or a search the problem's structure makes exact |
 
-**Running now (geometry, SIDE-GT-SOUND and SIDE-GT-POOL):** a third rerun with the guard's faults fixed: single auxiliary points, then pooling
-and random pairs, then the audit on every proof found.
+**Running now (geometry, SIDE-GT-CLOSE):** one closure over a whole pool of auxiliary points (`geo_closure.py`), at pool sizes 0, 64, 256 and every one-step candidate, on the 59 translations no single point proved. Output: `results/proof/sound3/gt_close_k*.jsonl`.
 
 ## Log
+
+**2026-11-06 06:2x UTC: guarded counts decided, pooling withdrawn, and a new engine that may replace the search over points.**
+- **Counts under the guard (SOUND-P1 holds):** held out 8 of 65 (4 by DDAR alone, 3 with one point, 1 by pooling), IMO-AG-30 13 of 30. No proof uses a false statement.
+- **Pooling (POOL-P1 holds as written, on one problem):** it proves Indonesia 2007 P7, but that is one point missed once by a time limit, not facts adding up. Its one real composition, USAMO 2005 P3, fails its certificate. The 64 random pairs prove IMO 2010 P2 in one translation. I withdraw pooling and the planned ordering of candidates: there is no data to order by.
+- **A correction:** HAGeo's repository holds only a README and figures; the code awaits review.
+- **SIDE-GT-CLOSE, pre-registered.** DDAR is monotone, so one closure over a whole pool contains every proof using any subset of it. The obstacle is speed. `geo_closure.py` computes what is true on the figure first, then tests each true instance's premises, with angle and length chasing as a constant-time test of membership in a linear span. It reproduces 42 of 44 recorded proofs in about 0.01 s each; with no construction facts it proves none. On a timing test of 5 rows, a pool of 256 points proved IMO 2018 P1 and ISL 2012 (opc_IMOSL_2012_19) in about 35 s, against no proof from 131 DDAR calls per translation by pooling. **These are not claims yet.** Full runs and hand reading come first, and fractional chases pick a branch from the figure.
 
 **2026-11-05 21:2x UTC: third rerun, one auxiliary point: 7 of 65 held out, 13 of 30 references, and the audit is clean.** All 44 proofs (dev, held out and
 references) were audited, with no false statement on their own figure or on 8 fresh figures, and no error. 43 reran within 120 s; USAMO 2010 P1 (DDAR alone) did not.

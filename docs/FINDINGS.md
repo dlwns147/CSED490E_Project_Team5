@@ -5730,3 +5730,13 @@ On the 64 items that are statements to prove (34 false, 30 true):
 **Also found.** Qwen3-8B thinking as a simulated user sometimes returns no message, which τ² retries and then drops the task (retail tasks 3 and 13 so far). In TAU-U a dropped task counts as a failure for that user, because it was the user that failed. This is added to the rule of `docs/prereg/PREREG_TAU.md` before any comparison is read.
 
 **Next.** TAU-U decides the simulated user: U8 and U8t run; U9 and U36 wait for GPUs.
+
+## 2026-11-06 06:2x UTC: τ²-bench, the simulated user is decided: keep Qwen3-8B quick (TAU-U)
+
+**What ran.** An agent given the gold steps, against four simulated users, on 84 train tasks (the ones the gold-steps agent supports). If the user were good, this agent would nearly always succeed.
+
+**Result.** Right, by user, retail / airline / telecom: Qwen3-8B quick 27.6 / 60.0 / 3.3%; Qwen3-8B thinking 24.1 / 52.0 / 13.3%; Qwen3.5-9B quick 41.4 / 60.0 / 0.0%; Qwen3.6-35B quick 34.5 / 16.0 / 3.3%. Against Qwen3-8B quick, no user's paired lower bound is above 0 (best: Qwen3.5-9B, +3.6 [−7.1, +14.3]). By the registered rule we keep Qwen3-8B quick. The prediction that this agent would reach 40–65% is refuted: 28.6%.
+
+**Raw reading.** The low scores are not all the user's doing, since the gold-steps agent also transfers and writes wrongly. Telecom needs the user to run tools on their phone, and only the thinking user does so regularly (21 of 30 conversations; quick Qwen3-8B 8; the two other models none).
+
+**Next.** The rollout algorithm (TAU-R) is running on 30 tasks per domain, on three lanes. It asks how much a per-turn choice could gain at most. Telecom will give little to learn from; retail and airline carry the test. Details: `docs/prereg/PREREG_TAU.md`.

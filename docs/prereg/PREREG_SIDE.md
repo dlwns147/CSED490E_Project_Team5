@@ -797,7 +797,7 @@ The first run (jobs 1324967, 1324968) was stopped partway, 26 translations in. I
 |---|---|---|---|
 | Held out (9 problems) | Indonesia 2007 P7 (4 translations) | Indonesia 2007 P7 (4), USAMO 2005 P3 (1, not confirmed) | none |
 | References (23 translations) | none | none | IMO 2010 P2 (1 translation, not the IMO-AG-30 row) |
-| Seconds per DDAR call | 49 held out, 50 references | 40, 52 | 41, 49 |
+| Seconds per DDAR call | 43 held out, 50 references | 40, 52 | 41, 49 |
 
 **POOL-P1 holds as written, on one problem.** It proves Indonesia 2007 P7. **POOL-P2:** pooling 1 problem (2 with USAMO 2005 P3, which did not rerun on 6 seeds, and whose certificate fails), pairs 1. **POOL-P3 holds, but says little:** Indonesia's proofs use lemmas from one point, whose single run failed. Both counts are inside what I expected (1–4 and 0–2).
 
@@ -847,3 +847,5 @@ The first run (jobs 1324967, 1324968) was stopped partway, 26 translations in. I
 - **P1 and P3 hold** → the closure replaces single points, pairs and pooling. Every geometry count is restated with it, with proofs read by hand first for the headline problems. The hardest gap then is the pool's vocabulary: points built from other auxiliary points.
 - **P1 refuted** → the closure is only a faster engine. Next is a candidate generator derived from what the goal lacks, the alternative already registered under SIDE-GT-POOL.
 - **P3 refuted** → the engine's rules are wrong somewhere, and its counts are withdrawn until that is found.
+
+**Correction to CLOSE-P1 (written 2026-11-06 06:2x UTC, before any full-run result).** The CPU figure I gave for the comparison was wrong. The recorded CPU per translation is 5,400 s (held out) and 6,500 s (references) for pooling arm A, and 2,600 s and 3,100 s for the pairs, so about 8,000 s and 9,600 s for those two arms together. The prediction itself is unchanged. The comparison is against those figures, and a closure run's limit is 1,800 s.
