@@ -124,6 +124,7 @@ OptMATH is partly broken: its statements omit what its gold answers need.
 - **MT-FC (11-07):** the native function-calling form raises Qwen3-8B thinking by +12.0 [+7.6, +16.4], and EnvScaler-8B beats MT-SO on the same items. The agent-loop claim is restated in §2. This reverses the MT-RF line's "final for this project".
 
 **Next:**
+- **Proofs, against MechGeo (2608.02295, read 11-07):** it proves 29 of 43 IMO geometry problems with no human, in Lean, with frontier models, and refuted 22 statements experts had called faithful. Our figure solver can't see such errors, so the 23 counted held-out problems are provisional until SIDE-GT-NDG reads. SIDE-GT-MG runs our pipeline on its 44 audited statements, a faithfulness reference other than my reading.
 
 1. **Agent loop:** does per-turn selection add to the best checkpoint in its best form? Per-turn numbers across checkpoints, a registered compounding prediction, then a verifier on native rollouts and an online row.
 2. Side project: see `side/README.md`.
