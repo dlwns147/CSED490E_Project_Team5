@@ -23,14 +23,14 @@ Side work may use the Slurm server's GPUs: a model server and client commands ru
 | Lean (main track, `PREREG_PROOF.md`) | A specialised 8B prover is best; the compiler is a perfect check | Not a side-project gap at present |
 | Constructions (`construct.py`) | Unsolved for an 8B model; its own checker is not a usable free check | A derived free check, or a search the problem's structure makes exact |
 
-**Running now (geometry):** SIDE-GT-REDUCE on the 97 read statements, exploratory (job 1344245), and the reruns of four HAGeo-409 rows on the fixed engine (job 1344462).
+**Running now (geometry):** SIDE-GT-REDUCE on the 97 read statements, exploratory (job 1344245).
 
 ## Log
 
 **2026-11-07 02:3x UTC: two registered results.**
 - **SIDE-GT-DECL:** end to end on the held-out 65, **23 problems (16 whole, 7 parts) against 17 (12, 5)** with the construction language, as predicted (+6). Six whole problems are new. The declarative form becomes the pipeline's language. These counts rest on my reading: agreement can't replace it here, so the no-human count of 13 stays with the construction language only.
 - **SIDE-GT-H409:** **261 of 409** certified, by band 140, 84, 28, 7, 2 of 161, 112, 71, 43, 22. HAGeo reports 263 at K = 2,048 and 287 at K = 8,192, random points 218, AG1 177. Median 1.8 s per proved problem, 1,800 s limit on one core.
-- **The checker found two faults in our code on HAGeo-409:** an unsound equal-chords step (four proofs; the same fault as the false IMO 2011 P6 proof) and a certificate export that corrupted large integers (three proofs). Both fixed; 264 of 264 now pass; two rows no longer prove.
+- **The checker found two faults in our code on HAGeo-409:** an unsound equal-chords step (four proofs; the same fault as the false IMO 2011 P6 proof) and a certificate export that corrupted large integers (three proofs). Both fixed; 264 of 264 now pass. Two rows lost their proofs and prove again on the fixed engine, reported apart: 263 with them.
 - **Next:** by the registered rule, the same engine with uniformly random points, to measure what the greedy adds. The hard gap stays faithfulness without a human: REDUCE's obligations come next.
 
 **2026-11-06 23:1x UTC: two faults found.**

@@ -20,7 +20,9 @@ offline by poc/grade_mt.py (BFCL's multi_turn_checker). Rows resume.
   S  (MT-SO, addendum MT-SO) per turn, sandboxed rollouts N, P, T; a trained verifier (LoRA on the MT_VER server: gen or peer) scores
      them and the set-choice fit fitted on the other half (results/tc/mt_so_fit_<tag>.json) commits one
 MT_FC=1 (addendum MT-FC): N and T in the native function-calling form (MT_ITEMS=mt_fc_items.jsonl: the tools in the chat template, calls as
-<tool_call> JSON, decoded as BFCL's QwenFCHandler; the reasoning of the request's earlier steps stays in the context as its template keeps it); MT_TEMP sets the sampling temperature.
+<tool_call> JSON, decoded as BFCL's QwenFCHandler); MT_TEMP sets the sampling temperature. MT_KEEP=1: the reasoning of the request's earlier steps stays in the context, as the template
+keeps it and BFCL's handler does (without it, chat_msgs drops the reasoning: the seed-1 rows of MT-FC ran so). With MT_FC, arm S: MT_SPEC=<role>:<gen|peer>:<0|1>,... sets the rollouts (default N, P, T),
+MT_VER_PREFIX the verifier's name, MT_DEFAULT the role for a structure the fit never saw.
 usage: python run_mt.py <tag> <arm N|T|E|F|V|S|U> <seed>     (MT_SUBSET=i/k: items i, i+k, ... only — the smoke; MT_WORKERS, default 8)"""
 import ast, copy, json, os, re, sys, zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -44,7 +46,7 @@ for _x in filter(None, os.environ.get("MT_CLASSES", "").split(",")):
 RES = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "results", "tc")
 DATA = os.environ.get("MT_ITEMS") or os.path.join(PD, "bfcl", "mt_items.jsonl")
 NMAX, TMAX, STEPS = 2048, 8192, 20
-FC, TEMP = bool(os.environ.get("MT_FC")), float(os.environ.get("MT_TEMP", 0.7))
+FC, TEMP, KEEP = bool(os.environ.get("MT_FC")), float(os.environ.get("MT_TEMP", 0.7)), bool(os.environ.get("MT_KEEP"))
 
 
 # BFCL's prompt-mode decoder (bfcl_eval.model_handler.utils: default_decode_execute_prompting, ast_parse for Python,
@@ -123,18 +125,23 @@ def decode_fc(text):
     return out
 
 
-def answer_fc(msgs, think, seed, tools, model="local"):
+def answer_fc(msgs, think, seed, tools, model="local", cli=None):
     """MT-FC: one step, the reply as it came (with its reasoning, for the template), or "" when the think never closed"""
     try:
-        o = chat_msgs(msgs, model=model, think=think, max_tokens=TMAX if think else NMAX, temperature=TEMP, seed=seed, extra={"tools": tools, "tool_choice": "none"})
+        o = chat_msgs(msgs, model=model, think=think, max_tokens=TMAX if think else NMAX, temperature=TEMP, seed=seed, extra={"tools": tools, "tool_choice": "none"}, client_=cli)
     except BadRequestError as e:
         if "context" not in str(e).lower() and "too long" not in str(e).lower() and "maximum" not in str(e).lower():
             raise
         return "", 0, "overflow"
-    t = o["text"]
+    t = o["raw"] if KEEP else o["text"]
     if "<think>" in t and "</think>" not in t:
         t = ""
     return t.strip(), o["out_tokens"], o["finish"]
+
+
+def reply_fc(text):
+    """MT-FC: what a row stores of a reply with no call: its tail, without the reasoning"""
+    return text.split("</think>")[-1][-300:]
 
 
 def is_err(res):
@@ -174,13 +181,18 @@ def run_turn(p, msgs, name, ti, think, seed, cli, lc):
     for k in range(STEPS + 1):
         sd = seed * 100003 + zlib.crc32(f"{p['id']}/{ti}/{k}".encode()) % 99991
         try:
-            o = chat_msgs(msgs, think=think, max_tokens=TMAX if think else NMAX, temperature=0.7, seed=sd, client_=cli)
-            text, n, fin = o["text"], o["out_tokens"], o["finish"]
-            if "</think>" in text:
-                text = text.split("</think>")[-1]
-            if "<think>" in text:
-                text = ""
-            text = text.strip()
+            if FC:
+                text, n, fin = answer_fc(msgs, think, sd, p["tools"], cli=cli)
+                if fin == "overflow":
+                    steps.append({"calls": [], "think": think, "tok": 0, "fin": fin}); return msgs[start:], steps, tok, True, True
+            else:
+                o = chat_msgs(msgs, think=think, max_tokens=TMAX if think else NMAX, temperature=0.7, seed=sd, client_=cli)
+                text, n, fin = o["text"], o["out_tokens"], o["finish"]
+                if "</think>" in text:
+                    text = text.split("</think>")[-1]
+                if "<think>" in text:
+                    text = ""
+                text = text.strip()
         except BadRequestError as e:
             if "context" not in str(e).lower() and "too long" not in str(e).lower() and "maximum" not in str(e).lower():
                 raise
@@ -188,11 +200,11 @@ def run_turn(p, msgs, name, ti, think, seed, cli, lc):
         tok += n
         msgs.append({"role": "assistant", "content": text})
         try:
-            calls = decode(text)
+            calls = decode_fc(text) if FC else decode(text)
         except Exception:
             calls = []
         if not calls:
-            steps.append({"calls": [], "think": think, "tok": n, "fin": fin, "text": text[:300]})
+            steps.append({"calls": [], "think": think, "tok": n, "fin": fin, "text": reply_fc(text) if FC else text[:300]})
             break
         res, _ = U.execute_multi_turn_func_call(calls, cfg, cls, name, p["id"], long_context=lc)
         errs = [is_err(r) for r in res]
@@ -273,22 +285,25 @@ def run_item_sel(p, tag, seed, arm="S"):
     The chosen rollout's steps and environment continue the conversation; every rollout's output tokens count.
     arm U (addendum MT-SO-ENV): the item's environment group in place of its half, verifier mtsoenv_h<1-g>, fit mt_soenv_fit_<tag>.json."""
     import copy, math
-    from mt_peer0 import render, short_system, turn_context
+    from mt_peer0 import render, short_system, short_system_fc, turn_context
     from tc_train import TC_ASK
     if arm == "U":
         h = _envh()[p["id"]]
         fit, ver = _sofit(tag, "soenv")[f"h{h}"], f"mtsoenv_h{1 - h}"
     else:
         h = zlib.crc32(p["id"].rsplit("_", 1)[1].encode()) % 2
-        fit, ver = _sofit(tag)[f"h{h}"], f"mtso_h{1 - h}"
+        fit, ver = _sofit(tag)[f"h{h}"], os.environ.get("MT_VER_PREFIX", "mtso_h") + str(1 - h)
     vcli = PEER if os.environ.get("MT_VER", "gen") == "peer" else None
     from llm import client as gcli
     name = f"{tag}_{arm}_s{seed}"
     cfg, cls, lc = p["initial_config"], p["involved_classes"], "long_context" in p["cat"]
     U.execute_multi_turn_func_call([], cfg, cls, name, p["id"], long_context=lc)
-    msgs = [{"role": "system", "content": p["system"]}]
+    msgs = [{"role": "system", "content": p["system"]}] if p["system"] else []
     turns, choices, tok, vpre, quit_ = [], [], 0, 0, False
     spec = {"N": (False, None), "P": (False, PEER), "T": (True, None)}
+    if os.environ.get("MT_SPEC"):   # MT_FC: <role>:<gen|peer>:<think 0|1>,...
+        spec = {j: (t == "1", PEER if w == "peer" else None) for j, w, t in (x.split(":") for x in os.environ["MT_SPEC"].split(","))}
+    dflt = os.environ.get("MT_DEFAULT", "T")
     for ti, um in enumerate(p["turns"]):
         msgs += um
         cand = {}
@@ -303,7 +318,7 @@ def run_item_sel(p, tag, seed, arm="S"):
         for j in spec:
             groups.setdefault(cand[j][4], []).append(j)
         names = {re.sub(r"\(.*", "", c) for j in spec for z in cand[j][1] for c in z["calls"]}
-        sysm = short_system(p, names)
+        sysm = short_system_fc(p, names) if FC else short_system(p, names)
         C = []
         for txt, js in groups.items():
             m = [{"role": "system", "content": sysm}, {"role": "user", "content": turn_context(p, ti)},
@@ -317,7 +332,7 @@ def run_item_sel(p, tag, seed, arm="S"):
         S = repr(tuple(sorted(c["calls"] for c in C)))
         key = lambda c: f"{S}|{c['calls']!r}"
         if any(key(c) not in fit["cnt"] for c in C):
-            ch, unseen = "T", True
+            ch, unseen = dflt, True
         else:
             mu = sum(c["s"] for c in C) / len(C)
             lg = lambda c: math.log((fit["rt"][key(c)] + 0.5) / (fit["cnt"][key(c)] + 1))
@@ -410,7 +425,7 @@ def run_item(p, tag, arm, seed):
             except Exception:
                 calls = []
             if not calls:
-                steps.append({"calls": [], "think": think, "tok": n, "fin": fin, "text": text[-300:] if FC else text[:300]})
+                steps.append({"calls": [], "think": think, "tok": n, "fin": fin, "text": reply_fc(text) if FC else text[:300]})
                 break
             res, _ = U.execute_multi_turn_func_call(calls, cfg, cls, name, p["id"], long_context=lc)
             errs = [is_err(r) for r in res]

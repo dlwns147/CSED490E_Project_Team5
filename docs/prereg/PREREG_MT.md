@@ -1071,3 +1071,15 @@ Ours on three of those categories: Qwen3-8B thinking at every step 30.8 (base 37
 3. **Next, as registered:** per-turn selection in native form. Its prediction is written after the per-turn numbers exist and before any online row.
 
 **A reviewer's reading.** What stands is the mechanism (per-turn sandboxed choice compounds over a conversation; the model predicted the gain within 2.4 points) and the result on unseen environment classes, both measured in prompt mode. What falls is the size of the gain and the comparison with training-only results. The open question that decides whether the method has a place: does selection add to the best checkpoint, in its best form? Interim per-turn data bound it. At turn 0 (the only turn where independent runs share a state): EnvScaler T 82.9, Qwen3-8B T 75.4, oracle over the two 86.5; Qwen3-8B N with EnvScaler T 86.4. In prompt mode the same oracle gain was about 14 points; here it is 3.6.
+
+### MT-FC correction and addendum MT-FC-KEEP (written 2026-11-07 02:3x UTC, before any row with the reasoning kept)
+
+**A correction to what I wrote above.** The addendum says the reasoning of a request's earlier steps stays in the context, as BFCL's handler keeps it. Reading the code to port the loop, I found it did not: `chat_msgs` strips the reasoning before `answer_fc` sees the reply, so every native row so far (Qwen3-8B N and T, EnvScaler T, EnvACE T, AWM T) ran with reasoning dropped between steps. The numbers above are right for what ran, and "native form" in them means tools in the template and `<tool_call>` JSON, without kept reasoning. That doesn't change the decision (P2's lower bound is already above 0), but "the base model's best form" and "EnvScaler's published setting" have not been measured yet.
+
+**Run.** `MT_KEEP=1` keeps the raw reply in the context, and Qwen3's template shows the reasoning for steps after the last user message and drops it for earlier ones, as `QwenFCHandler` does. Tag `esfk`: EnvScaler-8B T, seed 1, 800 items, otherwise as above. Then the same for Qwen3-8B (`q8bfk`).
+
+**Predictions.**
+- **KEEP-P1 (decision):** EnvScaler T with kept reasoning minus without, paired on the 800, seed 1: +2 points (range −2 to +6). The gap to the published mean of four is 1.65, which is within noise, so I expect little.
+- **KEEP-P2 (reported):** more overflow failures at the 32,768 context, mostly in long context, and more tokens are not expected, since a step's cap is unchanged.
+
+**Decision.** The lower bound above 0: kept reasoning becomes the native form for every later row, and the arms that matter are rerun. Otherwise (a tie or worse): the rows stand as they are, and the form is reported as tested both ways.

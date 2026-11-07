@@ -189,6 +189,15 @@ def short_system(p, names):
             + (f"\n\nOther available functions: {', '.join(rest)}." if rest else ""))
 
 
+def short_system_fc(p, names):
+    """MT-FC: as short_system, for an item whose functions are tools"""
+    fl = [t["function"] for t in p["tools"]]
+    keep = [f for f in fl if f["name"] in names]
+    rest = [f["name"] for f in fl if f["name"] not in names]
+    return ("You judge a function-calling turn. Here are the functions in json format that the responses below call.\n" + json.dumps(keep, indent=1)
+            + (f"\n\nOther available functions: {', '.join(rest)}." if rest else ""))
+
+
 def main_sel_build():
     """addendum MT-SEL (--sel-build): the turn-0 rollouts of the arms SEL_ARMS of every model, each graded on its own (BFCL's per-turn
     check from the turn's start: end state and, for a non-empty ground truth, its execution results) -> $POC_DATA/bfcl/mt_sel_items.jsonl
