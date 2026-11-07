@@ -1326,6 +1326,16 @@ I read each guarded statement against the audited Lean statement and write the v
 
 **Decision.** P1 holds: a kernel-checked theorem replaces the checker's verdict as the definition of a counted row, and each row reports its conditions and readings as hypotheses. The MechGeo comparison is then restated: same kernel, weaker statements where readings or conditions remain. The next gap is discharging readings. P1 fails: report what stops it, fix what is a bug, keep the checker. Any step P2 finds is a checker fault: fix, rerun the checker, restate affected counts.
 
+**Results (2026-11-07 13:3x UTC).** 340 of 350 certificates pass Lean's kernel with only `propext`, `Classical.choice` and `Quot.sound`, and no `sorry`: 79 of 84 held out, 261 of 266 on HAGeo-409.
+- **LEAN-P1 (decision) holds:** 97.1% (predicted 92%, range 75–98%). The ten that did not pass: 2 use a constant read from the figure, 8 ran out the 1,200 s compile limit. Those eight are rerun with 4 hours. No step was rejected.
+- **LEAN-P2 did not read as predicted:** no certificate the checker passes failed for an unjustified step, among the 340. The two suspected circle unions were an exporter fault of mine, and the checker's loose test in `parallelogram_mid` never mattered. Every rule was also proved, so on these sets the checker's trust was warranted. One condition was unneeded (`thales`).
+- **LEAN-P3:** 63 of 340 (18.5%) have no reading, at the bottom of the range (predicted 25%).
+- **LEAN-P4:** median 22 s per theorem (predicted 30 s, 5–300 s).
+
+**By problem.** Held out: 22 of the 23 counted problems have a kernel-checked statement (16 whole, 6 parts). The other, a part (Romanian NMO grade 7 P3), rests on a figure constant in both counted statements. Only 3 of the 23 have a reading-free statement. HAGeo-409: of the 263 rows with 8 of 8 fresh figures (261 counted plus the two reported apart), 259 are kernel-checked, 4 are in the rerun, and 48 have no reading.
+
+**Decision.** A counted row now means a kernel-checked theorem. **The held-out count becomes 22 (16 whole, 6 parts).** Each theorem assumes the distinct names, conditions and readings written in its statement, so this is what the count claims. Against MechGeo the kernel is now the same and the statements are weaker wherever a hypothesis remains. The rule library and the exporter replace the checker as the definition; the checker stays as a fast first pass.
+
 ### SIDE-GT-LEAN-NR: proofs that read nothing from the figure (registered 2026-11-07 12:2x UTC, before any run)
 
 **Why.** A kernel-checked theorem that assumes `Read` is weaker than the statement. The readings are the objection the Zulip thread and Euclean raise, and the hard part the unfinished translation named. The first compile shows they are common: on the held-out set 79 of 84 certificates compile, and only 15 of those 79 have no reading. Each reading says two triangles have the same orientation, or two points the same side, and nothing proves it from the hypotheses.

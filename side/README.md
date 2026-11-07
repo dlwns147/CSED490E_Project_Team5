@@ -18,14 +18,19 @@ Side work may use the Slurm server's GPUs: a model server and client commands ru
 
 | Route | State | Hardest open gap |
 |---|---|---|
-| Geometry by translation (`geo_translate.py`, `geo_decl.py`, `geo_closure.py`, `geo_check.py`) | Certified by an independent checker: **27 of IMO-AG-30**; **261 of HAGeo-409** (HAGeo 263 at K = 2,048, 287 at K = 8,192); held out **23 of 65** with faithfulness read by hand (16 whole problems, 7 one direction or part) with declarative statements | **Telling a faithful statement from an unfaithful one without a human:** agreement fails on declarative statements, half translations leave no trace, and some translations assume the claim (SIDE-GT-REDUCE attacks the last). Most proofs read a configuration from the figure. IMO 2008 P6, 2011 P6 and 2021 P3 need theories the engine lacks |
+| Geometry by translation (`geo_translate.py`, `geo_decl.py`, `geo_closure.py`, `geo_check.py`) | Kernel-checked in Lean (most theorems still assume a figure reading): **259 of 263 HAGeo-409 rows, 4 pending** (HAGeo 263 at K = 2,048, 287 at K = 8,192); held out **22 of 65**; checker only: **27 of IMO-AG-30**; held out with faithfulness read by hand (16 whole problems, 7 one direction or part) with declarative statements | **Telling a faithful statement from an unfaithful one without a human:** agreement fails on declarative statements, half translations leave no trace, and some translations assume the claim (SIDE-GT-REDUCE attacks the last). Most proofs read a configuration from the figure. IMO 2008 P6, 2011 P6 and 2021 P3 need theories the engine lacks |
 | Natural-language proofs | Computational checks of a proof failed (SIDE-PF, SIDE-PG) | A free check that sees a step left unjustified while true, the most common error |
 | Lean (main track, `PREREG_PROOF.md`) | A specialised 8B prover is best; the compiler is a perfect check | Not a side-project gap at present |
 | Constructions (`construct.py`) | Unsolved for an 8B model; its own checker is not a usable free check | A derived free check, or a search the problem's structure makes exact |
 
-**Running now (geometry):** SIDE-GT-LEAN (exporter being written), SIDE-GT-H409-RAND (jobs 1345806, 1345807). **Queued:** SIDE-GT-MG (job 1345808), then SIDE-GT-REDUCE-F on its statements.
+**Running now (geometry):** SIDE-GT-LEAN-RD and the slow compile rerun (job 1347628), SIDE-GT-H409-RAND (jobs 1345806, 1345807). **Queued:** SIDE-GT-LEAN-NR (job 1348018), SIDE-GT-MG (job 1345808), then SIDE-GT-REDUCE-F on its statements.
 
 ## Log
+
+**2026-11-07 13:3x UTC: 340 of 350 proofs pass Lean's kernel; a counted row now means a kernel-checked theorem.**
+- **Result (SIDE-GT-LEAN):** 79 of 84 held-out and 261 of 266 HAGeo-409 certificates compile, with only Lean's standard axioms and no `sorry`, median 22 s. Two rest on a constant read from the figure and 8 ran out the 1,200 s limit (rerun with 4 hours). **No step was rejected**, so the Python checker's trust held on these sets, against my prediction that a gap would appear.
+- **Counts:** held out **22 problems (16 whole, 6 parts)**, down one, because a part rests on a figure constant. HAGeo-409: 259 of 263 rows kernel-checked, 4 pending.
+- **What these theorems assume:** distinct names, non-collinearity conditions and readings, all written in the theorem. **Only 3 of the 22 problems and 48 of the 259 rows are free of readings**, so these are not yet theorems about the statement alone. That is the gap. SIDE-GT-LEAN-NR looks for proofs without readings, and SIDE-GT-LEAN-RD asks whether a reading can fail on its statement.
 
 **2026-11-07 11:5x UTC: the degenerate-figure stage reads, and every rule of the engine is now proved in Lean.**
 - **SIDE-GT-NDG:** one counted problem has a real degenerate figure. On ISL 2016 the two lines that define P can coincide, leaving P free. The text excludes this by "the intersection point", so `ncoll a b p` is implied. All four statements reprove and pass the checker with it. **The count stays 23 (16 whole, 7 parts).** Coverage was 24% of triples, so this is a lower bound.
