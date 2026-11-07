@@ -1208,3 +1208,38 @@ Counted: judged faithful, proved, passes `geo_check.py`, and holds on all fresh 
 - **RAND-P2 (reported):** rows the random arm proves and the greedy doesn't: at most 15. Below that, the greedy dominates; above it, they are complementary and restarts between them would pay.
 
 **Decision.** P1 holds: the greedy is credited with its gain, and the method stands. P1 fails: the count comes from the engine, the greedy is dropped for random points, which are simpler, and the report credits the closure.
+
+
+## SIDE-GT-NDG: degenerate figures the checks never look at (written 2026-11-07 06:1x UTC, before any run on real statements)
+
+**Why.** MechGeo (2608.02295, read in full, `docs/notes/RELATED_WORK.md`) found that 14 of 43 machine-formalized IMO statements are false as written, with Lean-checked counterexamples, mostly for a missing non-degeneracy or order condition. Worse for us: of 157 statements three experts called faithful, 22 were refuted. My verdicts are one reader's, and my pipeline cannot see this kind of error. `solve` in `side/geo_decl.py` keeps only the figures with the fewest chance coincidences, so a statement false only on a degenerate figure passes the guard, the closure and the fresh figures. The checker's own list of what it does not check starts with non-degeneracy. So the counted 23 problems may contain false statements, and I don't know how many. MechGeo names automating these checks as future work: its 14 repairs were by experts.
+
+**Design.** `ndg_one`: for each collinear triple that the statement neither states nor excludes, add it as a hypothesis, solve from 40 starts, drop figures on which a cyclic hypothesis lies on a line, and test the goal. Distinct names stay distinct points, the language's convention, so MechGeo's IMO 2007 P2 counterexample (B = C) is out of scope by that convention, and I report this. It covers collinear degeneracies only; concyclic and parallel ones are not searched. Time limit 600 s per statement, with triples in random order, so a stopped statement reports its coverage. Run on all 97 held-out statements, whose verdicts are fixed. A two-statement smoke test on the login node: a parallelogram given by two parallel pairs is refuted on the collinear figure, as it should be, and the isosceles-median statement is not.
+
+The classical route to these conditions is Wu's method, which outputs them as initials of a triangular set (Wu 1986; Chou 1988). A numerical search finds only failures it reaches, so "none found" is not a proof that none exist.
+
+**Predictions.**
+- **NDG-P1 (reported):** of the 23 counted problems, at least one counted statement has a counterexample I accept on reading in 20% (range 5–35%). MechGeo's rate is 33% on IMO problems; the convention and the guard over branches should remove some.
+- **NDG-P2 (decision):** at least one counted problem has an accepted counterexample.
+- **NDG-P3 (reported):** adding `ncoll` for each failing triple leaves the closure proof intact on every such statement, since the proof already ran on a generic figure.
+
+**Decision.** P2 holds: the search becomes a stage before a row is counted, with the repair automatic, and every count of ours restated with the statements repaired and reproved. The stage is then tested for what MechGeo left to experts, on the IMO statements of SIDE-GT-MG. If the text doesn't imply the added condition, the row leaves the count. P2 fails: the convention plus the guard is enough on these statements, reported as such, with the coverage figures, and the search stays as a check on the MG statements only.
+
+## SIDE-GT-MG: the pipeline on MechGeo's audited IMO statements (written 2026-11-07 06:1x UTC, before any run)
+
+**Why.** Rule 9. MechGeoBench (github.com/MechMath/MechGeoBench) has 44 human-audited Lean statements of IMO geometry from 2000 to 2026, with proofs. It is the closest public comparison to our pipeline, and it has what the proof track lacks: a faithfulness reference that isn't my reading. Only 12 of the 44 are in our dev or held-out sets.
+
+**The comparison, stated first.** MechGeo without a human: 29 of 43 proved, with Claude Opus 4.8 translating and GPT-5.6-Sol proving, two hours per problem (one took 2 h 6 min), plus IMO 2026 P2. With experts repairing 14 statements, all 44. Its proofs are checked by Lean's kernel on the full statement, order conditions included. Ours are checked by a small exact checker that does not cover non-degeneracy or the rules that read a configuration from the figure. Our translator is an open 27B model and our prover is the closure, with no model. So equal counts would not mean equal claims. Coverage favours MechGeo; cost is what we can claim, if anything.
+
+**Design.** Problem texts: official IMO papers (imo-official.org) or the text already in `imo_geometry.parquet`, in `nlp_data/geo/mg_problems.jsonl`. Two arms, both frozen as SIDE-GT-DECL (Qwen3.6-27B-AWQ, thinking, four samples, two repair rounds, 240 starts, closure at 1,800 s, checker, 8 of 8 fresh figures):
+- **MG-NL:** the problem text alone. The whole pipeline.
+- **MG-LEAN:** the problem text and the audited Lean statement. This separates the translator from the prover, because the model has the audited hypotheses in front of it.
+
+I read each guarded statement against the audited Lean statement and write the verdicts (faithful, half, changed, wrong) before any closure run. A problem counts whole if a faithful statement of all its claims is proved, certified and holds on 8 of 8 fresh figures, as before.
+
+**Predictions.**
+- **MG-P1 (reported):** problems with a guarded statement: NL 20 of 44 (12–26), LEAN 28 (20–36). Held out, it was 29 of 65.
+- **MG-P2 (reported):** whole problems: NL 9 (5–14), LEAN 15 (9–22). MechGeo's no-human count is 29 of 43.
+- **MG-P3 (decision):** LEAN minus NL, paired over the 44 problems, lower bound above 0.
+
+**Decision.** P3 holds: at IMO level the translator is the limit, and the next method goes there, with the audited statements as the reference for a faithfulness test that needs no human reading. P3 fails: the prover and the language are the limit, and the next method goes to what the LEAN arm could not prove or express. Either way the comparison is reported as a row with both claims stated. If NL reaches 29 or more, I'll claim coverage comparable to MechGeo's for an open 27B model and no prover model; otherwise only cost, in tokens and seconds per problem, and only against numbers MechGeo reports, which do not include tokens.

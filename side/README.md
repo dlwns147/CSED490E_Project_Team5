@@ -23,9 +23,14 @@ Side work may use the Slurm server's GPUs: a model server and client commands ru
 | Lean (main track, `PREREG_PROOF.md`) | A specialised 8B prover is best; the compiler is a perfect check | Not a side-project gap at present |
 | Constructions (`construct.py`) | Unsolved for an 8B model; its own checker is not a usable free check | A derived free check, or a search the problem's structure makes exact |
 
-**Running now (geometry):** SIDE-GT-REDUCE on the 97 read statements, exploratory (job 1344245).
+**Running now (geometry):** SIDE-GT-REDUCE on the 97 read statements, exploratory (job 1345712); SIDE-GT-H409-RAND, the random-point baseline (job 1344646, shard 0 of 3). **Registered, waiting for GPUs:** SIDE-GT-NDG and SIDE-GT-MG.
 
 ## Log
+
+**2026-11-07 06:1x UTC: the closest prior work, found late, changes the next steps.**
+- **MechGeo (2608.02295)** autoformalizes and proves IMO geometry in Lean: 29 of 43 without a human, all 44 with experts repairing 14 statements. It uses frontier models and two hours per problem, and Lean checks everything. Read in full, recorded in \`docs/notes/RELATED_WORK.md\`.
+- **A threat to our counts.** It refuted 22 of 157 statements experts had called faithful, mostly on degenerate figures. Our figure solver keeps generic figures only, so we can't see this. SIDE-GT-NDG searches for such figures. The 23 counted held-out problems stay provisional until it reads.
+- **A better reference.** Its 44 audited statements test our pipeline against something other than my reading: SIDE-GT-MG runs the full pipeline, and a second arm given the audited statement separates translator from prover.
 
 **2026-11-07 02:3x UTC: two registered results.**
 - **SIDE-GT-DECL:** end to end on the held-out 65, **23 problems (16 whole, 7 parts) against 17 (12, 5)** with the construction language, as predicted (+6). Six whole problems are new. The declarative form becomes the pipeline's language. These counts rest on my reading: agreement can't replace it here, so the no-human count of 13 stays with the construction language only.

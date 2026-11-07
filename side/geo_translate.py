@@ -199,7 +199,7 @@ def gen():
     gram = grammar() if "--grammar" in sys.argv else None
     mt = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else (16000 if think else 2048)
     want = set(open(ids_file).read().split())
-    X = [x for x in map(json.loads, open(os.path.join(PD, "problems.jsonl"))) if x["id"] in want]
+    X = [x for x in map(json.loads, open(os.path.join(PD, os.environ.get("GT_PROBLEMS", "problems.jsonl")))) if x["id"] in want]
     os.makedirs(OUT, exist_ok=True)
     out = f"{OUT}/gt_{tag}.jsonl"
     done = {(r["id"], r["sample"]) for r in map(json.loads, open(out))} if os.path.exists(out) else set()
@@ -485,7 +485,7 @@ def propose():
     think = "--think" in sys.argv
     k = int(sys.argv[sys.argv.index("--k") + 1]) if "--k" in sys.argv else 2
     m = int(sys.argv[sys.argv.index("--m") + 1]) if "--m" in sys.argv else 8
-    P = {x["id"]: x for x in map(json.loads, open(os.path.join(PD, "problems.jsonl")))}
+    P = {x["id"]: x for x in map(json.loads, open(os.path.join(PD, os.environ.get("GT_PROBLEMS", "problems.jsonl"))))}
     AG = {x["ag30"]: x for x in P.values() if x.get("ag30")}   # IMO-AG-30 reference ids -> our problems where we have the statement
     B = [r for r in map(json.loads, open(f"{OUT}/gt_{src}_aux.jsonl")) if r["base"] == "guarded" and not r["base_proved"]]
     out = f"{OUT}/gt_{tag}_prop.jsonl"

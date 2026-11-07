@@ -12,8 +12,9 @@ Order, which only selects the figure: between a b c (b strictly inside segment a
 obtuse a b c, convex a b c d, ncoll a b c. Distinct names are distinct points.
   python side/geo_decl.py one '<statement>'     (solve and print the figures found and whether the goal holds on them)
   python side/geo_decl.py guard '<statement>'   (the status alone, for geo_translate.py)
-  python side/geo_decl.py reduce <rows.jsonl> <out.jsonl> [--workers W]   (SIDE-GT-REDUCE: hypotheses the others imply become goals)"""
-import cmath, json, math, os, signal, sys
+  python side/geo_decl.py reduce <rows.jsonl> <out.jsonl> [--workers W]   (SIDE-GT-REDUCE: hypotheses the others imply become goals)
+  python side/geo_decl.py ndg <rows.jsonl> <out.jsonl> [--workers W] [--limit S]   (SIDE-GT-NDG: degenerate figures on which the goal fails)"""
+import cmath, itertools, json, math, os, signal, sys, time
 import numpy as np
 
 FACT = {"coll": 3, "para": 4, "perp": 4, "cong": 4, "cyclic": 4, "midp": 3, "circle": 3, "eqangle": 8, "eqratio": 8, "aconst": 5, "rconst": 5, "uangle": 6, "uconst": 4}
@@ -481,6 +482,57 @@ def reduce_rows():
             f.flush()
 
 
+def ndg_one(a):
+    """SIDE-GT-NDG: the figures kept for a statement are the generic ones, so a statement false only on a degenerate figure passes every check here. Force each collinear triple the
+    statement neither states nor excludes, solve, and test the goal. A line is not a circle: a figure whose cyclic hypothesis has three collinear points is dropped, and a cyclic goal with three
+    collinear points fails. -> the row with events: triples with a figure, how many figures, how many of them fail the goal, and one failing figure"""
+    x, limit = a
+    t0 = time.time()
+    pts, hyps, goal = _clean(x["dsl"])
+    names = pts.split()
+    _, _, G, figs, _ = solve(_state(pts, hyps, goal))
+    row = dict(id=x["id"], sample=x["sample"], dsl=x["dsl"], figs=len(figs), triples=0, tried=0, events=[], stopped=False)
+    if not figs:
+        return row
+    ix = {p: i for i, p in enumerate(names)}
+    ga = [ix[q] if isinstance(q, str) else q for q in G[1]]
+    no = {frozenset(s.split()[1:]) for s in hyps if s.split()[0] == "ncoll"}
+    line = lambda t, P: abs(residual("coll", list(t), P)[0]) < 1e-7
+    flat = lambda a, P: any(line(t, P) for t in itertools.combinations(a, 3))
+    cyc = [[ix[q] for q in s.split()[1:]] for s in hyps if s.split()[0] == "cyclic"]
+    todo = [t for t in itertools.combinations(names, 3) if frozenset(t) not in no and not line([ix[q] for q in t], figs[0])]
+    row["triples"] = len(todo)
+    np.random.default_rng(0).shuffle(todo)
+    for t in todo:
+        if limit and time.time() - t0 > limit:
+            row["stopped"] = True
+            break
+        row["tried"] += 1
+        got = solve(_state(pts, hyps + ["coll " + " ".join(t)], goal), starts=40)[3]
+        got = [P for P in got if not any(flat(c, P) for c in cyc)]
+        if not got:
+            continue
+        bad = [P for P in got if any(abs(r) > 1e-6 for r in residual(G[0], ga, P)) or (G[0] == "cyclic" and flat(ga, P))]
+        e = dict(triple=list(t), figs=len(got), fails=len(bad))
+        if bad:
+            e["fig"] = {q: [round(float(bad[0][i].real), 5), round(float(bad[0][i].imag), 5)] for q, i in ix.items()}
+        row["events"].append(e)
+    return row
+
+
+def ndg_rows():
+    """ndg <rows.jsonl> <out.jsonl> [--workers W] [--limit S]: ndg_one on every statement not yet in out"""
+    from concurrent.futures import ProcessPoolExecutor, as_completed
+    rows = [json.loads(l) for l in open(sys.argv[2])]
+    w = int(sys.argv[sys.argv.index("--workers") + 1]) if "--workers" in sys.argv else 4
+    limit = int(sys.argv[sys.argv.index("--limit") + 1]) if "--limit" in sys.argv else 0
+    done = {(r["id"], r["sample"]) for r in map(json.loads, open(sys.argv[3]))} if os.path.exists(sys.argv[3]) else set()
+    with ProcessPoolExecutor(w) as ex, open(sys.argv[3], "a") as f:
+        for u in as_completed([ex.submit(ndg_one, (r, limit)) for r in rows if (r["id"], r["sample"]) not in done]):
+            f.write(json.dumps(u.result()) + "\n")
+            f.flush()
+
+
 if __name__ == "__main__":
     if sys.argv[1] == "guard":
         print(json.dumps(guard(sys.argv[2])))
@@ -489,5 +541,7 @@ if __name__ == "__main__":
     if sys.argv[1] == "one":
         print(json.dumps(guard(sys.argv[2])))
         print(figure(sys.argv[2])[2])
+    if sys.argv[1] == "ndg":
+        ndg_rows()
     if sys.argv[1] == "reduce":
         reduce_rows()
