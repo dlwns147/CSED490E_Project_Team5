@@ -442,7 +442,8 @@ def reduce_one(x):
             if h is None:
                 break
             now = [s for s in now if s != h]
-            ob.append(_state(pts, now, h))
+            w = h.split()
+            ob.append(_state(pts, now, f"cong {w[1]} {w[2]} {w[1]} {w[3]}" if w[0] == "circle" and len(w) == 4 else h))   # the closure takes a circle goal of three points or more
         if ob and tuple(ob) not in seen:
             seen.add(tuple(ob))
             row["bases"].append(dict(obligations=ob, left=now))
