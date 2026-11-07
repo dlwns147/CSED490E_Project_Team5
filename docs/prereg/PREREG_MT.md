@@ -1098,3 +1098,7 @@ Per turn, tracked by `turn_track` on the 800 (exploratory; only turn 0 starts fr
 | Qwen3-8B N | 57.6 | 62.7 | 67.0 | 76.2 | 16.2 |
 
 Oracles over EnvScaler T with others: turn 0, 82.9 → 87.6 (with EnvACE T), 86.5 (Qwen3-8B T), 86.4 (Qwen3-8B N), 89.9 (all four). Conversations right by at least one arm, independent runs: 48.8 → 54.2, 54.2, 51.9, 58.8. So the upper bound on what selection can add to the best checkpoint is real, about 10 points over conversations with four arms, and it needs the arms to be different models. The compounding prediction waits for EnvScaler's own quick turn and AWM.
+
+### MT-FC: a second fault found, in long context (2026-11-07 03:4x UTC)
+
+Reading EnvScaler's evaluation section: it runs at 64K context "to match the Long-Context subset". Our lanes run at 32,768. **In long context, 43 of 200 conversations overflow in every arm and count as failures.** The registered 600 items contain no long context, so P2 and both decisions stand. The means of four (P1, P3) and EnvACE's miss below its range are affected. Before EnvACE's miss is read as an unknown difference, the overflowing items are rerun at 65,536 for the arms that have them, with results reported as a correction next to the registered numbers (`mt_fc_over.jsonl`, tags `<arm>64`). All later long-context rows run at 65,536.
