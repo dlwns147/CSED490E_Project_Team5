@@ -39,14 +39,15 @@ Our side of the proof work is now testing and analysis only, to guide you (decid
 |---|---|
 | Can the kernel accept the engine's proofs? | Yes: 340 of 350, and no step rejected. The rest are 2 figure constants and timeouts now passing with a 4-hour limit (6 of 8 so far) |
 | IMO-AG-30 | All 27 problems we solve have a kernel-checked theorem, 7 of them with no reading before lifting. AlphaGeometry2 and TongGeometry reach 30 |
-| Can a reading be proved? | Often. Directions modulo 2π take the held-out set from 273 readings to 53, and from 15 to 46 theorems with none, on export. Full compile *pending* |
-| Do readings ever fail? | No figure broke one on a counted statement, 271 of 273 overall and the other 2 already removed. Control *pending* |
+| Can a reading be proved? | Often. Directions modulo 2π take the held-out set from 273 readings to 53, and from 15 to 46 theorems with none, on export. 78 of 82 held-out theorems compile, HAGeo running |
+| Do readings ever fail? | Unknown for most. The search reaches 4 or more of 40 starts on only 48 of 246 readings, so "no figure" is weak; among those 48 the only flips are the removed ISL 2016 family. With order conditions dropped, 16 of 185 flip and the goal fails on all 16, so order conditions carry real weight |
 | Can the engine do without the rules that need readings? | Mostly: 69 of 84 held-out statements are proved without them (15 time out), covering 20 of 25 problem ids. Not certified or compiled; the HAGeo half was withdrawn |
+| Does "no reading" mean nothing was read from the figure? | **No.** A statement with an unsigned angle (`uangle`) becomes a directed `EqA` with the sign taken from the figure, and that is a hypothesis of the theorem. 26 of 82 held-out theorems have one, 10 of the 46 with no `Read`. Count those separately |
 | Is the translation faithful? | Still read by hand on our side: 22 of 65 held out. The comparison with MechGeo's audited statements (SIDE-GT-MG) is *pending* |
 
 **Where to work, hardest first.**
 1. **Faithfulness without a human.** This is the real limit. Agreement between translations helps, but a wrong statement can still be proved. MechGeo (2608.02295) refuted 22 statements experts had accepted, and our figure solver can't see such errors.
-2. **The readings left.** They need the order of points on a line or a circle, or belong to side-side-side pairs with no angle relation. Order facts could enter as hypotheses of the statement. Chord direction depends on the order of points on the circle, which isn't linear, so expect a case split.
+2. **The readings left, and unsigned angles.** They need the order of points on a line or a circle, or belong to side-side-side pairs with no angle relation. Order facts could enter as hypotheses of the statement. Chord direction depends on the order of points on the circle, which isn't linear, so expect a case split.
 3. **Coverage.** Random points prove nearly as much as our greedy choice so far (176 against 196 at 274 rows), so the auxiliary-point search has room.
 
 **Don't retry without a new idea:** model-proposed auxiliary points (they prove nothing random misses), computational checks of natural-language proofs, or the proof list in place of the triple search (circle tangency can't be written yet).

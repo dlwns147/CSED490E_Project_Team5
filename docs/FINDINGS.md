@@ -5861,3 +5861,20 @@ Contribution as a reviewer would judge it: a negative result with a mechanism. S
 
 **Running:** Qwen3-8B thinking on AIME and MATH level 5 with the reasoning kept (job 1349138, one seed). X1 stored only final answers, so where an answer first appears couldn't be read. It tests idea 6 offline.
 
+## 2026-11-07 17:0x UTC: computation ideas: three more fail as checks; a different route gives some new answers
+
+**What ran:** Qwen3-8B, no thinking, AIME (60) and MATH level 5 (134), three seeds, three program prompts against the plain program from X1 (`run_math.py`, arms `cert`, `extrap`, `numid`). Exploratory, no prediction registered.
+
+| Arm | AIME: right, tokens; gives an answer, precision | MATH level 5: right, tokens; gives an answer, precision |
+|---|---|---|
+| Plain program | 21.7%, 615; 55%, 39% | 45.5%, 341; 69%, 66% |
+| Program that checks itself (`cert`) | 14.4%, 892; 29%, 47% | 28.1%, 560; 41%, 69% |
+| Small cases and extrapolation (`extrap`) | 19.4%, 650; 56%, 35% | 38.1%, 344; 69%, 55% |
+| Numeric, then identify (`numid`) | 12.8%, 753; 38%, 34% | 14.7%, 454; 33%, 45% |
+
+- **Certificates (idea 3) fail as a filter at this size.** The harder program loses a third of the right answers and raises precision by 3–8 points. One thing is worth keeping: when it prints FAIL it is nearly always wrong (1 right of 118), so FAIL is a clean reject, but so few are caught that it doesn't pay.
+- **Numeric then identify (idea 10) fails:** far fewer right answers, no gain in precision.
+- **Extrapolation (idea 9) fails as a replacement** but adds answers: right on 11 of 180 AIME runs where both the plain program and the text answer are wrong (14 of 402 on level 5). As a check it isn't better: plain program and `extrap` agree on 17% of AIME at 70%, against 19% at 74% for two plain programs.
+
+None of these beats a cross-family peer (22% at 92%). At 8B, a harder instruction costs more correct programs than its check gains.
+

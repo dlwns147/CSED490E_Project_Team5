@@ -1383,6 +1383,10 @@ I read each guarded statement against the audited Lean statement and write the v
 
 **Decision.** RC-P1 holds and RC-P2 is at least 10%: the search reaches flipped figures when they exist, and the RD result stands as evidence. RC-P1 fails: readings with few solved starts count as untested, and RD-P1 is restated on the rest. RC-P2 below 10%: order conditions aren't what fixes the readings, the control has shown no power on real statements, and the RD result is reported as unconfirmed.
 
+**Result (2026-11-07 17:0x UTC).** 84 certificates, 2 stopped on a figure constant, 3 ran out of time: 246 of 273 readings tried. **RC-P1 fails: 48 of 246 (20%) have 4 or more of 40 starts solved, median 0, and 127 have none.** The search rarely finds even an unflipped figure once the auxiliary points are written out, so "no figure" means little for most readings. **RC-P2 fails below the bar: 16 of 185 (8.6%).** **RC-P3 fails: the goal holds on all figures for 0 of 16.** By the rule, readings with few solved starts count as untested and the RD result is reported as unconfirmed. Restated: of 48 readings the search could test, the only flips are three on ISL 2016 in the degenerate family. SIDE-GT-LEAN-RD's 271 of 273 should not be cited.
+
+**A hidden reading, found by this control.** 11 of the 16 flipped readings are not hypotheses of the lifted theorems, though the goal fails on their figures. A kernel theorem can't fail on a figure that meets its hypotheses, so I read one (ISL 2013). The statement says `uangle p b a a c b`, unsigned; the theorem assumes `EqA`, directed, with the sign taken from the figure (`geo_decl.py`, `_turn`). The flipped figure meets the unsigned form and not the directed one. So a statement with `uangle` carries a figure-derived fact in a hypothesis that isn't called a reading: 26 of 82 held-out theorems, and 10 of the 46 with no `Read`.
+
 ### SIDE-GT-LEAN-LIFT: prove the reading instead of assuming it (registered 2026-11-07 14:5x UTC, before the full compile)
 
 **Why.** Only 3 of 22 counted problems have theorems without readings, so most of what the kernel checked assumes a fact about the figure. SIDE-GT-LEAN-NR removes the rules that need readings and loses proofs. This keeps the proofs and removes the hypotheses.
@@ -1400,4 +1404,6 @@ I read each guarded statement against the audited Lean statement and write the v
 - **LIFT-P4 (bug check):** no relation has the wrong constant on any certificate. One that does means a rule of the exporter is wrong, because the figure satisfies the reading.
 
 **Decision.** LIFT-P1 holds and LIFT-P2 is at least 100: lifting becomes the default export, the count is split into theorems with and without readings, and the next gap is the readings left, by which relation blocks them. Below 100: the same split, and the blocked relations are read before anything else.
+
+**Interim (2026-11-07 17:0x UTC).** Held out: 78 of 82 compile (3 timeouts at 1,200 s, 1 fails at Lean's recursion limit in a `simp`). Repaired ISL 2016: 4 of 4. HAGeo fix: 2 of 2. HAGeo: 83 of 86 so far. LIFT-P4 holds so far: no wrong constant. Three failures are `maximum recursion depth`, in long combinations, a limit of the written proof and not a rejected step.
 
