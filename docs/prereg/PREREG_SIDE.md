@@ -1340,3 +1340,17 @@ I read each guarded statement against the audited Lean statement and write the v
 - **NR-P3 (reported):** median proof length grows by at least 20% among rows proved both ways: predicted yes, 70%.
 
 **Decision.** If NR-P1 reaches at least 170, the reported count splits in two, readings assumed and readings absent, and the no-reading engine becomes the default for the MG comparison, since those theorems are what compares with MechGeo. Below 170 the readings stay as stated hypotheses, and the next method is discharging them from the statement's order conditions, as a sign proved in Lean or by a case split on the two orientations.
+
+### SIDE-GT-LEAN-RD: can a reading fail on the statement? (registered 2026-11-07 13:0x UTC, before the run)
+
+**Why.** A theorem with `Read` as a hypothesis says nothing on the figures where the reading fails. Removing the hypothesis is a question about the statement, so ask it directly. If no figure of the statement breaks a reading, the reading is probably implied by its order conditions. If some figure breaks it and the goal holds there, the proof is incomplete, though the statement may be true. If the goal fails there, the statement is false as written, and only the reading the engine took from its figure saved it. That is the error MechGeo refuted statements for, and no stage of ours can see it: the guard and the fresh figures share the configuration of the first figure.
+
+**Design.** `rread` in `geo_decl.py`: each reading of each certificate that exports, negated as an order condition (`flip`, `flip2`, `flipt`, `flipz`), with the auxiliary points it mentions and their constructions; 40 starts as in `pcond`, then the goal tested. Set: the 84 held-out certificates, 1,800 s each. On one certificate in a smoke test (ISL 2012, two readings) no figure exists.
+
+**Predictions.**
+- **RD-P1 (reported):** 35% of readings have a figure where they fail (15–60%). Statements with order conditions pin many of them down.
+- **RD-P2 (decision):** at least one counted statement has a broken reading with the goal false on the figure, accepted on reading. Predicted 40%.
+- **RD-P3 (reported):** counted problems with at least one counted statement whose readings all have no failing figure: 12 of 23 (7–18).
+
+**Decision.** RD-P2 holds: the stage goes before counting, as NDG does. If the text implies the missing order condition, it is added and the row is reproved; if not, the row leaves the count, and every count is restated. RD-P2 fails: readings are hypotheses that no figure found broke, and each row reports how many have figures.
+

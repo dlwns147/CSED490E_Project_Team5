@@ -18,7 +18,7 @@ import cmath, itertools, json, math, os, signal, sys, time
 import numpy as np
 
 FACT = {"coll": 3, "para": 4, "perp": 4, "cong": 4, "cyclic": 4, "midp": 3, "circle": 3, "eqangle": 8, "eqratio": 8, "aconst": 5, "rconst": 5, "uangle": 6, "uconst": 4}
-ORDER = {"between": 3, "inside": 4, "sameside": 4, "opposite": 4, "acute": 3, "obtuse": 3, "convex": 4, "ncoll": 3}
+ORDER = {"between": 3, "inside": 4, "sameside": 4, "opposite": 4, "acute": 3, "obtuse": 3, "convex": 4, "ncoll": 3, "flip": 6, "flip2": 6, "flipt": 5, "flipz": 6}   # flip*: a reading of a proof, negated (SIDE-GT-LEAN-RD)
 GOAL = ("coll", "para", "perp", "cong", "cyclic", "midp", "circle", "eqangle", "eqratio", "uangle")
 MARGIN = 0.02  # how far an order condition must hold, as a fraction of the sizes in it; a figure is rejected only by the exact test
 STARTS, KEEP = int(os.environ.get("GT_DECL_STARTS", 80)), 12
@@ -170,6 +170,16 @@ def order_value(name, a, P):
         return [s * v for v in vs]
     if name == "ncoll":
         return [abs(cr(z(a[0], a[1]), z(a[0], a[2])))]
+    dt = lambda u, v: (u.conjugate() * v).real / (abs(u) * abs(v) + 1e-12)
+    if name in ("flip", "flip2"):
+        v = cr(z(a[0], a[1]), z(a[0], a[2])) * cr(z(a[3], a[4]), z(a[3], a[5]))
+        return [-v if name == "flip" else v]
+    if name == "flipt":
+        o, p, c, q, e = a
+        return [-dt(z(p, o), z(p, c)) * dt(z(q, o), z(q, e))]
+    if name == "flipz":
+        m, p, e, k, q, c = a
+        return [-dt(z(m, p), z(m, e)) * dt(z(k, q), z(k, c))]
     raise ValueError(name)
 
 
@@ -563,6 +573,8 @@ def _negate(cond, pts, hyps, defs):
     extra = []
     if kind == "ncoll":
         extra = [["coll", *a]]
+    elif kind.startswith("flip"):
+        extra = [[kind, *a]]
     elif kind == "para":
         extra = [["para", *a]]
     elif kind == "tangent":
@@ -647,7 +659,49 @@ def pcond_one(a):
     return row
 
 
-def pcond_rows():
+def rread_one(a):
+    """SIDE-GT-LEAN-RD: each reading of a certified proof, negated. A figure of the statement where the reading fails is outside what the proof shows; if the goal fails there too, the statement
+    is false as written and only the reading saved it. -> a row with one entry per reading"""
+    from geo_lean import Writer, Stop
+    path, limit = a
+    t0 = time.time()
+    c = json.load(open(path))
+    row = dict(file=os.path.basename(path), dsl=c["dsl"], reads=[], stopped=False)
+    w = Writer(json.loads(json.dumps(c)))
+    w.cache = {}
+    try:
+        w.run()
+    except Stop as e:
+        row["error"] = str(e)
+        return row
+    pts, hyps, goal = _clean(c["dsl"])
+    G = parse(_state(pts, hyps, goal))[2]
+    line = lambda t, P: abs(residual("coll", list(t), P)[0]) < 1e-7
+    flat = lambda q, P: any(line(t, P) for t in itertools.combinations(q, 3))
+    for k in w.reads:
+        q = [*k[1], *k[2]] if k[0] in ("Read", "Read2") else list(k[1])
+        kind = {"Read": "flip", "Read2": "flip2", "ReadT": "flipt", "ReadZ": "flipz"}[k[0]]
+        e = dict(read=[k[0], *q])
+        row["reads"].append(e)
+        if limit and time.time() - t0 > limit:
+            row["stopped"] = True
+            e["state"] = "not tried"
+            continue
+        p2, h2 = _negate([kind, *q, "read"], pts, hyps, c["defs"])
+        ix = {p: i for i, p in enumerate(p2.split())}
+        got = solve(_state(p2, h2, goal), starts=40)[3]
+        cyc = [[ix[x] for x in s.split()[1:]] for s in h2 if s.split()[0] == "cyclic"]
+        got = [P for P in got if not any(flat(x, P) for x in cyc)]
+        ga = [ix[x] if isinstance(x, str) else x for x in G[1]]
+        bad = [P for P in got if any(abs(r) > 1e-6 for r in residual(G[0], ga, P)) or (G[0] == "cyclic" and flat(ga, P))]
+        e.update(state="figures" if got else "none", figs=len(got), fails=len(bad))
+        if bad:
+            e["fig"] = {x: [round(float(bad[0][i].real), 5), round(float(bad[0][i].imag), 5)] for x, i in ix.items()}
+    row["sec"] = round(time.time() - t0, 1)
+    return row
+
+
+def pcond_rows(one=pcond_one):
     """pcond <cert dir> <out.jsonl> [--workers W] [--limit S] [--only substring ...]: pcond_one on every certificate not yet in out"""
     from concurrent.futures import ProcessPoolExecutor, as_completed
     w = int(sys.argv[sys.argv.index("--workers") + 1]) if "--workers" in sys.argv else 4
@@ -655,7 +709,7 @@ def pcond_rows():
     done = {r["file"] for r in map(json.loads, open(sys.argv[3]))} if os.path.exists(sys.argv[3]) else set()
     todo = [os.path.join(sys.argv[2], f) for f in sorted(os.listdir(sys.argv[2])) if f.endswith(".json") and f not in done]
     with ProcessPoolExecutor(w) as ex, open(sys.argv[3], "a") as f:
-        for u in as_completed([ex.submit(pcond_one, (p, limit)) for p in todo]):
+        for u in as_completed([ex.submit(one, (p, limit)) for p in todo]):
             f.write(json.dumps(u.result()) + "\n")
             f.flush()
 
@@ -672,5 +726,7 @@ if __name__ == "__main__":
         ndg_rows()
     if sys.argv[1] == "pcond":
         pcond_rows()
+    if sys.argv[1] == "rread":
+        pcond_rows(rread_one)
     if sys.argv[1] == "reduce":
         reduce_rows()
