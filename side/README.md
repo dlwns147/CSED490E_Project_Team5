@@ -18,12 +18,12 @@ Side work may use the Slurm server's GPUs: a model server and client commands ru
 
 | Route | State | Hardest open gap |
 |---|---|---|
-| Geometry by translation (`geo_translate.py`, `geo_decl.py`, `geo_closure.py`, `geo_check.py`) | Kernel-checked in Lean (most theorems still assume a figure reading): **259 of 263 HAGeo-409 rows, 4 pending** (HAGeo 263 at K = 2,048, 287 at K = 8,192); held out **22 of 65**; checker only: **27 of IMO-AG-30**; held-out faithfulness read by hand (16 whole problems, 6 one direction or part), declarative statements | **Telling a faithful statement from an unfaithful one without a human:** agreement fails on declarative statements, half translations leave no trace, and some translations assume the claim (SIDE-GT-REDUCE attacks the last). Most proofs read a configuration from the figure. IMO 2008 P6, 2011 P6 and 2021 P3 need theories the engine lacks |
+| Geometry by translation (`geo_translate.py`, `geo_decl.py`, `geo_closure.py`, `geo_check.py`) | Kernel-checked in Lean: **263 of 263 HAGeo-409 rows, 126 of them with no figure reading** (HAGeo 263 at K = 2,048, 287 at K = 8,192); held out **22 of 65**; **27 of IMO-AG-30** (all kernel-checked); held-out faithfulness read by hand (16 whole problems, 6 one direction or part), declarative statements | **Telling a faithful statement from an unfaithful one without a human:** agreement fails on declarative statements, half translations leave no trace, and some translations assume the claim (SIDE-GT-REDUCE attacks the last). Most proofs read a configuration from the figure. IMO 2008 P6, 2011 P6 and 2021 P3 need theories the engine lacks |
 | Natural-language proofs | Computational checks of a proof failed (SIDE-PF, SIDE-PG) | A free check that sees a step left unjustified while true, the most common error |
 | Lean (main track, `PREREG_PROOF.md`) | A specialised 8B prover is best; the compiler is a perfect check | Not a side-project gap at present |
 | Constructions (`construct.py`) | Unsolved for an 8B model; its own checker is not a usable free check | A derived free check, or a search the problem's structure makes exact |
 
-**Running now (geometry):** SIDE-GT-LEAN-LIFT compile of HAGeo (job 1347628), SIDE-GT-MG (job 1345808).
+**Running now (geometry):** SIDE-GT-MG (job 1345808).
 
 ## Guidance for the teammate taking this on
 
@@ -31,18 +31,20 @@ Our side of the proof work is now testing and analysis only, to guide you (decid
 
 **What exists.** A model translates a geometry problem into a declarative statement (`geo_decl.py`). A least-squares solver builds figures of it, and a CPU engine proves it by linear algebra over directions, log lengths and squared lengths (`geo_closure.py`). An exact Python checker tests the proof (`geo_check.py`). `geo_lean.py` writes each proof as a Lean theorem over the rule library in `side/lean/` (Lean 4.15.0 with the matching Mathlib; no `sorry`, standard axioms only).
 
+**Export default:** `--lift` since 2026-11-07.
+
 **To reproduce one theorem.** From a certificate directory: `python side/geo_lean.py all <certs> <out> --lift`, then compile each file with `LEAN_PATH` holding Mathlib and the compiled `side/lean/` modules, built in the order GeoBase, GeoRules, GeoSim, GeoCircle, GeoCert, GeoLift. A theorem takes a median of 22 s; a few need far longer than the 1,200 s limit. `python side/geo_decl.py rread <certs> <out.jsonl>` tests each reading on the statement's figures.
 
 **What the tests say.**
 
 | Question | Answer so far |
 |---|---|
-| Can the kernel accept the engine's proofs? | Yes: 340 of 350, and no step rejected. The rest are 2 figure constants and timeouts now passing with a 4-hour limit (6 of 8 so far) |
-| IMO-AG-30 | All 27 problems we solve have a kernel-checked theorem, 7 of them with no reading before lifting. AlphaGeometry2 and TongGeometry reach 30 |
-| Can a reading be proved? | Often. Directions modulo 2π take the held-out set from 273 readings to 53, and from 15 to 46 theorems with none, on export. 78 of 82 held-out theorems compile, HAGeo running |
+| Can the kernel accept the engine's proofs? | Yes: 348 of 350, and no step rejected. The other 2 rest on a figure constant. 8 of them needed a 4-hour limit, up to 7,457 s |
+| IMO-AG-30 | All 27 problems we solve have a kernel-checked theorem (69 theorems), 7 of them with no reading before lifting; lifting wasn't run on this set. AlphaGeometry2 and TongGeometry reach 30 |
+| Can a reading be proved? | Often. With directions modulo 2π, **126 of 263 counted HAGeo rows** have a kernel-checked theorem with no reading (from 48). Held out, 46 of 82 theorems (from 15), on 11 faithful problems (from 2). Lifting fails on 11 of 344 by Lean's limits or the exporter, never by a rejected step, and the unlifted theorem stands |
 | Do readings ever fail? | Unknown for most. The search reaches 4 or more of 40 starts on only 48 of 246 readings, so "no figure" is weak; among those 48 the only flips are the removed ISL 2016 family. With order conditions dropped, 16 of 185 flip and the goal fails on all 16, so order conditions carry real weight |
 | Can the engine do without the rules that need readings? | Mostly: 69 of 84 held-out statements are proved without them (15 time out), covering 20 of 25 problem ids. Not certified or compiled; the HAGeo half was withdrawn |
-| Does "no reading" mean nothing was read from the figure? | **No.** A statement with an unsigned angle (`uangle`) becomes a directed `EqA` with the sign taken from the figure, and that is a hypothesis of the theorem. 26 of 82 held-out theorems have one, 10 of the 46 with no `Read`. Count those separately |
+| Does "no reading" mean nothing was read from the figure? | **Not always.** A statement with an unsigned angle (`uangle`) becomes a directed `EqA` with the sign taken from the figure, and that is a hypothesis of the theorem. 26 of 82 held-out theorems have one, 10 of the 46 with no `Read`, so the faithful problems with neither number 8. HAGeo-409's statements have none |
 | Is the translation faithful? | Still read by hand on our side: 22 of 65 held out. The comparison with MechGeo's audited statements (SIDE-GT-MG) is *pending* |
 
 **Where to work, hardest first.**
@@ -55,6 +57,11 @@ Our side of the proof work is now testing and analysis only, to guide you (decid
 **Where things are.** Status and dated log below; predictions and verdicts in `docs/prereg/PREREG_SIDE.md`; prior work in `docs/notes/RELATED_WORK.md`.
 
 ## Log
+
+**2026-11-07 19:4x UTC: half of HAGeo's counted rows no longer assume a figure reading.**
+- **SIDE-GT-LEAN-LIFT final:** all four predictions hold. 333 of 344 lifted certificates compile at 1,200 s; 126 of 263 counted rows have no reading (from 48); 11 faithful held-out problems (from 2), 8 once unsigned angles count as readings; no wrong constant. Lifting is now the default export.
+- **Counts restated:** all 263 counted HAGeo rows are kernel-checked, 348 of 350 theorems compile, IMO-AG-30 27 of 27.
+- **SIDE-GT-H409-RAND final:** random points 226, greedy 263, +37 [+23, +51]. The greedy stands.
 
 **2026-11-07 14:5x UTC: readings can be proved, not assumed. First two theorems without them compile; no figure broke a reading on a counted statement.**
 - **SIDE-GT-LEAN-RD:** of 273 readings on the held-out certificates, 271 have no figure where they fail. The other 2 are on ISL 2016 with a, b, p collinear, which the NDG stage already removed; the repaired rows have no failing figure. RD-P1 is far below prediction (0.7% against 35%), so `rctl` (SIDE-GT-LEAN-RC, job 1348742) now tests whether the search could have found one.
