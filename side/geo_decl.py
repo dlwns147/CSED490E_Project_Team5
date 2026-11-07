@@ -11,7 +11,8 @@ orientation of the figure: the statement fixes the configuration by its order co
 Order, which only selects the figure: between a b c (b strictly inside segment ac; it also gives the fact coll a b c), inside p a b c, sameside p q a b, opposite p q a b, acute a b c (angle at b),
 obtuse a b c, convex a b c d, ncoll a b c. Distinct names are distinct points.
   python side/geo_decl.py one '<statement>'     (solve and print the figures found and whether the goal holds on them)
-  python side/geo_decl.py guard '<statement>'   (the status alone, for geo_translate.py)"""
+  python side/geo_decl.py guard '<statement>'   (the status alone, for geo_translate.py)
+  python side/geo_decl.py reduce <rows.jsonl> <out.jsonl> [--workers W]   (SIDE-GT-REDUCE: hypotheses the others imply become goals)"""
 import cmath, json, math, os, sys
 import numpy as np
 
@@ -348,6 +349,116 @@ def agree_rows():
                 f.write(json.dumps(dict(id=x["id"], a=x["sample"], b=y["sample"], b_holds_on_a=bool(h), share=round(sh, 3))) + "\n")
 
 
+def _clean(text):
+    """the statement's hypotheses as written, one per fact or order condition, without repeats; a coll that a between already gives is a repeat. -> points, kept texts, goal text"""
+    body, goal = text.strip()[5:].split(" ? ", 1)
+    parts = [p.strip() for p in body.split(";") if p.strip()]
+    can = lambda w: (w[0], tuple(sorted(w[1:]))) if w[0] in ("coll", "cyclic") else (w[0], tuple(w[1:]))
+    seen = {("coll", tuple(sorted(s.split()[1:]))) for s in parts[1:] if s.split()[0] == "between"}
+    kept = []
+    for s in parts[1:]:
+        c = can(s.split())
+        if c not in seen or s.split()[0] == "between":
+            seen.add(c)
+            kept.append(s)
+    return parts[0], kept, goal.strip()
+
+
+def _state(pts, hyps, goal):
+    return "decl: " + "; ".join([pts] + hyps) + " ? " + goal
+
+
+def _jac(facts, P):
+    """the facts' residuals differentiated in the coordinates at figure P, each row of unit length -> rows, the fact each row belongs to"""
+    n = len(P)
+    v = np.r_[P.real, P.imag]
+
+    def R(x):
+        Q = x[:n] + 1j * x[n:]
+        out = []
+        for j, (k, a) in enumerate(facts):
+            out += [(j, r) for r in residual(k, a, Q)]
+        return out
+    owner = [j for j, _ in R(v)]
+    J = np.zeros((len(owner), 2 * n))
+    for c in range(2 * n):
+        e = np.zeros(2 * n)
+        e[c] = 1e-6
+        J[:, c] = (np.array([r for _, r in R(v + e)]) - np.array([r for _, r in R(v - e)])) / 2e-6
+    return J / (np.linalg.norm(J, axis=1, keepdims=True) + 1e-12), owner
+
+
+def _rk(J):
+    return int((np.linalg.svd(J, compute_uv=False) > 1e-5).sum()) if J.size else 0
+
+
+def redundant(pts, hyps, figs):
+    """SIDE-GT-REDUCE: the hypotheses (texts, facts only) whose equations lie in the span of the others' at every figure (Michelucci and Foufou's dependence test at a witness), and the
+    number of dependent equations"""
+    ix = {p: i for i, p in enumerate(pts.split())}
+    H = []
+    for s in hyps:
+        w = s.split()
+        if w[0] in FACT or w[0] == "between":   # a between's line is an equation too, though the condition stays
+            _, hh, _ = parse(f"decl: {pts}; {s} ? {'coll ' + ' '.join(pts.split()[:3])}")
+            H.append((s if w[0] != "between" else None, hh[-1][0], [ix[x] if isinstance(x, str) else x for x in hh[-1][1]]))
+    out, gap = None, 0
+    for P in figs[:3]:
+        J, own = _jac([(k, a) for _, k, a in H], P)
+        r = _rk(J)
+        gap = max(gap, J.shape[0] - r)
+        here = {H[j][0] for j in range(len(H)) if H[j][0] and _rk(J[[i for i, o in enumerate(own) if o != j]]) == r}
+        out = here if out is None else out & here
+    return [s for s in hyps if s in (out or ())], gap
+
+
+def reduce_one(x):
+    """SIDE-GT-REDUCE: a hypothesis the others imply may be the claim itself. Drop it and make it a goal: H without h proves h, and H proves the goal, so H without h proves the goal, a
+    stronger statement that assumes less. A dependent equation whose hypothesis fails on some figure of the others selects a branch and stays. One basis per first choice. -> the row with
+    bases: lists of obligations (statements to prove), the last hypotheses left, and the first reading"""
+    pts, hyps, goal = _clean(x["dsl"])
+    base = _state(pts, hyps, goal)
+    _, _, _, figs, _ = solve(base)
+    row = dict(id=x["id"], sample=x["sample"], dsl=x["dsl"], figs=len(figs), gap=0, cands=[], bases=[])
+    if not figs:
+        return row
+    cands, row["gap"] = redundant(pts, hyps, figs)
+    status = {}
+
+    def st(h, rest):
+        k = (h, tuple(rest))
+        if k not in status:
+            status[k] = guard(_state(pts, rest, h))[0]
+        return status[k]
+    row["cands"] = [dict(h=h, status=st(h, [s for s in hyps if s != h])) for h in cands]
+    seen = set()
+    for first in cands:
+        now, ob = list(hyps), []
+        order = [first] + [c for c in cands if c != first]
+        while True:
+            rd = set(redundant(pts, now, figs)[0])
+            h = next((c for c in order if c in rd and st(c, [s for s in now if s != c]) == "guarded"), None)
+            if h is None:
+                break
+            now = [s for s in now if s != h]
+            ob.append(_state(pts, now, h))
+        if ob and tuple(ob) not in seen:
+            seen.add(tuple(ob))
+            row["bases"].append(dict(obligations=ob, left=now))
+    return row
+
+
+def reduce_rows():
+    """reduce <rows.jsonl> <out.jsonl> [--workers W]: reduce_one on every statement"""
+    from concurrent.futures import ProcessPoolExecutor
+    rows = [json.loads(l) for l in open(sys.argv[2])]
+    w = int(sys.argv[sys.argv.index("--workers") + 1]) if "--workers" in sys.argv else 4
+    with ProcessPoolExecutor(w) as ex, open(sys.argv[3], "w") as f:
+        for r in ex.map(reduce_one, rows):
+            f.write(json.dumps(r) + "\n")
+            f.flush()
+
+
 if __name__ == "__main__":
     if sys.argv[1] == "guard":
         print(json.dumps(guard(sys.argv[2])))
@@ -356,3 +467,5 @@ if __name__ == "__main__":
     if sys.argv[1] == "one":
         print(json.dumps(guard(sys.argv[2])))
         print(figure(sys.argv[2])[2])
+    if sys.argv[1] == "reduce":
+        reduce_rows()

@@ -1139,3 +1139,23 @@ Closure on all 97 (job 1343465) and agreement (job 1343466) are now running. DEC
 ### SIDE-GT-H409: interim (2026-11-06 23:0x UTC; shard 0 done; two shards running; **not the registered reading**)
 
 374 of 409 rows done: 261 proved, 257 with 8 of 8 fresh figures; by band [1,3) 139 of 160, [3,4) 84 of 111, [4,5) 29 of 68, [5,6) 5 of 28, [6,7] 0 of 7. Median proved 1.8 s. Checker on 259 certificates: 252 pass, 7 rejected, 97.3% (P2 predicted at least 99%, final reading pending). Four rejections have a chord premise with constant ±1/2, the same fault as the false IMO 2011 P6. I read one, USA TST 2013 P2: C and T are antipodal, so t(C) − t(T) = 1/2, but the engine accepts equal chords as if the difference were 0, which assumes the theorem's key step. **That is an engine soundness fault, and the checker is what catches it.** The fix (the premise's constant must be 0) waits for the running jobs; rejected rows are then rerun and reported apart.
+
+## SIDE-GT-REDUCE: a hypothesis the others imply becomes a goal (written 2026-11-07 01:2x UTC, before any reduction run; the statements it first runs on have verdicts I have already read)
+
+**Why.** Agreement between translations can't support a no-human claim: it passes 5 of 7 changed or wrong statements, and all four translations of USAMO 2006 P6 assume three of the circles concur, which is the claim. Reading prior work (`docs/notes/RELATED_WORK.md`, today) found no reference-free check for this.
+
+**Derivation.** Let H be the hypotheses and g the goal. If H without h implies h, and H implies g, then H without h implies g. So a redundant hypothesis need not be rejected or judged. It can be dropped and proved, which gives a stronger statement that assumes less, with the same certificates. If a translation assumes a claim the rest implies, this puts the claim back among the goals, whatever the source said. A faithful statement with a harmless repeat costs one more proof, not a rejection.
+
+**Test for redundancy.** Jacobian rank of the hypothesis equations at solved figures (Michelucci and Foufou, ADG 2006, §4.5, for CAD constraints; no use on translated statements found, search in RELATED_WORK, which does not make it new). A hypothesis is a candidate when its equations lie in the span of the others at every one of three figures. A candidate that fails on some figure of the remaining hypotheses selects a branch, and stays. One basis per first choice; a statement counts as reduced when every obligation of some basis has a certified proof.
+
+**What it can't do, stated first.** It does nothing for half translations (no equation is dependent), for a claim that replaces a definition (rank stays full), or for added hypotheses that are independent. ISL 2014 G20's two bad statements are expected to pass unflagged.
+
+**Exploratory reading already done (97 statements, verdicts known, not evidence).** With duplicates removed, at one figure: 13 of 53 faithful statements with a figure have a dependent equation, 8 of 21 half, and 4 of 6 changed or wrong (USAMO 2006 P6 samples 0, 1, 3; USAMO 2012 P5 sample 0, where the redundancy is one angle sum and doesn't explain the change).
+
+**Run.** `side/geo_decl.py reduce` on the 97, then the closure at K = −300 on the obligations, as the DECL closure run, with certificates. Exploratory, on read statements, to find out if the proofs exist at all. A registered claim needs statements not yet read, and predictions go here before that run.
+
+**Predictions for this exploratory run (fixed now).**
+- **REDUCE-E1:** USAMO 2006 P6 has at least one sample with every obligation proved and certified, which would put that problem's claim back among the goals. I put this at 40%: the assumed-concurrency proofs took about 2 minutes, and the honest claim has one more circle to reach.
+- **REDUCE-E2:** of the faithful statements with candidates, at least 70% of those with a certified original proof reduce fully. Harmless redundancy should be near-trivial to prove.
+
+**Decision.** E2 fails: redundancy on faithful statements is hard to discharge, so reduction costs proofs, and the method stops as a default. E2 holds: reduction becomes the pipeline's default and is registered on a fresh statement set, with the verdict rule read before any proof.
