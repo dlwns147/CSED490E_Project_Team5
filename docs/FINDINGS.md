@@ -5911,3 +5911,15 @@ What ran: the rest of think-to-verify, and the first 100 rows of Python inside t
 - **Think to verify (582 runs).** A yes is right 234 of 237 times (AIME 29 of 30, level 5 205 of 207). It accepts 40% of runs where a plain think capped at 6,000 finishes 34%, at equal tokens (5.8k and 4.8k against 5.9k and 5.1k). Plain thinking wins all the same: its tokens carry on towards an answer, and it can solve what the quick answer got wrong. Verification tokens are lost if the candidate is rejected, and 260 of 277 wrong candidates end with no verdict at all. Closed.
 - **Python in thinking, by prompt.** Of 100 finished rows (the shorter ones), 92 mention Python while thinking, 5 write a block there, and 55 blocks appear after the thinking ends. The raw text reads "Let me write the Python code to compute these values", then prose. So the tool isn't used, and this run tests a hint, not the idea. Stopped (job 1349967). The new arm `tirf` opens the block for the model at that point, which is the mechanism START's hints and CoRT's Hint-Engineering address by training or by insertion.
 
+## 2026-11-07 20:2x UTC: ZebraLogic: a scoring bug flattered the cascade; corrected, it matches thinking at half the tokens so far
+
+What ran: Qwen3-8B on ZebraLogic (2502.01100), 10 puzzles per size, one seed; the model translates to a solver, which counts solutions. Why: a free check on a new kind of problem. Exploratory.
+
+- **Bug, mine.** 17 thinking answers scored 0 of all cells though they stopped normally. The parser took only a flat JSON object, and the model also writes a list of rows or a dict of houses. I regraded from the stored text. The table I reported an hour ago (cascade 133 of 140 against thinking 125) was wrong in the cascade's favour.
+- **Corrected, 181 puzzles up to 5×4:** thinking 92.8% at 3.8k tokens; translation alone 73.5% at 0.36k; direct 44.8% at 1.3k. Accepting a count of 1 and thinking otherwise: 92.8% at 1.7k. Utility difference +1.0 [−2.9, +5.2], a tie, with accuracy equal at less than half the tokens. Sizes 5×5 to 6×6, where thinking should fall, aren't in.
+- **The check:** a count of 1 was right 133 of 141 times.
+- **Raw errors.** "There is one house between A and B" becomes `abs(...) == 1` in nearly every failure read, and the repair round repeats it; `p['Name:Eric'] == 'master'` compares a house with a string. That's the missing-fact pattern again, and it explains why 4×2 and 5×2, which lean on such clues, translate worst. The accepted wrong answers read so far drop or merge a clue and still leave one solution.
+- **Nearest work.** Logic.py (read in full) reaches 91.4% with Llama 3.1 70B and a DSL, and its section 4.1 names this very check and leaves it unimplemented. So the check isn't our idea. New arms: the fact in the prompt, and thinking on the translation only (job 1351460).
+
+Contribution as a reviewer would judge it: nothing yet; the claim to test is cost at equal accuracy against thinking on a standard benchmark, at 8B, on the hard sizes.
+

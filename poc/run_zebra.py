@@ -340,12 +340,33 @@ ZL_TR = ("{p}\n\nDo not solve the puzzle. Translate it. Give one ```python block
          "with exactly these attribute names: {cols}; and `clues`, a list with one Python expression, as a string, for each clue. In an expression, p['Attribute:value'] is the "
          "house number (1 to {n}) of that value. Examples of strings: \"p['Name:Bob'] == p['Pet:cat']\", \"p['Name:Bob'] != 2\", \"p['Name:Bob'] < p['Pet:cat']\", "
          "\"p['Name:Bob'] + 1 == p['Pet:cat']\", \"abs(p['Name:Bob'] - p['Pet:cat']) == 1\". Keep each value exactly as the puzzle writes it.")
+ZL_FACT = " \"There is one house between A and B\" means abs(p[A] - p[B]) == 2, two houses between means 3. A clue about one value's house uses a house number; never compare p[...] with a string."
 ZL_FMT = "{p}\n\nSolve the puzzle. On the last line give JSON mapping each attribute ({cols}) to the list of its values for houses 1 to {n} in order."
 
 
 def zl_gold(r):
     h, rows = r["solution"]["header"], r["solution"]["rows"]
     return {a: [str(x[i]).strip().lower() for x in rows] for i, a in enumerate(h) if a != "House"}
+
+
+def zl_extract(text):
+    """the last JSON value in an answer, as {attribute: [values by house]}: models also give a list of rows or a dict of houses (format is not what we measure)"""
+    dec, i, g = json.JSONDecoder(), 0, None
+    while i < len(text or ""):
+        if text[i] in "{[":
+            try:
+                g, n = dec.raw_decode(text, i)
+                i = n
+                continue
+            except ValueError:
+                pass
+        i += 1
+    if isinstance(g, dict) and g and all(isinstance(v, dict) for v in g.values()):
+        num = lambda k: int(re.sub(r"\D", "", str(k)) or 0)
+        g = [g[k] for k in sorted(g, key=num)]
+    if isinstance(g, list) and g and all(isinstance(x, dict) for x in g):
+        g = {a: [x.get(a) for x in g] for a in g[0]}
+    return g
 
 
 def zl_score(g, gold):
@@ -360,7 +381,8 @@ def zl_score(g, gold):
 def zl_main():
     tag, arm, seed = sys.argv[2], sys.argv[3], int(sys.argv[4])
     opt = lambda k, d: int(sys.argv[sys.argv.index(k) + 1]) if k in sys.argv else d
-    per, mt = opt("--per", 10), opt("--max_tokens", 16000 if arm == "think" else 4096)
+    per, mt = opt("--per", 10), opt("--max_tokens", 16000 if arm == "think" else 8192 if arm == "trt" else 4096)
+    tr = arm in ("tr", "trf", "trt")   # trf: with the fact below; trt: a translation with thinking on
     R = [json.loads(l) for l in open(os.path.join(os.environ["POC_DATA"], "zebralogic", "grid.jsonl"))]
     seen, P = {}, []
     for r in sorted(R, key=lambda r: (r["size"], int(r["id"].rsplit("-", 1)[1]))):
@@ -373,20 +395,14 @@ def zl_main():
         n, cols = len(next(iter(gold.values()))), ", ".join(gold)
         sd = seed * 10007 + int(r["id"].rsplit("-", 1)[1])
         row = {"id": r["id"], "size": r["size"], "arm": arm, "seed": seed}
-        if arm != "tr":
+        if not tr:
             o = chat_msgs([{"role": "user", "content": ZL_FMT.format(p=r["puzzle"], cols=cols, n=n)}], think=arm == "think", max_tokens=mt, temperature=0.7, seed=sd)
-            g = None
-            for blob in reversed(re.findall(r"\{[^{}]*\}", o["text"] or "", re.S)):
-                try:
-                    g = json.loads(blob); break
-                except ValueError:
-                    pass
-            ex, ca = zl_score(g, gold)
+            ex, ca = zl_score(zl_extract(o["text"]), gold)
             return {**row, "exact": ex, "cell_acc": ca, "tokens": o["out_tokens"], "finish": o["finish"], "text": (o["text"] or "")[-1500:]}
-        msgs = [{"role": "user", "content": ZL_TR.format(p=r["puzzle"], cols=cols, n=n)}]
+        msgs = [{"role": "user", "content": ZL_TR.format(p=r["puzzle"], cols=cols, n=n) + (ZL_FACT if arm == "trf" else "")}]
         tok, hist = 0, []
         for rnd in range(3):
-            o = chat_msgs(msgs, think=False, max_tokens=mt, temperature=0.7, seed=sd + rnd)
+            o = chat_msgs(msgs, think=arm == "trt", max_tokens=mt, temperature=0.7, seed=sd + rnd)
             tok += o["out_tokens"]
             code = last_block(o["text"], ("python", "py", "python3"))
             res = run_python(code + "\n" + ZL_SOLVE, "", timeout=30, mem_bytes=4 << 30) if code else None

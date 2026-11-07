@@ -333,3 +333,10 @@ Three web searches, on translating AlphaGeometry or Newclid proofs into Lean or 
 - **PUMA (2605.17672).** Argues answer-level stopping exits early in 44–64% of cases while self-correction is under way, and adds a verification step; 26.2% saved. Closest to idea 6. Our variant gates on an independent cheap answer, which these snippets don't mention; that is not a novelty claim.
 - **Metacognitive Reuse (2509.13237)** and **CC-LEARN (2506.15662).** Reuse of reasoning fragments (up to 46% fewer tokens), and training on cohorts sharing one program. Closest to idea 11. Neither measures one program paid once over many instances at inference, as far as the search shows.
 
+## Logic grid puzzles and solver translation (added 2026-11-07)
+
+- **Logic.py (Kesseli, O'Hearn, Cabral; arXiv 2502.15776), read in full.** A small Python DSL; Llama 3.1 70B writes a data structure, then constraints; CBMC solves. 91.4% on ZebraLogicBench (97.86 easy, 88.89 hard) against 24.9% for the base model. A syntax error or UNSAT restarts the pipeline with no feedback. **Section 4.1 names our check and leaves it out:** "The constraint solver can also detect whether two distinct solutions are possible ... However, we did not implement this ambiguity detection mechanism," and the model isn't told that the answer is unique. No token cost is reported. So the count as a check is a stated idea in prior work, not ours; what we can add is measuring it, as a gate in a cost cascade and as feedback, at 8B.
+- **ZebraLogic (Lin et al.; arXiv 2502.01100), read for method and scaling.** 1,000 puzzles, sizes 2×2 to 6×6, unique solution by construction. Best-of-N with oracle selection nearly reaches o1, but majority vote and reward models don't; self-verification adds under 2 points. No solver translation is evaluated.
+- **ZPS (Berman et al.; arXiv 2407.03956), snippets.** Multi-agent SMT translation with a refinement loop, 114 puzzles, GPT-4 from 23.7% to 55.3%.
+- **Logic-LM (2305.12295), SatLM (2305.09656):** from memory and Logic.py's summary. Solver error feedback, not a count.
+
