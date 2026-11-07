@@ -52,6 +52,43 @@ ARMS = {
 VFY = "{p}\n\nA student's answer is {a}. Check it, by a different route from the obvious one if you can. End with \\boxed{{yes}} if it is right and \\boxed{{no}} if it is wrong."
 
 
+# idea 13: Python while thinking, by prompt alone. The server stops at the end of a code block, we run it and put the output in the reasoning.
+TIR_NOTE = ("While you think you can run Python (sympy, fractions, itertools, math): write a ```python block that prints what you need, and its output "
+            "appears right after it. Each block runs alone, with no memory of earlier blocks.")
+TIR_HINT = ("I can run Python here. For any step that is a calculation, an enumeration or a check, I should write a short ```python block and read the ```output "
+            "after it, instead of working it out by hand.\n\n")
+
+
+def tir(q, sd, mt, calls_max=20):
+    """a think with code runs inside it: returns the llm.chat fields, with the runs and the seconds they took"""
+    from llm import client
+    import time
+    head = f"<|im_start|>user\n{q}\n\n{TIR_NOTE}<|im_end|>\n<|im_start|>assistant\n<think>\n{TIR_HINT}"
+    gen, used, runs, secs, errs, finish = "", 0, 0, 0.0, 0, None
+    while used < mt:
+        c_ = client.completions.create(model="local", prompt=head + gen, temperature=0.7, top_p=0.95, max_tokens=mt - used, seed=sd + runs,
+                                       stop=["\n```\n"] if runs < calls_max else None)
+        c = c_.choices[0]
+        gen += c.text
+        used += c_.usage.completion_tokens
+        finish = c.finish_reason
+        if finish != "stop" or not getattr(c, "stop_reason", None):
+            break
+        gen += "\n```\n"
+        tail = gen[:-5].rsplit("```", 1)
+        if "</think>" in gen or len(tail) < 2 or not tail[1].startswith(("python", "py\n")):
+            continue
+        t0 = time.time()
+        r = run_python(tail[1].split("\n", 1)[-1], "", timeout=20, mem_bytes=2 << 30)
+        secs += time.time() - t0
+        runs += 1
+        errs += r.status != "ok"
+        out = (r.stdout if r.status == "ok" else (r.status + " " + (getattr(r, "stderr", "") or "")[-300:])) or "(nothing printed)"
+        gen += f"```output\n{out[:1000]}\n```\n"
+    text = gen.split("</think>")[-1] if "</think>" in gen else ""
+    return {"text": text, "finish": finish, "out_tokens": used, "think_text": gen, "runs": runs, "run_secs": round(secs, 1), "run_errors": errs}
+
+
 def to_candidates(s):
     """the printed answer as strings math_verify can parse: raw, and via sympy LaTeX"""
     s = (s or "").strip().splitlines()[-1].strip() if (s or "").strip() else ""
@@ -130,7 +167,7 @@ def main():
             if p["id"] not in cand:
                 return None
             q = VFY.format(p=p["problem"], a=cand[p["id"]]["boxed"])
-        o = chat(q, think=think, max_tokens=mt, temperature=0.7, seed=sd)
+        o = tir(q, sd, mt) if mode == "tir" else chat(q, think=think, max_tokens=mt, temperature=0.7, seed=sd)
         text = o["text"] or ""
         row = {"id": p["id"], "src": p["src"], "level": p["level"], "subject": p["subject"], "gold": p["answer"], "mode": mode,
                "out_tokens": o.get("out_tokens"), "finish": o.get("finish")}
@@ -145,6 +182,8 @@ def main():
                 row.update(cand=cand[p["id"]]["boxed"], cand_right=cand[p["id"]]["correct"])
             if "think_text" in o:
                 row.update(think_text=o["think_text"])
+            if mode == "tir":
+                row.update(runs=o["runs"], run_secs=o["run_secs"], run_errors=o["run_errors"])
         return row   # graded afterwards in worker processes: math_verify's signal-based timeout fails in threads (all-0 bug, 18:09)
 
     import threading

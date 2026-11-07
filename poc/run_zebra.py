@@ -300,5 +300,117 @@ def main():
             f.write(json.dumps(r) + "\n"); f.flush()
 
 
+# ZebraLogic (2502.01100), idea 14: the model only translates, a solver in the sandbox counts the solutions. A puzzle has exactly one, so a count of 1 is a free
+# check on the translation, and 0 or 2 is label-free feedback. usage: run_zebra.py --zl <tag> <arm tr|think|direct> <seed> [--per K] [--max_tokens N]
+ZL_SOLVE = """
+import ast, itertools, json
+from ortools.sat.python import cp_model
+class _C(cp_model.CpSolverSolutionCallback):
+    def __init__(self, v):
+        super().__init__(); self.v, self.s = v, []
+    def on_solution_callback(self):
+        self.s.append({k: self.Value(x) for k, x in self.v.items()})
+        if len(self.s) >= 2:
+            self.StopSearch()
+n = max(len(x) for x in groups.values())
+m, v = cp_model.CpModel(), {}
+for a, vals in groups.items():
+    assert len(vals) == n, f"attribute {a} does not have {n} values"
+    for x in vals:
+        v[f"{a}:{x}"] = m.NewIntVar(1, n, f"{a}:{x}")
+    m.AddAllDifferent([v[f"{a}:{x}"] for x in vals])
+for c in clues:
+    keys = sorted({t.slice.value for t in ast.walk(ast.parse(c, mode="eval")) if isinstance(t, ast.Subscript) and isinstance(t.slice, ast.Constant)})
+    assert keys and all(k in v for k in keys), f"unknown name in clue: {c}"
+    code = compile(c, "clue", "eval")
+    ok = [t for t in itertools.product(range(1, n + 1), repeat=len(keys)) if eval(code, {"abs": abs, "min": min, "max": max}, {"p": dict(zip(keys, t))})]
+    m.AddAllowedAssignments([v[k] for k in keys], ok)
+s = cp_model.CpSolver(); s.parameters.enumerate_all_solutions = True; s.parameters.num_workers = 1
+cb = _C(v); s.Solve(m, cb)
+g = {}
+if cb.s:
+    for a, vals in groups.items():
+        row = [None] * n
+        for x in vals:
+            row[cb.s[0][f"{a}:{x}"] - 1] = x
+        g[a] = row
+print(json.dumps({"count": len(cb.s), "grid": g}))
+"""
+ZL_TR = ("{p}\n\nDo not solve the puzzle. Translate it. Give one ```python block that defines two things: `groups`, a dict from each attribute to the list of its values, "
+         "with exactly these attribute names: {cols}; and `clues`, a list with one Python expression, as a string, for each clue. In an expression, p['Attribute:value'] is the "
+         "house number (1 to {n}) of that value. Examples of strings: \"p['Name:Bob'] == p['Pet:cat']\", \"p['Name:Bob'] != 2\", \"p['Name:Bob'] < p['Pet:cat']\", "
+         "\"p['Name:Bob'] + 1 == p['Pet:cat']\", \"abs(p['Name:Bob'] - p['Pet:cat']) == 1\". Keep each value exactly as the puzzle writes it.")
+ZL_FMT = "{p}\n\nSolve the puzzle. On the last line give JSON mapping each attribute ({cols}) to the list of its values for houses 1 to {n} in order."
+
+
+def zl_gold(r):
+    h, rows = r["solution"]["header"], r["solution"]["rows"]
+    return {a: [str(x[i]).strip().lower() for x in rows] for i, a in enumerate(h) if a != "House"}
+
+
+def zl_score(g, gold):
+    if not isinstance(g, dict):
+        return False, 0.0
+    low = {str(k).strip().lower(): [str(x).strip().lower() for x in v] for k, v in g.items() if isinstance(v, list)}
+    n = sum(len(v) for v in gold.values())
+    c = sum(x == y for a, v in gold.items() for x, y in zip(v, low.get(a.lower(), [])))
+    return c == n, c / n
+
+
+def zl_main():
+    tag, arm, seed = sys.argv[2], sys.argv[3], int(sys.argv[4])
+    opt = lambda k, d: int(sys.argv[sys.argv.index(k) + 1]) if k in sys.argv else d
+    per, mt = opt("--per", 10), opt("--max_tokens", 16000 if arm == "think" else 4096)
+    R = [json.loads(l) for l in open(os.path.join(os.environ["POC_DATA"], "zebralogic", "grid.jsonl"))]
+    seen, P = {}, []
+    for r in sorted(R, key=lambda r: (r["size"], int(r["id"].rsplit("-", 1)[1]))):
+        seen[r["size"]] = seen.get(r["size"], 0) + 1
+        if seen[r["size"]] <= per:
+            P.append(r)
+
+    def run(r):
+        gold = zl_gold(r)
+        n, cols = len(next(iter(gold.values()))), ", ".join(gold)
+        sd = seed * 10007 + int(r["id"].rsplit("-", 1)[1])
+        row = {"id": r["id"], "size": r["size"], "arm": arm, "seed": seed}
+        if arm != "tr":
+            o = chat_msgs([{"role": "user", "content": ZL_FMT.format(p=r["puzzle"], cols=cols, n=n)}], think=arm == "think", max_tokens=mt, temperature=0.7, seed=sd)
+            g = None
+            for blob in reversed(re.findall(r"\{[^{}]*\}", o["text"] or "", re.S)):
+                try:
+                    g = json.loads(blob); break
+                except ValueError:
+                    pass
+            ex, ca = zl_score(g, gold)
+            return {**row, "exact": ex, "cell_acc": ca, "tokens": o["out_tokens"], "finish": o["finish"], "text": (o["text"] or "")[-1500:]}
+        msgs = [{"role": "user", "content": ZL_TR.format(p=r["puzzle"], cols=cols, n=n)}]
+        tok, hist = 0, []
+        for rnd in range(3):
+            o = chat_msgs(msgs, think=False, max_tokens=mt, temperature=0.7, seed=sd + rnd)
+            tok += o["out_tokens"]
+            code = last_block(o["text"], ("python", "py", "python3"))
+            res = run_python(code + "\n" + ZL_SOLVE, "", timeout=30, mem_bytes=4 << 30) if code else None
+            try:
+                out = json.loads(res.stdout.strip().splitlines()[-1])
+            except (AttributeError, IndexError, ValueError):
+                out = {"count": -1, "grid": {}}
+            ex, ca = zl_score(out["grid"], gold)
+            hist.append({"count": out["count"], "exact": ex, "cell_acc": ca, "tokens": o["out_tokens"], "err": (res.stderr[-300:] if res else "no code")})
+            if out["count"] == 1:
+                break
+            fb = {-1: f"it failed to run: {(res.stderr[-600:] if res else 'no python block')}", 0: "the clues as you wrote them have no solution, so one of them is wrong",
+                  2: "the clues as you wrote them allow more than one solution, so one of them is missing or too weak"}[out["count"]]
+            msgs += [{"role": "assistant", "content": o["text"] or "(empty)"},
+                     {"role": "user", "content": f"The puzzle has exactly one solution, but {fb}. Compare each clue with the puzzle and give the complete corrected ```python block."}]
+        return {**row, "exact": ex, "cell_acc": ca, "count": out["count"], "tokens": tok, "rounds": len(hist), "hist": hist, "code": code}
+
+    path = f"{RES}/zl_{tag}_{arm}_s{seed}.jsonl"
+    with ThreadPoolExecutor(32) as ex, open(path, "w") as f:
+        rows = []
+        for r in ex.map(run, P):
+            rows.append(r); f.write(json.dumps(r) + "\n"); f.flush()
+    print(tag, arm, seed, f"{sum(r['exact'] for r in rows)}/{len(rows)}", f"tokens {sum(r['tokens'] for r in rows) / len(rows):.0f}", flush=True)
+
+
 if __name__ == "__main__":
-    main()
+    zl_main() if sys.argv[1] == "--zl" else main()

@@ -5892,3 +5892,15 @@ Goedel-Prover-V2-8B on miniF2F test (`results/x4/lean_gpv2_test.jsonl`, 3,488 at
 
 On AIME-level problems a proof costs about five times what thinking costs per right answer, before paying for a formal statement or facing a wrong one. So at 8B a Lean check is reliable but not cheap, and it can't be the check inside a cascade whose fallback is thinking. **Caveats:** miniF2F's `aime` items are 15 older problems, not AIME 24–25, and "the answer is x" could sometimes close by computation, which would be far cheaper than a full proof. **Decision (exploratory):** no GPU run. Idea 1 stays open only for answers that close by `norm_num` or `decide`.
 
+## 2026-11-07 18:1x UTC: ideas 8, 11, 12 and a new one, handoff: none opens the gap; two new tests started
+
+What ran: free tests on recorded data, and the first read of think-to-verify. Why: the user asked for ideas from many angles, each with the cheapest test that could kill it (`docs/notes/IDEAS_COMPUTATION.md`). Exploratory; nothing here decides a method.
+
+- **Think to verify, seed 1 of 3.** Qwen3-8B gets the quick answer and 6,000 tokens of thinking to check it. A yes is always right: 78 of 78 across AIME and MATH level 5. But the same run shows why that means little: a plain think capped at 6,000 finishes, and is right, on 7 of 60 AIME problems and 60 of 134 at level 5, against 11 and 67 for a yes. Mean verification costs 5.8k on AIME, so paying it before a full think loses. The wrong candidates are almost never rejected either: the budget ends first (89 of 93 give no verdict). Short thinks are right, which is the length result again.
+- **Hand-off.** Think with Qwen3-8B to a cap, and hand what didn't finish to another model. On AIME at a 6k cap, Qwen3-32B gives utility 67.7, +9.9 [+3.6, +16.2] over a retry by Qwen3-8B itself (3 seeds, intervals over problems). Qwen3-32B alone gives 70.5, so the gain is the stronger model, not the cascade. All tokens have one price in our utility, which favours size. That is a limit of the measure and worth saying in any table.
+- **One think, many instances.** With numbers masked, none of MAMO's 652 EasyLP problems share a template and 9% of 211 ComplexLP do. The idea has nothing to amortize here. The library idea is the mined facts of 10-19 under another name.
+- **Started.** Python inside thinking by prompt alone (job 1349967), and translation to a solver with the solution count as a free check on ZebraLogic (job 1350022, behind 1349138). The second is the first new problem class in this list, on a standard benchmark with public solutions.
+- **MT overflow.** Running at 40,960 changed nothing for thinking arms (0 of 43): each step asks 8,192 tokens, so prompts past 32,768 are refused. Those rows aren't used. YaRN at factor 2 on those 43 conversations runs as job 1349972 (`PREREG_MT.md`).
+
+Contribution as a reviewer would judge it: three negative pilots, and one correction to how we state cost.
+

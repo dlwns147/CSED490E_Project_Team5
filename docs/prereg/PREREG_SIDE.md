@@ -1240,6 +1240,14 @@ Counted: judged faithful, proved, passes `geo_check.py`, and holds on all fresh 
 
 **Decision.** P1 holds: the greedy is credited with its gain, and the method stands. P1 fails: the count comes from the engine, the greedy is dropped for random points, which are simpler, and the report credits the closure.
 
+### SIDE-GT-H409-RAND results (2026-11-07 18:0x UTC; all 409 rows, same engine, same 1,800 s, same counting rule)
+
+- **Random points: 226 of 409** counted (228 proved, 2 lose on fresh figures, all 228 certificates pass; 174 timeouts against 136). Greedy: 263 on the same rule, the registered 261 plus the two rows fixed afterwards.
+- **RAND-P1 holds:** greedy minus random is +37, 95% interval [+23, +51], paired over the 409 (45 rows greedy only, 8 random only). Random landed on the expected 225, inside 190–255. Dropping the two fixed rows from the greedy leaves the lower bound above 0.
+- **RAND-P2 holds:** 8 rows random proves and the greedy doesn't, within the limit of 15. The greedy dominates; restarts between them would add at most 8.
+- **Decision:** the greedy is credited with its gain and stands. The interim 196 against 176 at 274 rows understated the gap only slightly; what changed is that the hard rows came last.
+- **A reviewer's reading.** About 86% of the count (226 of 263) needs no choice of points beyond random, so most of it comes from the closure. Our random arm at 226 sits near HAGeo's own random baseline of 218 in its engine, so the engines are close and the greedy is what closes the gap to HAGeo at K = 2,048. One seed of random choices.
+
 
 ## SIDE-GT-NDG: degenerate figures the checks never look at (written 2026-11-07 06:1x UTC, before any run on real statements)
 

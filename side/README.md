@@ -23,7 +23,7 @@ Side work may use the Slurm server's GPUs: a model server and client commands ru
 | Lean (main track, `PREREG_PROOF.md`) | A specialised 8B prover is best; the compiler is a perfect check | Not a side-project gap at present |
 | Constructions (`construct.py`) | Unsolved for an 8B model; its own checker is not a usable free check | A derived free check, or a search the problem's structure makes exact |
 
-**Running now (geometry):** SIDE-GT-LEAN-LIFT compile and the slow compile rerun (job 1347628), SIDE-GT-H409-RAND (jobs 1345806, 1345807), SIDE-GT-LEAN-NR (job 1348018), SIDE-GT-MG (job 1345808). **Queued:** SIDE-GT-LEAN-RC (job 1348742).
+**Running now (geometry):** SIDE-GT-LEAN-LIFT compile of HAGeo (job 1347628), SIDE-GT-MG (job 1345808).
 
 ## Guidance for the teammate taking this on
 
@@ -48,7 +48,7 @@ Our side of the proof work is now testing and analysis only, to guide you (decid
 **Where to work, hardest first.**
 1. **Faithfulness without a human.** This is the real limit. Agreement between translations helps, but a wrong statement can still be proved. MechGeo (2608.02295) refuted 22 statements experts had accepted, and our figure solver can't see such errors.
 2. **The readings left, and unsigned angles.** They need the order of points on a line or a circle, or belong to side-side-side pairs with no angle relation. Order facts could enter as hypotheses of the statement. Chord direction depends on the order of points on the circle, which isn't linear, so expect a case split.
-3. **Coverage.** Random points prove nearly as much as our greedy choice so far (176 against 196 at 274 rows), so the auxiliary-point search has room.
+3. **Coverage.** On one engine, random points prove 226 of 409 and our greedy choice 263 (+37, 95% interval [+23, +51]); random finds only 8 rows the greedy misses. The greedy earns its place, but 146 rows remain, and HAGeo reaches 287 at its largest budget.
 
 **Don't retry without a new idea:** model-proposed auxiliary points (they prove nothing random misses), computational checks of natural-language proofs, or the proof list in place of the triple search (circle tangency can't be written yet).
 
