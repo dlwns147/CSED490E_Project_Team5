@@ -27,6 +27,12 @@ Side work may use the Slurm server's GPUs: a model server and client commands ru
 
 ## Log
 
+**2026-11-07 08:3x UTC: conditions read from the proof reach the failure the triple search found.**
+- **Why:** the triple search (SIDE-GT-NDG) tries about 115 triples per statement and finished only 8 of its first 48 statements inside 600 s. A proof already lists what it needs: each rule holds only away from a degenerate figure.
+- **Built:** `conditions` in `geo_check.py` reads those conditions from a certificate, and `pcond` in `geo_decl.py` tests each one. Median list: 13 conditions, 0 to 225. Registered as SIDE-GT-NDGP. It is the area method's bookkeeping moved to our rules, so I claim a tool and a measurement, not a new idea.
+- **First reading of NDGP-P1:** all 9 failing figures so far, all on ISL 2016 (four samples), break a condition on the proof's list: `a b p`, and `a c i_a'` and `b c i_b'` on the same figures. Only that one problem has failures so far, so this is a small test. At a tolerance of 1e-6 four figures seemed to escape; that was the stored coordinates' rounding to 5 decimals, and at 1e-4 and 1e-3 none does.
+- **Next:** job 1346805 tests every condition on all 84 certificates.
+
 **2026-11-07 06:1x UTC: the closest prior work, found late, changes the next steps.**
 - **MechGeo (2608.02295)** autoformalizes and proves IMO geometry in Lean: 29 of 43 without a human, all 44 with experts repairing 14 statements. It uses frontier models and two hours per problem, and Lean checks everything. Read in full, recorded in \`docs/notes/RELATED_WORK.md\`.
 - **A threat to our counts.** It refuted 22 of 157 statements experts had called faithful, mostly on degenerate figures. Our figure solver keeps generic figures only, so we can't see this. SIDE-GT-NDG searches for such figures. The 23 counted held-out problems stay provisional until it reads.
