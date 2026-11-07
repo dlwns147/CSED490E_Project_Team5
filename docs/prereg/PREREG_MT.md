@@ -1083,3 +1083,18 @@ Ours on three of those categories: Qwen3-8B thinking at every step 30.8 (base 37
 - **KEEP-P2 (reported):** more overflow failures at the 32,768 context, mostly in long context, and more tokens are not expected, since a step's cap is unchanged.
 
 **Decision.** The lower bound above 0: kept reasoning becomes the native form for every later row, and the arms that matter are rerun. Otherwise (a tie or worse): the rows stand as they are, and the form is reported as tested both ways.
+
+### MT-FC: EnvACE-8B (2026-11-07 02:4x UTC; seed 1, reasoning dropped as above)
+
+EnvACE-8B T: base 46.5, miss func 40.5, miss param 38.5, long context 29.5, **mean of four 38.8**, 7.00k tokens. **P3 fails for this checkpoint:** below its range (41–49; published 45.29; its Table 3 run: 47.5, 45.5, 35.0, 39.5). As registered, this means our loop differs from theirs in a way I have not found. The largest gap is long context, −10. The known difference is the dropped reasoning, which MT-FC-KEEP tests on EnvScaler (job 1344657); EnvACE is rerun if that test moves.
+
+Per turn, tracked by `turn_track` on the 800 (exploratory; only turn 0 starts from a shared state, later rates are conditional on each arm's own history):
+
+| Arm | Turn 0 | 1 | 2 | 3+ | Whole |
+|---|---|---|---|---|---|
+| EnvScaler T | 82.9 | 81.5 | 87.8 | 86.1 | 48.8 |
+| EnvACE T | 77.8 | 76.9 | 79.9 | 82.1 | 36.8 |
+| Qwen3-8B T | 75.4 | 77.7 | 80.7 | 83.2 | 36.6 |
+| Qwen3-8B N | 57.6 | 62.7 | 67.0 | 76.2 | 16.2 |
+
+Oracles over EnvScaler T with others: turn 0, 82.9 → 87.6 (with EnvACE T), 86.5 (Qwen3-8B T), 86.4 (Qwen3-8B N), 89.9 (all four). Conversations right by at least one arm, independent runs: 48.8 → 54.2, 54.2, 51.9, 58.8. So the upper bound on what selection can add to the best checkpoint is real, about 10 points over conversations with four arms, and it needs the arms to be different models. The compounding prediction waits for EnvScaler's own quick turn and AWM.
