@@ -206,6 +206,7 @@ class Closure:
         self.deadline = deadline
         self.D, self.W = Lin(seed), Lin(seed + 1)
         self.Z = ZSpan() if os.environ.get("GT_STRICT") else None
+        self.noread = bool(os.environ.get("GT_NOREAD"))     # SIDE-GT-LEAN: no rule that reads a configuration from the figure
         self.zver, self.zseen, self.zfail = 0, set(), {}
         self.Q = Lin(seed + 2) if os.environ.get("GT_SQ") else None     # squared lengths, a third linear system (SIDE-GT-SQ)
         n = self.n
@@ -721,7 +722,7 @@ class Closure:
             B = not (Dv[u[b][a]] - Dv[u[b][c]] + s * (Dv[u[q][p]] - Dv[u[q][r]])) % P
             C = not (Dv[u[c][a]] - Dv[u[c][b]] + s * (Dv[u[r][p]] - Dv[u[r][q]])) % P
             r1, r2, r3 = (l(a, b) - l(p, q)) % P, (l(b, c) - l(q, r)) % P, (l(c, a) - l(r, p)) % P
-            if A + B + C >= 2 or (r1 == r2 == r3) or (r1 == r2 and B) or (r2 == r3 and C) or (r1 == r3 and A):
+            if A + B + C >= 2 or not self.noread and ((r1 == r2 == r3) or (r1 == r2 and B) or (r2 == r3 and C) or (r1 == r3 and A)):
                 aa = lambda x, y, z, x2, y2, z2: (("eqangle", x, y, x, z, x2, y2, x2, z2) if o else ("eqangle", x, y, x, z, x2, z2, x2, y2))
                 rr = lambda x, y, x2, y2, e, f, e2, f2: ("eqratio", x, y, x2, y2, e, f, e2, f2)
                 prem = []
@@ -750,13 +751,13 @@ class Closure:
                 self.wa([(w[e][b], 1), (w[e][c], -1), (w[a][b], -1), (w[a][c], 1)], "bisector", (("coll", e, b, c), ("eqangle", a, b, a, e, a, e, a, c)), ("eqratio", e, b, e, c, a, b, a, c))
         # Thales' converse
         for o, a, c, b, e in self.thales:
-            if d(o, a) == d(o, c) and d(o, b) == d(o, e) and not (l(o, a) - l(a, c) - l(o, b) + l(b, e)) % P:
+            if not self.noread and d(o, a) == d(o, c) and d(o, b) == d(o, e) and not (l(o, a) - l(a, c) - l(o, b) + l(b, e)) % P:
                 self.da([(u[a][b], 1), (u[c][e], -1)], "thales", (("coll", o, a, c), ("coll", o, b, e), ("eqratio", o, a, a, c, o, b, b, e)), ("para", a, b, c, e))
         # the trapezoid
         for a, b, c, e, m, k in self.trap:
             if d(a, b) == d(c, e) and d(m, a) == d(m, e) and d(k, b) == d(k, c):
                 base = (("para", a, b, c, e), ("coll", m, a, e), ("coll", k, b, c))
-                if not (l(m, a) - l(m, e) - l(k, b) + l(k, c)) % P:
+                if not self.noread and not (l(m, a) - l(m, e) - l(k, b) + l(k, c)) % P:
                     self.da([(u[m][k], 1), (u[a][b], -1)], "trapezoid", base + (("eqratio", m, a, m, e, k, b, k, c),), ("para", m, k, a, b))
                 elif d(m, k) == d(a, b):
                     self.wa([(w[m][a], 1), (w[m][e], -1), (w[k][b], -1), (w[k][c], 1)], "trapezoid", base + (("para", m, k, a, b),), ("eqratio", m, a, m, e, k, b, k, c))

@@ -1284,7 +1284,7 @@ By the rule: the stage stays before counting, the repair is automatic, and the c
 **Results (2026-11-07 11:5x UTC).** All 84 certificates ran.
 - **NDGP-P1 holds:** 9 of 9 failing figures break a listed condition (tolerance 1e-4, because figures are stored to 5 decimals), 0 escapes. This is a small test: all nine are one degenerate family on one problem.
 - **NDGP-P2 fails as registered:** 77 of 84 (92%) finished inside the limit, but 7 of those hold a condition I can't write in the language (two circles tangent at their meeting point), so every condition was tested on 70 of 84 (83%), inside the predicted range but under the 90% the rule asks for. Of the 62 conditions marked untested, 26 are impossible by distinct names, which is a result, and 28 duplicate a tangency tested under its own name unless the point comes from two circles.
-- **NDGP-P3:** 7 of 23 counted problems (30%) have an unstated condition with a figure, at the bottom of the range (predicted 60%). Six of the seven are aux-point coincidences on which the goal still holds. The proof doesn't cover those figures, but they are not counterexamples.
+- **NDGP-P3:** 7 of 23 counted problems (30%) have an unstated condition with a figure, at the bottom of the range (predicted 60%). On six of the seven the goal still holds on those figures. The proof doesn't cover them, but they are not counterexamples.
 - **NDGP-P4:** half. The failures reach ISL 2016 and add no new problem. They add two conditions on that problem (`c i p`, `_x0 o p`), both on the same family.
 
 **Decision.** The rule needs P1 and P2, so the list does not replace the triple search. Both stay before counting until circle tangency can be written. SIDE-GT-LEAN below replaces this numerical reading of the rules with proofs of them.
@@ -1325,3 +1325,18 @@ I read each guarded statement against the audited Lean statement and write the v
 - **LEAN-P4 (reported):** median compile time per theorem 30 s (5–300 s).
 
 **Decision.** P1 holds: a kernel-checked theorem replaces the checker's verdict as the definition of a counted row, and each row reports its conditions and readings as hypotheses. The MechGeo comparison is then restated: same kernel, weaker statements where readings or conditions remain. The next gap is discharging readings. P1 fails: report what stops it, fix what is a bug, keep the checker. Any step P2 finds is a checker fault: fix, rerun the checker, restate affected counts.
+
+### SIDE-GT-LEAN-NR: proofs that read nothing from the figure (registered 2026-11-07 12:2x UTC, before any run)
+
+**Why.** A kernel-checked theorem that assumes `Read` is weaker than the statement. The readings are the objection the Zulip thread and Euclean raise, and the hard part the unfinished translation named. The first compile shows they are common: on the held-out set 79 of 84 certificates compile, and only 15 of those 79 have no reading. Each reading says two triangles have the same orientation, or two points the same side, and nothing proves it from the hypotheses.
+
+**Design.** `GT_NOREAD=1` turns off the four rules that read a configuration: similar by three ratios, similar by two sides and an angle, Thales' converse, and the trapezoid from a ratio. Two directed angles still give a similar pair. Everything else as frozen for each set, including restarts and auxiliary points, so the search can look for a different proof. Rows: the 84 proved held-out statements and the 267 proved rows of HAGeo-409, 1,800 s each. Then checker, export and compile.
+
+**Seen before writing this.** The held-out compile (15 reading-free of 79). No run of the flag.
+
+**Predictions.**
+- **NR-P1 (decision):** on HAGeo-409, rows with a kernel-checked reading-free proof: 170 of 264 (120–220). HAGeo's 263 at K = 2,048 stands for a count with no such guarantee, so anything here is a stronger claim on fewer rows.
+- **NR-P2 (reported):** of the 23 counted held-out problems, those with a reading-free proof of a counted statement: 12 (7–18).
+- **NR-P3 (reported):** median proof length grows by at least 20% among rows proved both ways: predicted yes, 70%.
+
+**Decision.** If NR-P1 reaches at least 170, the reported count splits in two, readings assumed and readings absent, and the no-reading engine becomes the default for the MG comparison, since those theorems are what compares with MechGeo. Below 170 the readings stay as stated hypotheses, and the next method is discharging them from the statement's order conditions, as a sign proved in Lean or by a case split on the two orientations.
