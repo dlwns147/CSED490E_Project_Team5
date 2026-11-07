@@ -13,7 +13,7 @@ obtuse a b c, convex a b c d, ncoll a b c. Distinct names are distinct points.
   python side/geo_decl.py one '<statement>'     (solve and print the figures found and whether the goal holds on them)
   python side/geo_decl.py guard '<statement>'   (the status alone, for geo_translate.py)
   python side/geo_decl.py reduce <rows.jsonl> <out.jsonl> [--workers W]   (SIDE-GT-REDUCE: hypotheses the others imply become goals)"""
-import cmath, json, math, os, sys
+import cmath, json, math, os, signal, sys
 import numpy as np
 
 FACT = {"coll": 3, "para": 4, "perp": 4, "cong": 4, "cyclic": 4, "midp": 3, "circle": 3, "eqangle": 8, "eqratio": 8, "aconst": 5, "rconst": 5, "uangle": 6, "uconst": 4}
@@ -448,14 +448,36 @@ def reduce_one(x):
     return row
 
 
+class RowLimit(BaseException):
+    pass
+
+
+def reduce_limited(a):
+    """reduce_one under a time limit; a statement that runs out is written with timeout set, and counts as undetermined"""
+    x, limit = a
+
+    def stop(*_):
+        raise RowLimit()
+    signal.signal(signal.SIGALRM, stop)
+    signal.alarm(limit)
+    try:
+        return reduce_one(x)
+    except RowLimit:
+        return dict(id=x["id"], sample=x["sample"], dsl=x["dsl"], figs=None, gap=0, cands=[], bases=[], timeout=limit)
+    finally:
+        signal.alarm(0)
+
+
 def reduce_rows():
-    """reduce <rows.jsonl> <out.jsonl> [--workers W]: reduce_one on every statement"""
-    from concurrent.futures import ProcessPoolExecutor
+    """reduce <rows.jsonl> <out.jsonl> [--workers W] [--limit S]: reduce_one on every statement not yet in out, written as each finishes (one 19-point statement held back all others)"""
+    from concurrent.futures import ProcessPoolExecutor, as_completed
     rows = [json.loads(l) for l in open(sys.argv[2])]
     w = int(sys.argv[sys.argv.index("--workers") + 1]) if "--workers" in sys.argv else 4
-    with ProcessPoolExecutor(w) as ex, open(sys.argv[3], "w") as f:
-        for r in ex.map(reduce_one, rows):
-            f.write(json.dumps(r) + "\n")
+    limit = int(sys.argv[sys.argv.index("--limit") + 1]) if "--limit" in sys.argv else 0
+    done = {(r["id"], r["sample"]) for r in map(json.loads, open(sys.argv[3]))} if os.path.exists(sys.argv[3]) else set()
+    with ProcessPoolExecutor(w) as ex, open(sys.argv[3], "a") as f:
+        for u in as_completed([ex.submit(reduce_limited, (r, limit)) for r in rows if (r["id"], r["sample"]) not in done]):
+            f.write(json.dumps(u.result()) + "\n")
             f.flush()
 
 

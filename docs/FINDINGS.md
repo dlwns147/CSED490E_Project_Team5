@@ -5814,3 +5814,20 @@ What ran: BFCL v4 multi-turn in the native function-calling form on all four cat
 - Per-turn complementarity is much smaller than in prompt mode: turn-0 oracle 86.5 over EnvScaler's 82.9.
 
 Next: EnvACE and AWM finish; per-turn numbers across checkpoints; a compounding prediction for selection in native form, written before any online row.
+
+## 2026-11-07 06:0x UTC: Two trained checkpoints fall short of their tables, and keeping reasoning saves tokens
+
+What ran: the same native function-calling form as MT-FC, 800 conversations of BFCL v4 multi-turn, seed 1 (`PREREG_MT.md`). Why: our method lost to EnvScaler-8B, so I needed to know whether trained checkpoints in general beat it, and what the strongest open 8B row is under one harness.
+
+| Arm (thinking) | Mean of four categories | base, miss func, miss param, long context | Tokens |
+|---|---|---|---|
+| Qwen3-8B | 38.0 | | |
+| EnvACE-8B | 38.8 | 46.5, 40.5, 38.5, 29.5 | 7.00k |
+| Arctic-AWM-8B | 37.2 | 50.0, 41.5, 30.5, 27.0 | 5.59k |
+| EnvScaler-8B | 50.6 | 67.0, 57.5, 38.0, 40.0 | 7.27k |
+
+- EnvScaler-8B reproduces its published 52.25 to within 2 points. EnvACE-8B falls 6.5 below its published 45.29, and Arctic-AWM-8B 5.6 below its 42.81, so P3 fails for those two. Part of this is a fault of mine: at 32,768 tokens of context, 42 to 43 of the 200 long-context conversations overflow and count as wrong, for every arm. A 65,536-token rerun of those conversations is queued, and these means of four will be restated next to it. The 600 conversations without long context, which carry every decision, are not affected.
+- **Keeping reasoning between steps** (MT-FC-KEEP): EnvScaler T 51.5 kept against 50.6 dropped, +0.9 [−1.8, +3.5], a tie. Tokens fall 22%, −1.58k [−1.96k, −1.20k]. By the registered rule the rows stand and later runs drop reasoning. I predicted no change in tokens and was wrong; the saving is one seed and unregistered, so it is a candidate only.
+- EnvScaler N, without thinking, is 30.5 on the 800 at 1.30k tokens per conversation. Per turn it is 70.0, 70.1, 76.2, 79.0 against thinking's 82.9, 81.5, 87.8, 86.1. Whole conversations fail by compounding, so a modest per-turn gap becomes a large whole-conversation gap.
+
+Contribution as a reviewer would judge it: a same-harness table of four public 8B rows, useful but not a method. The method question is MT-FCS (registered in `PREREG_MT.md`): does per-turn selection add to a trained checkpoint, as it added to the base model? The oracle over EnvScaler T, EnvScaler N and Qwen3-8B T allows +7.8 points through a compounding model. The verifiers are queued, and an offline gate decides whether the online run happens.
