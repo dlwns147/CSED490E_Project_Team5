@@ -41,7 +41,7 @@ Our side of the proof work is now testing and analysis only, to guide you (decid
 | IMO-AG-30 | All 27 problems we solve have a kernel-checked theorem, 7 of them with no reading before lifting. AlphaGeometry2 and TongGeometry reach 30 |
 | Can a reading be proved? | Often. Directions modulo 2π take the held-out set from 273 readings to 53, and from 15 to 46 theorems with none, on export. Full compile *pending* |
 | Do readings ever fail? | No figure broke one on a counted statement, 271 of 273 overall and the other 2 already removed. Control *pending* |
-| Can the engine do without the rules that need readings? | 47 of the first 59 held-out rows are proved without them, so most proofs survive. Final count *pending* |
+| Can the engine do without the rules that need readings? | Mostly: 69 of 84 held-out statements are proved without them (15 time out), covering 20 of 25 problem ids. Not certified or compiled; the HAGeo half was withdrawn |
 | Is the translation faithful? | Still read by hand on our side: 22 of 65 held out. The comparison with MechGeo's audited statements (SIDE-GT-MG) is *pending* |
 
 **Where to work, hardest first.**

@@ -38,6 +38,20 @@ PROG = ("{p}\n\nDo not solve this by hand. Write a complete Python 3 program tha
         "sqrt(2)/2), on the last line. Give the program in a single ```python code block.")
 
 
+# computation ideas (docs/notes/IDEAS_COMPUTATION.md): program arms with another instruction, graded as `prog`
+ARMS = {
+    "extrap": ("{p}\n\nDo not solve this by hand. Write a complete Python 3 program (sympy, fractions, itertools, math allowed). Where the problem has a large parameter, count or "
+               "compute by brute force on small values of it, find the exact pattern from those values (a recurrence, a polynomial, a period), and extend it to the value asked. "
+               "Print ONLY the final answer, in exact form, on the last line. Give the program in a single ```python code block."),
+    "cert": ("{p}\n\nDo not solve this by hand. Write a complete Python 3 program (sympy, fractions, itertools, math allowed) that computes the answer, and then checks it by a different "
+             "route: substitute it back into the conditions of the problem, or test the formula against direct enumeration on a smaller case. If the check passes, print ONLY the final "
+             "answer, in exact form, on the last line. If it fails, print ONLY the word FAIL. Give the program in a single ```python code block."),
+    "numid": ("{p}\n\nDo not solve this by hand. Write a complete Python 3 program that computes the answer numerically to 60 digits with mpmath, then recovers its exact form with "
+              "mpmath.identify, sympy.nsimplify or a continued fraction, and prints ONLY that exact form on the last line. Give the program in a single ```python code block."),
+}
+VFY = "{p}\n\nA student's answer is {a}. Check it, by a different route from the obvious one if you can. End with \\boxed{{yes}} if it is right and \\boxed{{no}} if it is wrong."
+
+
 def to_candidates(s):
     """the printed answer as strings math_verify can parse: raw, and via sympy LaTeX"""
     s = (s or "").strip().splitlines()[-1].strip() if (s or "").strip() else ""
@@ -70,8 +84,13 @@ def same(a_cands, b_cands):
 def _grade(r):
     """runs in a worker process's main thread, where math_verify's timeouts work"""
     from math_verify import parse
-    if r["mode"] == "prog":
+    if r["mode"] == "prog" or r["mode"] in ARMS:
         r["cands"] = to_candidates(r.get("stdout"))
+    elif r["mode"] == "vfy":
+        v = re.findall(r"boxed\{\s*(?:\\text\{)?\s*(yes|no)", r.get("text") or "", re.I)
+        r["verdict"] = v[-1].lower() if v else None
+        r["correct"] = r["verdict"] == ("yes" if r["cand_right"] else "no")
+        return r
     else:
         try:
             ext = parse(r.get("text") or "")
@@ -102,20 +121,28 @@ def main():
     if os.environ.get("X1_HARD"):   # AIME and MATH level 5 only
         P = [p for p in P if p["src"] != "math500" or str(p["level"]) == "5"]
 
+    cand = {r["id"]: r for r in _rows(os.environ["X1_VFY"]) if r.get("boxed")} if mode == "vfy" else {}
+
     def one(p):
         sd = seed * 1000 + zlib.crc32(p["id"].encode()) % 997
-        q = (PROG if mode == "prog" else TEXT).format(p=p["problem"])
+        q = (ARMS[mode] if mode in ARMS else PROG if mode == "prog" else TEXT).format(p=p["problem"])
+        if mode == "vfy":   # idea 8: a capped think on the quick text answer of X1_VFY (a results file of the same seed)
+            if p["id"] not in cand:
+                return None
+            q = VFY.format(p=p["problem"], a=cand[p["id"]]["boxed"])
         o = chat(q, think=think, max_tokens=mt, temperature=0.7, seed=sd)
         text = o["text"] or ""
         row = {"id": p["id"], "src": p["src"], "level": p["level"], "subject": p["subject"], "gold": p["answer"], "mode": mode,
                "out_tokens": o.get("out_tokens"), "finish": o.get("finish")}
-        if mode == "prog":
+        if mode == "prog" or mode in ARMS:
             code = last_block(text, ("python", "py", "python3"))
             r = run_python(code, "", timeout=30, mem_bytes=2 << 30) if code else None
             out = (r.stdout if r and r.status == "ok" else "") or ""
             row.update(code=code, status=(r.status if r else "no_code"), stdout=out[-500:], cands=to_candidates(out))
         else:
             row.update(text=text[-3000:])
+            if mode == "vfy":
+                row.update(cand=cand[p["id"]]["boxed"], cand_right=cand[p["id"]]["correct"])
             if "think_text" in o:
                 row.update(think_text=o["think_text"])
         return row   # graded afterwards in worker processes: math_verify's signal-based timeout fails in threads (all-0 bug, 18:09)
@@ -129,6 +156,8 @@ def main():
     with ThreadPoolExecutor(48) as ex, open(path, "a") as f:
         for fu in as_completed([ex.submit(one, p) for p in todo]):
             r = fu.result()
+            if r is None:
+                continue
             with lock:
                 f.write(json.dumps(r) + "\n"); f.flush()
     rows = regrade(path)
