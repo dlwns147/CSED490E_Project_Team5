@@ -307,3 +307,13 @@ Read for this entry: the abstract, method and results of Euclean, the sections o
 - **Newclid (2411.11938).** Added `ncoll` to rules AlphaGeometry stated without it and checks such conditions on the figure. It notes that a violated condition leaves all hypotheses in place while the goal becomes false.
 - **Area method (Chou, Gao, Zhang 1994; Janičić, Narboux, Quaresma 2012).** Conditions attached to each construction and elimination step. Closest in idea to SIDE-GT-NDGP, which moves that bookkeeping to our rule set and adds a numerical search of each condition.
 
+## Proofs of a deductive-database engine in a proof assistant (searched 2026-11-07)
+
+Three web searches, on translating AlphaGeometry or Newclid proofs into Lean or Coq.
+- **Lean Zulip, "AlphaGeometry doesn't have a secure foundation" (July to September 2025, thread read in full):** orientation is read from a numerical figure, and the correctness of one published proof depends on a random choice. A rule first called wrong (cyclic A B P Q gives eqangle P A P B Q A Q B) turned out to be a misreading of `eqangle`. Huỳnh Trần Khanh said they were translating Newclid proofs into Lean with complex numbers and that orientation was the hardest part. No released result found.
+- **Euclean (2607.19374), Appendix E:** repeats those objections and uses them to argue for Mathlib. It does not translate such proofs.
+- **MechGeo (2608.02295):** agents prove in Lean, with algebraic certificates from Singular or SymPy checked by the kernel. Its algebra is the nearest thing to our rule library; it does not use a closure engine.
+- **LeanGeo (2508.14644):** a Lean library on SystemE and Mathlib with a benchmark; abstract and comparison read, not the full paper.
+- **Coq:** GeoCoq; Narboux's area method. Not read in full.
+
+"No translation found" is a statement about three searches. It does not mean none exists.

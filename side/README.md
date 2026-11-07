@@ -23,9 +23,14 @@ Side work may use the Slurm server's GPUs: a model server and client commands ru
 | Lean (main track, `PREREG_PROOF.md`) | A specialised 8B prover is best; the compiler is a perfect check | Not a side-project gap at present |
 | Constructions (`construct.py`) | Unsolved for an 8B model; its own checker is not a usable free check | A derived free check, or a search the problem's structure makes exact |
 
-**Running now (geometry):** SIDE-GT-NDG (job 1345805), SIDE-GT-NDGP (job 1346805), SIDE-GT-H409-RAND (jobs 1345806, 1345807). **Queued:** SIDE-GT-MG (job 1345808), then SIDE-GT-REDUCE-F on its statements.
+**Running now (geometry):** SIDE-GT-LEAN (exporter being written), SIDE-GT-H409-RAND (jobs 1345806, 1345807). **Queued:** SIDE-GT-MG (job 1345808), then SIDE-GT-REDUCE-F on its statements.
 
 ## Log
+
+**2026-11-07 11:5x UTC: the degenerate-figure stage reads, and every rule of the engine is now proved in Lean.**
+- **SIDE-GT-NDG:** one counted problem has a real degenerate figure. On ISL 2016 the two lines that define P can coincide, leaving P free. The text excludes this by "the intersection point", so `ncoll a b p` is implied. All four statements reprove and pass the checker with it. **The count stays 23 (16 whole, 7 parts).** Coverage was 24% of triples, so this is a lower bound.
+- **SIDE-GT-NDGP:** all 9 failing figures break a condition on the proof's list. Every condition was tested on 83% of certificates (90% needed), because circle tangency can't be written, so the list does not replace the triple search. 7 of 23 counted problems have an unstated condition with a figure; on 6 the goal still holds there.
+- **SIDE-GT-LEAN (registered):** our "certified" rests on a Python checker that trusts each rule. `side/lean/` proves every rule on real coordinates in Lean 4 and Mathlib, with its conditions and figure readings as hypotheses. Next is one theorem per certificate. Prior work: an unfinished Newclid-to-Lean effort that named orientation as the hard part. MechGeo proves in Lean directly. No claim of a new idea.
 
 **2026-11-07 10:0x UTC: REDU-E2 reads 6 of 6 after the fix; reduction becomes the default.** All six obligations are proved in one step and pass the checker, so every failure was the goal form (3 of 6 as registered). They are trivial duplicates, so this shows harmless redundancy costs no proofs, and no more. SIDE-GT-REDUCE-F, registered before any MechGeo translation exists, tests repair on statements nobody has read.
 

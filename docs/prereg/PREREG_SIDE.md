@@ -1256,6 +1256,13 @@ The classical route to these conditions is Wu's method, which outputs them as in
 
 **Decision.** P2 holds: the search becomes a stage before a row is counted, with the repair automatic, and every count of ours restated with the statements repaired and reproved. The stage is then tested for what MechGeo left to experts, on the IMO statements of SIDE-GT-MG. If the text doesn't imply the added condition, the row leaves the count. P2 fails: the convention plus the guard is enough on these statements, reported as such, with the coverage figures, and the search stays as a check on the MG statements only.
 
+**Results (2026-11-07 11:5x UTC).** The search ran on all 97 statements. It finished 17 inside 600 s and tried 2,407 of 9,882 triples (24%), so "none found" is weak for the rest.
+- **NDG-P1:** 1 of 23 counted problems (4%), below the predicted range (5–35%). The search reached a quarter of the triples, so this is a lower bound.
+- **NDG-P2 (decision) holds.** ISL 2016 part (a) fails on 9 figures across its four translations. I read them: every one has a, b, p on a line (|sin| at most 9e-5) with a, c, I_A' and b, c, I_B' on lines too. That is the triangle on which l_A and l_B are both line AB, so "P on both lines" leaves P free. The text says "the intersection point of l_A and l_B", so it excludes this figure, and `ncoll a b p` is implied by the text. The row stays in the count, repaired.
+- **NDG-P3 holds, 4 of 4.** With `ncoll a b p` added, all four statements are proved again (107–121 s), pass the checker and hold on every fresh figure.
+
+By the rule: the stage stays before counting, the repair is automatic, and the count is restated. **It stays 23 (16 whole, 7 parts), with ISL 2016 repaired.** The stage is next tested on the MG statements.
+
 ## SIDE-GT-NDGP: the non-degeneracy conditions a proof needs, read from its certificate (written 2026-11-07 08:3x UTC, before the decisive run)
 
 **Why.** SIDE-GT-NDG forces every collinear triple, about 115 per statement. It finished only 20–80% of them in 600 s on most statements, and a triple it never reached says nothing. The proof already knows what it needs. Each rule is true only away from a degenerate figure: two directed angles give a similar pair or a circle only on real triangles, and an auxiliary point has to exist and be apart from the points it is paired with. So a certified proof shows more than "the goal holds": H, distinct names and the conditions its rows use imply the goal, for the configuration the proof read. A figure where H holds and the goal fails has to break one of those conditions or that configuration. The search over the proof's own list is therefore complete in a sense the triple search is not, up to what a finite number of numerical starts can reach.
@@ -1273,6 +1280,14 @@ The classical route to these conditions is Wu's method, which outputs them as in
 - **NDGP-P4 (reported):** failures found among those reach at least every counted problem the triple search flagged, and add at least one it did not reach.
 
 **Decision.** P1 and P2 hold: the proof's list replaces the triple search as the stage before a row is counted, and each counted row states the conditions that are neither in the problem's text nor shown empty. P1 fails: fix the list and rerun; a second escape after the fix means the list is not trusted, and the triple search stays. Empty means no figure from 40 starts, which is evidence, not a proof that the condition follows.
+
+**Results (2026-11-07 11:5x UTC).** All 84 certificates ran.
+- **NDGP-P1 holds:** 9 of 9 failing figures break a listed condition (tolerance 1e-4, because figures are stored to 5 decimals), 0 escapes. This is a small test: all nine are one degenerate family on one problem.
+- **NDGP-P2 fails as registered:** 77 of 84 (92%) finished inside the limit, but 7 of those hold a condition I can't write in the language (two circles tangent at their meeting point), so every condition was tested on 70 of 84 (83%), inside the predicted range but under the 90% the rule asks for. Of the 62 conditions marked untested, 26 are impossible by distinct names, which is a result, and 28 duplicate a tangency tested under its own name unless the point comes from two circles.
+- **NDGP-P3:** 7 of 23 counted problems (30%) have an unstated condition with a figure, at the bottom of the range (predicted 60%). Six of the seven are aux-point coincidences on which the goal still holds. The proof doesn't cover those figures, but they are not counterexamples.
+- **NDGP-P4:** half. The failures reach ISL 2016 and add no new problem. They add two conditions on that problem (`c i p`, `_x0 o p`), both on the same family.
+
+**Decision.** The rule needs P1 and P2, so the list does not replace the triple search. Both stay before counting until circle tangency can be written. SIDE-GT-LEAN below replaces this numerical reading of the rules with proofs of them.
 
 ## SIDE-GT-MG: the pipeline on MechGeo's audited IMO statements (written 2026-11-07 06:1x UTC, before any run)
 
@@ -1292,3 +1307,21 @@ I read each guarded statement against the audited Lean statement and write the v
 - **MG-P3 (decision):** LEAN minus NL, paired over the 44 problems, lower bound above 0.
 
 **Decision.** P3 holds: at IMO level the translator is the limit, and the next method goes there, with the audited statements as the reference for a faithfulness test that needs no human reading. P3 fails: the prover and the language are the limit, and the next method goes to what the LEAN arm could not prove or express. Either way the comparison is reported as a row with both claims stated. If NL reaches 29 or more, I'll claim coverage comparable to MechGeo's for an open 27B model and no prover model; otherwise only cost, in tokens and seconds per problem, and only against numbers MechGeo reports, which do not include tokens.
+
+## SIDE-GT-LEAN: every proof as a Lean theorem, with what it assumes stated (written 2026-11-07 11:5x UTC, before any certificate is exported)
+
+**Why.** Our "certified" means a 490-line Python checker says so. The checker trusts each rule's statement, and does not cover non-degeneracy or the rules that read a configuration from the figure. MechGeo's proofs pass Lean's kernel, so SIDE-GT-MG had to say that equal counts would not mean equal claims. Euclean's Appendix E and the Lean Zulip thread it cites make the same objection to AlphaGeometry's whole family: orientation read from a numerical figure, side conditions checked outside any logic. NDGP tested the side conditions numerically. This replaces that with proofs.
+
+**Prior work.** Huỳnh Trần Khanh said on the Lean Zulip (July to August 2025) that they were translating Newclid's proofs into Lean with complex numbers, and that orientation was the hard part. I found no release or result in two searches. Euclean (2607.19374) and MechGeo (2608.02295) prove in Lean directly and use no deductive-database engine. GeoCoq and Narboux's area method in Coq are decades-old formalizations of other methods. So the idea is not new, and I claim only what runs: how many of our proofs reach the kernel, and what they then assume.
+
+**Design.** `side/lean/`: points are real coordinate pairs. A direction is a real number with equality modulo π, through the isomorphism with the unit circle; a log length and a squared length are real numbers. `GeoBase.lean` proves that each polynomial fact and the engine's linear relation say the same thing. `GeoRules`, `GeoSim` and `GeoCircle` prove each rule of `geo_check.py`, with non-collinearity as a hypothesis where the rule needs it, and each reading as a hypothesis (`Read`, `Read2`, `ReadT`, `ReadZ`). A circle group becomes a centre and a squared radius, and its variable t a real function of the point. `side/geo_lean.py` writes one theorem per certificate, over the rows the goal depends on: for all points, the statement's facts it uses, distinct names it uses, the conditions and readings imply the goal. Auxiliary points are quantified with their construction facts. Lean 4.15 and Mathlib, `#print axioms` on each theorem, and no `sorry`.
+
+**Seen before writing this.** The rule library is written and compiles, with no `sorry`. So every rule is proved, which is the first reading: `thales` needs no non-collinearity, so the list has one condition too many, and `similar` from two angles needs one real triangle, not two. Verdict files show 14 of 83 and 48 of 264 certificates with no reading over all rows, and 2 of 84 with a constant read from the figure, which cannot be exported. No certificate has been exported.
+
+**Predictions.** Set: the 84 held-out declarative certificates and the 266 certificates of HAGeo-409, 350 in all.
+- **LEAN-P1 (decision):** Lean accepts at least 90% of the 350 (predicted 92%, range 75–98%). What falls out should be the two figure constants, the two `aconst` statements, and time.
+- **LEAN-P2 (test of the checker):** at least one certificate the checker passes cannot be exported because a step is not justified. Candidates from reading the checker: a union of circles sharing fewer than three points, and an equal-chords step with coefficients other than ±1. Predicted 60%.
+- **LEAN-P3 (reported):** certificates with no reading over the rows the goal uses: 25% (18–40%).
+- **LEAN-P4 (reported):** median compile time per theorem 30 s (5–300 s).
+
+**Decision.** P1 holds: a kernel-checked theorem replaces the checker's verdict as the definition of a counted row, and each row reports its conditions and readings as hypotheses. The MechGeo comparison is then restated: same kernel, weaker statements where readings or conditions remain. The next gap is discharging readings. P1 fails: report what stops it, fix what is a bug, keep the checker. Any step P2 finds is a checker fault: fix, rerun the checker, restate affected counts.
