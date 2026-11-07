@@ -5851,3 +5851,13 @@ The verifier chooses among EnvScaler T, EnvScaler N and Qwen3-8B T on the seed-1
 
 Contribution as a reviewer would judge it: a negative result with a mechanism. Selection repairs an untrained model, and a trained checkpoint overtakes it (EnvScaler T 52.5 over two seeds against MT-SO 48.8, at fewer tokens). The base-rate account is simple and was checkable before the run, which is a fault in my derivation, not a discovery.
 
+## 2026-11-07 15:5x UTC: computation ideas, first three tests on recorded runs
+
+**Why:** the computation track had no open method. The user asked for ideas from many angles, tested as they come, with no method fixed (`docs/notes/IDEAS_COMPUTATION.md`). These three cost no GPU; they use the X1 runs (AIME 60, MATH level 5 134, three seeds). All three are exploratory.
+
+- **Clean number (idea 2) fails.** Wrong programs print clean numbers too. On AIME, Qwen3-8B programs printing an integer are right 51% of the time, Qwen3-32B 55%, Qwen3.6-27B 87%. Non-integers are almost never right, which only repeats that AIME answers are integers. On MATH level 5 the shape of the output says little: Qwen3-8B integers 74%, fractions 87%, long floats 62%.
+- **Family decides how much mistakes are shared (idea 5).** Qwen3-8B's quick text answer against a second answer, on AIME, as accepted share and precision: its own second seed 25%, 73%; Qwen3-14B 26%, 65%; Qwen3-32B 24%, 67%; gpt-oss-20b 22%, 92%; Qwen3.6-27B 24%, 95%. So a larger model of the same family is a worse check than the model's own second sample, though the gap rests on about 45 accepted answers per pair and has no interval yet. Text against a program from gpt-oss-20b: 11%, 100%, on about 20 accepted. This sharpens XPEER and isn't a new mechanism.
+- **Restarting a long think (idea 7) fails.** Length does predict failure: Qwen3-8B on AIME is right on 100% of its shortest fifth of thinks and 6% of its longest. But a cap never helps utility, and restarting early loses. Restarting at 16k gives 70.3% at 27.6k tokens, utility 56.5, against 75.0% at 22.6k, 63.7, when only a think that hits the 28k cap is retried. A long think belongs to a hard problem, not to bad luck, so another run doesn't escape it. Retrying at the cap is the existing rule.
+
+**Running:** Qwen3-8B thinking on AIME and MATH level 5 with the reasoning kept (job 1349138, one seed). X1 stored only final answers, so where an answer first appears couldn't be read. It tests idea 6 offline.
+

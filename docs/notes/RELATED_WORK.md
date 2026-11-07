@@ -325,3 +325,11 @@ Three web searches, on translating AlphaGeometry or Newclid proofs into Lean or 
 - **AlphaGeometry, Newclid.** Orientation (`sameclock`) is read from a numerical diagram. The Lean Zulip thread "AlphaGeometry doesn't have a secure foundation" objects to exactly this.
 - **Kovács and Peng, complex number identities (arXiv 2511.14728).** Fetched, not yet read in full. Complex identities with elimination; a different route to the same kind of statement.
 - **Searches (2026-11-07):** "directed angles modulo 2π orientation parity diagram-free similar triangles side-angle-side formal proof", "AlphaGeometry deductive database orientation sameclock numerical check Lean directed angles mod pi vs mod 2pi", "full-angle method limitations order information oriented angles ... GF(2)". No paper on a mixed modulus or parity treatment turned up. That is a statement about these three searches only.
+
+## Computation ideas, first search (2026-11-07 15:5x UTC; snippets and abstracts only, not full reads)
+
+- **Don't Trust: Verify (Zhou et al., ICLR 2024, 2403.18120).** Autoformalizes a solution into Isabelle and rejects inconsistent ones; better than majority voting by more than 12% on GSM8K. Closest to idea 1. To read in full before any run.
+- **Answer Convergence (Liu and Wang, EMNLP 2025, 2506.02536).** Stops when the answer holds across reasoning chunks; 18–48% of tokens saved.
+- **PUMA (2605.17672).** Argues answer-level stopping exits early in 44–64% of cases while self-correction is under way, and adds a verification step; 26.2% saved. Closest to idea 6. Our variant gates on an independent cheap answer, which these snippets don't mention; that is not a novelty claim.
+- **Metacognitive Reuse (2509.13237)** and **CC-LEARN (2506.15662).** Reuse of reasoning fragments (up to 46% fewer tokens), and training on cohorts sharing one program. Closest to idea 11. Neither measures one program paid once over many instances at inference, as far as the search shows.
+

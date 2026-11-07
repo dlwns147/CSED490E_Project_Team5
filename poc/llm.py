@@ -39,6 +39,7 @@ def chat(prompt: str, model: str = "local", temperature: float = 0.7, max_tokens
     text = (msg.content or "").replace("<seed:think>", "<think>").replace("</seed:think>", "</think>")   # Seed-OSS think tags
     if prefill and not text.startswith(prefill):
         text = prefill + text
+    raw_think = (getattr(msg, "reasoning_content", None) or getattr(msg, "reasoning", None) or text.split("</think>")[0]) if think and os.environ.get("POC_KEEP_THINK") else None   # the reasoning itself, for tests on where an answer appears
     if think and "</think>" not in text and r.choices[0].finish_reason == "length":
         text = ""   # reasoning never closed: no final answer (2026-10-14: a code block inside truncated reasoning used to be taken)
     elif "</think>" in text:
@@ -48,6 +49,8 @@ def chat(prompt: str, model: str = "local", temperature: float = 0.7, max_tokens
     if not out["text"].strip() and out["finish"] == "stop":   # LC-OSS smoke: a stopped reply with no answer — keep where the think ended
         rc = getattr(msg, "reasoning_content", None) or getattr(msg, "reasoning", None) or ""
         out.update(empty_tail=rc[-400:], tool_calls=len(getattr(msg, "tool_calls", None) or []))
+    if raw_think is not None:
+        out["think_text"] = raw_think
     if logprobs:   # raw-model log-probs of the sampled tokens (vLLM default logprobs_mode=raw_logprobs), for confidence analysis
         lc = r.choices[0].logprobs.content or []
         out.update(lp=[t.logprob for t in lc], lp_tok=[t.token for t in lc])

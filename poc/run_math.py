@@ -99,6 +99,8 @@ def main():
     mt = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else 8192
     think = "--think" in sys.argv
     P = problems()
+    if os.environ.get("X1_HARD"):   # AIME and MATH level 5 only
+        P = [p for p in P if p["src"] != "math500" or str(p["level"]) == "5"]
 
     def one(p):
         sd = seed * 1000 + zlib.crc32(p["id"].encode()) % 997
@@ -114,6 +116,8 @@ def main():
             row.update(code=code, status=(r.status if r else "no_code"), stdout=out[-500:], cands=to_candidates(out))
         else:
             row.update(text=text[-3000:])
+            if "think_text" in o:
+                row.update(think_text=o["think_text"])
         return row   # graded afterwards in worker processes: math_verify's signal-based timeout fails in threads (all-0 bug, 18:09)
 
     import threading

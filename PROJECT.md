@@ -130,7 +130,7 @@ OptMATH is partly broken: its statements omit what its gold answers need.
 
 1. **Agent loop:** MT-FCS stopped at its gate on 11-07: selection doesn't add to a good trained checkpoint, because a switch away from it is about 3.7 times more likely to lose than to repair. No method is open here until a new one is registered after a related-work read.
 2. Side project: tests and guidance for the teammate only (§3). No new proof methods; registered runs finish and their results go into the guidance.
-3. Computation track: COMP-FIG stopped on dev, because plain agreement between quick answers beats it. A second quick answer trained for different errors was withdrawn after reading the prior work and our own failed runs (`docs/notes/RELATED_WORK.md`). No method is open on this track. Reading the main claims as a reviewer would led to MT-FC.
+3. Computation track: COMP-FIG stopped on dev, because plain agreement between quick answers beats it. Since 2026-11-07 (user): no method is fixed for now; suggest ideas from many angles and test each as cheaply as possible (`docs/notes/IDEAS_COMPUTATION.md`). Lean as a check on answers belongs to this track; geometry translation stays with the teammate.
 4. The final report (`docs/REPORT.md`), once the agent-loop claim settles.
 
 ## 6. Documents
