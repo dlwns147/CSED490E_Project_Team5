@@ -71,6 +71,8 @@ OptMATH is partly broken: its statements omit what its gold answers need.
   - the trained baselines STORM and ORLM, run on the same harness.
 - **The side project is proofs** (user, 11-05): geometry, natural language, Lean, constructions. Its status and log live in
   `side/README.md`, and its experiments are pre-registered in `docs/prereg/PREREG_SIDE.md`.
+- **Proofs are test and analysis only** (user, 11-07): no deep method work here. Run tests and analyse them to guide the teammate who takes
+  the track on; the guidance is at the top of `side/README.md`. Effort goes to the computation and agent tracks.
 
 ## 4. Working rules
 
@@ -127,7 +129,7 @@ OptMATH is partly broken: its statements omit what its gold answers need.
 - **Proofs, against MechGeo (2608.02295, read 11-07):** it proves 29 of 43 IMO geometry problems with no human, in Lean, with frontier models, and refuted 22 statements experts had called faithful. Our figure solver can't see such errors, so SIDE-GT-NDG tested the counted problems (one repaired) and SIDE-GT-LEAN turned proofs into Lean theorems. SIDE-GT-MG runs our pipeline on its 44 audited statements, a faithfulness reference other than my reading.
 
 1. **Agent loop:** MT-FCS stopped at its gate on 11-07: selection doesn't add to a good trained checkpoint, because a switch away from it is about 3.7 times more likely to lose than to repair. No method is open here until a new one is registered after a related-work read.
-2. Side project: see `side/README.md`.
+2. Side project: tests and guidance for the teammate only (§3). No new proof methods; registered runs finish and their results go into the guidance.
 3. Computation track: COMP-FIG stopped on dev, because plain agreement between quick answers beats it. A second quick answer trained for different errors was withdrawn after reading the prior work and our own failed runs (`docs/notes/RELATED_WORK.md`). No method is open on this track. Reading the main claims as a reviewer would led to MT-FC.
 4. The final report (`docs/REPORT.md`), once the agent-loop claim settles.
 

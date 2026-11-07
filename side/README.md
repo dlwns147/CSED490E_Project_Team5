@@ -25,6 +25,34 @@ Side work may use the Slurm server's GPUs: a model server and client commands ru
 
 **Running now (geometry):** SIDE-GT-LEAN-LIFT compile and the slow compile rerun (job 1347628), SIDE-GT-H409-RAND (jobs 1345806, 1345807), SIDE-GT-LEAN-NR (job 1348018), SIDE-GT-MG (job 1345808). **Queued:** SIDE-GT-LEAN-RC (job 1348742).
 
+## Guidance for the teammate taking this on
+
+Our side of the proof work is now testing and analysis only, to guide you (decided 2026-11-07). The method work is yours. Numbers marked *pending* come from runs still going and are filled in here when they end.
+
+**What exists.** A model translates a geometry problem into a declarative statement (`geo_decl.py`). A least-squares solver builds figures of it, and a CPU engine proves it by linear algebra over directions, log lengths and squared lengths (`geo_closure.py`). An exact Python checker tests the proof (`geo_check.py`). `geo_lean.py` writes each proof as a Lean theorem over the rule library in `side/lean/` (Lean 4.15.0 with the matching Mathlib; no `sorry`, standard axioms only).
+
+**To reproduce one theorem.** From a certificate directory: `python side/geo_lean.py all <certs> <out> --lift`, then compile each file with `LEAN_PATH` holding Mathlib and the compiled `side/lean/` modules, built in the order GeoBase, GeoRules, GeoSim, GeoCircle, GeoCert, GeoLift. A theorem takes a median of 22 s; a few take up to an hour. `python side/geo_decl.py rread <certs> <out.jsonl>` tests each reading on the statement's figures.
+
+**What the tests say.**
+
+| Question | Answer so far |
+|---|---|
+| Can the kernel accept the engine's proofs? | Yes: 340 of 350, and no step rejected. The rest are 2 figure constants and timeouts now passing with a 4-hour limit (6 of 8 so far) |
+| IMO-AG-30 | All 27 problems we solve have a kernel-checked theorem, 7 of them with no reading before lifting. AlphaGeometry2 and TongGeometry reach 30 |
+| Can a reading be proved? | Often. Directions modulo 2π take the held-out set from 273 readings to 53, and from 15 to 46 theorems with none, on export. Full compile *pending* |
+| Do readings ever fail? | No figure broke one on a counted statement, 271 of 273 overall and the other 2 already removed. Control *pending* |
+| Can the engine do without the rules that need readings? | 47 of the first 59 held-out rows are proved without them, so most proofs survive. Final count *pending* |
+| Is the translation faithful? | Still read by hand on our side: 22 of 65 held out. The comparison with MechGeo's audited statements (SIDE-GT-MG) is *pending* |
+
+**Where to work, hardest first.**
+1. **Faithfulness without a human.** This is the real limit. Agreement between translations helps, but a wrong statement can still be proved. MechGeo (2608.02295) refuted 22 statements experts had accepted, and our figure solver can't see such errors.
+2. **The readings left.** They need the order of points on a line or a circle, or belong to side-side-side pairs with no angle relation. Order facts could enter as hypotheses of the statement. Chord direction depends on the order of points on the circle, which isn't linear, so expect a case split.
+3. **Coverage.** Random points prove nearly as much as our greedy choice so far (176 against 196 at 274 rows), so the auxiliary-point search has room.
+
+**Don't retry without a new idea:** model-proposed auxiliary points (they prove nothing random misses), computational checks of natural-language proofs, or the proof list in place of the triple search (circle tangency can't be written yet).
+
+**Where things are.** Status and dated log below; predictions and verdicts in `docs/prereg/PREREG_SIDE.md`; prior work in `docs/notes/RELATED_WORK.md`.
+
 ## Log
 
 **2026-11-07 14:5x UTC: readings can be proved, not assumed. First two theorems without them compile; no figure broke a reading on a counted statement.**
