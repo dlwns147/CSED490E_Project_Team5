@@ -23,9 +23,14 @@ Side work may use the Slurm server's GPUs: a model server and client commands ru
 | Lean (main track, `PREREG_PROOF.md`) | A specialised 8B prover is best; the compiler is a perfect check | Not a side-project gap at present |
 | Constructions (`construct.py`) | Unsolved for an 8B model; its own checker is not a usable free check | A derived free check, or a search the problem's structure makes exact |
 
-**Running now (geometry):** SIDE-GT-LEAN-RD and the slow compile rerun (job 1347628), SIDE-GT-H409-RAND (jobs 1345806, 1345807). **Queued:** SIDE-GT-LEAN-NR (job 1348018), SIDE-GT-MG (job 1345808), then SIDE-GT-REDUCE-F on its statements.
+**Running now (geometry):** SIDE-GT-LEAN-LIFT compile and the slow compile rerun (job 1347628), SIDE-GT-H409-RAND (jobs 1345806, 1345807), SIDE-GT-LEAN-NR (job 1348018), SIDE-GT-MG (job 1345808). **Queued:** SIDE-GT-LEAN-RC (job 1348742).
 
 ## Log
+
+**2026-11-07 14:5x UTC: readings can be proved, not assumed. First two theorems without them compile; no figure broke a reading on a counted statement.**
+- **SIDE-GT-LEAN-RD:** of 273 readings on the held-out certificates, 271 have no figure where they fail. The other 2 are on ISL 2016 with a, b, p collinear, which the NDG stage already removed; the repaired rows have no failing figure. RD-P1 is far below prediction (0.7% against 35%), so `rctl` (SIDE-GT-LEAN-RC, job 1348742) now tests whether the search could have found one.
+- **SIDE-GT-LEAN-LIFT (registered):** a row holds modulo π. Doubled rows and some rules (similar triangles, isosceles, midpoint, radius) hold modulo 2π, and a reading is exactly a relation modulo 2π, so proving one is integer linear algebra. `side/lean/GeoLift.lean` proves the rules. On the held-out export 220 readings are proved, 53 are left, 46 of 82 theorems have none (15 before), and no constant comes out wrong. Two ISL 2012 theorems compile with no reading. The full compile is running.
+- **What blocks the 53:** order of points on a line or a circle (`coll` and chord rows), and side-side-side pairs with no angle relation at all.
 
 **2026-11-07 13:3x UTC: 340 of 350 proofs pass Lean's kernel; a counted row now means a kernel-checked theorem.**
 - **Result (SIDE-GT-LEAN):** 79 of 84 held-out and 261 of 266 HAGeo-409 certificates compile, with only Lean's standard axioms and no `sorry`, median 22 s. Two rest on a constant read from the figure and 8 ran out the 1,200 s limit (rerun with 4 hours). **No step was rejected**, so the Python checker's trust held on these sets, against my prediction that a gap would appear.
