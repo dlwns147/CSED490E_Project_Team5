@@ -701,6 +701,51 @@ def rread_one(a):
     return row
 
 
+def rctl_one(a):
+    """SIDE-GT-LEAN-RC: can the search behind rread find a flipped figure at all? For each reading, the statement with its auxiliary points and without the negation (how many of the
+    starts solve, and the reading's sign on those figures), and the negated reading with the statement's order conditions removed (figures, and how many break the goal). -> a row"""
+    from geo_lean import Writer, Stop
+    path, limit = a
+    t0 = time.time()
+    c = json.load(open(path))
+    row = dict(file=os.path.basename(path), dsl=c["dsl"], reads=[], stopped=False)
+    w = Writer(json.loads(json.dumps(c)))
+    w.cache = {}
+    try:
+        w.run()
+    except Stop as e:
+        row["error"] = str(e)
+        return row
+    pts, hyps, goal = _clean(c["dsl"])
+    G = parse(_state(pts, hyps, goal))[2]
+    line = lambda t, P: abs(residual("coll", list(t), P)[0]) < 1e-7
+    flat = lambda q, P: any(line(t, P) for t in itertools.combinations(q, 3))
+    row["orders"] = sorted({s.split()[0] for s in hyps if s.split()[0] in ORDER and s.split()[0] != "ncoll"})
+    for k in w.reads:
+        q = [*k[1], *k[2]] if k[0] in ("Read", "Read2") else list(k[1])
+        kind = {"Read": "flip", "Read2": "flip2", "ReadT": "flipt", "ReadZ": "flipz"}[k[0]]
+        e = dict(read=[k[0], *q])
+        row["reads"].append(e)
+        if limit and time.time() - t0 > limit:
+            row["stopped"] = True
+            e["state"] = "not tried"
+            continue
+        p2, h2 = _negate([kind, *q, "read"], pts, hyps, c["defs"])
+        ix = {p: i for i, p in enumerate(p2.split())}
+        cyc = [[ix[x] for x in s.split()[1:]] for s in h2 if s.split()[0] == "cyclic"]
+        ga = [ix[x] if isinstance(x, str) else x for x in G[1]]
+        keep = lambda got: [P for P in got if not any(flat(x, P) for x in cyc)]
+        r = solve(_state(p2, [s for s in h2 if s.split()[0] != kind], goal), starts=40)
+        got = keep(r[3])
+        e.update(solved=r[4], figs=len(got), flipped=sum(all(x > 0 for x in order_value(kind, [ix[x] for x in q], P)) for P in got))
+        free = ["coll " + s.split(None, 1)[1] if s.split()[0] == "between" else s for s in h2]
+        got = keep(solve(_state(p2, [s for s in free if s.split()[0] not in ORDER or s.split()[0] in ("ncoll", kind)], goal), starts=40)[3])
+        bad = [P for P in got if any(abs(x) > 1e-6 for x in residual(G[0], ga, P)) or (G[0] == "cyclic" and flat(ga, P))]
+        e.update(state="figures" if got else "none", free=len(got), free_fails=len(bad))
+    row["sec"] = round(time.time() - t0, 1)
+    return row
+
+
 def pcond_rows(one=pcond_one):
     """pcond <cert dir> <out.jsonl> [--workers W] [--limit S] [--only substring ...]: pcond_one on every certificate not yet in out"""
     from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -728,5 +773,7 @@ if __name__ == "__main__":
         pcond_rows()
     if sys.argv[1] == "rread":
         pcond_rows(rread_one)
+    if sys.argv[1] == "rctl":
+        pcond_rows(rctl_one)
     if sys.argv[1] == "reduce":
         reduce_rows()

@@ -1364,3 +1364,18 @@ I read each guarded statement against the audited Lean statement and write the v
 
 **Decision.** RD-P2 holds: the stage goes before counting, as NDG does. If the text implies the missing order condition, it is added and the row is reproved; if not, the row leaves the count, and every count is restated. RD-P2 fails: readings are hypotheses that no figure found broke, and each row reports how many have figures.
 
+**Result (2026-11-07 14:4x UTC, on the 84 statements as first written; the read is not final until the repaired rows are in).** 82 certificates read, 2 stop on a figure constant; 67 have readings, 15 have none; 273 readings, 271 with no figure at all. **RD-P1 fails, far below range: 2 of 273 (0.7%) against 35% (15–60%).** Both failing figures are on ISL 2016 (rows 2 and 3), the goal is false on both, and in both a, b, p are collinear to 1e-6: that is the degenerate family SIDE-GT-NDG already found, not a new failure. The counted ISL rows are the repaired ones with `ncoll a b p`, so RD-P2 waits for `rread` on those four. A number this far from the prediction is treated as a bug until the control below says otherwise.
+
+### SIDE-GT-LEAN-RC: is "no figure" a result or a blind search? (registered 2026-11-07 14:4x UTC, before the run)
+
+**Why.** 271 of 273 readings having no flipped figure could mean the statements fix their readings, or that the search can't reach a flipped figure. If it is real, it also says what a proof of the reading has to use: order conditions of the statement, or nothing.
+
+**Design.** `rctl` in `geo_decl.py`, same 84 certificates, 40 starts, 1,800 s each. For each reading: (a) the statement with the auxiliary points and no negation: starts solved, and the reading's sign on those figures; (b) the negated reading with the statement's order conditions removed (`between` kept as `coll`, `ncoll` kept): figures, and how many break the goal. Three planted statements already behave: side-side-side pairs with either orientation broken give 39 of 40 figures, the midline triangle gives none.
+
+**Predictions.**
+- **RC-P1 (decision):** at least 90% of readings have 4 or more of 40 starts solved in (a), and no reading is flipped on a figure of (a) outside ISL 2016.
+- **RC-P2 (decision):** on rows with order conditions, 40% of readings have a flipped figure once those conditions go (15–70%).
+- **RC-P3 (reported, method):** of readings with such figures, the goal holds on all of them for 60% (30–85%). There a proof could split on the reading and needs no order fact; elsewhere it must use the order conditions.
+
+**Decision.** RC-P1 holds and RC-P2 is at least 10%: the search reaches flipped figures when they exist, and the RD result stands as evidence. RC-P1 fails: readings with few solved starts count as untested, and RD-P1 is restated on the rest. RC-P2 below 10%: order conditions aren't what fixes the readings, the control has shown no power on real statements, and the RD result is reported as unconfirmed.
+
