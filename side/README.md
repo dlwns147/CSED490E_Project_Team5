@@ -27,6 +27,12 @@ Side work may use the Slurm server's GPUs: a model server and client commands ru
 
 ## Log
 
+**2026-11-07 09:5x UTC: reduction puts USAMO 2006 P6's claim back among the goals, with no human.**
+- **The fault it repairs:** all four translations assume three of the four circles concur, which is part of the claim, and agreement between translations can't see that.
+- **Result:** the Jacobian test flags the assumed circle as implied by the rest. The closure proves it in 118 s, the checker passes it, and it holds on 8 of 8 fresh figures. With the original certified proof, "P on circles SAE and SBF" now gives both TCF and TDE, which is the problem. I read the proof: it is the textbook spiral similarity, and it uses the ratio. I gave this 40%.
+- **Limits:** exploratory, on statements whose verdicts I had read, so it isn't a registered count. The proof holds for the configuration it read (3 readings) and needs 8 non-collinear triples. The existence of P, the second meeting point of two circles, is not proved.
+- **REDU-E2 fails as registered, 3 of 6, on a fault of ours:** the closure raised an error on three-point circle goals, which are trivial here. Six obligations rerun with the goal written as equal lengths (job 1347198). If all pass, reduction becomes the default and the next test is a fresh set; if any fails, E2 stands as failed.
+
 **2026-11-07 08:3x UTC: conditions read from the proof reach the failure the triple search found.**
 - **Why:** the triple search (SIDE-GT-NDG) tries about 115 triples per statement and finished only 8 of its first 48 statements inside 600 s. A proof already lists what it needs: each rule holds only away from a degenerate figure.
 - **Built:** `conditions` in `geo_check.py` reads those conditions from a certificate, and `pcond` in `geo_decl.py` tests each one. Median list: 13 conditions, 0 to 225. Registered as SIDE-GT-NDGP. It is the area method's bookkeeping moved to our rules, so I claim a tool and a measurement, not a new idea.
