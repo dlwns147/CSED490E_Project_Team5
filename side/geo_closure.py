@@ -1195,6 +1195,7 @@ def one_sat(row, budget, timeout, proofs, fresh=8):
     n, x, f, g = figure(row["dsl"])
     defs, kept_by_round, ok, tried, runs = [], [], False, 0, 0
     lub = bool(os.environ.get("GT_LUBY"))    # restarts: a run stops after luby(j) * budget candidates, and the next uses a fresh sample
+    rand = bool(os.environ.get("GT_RANDOM"))
     two0 = None     # a second figure: a relation true by accident on one figure gains nothing on the other
     if os.environ.get("GT_TWOFIG"):
         for sd in range(1, 9):
@@ -1217,6 +1218,22 @@ def one_sat(row, budget, timeout, proofs, fresh=8):
             ok, _ = e.run(g[0])
             if ok:
                 break
+            if rand:        # SIDE-GT-H409's baseline: up to 6 uniformly random points in a run, HAGeo's random design, no gain
+                nxt = None
+                for c, _ in GT.aux_candidates(f"{' '.join(N)} = free ? {g[0][0]}", 16, seed=rnd + 1000 * (runs - 1)) if rnd < 6 else ():
+                    q = numeric_cand(c, dict(zip(N, X)))
+                    if q is not None and all(math.isfinite(v) and abs(v) < 1e4 for v in q[0]) and not any(math.dist(q[0], v) < 1e-6 for v in X):
+                        nxt = (c, q)
+                        break
+                if nxt is None:
+                    break
+                tried += 1
+                nm = f"_x{len(defs)}"
+                defs.append((nm, nxt[0]))
+                N.append(nm)
+                X.append(tuple(nxt[1][0]))
+                F += [tuple(nm if v == "_x" else v for v in h) for h in nxt[1][1]]
+                continue
             r0 = relations(e, len(N))
             if two:
                 e_b = Closure(two[0], two[1], two[2], deadline=end, log=False)

@@ -1196,3 +1196,15 @@ Counted: judged faithful, proved, passes `geo_check.py`, and holds on all fresh 
 - **Not counted, as registered:** six rows failed to build (four for `eq_trapezoid`, which our language lacks, difficulty 1.0, 1.6, 2.1, 3.3; two with an IndexError). **Reported apart, on the fixed engine (job 1344462): 2011 APMO P3 and 2013 USA TST P2 prove again, in 45 s and 10 s, on 8 of 8 fresh figures, and pass the checker: 263 with them, the registered threshold exactly.** The registered count stays 261 and I read the decision from it, because a threshold reached by rerunning rows I had seen is not a clean pass. The two errors repeat (2019 KoMaL A736, 2020 POGCHAMP P2).
 - **Decision (218–262):** the search does something, and less than HAGeo at its largest budget. Next, as registered: the same engine with uniformly random points, so that the greedy's value is measured on the same engine and CPU.
 - **A reviewer's reading.** Against HAGeo at K = 2,048 we are 2 short, with every proof certified by an independent exact checker and tested on 8 fresh figures, at a CPU budget orders of magnitude lower (HAGeo: up to 2,048 attempts of 60 s, on 64 cores). The bands [5, 7] match its largest budget. We lose 9 each at [1, 3) and [3, 4), which is where its construction rules or our language still matter. HAGeo's code is not public, so this is citation, not a rerun. Our proofs read a configuration from the figure, as AlphaGeometry's and HAGeo's do.
+
+### SIDE-GT-H409-RAND: what the greedy adds (registered 2026-11-07 02:3x UTC, before any row)
+
+**Why.** The registered decision for 261 of 409. HAGeo's random baseline reaches 218 in HAGeo's engine; ours reaches 261 with a greedy on the relations a point adds. Whether that gap comes from the greedy or from the engine is not known until both run on one engine.
+
+**Design.** `GT_RANDOM=1`: at each restart, up to 6 points in turn, each uniform over the same one-step constructions (type first, then arguments, the sampler SIDE-GT-SAT uses), no gain and no second figure, the closure run after each point. All other settings, including 1,800 s on one core, the fixed engine, and the counting rule (checker and 8 of 8 fresh figures), as SIDE-GT-H409. The 409 rows are the same. The greedy's side of the comparison: the same fixed engine, its 261 plus the two rows reported apart, 263.
+
+**Predictions.**
+- **RAND-P1 (decision):** greedy minus random, paired over the 409, lower bound above 0. Expected random 225, range 190–255.
+- **RAND-P2 (reported):** rows the random arm proves and the greedy doesn't: at most 15. Below that, the greedy dominates; above it, they are complementary and restarts between them would pay.
+
+**Decision.** P1 holds: the greedy is credited with its gain, and the method stands. P1 fails: the count comes from the engine, the greedy is dropped for random points, which are simpler, and the report credits the closure.
