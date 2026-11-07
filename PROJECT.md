@@ -126,7 +126,7 @@ OptMATH is partly broken: its statements omit what its gold answers need.
 **Next:**
 - **Proofs, against MechGeo (2608.02295, read 11-07):** it proves 29 of 43 IMO geometry problems with no human, in Lean, with frontier models, and refuted 22 statements experts had called faithful. Our figure solver can't see such errors, so the 23 counted held-out problems are provisional until SIDE-GT-NDG reads. SIDE-GT-MG runs our pipeline on its 44 audited statements, a faithfulness reference other than my reading.
 
-1. **Agent loop:** does per-turn selection add to the best checkpoint in its best form? Per-turn numbers across checkpoints, a registered compounding prediction, then a verifier on native rollouts and an online row.
+1. **Agent loop:** MT-FCS stopped at its gate on 11-07: selection doesn't add to a good trained checkpoint, because a switch away from it is about 3.7 times more likely to lose than to repair. No method is open here until a new one is registered after a related-work read.
 2. Side project: see `side/README.md`.
 3. Computation track: COMP-FIG stopped on dev, because plain agreement between quick answers beats it. A second quick answer trained for different errors was withdrawn after reading the prior work and our own failed runs (`docs/notes/RELATED_WORK.md`). No method is open on this track. Reading the main claims as a reviewer would led to MT-FC.
 4. The final report (`docs/REPORT.md`), once the agent-loop claim settles.

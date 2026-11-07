@@ -5831,3 +5831,23 @@ What ran: the same native function-calling form as MT-FC, 800 conversations of B
 - EnvScaler N, without thinking, is 30.5 on the 800 at 1.30k tokens per conversation. Per turn it is 70.0, 70.1, 76.2, 79.0 against thinking's 82.9, 81.5, 87.8, 86.1. Whole conversations fail by compounding, so a modest per-turn gap becomes a large whole-conversation gap.
 
 Contribution as a reviewer would judge it: a same-harness table of four public 8B rows, useful but not a method. The method question is MT-FCS (registered in `PREREG_MT.md`): does per-turn selection add to a trained checkpoint, as it added to the base model? The oracle over EnvScaler T, EnvScaler N and Qwen3-8B T allows +7.8 points through a compounding model. The verifiers are queued, and an offline gate decides whether the online run happens.
+
+## 2026-11-07 08:3x UTC: MT-FCS stops at its gate; selection doesn't add to the trained checkpoint
+
+**Purpose.** Does per-turn selection add to EnvScaler, the best public 8B row on our harness? It added +7.1 points to the base model.
+
+The verifier chooses among EnvScaler T, EnvScaler N and Qwen3-8B T on the seed-1 pseudo-sets, cross-fit by scenario half (job 1345398, 1345399).
+
+| Turn | Sets | EnvScaler T | Chosen | Utility − T | AUROC |
+|---|---|---|---|---|---|
+| 0 | 800 | 82.9 | 82.6 | −1.35 [−3.02, +0.38] | 0.803 |
+| 1 | 481 | 81.7 | 82.7 | +0.18 [−2.33, +2.70] | 0.768 |
+| 2 | 279 | 89.2 | 87.8 | −2.14 [−4.24, −0.34] | 0.761 |
+| 3+ | 302 | 87.1 | 88.4 | +0.38 [−2.91, +3.99] | 0.791 |
+
+- **FCS-P1 fails:** the chosen rollout is 0.3 points below EnvScaler T at turn 0, where 3.0 was needed. Over all turns the choice moves accuracy by −0.3, +1.0, −1.4, +1.3, so no compounded gain near 3 points is implied. **By the registered gate, the online arm isn't run, and the line closes: selection doesn't add to a good trained checkpoint.** FCS-P2 and P3 aren't read. Utility here counts all three rollouts' tokens.
+- **Why it fails: the verifier is not the weak part.** On turn 0's 229 sets where the rollouts differ in being right, its top score picks a right one 77% of the time. But EnvScaler T is right in 180 of those and wrong in 49, so a switch is 3.7 times more likely to be a loss. Taking the top score, it keeps 150 of 180 and repairs 26 of 49: net −4 sets. The ratio is 3.0, 8.4 and 2.8 at the later turns.
+- **What this says about the earlier result.** MT-SO's share of 0.54 came with weaker thinking rollouts, so its alternatives were close in strength. FCS's derivation carried that share over to a set whose alternatives are weaker than the anchor, and took no account of the base rate. A selector gains only when its likelihood ratio exceeds losses over repairs; the prediction should have used that. Here the alternatives are the weaker models, so this result doesn't test two samples of equal strength; that would be a new claim needing its own registration, at about twice the tokens.
+
+Contribution as a reviewer would judge it: a negative result with a mechanism. Selection repairs an untrained model, and a trained checkpoint overtakes it (EnvScaler T 52.5 over two seeds against MT-SO 48.8, at fewer tokens). The base-rate account is simple and was checkable before the run, which is a fault in my derivation, not a discovery.
+

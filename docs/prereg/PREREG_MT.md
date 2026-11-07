@@ -1149,3 +1149,19 @@ Also: the 65,536 rerun's first submission failed in 51 s (job 1345258), because 
 ### MT-FC: EnvScaler T, second seed (2026-11-07 07:1x UTC, job 1344461)
 
 Seed 2 on the 800: mean of four 47.8 (62.0, 51.0, 39.5, 38.5) against seed 1's 50.6 (67.0, 57.5, 38.0, 40.0), 7.54k tokens. The 600 without long context: 50.8 against 54.2, mean of the two seeds 52.5. **Seed 1 ran high, so the MT-FC reading that EnvScaler beats MT-SO by +5.4 [+1.7, +9.1] is a single seed's number.** With both seeds the gap is about +3.7 against MT-SO's 48.8; a paired interval needs MT-SO's own second seed in the native comparison, which I don't have, so I report the point value only. The two seeds agree on 83.4% of conversations, and either is right on 57.5%. The MT-FCS reference stays seed 1, as registered, since the data was built from it; FCS-P2's online arm is compared with seed 1 and, as a reported row, with seed 2, because a selection gain read against a high seed understates and against a low seed overstates.
+
+### MT-FCS results: the offline gate fails (2026-11-07 08:3x UTC)
+
+The verifier chooses among EnvScaler T, EnvScaler N and Qwen3-8B T on the seed-1 pseudo-sets, cross-fit by scenario half (job 1345398, 1345399).
+
+| Turn | Sets | EnvScaler T | Chosen | Utility − T | AUROC |
+|---|---|---|---|---|---|
+| 0 | 800 | 82.9 | 82.6 | −1.35 [−3.02, +0.38] | 0.803 |
+| 1 | 481 | 81.7 | 82.7 | +0.18 [−2.33, +2.70] | 0.768 |
+| 2 | 279 | 89.2 | 87.8 | −2.14 [−4.24, −0.34] | 0.761 |
+| 3+ | 302 | 87.1 | 88.4 | +0.38 [−2.91, +3.99] | 0.791 |
+
+- **FCS-P1 fails:** the chosen rollout is 0.3 points below EnvScaler T at turn 0, where 3.0 was needed. Over all turns the choice moves accuracy by −0.3, +1.0, −1.4, +1.3, so no compounded gain near 3 points is implied. **By the registered gate, the online arm isn't run, and the line closes: selection doesn't add to a good trained checkpoint.** FCS-P2 and P3 aren't read. Utility here counts all three rollouts' tokens.
+- **Why it fails: the verifier is not the weak part.** On turn 0's 229 sets where the rollouts differ in being right, its top score picks a right one 77% of the time. But EnvScaler T is right in 180 of those and wrong in 49, so a switch is 3.7 times more likely to be a loss. Taking the top score, it keeps 150 of 180 and repairs 26 of 49: net −4 sets. The ratio is 3.0, 8.4 and 2.8 at the later turns.
+- **What this says about the earlier result.** MT-SO's share of 0.54 came with weaker thinking rollouts, so its alternatives were close in strength. FCS's derivation carried that share over to a set whose alternatives are weaker than the anchor, and took no account of the base rate. A selector gains only when its likelihood ratio exceeds losses over repairs; the prediction should have used that. Here the alternatives are the weaker models, so this result doesn't test two samples of equal strength; that would be a new claim needing its own registration, at about twice the tokens.
+
