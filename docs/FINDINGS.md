@@ -5878,3 +5878,17 @@ Contribution as a reviewer would judge it: a negative result with a mechanism. S
 
 None of these beats a cross-family peer (22% at 92%). At 8B, a harder instruction costs more correct programs than its check gains.
 
+## 2026-11-07 17:0x UTC: Lean as a check on answers (idea 1) loses on cost before any run
+
+**Why this test:** the Lean compiler never accepts a wrong proof, so it could replace agreement as the check. The price decides that, and recorded prover runs give it for free.
+
+Goedel-Prover-V2-8B on miniF2F test (`results/x4/lean_gpv2_test.jsonl`, 3,488 attempts), with the statement given and correct:
+
+| miniF2F problems | Proved per attempt | Tokens per attempt | Tokens per proof | Qwen3-8B thinking, nearest set |
+|---|---|---|---|---|
+| `mathd` (130) | 61% | 5.2k | about 8.5k | MATH level 5: 92.5%, about 7k |
+| `aime` (15) | 18% | 15.7k | about 87k | AIME 24–25: 68%, 16k |
+| `imo` (20) | 7% | 18.1k | about 260k | – |
+
+On AIME-level problems a proof costs about five times what thinking costs per right answer, before paying for a formal statement or facing a wrong one. So at 8B a Lean check is reliable but not cheap, and it can't be the check inside a cascade whose fallback is thinking. **Caveats:** miniF2F's `aime` items are 15 older problems, not AIME 24–25, and "the answer is x" could sometimes close by computation, which would be far cheaper than a full proof. **Decision (exploratory):** no GPU run. Idea 1 stays open only for answers that close by `norm_num` or `decide`.
+

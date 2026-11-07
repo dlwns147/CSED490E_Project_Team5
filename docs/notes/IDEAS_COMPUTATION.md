@@ -6,7 +6,7 @@ The gap all of these aim at: on AIME, Qwen3-8B gets about 12% from a quick answe
 
 | # | Aspect | Idea | Nearest work (depth read) | Cheapest test | State |
 |---|---|---|---|---|---|
-| 1 | Check | **Lean as the check on an answer:** state "the answer is x" as a theorem, let the compiler decide | Don't Trust: Verify, ICLR 2024 (abstract only) | Accept rate and false accepts on dev against "two text answers agree" | Next; read DTV first |
+| 1 | Check | **Lean as the check on an answer:** state "the answer is x" as a theorem, let the compiler decide | Don't Trust: Verify, ICLR 2024 (read in full) | Recorded prover cost against thinking | **Fails on cost at 8B:** about 87k tokens per proof on `aime` items against about 24k per right answer from thinking. Open only for answers that close by computation |
 | 2 | Check | **Clean number:** an output that looks exact is likely right | PSLQ practice in experimental mathematics; no use on LLM answers found | Recorded program outputs | **Failed** |
 | 3 | Check | **Check the answer, not the solution:** the model writes a verifier by substitution or a certificate (feasible point and dual bound for optimization) | Not yet searched | One prompt on AIME and MATH level 5 | **Failed** as a filter at 8B; FAIL is a clean reject. OptiBench dual bounds untested |
 | 4 | Check | **Brute force beside the fast program:** random small cases compared | ALGO-style oracles (from memory, unchecked) | Contest code set | Open |
