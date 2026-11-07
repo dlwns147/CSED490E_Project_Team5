@@ -125,6 +125,7 @@ SEL_SPLIT = {"dev": "dev", "spider": "spider", "spiderdev": "spiderdev", "fresh"
 SEL_ITEMS.update({"bfcl": f"{PD}/bfcl/tc_items.jsonl", "tcho": f"{PD}/toolace/tc_train_items.jsonl",   # SEL-TC: BFCL; held-out ToolACE;
                   "ace": f"{PD}/acebench/tc_items.jsonl",   # addendum ACE: ACEBench
                   "mt": f"{PD}/bfcl/mt_sel_items.jsonl",   # addendum MT-SEL: BFCL multi-turn turn-0 rollouts (mt_peer0.py --sel-build)
+                  "mtfcs": f"{PD}/bfcl/mt_fcs_items.jsonl",   # addendum MT-FCS: native-form rollouts (mt_peer0.py --fc-build)
                   "mt2": f"{PD}/bfcl/mt_sel2_items.jsonl"})   # addendum MT-SO: turn 0 and the later turns (mt_peer0.py --sel-build2)
 
 

@@ -396,6 +396,81 @@ def main_sel_build2():
     print(f"MT-SO build: scoring requests {len(req[0])} / {len(req[1])}", flush=True)
 
 
+def main_fc_build():
+    """addendum MT-FCS (--fc-build): MT-SO's data in the native form. FC_ARMS=<tag>:<arm>:<seed>,... are the stored trajectories (MT_ITEMS=mt_fc_items.jsonl), each graded by turn_track; at
+    turn k the trajectories still right through k-1 give rollouts of that turn, right when still right after it. FC_ROLES=N=<tag>:<arm>,P=...,T=... name the pseudo-sets, one per seed with
+    all three still right through k-1. Writes $POC_DATA/bfcl/mt_fcs_items.jsonl, mt_fcs_ids_h<half>.txt, results/conf/mt_fcs_pool.jsonl, mt_fcs_rows.jsonl and sel_req_mtfcs_h<half>.jsonl
+    (sset mtfcs). The half is crc32 of the scenario index mod 2, as MT-SO's, across the four categories."""
+    import hashlib, io, contextlib, zlib
+    P = {p["id"]: p for p in map(json.loads, open(DATA))}
+    arms = [tuple(x.split(":")) for x in os.environ["FC_ARMS"].split(",")]
+    roles = {k: tuple(v.split(":")) for k, v in (x.split("=") for x in os.environ["FC_ROLES"].split(","))}
+    R = {t: _load(f"{RES}/mt_{t[0]}_{t[1]}_s{t[2]}.jsonl") for t in arms}
+    C = os.path.join(ROOT, "results", "conf")
+    PD = os.path.dirname(DATA)
+    key = lambda i, t: hashlib.sha1(json.dumps(["tc", "mtfcs", i, "sel", t]).encode()).hexdigest()[:20]   # lcm_shift.rv_key
+    half = lambda i: zlib.crc32(i.rsplit("_", 1)[1].encode()) % 2
+    model = roles["T"][0]
+    seeds = sorted({t[2] for t in arms})
+    items, pool, out, n = [], {}, [], 0
+    for i, p in P.items():
+        F = {}
+        for t in arms:
+            if i in R[t]:
+                with contextlib.redirect_stdout(io.StringIO()):
+                    F[t] = turn_track(p, R[t][i], f"fb{n}")
+                n += 1
+        for k in range(len(p["ground_truth"])):
+            cand, roll = {}, {}
+            for t, f in F.items():
+                x = R[t][i]
+                if f < k or k >= len(x["turns"]):
+                    continue
+                tk = x["turns"][k]
+                txt = render(tk)
+                ok = f > k
+                st = [z["calls"] for z in tk if z["calls"]]
+                c = cand.setdefault(txt, {"right": ok, "src": [], "calls": sorted({re.sub(r"\(.*", "", c) for z in st for c in z})})
+                c["src"].append(list(t))
+                roll[t] = (txt, c["right"], sum(z["tok"] for z in tk), any(any(z.get("err") or []) or z.get("loop") for z in tk))
+            if not cand:
+                continue
+            j = f"{i}/t{k}"
+            names = {nm for c in cand.values() for nm in c["calls"]}
+            items.append({"id": j, "system": short_system_fc(p, names), "user": turn_context(p, k), "half": half(i), "turn": k})
+            pool[j] = {"id": j, "half": half(i), "cands": cand, "turn": k}
+            for s in seeds:
+                q = {r: (v[0], v[1], s) for r, v in roles.items()}
+                if all(v in roll for v in q.values()):
+                    out.append({"model": model, "id": j, "seed": int(s), "half": half(i), "turn": k, "roll": {r: roll[v] for r, v in q.items()}})
+    req = {0: {}, 1: {}}
+    for j, r in pool.items():
+        for t in r["cands"]:
+            h = key(j, t)
+            req[r["half"]][h] = {"h": h, "task": "tc", "sset": "mtfcs", "id": j, "kind": "sel", "text": t}
+    with open(f"{PD}/mt_fcs_items.jsonl", "w") as f:
+        for x in items:
+            f.write(json.dumps(x) + "\n")
+    for h in (0, 1):
+        with open(f"{PD}/mt_fcs_ids_h{h}.txt", "w") as f:
+            f.write("\n".join(x["id"] for x in items if x["half"] == h) + "\n")
+        with open(f"{C}/sel_req_mtfcs_h{h}.jsonl", "w") as f:
+            for r in req[h].values():
+                f.write(json.dumps(r) + "\n")
+    with open(f"{C}/mt_fcs_pool.jsonl", "w") as f:
+        for r in pool.values():
+            f.write(json.dumps(r) + "\n")
+    with open(f"{C}/mt_fcs_rows.jsonl", "w") as f:
+        for r in out:
+            f.write(json.dumps(r) + "\n")
+    mixed = lambda r: any(v["right"] for v in r["cands"].values()) and not all(v["right"] for v in r["cands"].values())
+    for k in sorted({r["turn"] for r in pool.values()}):
+        rs = [r for r in pool.values() if r["turn"] == k]
+        print(f"  turn {k}: {len(rs)} requests, {sum(len(r['cands']) for r in rs)} distinct rollouts, with a right and a wrong {sum(mixed(r) for r in rs)} "
+              f"(half 0 {sum(mixed(r) for r in rs if r['half'] == 0)}); pseudo-sets {sum(1 for r in out if r['turn'] == k)}", flush=True)
+    print(f"MT-FCS build: scoring requests {len(req[0])} / {len(req[1])}", flush=True)
+
+
 def plain(o, depth=0, seen=None):
     """MT-SD: an instance attribute as plain data (dicts, lists, scalars), object attributes as dicts, parent links skipped, depth <= 8"""
     seen = set() if seen is None else seen
@@ -693,5 +768,7 @@ if __name__ == "__main__":
         main_sel_build()
     elif "--sel-build2" in sys.argv:
         main_sel_build2()
+    elif "--fc-build" in sys.argv:
+        main_fc_build()
     else:
         main()

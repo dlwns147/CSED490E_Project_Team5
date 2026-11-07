@@ -1102,3 +1102,37 @@ Oracles over EnvScaler T with others: turn 0, 82.9 → 87.6 (with EnvACE T), 86.
 ### MT-FC: a second fault found, in long context (2026-11-07 03:4x UTC)
 
 Reading EnvScaler's evaluation section: it runs at 64K context "to match the Long-Context subset". Our lanes run at 32,768. **In long context, 43 of 200 conversations overflow in every arm and count as failures.** The registered 600 items contain no long context, so P2 and both decisions stand. The means of four (P1, P3) and EnvACE's miss below its range are affected. Before EnvACE's miss is read as an unknown difference, the overflowing items are rerun at 65,536 for the arms that have them, with results reported as a correction next to the registered numbers (`mt_fc_over.jsonl`, tags `<arm>64`). All later long-context rows run at 65,536.
+
+### MT-FC: Arctic-AWM (2026-11-07 04:2x UTC; seed 1, reasoning dropped, 32,768 context)
+
+AWM-8B T: base 50.0, miss func 41.5, miss param 30.5, long context 27.0, mean of four **37.2**, 5.59k tokens. **P3 fails for this checkpoint too** (39–47; published 42.81). So three of the four run below their published number by 1.7 to 6.5, with the context fault as the first suspect. EnvScaler's quick turn: 27.6% whole conversations at 1.30k tokens, against Qwen3-8B's 16.2%.
+
+## Addendum MT-FCS: does per-turn selection add to the best checkpoint? (written 2026-11-07 04:2x UTC, before any native verifier or online row)
+
+**Why.** The registered next step of MT-FC. The method's place depends on this: selection on top of the best public checkpoint, in its best form, on the same items.
+
+**Numbers it rests on** (`turn_track`, seed 1, 800 items; only turn 0 starts from a shared state):
+
+| Set around EnvScaler T | Turn 0 right, oracle (alone 82.9) | Conversations right by at least one, independent runs (alone 48.8) | Output tokens per conversation |
+|---|---|---|---|
+| A: + EnvScaler N | 86.6 | 53.5 | 8.6k |
+| **B: + EnvScaler N, Qwen3-8B T** | **89.0** | **57.0** | 14.3k |
+| C: + EnvScaler N, EnvACE T | 89.8 | 57.4 | 15.6k |
+| D: + EnvScaler N, EnvACE T, Qwen3-8B T | 90.5 | 59.6 | 21.3k |
+
+**Derivation.** Per-turn gains multiply. If a set removes a fraction 1 − f of EnvScaler's turn errors at every turn, with f taken from turn 0, a conversation of L turns succeeds with Π(1 − f(1 − r_k)), r_k being EnvScaler's rates at turn k (82.9, 81.5, 87.8, 86.1 for 3+). With f = 1 this gives 50.7 against an actual 48.8. Compounded oracles: A 59.3, B 65.3, C 67.3, D 69.3. The verifier realised 0.54 of the compounded oracle gain in prompt mode ((48.8 − 30.8) / (64.0 − 30.8)). So the predicted gains are A +4.6, B +7.8, C +8.9, D +10.0, and net of tokens in utility A +4.0, B +4.3, C +4.8, D +3.0. **The choice:** these nets are within noise of each other, so I take B for its hardware, since the verifier's LoRA loads on the Qwen3-8B peer and the set needs only two servers, and because accuracy, which the project is after, is second-highest there among the nets above +4. **Assumptions not tested:** f constant over turns, and the share carrying over from prompt mode. The share is the risky one: EnvScaler's errors are fewer, and they may be harder to see.
+
+**Run.**
+1. `FC_ARMS` = EnvScaler T, N, Qwen3-8B T, N, EnvACE T, AWM T (seed 1) and EnvScaler T seed 2 when ready; `FC_ROLES=N=esfc:N,P=q8bfc:T,T=esfc:T`; `mt_peer0.py --fc-build`, which also feeds the four categories into MT-SO's cross-fit by scenario half.
+2. Two verifiers `mtfcs_h<h>` on base Qwen3-8B, MT-SO's recipe (`MT_SEL_TAG=mt_fcs tc_train.py --orm --mt --batch 8 --epochs 4`). Each scores the other half.
+3. Offline: `MT_SEL_TAG=mt_fcs MT_SEL_SSET=mtfcs MT_SEL_MODELS=esfc analyze_mtb.py --sel2 mtfcs_h0,mtfcs_h1`.
+4. Online, arm S in native form on 800 items: `vote_lane` with EnvScaler (gen) and Qwen3-8B with the two LoRAs (peer), `MT_VER=peer MT_SPEC=N:gen:0,P:peer:1,T:gen:1 MT_VER_PREFIX=mtfcs_h`, at 65,536 context. Native form as MT-FC-KEEP decides.
+
+**Predictions.**
+- **FCS-P1 (gate):** offline, the verifier's chosen rollout on the pseudo-sets minus EnvScaler T's, at turn 0: at least 3.0 of turn 0's 6.1-point oracle gain would match 0.54 (3.3). If the share over all turns implies a compounded gain below 3 points, the online arm isn't run, as MT-RF.
+- **FCS-P2 (decision):** online B minus EnvScaler T, paired on the 800, seed 1: **+7.8** (range +3 to +12), lower bound above 0.
+- **FCS-P3 (reported):** utility B minus EnvScaler T: +4.3 (range 0 to +9).
+
+**Decision.**
+1. P2 holds: selection adds to the best checkpoint. Seeds 2 and 3 run; the claim becomes "per-turn selection over a trained checkpoint", compared on one harness with EnvScaler, EnvACE and AWM. CrEST's weights, if public, join them.
+2. P2 fails, or the gate stops it: **selection doesn't add to a good trained checkpoint.** That closes the line. The agent-loop result in the report is then the format fault, the checkpoint comparison and the compounding model, reported as negative for selection.

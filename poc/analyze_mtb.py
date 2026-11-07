@@ -294,7 +294,9 @@ def main_sel2():
     pw = sys.argv[sys.argv.index("--pw") + 1].split(",") if "--pw" in sys.argv else None
     if pw:   # addendum MT-PW: the pairwise verifier (pairs of the other half's training); a rollout's score is set-dependent
         VS["PW"] = {0: dict(load(pw[1]), _pw=True), 1: dict(load(pw[0]), _pw=True)}
-    rows = [json.loads(l) for l in open(f"{C}/mt_sel2_rows.jsonl")]
+    # addendum MT-FCS: MT_SEL_TAG=mt_fcs, MT_SEL_SSET=mtfcs, MT_SEL_MODELS=esfc: the native-form rows and scores
+    SSET = os.environ.get("MT_SEL_SSET", "mt2")
+    rows = [json.loads(l) for l in open(f"{C}/{os.environ.get('MT_SEL_TAG', 'mt_sel2')}_rows.jsonl")]
     sd = sys.argv[sys.argv.index("--sd") + 1].split(",") if "--sd" in sys.argv else None
     SDMAP = {}
     if sd:   # addendum MT-SD: the verifier that reads each rollout's state change; its texts are mt_sd_rows' (same order as mt_sel2_rows)
@@ -321,7 +323,7 @@ def main_sel2():
             if any(x is None or y is None for x, y in xs):
                 return None
             return sum((x - y) / 2 for x, y in xs) / len(xs) if xs else 0.0
-        return S.get(L.rv_key("tc", "mt2", i, "sel", t))
+        return S.get(L.rv_key("tc", SSET, i, "sel", t))
 
     def sets(rs, S):
         X, miss = [], 0
@@ -342,7 +344,7 @@ def main_sel2():
     z0 = lambda X: [(i, s, [dict(c, s=0.0) for c in Cc], dr) for i, s, Cc, dr in X]
     later = {nm: defaultdict(list) for nm in VS}; vsref = defaultdict(list)
     OK = {nm: {} for nm in VS}   # MT-PW: (model, request, seed) -> the chosen rollout right
-    for m in ("q8b", "q14a", "q35"):
+    for m in os.environ.get("MT_SEL_MODELS", "q8b,q14a,q35").split(","):
         R = [r for r in rows if r["model"] == m]
         D = {nm: defaultdict(lambda: defaultdict(list)) for nm in VS}   # name -> turn group -> item -> [utility - T's]
         A = {nm: defaultdict(list) for nm in VS}; At = defaultdict(list); AU = {nm: defaultdict(list) for nm in VS}
