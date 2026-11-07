@@ -1167,6 +1167,30 @@ Closure on all 97 (job 1343465) and agreement (job 1343466) are now running. DEC
 - **Fix, before rerunning.** `reduce_one` writes such a goal as `cong o x o y`. The six obligations rerun through the closure and the checker (job below). I report both readings: 3 of 6 as registered, and the count after the fix. The decision uses the count after the fix only if every failure is shown to be this fault, which the rerun tests; if any of the six still fails, E2 stands as failed.
 - **Other readings:** 106 of 115 obligations proved, all 106 pass the checker; 3 timeouts; 6 IndexError. One proved obligation of sample 3 (`cyclic s a e p`) failed on 1 of 3 fresh figures, so it holds for a configuration only. It isn't one the claim needs.
 
+### SIDE-GT-REDUCE: E2 after the fix (written 2026-11-07 10:0x UTC; job 1347198)
+
+All six rerun obligations are proved in one step and pass the checker, so every failure was the goal form, as the rule above required. **REDUCE-E2 reads 6 of 6 after the fix (3 of 6 as registered). By the decision, reduction becomes the pipeline's default, and the fresh test follows.** Fresh figures were 0 of 0 on two of those rows, which changes nothing here: each is one step from a hypothesis.
+
+Six statements is a small sample, and all of these obligations are trivial duplicates, so the reading says only that harmless redundancy costs no proofs. It says nothing about statements where the redundancy is the claim; that is the fresh test.
+
+## SIDE-GT-REDUCE-F: reduction on statements not yet read (written 2026-11-07 10:0x UTC, before any MechGeo translation exists)
+
+**Why.** REDUCE repaired USAMO 2006 P6, one problem I had already read. The hard gap is faithfulness without a human, and one repaired example on read statements doesn't show that the repair happens when nobody knows the answer.
+
+**Set.** The guarded statements of SIDE-GT-MG (arms MG-NL and MG-LEAN), which job 1345808 hasn't started. 12 of the 44 problems are in our dev or eval sets, and their rows are reported apart; the counts below use the other 32.
+
+**Order.** (1) Translations. (2) I read each statement against the audited Lean statement and write its verdict, and for each `changed` or `wrong` statement whether it assumes part of the claim. (3) Only then `reduce`, the closure on the obligations, and the checker. (4) For each statement every closed basis gives a theorem, H without h proves h and g. All are output, because the pipeline has no way to prefer one. Then I read those theorems and write verdicts.
+
+**Automatic rule.** A statement is repaired if it was not faithful and one of its closed theorems is. The system cannot say which theorem is the faithful one, so I report how many theorems each statement yields.
+
+**Predictions.**
+- **RF-P1 (reported):** statements with a basis: 20% of guarded statements (10–35%). On the 97 it was 18%.
+- **RF-P2 (decision):** at least one problem outside dev and eval gets a repaired statement, in either arm. I put this at 45%: P6 is the only case among 65 held-out problems, but IMO statements with concurrency or "assume the conclusion" forms are common, and MechGeo's 14 unfaithful statements show how much room there is.
+- **RF-P3 (guard):** a closed theorem is never read as less faithful than the statement it came from. Dropping a hypothesis can only strengthen it. Prediction: none.
+- **RF-P4 (reported):** of faithful statements with a basis and a certified original proof, at least 70% reduce fully.
+
+**Decision.** P2 holds: reduction is reported as a reference-free repair, with its rate over statements assuming part of the claim. P2 fails: it stays as the default, since it costs nothing, and the claim is limited to P6 as one exploratory case. P3 fails: a bug, stop and find it.
+
 ### SIDE-GT-DECL held out: end-to-end reading (2026-11-07 02:3x UTC; closure job 1343465, certificates jobs before and 1344245; verdicts fixed before any proof)
 
 Counted: judged faithful, proved, passes `geo_check.py`, and holds on all fresh figures. Run with restarts at K = −300, the default by SIDE-GT-LUBY's decision, not the K = 256 registered, because restarts replaced it before this ran.

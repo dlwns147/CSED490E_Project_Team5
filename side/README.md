@@ -23,9 +23,11 @@ Side work may use the Slurm server's GPUs: a model server and client commands ru
 | Lean (main track, `PREREG_PROOF.md`) | A specialised 8B prover is best; the compiler is a perfect check | Not a side-project gap at present |
 | Constructions (`construct.py`) | Unsolved for an 8B model; its own checker is not a usable free check | A derived free check, or a search the problem's structure makes exact |
 
-**Running now (geometry):** SIDE-GT-REDUCE on the 97 read statements, exploratory (job 1345712); SIDE-GT-H409-RAND, the random-point baseline (job 1344646, shard 0 of 3). **Registered, waiting for GPUs:** SIDE-GT-NDG and SIDE-GT-MG.
+**Running now (geometry):** SIDE-GT-NDG (job 1345805), SIDE-GT-NDGP (job 1346805), SIDE-GT-H409-RAND (jobs 1345806, 1345807). **Queued:** SIDE-GT-MG (job 1345808), then SIDE-GT-REDUCE-F on its statements.
 
 ## Log
+
+**2026-11-07 10:0x UTC: REDU-E2 reads 6 of 6 after the fix; reduction becomes the default.** All six obligations are proved in one step and pass the checker, so every failure was the goal form (3 of 6 as registered). They are trivial duplicates, so this shows harmless redundancy costs no proofs, and no more. SIDE-GT-REDUCE-F, registered before any MechGeo translation exists, tests repair on statements nobody has read.
 
 **2026-11-07 09:5x UTC: reduction puts USAMO 2006 P6's claim back among the goals, with no human.**
 - **The fault it repairs:** all four translations assume three of the four circles concur, which is part of the claim, and agreement between translations can't see that.
