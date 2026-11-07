@@ -31,7 +31,7 @@ Our side of the proof work is now testing and analysis only, to guide you (decid
 
 **What exists.** A model translates a geometry problem into a declarative statement (`geo_decl.py`). A least-squares solver builds figures of it, and a CPU engine proves it by linear algebra over directions, log lengths and squared lengths (`geo_closure.py`). An exact Python checker tests the proof (`geo_check.py`). `geo_lean.py` writes each proof as a Lean theorem over the rule library in `side/lean/` (Lean 4.15.0 with the matching Mathlib; no `sorry`, standard axioms only).
 
-**To reproduce one theorem.** From a certificate directory: `python side/geo_lean.py all <certs> <out> --lift`, then compile each file with `LEAN_PATH` holding Mathlib and the compiled `side/lean/` modules, built in the order GeoBase, GeoRules, GeoSim, GeoCircle, GeoCert, GeoLift. A theorem takes a median of 22 s; a few take up to an hour. `python side/geo_decl.py rread <certs> <out.jsonl>` tests each reading on the statement's figures.
+**To reproduce one theorem.** From a certificate directory: `python side/geo_lean.py all <certs> <out> --lift`, then compile each file with `LEAN_PATH` holding Mathlib and the compiled `side/lean/` modules, built in the order GeoBase, GeoRules, GeoSim, GeoCircle, GeoCert, GeoLift. A theorem takes a median of 22 s; a few need far longer than the 1,200 s limit. `python side/geo_decl.py rread <certs> <out.jsonl>` tests each reading on the statement's figures.
 
 **What the tests say.**
 
