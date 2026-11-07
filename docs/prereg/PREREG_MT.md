@@ -1136,3 +1136,12 @@ AWM-8B T: base 50.0, miss func 41.5, miss param 30.5, long context 27.0, mean of
 **Decision.**
 1. P2 holds: selection adds to the best checkpoint. Seeds 2 and 3 run; the claim becomes "per-turn selection over a trained checkpoint", compared on one harness with EnvScaler, EnvACE and AWM. CrEST's weights, if public, join them.
 2. P2 fails, or the gate stops it: **selection doesn't add to a good trained checkpoint.** That closes the line. The agent-loop result in the report is then the format fault, the checkpoint comparison and the compounding model, reported as negative for selection.
+
+### MT-FC-KEEP results (2026-11-07 05:0x UTC; EnvScaler T, seed 1, 800 items, 32,768 context; paired)
+
+Kept reasoning against dropped: **51.5 vs 50.6, +0.9 [−1.8, +3.5]**; base −2.5, long context −1.5, miss func +1.0, miss param +6.5 [+0.6, +12.4]. Overflows 44 vs 43.
+
+- **KEEP-P1:** in the expected range, and the lower bound is not above 0. **By the registered decision, the rows stand, and later native rows stay with reasoning dropped,** which is also EnvScaler's stated setting. MT-FCS's online arm runs that way, matching its verifier's data.
+- **KEEP-P2 was wrong in a useful way:** tokens fall, not stay: **−1.58k [−1.96k, −1.20k] per conversation, 5.69k against 7.27k (−22%)**, utility +1.67 [−0.99, +4.32]. A model that keeps its reasoning doesn't rethink at each step. So kept reasoning gives the same accuracy at a fifth fewer tokens on this checkpoint, on one seed. I did not register this. It is a candidate for a cheaper form once the selection question settles, and is not adopted now.
+
+Also: the 65,536 rerun's first submission failed in 51 s (job 1345258), because vLLM refuses a length above the configured 40,960 positions without `VLLM_ALLOW_LONG_MAX_MODEL_LEN=1`. Resubmitted as 1345397. MT-FCS's verifiers are training (1345398, 1345399).
