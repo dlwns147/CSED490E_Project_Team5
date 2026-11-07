@@ -5803,3 +5803,14 @@ The entries above say no related work uses invariance as a check on an answer. T
 - **The limit of the method does not rescue it.** My hand scripts reach 12 of 24 on AIME, about the coverage two programs already give, so even a perfect translator would save only the token difference, about 3.5 points of utility on those problems.
 - **Decision (my call; nothing was registered for this):** COMP-FIG stops here, and no held-out run goes ahead. It remains the numerical form of SatLM's AMBIG signal, and it works as a check, but for contest geometry it is dominated by simpler methods on this model.
 - **What it leaves:** the free solver is real value for proofs, where the same figure step (SIDE-GT-DECL) is what the translator now uses. The 8B model cannot use either.
+
+## 2026-11-07 02:3x UTC: MT-FC: our prompt format weakened the baseline, and a public checkpoint beats our method
+
+What ran: BFCL v4 multi-turn in the native function-calling form on all four categories, seed 1 (`PREREG_MT.md`, addendum MT-FC). Why: as a reviewer would, I compared our baseline with EnvACE's table and ours sat 11 points low.
+
+- Qwen3-8B thinking, mean of four categories: 38.0 (published 42.09). On our 600 items, native against prompt: **+12.0 [+7.6, +16.4]**, at fewer tokens (5.93k against 6.84k). The quick turn does not change (+1.2 [−2.5, +4.8]).
+- EnvScaler-8B thinking: 50.6 mean of four (published 52.25), 54.2 on the 600, against MT-SO's 48.8: **+5.4 [+1.7, +9.1]**, at 7.60k against 8.31k tokens.
+- **By the registered rule, "+18 over thinking" is withdrawn.** MT-SO in prompt mode against the base model's best form: +7.1 [+3.3, +10.9], utility +5.9. **Our method is not the best open 8B result.**
+- Per-turn complementarity is much smaller than in prompt mode: turn-0 oracle 86.5 over EnvScaler's 82.9.
+
+Next: EnvACE and AWM finish; per-turn numbers across checkpoints; a compounding prediction for selection in native form, written before any online row.

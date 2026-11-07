@@ -18,14 +18,20 @@ Side work may use the Slurm server's GPUs: a model server and client commands ru
 
 | Route | State | Hardest open gap |
 |---|---|---|
-| Geometry by translation (`geo_translate.py`, `geo_closure.py`, `geo_check.py`) | Certified by an independent checker: **27 of IMO-AG-30**, and held out **17 of 65** with faithfulness read by hand (12 whole problems, 5 one direction or part), **13 of 65** with no human | Half of the held-out translations cannot be written in a construction language, so the translator is now the limit (SIDE-GT-DECL). Most proofs read a configuration from the figure. IMO 2008 P6, 2011 P6 and 2021 P3 need theories the engine lacks |
+| Geometry by translation (`geo_translate.py`, `geo_decl.py`, `geo_closure.py`, `geo_check.py`) | Certified by an independent checker: **27 of IMO-AG-30**; **261 of HAGeo-409** (HAGeo 263 at K = 2,048, 287 at K = 8,192); held out **23 of 65** with faithfulness read by hand (16 whole problems, 7 one direction or part) with declarative statements | **Telling a faithful statement from an unfaithful one without a human:** agreement fails on declarative statements, half translations leave no trace, and some translations assume the claim (SIDE-GT-REDUCE attacks the last). Most proofs read a configuration from the figure. IMO 2008 P6, 2011 P6 and 2021 P3 need theories the engine lacks |
 | Natural-language proofs | Computational checks of a proof failed (SIDE-PF, SIDE-PG) | A free check that sees a step left unjustified while true, the most common error |
 | Lean (main track, `PREREG_PROOF.md`) | A specialised 8B prover is best; the compiler is a perfect check | Not a side-project gap at present |
 | Constructions (`construct.py`) | Unsolved for an 8B model; its own checker is not a usable free check | A derived free check, or a search the problem's structure makes exact |
 
-**Running now (geometry):** HAGeo-409 (SIDE-GT-H409, jobs 1341669–70, `results/proof/h409/`), and closure on the 97 held-out declarative statements (SIDE-GT-DECL, job 1343465).
+**Running now (geometry):** SIDE-GT-REDUCE on the 97 read statements, exploratory (job 1344245), and the reruns of four HAGeo-409 rows on the fixed engine (job 1344462).
 
 ## Log
+
+**2026-11-07 02:3x UTC: two registered results.**
+- **SIDE-GT-DECL:** end to end on the held-out 65, **23 problems (16 whole, 7 parts) against 17 (12, 5)** with the construction language, as predicted (+6). Six whole problems are new. The declarative form becomes the pipeline's language. These counts rest on my reading: agreement can't replace it here, so the no-human count of 13 stays with the construction language only.
+- **SIDE-GT-H409:** **261 of 409** certified, by band 140, 84, 28, 7, 2 of 161, 112, 71, 43, 22. HAGeo reports 263 at K = 2,048 and 287 at K = 8,192, random points 218, AG1 177. Median 1.8 s per proved problem, 1,800 s limit on one core.
+- **The checker found two faults in our code on HAGeo-409:** an unsound equal-chords step (four proofs; the same fault as the false IMO 2011 P6 proof) and a certificate export that corrupted large integers (three proofs). Both fixed; 264 of 264 now pass; two rows no longer prove.
+- **Next:** by the registered rule, the same engine with uniformly random points, to measure what the greedy adds. The hard gap stays faithfulness without a human: REDUCE's obligations come next.
 
 **2026-11-06 23:1x UTC: two faults found.**
 - **Agreement fails on the declarative language.** It passes 5 of 7 unfaithful statements and all 25 half ones. All four translations of USAMO 2006 P6 assume three circles concur, which is the claim. Agreement therefore can't support a no-human count here.

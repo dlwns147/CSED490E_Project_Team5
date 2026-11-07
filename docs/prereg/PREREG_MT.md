@@ -1048,3 +1048,26 @@ Ours on three of those categories: Qwen3-8B thinking at every step 30.8 (base 37
 1. P2 holds: the prompt format was weakening our baseline. "+18 over thinking" is withdrawn as the method's gain, and the main claim is restated against the best form of the base model and the best public checkpoint on the same items. Next, per-turn selection is rerun in native form, since candidates from a stronger form change the compounding prediction (registered after the per-turn numbers exist, before any online row).
 2. P2 fails: the format is not the reason. Then long context and their seed count are read first, and BFCL's own CLI path (`bfcl generate`) settles whether the published number reproduces at all.
 3. Either way, if the best public checkpoint's interval on the 600 items lies above MT-SO's 48.8, then our method is not the best open 8B result, and the claim says so.
+
+### MT-FC results (2026-11-07 02:3x UTC; seed 1; Qwen3-8B and EnvScaler-8B done, EnvACE-8B and AWM-8B still running)
+
+| Arm (native form unless stated) | Base | Miss func | Miss param | Long context | Mean of four | Our 600 items | Tokens on the 600 |
+|---|---|---|---|---|---|---|---|
+| Qwen3-8B N | 22.5 | 16.0 | 15.5 | 14.0 | 17.0 | 18.0 | 0.47k |
+| Qwen3-8B T | 46.5 | 43.5 | 35.0 | 27.0 | **38.0** | 41.7 | 5.93k |
+| EnvScaler-8B T | 67.0 | 57.5 | 38.0 | 40.0 | **50.6** | 54.2 [50.2, 58.2] | 7.60k |
+| Prompt mode: Qwen3-8B T (3 seeds) | 37.3 | 31.0 | 24.2 | | | 30.8 | 6.84k |
+| Prompt mode: MT-SO (3 seeds) | 54.8 | 51.7 | 39.8 | | | 48.8 [45.4, 52.2] | 8.31k |
+
+- **P1 holds:** 38.0, in 36–46 and below the expected 40. Published 42.09 (four-run average). Long context is the weakest category (27.0).
+- **P2 holds, decisively:** native T minus prompt T, seed 1, paired on the 600: **+12.0 [+7.6, +16.4]**; against the three prompt seeds +10.8 [+7.0, +14.7]. All three categories rise (+10.0, +15.5, +10.5).
+- **P3, EnvScaler holds:** 50.6 in 46–55 (published 52.25). EnvACE and AWM pending.
+- **P4:** native N against prompt N, +1.2 [−2.5, +4.8]: a tie. The form helps thinking, not the quick turn. N on the base category is lower (−4.0, not significant).
+
+**Decision, by rule 1 and rule 3.**
+
+1. **"+18 over thinking" is withdrawn as the method's gain.** Most of the baseline's weakness was our prompt format. Against the same model in its best form, MT-SO in prompt mode gains **+7.1 points [+3.3, +10.9]**, at 8.31k tokens against 5.93k, utility **+5.9 [+2.1, +9.8]**. That comparison crosses forms, and the native form of MT-SO has not been run.
+2. **Our method is not the best open 8B result.** EnvScaler-8B with plain thinking in native form beats MT-SO on the same items: **+5.4 points [+1.7, +9.1]**, at fewer tokens, utility +5.7 [+2.0, +9.5]. Its interval [50.2, 58.2] lies above 48.8. Training on generated environments (a published method) does more than selection over the base model in the prompt form.
+3. **Next, as registered:** per-turn selection in native form. Its prediction is written after the per-turn numbers exist and before any online row.
+
+**A reviewer's reading.** What stands is the mechanism (per-turn sandboxed choice compounds over a conversation; the model predicted the gain within 2.4 points) and the result on unseen environment classes, both measured in prompt mode. What falls is the size of the gain and the comparison with training-only results. The open question that decides whether the method has a place: does selection add to the best checkpoint, in its best form? Interim per-turn data bound it. At turn 0 (the only turn where independent runs share a state): EnvScaler T 82.9, Qwen3-8B T 75.4, oracle over the two 86.5; Qwen3-8B N with EnvScaler T 86.4. In prompt mode the same oracle gain was about 14 points; here it is 3.6.

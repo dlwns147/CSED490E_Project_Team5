@@ -69,6 +69,10 @@ class Lin:
         return True
 
 
+class ZInt(int):
+    """an exact coefficient from the integer lattice, not a residue mod P: it can exceed what rational reconstruction recovers"""
+
+
 class ZSpan:
     """The angle relations as an exact integer lattice (GT_STRICT): directed angles live modulo pi, where 2a = 2b does not give a = b, so a chase may
     only use integer combinations. Variables are eliminated on a coefficient of 1 or -1; what is left (multiples like 2(a - b) = 0) stays in an
@@ -558,6 +562,15 @@ class Closure:
         self.cur_group = None
         return g
 
+    def chord_const0(self, g, x, y, p, q, sg):
+        """on the figure, t_x - t_y + sg (t_p - t_q) = 0 mod 1, with t a point's angle around the circle's centre over 2 pi"""
+        A = self.xy[sorted(g["pts"])[:3]]
+        M = 2 * (A[1:] - A[0])
+        c = np.linalg.solve(M, (A[1:] ** 2).sum(1) - (A[0] ** 2).sum())
+        t = lambda i: math.atan2(*(self.xy[i] - c)[::-1]) / (2 * math.pi)
+        z = t(x) - t(y) + sg * (t(p) - t(q))
+        return abs(z - round(z)) < 1e-6
+
     # one pass over the rules that are not linear
     def round(self):
         Dv, Wv = self.D.val, self.W.val
@@ -644,9 +657,11 @@ class Closure:
                 for (x, y), (p, q) in itertools.combinations(c, 2):
                     a = Dv[T[x]] - Dv[T[y]]
                     b = Dv[T[p]] - Dv[T[q]]
-                    if not (a - b) % P or not (a + b) % P:
-                        sg = -1 if not (a - b) % P else 1
-                        self.wa([(w[x][y], 1), (w[p][q], -1)], "equal_chords", (("tdiff", g["id"], T[x], T[y], T[p], T[q], sg),), ("cong", x, y, p, q))
+                    for sg, zero in ((-1, a - b), (1, a + b)):
+                        # the variables say t_x - t_y = -sg (t_p - t_q) up to a constant; the chords follow only if that constant is 0, which the figure settles
+                        if not zero % P and self.chord_const0(g, x, y, p, q, sg):
+                            self.wa([(w[x][y], 1), (w[p][q], -1)], "equal_chords", (("tdiff", g["id"], T[x], T[y], T[p], T[q], sg),), ("cong", x, y, p, q))
+                            break
         # perpendicular bisectors
         for (x, y), os_ in self.bis_of.items():
             pr = [o for o in os_ if l(o, x) == l(o, y)]
@@ -1030,7 +1045,7 @@ def explain(e, goal):
                 pr_ = zans.get((t, tuple(sorted(rel))))
                 if pr_ is None:
                     raise RuntimeError(f"not in the lattice: {F} at {t}")
-                rows = {j: q % P for j, q in pr_.items() if q}
+                rows = {j: ZInt(q) for j, q in pr_.items() if q}
             else:
                 r, prov = reduce(sy, v, t)
                 if r:
@@ -1516,7 +1531,9 @@ def certify_file(path, timeout):
 
 
 def recon(c):
-    """a coefficient mod P as a fraction, by rational reconstruction; the checker tests it exactly"""
+    """a coefficient mod P as a fraction, by rational reconstruction; the checker tests it exactly. An integer the lattice gave is written as it is"""
+    if isinstance(c, ZInt):
+        return f"{int(c)}/1"
     r0, r1, t0, t1 = P, c % P, 0, 1
     while r1 * r1 * 2 > P:
         q = r0 // r1

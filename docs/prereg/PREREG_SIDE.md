@@ -1159,3 +1159,40 @@ Closure on all 97 (job 1343465) and agreement (job 1343466) are now running. DEC
 - **REDUCE-E2:** of the faithful statements with candidates, at least 70% of those with a certified original proof reduce fully. Harmless redundancy should be near-trivial to prove.
 
 **Decision.** E2 fails: redundancy on faithful statements is hard to discharge, so reduction costs proofs, and the method stops as a default. E2 holds: reduction becomes the pipeline's default and is registered on a fresh statement set, with the verdict rule read before any proof.
+
+### SIDE-GT-DECL held out: end-to-end reading (2026-11-07 02:3x UTC; closure job 1343465, certificates jobs before and 1344245; verdicts fixed before any proof)
+
+Counted: judged faithful, proved, passes `geo_check.py`, and holds on all fresh figures. Run with restarts at K = −300, the default by SIDE-GT-LUBY's decision, not the K = 256 registered, because restarts replaced it before this ran.
+
+| Problems of 65 | Declarative | Construction | Union |
+|---|---|---|---|
+| Whole claim | **16** | 12 | 18 |
+| One direction or part | 7 | 5 | 7 |
+| Total | **23** | 17 | 25 |
+
+- **DECL-P3 holds:** +6 against an expected +6 (range +2 to +12). New with a whole claim, none with a faithful constructive translation: ISL 2004 G2, ISL 2006 G2, IMO 2007 P2, ISL 2008 G16, USAMO 2009 P1, ISL 2013 G18. New as a part: Romanian 2006 grade 7 P3, USAMO 2011 P5. Lost: USAMO 2001 P2 (no faithful declarative translation), USAMO 2012 P5 (unproved).
+- **Two weak fresh tests, reported:** ISL 2008 G16 has no fresh figure (0 of 0), so its fresh test is empty, and ISL 2023 G21 has one. Without ISL 2008 G16: 15 whole, 22 in all, and P3 still holds.
+- **Checker:** 83 of 84 pass. The rejection is USAMO 2006 P6 sample 0, whose goal is the empty `cong p p p p`, correctly. Unfaithful statements were also proved and certified (5 of 6 proved rows), so **a certificate says nothing about faithfulness**.
+- **Unproved whole problems with a faithful statement:** ISL 2001 G1, USAMO 2005 P3, ISL 2012 G22.
+- **Decision (P1 and P3 hold):** the declarative form replaces the construction language in the pipeline. The registered follow-up, agreement rebuilt on it, has already run and fails (it passes 5 of 7 unfaithful statements and all 25 half ones). **So these counts rest on my reading, and the no-human count of 13 applies only to the construction language.** Faithfulness without a human is now the track's open gap: SIDE-GT-REDUCE attacks hypotheses the others imply; half translations are unattacked.
+
+### SIDE-GT-H409 results (2026-11-07 02:3x UTC; 409 rows; jobs 1341669–70, certificates 1344459)
+
+| Difficulty | Counted (ours) | Predicted | HAGeo at K = 8,192 | Of |
+|---|---|---|---|---|
+| [1, 3) | **140** | 140 | 149 | 161 |
+| [3, 4) | **84** | 70 | 93 | 112 |
+| [4, 5) | **28** | 20 | 36 | 71 |
+| [5, 6) | **7** | 4 | 7 | 43 |
+| [6, 7] | **2** | 0 | 2 | 22 |
+| Total | **261** | 234 | 287 (263 at K = 2,048; random points 218 at K = 8,192; AG1 177) | 409 |
+
+- **H409-P1 holds:** 261 in 190–280, above the expected 234. Engine proofs before the checker: 267; on 8 of 8 fresh figures: 263.
+- **H409-P2 fails on the first pass, and the failures are ours:** 259 of 266 passed (97.4%, bar 99%). Seven rejections, two faults, both now fixed in `side/geo_closure.py`:
+  - **Four: an unsound rule step.** Equal chords was accepted when the angle variables agreed up to a constant of 1/2 and the lengths agreed on the figure only by the other sign. This is the fault behind the false IMO 2011 P6 proof. The engine now requires the constant 0 on the figure, for the sign it uses. Rerun: two of the four prove without it (2020 RMM P1, 2023 EuropeanMCupS P2), and two no longer fall on the proof's points (2011 APMO P3, 2013 USA TST P2).
+  - **Three: certificate export, not the proofs.** The lattice's integer coefficients can exceed the 2^30 that rational reconstruction modulo 2^61 − 1 recovers, and the certificate carried garbage. It now writes the exact integers, and all three pass.
+  - After the fixes, 264 of 264 certificates pass. The checker earned its place: it found a soundness fault a run of 266 proofs would otherwise carry.
+- **H409-P3 holds:** median 1.81 s on proved rows (90th percentile 285 s). Mean over all rows 663 s against a limit of 1,800 s on one core.
+- **Not counted, as registered:** six rows failed to build (four for `eq_trapezoid`, which our language lacks, difficulty 1.0, 1.6, 2.1, 3.3; two with an IndexError). The two rejected rows and those two errors are rerunning on the fixed engine (job 1344462) and are reported apart.
+- **Decision (218–262):** the search does something, and less than HAGeo at its largest budget. Next, as registered: the same engine with uniformly random points, so that the greedy's value is measured on the same engine and CPU.
+- **A reviewer's reading.** Against HAGeo at K = 2,048 we are 2 short, with every proof certified by an independent exact checker and tested on 8 fresh figures, at a CPU budget orders of magnitude lower (HAGeo: up to 2,048 attempts of 60 s, on 64 cores). The bands [5, 7] match its largest budget. We lose 9 each at [1, 3) and [3, 4), which is where its construction rules or our language still matter. HAGeo's code is not public, so this is citation, not a rerun. Our proofs read a configuration from the figure, as AlphaGeometry's and HAGeo's do.
