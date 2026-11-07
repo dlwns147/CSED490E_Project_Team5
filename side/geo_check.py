@@ -410,6 +410,73 @@ def check(c):
     return stats
 
 
+def used(c):
+    """the rows the goal depends on: through the combinations, and from a chord to the rows that made its circle"""
+    rows = {r["j"]: r for r in c["rows"]}
+    by, group = {}, {}
+    for ch in c["chases"]:
+        by.setdefault(ch["ctx"], []).append(ch)
+    for r in c["rows"]:
+        if r.get("gid") is not None:
+            group.setdefault(r["gid"], []).append(r["j"])
+    goal = c["goal"]
+    todo = [int(i) for ch in by.get(-1, []) for i in ch["rows"]]
+    if goal[0] == "cyclic":     # a cyclic goal has no combination: the circle that holds its points
+        todo += [j for js in group.values() for j in js if set(goal[1:]) <= set(rows[js[0]]["concl"][1:]) or set(goal[1:]) <= {q for i in js for q in rows[i]["concl"][1:]}]
+    seen = set()
+    while todo:
+        j = todo.pop()
+        if j in seen or j not in rows:
+            continue
+        seen.add(j)
+        r = rows[j]
+        todo += [int(i) for ch in by.get(j, []) for i in ch["rows"]]
+        if r.get("gid") is not None:
+            todo += group[r["gid"]][:1]
+        todo += [i for F in r["prem"] if F[0] == "cyclic_group" for i in group.get(F[1], [])[:1]]
+    return [rows[j] for j in sorted(seen)]
+
+
+def conditions(c):
+    """SIDE-GT-NDGP: what the proof needs beyond its hypotheses. A rule's statement is true only away from a degenerate figure: two directed angles give a similar pair or a circle only
+    on real triangles, and an auxiliary point exists and is apart from what it is paired with only on some figures. So the proof proves H and these conditions imply the goal, and a
+    figure where H holds and the goal fails breaks one of them or a configuration the proof read. -> sorted list of [kind, points..., rule]: ncoll, same (an auxiliary point on another
+    point), para (the lines of an intersection), tangent (a second intersection that is the first)"""
+    out = set()
+    add = lambda k, pts, tag: out.add((k, *(sorted(pts) if k == "ncoll" else pts), tag))
+    rows = used(c)
+    for row in rows:
+        tag, concl = row["tag"], row["concl"]
+        P = [F for F in row["prem"] if F[0] != "cyclic_group"]
+        if tag == "similar":
+            add("ncoll", concl[1:4], tag)
+            add("ncoll", concl[4:7], tag)
+        elif tag == "inscribed" and P and P[0][0] == "eqangle":
+            add("ncoll", [P[0][1], P[0][2], P[0][4]], tag)
+        elif tag == "base_angles":
+            add("ncoll", [P[0][3], P[0][1], P[0][2]], tag)
+        elif tag == "parallelogram_mid":
+            m, a, b = mp(P[0], P[1])
+            add("ncoll", [a, b, P[2][2]], tag)
+        elif tag == "bisector":
+            add("ncoll", [P[1][5] if P[1][0] == "eqratio" else P[1][1], P[0][2], P[0][3]], tag)
+        elif tag == "thales":
+            add("ncoll", [P[0][1], P[0][2], P[1][2]], tag)
+        elif tag == "trapezoid":
+            add("ncoll", P[0][1:4], tag)
+    pairs = {tuple(v[1:]) for row in rows for v, _ in row["rel"] if v[0] != "t"}
+    for nm, d in c["defs"]:
+        k, *a = [q for q in d.split() if q != "aux"]
+        for x, y in pairs:
+            if nm in (x, y):
+                add("same", [nm, y if x == nm else x], k)
+        if k == "intersection_ll":
+            add("para", a, k)
+        if k in ("second_lc", "second_cc"):
+            add("tangent", [nm], k)
+    return [list(x) for x in sorted(out)]
+
+
 def main():
     for fn in sys.argv[1:]:
         c = json.load(open(fn))

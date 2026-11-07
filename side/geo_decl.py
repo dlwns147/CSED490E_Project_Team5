@@ -533,6 +533,132 @@ def ndg_rows():
             f.flush()
 
 
+def _subst(fact, nm, y):
+    """an auxiliary point's fact with the point put on y, as the fact that is left: None if nothing is, False if it cannot be"""
+    k, *a = fact
+    a = [y if q == nm else q for q in a]
+    if k in ("coll", "cyclic", "circle"):
+        b = list(dict.fromkeys(a))
+        if k == "coll":
+            return None if len(b) < 3 else [k, *b]
+        if k == "circle":
+            return None if len(b) < 3 or a[0] in a[1:] and len(b) < 4 else [k, *b]
+        return None if len(b) < 4 else [k, *b]
+    if k == "midp":
+        return False if len(set(a)) < 3 else [k, *a]
+    if k in ("perp", "cong"):
+        return None if a[0] == a[1] or a[2] == a[3] or (k == "cong" and {a[0], a[1]} == {a[2], a[3]}) else [k, *a]
+    raise ValueError(k)
+
+
+def _negate(cond, pts, hyps, defs):
+    """the statement on the figures where one condition of the proof fails, with the auxiliary points that condition depends on written as points. -> points, hypotheses, or None and
+    why no such statement is written"""
+    from geo_check import def_facts
+    kind, *a = cond[:-1]
+    d = dict(defs)
+    words = lambda nm: [q for q in d[nm].split() if q != "aux"]
+    gone, y = (a[0], a[1]) if kind == "same" else (a[0], None) if kind == "tangent" else (None, None)
+    extra = []
+    if kind == "ncoll":
+        extra = [["coll", *a]]
+    elif kind == "para":
+        extra = [["para", *a]]
+    elif kind == "tangent":
+        k, *b = words(gone)
+        if k != "second_lc":
+            return None, "tangent circles"
+        extra = [["eqangle", b[0], b[1], b[0], b[2], b[3], b[0], b[3], b[2]]]   # the line touches the circle at b[0]
+    else:
+        k, *b = words(gone)
+        if k in ("second_lc", "second_cc") and y == b[0]:
+            return None, "same as tangent"
+        if k == "reflect" and y == b[0]:
+            extra = [["coll", y, b[1], b[2]]]
+        for f in def_facts(gone, d[gone]):
+            g = _subst(f, gone, y)
+            if g is False:
+                return None, "impossible"
+            if g:
+                extra.append(g)
+    need, todo = [], [q for f in extra for q in f[1:] if q in d]
+    while todo:
+        m = todo.pop()
+        if m in need or m == gone:
+            continue
+        need.append(m)
+        todo += [q for q in words(m)[1:] if q in d]
+    for m, _ in defs:
+        if m in need:
+            for f in def_facts(m, d[m]):
+                g = _subst(f, gone, y) if kind == "same" else f
+                if g is False:
+                    return None, "impossible"
+                if g:
+                    extra.append(g)
+    return " ".join(pts.split() + [m for m, _ in defs if m in need]), hyps + [" ".join(f) for f in extra]
+
+
+def pcond_one(a):
+    """SIDE-GT-NDGP: the conditions a certified proof needs, each tested: is there a figure of the statement where it fails, and does the goal hold there? The search covers the proof's own
+    conditions, not every triple, so a counterexample outside a configuration the proof read has to appear here. -> a row with one entry per condition"""
+    from geo_check import conditions
+    path, limit = a
+    t0 = time.time()
+    c = json.load(open(path))
+    pts, hyps, goal = _clean(c["dsl"])
+    conds = conditions(c)
+    no = {frozenset(s.split()[1:]) for s in hyps if s.split()[0] == "ncoll"}
+    row = dict(file=os.path.basename(path), dsl=c["dsl"], defs=c["defs"], n=len(conds), conds=[], stopped=False)
+    G = parse(_state(pts, hyps, goal))[2]
+    line = lambda t, P: abs(residual("coll", list(t), P)[0]) < 1e-7
+    flat = lambda q, P: any(line(t, P) for t in itertools.combinations(q, 3))
+    seen = {}
+    for cd in conds:
+        e = dict(cond=cd)
+        row["conds"].append(e)
+        key = tuple(cd[:-1])
+        if key in seen:
+            e["same_as"] = seen[key]
+            continue
+        seen[key] = len(row["conds"]) - 1
+        if cd[0] == "ncoll" and frozenset(cd[1:-1]) in no:
+            e["state"] = "stated"
+            continue
+        if limit and time.time() - t0 > limit:
+            row["stopped"] = True
+            e["state"] = "not tried"
+            continue
+        p2, h2 = _negate(cd, pts, hyps, c["defs"])
+        if p2 is None:
+            e["state"] = "untested: " + h2
+            continue
+        ix = {p: i for i, p in enumerate(p2.split())}
+        got = solve(_state(p2, h2, goal), starts=40)[3]
+        cyc = [[ix[q] for q in s.split()[1:]] for s in h2 if s.split()[0] == "cyclic"]
+        got = [P for P in got if not any(flat(q, P) for q in cyc)]
+        ga = [ix[q] if isinstance(q, str) else q for q in G[1]]
+        bad = [P for P in got if any(abs(r) > 1e-6 for r in residual(G[0], ga, P)) or (G[0] == "cyclic" and flat(ga, P))]
+        e.update(state="figures" if got else "none", figs=len(got), fails=len(bad))
+        if bad:
+            e["fig"] = {q: [round(float(bad[0][i].real), 5), round(float(bad[0][i].imag), 5)] for q, i in ix.items()}
+    row["sec"] = round(time.time() - t0, 1)
+    return row
+
+
+def pcond_rows():
+    """pcond <cert dir> <out.jsonl> [--workers W] [--limit S] [--only substring ...]: pcond_one on every certificate not yet in out"""
+    from concurrent.futures import ProcessPoolExecutor, as_completed
+    w = int(sys.argv[sys.argv.index("--workers") + 1]) if "--workers" in sys.argv else 4
+    limit = int(sys.argv[sys.argv.index("--limit") + 1]) if "--limit" in sys.argv else 0
+    done = {r["file"] for r in map(json.loads, open(sys.argv[3]))} if os.path.exists(sys.argv[3]) else set()
+    todo = [os.path.join(sys.argv[2], f) for f in sorted(os.listdir(sys.argv[2])) if f.endswith(".json") and f not in done]
+    with ProcessPoolExecutor(w) as ex, open(sys.argv[3], "a") as f:
+        for u in as_completed([ex.submit(pcond_one, (p, limit)) for p in todo]):
+            f.write(json.dumps(u.result()) + "\n")
+            f.flush()
+
+
 if __name__ == "__main__":
     if sys.argv[1] == "guard":
         print(json.dumps(guard(sys.argv[2])))
@@ -543,5 +669,7 @@ if __name__ == "__main__":
         print(figure(sys.argv[2])[2])
     if sys.argv[1] == "ndg":
         ndg_rows()
+    if sys.argv[1] == "pcond":
+        pcond_rows()
     if sys.argv[1] == "reduce":
         reduce_rows()
