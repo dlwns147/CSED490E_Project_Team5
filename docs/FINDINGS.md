@@ -5923,3 +5923,25 @@ What ran: Qwen3-8B on ZebraLogic (2502.01100), 10 puzzles per size, one seed; th
 
 Contribution as a reviewer would judge it: nothing yet; the claim to test is cost at equal accuracy against thinking on a standard benchmark, at 8B, on the hard sizes.
 
+## 2026-11-07 21:2x UTC: ZebraLogic ladder beats thinking in the pilot, pre-registered on held-out puzzles; early exit fails
+
+**Why we ran this.** The computation track looks for ways to get exactly right answers for fewer tokens. These are exploratory pilots, one seed, Qwen3-8B.
+
+**ZebraLogic (idea 14).** The first 10 puzzles of each size. All arms compared on the 231 puzzles where thinking has finished (it runs in order, so what is missing is the last 19, sizes 6×5 and 6×6).
+
+| Arm | Exactly right | Tokens |
+|---|---|---|
+| Thinking, 16,000 cap | 85.3% | 5,265 |
+| Translate, with one fact in the prompt (`trf`) | 81.4% | 405 |
+| Translate with thinking (`trt`) | 89.2% | 3,242 |
+| `trf`, then thinking if the count is not 1 | 90.9% | 1,971 |
+| `trf`, then `trt` | 91.8% | 1,393 |
+| `trf`, then `trt`, then thinking | 93.1% | 2,013 |
+
+The three-step ladder gains 9.4 utility over thinking, interval [5.2, 14.0]. A count of 1 is right 185 of 192 times for `trf`, 206 of 210 for `trt`. The gap is at large sizes: past 20 cells thinking gets 19 of 41, `trt` 29 of 41, `trf` 22 of 41. Thinking's 85.3% matches the Qwen3 report's 84.8, which suggests the baseline is sound.
+
+Two things flatter these numbers. I wrote the fact after reading failures on these same puzzles, and thinking was capped at 16,000, with most large puzzles unfinished. `docs/prereg/PREREG_ZL.md` fixes both: 250 unseen puzzles, 3 seeds, thinking at 32,000 (jobs 1351662, 1351663).
+
+**The check is prior art.** SatLM (2023) already abstains on UNSAT and AMBIG, and Logic-LM and ZPS repair from solver output. Any claim here is limited to the cost gate against a current thinking model. ZebraLogic's clues also come from a few templates, so job 1351664 runs the same idea on AR-LSAT, which is real text: the model writes an enumerator and marks options, and exactly one mark is the check.
+
+**Early exit (idea 6) fails.** On 194 raw traces, exit when the quick answer appears in the thinking. A wrong quick answer appears there too: 19 of 44 on AIME, 16 of 49 on level 5. Thinking considers wrong paths on its way. Exit at first sight gives AIME 55.0% against 73.3% and level 5 82.1% against 93.3%; utility falls 17.7 [−27.7, −8.8] and 10.4 [−16.1, −5.2]. Requiring a concluding phrase before the number barely helps (17 of 44 wrong still pass). This is PUMA's premature-exit warning, measured. The ceiling for any exit rule is 36% of tokens on AIME and 50% on level 5, the part after the model first states its own final answer.

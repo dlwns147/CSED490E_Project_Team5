@@ -381,13 +381,13 @@ def zl_score(g, gold):
 def zl_main():
     tag, arm, seed = sys.argv[2], sys.argv[3], int(sys.argv[4])
     opt = lambda k, d: int(sys.argv[sys.argv.index(k) + 1]) if k in sys.argv else d
-    per, mt = opt("--per", 10), opt("--max_tokens", 16000 if arm == "think" else 8192 if arm == "trt" else 4096)
+    per, mt, skip = opt("--per", 10), opt("--max_tokens", 16000 if arm == "think" else 8192 if arm == "trt" else 4096), opt("--skip", 0)
     tr = arm in ("tr", "trf", "trt")   # trf: with the fact below; trt: a translation with thinking on
     R = [json.loads(l) for l in open(os.path.join(os.environ["POC_DATA"], "zebralogic", "grid.jsonl"))]
     seen, P = {}, []
     for r in sorted(R, key=lambda r: (r["size"], int(r["id"].rsplit("-", 1)[1]))):
         seen[r["size"]] = seen.get(r["size"], 0) + 1
-        if seen[r["size"]] <= per:
+        if skip < seen[r["size"]] <= skip + per:   # --skip 10: the next puzzles of each size, unseen when ZL_FACT was written
             P.append(r)
 
     def run(r):
@@ -428,5 +428,58 @@ def zl_main():
     print(tag, arm, seed, f"{sum(r['exact'] for r in rows)}/{len(rows)}", f"tokens {sum(r['tokens'] for r in rows) / len(rows):.0f}", flush=True)
 
 
+# AR-LSAT (Zhong et al. 2022; test split of Logic-LM), idea 14 on real text: the model writes a program that enumerates the arrangements and marks the options. A question has
+# exactly one right option, so one mark is a free check, and any other number is label-free feedback. usage: run_zebra.py --ls <tag> <arm tr|trt|think|direct> <seed> [--max_tokens N]
+LS_SOLVE = """
+import json
+print(json.dumps({"marks": sorted(k for k in "ABCDE" if qualifies[k])}))
+"""
+LS_Q = "{context}\n\nQuestion: {question}\n{options}"
+LS_TR = ("{q}\n\nDo not answer by reasoning. Translate it. Give one ```python block that enumerates every arrangement the rules allow (itertools and ortools are available; keep it under "
+         "a minute) and defines `qualifies`, a dict from each letter A to E to True or False, computed from that enumeration: True when the option is the answer to the question. "
+         "A condition stated in the question is added to the rules first. \"Could be true\" means the option holds in at least one allowed arrangement, \"must be true\" in all of them, "
+         "\"cannot be true\" in none; EXCEPT reverses the test.")
+LS_FMT = "{q}\n\nEnd with a line \"Answer: X\" where X is the letter of the right option."
+
+
+def ls_main():
+    tag, arm, seed = sys.argv[2], sys.argv[3], int(sys.argv[4])
+    mt = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else 16000 if arm == "think" else 8192 if arm == "trt" else 4096
+    P = json.load(open(os.path.join(os.environ["POC_DATA"], "arlsat", "test.json")))
+
+    def run(k, r):
+        q, sd = LS_Q.format(context=r["context"], question=r["question"], options="\n".join(r["options"])), seed * 10007 + k
+        row = {"id": r["id"], "arm": arm, "seed": seed, "gold": r["answer"]}
+        if arm in ("think", "direct"):
+            o = chat_msgs([{"role": "user", "content": LS_FMT.format(q=q)}], think=arm == "think", max_tokens=mt, temperature=0.7, seed=sd)
+            a = re.findall(r"Answer:\W*([A-E])\b", o["text"] or "")
+            return {**row, "pick": a[-1] if a else None, "exact": bool(a) and a[-1] == r["answer"], "tokens": o["out_tokens"], "finish": o["finish"], "text": (o["text"] or "")[-800:]}
+        msgs, tok, hist = [{"role": "user", "content": LS_TR.format(q=q)}], 0, []
+        for rnd in range(3):
+            o = chat_msgs(msgs, think=arm == "trt", max_tokens=mt, temperature=0.7, seed=sd + rnd)
+            tok += o["out_tokens"]
+            code = last_block(o["text"], ("python", "py", "python3"))
+            res = run_python(code + "\n" + LS_SOLVE, "", timeout=60, mem_bytes=4 << 30) if code else None
+            try:
+                marks = json.loads(res.stdout.strip().splitlines()[-1])["marks"]
+            except (AttributeError, IndexError, ValueError, KeyError, TypeError):
+                marks = None
+            hist.append({"marks": marks, "tokens": o["out_tokens"], "err": (res.stderr[-300:] if res else "no code")})
+            if marks is not None and len(marks) == 1:
+                break
+            fb = f"it failed to run: {(res.stderr[-600:] if res else 'no python block')}" if marks is None else f"your program marks {len(marks)} options ({', '.join(marks) or 'none'})"
+            msgs += [{"role": "assistant", "content": o["text"] or "(empty)"},
+                     {"role": "user", "content": f"The question has exactly one right option, but {fb}. Compare each rule and the question with your program and give the complete corrected ```python block."}]
+        return {**row, "marks": marks, "count": -1 if marks is None else len(marks), "pick": marks[0] if marks and len(marks) == 1 else None, "exact": marks == [r["answer"]],
+                "tokens": tok, "rounds": len(hist), "hist": hist, "code": code}
+
+    path = f"{RES}/ls_{tag}_{arm}_s{seed}.jsonl"
+    with ThreadPoolExecutor(32) as ex, open(path, "w") as f:
+        rows = []
+        for r in ex.map(lambda a: run(*a), enumerate(P)):
+            rows.append(r); f.write(json.dumps(r) + "\n"); f.flush()
+    print(tag, arm, seed, f"{sum(r['exact'] for r in rows)}/{len(rows)}", f"tokens {sum(r['tokens'] for r in rows) / len(rows):.0f}", flush=True)
+
+
 if __name__ == "__main__":
-    zl_main() if sys.argv[1] == "--zl" else main()
+    {"--zl": zl_main, "--ls": ls_main}.get(sys.argv[1], main)()
