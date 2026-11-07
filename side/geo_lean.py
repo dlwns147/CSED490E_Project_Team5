@@ -7,7 +7,7 @@ be written stops with the reason, which is a fault of this file or of the checke
 import glob, json, os, re, sys
 from fractions import Fraction as Fr
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from geo_check import form, sim_rows, lin, key, mp, used
+from geo_check import Bad, form, sim_rows, lin, key, mp, used
 
 
 class Stop(Exception):
@@ -690,10 +690,10 @@ class Writer:
     def run(self):
         c = self.c
         rows = used(json.loads(json.dumps(c)))
+        need = {r["j"] for r in rows}
         for r in c["rows"]:
             r["rel"] = lin(*[(key(k), Fr(v)) for k, v in r["rel"]])
-            r["const"] = self.const_of(r)
-        need = {r["j"] for r in rows}
+            r["const"] = self.const_of(r) if r["j"] in need else None
         seen = set()
         for row in c["rows"]:
             if row["j"] not in need:
@@ -856,7 +856,7 @@ def main():
                     t = export(f)
                     open(f"{out}/{b}.lean", "w").write(t)
                     log.write(json.dumps({"file": b, "ok": True}) + "\n")
-                except (Stop, KeyError, IndexError, ValueError, TypeError, AttributeError) as e:
+                except (Stop, Bad, KeyError, IndexError, ValueError, TypeError, AttributeError) as e:
                     log.write(json.dumps({"file": b, "ok": False, "why": f"{type(e).__name__}: {e}"}) + "\n")
         return
     open(sys.argv[2], "w").write(export(sys.argv[1]))
