@@ -317,3 +317,11 @@ Three web searches, on translating AlphaGeometry or Newclid proofs into Lean or 
 - **Coq:** GeoCoq; Narboux's area method. Not read in full.
 
 "No translation found" is a statement about three searches. It does not mean none exists.
+
+## Directions modulo 2π and orientation in synthetic provers (2026-11-07 14:5x UTC, for SIDE-GT-LEAN-LIFT)
+
+- **Todd, A Method for the Automated Discovery of Angle Theorems (arXiv 2201.00543, read in full).** The Naive Angle Method of Geometry Expressions: each constraint is a linear equation in the directions of directed lines, modulo 2π (bisector `2d_k − d_i − d_j = 0`, isosceles base `= π/2`, tangents and chords as right angles and isosceles relations). A statement is proved if it is in the row space, by Gaussian elimination. How many 2π's to add is settled by a numerical sketch. It notes the trade-off: full angles prove more cases at once but can't state signed angles. **Differs from ours:** one modulus, and a sketch arbitrates; ours mixes rows modulo π (doubled) with relations modulo 2π in an integer lattice, and the kernel checks the constant.
+- **Chou, Gao, Zhang, full angles (1996).** Modulo π, diagram independent, no orientation. Not read in full; cited through Wilson and Fleuriot and through Todd.
+- **AlphaGeometry, Newclid.** Orientation (`sameclock`) is read from a numerical diagram. The Lean Zulip thread "AlphaGeometry doesn't have a secure foundation" objects to exactly this.
+- **Kovács and Peng, complex number identities (arXiv 2511.14728).** Fetched, not yet read in full. Complex identities with elimination; a different route to the same kind of statement.
+- **Searches (2026-11-07):** "directed angles modulo 2π orientation parity diagram-free similar triangles side-angle-side formal proof", "AlphaGeometry deductive database orientation sameclock numerical check Lean directed angles mod pi vs mod 2pi", "full-angle method limitations order information oriented angles ... GF(2)". No paper on a mixed modulus or parity treatment turned up. That is a statement about these three searches only.

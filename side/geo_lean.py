@@ -27,8 +27,61 @@ def canon(v):
     return f"{ {'u': 'U', 'w': 'W', 's': 'd2'}[v[0]] } {pt(v[1])} {pt(v[2])}"
 
 
+class Lattice:
+    """the integer combinations of relations modulo 2π. A relation is a vector over directions and circle variables with a constant in units of π"""
+
+    def __init__(self):
+        self.piv, self.gens, self.order, self.seen = {}, [], {}, set()
+
+    def add(self, vec, const, term):
+        vec = {k: int(v) for k, v in vec.items() if v}
+        key = (tuple(sorted(vec.items(), key=str)), const)
+        if key in self.seen:
+            return
+        self.seen.add(key)
+        for k in vec:
+            self.order.setdefault(k, len(self.order))
+        self.gens.append((vec, Fr(const), term))
+        v, cb = dict(vec), {len(self.gens) - 1: 1}
+        while v:
+            c = min(v, key=self.order.get)
+            if c not in self.piv:
+                self.piv[c] = (v, cb)
+                return
+            p, pc = self.piv[c]
+            while v.get(c):
+                q = p[c] // v[c]
+                p, pc, v, cb = v, cb, self.sub(p, v, q), self.sub(pc, cb, q)
+            self.piv[c] = (p, pc)
+
+    @staticmethod
+    def sub(a, b, q):
+        r = dict(a)
+        for k, x in b.items():
+            r[k] = r.get(k, 0) - q * x
+            if not r[k]:
+                del r[k]
+        return r
+
+    def solve(self, T):
+        """-> generators and coefficients that sum to T, or None"""
+        v, cb = dict(T), {}
+        while v:
+            if any(k not in self.order for k in v):
+                return None
+            c = min(v, key=self.order.get)
+            if c not in self.piv or v[c] % self.piv[c][0][c]:
+                return None
+            p, pc = self.piv[c]
+            q = v[c] // p[c]
+            v, cb = self.sub(v, p, q), self.sub(cb, pc, -q)
+        return cb
+
+
 class Writer:
-    def __init__(self, c):
+    def __init__(self, c, lift=False):
+        self.sims = set()
+        self.lat, self.proved, self.throws, self.lifted, self.opposite = Lattice() if lift else None, {}, set(), 0, 0
         self.c, self.body, self.pairs, self.hyps, self.nc, self.reads, self.groups, self.points = c, [], set(), {}, {}, {}, {}, set()
         self.rows = {r["j"]: r for r in c["rows"]}
         self.by = {}
@@ -68,8 +121,92 @@ class Writer:
         o = sorted(zip((a, b, c), (p, q, r)))
         s = (tuple(x for x, _ in o), tuple(y for _, y in o))
         self.points |= {a, b, c, p, q, r}
+        if self.lat is not None and (kind, *s) not in self.reads:
+            t = self.proved.get((kind, a, b, c, p, q, r)) or self.discharge(kind, a, b, c, p, q, r)
+            if t:
+                self.proved[(kind, a, b, c, p, q, r)] = t
+                return t
         n = self.reads.setdefault((kind, *s), f"rd{len(self.reads)}")
         return _perm2(n, s, ((a, b, c), (p, q, r)))
+
+    # readings proved: directions modulo 2π (GeoLift.lean)
+
+    def atoms(self, vec):
+        """every direction is known with its reverse"""
+        for k in list(vec):
+            if k[0] == "th" and ("th", k[2], k[1]) in self.lat.order and k not in self.lat.order:
+                self.swap(k[1], k[2])
+            self.lat.order.setdefault(k, len(self.lat.order))
+
+    def swap(self, a, b):
+        self.lat.add({("th", b, a): 1, ("th", a, b): -1}, 1, lambda: f"(th_swap {self.ne(a, b)})")
+
+    def known(self, vec, const, term):
+        vec = {k: v for k, v in vec.items() if v}
+        for k in vec:
+            if k[0] == "th" and ("th", k[2], k[1]) in self.lat.order:
+                self.swap(k[1], k[2])
+        self.lat.add(vec, const, term)
+
+    def lift_row(self, r):
+        """the double of a row modulo π holds modulo 2π"""
+        vec = {}
+        for v, c in r["rel"].items():
+            if Fr(c).denominator != 1:
+                return
+            k = ("th", v[1], v[2]) if v[0] == "u" else v
+            vec[k] = 2 * int(c)
+        j = r["j"]
+
+        def term():
+            if j not in self.throws:
+                self.throws.add(j)
+                us = [(v, c) for v, c in r["rel"].items() if v[0] == "u"]
+                add = f"r{j}"
+                for v, c in us:
+                    add = f"({add}).add ((th_u {self.ne(v[1], v[2])}).zmul ({int(c)}))"
+                e = " + ".join(f"{num(c)} * Th {pt(v[1])} {pt(v[2])}" if v[0] == "u" else f"{num(c)} * tz {self.groups[v[1]]['o']} {self.groups[v[1]]['r']} {pt(v[2])}" for v, c in r["rel"].items())
+                self.line(f"have t{j} : ModPi ({e} - {num(r['const'])} * Real.pi) := ModPi.congr (by push_cast; ring) ({add})")
+            return f"(Mod2.dbl t{j})"
+        self.known(vec, 2 * Fr(r["const"]), term)
+
+    def lift_sim(self, name, o, a, b, c, p, q, s):
+        if len({a, b, c}) < 3 or len({p, q, s}) < 3:
+            return
+        sg = -1 if o else 1
+        lem = "sim_lift" if o else "sim2_lift"
+        for (x, y, z, x2, y2, z2, h) in ((a, b, c, p, q, s, name), (b, a, c, q, p, s, f"({name}).p12")):
+            self.known(add_vec({("th", x, y): 1}, {("th", x, z): -1}, {("th", x2, y2): sg}, {("th", x2, z2): -sg}), 0,
+                       lambda x=x, y=y, z=z, x2=x2, y2=y2, z2=z2, h=h: f"({lem} {h} {self.ne(x, y)} {self.ne(x, z)} {self.ne(x2, y2)} {self.ne(x2, z2)})")
+
+    def lift_midp(self, m, a, b, n):
+        self.known({("th", m, a): 1, ("th", b, m): -1}, 0, lambda: f"(midp_lift {n})")
+        self.known({("th", a, m): 1, ("th", a, b): -1}, 0, lambda: f"(midp_end {n})")
+
+    def discharge(self, kind, a, b, c, p, q, r):
+        """a proof of the reading, or None: the angle at some vertex of the pair, modulo 2π, as a combination of what is known"""
+        sg = -1 if kind == "Read" else 1
+        lem = "read_lift" if kind == "Read" else "read2_lift"
+        for x, y, z, x2, y2, z2, back in ((a, b, c, p, q, r, ""), (b, a, c, q, p, r, ".p12"), (c, a, b, r, p, q, ".p12.p23")):
+            T = add_vec({("th", x, y): 1}, {("th", x, z): -1}, {("th", x2, y2): sg}, {("th", x2, z2): -sg})
+            self.atoms(T)
+            cb = self.lat.solve(T)
+            if cb is None:
+                continue
+            tot = sum((self.lat.gens[g][1] * co for g, co in cb.items()), Fr(0))
+            if tot % 2:
+                self.opposite += 1
+                continue
+            acc = f"(Mod2.int ({int(tot / 2)}))"
+            for g, co in cb.items():
+                acc = f"({acc}).add (Mod2.zmul ({co}) {self.lat.gens[g][2]()})"
+            n = self.new("q")
+            th = lambda u, v: f"Th {pt(u)} {pt(v)}"
+            e = f"{th(x, y)} - {th(x, z)} {'-' if kind == 'Read' else '+'} {th(x2, y2)} {'+' if kind == 'Read' else '-'} {th(x2, z2)}"
+            self.line(f"have {n} : Mod2 ({e}) := Mod2.congr (by push_cast; ring) ({acc})")
+            self.lifted += 1
+            return f"({lem} {n} {self.ne(x, y)} {self.ne(x, z)} {self.ne(x2, y2)} {self.ne(x2, z2)} {self.NC(x, y, z)}){back}"
+        return None
 
     def readx(self, kind, *a):
         self.points |= set(a)
@@ -420,6 +557,8 @@ class Writer:
             if pt(o) != g["o"]:
                 raise Stop(f"row {j}: radius from {o}, the circle's centre is {g['o']}")
             t = f"radius {g['hr']} {g['on'][p]} {self.ne(o, p)}"
+            if self.lat is not None:
+                self.known({("th", o, p): 1, ts[0][0]: -2}, Fr(-1, 2), lambda: f"(radius_lift {g['hr']} {g['on'][p]} {self.ne(o, p)})")
             e = " + ".join(self.swaps([(("u", o, p), 1)], 1)) or "(0 : ℝ) * (0 : ℝ)"
             self.line(f"have r{j} : {self.rowprop(r)} := ModPi.congr (by linear_combination {e}) ({t})")
 
@@ -457,6 +596,9 @@ class Writer:
         name = self.new("s")
         tr = f"{P(p)} {P(q)} {P(s)}"
         self.line(f"have {name} : Sim {pt(a)} {pt(b)} {pt(c)} {tr} := {t}")
+        if self.lat is not None and json.dumps(concl) not in self.sims:
+            self.sims.add(json.dumps(concl))
+            self.lift_sim(name, o, a, b, c, p, q, s)
         for i, (sy, f, _) in enumerate(sim_rows(concl)):
             if r["sys"] == sy and lin(*r["rel"].items()) == f:
                 pre = "sim" if o else "sim2"
@@ -528,6 +670,8 @@ class Writer:
         h = self.prem(j, F2)
         n = self.new("m")
         self.line(f"have {n} : Midp {pt(m)} {pt(a)} {pt(b)} := midp_of {self.ne(a, b)} {c} {h}")
+        if self.lat is not None:
+            self.lift_midp(m, a, b, n)
         return m, a, b, n
 
     def rule(self, r):
@@ -543,6 +687,8 @@ class Writer:
             F = P[0]
             x, y, o, A = concl[1], concl[2], concl[3], concl[4]
             h = pr(F) if F[2] == x else f"({pr(F)}).symm"
+            if self.lat is not None:
+                self.known(add_vec({("th", x, y): 2}, {("th", o, x): -1}, {("th", y, o): -1}), 0, lambda: f"(isos_lift {h} {self.ne(x, y)} {self.ne(o, x)} {self.ne(o, y)})")
             return concl, f"({'isos1' if A == x else 'isos2'} {h})"
         if tag == "base_angles":
             F = P[0]
@@ -563,10 +709,15 @@ class Writer:
         if tag == "midline":
             m1, a1, b1, n1 = self.midp(j, P[0], P[1])
             m2, a2, c2, n2 = self.midp(j, P[2], P[3])
+            if self.lat is not None:
+                self.known({("th", m1, m2): 1, ("th", b1, c2): -1}, 0, lambda: f"(midline_lift {n1} {n2})")
             return concl, f"(midline {n1} {n2})"
         if tag == "parallelogram":
             m, a, b, n1 = self.midp(j, P[0], P[1])
             m2, c_, e, n2 = self.midp(j, P[2], P[3])
+            if self.lat is not None:
+                one = concl[1:] == [a, c_, b, e]
+                self.known({("th", a, c_ if one else e): 1, ("th", e if one else c_, b): -1}, 0, lambda: f"({'para1_lift' if one else 'para2_lift'} {n1} {n2})")
             return concl, f"({'parallelogram1' if concl[1:] == [a, c_, b, e] else 'parallelogram2'} {n1} {n2})"
         if tag == "parallelogram_mid":
             m, a, b, n1 = self.midp(j, P[0], P[1])
@@ -712,6 +863,8 @@ class Writer:
             else:
                 F, t = self.chords(r) if tag == "equal_chords" else self.rule(r)
                 self.row_from(r["j"], F, t)
+            if self.lat is not None and r["sys"] == "D":
+                self.lift_row(r)
         done = self.goal()
         self.line(f"exact {done}")
         return self.text()
@@ -762,8 +915,16 @@ class Writer:
         else:
             g = self.prop(G)
         vs = " ".join(pt(x) for x in sorted(self.points))
-        head = f"import GeoCert\nopen GeoCert\n\nset_option maxHeartbeats 4000000 in\ntheorem cert ({vs} : P)\n    " + "\n    ".join(hs) + f" :\n    {g} := by\n"
+        head = f"import {'GeoLift' if self.lat is not None else 'GeoCert'}\nopen GeoCert\n\nset_option maxHeartbeats 4000000 in\ntheorem cert ({vs} : P)\n    " + "\n    ".join(hs) + f" :\n    {g} := by\n"
         return head + "\n".join(self.body) + "\n\n#print axioms cert\n"
+
+
+def add_vec(*vs):
+    r = {}
+    for v in vs:
+        for k, x in v.items():
+            r[k] = r.get(k, 0) + x
+    return {k: x for k, x in r.items() if x}
 
 
 def _nth(h, i, n):
@@ -837,11 +998,13 @@ def form_list(F):
     return list(form(F)[1].items())
 
 
-def export(path):
+def export(path, lift=False):
     c = json.load(open(path))
-    w = Writer(c)
+    w = Writer(c, lift)
     w.cache = {}
-    return w.run()
+    t = w.run()
+    export.info = dict(left=len(w.reads), lifted=w.lifted, opposite=w.opposite)
+    return t
 
 
 def main():
@@ -853,9 +1016,9 @@ def main():
                 b = os.path.basename(f).replace(".txt.json", "").replace(".json", "")
                 b = re.sub(r"[^A-Za-z0-9_]", "_", b)
                 try:
-                    t = export(f)
+                    t = export(f, "--lift" in sys.argv)
                     open(f"{out}/{b}.lean", "w").write(t)
-                    log.write(json.dumps({"file": b, "ok": True}) + "\n")
+                    log.write(json.dumps({"file": b, "ok": True, **export.info}) + "\n")
                 except (Stop, Bad, KeyError, IndexError, ValueError, TypeError, AttributeError) as e:
                     log.write(json.dumps({"file": b, "ok": False, "why": f"{type(e).__name__}: {e}"}) + "\n")
         return
