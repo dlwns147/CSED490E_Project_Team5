@@ -59,21 +59,29 @@ TIR_HINT = ("I can run Python here. For any step that is a calculation, an enume
             "after it, instead of working it out by hand.\n\n")
 
 
-def tir(q, sd, mt, calls_max=20):
-    """a think with code runs inside it: returns the llm.chat fields, with the runs and the seconds they took"""
+TIR_SAY = ["Python code", "Python block", "with Python", "in Python", "using Python", "a Python"]   # 11-07: the model says it will use Python, then writes on in prose
+
+
+def tir(q, sd, mt, calls_max=20, force=False):
+    """a think with code runs inside it: returns the llm.chat fields, with the runs and the seconds they took. force: when thinking says it will use Python, open the block for it"""
     from llm import client
     import time
     head = f"<|im_start|>user\n{q}\n\n{TIR_NOTE}<|im_end|>\n<|im_start|>assistant\n<think>\n{TIR_HINT}"
-    gen, used, runs, secs, errs, finish = "", 0, 0, 0.0, 0, None
+    gen, used, runs, secs, errs, finish, opened = "", 0, 0, 0.0, 0, None, 0
     while used < mt:
         c_ = client.completions.create(model="local", prompt=head + gen, temperature=0.7, top_p=0.95, max_tokens=mt - used, seed=sd + runs,
-                                       stop=["\n```\n"] if runs < calls_max else None)
+                                       stop=(["\n```\n"] + (TIR_SAY if force and "</think>" not in gen else [])) if runs < calls_max else None)
         c = c_.choices[0]
         gen += c.text
         used += c_.usage.completion_tokens
         finish = c.finish_reason
-        if finish != "stop" or not getattr(c, "stop_reason", None):
+        said = getattr(c, "stop_reason", None)
+        if finish != "stop" or not said:
             break
+        if said in TIR_SAY:
+            gen += said + (":\n```python\n" if gen.count("```") % 2 == 0 else "")
+            opened += gen.count("```") % 2
+            continue
         gen += "\n```\n"
         tail = gen[:-5].rsplit("```", 1)
         if "</think>" in gen or len(tail) < 2 or not tail[1].startswith(("python", "py\n")):
@@ -86,7 +94,7 @@ def tir(q, sd, mt, calls_max=20):
         out = (r.stdout if r.status == "ok" else (r.status + " " + (getattr(r, "stderr", "") or "")[-300:])) or "(nothing printed)"
         gen += f"```output\n{out[:1000]}\n```\n"
     text = gen.split("</think>")[-1] if "</think>" in gen else ""
-    return {"text": text, "finish": finish, "out_tokens": used, "think_text": gen, "runs": runs, "run_secs": round(secs, 1), "run_errors": errs}
+    return {"text": text, "finish": finish, "out_tokens": used, "think_text": gen, "runs": runs, "run_secs": round(secs, 1), "run_errors": errs, "opened": opened}
 
 
 def to_candidates(s):
@@ -167,7 +175,7 @@ def main():
             if p["id"] not in cand:
                 return None
             q = VFY.format(p=p["problem"], a=cand[p["id"]]["boxed"])
-        o = tir(q, sd, mt) if mode == "tir" else chat(q, think=think, max_tokens=mt, temperature=0.7, seed=sd)
+        o = tir(q, sd, mt, force=mode == "tirf") if mode in ("tir", "tirf") else chat(q, think=think, max_tokens=mt, temperature=0.7, seed=sd)
         text = o["text"] or ""
         row = {"id": p["id"], "src": p["src"], "level": p["level"], "subject": p["subject"], "gold": p["answer"], "mode": mode,
                "out_tokens": o.get("out_tokens"), "finish": o.get("finish")}
@@ -182,8 +190,8 @@ def main():
                 row.update(cand=cand[p["id"]]["boxed"], cand_right=cand[p["id"]]["correct"])
             if "think_text" in o:
                 row.update(think_text=o["think_text"])
-            if mode == "tir":
-                row.update(runs=o["runs"], run_secs=o["run_secs"], run_errors=o["run_errors"])
+            if mode in ("tir", "tirf"):
+                row.update(runs=o["runs"], run_secs=o["run_secs"], run_errors=o["run_errors"], opened=o["opened"])
         return row   # graded afterwards in worker processes: math_verify's signal-based timeout fails in threads (all-0 bug, 18:09)
 
     import threading

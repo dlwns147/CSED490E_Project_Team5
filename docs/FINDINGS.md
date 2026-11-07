@@ -5904,3 +5904,10 @@ What ran: free tests on recorded data, and the first read of think-to-verify. Wh
 
 Contribution as a reviewer would judge it: three negative pilots, and one correction to how we state cost.
 
+## 2026-11-07 19:1x UTC: think to verify fails on three seeds; Qwen3-8B talks about Python and doesn't write it
+
+What ran: the rest of think-to-verify, and the first 100 rows of Python inside thinking. Why: the gap on AIME is between 12% from a quick answer and 63–68% from a long think; both ideas try to narrow it.
+
+- **Think to verify (582 runs).** A yes is right 234 of 237 times (AIME 29 of 30, level 5 205 of 207). It accepts 40% of runs where a plain think capped at 6,000 finishes 34%, at equal tokens (5.8k and 4.8k against 5.9k and 5.1k). Plain thinking wins all the same: its tokens carry on towards an answer, and it can solve what the quick answer got wrong. Verification tokens are lost if the candidate is rejected, and 260 of 277 wrong candidates end with no verdict at all. Closed.
+- **Python in thinking, by prompt.** Of 100 finished rows (the shorter ones), 92 mention Python while thinking, 5 write a block there, and 55 blocks appear after the thinking ends. The raw text reads "Let me write the Python code to compute these values", then prose. So the tool isn't used, and this run tests a hint, not the idea. Stopped (job 1349967). The new arm `tirf` opens the block for the model at that point, which is the mechanism START's hints and CoRT's Hint-Engineering address by training or by insertion.
+
