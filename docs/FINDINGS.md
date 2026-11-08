@@ -5954,3 +5954,18 @@ Two things flatter these numbers. I wrote the fact after reading failures on the
 
 **ZebraLogic pilot, all 250 puzzles.** With the last 19 large puzzles in, thinking at 16k falls to 79.6% at 6.0k tokens (it gets 2 of 10 at 6×5, 0 of 10 at 6×6). The ladder (`trf`, then `trt`, then thinking) gets 91.2% at 2.7k, +13.2 utility [+8.4, +18.4]. Translating with thinking alone gets 88.0% at 3.5k. A count of 1 is right 189 of 197 times for `trf` and 220 of 224 for `trt`. Thinking's 79.6% is below the Qwen3 report's 84.8 because of the 16k cap; the held-out run uses 32k.
 
+## 2026-11-08 02:3x UTC: AR-LSAT, translation without thinking: the check is precise but covers a quarter of the questions
+
+**Why we ran this.** ZebraLogic's clues come from a few templates. AR-LSAT (230 test questions, Logic-LM's split) is real text, so it tests whether the solution-count gate survives outside templates. The model writes a program that enumerates the arrangements and marks the options; exactly one mark accepts. Qwen3-8B, seed 1, exploratory.
+
+| Arm | Exactly right | Tokens |
+|---|---|---|
+| Thinking, 16k | 75.7% | 7.6k |
+| Direct, no thinking | 53.0% | 1.8k |
+| Translate, no thinking, up to 3 rounds | 24.8% | 2.5k |
+| Translate, then thinking if not exactly one mark | 78.3% | 8.3k |
+
+One mark happens on 61 of 230 questions and is right on 57, 93.4%, where thinking gets 83.6% of the same 61. So the gate adds accuracy, but the gate's own tokens erase the savings: utility +2.3 [−0.6, +5.4], a tie. Of the failed rounds, most are crashes: wrong argument types (113), missing attributes (100), and OR-Tools calls the API does not support (72); 35 programs mark no option and 26 mark several. For comparison, Logic-LM reports 43.0% on AR-LSAT with GPT-4 and SatLM 37.4% with code-davinci-002; thinking at 8B is far above both.
+
+The translation-with-thinking arm crashed when a repair round passed the 20,480-token context (39 rows written). Fixed so a failed request ends the rounds; rerun with a 32,768 context (job below).
+

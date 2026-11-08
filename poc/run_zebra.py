@@ -455,8 +455,13 @@ def ls_main():
             a = re.findall(r"Answer:\W*([A-E])\b", o["text"] or "")
             return {**row, "pick": a[-1] if a else None, "exact": bool(a) and a[-1] == r["answer"], "tokens": o["out_tokens"], "finish": o["finish"], "text": (o["text"] or "")[-800:]}
         msgs, tok, hist = [{"role": "user", "content": LS_TR.format(q=q)}], 0, []
+        marks, code = None, ""
         for rnd in range(3):
-            o = chat_msgs(msgs, think=arm == "trt", max_tokens=mt, temperature=0.7, seed=sd + rnd)
+            try:
+                o = chat_msgs(msgs, think=arm == "trt", max_tokens=mt, temperature=0.7, seed=sd + rnd)
+            except Exception as e:   # a repair round past the context length: keep what the earlier rounds gave
+                hist.append({"marks": None, "tokens": 0, "err": f"request failed: {str(e)[:200]}"})
+                break
             tok += o["out_tokens"]
             code = last_block(o["text"], ("python", "py", "python3"))
             res = run_python(code + "\n" + LS_SOLVE, "", timeout=60, mem_bytes=4 << 30) if code else None
