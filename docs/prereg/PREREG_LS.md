@@ -25,4 +25,19 @@ Thinking on dev: 71.0% at 7.7k; on the 52 questions trs covers, thinking is righ
 
 **Decision.** P1 and P2 hold: the gate survives real text, and the ZebraLogic claim is stated for both, with this as the evidence that it does not need templated clues; next, a second model. P1 fails: on real text the gate ties, and the claim stays limited to ZebraLogic.
 
+## Addendum: arm trse (idea 22)
+
+Written 2026-11-08 20:4x UTC, before any test output of `trse` exists and before reading the test rows of `trs` (only row counts were looked at). LS-P1–P3 above stay on `trs` as registered.
+
+**Why.** Reading dev programs: the harness reverses the test when the model sets `EXCEPT = True`, and 42 of the 57 such flags are on questions without EXCEPT ("which one CANNOT be true?" declared as KIND = "cannot" plus a reversal). The harness then marks the four wrong options. `trse` is `trs` with EXCEPT set by the harness from the question's text, after the model's code; the prompt is unchanged. Replaying only the final rounds on dev: one-mark right 48 → 61 (one new wrong mark), ladder accuracy 77.5% → 78.8%, ladder tokens 7.9k → 7.5k. A rerun can differ from the replay, because the wrong flag also drove the repair rounds.
+
+**Setup.** As above; `trse` on the test split, seeds 1, 2, 3, paired with `trs` on the same question and seed, each composed with the same `think` run.
+
+**Predictions.**
+- **LS-P4:** ladder utility of `trse` minus that of `trs`, interval above 0.
+- **LS-P5:** `trse` one mark right at least 88% of the time and on at least 3 points more of the questions than `trs`.
+- **LS-P6 (reported):** in `trs` test programs, the share of `EXCEPT = True` flags on questions without EXCEPT is 50–85%.
+
+**Decision.** P4 holds: `trse` replaces `trs` as the front of the ladder, and LS-P1/P2 are also reported for it (labelled as the post-registration arm). P4's point is positive but its interval includes 0: a tie; `trs` stays the registered result and `trse` is reported beside it. P5 fails on precision: the text flag is not the whole story and the arm is dropped.
+
 ## Results

@@ -429,7 +429,7 @@ def zl_main():
 
 
 # AR-LSAT (Zhong et al. 2022; test split of Logic-LM), idea 14 on real text: the model writes a program that enumerates the arrangements and marks the options. A question has
-# exactly one right option, so one mark is a free check, and any other number is label-free feedback. usage: run_zebra.py --ls <tag> <arm tr|trt|trs|trsd|trk|think|direct> <seed> [--max_tokens N] [--dev]
+# exactly one right option, so one mark is a free check, and any other number is label-free feedback. usage: run_zebra.py --ls <tag> <arm tr|trt|trs|trsd|trse|trk|think|direct> <seed> [--max_tokens N] [--dev]
 LS_SOLVE = """
 import json
 print(json.dumps({"marks": sorted(k for k in "ABCDE" if qualifies[k])}))
@@ -501,6 +501,8 @@ print(json.dumps({"marks": sorted(L for L in "ABCDE" if _q(_n[L])) if _ok else [
 """
 
 
+# arm trse (idea 22): trs, but the harness sets EXCEPT from the question's text after the model's code. In trs dev, 42 of 57 EXCEPT = True flags were on
+# questions without EXCEPT ("CANNOT be true" read as a reversal on top of KIND = "cannot"), which marks the complement of the answer.
 # arm trk (idea 20): the harness owns the arrangement's shape. In trsd's zero-allowed dev questions most rules failed by reading a different shape than
 # arrangements() made (names local to the generator, dicts keyed the other way), so the model declares entities and attributes and the harness builds the candidates.
 LS_TRK = ("{q}\n\nDo not answer by reasoning. Translate it. Give one ```python block that defines only these names:\n"
@@ -551,7 +553,7 @@ def ls_main():
             o = chat_msgs([{"role": "user", "content": LS_FMT.format(q=q)}], think=arm == "think", max_tokens=mt, temperature=0.7, seed=sd)
             a = re.findall(r"Answer:\W*([A-E])\b", o["text"] or "")
             return {**row, "pick": a[-1] if a else None, "exact": bool(a) and a[-1] == r["answer"], "tokens": o["out_tokens"], "finish": o["finish"], "text": (o["text"] or "")[-800:]}
-        msgs, tok, hist = [{"role": "user", "content": (LS_TRK if arm == "trk" else LS_TRS if arm in ("trs", "trsd") else LS_TR).format(q=q)}], 0, []
+        msgs, tok, hist = [{"role": "user", "content": (LS_TRK if arm == "trk" else LS_TRS if arm in ("trs", "trsd", "trse") else LS_TR).format(q=q)}], 0, []
         marks, code = None, ""
         for rnd in range(3):
             try:
@@ -561,7 +563,7 @@ def ls_main():
                 break
             tok += o["out_tokens"]
             code = last_block(o["text"], ("python", "py", "python3"))
-            res = run_python(code + "\n" + {"trs": LS_TRS_SOLVE, "trsd": LS_TRSD_SOLVE, "trk": LS_TRK_GEN + LS_TRS_SOLVE}.get(arm, LS_SOLVE), "", timeout=60, mem_bytes=4 << 30) if code else None
+            res = run_python(code + "\n" + {"trs": LS_TRS_SOLVE, "trsd": LS_TRSD_SOLVE, "trk": LS_TRK_GEN + LS_TRS_SOLVE, "trse": f"\nEXCEPT = {'EXCEPT' in r['question']}\n" + LS_TRS_SOLVE}.get(arm, LS_SOLVE), "", timeout=60, mem_bytes=4 << 30) if code else None
             try:
                 out = json.loads(res.stdout.strip().splitlines()[-1])
                 marks = out["marks"]
