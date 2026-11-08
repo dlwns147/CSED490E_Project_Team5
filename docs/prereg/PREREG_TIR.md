@@ -22,3 +22,17 @@ Per problem, each arm's accuracy and tokens are averaged over its three seeds. U
 **Decision.** If P1 holds, repeat on a second model (Qwen3-4B) and report against START's Hint-infer numbers. If P1 fails while P2 and P3 hold, the result is the cost claim alone: the same accuracy for fewer tokens. If P2 fails, idea 13 is closed.
 
 ## Results
+
+
+### 2026-11-08 09:5x UTC: three seeds each (tirf seeds 2–4, think seeds 1–3, both at 28,000)
+
+| | AIME (60) accuracy | AIME tokens | Level 5 (134) accuracy | Level 5 tokens |
+|---|---|---|---|---|
+| think | 64.4% | 16,061 | 93.0% | 8,509 |
+| tirf | 70.0% | 11,947 | 89.8% | 5,982 |
+
+- **TIR-P1 fails:** AIME utility +7.6 [−0.5, +15.9]; accuracy +5.6 [−2.2, +13.3]. A tie.
+- **TIR-P2 holds:** tokens −25.6% on AIME (−4,114 [−5,264, −3,048]) and −29.7% on level 5 (−2,526 [−3,023, −2,045]).
+- **TIR-P3 fails:** level-5 accuracy −3.2 [−6.5, 0.0], lower bound below −3.
+
+Hitting the 28,000 cap: tirf 9 of 180 AIME runs, think 31. **The case is not one the decision named** (P1 and P3 fail, P2 holds), so I state it plainly: no claim. Forced Python cuts a quarter of the tokens and ties on AIME, but may cost accuracy on level 5. On the 18 level-5 problems where thinking is right more often, 15 of tirf's 25 wrong runs ran the program without an error and boxed its wrong answer: the model trusted a program that modelled the problem wrongly. START's answer to this is training (Hint-RFT); prompting alone does not fix it here. Idea 13 is not closed (P2 holds), but it has no claim as it stands.

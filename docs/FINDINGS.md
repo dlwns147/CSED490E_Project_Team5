@@ -6020,3 +6020,19 @@ It passes the kill rule: one-mark coverage 34 → 52, precision 92.3% (above 90%
 Qwen3-8B: the ladder (translate without thinking; if the solver does not count exactly one solution, translate with thinking; if still not one, think) is right on 95.3% at 2,267 tokens; thinking alone 81.3% at 6,627. Utility +16.18 [+11.74, +20.96], accuracy +14.0 [+9.7, +18.5]. A count of 1 is right 96.6% (no thinking) and 99.6% (with thinking). On the 60 largest puzzles, translating with thinking gets 82.8% against thinking's 46.7%. Our thinking baseline (81.3%) is close to the Qwen3 report's 84.8, so the gain is not from a weak baseline.
 
 **Next, as registered.** ZL-FULL (`PREREG_ZL.md`): Qwen3-8B on the remaining 500 puzzles and Qwen3-4B on the same 250, three seeds each (jobs 1353865–1353869, three of them queued behind finishing jobs to stay within 8 GPUs). The check itself is prior work (SatLM, Logic-LM, Logic.py); the claim is the cost gate in front of a current thinking model.
+
+## 2026-11-08 09:5x UTC: Python forced into thinking: a quarter fewer tokens, no accuracy claim (TIR verdict)
+
+**Why we ran this.** Idea 13: open a Python block inside Qwen3-8B's thinking and paste the output back, with no training (START's Hint-infer is the closest prior work). Pre-registered in `PREREG_TIR.md` against plain thinking, both capped at 28k, three seeds each.
+
+AIME: 70.0% at 11.9k tokens against 64.4% at 16.1k; utility +7.6 [−0.5, +15.9], a tie (P1 fails). Level 5 of MATH-500: 89.8% at 6.0k against 93.0% at 8.5k; accuracy −3.2 [−6.5, 0.0], so the registered non-inferiority margin of 3 points fails (P3). Tokens fall 26% and 30%, both intervals below 0 (P2 holds).
+
+**What the outputs show.** Where thinking wins on level 5, most of tirf's wrong runs executed a program without error and boxed its wrong output: the program modelled the problem wrongly and the model trusted it over its own reasoning. No claim; idea 13 stays open only as a cost observation.
+
+## 2026-11-08 09:5x UTC: AR-LSAT dev: declarations-only translation makes the gate pay on one seed; test run pre-registered
+
+**Why we ran this.** The question is whether the ZebraLogic gain needs templated clues. On AR-LSAT dev (231 questions, seed 1), with thinking run on dev too: thinking 71.0% at 7.7k. Declarations-only translation (trs) then thinking: 77.5% at 7.9k, utility +6.4 [+2.6, +10.4]. The old whole-program arm then thinking: +1.8 [−1.3, +5.3]. The per-rule count feedback (trsd) did not help (45 one-mark questions, 84.4% right, ladder +2.8 [−0.9, +6.6]) and is dropped.
+
+**Why it pays.** On the 52 questions where trs marks one option, thinking is right on only 63.5%; trs is right on 92.3%. The gate covers questions thinking finds hard, not easy ones.
+
+**Next.** `PREREG_LS.md`: test split, three seeds, ladder against thinking (jobs 1354890–1354892). One dev seed only chose the arm.
