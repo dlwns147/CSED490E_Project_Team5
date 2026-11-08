@@ -5997,3 +5997,18 @@ Crashes are the largest group: AttributeError 31 and TypeError 23 for tr, mostly
 **Idea 18, declarations only.** The model writes `arrangements()`, one predicate per rule, the question's added condition, one predicate per option, and `KIND`/`EXCEPT`. The harness enumerates, applies the test, and counts a predicate that raises as False, reporting which one raised in the repair feedback. This is Logic-LM's declarations/constraints/options split with enumeration in place of Z3; Logic-LM's GPT-4 programs run on 32.6% of AR-LSAT (39.8% after self-refinement). Pilot on the **dev** split (231 questions) against tr, so the test split stays clean for a prereg (job 1353083). Kill rule: one-mark coverage on dev not above tr's, or precision below 90%.
 
 **MechGeo (SIDE-GT-MG).** The translation job ended with 85 of 176 NL and 137 of 176 LEAN samples; the rest timed out in the client's queue (130 timeouts). Resubmitted with no client timeout, resuming by sample (job 1353077, 2 GPUs). The prereg reads only complete sets.
+
+## 2026-11-08 06:4x UTC: declarations-only translation survives its pilot on AR-LSAT dev (idea 18)
+
+**Why we ran this.** On AR-LSAT the gate covers too few questions, and crashes were the main loss. Idea 18 has the model write only declarations; the harness enumerates and applies the question's test. Pilot on the dev split (231 questions, seed 1, no thinking, up to 3 rounds), test split untouched.
+
+| Arm | Crash (last round) | No mark | 2+ marks | One mark | Right of one mark | Tokens |
+|---|---|---|---|---|---|---|
+| tr (model writes the whole program) | 132 | 34 | 31 | 34 | 29 (85.3%) | 2.7k |
+| trs (declarations only) | 23 | 115 | 41 | 52 | 48 (92.3%) | 1.9k |
+
+It passes the kill rule: one-mark coverage 34 → 52, precision 92.3% (above 90%), and 30% fewer tokens. First-round crashes fall from 169 to 32.
+
+**The new main loss is "no arrangement allowed"** (98 questions). On 47 of them a predicate raised and, counted as False, removed everything (KeyError 20, NameError 7, StopIteration 7); on the rest the rules as written contradict each other. Feedback so far says only "0 arrangements pass".
+
+**Next, arm trsd (same prompt, richer feedback).** An LSAT game always allows at least one arrangement, and so does each rule alone. The harness now reports, without any label, how many candidates each rule keeps alone, how many remain after each rule in order, and how many allowed arrangements each option holds in. A rule that alone keeps none, or the first rule at which the count reaches 0, locates the error. Running on dev with thinking on dev beside it (job 1353376), so the ladder against thinking can be estimated on dev before a test-split prereg.

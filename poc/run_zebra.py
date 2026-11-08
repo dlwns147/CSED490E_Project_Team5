@@ -429,7 +429,7 @@ def zl_main():
 
 
 # AR-LSAT (Zhong et al. 2022; test split of Logic-LM), idea 14 on real text: the model writes a program that enumerates the arrangements and marks the options. A question has
-# exactly one right option, so one mark is a free check, and any other number is label-free feedback. usage: run_zebra.py --ls <tag> <arm tr|trt|trs|think|direct> <seed> [--max_tokens N] [--dev]
+# exactly one right option, so one mark is a free check, and any other number is label-free feedback. usage: run_zebra.py --ls <tag> <arm tr|trt|trs|trsd|think|direct> <seed> [--max_tokens N] [--dev]
 LS_SOLVE = """
 import json
 print(json.dumps({"marks": sorted(k for k in "ABCDE" if qualifies[k])}))
@@ -469,6 +469,36 @@ _n = {L: sum(_holds(OPTIONS[L], a, f"option {L}") for a in _ok) for L in "ABCDE"
 _q = {"could": lambda n: n > 0, "must": lambda n: n == len(_ok), "cannot": lambda n: n == 0, "could_false": lambda n: n < len(_ok)}[_k]
 print(json.dumps({"marks": sorted(L for L in "ABCDE" if _q(_n[L])) if _ok else [], "allowed": len(_ok), "errors": _err}))
 """
+# arm trsd: the same, plus where the arrangements are lost. An LSAT game always allows at least one arrangement, and so does each rule alone, so a rule that alone
+# keeps none, or the first rule at which the running count reaches 0, locates the error without a label; per-option counts show what the question's test saw.
+LS_TRSD_SOLVE = """
+import json, time
+_t, _err, _ok, _N = time.time(), {}, [], 0
+def _holds(f, a, name):
+    try:
+        return bool(f(a))
+    except Exception as e:
+        _err.setdefault(name, f"{type(e).__name__}: {e}"[:120]); return False
+_alone, _run = [0] * len(RULES), [0] * len(RULES)
+for _a in arrangements():
+    _N += 1
+    _h = [_holds(f, _a, f"rule {i + 1}") for i, f in enumerate(RULES)]
+    for i, h in enumerate(_h):
+        _alone[i] += h
+    for i in range(len(_h)):
+        if not _h[i]:
+            break
+        _run[i] += 1
+    if all(_h) and _holds(CONDITION, _a, "CONDITION"):
+        _ok.append(_a)
+    if time.time() - _t > 50:
+        raise SystemExit("enumeration took over 50 s")
+_k = {"could": "cannot", "cannot": "could", "must": "could_false", "could_false": "must"}[KIND] if globals().get("EXCEPT") else KIND
+_n = {L: sum(_holds(OPTIONS[L], a, f"option {L}") for a in _ok) for L in "ABCDE"}
+_q = {"could": lambda n: n > 0, "must": lambda n: n == len(_ok), "cannot": lambda n: n == 0, "could_false": lambda n: n < len(_ok)}[_k]
+print(json.dumps({"marks": sorted(L for L in "ABCDE" if _q(_n[L])) if _ok else [], "allowed": len(_ok), "errors": _err,
+                  "diag": {"candidates": _N, "alone": _alone, "running": _run, "options": _n, "test": _k}}))
+"""
 
 
 def ls_main():
@@ -483,7 +513,7 @@ def ls_main():
             o = chat_msgs([{"role": "user", "content": LS_FMT.format(q=q)}], think=arm == "think", max_tokens=mt, temperature=0.7, seed=sd)
             a = re.findall(r"Answer:\W*([A-E])\b", o["text"] or "")
             return {**row, "pick": a[-1] if a else None, "exact": bool(a) and a[-1] == r["answer"], "tokens": o["out_tokens"], "finish": o["finish"], "text": (o["text"] or "")[-800:]}
-        msgs, tok, hist = [{"role": "user", "content": (LS_TRS if arm == "trs" else LS_TR).format(q=q)}], 0, []
+        msgs, tok, hist = [{"role": "user", "content": (LS_TRS if arm in ("trs", "trsd") else LS_TR).format(q=q)}], 0, []
         marks, code = None, ""
         for rnd in range(3):
             try:
@@ -493,18 +523,23 @@ def ls_main():
                 break
             tok += o["out_tokens"]
             code = last_block(o["text"], ("python", "py", "python3"))
-            res = run_python(code + "\n" + (LS_TRS_SOLVE if arm == "trs" else LS_SOLVE), "", timeout=60, mem_bytes=4 << 30) if code else None
+            res = run_python(code + "\n" + {"trs": LS_TRS_SOLVE, "trsd": LS_TRSD_SOLVE}.get(arm, LS_SOLVE), "", timeout=60, mem_bytes=4 << 30) if code else None
             try:
                 out = json.loads(res.stdout.strip().splitlines()[-1])
                 marks = out["marks"]
             except (AttributeError, IndexError, ValueError, KeyError, TypeError):
                 out, marks = {}, None
-            hist.append({"marks": marks, "tokens": o["out_tokens"], "err": (res.stderr[-300:] if res else "no code"), "allowed": out.get("allowed"), "errors": out.get("errors")})
+            hist.append({"marks": marks, "tokens": o["out_tokens"], "err": (res.stderr[-300:] if res else "no code"), "allowed": out.get("allowed"), "errors": out.get("errors"), "diag": out.get("diag")})
             if marks is not None and len(marks) == 1:
                 break
             fb = f"it failed to run: {(res.stderr[-600:] if res else 'no python block')}" if marks is None else f"your program marks {len(marks)} options ({', '.join(marks) or 'none'})"
             if marks is not None and "allowed" in out:
                 fb += f"; {out['allowed']} arrangements pass the rules" + (f", and these raised (counted as False): {json.dumps(out['errors'])[:500]}" if out.get("errors") else "")
+            if marks is not None and "diag" in out:
+                d = out["diag"]
+                fb += (f". Of {d['candidates']} candidate arrangements, each rule alone keeps {d['alone']}; applied in order, {d['running']} remain after each rule"
+                       f" (a real question always allows at least one arrangement, and so does each rule alone); the question's condition leaves {out['allowed']};"
+                       f" among those, each option holds in {d['options']}, and the test applied was \"{d['test']}\"")
             msgs += [{"role": "assistant", "content": o["text"] or "(empty)"},
                      {"role": "user", "content": f"The question has exactly one right option, but {fb}. Compare each rule and the question with your program and give the complete corrected ```python block."}]
         return {**row, "marks": marks, "count": -1 if marks is None else len(marks), "pick": marks[0] if marks and len(marks) == 1 else None, "exact": marks == [r["answer"]],
