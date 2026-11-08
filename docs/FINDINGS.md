@@ -5983,3 +5983,17 @@ Restated means of four (one seed; the other 757 conversations unchanged): EnvSca
 
 **Thinking at 28k was stuck.** The job ran 144 requests at once on one 3090; after three hours no row had been written since 01:22 UTC, because queued requests passed the client's 3,600 s timeout and restarted. Cancelled and restarted as one seed per GPU with no client timeout, resuming from the rows written (jobs 1352824–1352826).
 
+## 2026-11-08 05:4x UTC: why AR-LSAT translations fail, and a declarations-only arm (idea 18); MechGeo translations refilled
+
+**Why we ran this.** The translate-and-count gate ties with thinking on AR-LSAT because it applies to too few questions. Before trying to raise coverage, I counted how the last round of each translation ends (test split, seed 1).
+
+| Arm | Crash | No option marked | Two or more marked | One marked |
+|---|---|---|---|---|
+| tr (no thinking) | 108 | 35 | 26 | 61 |
+| trt (thinking) | 96 | 19 | 24 | 91 |
+
+Crashes are the largest group: AttributeError 31 and TypeError 23 for tr, mostly misuse of the CP-SAT API, then KeyError and NameError. The first round crashes on 158 and 153 of 230; repair rescues only a third. The could/must/cannot/EXCEPT test is also the model's to code, and 0 or 2+ marks come from it or from a wrong rule.
+
+**Idea 18, declarations only.** The model writes `arrangements()`, one predicate per rule, the question's added condition, one predicate per option, and `KIND`/`EXCEPT`. The harness enumerates, applies the test, and counts a predicate that raises as False, reporting which one raised in the repair feedback. This is Logic-LM's declarations/constraints/options split with enumeration in place of Z3; Logic-LM's GPT-4 programs run on 32.6% of AR-LSAT (39.8% after self-refinement). Pilot on the **dev** split (231 questions) against tr, so the test split stays clean for a prereg (job 1353083). Kill rule: one-mark coverage on dev not above tr's, or precision below 90%.
+
+**MechGeo (SIDE-GT-MG).** The translation job ended with 85 of 176 NL and 137 of 176 LEAN samples; the rest timed out in the client's queue (130 timeouts). Resubmitted with no client timeout, resuming by sample (job 1353077, 2 GPUs). The prereg reads only complete sets.

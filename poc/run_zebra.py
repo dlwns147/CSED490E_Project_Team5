@@ -429,7 +429,7 @@ def zl_main():
 
 
 # AR-LSAT (Zhong et al. 2022; test split of Logic-LM), idea 14 on real text: the model writes a program that enumerates the arrangements and marks the options. A question has
-# exactly one right option, so one mark is a free check, and any other number is label-free feedback. usage: run_zebra.py --ls <tag> <arm tr|trt|think|direct> <seed> [--max_tokens N]
+# exactly one right option, so one mark is a free check, and any other number is label-free feedback. usage: run_zebra.py --ls <tag> <arm tr|trt|trs|think|direct> <seed> [--max_tokens N] [--dev]
 LS_SOLVE = """
 import json
 print(json.dumps({"marks": sorted(k for k in "ABCDE" if qualifies[k])}))
@@ -440,12 +440,41 @@ LS_TR = ("{q}\n\nDo not answer by reasoning. Translate it. Give one ```python bl
          "A condition stated in the question is added to the rules first. \"Could be true\" means the option holds in at least one allowed arrangement, \"must be true\" in all of them, "
          "\"cannot be true\" in none; EXCEPT reverses the test.")
 LS_FMT = "{q}\n\nEnd with a line \"Answer: X\" where X is the letter of the right option."
+# arm trs (idea 18): the model writes only declarations, and the harness enumerates, applies the question's test and survives a predicate that raises (Logic-LM's
+# declarations/constraints/options split, with enumeration in place of Z3). Crashes were 47% of tr's final rounds and the could/must/EXCEPT test was the model's to code.
+LS_TRS = ("{q}\n\nDo not answer by reasoning. Translate it. Give one ```python block that defines only these names (itertools is available):\n"
+          "- `arrangements()`: a generator yielding every candidate arrangement as a dict (it may yield ones that break the rules; keep it under a few million).\n"
+          "- `RULES`: a list of functions, one per rule of the passage, each taking an arrangement and returning True when the rule holds.\n"
+          "- `CONDITION`: a function for a condition the question itself adds (`lambda a: True` if none).\n"
+          "- `OPTIONS`: a dict from each letter A to E to a function returning True when the option's statement holds in the arrangement (for a full or partial list, "
+          "when the arrangement matches it).\n"
+          "- `KIND`: \"could\" (could be true), \"must\" (must be true), \"cannot\" (cannot be true) or \"could_false\" (could be false), as the question asks, "
+          "and `EXCEPT = True` if the question says EXCEPT.\n"
+          "Do not compute the answer; the checker does that from these names.")
+LS_TRS_SOLVE = """
+import json, time
+_t, _err, _ok = time.time(), {}, []
+def _holds(f, a, name):
+    try:
+        return bool(f(a))
+    except Exception as e:
+        _err.setdefault(name, f"{type(e).__name__}: {e}"[:120]); return False
+for _a in arrangements():
+    if all(_holds(f, _a, f"rule {i + 1}") for i, f in enumerate(RULES)) and _holds(CONDITION, _a, "CONDITION"):
+        _ok.append(_a)
+    if time.time() - _t > 50:
+        raise SystemExit("enumeration took over 50 s")
+_k = {"could": "cannot", "cannot": "could", "must": "could_false", "could_false": "must"}[KIND] if globals().get("EXCEPT") else KIND
+_n = {L: sum(_holds(OPTIONS[L], a, f"option {L}") for a in _ok) for L in "ABCDE"}
+_q = {"could": lambda n: n > 0, "must": lambda n: n == len(_ok), "cannot": lambda n: n == 0, "could_false": lambda n: n < len(_ok)}[_k]
+print(json.dumps({"marks": sorted(L for L in "ABCDE" if _q(_n[L])) if _ok else [], "allowed": len(_ok), "errors": _err}))
+"""
 
 
 def ls_main():
     tag, arm, seed = sys.argv[2], sys.argv[3], int(sys.argv[4])
     mt = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else 16000 if arm == "think" else 8192 if arm == "trt" else 4096
-    P = json.load(open(os.path.join(os.environ["POC_DATA"], "arlsat", "test.json")))
+    P = json.load(open(os.path.join(os.environ["POC_DATA"], "arlsat", ("dev" if "--dev" in sys.argv else "test") + ".json")))
 
     def run(k, r):
         q, sd = LS_Q.format(context=r["context"], question=r["question"], options="\n".join(r["options"])), seed * 10007 + k
@@ -454,7 +483,7 @@ def ls_main():
             o = chat_msgs([{"role": "user", "content": LS_FMT.format(q=q)}], think=arm == "think", max_tokens=mt, temperature=0.7, seed=sd)
             a = re.findall(r"Answer:\W*([A-E])\b", o["text"] or "")
             return {**row, "pick": a[-1] if a else None, "exact": bool(a) and a[-1] == r["answer"], "tokens": o["out_tokens"], "finish": o["finish"], "text": (o["text"] or "")[-800:]}
-        msgs, tok, hist = [{"role": "user", "content": LS_TR.format(q=q)}], 0, []
+        msgs, tok, hist = [{"role": "user", "content": (LS_TRS if arm == "trs" else LS_TR).format(q=q)}], 0, []
         marks, code = None, ""
         for rnd in range(3):
             try:
@@ -464,21 +493,24 @@ def ls_main():
                 break
             tok += o["out_tokens"]
             code = last_block(o["text"], ("python", "py", "python3"))
-            res = run_python(code + "\n" + LS_SOLVE, "", timeout=60, mem_bytes=4 << 30) if code else None
+            res = run_python(code + "\n" + (LS_TRS_SOLVE if arm == "trs" else LS_SOLVE), "", timeout=60, mem_bytes=4 << 30) if code else None
             try:
-                marks = json.loads(res.stdout.strip().splitlines()[-1])["marks"]
+                out = json.loads(res.stdout.strip().splitlines()[-1])
+                marks = out["marks"]
             except (AttributeError, IndexError, ValueError, KeyError, TypeError):
-                marks = None
-            hist.append({"marks": marks, "tokens": o["out_tokens"], "err": (res.stderr[-300:] if res else "no code")})
+                out, marks = {}, None
+            hist.append({"marks": marks, "tokens": o["out_tokens"], "err": (res.stderr[-300:] if res else "no code"), "allowed": out.get("allowed"), "errors": out.get("errors")})
             if marks is not None and len(marks) == 1:
                 break
             fb = f"it failed to run: {(res.stderr[-600:] if res else 'no python block')}" if marks is None else f"your program marks {len(marks)} options ({', '.join(marks) or 'none'})"
+            if marks is not None and "allowed" in out:
+                fb += f"; {out['allowed']} arrangements pass the rules" + (f", and these raised (counted as False): {json.dumps(out['errors'])[:500]}" if out.get("errors") else "")
             msgs += [{"role": "assistant", "content": o["text"] or "(empty)"},
                      {"role": "user", "content": f"The question has exactly one right option, but {fb}. Compare each rule and the question with your program and give the complete corrected ```python block."}]
         return {**row, "marks": marks, "count": -1 if marks is None else len(marks), "pick": marks[0] if marks and len(marks) == 1 else None, "exact": marks == [r["answer"]],
                 "tokens": tok, "rounds": len(hist), "hist": hist, "code": code}
 
-    path = f"{RES}/ls_{tag}_{arm}_s{seed}.jsonl"
+    path = f"{RES}/ls_{tag}{'_dev' if '--dev' in sys.argv else ''}_{arm}_s{seed}.jsonl"
     rows = [json.loads(l) for l in open(path)] if os.path.exists(path) else []   # resume: keep rows already written
     done = {r["id"] for r in rows}
     with ThreadPoolExecutor(32) as ex, open(path, "a") as f:
