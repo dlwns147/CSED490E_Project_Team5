@@ -5975,3 +5975,11 @@ The translation-with-thinking arm crashed when a repair round passed the 20,480-
 
 Restated means of four (one seed; the other 757 conversations unchanged): EnvScaler-8B 54.3 (published 52.25), EnvACE-8B 42.1 (45.29), Arctic-AWM-8B 40.1 (42.81), Qwen3-8B thinking 40.8 (42.09). All are inside their pre-registered ranges now (`PREREG_MT.md`). The decisions used the other 600 conversations and stand. EnvScaler remains the strongest open 8B by 12–14 points.
 
+## 2026-11-08 04:3x UTC: AR-LSAT closes the gate on real text; NoWait already answered for Qwen3-8B; thinking at 28k restarted
+
+**AR-LSAT, translation with thinking (all 230).** Exactly one option is marked on 91 questions, right on 83 (91.2%), where thinking gets 84.6% of the same 91. Coverage rises from 61 to 91, but the translation costs 8.4k tokens before any fallback. Against thinking (75.7% at 7.6k): translate then think 78.3% at 8.3k, +2.3 [−0.6, +5.4]; translate with thinking then think 78.3% at 13.4k, −0.3 [−3.5, +3.1]; all three steps 79.1% at 13.6k, +0.4 [−3.1, +4.2]. All ties. So on real text the count check stays precise, but crashes keep its coverage low and the gate does not pay. On ZebraLogic it pays because the clues come from templates the model translates reliably. Idea 14 is a result for template puzzles only, unless coverage on real text can be raised.
+
+**NoWait (idea 17) is answered by its own paper.** NoWait (2506.08343, read) suppresses "wait", "hmm", "alternatively" and 14 other words by logits. It cuts tokens 13–31% on RL-trained models (Qwen3-32B, QwQ-32B, Phi4) at equal accuracy, but on distilled models, Qwen3-4B, 8B and 14B, accuracy falls more as problems get harder (their section 4.3). Our model is Qwen3-8B and our gap is AIME, so I did not run it.
+
+**Thinking at 28k was stuck.** The job ran 144 requests at once on one 3090; after three hours no row had been written since 01:22 UTC, because queued requests passed the client's 3,600 s timeout and restarted. Cancelled and restarted as one seed per GPU with no client timeout, resuming from the rows written (jobs 1352824–1352826).
+
