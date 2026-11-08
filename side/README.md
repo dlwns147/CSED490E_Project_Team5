@@ -63,7 +63,8 @@ Our side of the proof work is now testing and analysis only, to guide you (decid
 - Last-round status of the 176 samples: NL guarded 86, unexpressible 44, goal fails 23, no figure 17, syntax error 6; LEAN guarded 93, unexpressible 33, no figure 28, goal fails 21. Mean output 19.8k tokens per sample (NL), 15.3k (LEAN).
 - The first job lost half its samples to client timeouts; the refill (job 1353077) completed all 176 per arm.
 - **Next, as registered:** verdicts (faithful, half, changed, wrong) against the audited Lean statements, written before any closure run; then MG-P2 and MG-P3.
-- **For the teammate:** seeing the audited hypotheses did not help the translator pass the guard. Whether it helps faithfulness is what the verdicts will show.
+- **Verdicts before proof:** a faithful statement for 23 problems (NL) and 24 (LEAN); faithful or half 25 and 27. The translator's IMO-level faults: one goal per statement, so an iff gives one direction; missing case selection (points that may swap, a ratio met by both homothety centres, convexity cut down); hypotheses that assume the goal. A checker fault (a line given by one repeated point made any goal pass) is fixed. Closure running (jobs 1354571, 1354572).
+- **For the teammate:** the audited hypotheses add one faithful problem (24 vs 23), so at IMO level the translation fails less on reading and more on what one statement can say: multi-part claims and case selection. Check those two first when reading a translation.
 
 **2026-11-07 19:4x UTC: half of HAGeo's counted rows no longer assume a figure reading.**
 - **SIDE-GT-LEAN-LIFT final:** all four predictions hold. 333 of 344 lifted certificates compile at 1,200 s; 126 of 263 counted rows have no reading (from 48); 11 faithful held-out problems (from 2), 8 once unsigned angles count as readings; no wrong constant. Lifting is now the default export.

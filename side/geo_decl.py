@@ -55,6 +55,12 @@ def parse(text):
                 raise ValueError(f"{q} is not in the list of points")
         if name in ("coll", "cyclic", "circle") and len(set(names)) != len(names):
             raise ValueError(f"{name} repeats a point")
+        if name in ("para", "perp", "cong", "eqangle", "eqratio", "aconst", "rconst") and any(names[i] == names[i + 1] for i in range(0, len(names), 2)):
+            raise ValueError(f"{name}: a line or segment needs two different points")   # `t t` made eqangle's residual 0 on every figure (2023 P2)
+        if name in ("uangle", "uconst") and any(names[i + 1] in (names[i], names[i + 2]) for i in range(0, len(names), 3)):
+            raise ValueError(f"{name}: an angle abc needs a and c different from b")
+        if name == "midp" and len(set(names)) != 3:
+            raise ValueError("midp repeats a point")
         if name in ("aconst", "uconst"):
             args = names + [float(args[-1].rstrip("o"))]
         if name == "rconst":

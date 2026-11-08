@@ -1425,3 +1425,21 @@ I read each guarded statement against the audited Lean statement and write the v
 - **Decision:** lifting becomes the default export, and counts are split into theorems with and without readings. The next gap is the readings left, by relation; the tally on HAGeo is running.
 - **A reviewer's reading.** About half of HAGeo's counted theorems now assume nothing read from a figure beyond the statement's own conditions. AlphaGeometry-style engines don't give that; MechGeo's Lean proofs do, by another route, so this is no first. The other half keep a median of 1 to 2 readings, written as hypotheses. The lattice is close to Todd's; the difference is the mixed modulus and dropping the sketch, and I haven't searched further than Todd and Chou's full angles for this, so I claim no novelty.
 
+### SIDE-GT-MG verdicts, written 2026-11-08 09:0x UTC before any closure run
+
+Every guarded statement (86 NL, 93 LEAN) read against the audited Lean theorem; file `results/proof/gtmg_faithful.json` (not committed, raw output). Read with a helper agent and spot-checked by me.
+
+| | NL | LEAN |
+|---|---|---|
+| problems with a guarded statement (MG-P1) | 29 | 29 |
+| problems with a faithful statement | 23 | 24 |
+| problems with a faithful or half statement | 25 | 27 |
+| statements faithful / half / changed / wrong | 70 / 6 / 10 / 0 | 74 / 9 / 7 / 3 |
+
+- **Half:** a goal is one fact, so an iff gives one direction (2003 P4, 2004 P5 in both arms).
+- **Changed, most often a missing case selection:** points free to swap on a circle (2015 P4, NL), a point fixed only by a ratio that the other homothety centre also meets (2008 P6, NL), a convex pentagon cut to two quadrilaterals (2022 P4), a convex hexagon cut to four of its points (2005 P1, LEAN; NL wrote the order along each side and is faithful). Assumed goals: 2004 P1 nl:0 has `between b p c` as a hypothesis and `coll p b c` as the goal; 2002 P2 proves J on one bisector only, which holds without the claim.
+- **Wrong:** 2020 P1 (LEAN) turned the angle ratios 1:2:3 into equalities; 2023 P2 lean:3's goal has the degenerate line `t t`, so it holds on every figure.
+- **Checker fault found and fixed.** `geo_decl.parse` accepted a line or segment given by one repeated point, so `eqangle b a t t a c t a` and `cong p p p p` held on every figure and passed the guard. Rejected now, with a message the model can read. Among all recorded statements three guarded goals had this; all three were already read as wrong or are dev rows, so no counted row changes.
+- **Judgement calls (in the file's notes):** a missing condition that symmetry (2004 P5, 2018 P6, 2015 P3, 2025 P2) or continuity (2010 P2, 2021 P3, 2013 P4, 2023 P2, 2000 P1) only selects is counted faithful; directed-angle goals (2018 P6, 2024 P4) match the unsigned claim only under the figure's orientation.
+
+Closure and certificates on all 179 guarded statements: CPU jobs 1354571 (NL) and 1354572 (LEAN), frozen settings (K = −300, 1,800 s).
