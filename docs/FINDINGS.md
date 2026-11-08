@@ -6069,4 +6069,4 @@ Idea 21 (the solver's 2–4-mark set as a free check on the thinker's answer), o
 - the dev result at 09:5x UTC (+6.4 [+2.6, +10.4]), now +1.2 [−1.4, +4.0];
 - idea 21's flag counts.
 
-The solution-count claim stays limited to ZebraLogic, where the clues are templated. On real LSAT text, an 8B thinking model is right on about 86% of questions, and translation adds nothing at equal cost.
+The solution-count claim stays limited to ZebraLogic, where the clues are templated. On real LSAT text, an 8B thinking model is right on about 86% of questions, and translation adds nothing at equal cost. Reversing the order (translate only when thinking hits its 16k cap) would add 4 right answers in 690 runs (+0.6 points), too little to test.
