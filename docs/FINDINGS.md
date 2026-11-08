@@ -6036,3 +6036,10 @@ AIME: 70.0% at 11.9k tokens against 64.4% at 16.1k; utility +7.6 [−0.5, +15.9]
 **Why it pays.** On the 52 questions where trs marks one option, thinking is right on only 63.5%; trs is right on 92.3%. The gate covers questions thinking finds hard, not easy ones.
 
 **Next.** `PREREG_LS.md`: test split, three seeds, ladder against thinking (jobs 1354890–1354892). One dev seed only chose the arm.
+
+## 2026-11-08 13:2x UTC: idea 19 (drop one rule) killed; AR-LSAT zero-arrangement losses are a shape mismatch, not one wrong rule
+
+- **Why:** the largest loss of the declarations-only arm (trs) on AR-LSAT dev is that the rules allow no arrangement (98 of 231). If one rule were mistranslated, leaving each rule out in turn would recover the answer with no model tokens.
+- **Result:** the fixed accept rule (every satisfiable relaxation gives the same single mark) accepts 3 of 98, 1 right. Kill test: precision ≥ 90% and at least 12 accepted; both fail. With any one rule dropped, 64 of 98 still allow nothing; the gold answer is among the relaxed marks for 16.
+- **What the losses are (trsd's label-free diagnostics, 107 zero-allowed dev questions):** 15 have no candidate arrangements at all; 44 have two or more rules that each alone allow nothing; 28 exactly one; 20 fail only jointly. 52 of the 92 with candidates have a predicate that raises.
+- **Reading:** many rules each killing every candidate means the predicates read a different shape than `arrangements()` makes. The next idea (row 20) moves the shape into the harness. Script `poc/ls_loo.py`; raw rows `results/ls_loo_dev_trs_s1.jsonl` (not committed).
