@@ -63,7 +63,7 @@ Our side of the proof work is now testing and analysis only, to guide you (decid
 - **MG-P3 fails:** LEAN − NL = 0 [−0.09, +0.09] per problem. So at IMO level the translator's reading is not what limits us.
 - **Where problems are lost:** 15 of 44 have no statement that passes the guard, 5–6 no faithful one, 3 lose at the prover, 8 only at the fresh-figure rule (the solver built fewer than 8 new figures; none failed). Without that rule: NL 20, LEAN 21.
 - **Cost:** 79k translator output tokens and 495 CPU seconds of closure per problem (NL, mean), against MechGeo's two hours per problem with two frontier models. Only cost is claimed; MechGeo's proofs are kernel-checked on the full statement.
-- **Bug:** two LEAN rows crash the closure with an IndexError (not counted rows).
+- **Two LEAN rows have no closure result:** the child process exited silently (cause unknown; neither is a counted row).
 - **For the teammate:** spend effort on (1) what one statement can't say: multi-part claims, case selection, and the 15 unexpressed problems; (2) the figure solver, which loses 8 faithful proved problems by building too few fresh figures. Feeding the model better hypotheses (the audited statement) bought nothing.
 
 **2026-11-08 08:5x UTC: MechGeo's 44 IMO problems, translation stage (SIDE-GT-MG): the audited Lean statement does not raise the guard count.**
