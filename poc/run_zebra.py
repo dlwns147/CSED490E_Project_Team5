@@ -429,7 +429,7 @@ def zl_main():
 
 
 # AR-LSAT (Zhong et al. 2022; test split of Logic-LM), idea 14 on real text: the model writes a program that enumerates the arrangements and marks the options. A question has
-# exactly one right option, so one mark is a free check, and any other number is label-free feedback. usage: run_zebra.py --ls <tag> <arm tr|trt|trs|trsd|think|direct> <seed> [--max_tokens N] [--dev]
+# exactly one right option, so one mark is a free check, and any other number is label-free feedback. usage: run_zebra.py --ls <tag> <arm tr|trt|trs|trsd|trk|think|direct> <seed> [--max_tokens N] [--dev]
 LS_SOLVE = """
 import json
 print(json.dumps({"marks": sorted(k for k in "ABCDE" if qualifies[k])}))
@@ -501,6 +501,44 @@ print(json.dumps({"marks": sorted(L for L in "ABCDE" if _q(_n[L])) if _ok else [
 """
 
 
+# arm trk (idea 20): the harness owns the arrangement's shape. In trsd's zero-allowed dev questions most rules failed by reading a different shape than
+# arrangements() made (names local to the generator, dicts keyed the other way), so the model declares entities and attributes and the harness builds the candidates.
+LS_TRK = ("{q}\n\nDo not answer by reasoning. Translate it. Give one ```python block that defines only these names:\n"
+          "- `ENTITIES`: the list of people or things being placed, as strings.\n"
+          "- `DIMS`: a dict from each attribute name to the list of its possible values; every entity gets exactly one value of each attribute "
+          "(put None in the list if an entity may be left out).\n"
+          "- `DISTINCT`: the list of attribute names for which no two entities may share a value (None excepted); `[]` if none.\n"
+          "The checker builds every candidate arrangement `a` itself, as a dict from each entity to a dict from attribute name to value, for example "
+          "`a[\"Fred\"][\"day\"] == 3`. Do not define arrangements. Write every function against exactly that shape, using only `a`, the names above and the helper "
+          "`who(a, attr, value)`, which returns the list of entities with that value.\n"
+          "- `RULES`: a list of functions, one per rule of the passage, each taking an arrangement and returning True when the rule holds.\n"
+          "- `CONDITION`: a function for a condition the question itself adds (`lambda a: True` if none).\n"
+          "- `OPTIONS`: a dict from each letter A to E to a function returning True when the option's statement holds in the arrangement (for a full or partial list, "
+          "when the arrangement matches it).\n"
+          "- `KIND`: \"could\" (could be true), \"must\" (must be true), \"cannot\" (cannot be true) or \"could_false\" (could be false), as the question asks, "
+          "and `EXCEPT = True` if the question says EXCEPT.\n"
+          "Do not compute the answer; the checker does that from these names.")
+LS_TRK_GEN = """
+import itertools, math
+def who(a, attr, value):
+    return [e for e in ENTITIES if a[e][attr] == value]
+_E, _D, _dist = list(ENTITIES), list(DIMS), set(globals().get("DISTINCT") or [])
+def _choices(d):
+    v = list(DIMS[d])
+    if d in _dist and None not in v:
+        return math.perm(len(v), len(_E)) if len(v) >= len(_E) else 0, lambda: itertools.permutations(v, len(_E))
+    if d in _dist:
+        return len(v) ** len(_E), lambda: (t for t in itertools.product(v, repeat=len(_E)) if len([x for x in t if x is not None]) == len({x for x in t if x is not None}))
+    return len(v) ** len(_E), lambda: itertools.product(v, repeat=len(_E))
+_C = [_choices(d) for d in _D]
+if math.prod(n for n, _ in _C) > 3_000_000:
+    raise SystemExit(f"{math.prod(n for n, _ in _C)} candidate arrangements from ENTITIES and DIMS, over the limit of 3,000,000: narrow DIMS or move fixed facts into the values")
+def arrangements():
+    for combo in itertools.product(*[list(g()) for _, g in _C]):
+        yield {e: {d: combo[j][i] for j, d in enumerate(_D)} for i, e in enumerate(_E)}
+"""
+
+
 def ls_main():
     tag, arm, seed = sys.argv[2], sys.argv[3], int(sys.argv[4])
     mt = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else 16000 if arm == "think" else 8192 if arm == "trt" else 4096
@@ -513,7 +551,7 @@ def ls_main():
             o = chat_msgs([{"role": "user", "content": LS_FMT.format(q=q)}], think=arm == "think", max_tokens=mt, temperature=0.7, seed=sd)
             a = re.findall(r"Answer:\W*([A-E])\b", o["text"] or "")
             return {**row, "pick": a[-1] if a else None, "exact": bool(a) and a[-1] == r["answer"], "tokens": o["out_tokens"], "finish": o["finish"], "text": (o["text"] or "")[-800:]}
-        msgs, tok, hist = [{"role": "user", "content": (LS_TRS if arm in ("trs", "trsd") else LS_TR).format(q=q)}], 0, []
+        msgs, tok, hist = [{"role": "user", "content": (LS_TRK if arm == "trk" else LS_TRS if arm in ("trs", "trsd") else LS_TR).format(q=q)}], 0, []
         marks, code = None, ""
         for rnd in range(3):
             try:
@@ -523,7 +561,7 @@ def ls_main():
                 break
             tok += o["out_tokens"]
             code = last_block(o["text"], ("python", "py", "python3"))
-            res = run_python(code + "\n" + {"trs": LS_TRS_SOLVE, "trsd": LS_TRSD_SOLVE}.get(arm, LS_SOLVE), "", timeout=60, mem_bytes=4 << 30) if code else None
+            res = run_python(code + "\n" + {"trs": LS_TRS_SOLVE, "trsd": LS_TRSD_SOLVE, "trk": LS_TRK_GEN + LS_TRS_SOLVE}.get(arm, LS_SOLVE), "", timeout=60, mem_bytes=4 << 30) if code else None
             try:
                 out = json.loads(res.stdout.strip().splitlines()[-1])
                 marks = out["marks"]
