@@ -5969,3 +5969,9 @@ One mark happens on 61 of 230 questions and is right on 57, 93.4%, where thinkin
 
 The translation-with-thinking arm crashed when a repair round passed the 20,480-token context (39 rows written). Fixed so a failed request ends the rounds; rerun with a 32,768 context (job below).
 
+## 2026-11-08 04:3x UTC: the multi-turn checkpoint misses were my context fault; corrected, all reproduce
+
+**Why we ran this.** On BFCL multi-turn, two trained 8B checkpoints scored 5–7 points below their papers. 43 long conversations overflowed our 32,768-token context and counted as wrong; their authors run at 64K. We reran those 43 with YaRN at a 65,536 context.
+
+Restated means of four (one seed; the other 757 conversations unchanged): EnvScaler-8B 54.3 (published 52.25), EnvACE-8B 42.1 (45.29), Arctic-AWM-8B 40.1 (42.81), Qwen3-8B thinking 40.8 (42.09). All are inside their pre-registered ranges now (`PREREG_MT.md`). The decisions used the other 600 conversations and stand. EnvScaler remains the strongest open 8B by 12–14 points.
+

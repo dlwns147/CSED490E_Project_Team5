@@ -1169,3 +1169,16 @@ The verifier chooses among EnvScaler T, EnvScaler N and Qwen3-8B T on the seed-1
 ### MT-FC overflow rerun at 40,960 (2026-11-07 18:1x UTC)
 
 The rerun at the models' own 40,960 positions (job 1349407) corrects nothing for the thinking arms: a step asks 8,192 output tokens, so a prompt past 32,768 is refused, and 42–43 of the 43 conversations end force-terminated, as before (0.0% for EnvScaler, EnvACE, Arctic-AWM and Qwen3-8B T; Qwen3-8B N 11.6%, because it asks fewer tokens per step and survives further). Those rows are not a correction and aren't used. The only route to EnvScaler's 64K setting is RoPE scaling, so job 1349972 runs YaRN at factor 2 (the Qwen3 model card's route) on these 43 conversations only, tags esfcy, eafcy, q8bfcy, awmfcy. The other 757 stay unscaled, and the restated means will say so.
+
+### MT-FC overflow corrected with YaRN (2026-11-08 04:3x UTC)
+
+The 43 long-context conversations that overflowed 32,768 tokens were rerun with YaRN at factor 2 and a 65,536 context (job 1349972, `rope_type: yarn` confirmed in each server log). Right on those 43: EnvScaler-8B 29 (67.4%), EnvACE-8B 27 (62.8%), Arctic-AWM-8B 23 (53.5%), Qwen3-8B T 22 (51.2%), Qwen3-8B N 16 (37.2%). Before, all of them counted as wrong. Each is half a point of the 200 long-context conversations, so the restated rows are below. The other 757 conversations stay unscaled, and the 43 run at a different RoPE setting from the rest; one seed.
+
+| Arm (thinking) | Long context, was → now | Mean of four, was → now | Published | Registered range |
+|---|---|---|---|---|
+| EnvScaler-8B | 40.0 → 54.5 | 50.6 → **54.3** | 52.25 | 46–55 |
+| EnvACE-8B | 29.5 → 43.0 | 38.8 → **42.1** | 45.29 | 41–49 |
+| Arctic-AWM-8B | 27.0 → 38.5 | 37.2 → **40.1** | 42.81 | 39–47 |
+| Qwen3-8B T | 27.0 → 38.0 | 38.0 → **40.8** | 42.09 | 36–46 |
+
+**MT-FC-P3 now holds for all three checkpoints**, and P1 holds as before. The misses for EnvACE and AWM were my context fault, not an unknown difference in loop. EnvScaler stays the strongest open 8B row by 12–14 points. P2 and both decisions used the 600 conversations without long context and are unchanged.
