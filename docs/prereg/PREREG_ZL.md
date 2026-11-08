@@ -62,3 +62,23 @@ Intervals: bootstrap over puzzles, 95%, each puzzle's mean over seeds.
 - **F-P5 (reported):** Qwen3-8B ladder accuracy over the 750 puzzles never read while writing `ZL_FACT` (30 of each size, so the size mix of the full set), beside Logic.py's 91.4 (Llama 3.1 70B, all 1,000) and the Qwen3 report's 84.8 (thinking). The first 250 are left out because `ZL_FACT` was written from them.
 
 **Decision.** F-P1 and F-P3 hold: the ladder is our claim on ZebraLogic for both models, stated as a cost gate in front of thinking (SatLM, Logic-LM and Logic.py named above for the check itself), and the next question is real text (AR-LSAT, idea 18). F-P1 fails: the held-out result depended on those 250 puzzles, and it is reported as such. F-P3 fails alone: the claim is limited to Qwen3-8B.
+
+## ZL-OSS: a second model family, gpt-oss-20b (written 2026-11-08 23:5x UTC, before any run)
+
+**Why.** Both models so far are Qwen3. The gate pays only where the translation's precision on the puzzles it accepts beats the thinker's accuracy on those same puzzles (idea 15's identity; on AR-LSAT the thinker was the stronger one, 93.1% against 90.6%, and the gate tied). gpt-oss-20b is a different family with a different training recipe, and at high effort it should be a stronger thinker than Qwen3-8B. That makes it a harder test of the gate.
+
+**Set.** gpt-oss-20b (MXFP4, one RTX 3090 per seed, 24,576-token context), the same 250 held-out puzzles as the first test (`--skip 10`), seeds 1–3, the same prompts and code. Effort maps onto the Qwen arms:
+- `trf` (translation, no thinking) at low effort;
+- `trt` (translation with thinking) at medium effort;
+- `think` at high effort, capped at 22,000 tokens.
+
+The ladder is trf → trt → think, as before. Tokens include reasoning tokens. Intervals: bootstrap over puzzles, 95%, each puzzle's mean over seeds.
+
+**Predictions.**
+- **O-P1:** ladder utility exceeds think (high), interval above 0.
+- **O-P2:** ladder accuracy at least think minus 2 (lower bound above −2).
+- **O-P3 (reported):** a count of 1 right at least 95% of the time for trf and trt.
+
+**Decision.**
+- **O-P1 holds:** the ZebraLogic claim is stated for two families.
+- **O-P1 fails:** the claim is stated for Qwen3 only. The report gives the gate's precision and the thinker's accuracy on the accepted puzzles, which say why.
