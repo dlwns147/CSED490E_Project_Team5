@@ -1443,3 +1443,24 @@ Every guarded statement (86 NL, 93 LEAN) read against the audited Lean theorem; 
 - **Judgement calls (in the file's notes):** a missing condition that symmetry (2004 P5, 2018 P6, 2015 P3, 2025 P2) or continuity (2010 P2, 2021 P3, 2013 P4, 2023 P2, 2000 P1) only selects is counted faithful; directed-angle goals (2018 P6, 2024 P4) match the unsigned claim only under the figure's orientation.
 
 Closure and certificates on all 179 guarded statements: CPU jobs 1354571 (NL) and 1354572 (LEAN), frozen settings (K = −300, 1,800 s).
+
+### SIDE-GT-MG results, 2026-11-08 11:5x UTC
+
+Closure and certificates finished for both arms (jobs 1354571, 1354572). Counting rule as registered: a faithful statement, proved, certificate accepted by the checker, goal held on 8 of 8 fresh figures.
+
+| | NL | LEAN |
+|---|---|---|
+| guarded statements proved (closure, 1,800 s) | 78 of 86 (8 time out) | 82 of 93 (9 time out, 2 crash) |
+| certificates accepted | 73 of 78 | 78 of 82 |
+| problems with a faithful statement | 23 | 24 |
+| ... also proved and certified | 20 | 21 |
+| ... also 8 of 8 fresh figures: **whole problems (MG-P2)** | **13** (predicted 9, 5–14) | **13** (predicted 15, 9–22) |
+| whole or part (faithful or half) | 15 | 15 |
+| translator output tokens per problem, mean (median) | 79k (71k) | 61k (53k) |
+| closure CPU seconds per problem, mean (median) | 495 (113) | 630 (166) |
+
+- **MG-P2:** both inside their ranges. NL is above my point prediction, LEAN below it.
+- **MG-P3 fails:** LEAN − NL = 0 of 44, 95% interval [−0.09, +0.09] per problem. NL alone has 2000 P1 and 2013 P4; LEAN alone has 2002 P2 and 2024 P4.
+- **Where problems are lost (both arms):** 15 have no guarded statement, 5 to 6 no faithful one, 3 lose at the prover, and **8 lose only at the fresh-figure rule**. Every faithful proved and certified statement held on every fresh figure that was built; the solver just built fewer than 8 (9 statements per arm got none). Without that rule the count is NL 20, LEAN 21. This is a sensitivity row, not the registered count.
+- **Two LEAN rows crash the closure** with an IndexError (2000 P6 lean:1, goal `circle i l1 va vb vc`; 2023 P2 lean:3). Both are read as half or wrong, so no count changes. The crash is a bug to fix.
+- **Decision (P3 fails):** at IMO level the audited hypotheses don't change what is proved, so the translator's reading is not the limit. The limit is what one statement can express (15 problems) and the figure solver (8). The next method goes there. NL reaches 13, below 29, so against MechGeo only cost is claimed: one open 27B model on one GPU, 79k output tokens and about 8 CPU minutes of closure per problem, against MechGeo's two hours per problem with two frontier models. MechGeo reports no token counts, and its proofs are kernel-checked on the full statement while ours pass our checker, so the counts are not equal claims.

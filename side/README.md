@@ -23,7 +23,7 @@ Side work may use the Slurm server's GPUs: a model server and client commands ru
 | Lean (main track, `PREREG_PROOF.md`) | A specialised 8B prover is best; the compiler is a perfect check | Not a side-project gap at present |
 | Constructions (`construct.py`) | Unsolved for an 8B model; its own checker is not a usable free check | A derived free check, or a search the problem's structure makes exact |
 
-**Running now (geometry):** SIDE-GT-MG (job 1345808).
+**Running now (geometry):** nothing; SIDE-GT-MG finished 2026-11-08 11:5x UTC.
 
 ## Guidance for the teammate taking this on
 
@@ -45,7 +45,7 @@ Our side of the proof work is now testing and analysis only, to guide you (decid
 | Do readings ever fail? | Unknown for most. The search reaches 4 or more of 40 starts on only 48 of 246 readings, so "no figure" is weak; among those 48 the only flips are the removed ISL 2016 family. With order conditions dropped, 16 of 185 flip and the goal fails on all 16, so order conditions carry real weight |
 | Can the engine do without the rules that need readings? | Mostly: 69 of 84 held-out statements are proved without them (15 time out), covering 20 of 25 problem ids. Not certified or compiled; the HAGeo half was withdrawn |
 | Does "no reading" mean nothing was read from the figure? | **Not always.** A statement with an unsigned angle (`uangle`) becomes a directed `EqA` with the sign taken from the figure, and that is a hypothesis of the theorem. 26 of 82 held-out theorems have one, 10 of the 46 with no `Read`, so the faithful problems with neither number 8. HAGeo-409's statements have none |
-| Is the translation faithful? | Still read by hand on our side: 22 of 65 held out. The comparison with MechGeo's audited statements (SIDE-GT-MG) is *pending* |
+| Is the translation faithful? | Still read by hand on our side: 22 of 65 held out. On MechGeo's 44 audited IMO statements, giving the model the audited Lean statement doesn't help: 13 whole problems either way (SIDE-GT-MG). MechGeo without a human: 29 of 43 |
 
 **Where to work, hardest first.**
 1. **Faithfulness without a human.** This is the real limit. Agreement between translations helps, but a wrong statement can still be proved. MechGeo (2608.02295) refuted 22 statements experts had accepted, and our figure solver can't see such errors.
@@ -57,6 +57,14 @@ Our side of the proof work is now testing and analysis only, to guide you (decid
 **Where things are.** Status and dated log below; predictions and verdicts in `docs/prereg/PREREG_SIDE.md`; prior work in `docs/notes/RELATED_WORK.md`.
 
 ## Log
+
+**2026-11-08 11:5x UTC: MechGeo's 44 IMO problems, final (SIDE-GT-MG): 13 whole problems with or without the audited Lean statement.**
+- **MG-P2:** whole problems (faithful, proved, certified, 8 of 8 fresh figures): **NL 13, LEAN 13** (predicted 9 and 15; both in range). Faithful or half: 15 each. MechGeo without a human: 29 of 43.
+- **MG-P3 fails:** LEAN − NL = 0 [−0.09, +0.09] per problem. So at IMO level the translator's reading is not what limits us.
+- **Where problems are lost:** 15 of 44 have no statement that passes the guard, 5–6 no faithful one, 3 lose at the prover, 8 only at the fresh-figure rule (the solver built fewer than 8 new figures; none failed). Without that rule: NL 20, LEAN 21.
+- **Cost:** 79k translator output tokens and 495 CPU seconds of closure per problem (NL, mean), against MechGeo's two hours per problem with two frontier models. Only cost is claimed; MechGeo's proofs are kernel-checked on the full statement.
+- **Bug:** two LEAN rows crash the closure with an IndexError (not counted rows).
+- **For the teammate:** spend effort on (1) what one statement can't say: multi-part claims, case selection, and the 15 unexpressed problems; (2) the figure solver, which loses 8 faithful proved problems by building too few fresh figures. Feeding the model better hypotheses (the audited statement) bought nothing.
 
 **2026-11-08 08:5x UTC: MechGeo's 44 IMO problems, translation stage (SIDE-GT-MG): the audited Lean statement does not raise the guard count.**
 - **MG-P1:** problems with at least one guarded statement (four samples, two repair rounds, Qwen3.6-27B-AWQ): **NL 29 of 44** (predicted 20, range 12–26, so above), **LEAN 29** (predicted 28). 25 problems are guarded in both arms, 4 in NL only, 4 in LEAN only.
