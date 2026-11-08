@@ -6012,3 +6012,11 @@ It passes the kill rule: one-mark coverage 34 → 52, precision 92.3% (above 90%
 **The new main loss is "no arrangement allowed"** (98 questions). On 47 of them a predicate raised and, counted as False, removed everything (KeyError 20, NameError 7, StopIteration 7); on the rest the rules as written contradict each other. Feedback so far says only "0 arrangements pass".
 
 **Next, arm trsd (same prompt, richer feedback).** An LSAT game always allows at least one arrangement, and so does each rule alone. The harness now reports, without any label, how many candidates each rule keeps alone, how many remain after each rule in order, and how many allowed arrangements each option holds in. A rule that alone keeps none, or the first rule at which the count reaches 0, locates the error. Running on dev with thinking on dev beside it (job 1353376), so the ladder against thinking can be estimated on dev before a test-split prereg.
+
+## 2026-11-08 07:4x UTC: ZebraLogic held-out verdict, three seeds: every prediction holds
+
+**Why we ran this.** The translate-and-count ladder beat thinking on the pilot puzzles, but the pilot's prompt fact was written from those puzzles and thinking was capped at 16k. `PREREG_ZL.md` fixed a clean test: the next 250 puzzles, three seeds, thinking at 32k.
+
+Qwen3-8B: the ladder (translate without thinking; if the solver does not count exactly one solution, translate with thinking; if still not one, think) is right on 95.3% at 2,267 tokens; thinking alone 81.3% at 6,627. Utility +16.18 [+11.74, +20.96], accuracy +14.0 [+9.7, +18.5]. A count of 1 is right 96.6% (no thinking) and 99.6% (with thinking). On the 60 largest puzzles, translating with thinking gets 82.8% against thinking's 46.7%. Our thinking baseline (81.3%) is close to the Qwen3 report's 84.8, so the gain is not from a weak baseline.
+
+**Next, as registered.** ZL-FULL (`PREREG_ZL.md`): Qwen3-8B on the remaining 500 puzzles and Qwen3-4B on the same 250, three seeds each (jobs 1353865–1353869, three of them queued behind finishing jobs to stay within 8 GPUs). The check itself is prior work (SatLM, Logic-LM, Logic.py); the claim is the cost gate in front of a current thinking model.

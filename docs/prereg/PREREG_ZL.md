@@ -27,3 +27,38 @@ Utility per puzzle = 100·right − 0.5·ktok. Intervals: bootstrap over the 250
 **Limits stated now.** ZebraLogic clues come from a small set of templates, so translation is easier here than on real text; `ZL_FACT` is a fact about those templates. AR-LSAT (real text, pilot running alongside) tests whether the check survives that. Utility prices all tokens alike and ignores solver seconds.
 
 ## Results
+
+### 2026-11-08 07:4x UTC: all three seeds complete (Qwen3-8B, 250 held-out puzzles)
+
+| Arm | Accuracy | Output tokens |
+|---|---|---|
+| think, 32,000 | 81.3% | 6,627 |
+| trf | 76.3% | 500 |
+| trt | 91.6% | 3,367 |
+| ladder trf → trt → think | 95.3% | 2,267 |
+
+- **ZL-P1 holds:** ladder minus think utility +16.18 [+11.74, +20.96].
+- **ZL-P2 holds:** ladder minus think accuracy +14.0 [+9.7, +18.5], far above −2.
+- **ZL-P3 holds:** a count of 1 is right 561 of 581 times for trf (96.6%) and 686 of 689 for trt (99.6%).
+- **ZL-P4 holds:** on puzzles with more than 20 cells, trt 82.8% against think 46.7%, +36.1 [+23.3, +48.9]. The set has 60 puzzles, not the 50 I wrote: six sizes have more than 20 cells (4×6, 5×5, 5×6, 6×4, 6×5, 6×6), not five. No think row hit the 32,000 cap.
+
+Every prediction holds. By the registered decision, the next step is all puzzles and a second model (below). Our think accuracy, 81.3%, is near the Qwen3 report's 84.8 for the same model, so our thinking baseline is not weak.
+
+## ZL-FULL: the remaining 500 puzzles and Qwen3-4B (written 2026-11-08 07:4x UTC, before any run)
+
+**Why.** The decision above. The held-out result could still depend on these 250 puzzles or on one model.
+
+**Set.**
+- **ZL-F8:** Qwen3-8B on the remaining 500 puzzles (`--skip 20 --per 20`: puzzles 21–40 of each size), seeds 1–3, arms trf, trt, think at 32,000, the same code and prompts as above.
+- **ZL-F4:** Qwen3-4B on the 250 held-out puzzles, seeds 1–3, the same arms. The Qwen3 report gives Qwen3-4B 81.0 with thinking.
+
+Intervals: bootstrap over puzzles, 95%, each puzzle's mean over seeds.
+
+**Predictions.**
+- **F-P1:** ZL-F8 ladder utility exceeds think, interval above 0.
+- **F-P2:** ZL-F8 ladder accuracy at least think minus 2 (lower bound above −2).
+- **F-P3:** ZL-F4 ladder utility exceeds think, interval above 0.
+- **F-P4 (reported):** a count of 1 right at least 95% of the time for each model and translation arm.
+- **F-P5 (reported):** Qwen3-8B ladder accuracy over the 750 puzzles never read while writing `ZL_FACT` (30 of each size, so the size mix of the full set), beside Logic.py's 91.4 (Llama 3.1 70B, all 1,000) and the Qwen3 report's 84.8 (thinking). The first 250 are left out because `ZL_FACT` was written from them.
+
+**Decision.** F-P1 and F-P3 hold: the ladder is our claim on ZebraLogic for both models, stated as a cost gate in front of thinking (SatLM, Logic-LM and Logic.py named above for the check itself), and the next question is real text (AR-LSAT, idea 18). F-P1 fails: the held-out result depended on those 250 puzzles, and it is reported as such. F-P3 fails alone: the claim is limited to Qwen3-8B.
