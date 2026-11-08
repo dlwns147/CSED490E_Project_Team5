@@ -6055,3 +6055,18 @@ AIME: 70.0% at 11.9k tokens against 64.4% at 16.1k; utility +7.6 [−0.5, +15.9]
 ## 2026-11-08 20:4x UTC — idea 21 killed; AR-LSAT: the model sets EXCEPT on "CANNOT" questions, so the harness marks the four wrong options (idea 22)
 
 Idea 21 (the solver's 2–4-mark set as a free check on the thinker's answer), offline on dev trs seed 1 against think seed 1: of 35 questions with 2–4 marks, the gold answer is in the set on 13 (37%; kill line 85%). The cause, read in the programs: on 14 of the 20 four-mark sets the answer is the one option left out. In those programs the question reads "Which one of the following CANNOT be true?", and the model writes `KIND = "cannot"` and `EXCEPT = True`; the harness reverses the test on EXCEPT, so the declared test is the complement. Over dev, 42 of 57 `EXCEPT = True` flags are on questions without EXCEPT. Replaying the final rounds with EXCEPT taken from the text: one-mark right 48 → 61 (one new wrong mark), ladder trs → think 77.5% → 78.8%, ladder tokens 7.9k → 7.5k. Most of the 13 recovered questions were already right in the thinker, so the ladder gain is small; the rest is cost. The fix is a harness change (arm `trse`), not a method; it is pre-registered on the test split as LS-P4–P6 in `PREREG_LS.md` (job 1358718, behind the running trs test job). An "odd one out" reading gated on the word EXCEPT would miss it: only 16 dev questions say EXCEPT.
+
+## 2026-11-08 22:4x UTC — AR-LSAT test: the gate ties with thinking on real text; a scoring bug had under-counted thinking by 13 points
+
+**Why we ran this.** `PREREG_LS.md` tested whether the solution-count gate (declarations-only translation, then thinking if not exactly one option is marked) pays on real text, as it does on ZebraLogic's templated clues. Qwen3-8B, 230 test questions, seeds 1–3.
+
+**The bug.** Reading the thinking runs that "gave no answer" (144 of 690): 100 ended with `\boxed{B}` and no "Answer: B" line, which the AR-LSAT parser did not read. With the parser fixed, thinking is right on 85.8% of test runs, not 72.9%, and on 88.3% of dev, not 71.0%. The remaining 44 unanswered runs were cut off at 16,000 tokens. The ZebraLogic parser is not affected (1 unparsed grid in 250 runs). The fix is in `poc/run_zebra.py`.
+
+**Result (corrected).** Ladder trs → think 85.2% at 8.1k against thinking 85.8% at 7.7k: utility −0.8 [−2.1, +0.5], so LS-P1 fails and the gate ties. One mark is right 90.6% of the time (LS-P3 holds), but thinking is about as accurate on those same questions, so skipping it saves tokens without gaining accuracy, and the translation's own tokens cancel the saving. The EXCEPT fix (trse) also ties with trs (+0.0 [−0.9, +1.0]), and its one-mark precision, 87.7%, is under the 88% line, so it is dropped.
+
+**What this corrects.** Every AR-LSAT comparison against thinking before now used the bad parser:
+- the 02:3x and 04:3x UTC entries, where thinking was 75.7% (now 86.5%), so those "ties" were losses for the translation arms;
+- the dev result at 09:5x UTC (+6.4 [+2.6, +10.4]), now +1.2 [−1.4, +4.0];
+- idea 21's flag counts.
+
+The solution-count claim stays limited to ZebraLogic, where the clues are templated. On real LSAT text, an 8B thinking model is right on about 86% of questions, and translation adds nothing at equal cost.

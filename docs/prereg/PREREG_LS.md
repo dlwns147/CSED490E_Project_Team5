@@ -41,3 +41,24 @@ Written 2026-11-08 20:4x UTC, before any test output of `trse` exists and before
 **Decision.** P4 holds: `trse` replaces `trs` as the front of the ladder, and LS-P1/P2 are also reported for it (labelled as the post-registration arm). P4's point is positive but its interval includes 0: a tie; `trs` stays the registered result and `trse` is reported beside it. P5 fails on precision: the text flag is not the whole story and the arm is dropped.
 
 ## Results
+
+### Results, 2026-11-08 22:4x UTC (test split, 230 questions, seeds 1–3, all runs complete)
+
+**A scoring bug in the thinking baseline, found while reading raw outputs.** The `think` arm's answer parser looked only for "Answer: X". Qwen3-8B with thinking often ends with `\boxed{B}` instead; 100 of the 690 test runs (and 40 of 231 dev runs) were scored as no answer although they gave one. All 100 test cases now parse; the only runs left without an answer are the 44 cut off at the 16,000-token limit. The parser in `poc/run_zebra.py` now also reads `\boxed{X}`. Corrected, thinking is right on **85.8%** of test runs (was scored 72.9%) and **88.3%** on dev (was 71.0%). The `trs` / `trse` scores are unaffected (the harness gives their answers). Every verdict below uses the corrected scores; the registered (wrong) scoring is shown for completeness.
+
+| | Accuracy | Tokens | Utility |
+|---|---|---|---|
+| think | 85.8% | 7.69k | 81.9 |
+| ladder trs → think | 85.2% | 8.11k | 81.2 |
+| ladder trse → think | 85.1% | 7.73k | 81.2 |
+
+- **LS-P1 fails:** ladder (trs) minus think, utility −0.8 [−2.1, +0.5]. (With the wrong scoring it was +1.7 [−0.2, +3.7], which also fails.)
+- **LS-P2 holds:** accuracy −0.6 [−1.7, +0.6], lower bound above −2.
+- **LS-P3 holds:** one mark on 160 of 690 runs (23.2%), right on 145 (90.6%).
+- **LS-P4: a tie.** trse minus trs, utility +0.0 [−0.9, +1.0].
+- **LS-P5 fails on precision:** trse one mark on 187 (27.1%, +3.9 points over trs), right on 164 (**87.7%**, below 88%).
+- **LS-P6 holds:** 90 of the 123 `EXCEPT = True` flags in trs test programs (73%) are on questions without EXCEPT.
+
+**Decision (as registered).** P1 fails: on real text the gate ties with thinking, and the solution-count claim stays limited to ZebraLogic. `trse` is dropped (P5). One mark is right about 90% of the time, but thinking alone is right about as often on the same questions, so the gate saves no tokens at equal accuracy.
+
+**Correction to the development section above.** The dev table and the reason for this test rest on the same scoring bug. With corrected scoring on dev (seed 1): thinking 88.3%; ladder minus think, utility: tr −2.5 [−4.4, −1.1], **trs +1.2 [−1.4, +4.0]** (was +6.4 [+2.6, +10.4]), trsd −1.1 [−3.8, +1.7]; on the 52 questions trs covers, thinking is right on 86.5% (was 63.5%). The earlier AR-LSAT "tie" for the whole-program arm (test seed 1) used the same parser and is also corrected: thinking was right on 199 of 230, not 174.
