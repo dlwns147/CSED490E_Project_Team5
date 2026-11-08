@@ -58,6 +58,13 @@ Our side of the proof work is now testing and analysis only, to guide you (decid
 
 ## Log
 
+**2026-11-08 08:5x UTC: MechGeo's 44 IMO problems, translation stage (SIDE-GT-MG): the audited Lean statement does not raise the guard count.**
+- **MG-P1:** problems with at least one guarded statement (four samples, two repair rounds, Qwen3.6-27B-AWQ): **NL 29 of 44** (predicted 20, range 12–26, so above), **LEAN 29** (predicted 28). 25 problems are guarded in both arms, 4 in NL only, 4 in LEAN only.
+- Last-round status of the 176 samples: NL guarded 86, unexpressible 44, goal fails 23, no figure 17, syntax error 6; LEAN guarded 93, unexpressible 33, no figure 28, goal fails 21. Mean output 19.8k tokens per sample (NL), 15.3k (LEAN).
+- The first job lost half its samples to client timeouts; the refill (job 1353077) completed all 176 per arm.
+- **Next, as registered:** verdicts (faithful, half, changed, wrong) against the audited Lean statements, written before any closure run; then MG-P2 and MG-P3.
+- **For the teammate:** seeing the audited hypotheses did not help the translator pass the guard. Whether it helps faithfulness is what the verdicts will show.
+
 **2026-11-07 19:4x UTC: half of HAGeo's counted rows no longer assume a figure reading.**
 - **SIDE-GT-LEAN-LIFT final:** all four predictions hold. 333 of 344 lifted certificates compile at 1,200 s; 126 of 263 counted rows have no reading (from 48); 11 faithful held-out problems (from 2), 8 once unsigned angles count as readings; no wrong constant. Lifting is now the default export.
 - **Counts restated:** all 263 counted HAGeo rows are kernel-checked, 348 of 350 theorems compile, IMO-AG-30 27 of 27.
