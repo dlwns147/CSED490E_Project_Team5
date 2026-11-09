@@ -451,12 +451,15 @@ for a, vals in groups.items():
     for x in vals:
         v[f"{a}:{x}"] = m.NewIntVar(1, n, f"{a}:{x}")
     m.AddAllDifferent([v[f"{a}:{x}"] for x in vals])
+for k, x in enumerate(FIRST, 1):   # p['<first category>:x'] is x's own position (dev pilot: 40% of crashed rounds wrote it in place of at(x))
+    v.setdefault(f"{__FNAME__}:{x}", m.NewConstant(k))
+_al = {" ".join(k.lower().split()): k for k in v}
 for c in clues:
     keys = sorted({t.slice.value for t in ast.walk(ast.parse(c, mode="eval")) if isinstance(t, ast.Subscript) and isinstance(t.slice, ast.Constant) and isinstance(t.slice.value, str) and ":" in t.slice.value})
-    assert keys and all(k in v for k in keys), f"unknown name in clue: {c}"
+    assert keys and all(" ".join(k.lower().split()) in _al for k in keys), f"unknown name in clue: {c}"
     code = compile(c, "clue", "eval")
     ok = [t for t in itertools.product(range(1, n + 1), repeat=len(keys)) if eval(code, {"abs": abs, "min": min, "max": max, "V": V, "at": at}, {"p": dict(zip(keys, t))})]
-    m.AddAllowedAssignments([v[k] for k in keys], ok)
+    m.AddAllowedAssignments([v[_al[" ".join(k.lower().split())]] for k in keys], ok)
 s = cp_model.CpSolver(); s.parameters.enumerate_all_solutions = True; s.parameters.num_workers = 1
 cb = _C(v); s.Solve(m, cb)
 g = {}
@@ -471,7 +474,7 @@ print(json.dumps({"count": len(cb.s), "grid": g}))
 GP_TR = ("{p}\n\nDo not solve the puzzle. Translate it. Give one ```python block that defines three things. `VALUES`: the list of numbers that the {first} stand for, in the order "
          "listed ({fv}); use the number itself for years, prices, ages, times or counts, and 1, 2, 3, ... for words like first or January. `groups`: a dict from each other category "
          "to the list of its values, with exactly these category names: {cols}. `clues`: a list with one Python expression, as a string, for each clue. In an expression, "
-         "p['category:value'] is the position (1 to {n}) of the {first} that value goes with, V(k) is the number of position k, and at(x) is the position of the {first} value x. "
+         "p['category:value'] is the position (1 to {n}) of the {first} that value goes with (so p['{first}:{f0}'] is 1), V(k) is the number of position k, and at(x) is the position of the {first} value x. "
          "Examples: \"p['A:x'] > p['B:y']\" (x comes after y), \"V(p['A:x']) - V(p['B:y']) == 4\" (x is 4 more than y), \"p['A:x'] == at('{f0}')\", "
          "\"p['A:x'] != p['B:y']\", \"p['A:x'] in (p['B:y'], p['B:z'])\" (x is either y or z), and for \"of x and y, one is z and the other is w\": "
          "\"(p['A:x'] == p['C:z'] and p['B:y'] == p['C:w']) or (p['A:x'] == p['C:w'] and p['B:y'] == p['C:z'])\". Keep each value exactly as the puzzle writes it.")
@@ -497,7 +500,7 @@ def gp_score(g, r):
 def gp_main():
     tag, arm, seed = sys.argv[2], sys.argv[3], int(sys.argv[4])
     dev = "--dev" in sys.argv
-    mt = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else 16000 if arm == "think" else 8192 if arm == "gtrt" else 4096
+    mt = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else 4096 if arm == "gtr" else 16000   # gtrt: 21 of 94 dev rounds hit 8192 with no code
     src = sys.argv[sys.argv.index("--set") + 1] if "--set" in sys.argv else "gridpuzzle"   # or lgp: Mitra and Baral's puzzles (poc/gp_prep.py --lgp)
     P = [r for r in map(json.loads, open(os.path.join(os.environ["POC_DATA"], src, "grid.jsonl"))) if r["split"] == ("dev" if dev else "test")]
 
