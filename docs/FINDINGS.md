@@ -6119,3 +6119,14 @@ The solution-count claim stays limited to ZebraLogic, where the clues are templa
 - The translation settles 59% of questions (Qwen3-8B: 23%) and is right on 93.9% of them. Thinking is right on 92.2% of those. Half the gain is that precision edge and half is the thinking tokens skipped (idea 15's two terms, +1.0 and +1.2).
 - **Parser bug, found by reading raw rows.** 15 thinking answers were a bare letter, unparsed, all right. The fix moved the gain from +3.6 to +2.2.
 - **Caveat.** 19 covered thinking runs hit the 22k cap. If they would all have been right, the gain would vanish. A rerun of all 73 capped runs at a 60k cap is pre-registered (LO-CAP, jobs 1360438–40).
+
+## 2026-11-09 04:2x UTC — AR-LSAT with gpt-oss-20b is a tie once thinking has room; ZebraLogic headline 99.2% over 750 unseen puzzles
+
+- **AR-LSAT (LO-CAP, `PREREG_LS.md`).** The 73 thinking runs cut at 22k were rerun with a 60k cap: 70 finished, 60 right.
+  - With them, thinking reaches 93.9% and the ladder 92.6%. Utility −0.1 [−1.2, +0.9], so the +2.2 gain registered at 22k came from the cap.
+  - A rerun is a fresh sample, not a continuation, so this favours thinking. A corrected estimate, using only reruns that went past 22k, gives +0.3 [−0.9, +1.4]. Still a tie.
+  - On the questions the translation settles, thinking without the cap is right 96.1% of the time, against 93.9% for the translation.
+  - Reading: the stronger translator settles more questions (59% against 23%) but is no more precise than thinking on them. On real text the count gate ties for both models. The claim stays limited to ZebraLogic, where a count of 1 is right 99–100% of the time.
+- **ZebraLogic (ZL-OSS-ALL, `PREREG_ZL.md`).** gpt-oss-20b on the other 500 puzzles: ladder 99.5% at 0.87k tokens against thinking 74.2% at 8.1k, utility +28.9 [+25.3, +32.5].
+  - Over the 750 puzzles never read while writing the prompt: 99.2% (Logic.py with Llama 3.1 70B: 91.4 on all 1,000).
+  - Counting all 282 capped thinking runs as right would still give only 93.0%.

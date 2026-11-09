@@ -128,3 +128,18 @@ For Qwen3-4B the same comparison is 88.5% against 96.5%.
 - **A-P2 (reported):** ladder accuracy over the 750 unseen puzzles at least 97%, beside Logic.py's 91.4 (Llama 3.1 70B, all 1,000) and the Qwen3 report's 84.8 for Qwen3-8B thinking.
 
 **Decision.** A-P1 holds: gpt-oss-20b's ladder is the headline ZebraLogic row. A-P1 fails: the 250-puzzle result was the subset, and it is reported as such.
+
+### Results, 2026-11-09 04:2x UTC: ZL-OSS-ALL, all three seeds complete
+
+| gpt-oss-20b | Ladder | Think (high, 22k cap) | Utility, ladder − think | Accuracy, ladder − think |
+|---|---|---|---|---|
+| 500 new puzzles | 99.5% at 0.87k | 74.2% at 8.09k | +28.88 [+25.30, +32.48] | +25.3 [+21.9, +28.5] |
+| 750 unseen puzzles | 99.2% | 74.5% | | |
+
+- **A-P1 holds.**
+- **A-P2 holds:** 99.2% over the 750 unseen puzzles, beside Logic.py's 91.4 (Llama 3.1 70B, all 1,000).
+- A count of 1 is right on trf 1,481 of 1,482 and trt 1,483 of 1,490.
+- Thinking hit the 22k cap on 282 of 1,500 runs. Counting them all right would give 93.0%, still below 99.5%, so the cap does not decide the result.
+- Thinking is right on 74.8% of the puzzles trf accepts.
+
+**Decision.** gpt-oss-20b's ladder is the headline ZebraLogic row: 99.2% over 750 unseen puzzles at under 1k tokens a puzzle.

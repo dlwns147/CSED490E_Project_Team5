@@ -103,3 +103,12 @@ Written 2026-11-08 20:4x UTC, before any test output of `trse` exists and before
 - **LC-P2 (reported):** how many reruns finish, their accuracy and tokens, and thinking's accuracy on the covered runs.
 
 **Decision.** LC-P1 holds: the AR-LSAT gain with gpt-oss-20b stands, and the gate's claim covers both benchmarks for that model. LC-P1 fails: the gain came from the cap, and the AR-LSAT verdict is a tie.
+
+### Results, 2026-11-09 04:2x UTC: LO-CAP, the 73 capped runs rerun at 60k
+
+- **LC-P2.** 70 of the 73 reruns finished. 60 are right. Mean 23.1k tokens.
+- **The registered analysis (reruns replace the capped rows):** thinking 93.9% at 9.13k, ladder 92.6% at 6.68k. Utility −0.1 [−1.2, +0.9], accuracy −1.3 [−2.5, −0.4]. **LC-P1 fails.**
+- **A bias in that analysis, and a corrected estimate.** A rerun is a fresh sample, not a continuation, and 42 of the 73 ended under 22k. That over-weights short runs, which are more often right, so it favours thinking. Corrected estimate: keep a rerun only if it went past 22k (31 runs, 71% right, 35.0k tokens); for the 42 that ended early, use those 31 runs' mean. Result: thinking 92.7%, ladder 91.7%, utility +0.3 [−0.9, +1.4], accuracy −1.0 [−2.2, −0.0]. Still a tie.
+- On the runs trs settles, thinking without the cap is right 96.1% of the time against trs's 93.9%. This is the same pattern as Qwen3-8B (93.1% against 90.6%).
+
+**Decision.** The AR-LSAT gain with gpt-oss-20b came from the cap. On real text the gate ties with thinking for both translators. A stronger translator raises coverage (23% → 59%) but not precision above thinking's on the same questions. The solution-count claim stays limited to ZebraLogic.
