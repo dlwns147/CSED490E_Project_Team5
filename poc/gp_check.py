@@ -1,0 +1,129 @@
+"""Idea 28: the model checks the solver's grid against each clue. A count-1 translation can be wrong only if the grid it gives breaks some clue as written
+(the puzzle has one solution), and reading one clue against a filled table needs no search. So a flag on any clue sends the puzzle on down the ladder.
+Closest prior work: Semantic Self-Verification (Raza and Milic-Frayling, IJCAI 2025, 2501.16961) checks the formalization with model-written examples per
+constraint; here the example is the solver's own answer and the model is the checker.
+
+Usage (on a GPU lane):  $P poc/gp_check.py run <tag> <set gridpuzzle|lgp> <arm check|checkt> [--dev]
+  re-runs each count-1 program in results/{gp,lgp}_<tag>[_dev]_{gtr,gtrt}_s*.jsonl under GP_SOLVE, asks for a per-clue check of the grid it prints,
+  and writes results/{gp,lgp}_<tag>[_dev]_<arm>.jsonl (one row per program).
+Offline:  python poc/gp_check.py eval <tag> <think tag> [--dev]   ladder with and without the check, seed 1, as idea 28's decision rule reads it.
+"""
+import glob
+import json
+import os
+import random
+import re
+import sys
+
+sys.path.insert(0, os.path.dirname(__file__))
+
+RES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "results")
+CHECK = ("{p}\n\nHere is a filled table for this puzzle, one row per {first}:\n{table}\n\nDo not solve the puzzle. Check the table against each clue in turn: "
+         "for each clue write its number, yes if the table satisfies the clue as written or no if it does not, and a short reason. "
+         "On the last line give JSON {{\"violated\": [the numbers of the clues the table breaks]}}.")
+
+
+def run_main():
+    from concurrent.futures import ThreadPoolExecutor
+    from llm import chat_msgs
+    from sandbox import run_python
+    from run_zebra import GP_SOLVE, gp_score
+    tag, src, arm = sys.argv[2], sys.argv[3], sys.argv[4]
+    dev = "--dev" in sys.argv
+    pre = "gp" if src == "gridpuzzle" else src
+    P = {r["id"]: r for r in map(json.loads, open(os.path.join(os.environ["POC_DATA"], src, "grid.jsonl")))}
+    todo = []
+    for f in sorted(glob.glob(f"{RES}/{pre}_{tag}{'_dev' if dev else ''}_gtr*_s*.jsonl")):
+        tr, sd = re.search(r"_(gtrt?)_s(\d+)\.jsonl$", f).groups()
+        todo += [(tr, int(sd), x) for x in map(json.loads, open(f)) if x["count"] == 1]
+
+    def run(a):
+        tr, sd, x = a
+        r = P[x["id"]]
+        (first, fv), cols = r["cats"][0], [c for c, _ in r["cats"][1:]]
+        solve = GP_SOLVE.replace("__FIRST__", json.dumps(fv)).replace("__FNAME__", json.dumps(first))
+        res = run_python(x["code"] + "\n" + solve, "", timeout=30, mem_bytes=4 << 30)
+        try:
+            out = json.loads(res.stdout.strip().splitlines()[-1])
+        except (AttributeError, IndexError, ValueError):
+            out = {"count": -1, "grid": {}}
+        row = {"id": x["id"], "size": x["size"], "tr": tr, "seed": sd, "exact_saved": x["exact"], "count": out["count"]}
+        if out["count"] != 1:   # the saved row was count 1; a different count now means the interface moved since the run
+            return {**row, "exact": False, "violated": None, "tokens": 0}
+        g = out["grid"]
+        ex, _ = gp_score(g, r)
+        table = "\n".join(f"{v} | " + " | ".join(f"{c}: {g.get(c, [None] * len(fv))[k]}" for c in cols) for k, v in enumerate(fv))
+        o = chat_msgs([{"role": "user", "content": CHECK.format(p=r["puzzle"], first=first, table=table)}], think=arm == "checkt",
+                      max_tokens=8000 if arm == "checkt" else 2048, temperature=0.7, seed=sd * 10007 + int(x["id"].split("-")[1]) + 99)
+        m = re.findall(r"\{[^{}]*\"violated\"[^{}]*\}", o["text"] or "")
+        try:
+            vio = [int(k) for k in json.loads(m[-1])["violated"]]
+        except (IndexError, ValueError, TypeError, KeyError):
+            vio = None   # unparsed: read as no flag
+        return {**row, "exact": ex, "violated": vio, "tokens": o["out_tokens"], "finish": o["finish"], "text": (o["text"] or "")[-2500:]}
+
+    path = f"{RES}/{pre}_{tag}{'_dev' if dev else ''}_{arm}.jsonl"
+    with ThreadPoolExecutor(32) as ex, open(path, "w") as f:
+        rows = []
+        for r in ex.map(run, todo):
+            rows.append(r); f.write(json.dumps(r) + "\n"); f.flush()
+    wr = [r for r in rows if not r["exact"]]
+    print(tag, src, arm, f"programs {len(rows)}, wrong {len(wr)}, flagged wrong {sum(bool(r['violated']) for r in wr)}, "
+          f"flagged right {sum(bool(r['violated']) for r in rows if r['exact'])}, saved/replayed exact differ {sum(r['exact'] != r['exact_saved'] for r in rows)}", flush=True)
+
+
+def eval_main():
+    """Decision rule fixed in IDEAS row 28 before the run: per set, seed 1, ladder gtr -> gtrt -> think, with the check a count-1 step whose grid gets a
+    flag goes on to the next step (check tokens paid on every count-1 step). Utility 100*right - 0.5*ktok, bootstrap over puzzles."""
+    tag, ttag = sys.argv[2], sys.argv[3]
+    d = "_dev" if "--dev" in sys.argv else ""
+    for pre in ["gp", "lgp"]:
+        for arm in ["check", "checkt"]:
+            cp = f"{RES}/{pre}_{tag}{d}_{arm}.jsonl"
+            if not os.path.exists(cp):
+                continue
+            C = {(r["tr"], r["id"], r["seed"]): r for r in map(json.loads, open(cp))}
+            allc = list(C.values())
+            for tr in ["gtr", "gtrt"]:
+                rs = [r for r in allc if r["tr"] == tr]
+                if rs:
+                    a = [r for r in rs if not r["violated"]]
+                    print(f"{pre} {arm} {tr}: count-1 programs {len(rs)} (right {sum(r['exact'] for r in rs)}), unflagged {len(a)} (right {sum(r['exact'] for r in a)}); "
+                          f"wrong flagged {sum(bool(r['violated']) for r in rs if not r['exact'])}/{sum(not r['exact'] for r in rs)}, "
+                          f"right flagged {sum(bool(r['violated']) for r in rs if r['exact'])}/{sum(r['exact'] for r in rs)}, unparsed {sum(r['violated'] is None for r in rs)}, "
+                          f"check ktok {sum(r['tokens'] for r in rs) / len(rs) / 1000:.2f}")
+            L = {t: {x["id"]: x for x in map(json.loads, open(f"{RES}/{pre}_{tag}{d}_{t}_s1.jsonl"))} for t in ["gtr", "gtrt"]}
+            T = {x["id"]: x for x in map(json.loads, open(f"{RES}/{pre}_{ttag}{d}_think_s1.jsonl"))}
+            ids = sorted(set(L["gtr"]) & set(L["gtrt"]) & set(T))
+            du = {}
+            uu = {"plain": [], "check": []}
+            for i in ids:
+                u = {}
+                for use in [False, True]:
+                    tok, right = 0, None
+                    for t in ["gtr", "gtrt"]:
+                        x = L[t][i]
+                        tok += x["tokens"]
+                        if x["count"] == 1:
+                            c = C.get((t, i, 1))
+                            if use and c is not None:
+                                tok += c["tokens"]
+                            if not (use and c is not None and c["violated"]):
+                                right = x["exact"]
+                                break
+                    if right is None:
+                        tok += T[i]["tokens"]
+                        right = T[i]["exact"]
+                    u[use] = 100 * right - 0.5 * tok / 1000
+                uu["plain"].append(u[False]); uu["check"].append(u[True])
+                du[i] = u[True] - u[False]
+            rng = random.Random(0)
+            k = sorted(du)
+            bs = sorted(sum(du[rng.choice(k)] for _ in k) / len(k) for _ in range(10000))
+            pt = sum(du.values()) / len(k)
+            print(f"{pre} {arm} ladder seed 1, {len(k)} puzzles: utility plain {sum(uu['plain']) / len(k):.1f}, with check {sum(uu['check']) / len(k):.1f}, "
+                  f"difference {pt:+.1f} [{bs[250]:+.1f}, {bs[9749]:+.1f}] -> {'survives' if pt > 0 else 'killed'} on this set")
+
+
+if __name__ == "__main__":
+    {"run": run_main, "eval": eval_main}[sys.argv[1]]()
