@@ -6193,3 +6193,20 @@ The top tertile is not above 0, so the idea is killed. Qwen3-8B shows no trend (
 | Pooled | 184/191 (96.3%) | |
 
 Against 8B on the same dev puzzles: 38/46 and 64/73 without thinking. By the rule, the shortfall is the model's, not the text's: a template reading of a failed GP-P2 must say that a 32B translator nearly clears the bar on the same puzzles. GridPuzzle alone sits just under 95%. Exploratory; 40 and 48 puzzles.
+
+## 2026-11-09 22:1x UTC — idea 29 killed on dev: listing a loose translation's solutions and checking each grid loses utility, because the checker passes too many wrong grids
+
+**Why.** A translation that allows two or more solutions is the most common final state (22–30% of GridPuzzle test runs), and it goes on to a step costing 11–16k tokens. If the solver lists up to 16 solutions and the idea-28 checker (thinking) reads each grid, the one grid that breaks no clue should be the answer. Rule fixed before the run in `IDEAS_COMPUTATION.md` row 29.
+
+**Result (dev, Qwen3-8B, the 75 count-2 programs of q8bh; `poc/gp_check.py ... enumt`).**
+
+| Set | Programs listed (≤ K) | Right grid among them | Exactly one grid passes | Of those right | Ladder with listing − without (seed 1) |
+|---|---|---|---|---|---|
+| GridPuzzle | 27 | 18 | 8 | 6 | −0.9 [−1.8, −0.2] |
+| Mitra-Baral | 37 | 20 | 6 | 4 | −0.2 [−0.9, +0.7] |
+
+K per step (next step's dev ktok over the check's 0.9 ktok): 16 and 12 on GridPuzzle, 13 and 6 on Mitra-Baral. Killed on both sets.
+
+- Per grid, the checker never flags a right grid (0 of 38), but it passes many wrong ones: it flags 92 of 160 wrong grids on GridPuzzle (58%) and 74 of 101 on Mitra-Baral (73%). In idea 28 it flagged 17 of 20 wrong count-1 grids (85%).
+- So where the right grid is listed, several grids usually pass (up to 11), and the step cannot be settled; the checks cost 6–10k tokens per listed program for nothing.
+- What it says about the checker: the wrong grids here satisfy every clue the translator wrote, and the clue they break is the one the translator missed or weakened; the checker misses the same clue 27–42% of the time. This is SSV's stated gap (a program and its check sharing one misreading), measured. It is the risk to `PREREG_GC.md` on test, where a wrong count-1 grid is also one that satisfies every clue as translated.

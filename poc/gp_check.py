@@ -167,7 +167,7 @@ def eval_enum(pre, tag, d, ttag, C, L, T, ids, ep):
     ck = sum(r["tokens"] for r in C.values()) / len(C) / 1000
     nxt = {"gtr": sum(mk(f) for f in glob.glob(f"{RES}/{pre}_{tag}_dev_gtrt_s*.jsonl")) / len(glob.glob(f"{RES}/{pre}_{tag}_dev_gtrt_s*.jsonl")),
            "gtrt": mk(f"{RES}/{pre}_{ttag}_dev_think_s1.jsonl")}
-    K = {t: int(nxt[t] / ck) for t in nxt}
+    K = {t: min(16, int(nxt[t] / ck)) for t in nxt}   # 17 means more than 16 were found, none listed
     rs = [r for r in E.values() if 2 <= r["count"] <= K[r["tr"]]]
     print(f"{pre} enumt: K {K} (check {ck:.2f} ktok); count-2 programs {len(E)}, listed within K {len(rs)}, right grid among them {sum(r['gold_in'] for r in rs)}, "
           f"one grid passes {sum(r['pick'] is not None for r in rs)}, of which right {sum(r['exact'] for r in rs)}, mean check ktok {sum(r['tokens'] for r in rs) / max(len(rs), 1) / 1000:.1f}")
