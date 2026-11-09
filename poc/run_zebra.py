@@ -443,7 +443,9 @@ class _C(cp_model.CpSolverSolutionCallback):
 FIRST, FNAME = __FIRST__, __FNAME__   # filled in as JSON literals; never inside an f-string (Python 3.11 rejects the nested quotes)
 n = len(FIRST)
 assert len(VALUES) == n, f"VALUES has {len(VALUES)} numbers, the puzzle has {n} " + FNAME
-V = lambda k: VALUES[k - 1]
+# p holds numbers, not positions (q8bg dev: 5 of 17 wrong count-1 programs mixed the two, e.g. "Owens stays 3 days" as p == V(3), "one hour after" as positions 1 apart);
+# V and at stay for programs written to the position interface: V(x) is x, at(x) is the number of the first-category value x
+V = lambda x: x
 # names are matched on format only (dev pilot: 9 of 39 crashed final rounds wrote '12' for '12 minutes' or a value under the wrong category name):
 # a value with a number by that number, others by letters and digits, and only when exactly one value matches
 _nv = lambda x: re.search(r"\d[\d:.]*", str(x).replace(",", "")).group() if re.search(r"\d", str(x)) else re.sub(r"[^a-z0-9]", "", str(x).lower())
@@ -451,7 +453,7 @@ def at(x):
     i = [k for k, y in enumerate(FIRST, 1) if _nv(y) == _nv(x)]
     if len(i) != 1:
         raise ValueError(repr(x) + " is not one of the " + FNAME)
-    return i[0]
+    return VALUES[i[0] - 1]
 m, v = cp_model.CpModel(), {}
 for a, vals in groups.items():
     assert len(vals) == n, f"category {a} does not have {n} values"
@@ -484,7 +486,7 @@ for c in clues:
     keys = sorted({t.slice.value for t in ast.walk(ast.parse(c, mode="eval")) if isinstance(t, ast.Subscript) and isinstance(t.slice, ast.Constant) and isinstance(t.slice.value, str) and ":" in t.slice.value})
     assert keys and all(_res(k) for k in keys), f"unknown name in clue: {c}"
     code = compile(c, "clue", "eval")
-    ok = [t for t in itertools.product(range(1, n + 1), repeat=len(keys)) if eval(code, {"abs": abs, "min": min, "max": max, "V": V, "at": at}, {"p": dict(zip(keys, t))})]
+    ok = [t for t in itertools.product(range(1, n + 1), repeat=len(keys)) if eval(code, {"abs": abs, "min": min, "max": max, "V": V, "at": at}, {"p": dict(zip(keys, (VALUES[k - 1] for k in t)))})]
     m.AddAllowedAssignments([v[_res(k)] for k in keys], ok)
 s = cp_model.CpSolver(); s.parameters.enumerate_all_solutions = True; s.parameters.num_workers = 1
 cb = _C(v); s.Solve(m, cb)
@@ -498,11 +500,11 @@ if cb.s:
 print(json.dumps({"count": len(cb.s), "grid": g}))
 """
 GP_TR = ("{p}\n\nDo not solve the puzzle. Translate it. Give one ```python block that defines three things. `VALUES`: the list of numbers that the {first} stand for, in the order "
-         "listed ({fv}); use the number itself for years, prices, ages, times or counts, and 1, 2, 3, ... for words like first or January. `groups`: a dict from each other category "
-         "to the list of its values, with exactly these category names: {cols}. `clues`: a list with one Python expression, as a string, for each clue. In an expression, "
-         "p['category:value'] is the position (1 to {n}) of the {first} that value goes with (so p['{first}:{f0}'] is 1), V(k) is the number of position k, and at(x) is the position of the {first} value x. "
-         "Examples: \"p['A:x'] == p['B:y']\" (x goes with y), \"p['A:x'] > p['B:y']\" (x comes after y), \"V(p['A:x']) - V(p['B:y']) == 4\" (x is 4 more than y; amounts always go through V, since p is a position), \"p['A:x'] == at('{f0}')\", "
-         "\"p['A:x'] != p['B:y']\", \"p['A:x'] in (p['B:y'], p['B:z'])\" (x is either y or z), and for \"of x and y, one is z and the other is w\": "
+         "listed ({fv}); use the number itself for years, prices, ages, times or counts (7:30am is 7.5), the month number for months (January is 1), and 1, 2, 3, ... for words like first. "
+         "`groups`: a dict from each other category to the list of its values, with exactly these category names: {cols}. `clues`: a list with one Python expression, as a string, for each clue. "
+         "In an expression, p['category:value'] is the number (from VALUES) of the {first} that value goes with. "
+         "Examples: \"p['A:x'] == p['B:y']\" (x goes with y), \"p['A:x'] > p['B:y']\" (x is later or more than y), \"p['A:x'] - p['B:y'] == 4\" (x is 4 more than y), "
+         "\"p['A:x'] == 4\" (x goes with the {first} whose number is 4), \"p['A:x'] != p['B:y']\", \"p['A:x'] in (p['B:y'], p['B:z'])\" (x is either y or z), and for \"of x and y, one is z and the other is w\": "
          "\"(p['A:x'] == p['C:z'] and p['B:y'] == p['C:w']) or (p['A:x'] == p['C:w'] and p['B:y'] == p['C:z'])\". Keep each value exactly as the puzzle writes it.")
 GP_FMT = "{p}\n\nSolve the puzzle. On the last line give JSON mapping each category ({cols}) to the list of its values for the {first} {fv}, in that order."
 
