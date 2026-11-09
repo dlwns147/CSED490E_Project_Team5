@@ -431,7 +431,7 @@ def zl_main():
 # GridPuzzle (Tyagi et al. 2024; Puzzle Baron puzzles written by people), idea 27: does the ZebraLogic count gate survive human-written clues? The first category is ordered
 # and plays the houses' role. usage: run_zebra.py --gp <tag> <arm gtr|gtrt|think> <seed> [--dev] [--max_tokens N] [--set gridpuzzle|lgp]
 GP_SOLVE = """
-import ast, itertools, json
+import ast, itertools, json, re
 from ortools.sat.python import cp_model
 class _C(cp_model.CpSolverSolutionCallback):
     def __init__(self, v):
@@ -444,7 +444,14 @@ FIRST, FNAME = __FIRST__, __FNAME__   # filled in as JSON literals; never inside
 n = len(FIRST)
 assert len(VALUES) == n, f"VALUES has {len(VALUES)} numbers, the puzzle has {n} " + FNAME
 V = lambda k: VALUES[k - 1]
-at = lambda x: [str(y).lower() for y in FIRST].index(str(x).lower()) + 1
+# names are matched on format only (dev pilot: 9 of 39 crashed final rounds wrote '12' for '12 minutes' or a value under the wrong category name):
+# a value with a number by that number, others by letters and digits, and only when exactly one value matches
+_nv = lambda x: re.search(r"\d[\d:.]*", str(x).replace(",", "")).group() if re.search(r"\d", str(x)) else re.sub(r"[^a-z0-9]", "", str(x).lower())
+def at(x):
+    i = [k for k, y in enumerate(FIRST, 1) if _nv(y) == _nv(x)]
+    if len(i) != 1:
+        raise ValueError(repr(x) + " is not one of the " + FNAME)
+    return i[0]
 m, v = cp_model.CpModel(), {}
 for a, vals in groups.items():
     assert len(vals) == n, f"category {a} does not have {n} values"
@@ -454,12 +461,17 @@ for a, vals in groups.items():
 for k, x in enumerate(FIRST, 1):   # p['<first category>:x'] is x's own position (dev pilot: 40% of crashed rounds wrote it in place of at(x))
     v.setdefault(FNAME + ":" + str(x), m.NewConstant(k))
 _al = {" ".join(k.lower().split()): k for k in v}
+def _res(k):
+    if " ".join(k.lower().split()) in _al:
+        return _al[" ".join(k.lower().split())]
+    hit = {x for x in v if _nv(x.split(":", 1)[1]) == _nv(k.split(":", 1)[1])}
+    return hit.pop() if len(hit) == 1 else None
 for c in clues:
     keys = sorted({t.slice.value for t in ast.walk(ast.parse(c, mode="eval")) if isinstance(t, ast.Subscript) and isinstance(t.slice, ast.Constant) and isinstance(t.slice.value, str) and ":" in t.slice.value})
-    assert keys and all(" ".join(k.lower().split()) in _al for k in keys), f"unknown name in clue: {c}"
+    assert keys and all(_res(k) for k in keys), f"unknown name in clue: {c}"
     code = compile(c, "clue", "eval")
     ok = [t for t in itertools.product(range(1, n + 1), repeat=len(keys)) if eval(code, {"abs": abs, "min": min, "max": max, "V": V, "at": at}, {"p": dict(zip(keys, t))})]
-    m.AddAllowedAssignments([v[_al[" ".join(k.lower().split())]] for k in keys], ok)
+    m.AddAllowedAssignments([v[_res(k)] for k in keys], ok)
 s = cp_model.CpSolver(); s.parameters.enumerate_all_solutions = True; s.parameters.num_workers = 1
 cb = _C(v); s.Solve(m, cb)
 g = {}
