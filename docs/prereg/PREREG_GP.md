@@ -58,3 +58,6 @@ Last dev pilot (q8bh), right when the solver found exactly one solution:
 Two candidate checks were rejected on dev:
 - Agreement of 2 of 3 seeds: 4 of the 23 agreed grids were wrong.
 - Rejecting programs whose number of clue expressions differs from the puzzle's: it would drop 6 right programs to catch 4 wrong ones.
+
+## Run note (2026-11-09 21:1x UTC)
+Job 1366023 ran nine client commands against one server; its KV cache stayed full with about 225 requests waiting, and the three Mitra-Baral `gtrt` commands died on the client's one-hour request timeout after 34, 3 and 9 of 94 rows (the other six finished). Those three were re-run from the start with the same frozen code and seeds, one lane per seed and a four-hour timeout (jobs 1368153–5). The partial rows are kept as `results/lgp_q8b_gtrt_s*.crashed_tgrest.jsonl` and are not used.
