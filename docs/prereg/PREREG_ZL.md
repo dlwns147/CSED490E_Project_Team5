@@ -82,3 +82,26 @@ The ladder is trf → trt → think, as before. Tokens include reasoning tokens.
 **Decision.**
 - **O-P1 holds:** the ZebraLogic claim is stated for two families.
 - **O-P1 fails:** the claim is stated for Qwen3 only. The report gives the gate's precision and the thinker's accuracy on the accepted puzzles, which say why.
+
+### Results, 2026-11-09 00:5x UTC: ZL-F4 (Qwen3-4B) and ZL-OSS (gpt-oss-20b), all three seeds complete
+
+| Model | Ladder trf → trt → think | Think | Utility, ladder − think | Accuracy, ladder − think |
+|---|---|---|---|---|
+| Qwen3-4B | 95.5% at 3.03k | 81.5% at 6.39k | +15.68 [+11.67, +19.93] | +14.0 [+10.1, +18.0] |
+| gpt-oss-20b (low / medium / high effort) | 98.7% at 1.09k | 75.3% at 8.26k | +26.92 [+22.11, +31.83] | +23.3 [+18.9, +27.9] |
+
+- **F-P3 holds** (Qwen3-4B).
+- **O-P1 and O-P2 hold** (gpt-oss-20b).
+- **F-P4 (Qwen3-4B part) and O-P3 hold.** A count of 1 is right as follows:
+  - Qwen3-4B: trf 444 of 460 (96.5%), trt 666 of 670 (99.4%).
+  - gpt-oss-20b: trf 734 of 737 (99.6%), trt 734 of 739 (99.3%).
+
+**gpt-oss-20b, read in the raw rows.**
+- Its translation alone at low effort solves 98.8% of the puzzles at about 700 tokens. A count of 1 accepts 98% of them.
+- Thinking at high effort hit the 22,000-token cap on 132 of 750 runs (all wrong, no grid). The other 53 wrong runs gave grids with some cells wrong.
+- The cap hurts thinking. But even if every capped run had been right, thinking would reach 92.9%, below the ladder's 98.7%. So the verdict doesn't depend on the cap.
+- On the puzzles trf accepts, thinking is right on 76.1%, against the gate's 99.6%. That gap is where the ladder's gain comes from (idea 15).
+
+For Qwen3-4B the same comparison is 88.5% against 96.5%.
+
+ZL-F8 (Qwen3-8B, F-P1, F-P2, F-P5 and the Qwen3-8B part of F-P4) is still waiting on its thinking runs (483–490 of 500 rows written).
