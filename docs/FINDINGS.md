@@ -6106,6 +6106,6 @@ The solution-count claim stays limited to ZebraLogic, where the clues are templa
 | Qwen3-4B, 250 held-out | 95.5% → 96.9% | +1.38 [+0.31, +2.81] |
 | gpt-oss-20b, 250 held-out | 98.7% → 98.7% | −0.01 |
 
-**Raw rows read.** Most wrong flags on right translations come from the model adding a derived fact. For example, "the person who loves soccer is Eric" was written as `soccer == 2` beside "Eric is in house 2", which makes one expression redundant. A flagged wrong one: "There is one house between Alice and Eric" written correctly, but redundant because another clue was misread.
+**Raw rows read.** Most wrong flags on right translations come from the model adding a derived fact. For example, "the person who loves soccer is Eric" was written as `soccer == 2` beside "Eric is in house 2", which makes one expression redundant. A flagged wrong one (5×2-22): "the Huawei P50 and the OnePlus 9 are next to each other" became `abs(...) == 2`, the prompt's rule for "one house between" applied to the wrong clue. With that misreading, the correct clue "there is one house between Alice and Eric" is no longer needed, and the flag fires.
 
 **Reading.** The check is kept as a free part of the gate. It works on a property of how the benchmark was built, so it applies only where puzzles are minimal by construction. The nearest prior work (Amonkar et al. 2505.13252, read) feeds back only solver errors; they note this has no effect on wrong programs that run.
