@@ -6210,3 +6210,11 @@ K per step (next step's dev ktok over the check's 0.9 ktok): 16 and 12 on GridPu
 - Per grid, the checker never flags a right grid (0 of 38), but it passes many wrong ones: it flags 92 of 160 wrong grids on GridPuzzle (58%) and 74 of 101 on Mitra-Baral (73%). In idea 28 it flagged 17 of 20 wrong count-1 grids (85%).
 - So where the right grid is listed, several grids usually pass (up to 11), and the step cannot be settled; the checks cost 6–10k tokens per listed program for nothing.
 - What it says about the checker: the wrong grids here satisfy every clue the translator wrote, and the clue they break is the one the translator missed or weakened; the checker misses the same clue 27–42% of the time. This is SSV's stated gap (a program and its check sharing one misreading), measured. It is the risk to `PREREG_GC.md` on test, where a wrong count-1 grid is also one that satisfies every clue as translated.
+
+## 2026-11-09 22:1x UTC — PREREG_GP, GridPuzzle part: the gate pays on human-written grid puzzles and grows with size, but accepted translations are right only 84–94% of the time
+
+**Why.** ZebraLogic's clean gain could come from its templated clues or from search that the solver takes over. GridPuzzle has 215 human-written test puzzles (3×4 to 4×6), Qwen3-8B, 3 seeds.
+
+**Result.** Ladder (translate quickly; if the count is not 1, translate with thinking; then think) against thinking alone: utility 62.6 vs 58.0, difference +4.6 [+0.4, +8.9]; accuracy 71.8% vs 63.7%. Count-1 precision: 84.1% quick, 94.3% with thinking, under the registered 95%. Edge on accepted puzzles: +41 points on 4×5 and 4×6, −2 on 3×4 and 3×5. On 4×6 grids alone, thinking gets 23.1% and the ladder 59.0%.
+
+**Reading.** As registered, P2's failure decides: the template explanation is supported and the claim stays limited to templated puzzles. But the other two predictions hold, so both effects are real: search drives the gain on large grids, and human text lets wrong translations through at 8B (32B nearly clears the bar on dev). Mitra-Baral (P4, P5) follows when its re-run finishes. The registered follow-up, a thinking check of the grid clue by clue (`PREREG_GC.md`), is running on GridPuzzle's test programs.

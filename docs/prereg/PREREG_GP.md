@@ -61,3 +61,19 @@ Two candidate checks were rejected on dev:
 
 ## Run note (2026-11-09 21:1x UTC)
 Job 1366023 ran nine client commands against one server; its KV cache stayed full with about 225 requests waiting, and the three Mitra-Baral `gtrt` commands died on the client's one-hour request timeout after 34, 3 and 9 of 94 rows (the other six finished). Those three were re-run from the start with the same frozen code and seeds, one lane per seed and a four-hour timeout (jobs 1368153–5). The partial rows are kept as `results/lgp_q8b_gtrt_s*.crashed_tgrest.jsonl` and are not used.
+
+## Results, GridPuzzle part (2026-11-09 22:1x UTC; `python poc/gp_eval.py q8b`, all 645 puzzle-seeds)
+Mitra-Baral (GP-P4, GP-P5) waits for the re-run `gtrt` seeds.
+
+| Arm | Accuracy | ktok | Utility |
+|---|---|---|---|
+| `gtr` | 35.7 | 1.0 | 35.2 |
+| `gtrt` | 64.0 | 17.5 | 55.3 |
+| `think` | 63.7 | 11.4 | 58.0 |
+| Ladder | 71.8 | 18.3 | 62.6 |
+
+- **GP-P1 holds:** ladder − think utility +4.6 [+0.4, +8.9]; accuracy +8.1 [+4.0, +12.1] points.
+- **GP-P2 fails:** count-1 precision `gtr` 206/245 = 84.1%, `gtrt` 365/387 = 94.3% (bar 95% each).
+- **GP-P3 holds:** p − A on accepted puzzle-seeds +41.1 points on 4×5 and 4×6 (112) against −2.1 on 3×4 and 3×5 (234); difference +43.2 [+27.5, +58.9]. By size, ladder − think utility: 3×4 −5.6, 3×5 −0.9, 4×4 +4.3, 4×5 +5.3, 4×6 +33.2.
+
+**Decision, as registered.** GP-P2 fails, so the registered reading is the template one: wrong translations of human text pass the count, and the claim stays limited to templated puzzles. gpt-oss-20b is not run (it needed P1, P2 and P3). Stated beside it, without changing the decision: the gate still pays on human text (P1) and its edge grows with size (P3), so search is part of the gain too; and the exploratory 32B pilot (rule fixed before output, `IDEAS_COMPUTATION.md` row 27) put count-1 precision without thinking at 96.3% on dev, so at 8B the shortfall is the model's. The follow-up that targets P2's failure is registered separately (`PREREG_GC.md`).
