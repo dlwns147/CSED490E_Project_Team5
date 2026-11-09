@@ -62,3 +62,16 @@ Written 2026-11-08 20:4x UTC, before any test output of `trse` exists and before
 **Decision (as registered).** P1 fails: on real text the gate ties with thinking, and the solution-count claim stays limited to ZebraLogic. `trse` is dropped (P5). One mark is right about 90% of the time, but thinking alone is right about as often on the same questions, so the gate saves no tokens at equal accuracy.
 
 **Correction to the development section above.** The dev table and the reason for this test rest on the same scoring bug. With corrected scoring on dev (seed 1): thinking 88.3%; ladder minus think, utility: tr −2.5 [−4.4, −1.1], **trs +1.2 [−1.4, +4.0]** (was +6.4 [+2.6, +10.4]), trsd −1.1 [−3.8, +1.7]; on the 52 questions trs covers, thinking is right on 86.5% (was 63.5%). The earlier AR-LSAT "tie" for the whole-program arm (test seed 1) used the same parser and is also corrected: thinking was right on 199 of 230, not 174.
+
+## Addendum: LS-OSS, a stronger translator on real text (written 2026-11-09 00:5x UTC, before any run)
+
+**Why.** On Qwen3-8B the gate tied: the translation settled only 23% of questions, and those were the ones thinking also got right (90.6% against 93.1%). On ZebraLogic, gpt-oss-20b translates far better than Qwen3-8B (a count of 1 on 98% of puzzles at about 700 tokens, against 61% for Qwen3-8B's trf). So it tests whether the AR-LSAT tie was the 8B translator's limit or real text's.
+
+**Setup.** gpt-oss-20b, the AR-LSAT test split, seeds 1–3. `trs` (as registered above, prompt and harness unchanged) at low effort; `think` at high effort, capped at 22,000 tokens, scored with the corrected parser. Ladder, utility and intervals as above.
+
+**Predictions.**
+- **LO-P1:** ladder utility exceeds think, interval above 0.
+- **LO-P2:** ladder accuracy at least think minus 2.
+- **LO-P3 (reported):** trs one-mark coverage and precision, and thinking's accuracy on the questions trs settles.
+
+**Decision.** LO-P1 holds: the gate pays on real text when the translator is strong enough, and the claim is stated for both benchmarks with gpt-oss-20b. LO-P1 fails: on real text the gate does not pay even with a strong translator.

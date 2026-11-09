@@ -105,3 +105,13 @@ The ladder is trf → trt → think, as before. Tokens include reasoning tokens.
 For Qwen3-4B the same comparison is 88.5% against 96.5%.
 
 ZL-F8 (Qwen3-8B, F-P1, F-P2, F-P5 and the Qwen3-8B part of F-P4) is still waiting on its thinking runs (483–490 of 500 rows written).
+
+## ZL-OSS-ALL: gpt-oss-20b on the remaining 500 puzzles (written 2026-11-09 00:5x UTC, before any run)
+
+**Why.** To give the full-benchmark number for the strongest setting, beside published systems. The first 250 puzzles (1–10 of each size) were read while writing `ZL_FACT`, so the reported set is the 750 never read (11–40 of each size): the 250 above plus 500 new ones (21–40 of each size, `--skip 20 --per 20`). Same model, arms, efforts, cap and seeds as ZL-OSS.
+
+**Predictions.**
+- **A-P1:** on the 500 new puzzles, ladder utility exceeds think, interval above 0.
+- **A-P2 (reported):** ladder accuracy over the 750 unseen puzzles at least 97%, beside Logic.py's 91.4 (Llama 3.1 70B, all 1,000) and the Qwen3 report's 84.8 for Qwen3-8B thinking.
+
+**Decision.** A-P1 holds: gpt-oss-20b's ladder is the headline ZebraLogic row. A-P1 fails: the 250-puzzle result was the subset, and it is reported as such.
