@@ -429,7 +429,7 @@ def zl_main():
 
 
 # GridPuzzle (Tyagi et al. 2024; Puzzle Baron puzzles written by people), idea 27: does the ZebraLogic count gate survive human-written clues? The first category is ordered
-# and plays the houses' role. usage: run_zebra.py --gp <tag> <arm gtr|gtrt|think> <seed> [--dev] [--max_tokens N]
+# and plays the houses' role. usage: run_zebra.py --gp <tag> <arm gtr|gtrt|think> <seed> [--dev] [--max_tokens N] [--set gridpuzzle|lgp]
 GP_SOLVE = """
 import ast, itertools, json
 from ortools.sat.python import cp_model
@@ -482,7 +482,8 @@ def gp_main():
     tag, arm, seed = sys.argv[2], sys.argv[3], int(sys.argv[4])
     dev = "--dev" in sys.argv
     mt = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else 16000 if arm == "think" else 8192 if arm == "gtrt" else 4096
-    P = [r for r in map(json.loads, open(os.path.join(os.environ["POC_DATA"], "gridpuzzle", "grid.jsonl"))) if r["split"] == ("dev" if dev else "test")]
+    src = sys.argv[sys.argv.index("--set") + 1] if "--set" in sys.argv else "gridpuzzle"   # or lgp: Mitra and Baral's puzzles (poc/gp_prep.py --lgp)
+    P = [r for r in map(json.loads, open(os.path.join(os.environ["POC_DATA"], src, "grid.jsonl"))) if r["split"] == ("dev" if dev else "test")]
 
     def run(r):
         gold = {a: [str(x).strip().lower() for x in v] for a, v in r["gold"].items()}
@@ -515,7 +516,7 @@ def gp_main():
                      {"role": "user", "content": f"The puzzle has exactly one solution, but {fb}. Compare each clue with the puzzle and give the complete corrected ```python block."}]
         return {**row, "exact": ex, "cell_acc": ca, "count": out["count"], "tokens": tok, "rounds": len(hist), "hist": hist, "code": code}
 
-    path = f"{RES}/gp_{tag}{'_dev' if dev else ''}_{arm}_s{seed}.jsonl"
+    path = f"{RES}/{'gp' if src == 'gridpuzzle' else src}_{tag}{'_dev' if dev else ''}_{arm}_s{seed}.jsonl"
     with ThreadPoolExecutor(32) as ex, open(path, "w") as f:
         rows = []
         for r in ex.map(run, P):
