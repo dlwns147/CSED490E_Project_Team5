@@ -6159,3 +6159,37 @@ The solution-count claim stays limited to ZebraLogic, where the clues are templa
 The top tertile is not above 0, so the idea is killed. Qwen3-8B shows no trend (+0.0, −7.5, +0.0, with intervals about ±10).
 
 **Reading.** The trend runs the predicted way, but too weakly to route on. The candidate count is the solver's search, not the thinker's: LSAT games are built for deduction by people, so a large arrangement space does not make them hard to think through. Whether the ZebraLogic gain is about search or about templated text is still open. Idea 27, ZebraLogic with paraphrased clues, separates the two.
+
+## 2026-11-09 20:0x UTC — idea 28 survives on dev: a thinking check of the solver's grid, clue by clue, rejects 17 of 20 wrong translations and no right one
+
+**Why.** On GridPuzzle's interim test rows (`PREREG_GP.md`), translations that the solver accepts are right only 82–90% of the time, under the 95% the gate needs. A wrong accepted grid must break some clue as written, because the puzzle has one solution. Reading one clue against a filled table needs no search, so a cheap check could catch it. Rule fixed before the run in `IDEAS_COMPUTATION.md` row 28.
+
+**Result (dev, Qwen3-8B, the 179 count-1 programs of q8bh, 20 wrong; `poc/gp_check.py`).**
+
+| Checker | Wrong grids flagged | Right grids flagged | Check ktok | Checked ladder − plain ladder (seed 1) |
+|---|---|---|---|---|
+| no thinking, 2,048 tokens | 17/20 | 21/159 | 0.3–0.5 | GridPuzzle −1.4 [−11.9, +8.7]; Mitra-Baral +4.1 [−0.6, +10.9] |
+| thinking, 8,000 tokens | 17/20 | 0/159 | 0.8–1.0 | GridPuzzle +4.6 [−0.3, +11.8]; Mitra-Baral +6.2 [−0.3, +14.7] |
+
+- The thinking checker survives on both sets; the one without thinking is mixed (its false flags send right puzzles to an expensive fallback).
+- Read by hand (gp-0350, seed 1): the wrong grid puts Sporrin in 2010, and the checker names clue 5 ("the comet discovered in 2010 is either the one Ken Jones discovered or Crecci"); the right grid of the same puzzle passes all five.
+- Unflagged count-1 precision: 38/39 on GridPuzzle and 52/54 on Mitra-Baral (seed 1); the 3 missed wrong grids are 1 GridPuzzle `gtr` and 2 Mitra-Baral `gtrt`, all with an empty flag list.
+- With the check, the seed-1 dev ladder beats thinking alone by +13.8 [+1.5, +28.0] utility on GridPuzzle and +10.8 [+0.6, +22.4] on Mitra-Baral (dev only; 40 and 43 puzzles).
+
+**Prior work.** Semantic Self-Verification (2501.16961, read in full) checks a formalization with model-written examples per constraint; here the example is the solver's own answer. Its stated gap (a program and its examples share one misreading) is the risk to watch on test.
+
+**Next.** Registered as `PREREG_GC.md` before any test check; runs once GP's test translations finish.
+
+## 2026-11-09 20:0x UTC — 32B side pilot: without thinking, Qwen3-32B's accepted translations are right 96.3% of the time on dev, so the 8B shortfall is model strength
+
+**Why.** If GP-P2 fails at 8B, is the cause human-written text or the small model? Rule fixed before any output (`IDEAS_COMPUTATION.md` row 27): pooled count-1 precision without thinking at least 95% means model strength; under 90% means text at both sizes.
+
+**Result (dev, Qwen3-32B-AWQ, same frozen harness, job 1367026).**
+
+| Set | Seeds 1–3, no thinking: count 1 right | With thinking, seed 1 |
+|---|---|---|
+| GridPuzzle | 80/85 (94.1%) | 32/32 |
+| Mitra-Baral | 104/106 (98.1%) | 41/42 |
+| Pooled | 184/191 (96.3%) | |
+
+Against 8B on the same dev puzzles: 38/46 and 64/73 without thinking. By the rule, the shortfall is the model's, not the text's: a template reading of a failed GP-P2 must say that a 32B translator nearly clears the bar on the same puzzles. GridPuzzle alone sits just under 95%. Exploratory; 40 and 48 puzzles.

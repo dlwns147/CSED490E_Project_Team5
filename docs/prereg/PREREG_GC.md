@@ -17,7 +17,7 @@ Written 2026-11-09 20:0x UTC. Idea 28 in `docs/notes/IDEAS_COMPUTATION.md`. No c
 
 `checkt` is registered; `check` is not run on test.
 
-**Setup.** Qwen3-8B. ` poc/gp_check.py run q8b <gridpuzzle|lgp> checkt` on every count-1 program in GP's test rows (`gtr`, `gtrt`, seeds 1–3), once those rows are complete; the check's seed is fixed per program. Checked ladder: as GP's ladder, but a count-1 step whose grid gets a flag goes on to the next step; the check's tokens are paid on every count-1 step. Evaluated by `python poc/gp_eval.py q8b --check checkt` (written and tested on dev before this file). Utility 100·right − 0.5·ktok, bootstrap over puzzles, each puzzle's mean over seeds.
+**Setup.** Qwen3-8B. `python poc/gp_check.py run q8b <gridpuzzle|lgp> checkt` on every count-1 program in GP's test rows (`gtr`, `gtrt`, seeds 1–3), once those rows are complete; the check's seed is fixed per program. Checked ladder: as GP's ladder, but a count-1 step whose grid gets a flag goes on to the next step; the check's tokens are paid on every count-1 step. Evaluated by `python poc/gp_eval.py q8b --check checkt` (written and tested on dev before this file). Utility 100·right − 0.5·ktok, bootstrap over puzzles, each puzzle's mean over seeds.
 
 **Predictions.**
 - **GC-P1:** unflagged count-1 precision, pooled over `gtr` and `gtrt` and seeds, is at least 95% on each set (GP-P2's bar).
