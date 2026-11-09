@@ -26,3 +26,14 @@ Written 2026-11-09 20:0x UTC. Idea 28 in `docs/notes/IDEAS_COMPUTATION.md`. No c
 - **GC-P4:** on Mitra-Baral, checked ladder accuracy at least `think` minus 2 points (lower bound above −2) and utility interval above 0.
 
 **Decision.** GC-P1 and GC-P2 hold: the clue check becomes part of the gate on real text, and the AR-LSAT gate (`PREREG_LS.md`) is the next place to test it. GC-P1 fails: the checker shares the translator's misreadings on test (SSV's stated gap), and the reading of GP stands as registered. GC-P3 decides whether the method beats thinking alone on human-written grids; GC-P4 the same on small grids.
+
+## Results, GridPuzzle part (2026-11-09 23:1x UTC; `python poc/gp_eval.py q8b --check checkt`, job 1368261, 632 count-1 programs)
+Mitra-Baral (GC-P1's second set, GC-P4) waits for GP's re-run `gtrt` seed 1.
+
+- Wrong grids flagged 34/61 (dev 17/20): `gtr` 28/39, `gtrt` 6/22. Right grids flagged 9/571 (`gtr` 1, `gtrt` 8). Check 0.87 ktok; none unparsed.
+- **GC-P1 (GridPuzzle) holds, barely:** unflagged count-1 precision 562/589 = 95.4%.
+- **GC-P2 holds:** checked ladder − plain ladder +2.0 [+0.3, +4.0] utility.
+- **GC-P3 holds:** checked ladder − think +6.6 [+2.9, +10.6] utility (plain ladder +4.6 [+0.4, +8.9]); accuracy 74.7% vs 63.7%, +11.0 [+7.8, +14.6] points; 20.2 vs 11.4 ktok.
+- By size, checked ladder − think utility: 3×4 +0.3, 3×5 −1.7, 4×4 +8.4, 4×5 +6.7, 4×6 +30.6.
+
+Reading: the check catches most wrong quick translations (72%) but only 27% of wrong thinking translations, as SSV's stated gap predicts: what survives the model's own thinking translation is mostly a misreading the same model repeats when it checks. The precision bar is cleared by 0.4 points.

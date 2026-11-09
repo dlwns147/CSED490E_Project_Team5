@@ -6218,3 +6218,21 @@ K per step (next step's dev ktok over the check's 0.9 ktok): 16 and 12 on GridPu
 **Result.** Ladder (translate quickly; if the count is not 1, translate with thinking; then think) against thinking alone: utility 62.6 vs 58.0, difference +4.6 [+0.4, +8.9]; accuracy 71.8% vs 63.7%. Count-1 precision: 84.1% quick, 94.3% with thinking, under the registered 95%. Edge on accepted puzzles: +41 points on 4×5 and 4×6, −2 on 3×4 and 3×5. On 4×6 grids alone, thinking gets 23.1% and the ladder 59.0%.
 
 **Reading.** As registered, P2's failure decides: the template explanation is supported and the claim stays limited to templated puzzles. But the other two predictions hold, so both effects are real: search drives the gain on large grids, and human text lets wrong translations through at 8B (32B nearly clears the bar on dev). Mitra-Baral (P4, P5) follows when its re-run finishes. The registered follow-up, a thinking check of the grid clue by clue (`PREREG_GC.md`), is running on GridPuzzle's test programs.
+
+## 2026-11-09 23:1x UTC — PREREG_GC, GridPuzzle part: the clue-by-clue check lifts accepted precision to 95.4% and the ladder's lead over thinking to +6.6 utility
+
+**Why.** GP-P2 failed: accepted translations were right only 84.1% (quick) and 94.3% (thinking) of the time. The registered follow-up has the model, with thinking, check each accepted grid clue by clue; a flag sends the puzzle on.
+
+**Result (GridPuzzle test, 215 puzzles, 3 seeds, 632 accepted programs).** All three GridPuzzle predictions hold:
+
+| | Plain ladder | Checked ladder | Thinking alone |
+|---|---|---|---|
+| Accuracy | 71.8% | 74.7% | 63.7% |
+| ktok | 18.3 | 20.2 | 11.4 |
+| Utility | 62.6 | 64.6 | 58.0 |
+
+- Accepted precision 562/589 = 95.4% (bar 95%); checked − plain ladder +2.0 [+0.3, +4.0]; checked ladder − thinking +6.6 [+2.9, +10.6].
+- Wrong grids caught: 28/39 from quick translations, 6/22 from thinking translations; right grids wrongly flagged: 9/571.
+- On dev it caught 17/20. The drop on test is in the thinking translator's errors, which the checker mostly repeats (SSV's stated gap, now measured).
+
+**Reading.** On human-written grid puzzles a cheap second reading by the same model is enough to bring the gate to the registered precision, just. Its limit is clear: it fixes careless quick translations, not the model's own considered misreadings. Mitra-Baral follows.
