@@ -352,3 +352,11 @@ Three web searches, on translating AlphaGeometry or Newclid proofs into Lean or 
 - Abstracts only: 2505.13252 (LLM formalizers on CSPs), 2505.15993 (Z3 uniqueness at puzzle generation), 2402.02611 (PuzzleBench).
 
 **Bearing on our work.** Translation to a solver on variant Sudoku is already shown to work (2604.27960), so a Sudoku-Bench run would only add an 8B open model, the count gate and cost, and the data is withdrawn. Idea 23 is not run.
+
+## Wrong translations that still run: Amonkar et al. 2505.13252 (read 2026-11-09)
+
+"Large Language Models as Formalizers on Constraint Satisfaction Problems" compares an LLM writing a solver program with an LLM solving directly, on four CSP domains including ZebraLogic, with six models (Qwen2.5-32B, DeepSeek-V3, Qwen3-32B, DeepSeek-R1, o3-mini-high, gpt-5).
+- A solution counts as correct if it satisfies all constraints; no solution count and no check that each constraint is necessary.
+- Solver errors or "no plan" are returned for up to 5 regenerations; the authors note this "has no bearing on existing wrong plans".
+- In 80 annotated outputs, wrong constraints are the majority of semantic errors (95% for Qwen3); missing constraints are rarer.
+- Our count gate (idea 14) catches wrong constraints that change the count; the minimality check (idea 24) catches some that do not, using ZebraLogic's clue pruning (2502.01100 §2: clues are removed until none can go without losing uniqueness).

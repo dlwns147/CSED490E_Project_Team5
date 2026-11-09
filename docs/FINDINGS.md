@@ -6089,3 +6089,23 @@ The solution-count claim stays limited to ZebraLogic, where the clues are templa
 - **What the gate cannot catch.** Qwen3-8B's 29 wrong accepted translations fall on 15 puzzles, 9 of them wrong in two or three seeds. These are misreadings that still leave one solution: "Eric is the person whose birthday is in September" became "September is house 2". Resampling the same model will not find them.
 
 **Next.** gpt-oss-20b on the other 500 puzzles (ZL-OSS-ALL), for a 750-puzzle headline row. gpt-oss-20b on AR-LSAT (LS-OSS), to test whether a stronger translator changes the real-text tie.
+
+## 2026-11-09 02:2x UTC — idea 24: a minimality check catches half of the wrong translations the count accepts
+
+**Why.** On ZebraLogic, the count gate's remaining errors are translations with one wrong clue that still leave exactly one solution, and they repeat across seeds (see the entry above). ZebraLogic's generator removes clues until none can go without losing uniqueness, so in a faithful translation every clue is needed. A clue that can be dropped with the count staying 1 means some other clue was misread. The check costs no tokens. The decision rule was fixed in `IDEAS_COMPUTATION.md` row 24 before running.
+
+**Result (offline, `poc/zl_min.py`, all four recorded ZebraLogic runs).**
+- Of 2,942 accepted first translations, 68 are wrong. The redundant-clue flag catches 35 of them (51%) and wrongly flags 52 of the 2,874 right ones (1.8%). It survives the rule (at least 30% and at most 5%).
+- The second flag, the number of clue expressions differing from the puzzle's numbered clues, catches 12 of 68 (18%). It is killed.
+- Replayed exactly (a flagged translation goes on to the recorded next rung), the ladder gains:
+
+| Run | Ladder → with the check | Utility gain |
+|---|---|---|
+| Qwen3-8B, 500 new | 95.8% → 96.4% | +0.55 [+0.04, +1.25] |
+| Qwen3-8B, 250 held-out | 95.3% → 96.8% | +1.39 [+0.21, +2.97] |
+| Qwen3-4B, 250 held-out | 95.5% → 96.9% | +1.38 [+0.31, +2.81] |
+| gpt-oss-20b, 250 held-out | 98.7% → 98.7% | −0.01 |
+
+**Raw rows read.** Most wrong flags on right translations come from the model adding a derived fact. For example, "the person who loves soccer is Eric" was written as `soccer == 2` beside "Eric is in house 2", which makes one expression redundant. A flagged wrong one: "There is one house between Alice and Eric" written correctly, but redundant because another clue was misread.
+
+**Reading.** The check is kept as a free part of the gate. It works on a property of how the benchmark was built, so it applies only where puzzles are minimal by construction. The nearest prior work (Amonkar et al. 2505.13252, read) feeds back only solver errors; they note this has no effect on wrong programs that run.
