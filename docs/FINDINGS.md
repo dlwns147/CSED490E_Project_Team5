@@ -6143,3 +6143,19 @@ The solution-count claim stays limited to ZebraLogic, where the clues are templa
 | Qwen3-8B + gpt-oss (Qwen3-8B) | 14.3% | 100% | 94.9% | −0.88 [−1.59, +0.05] |
 
 **Reading.** Agreement makes the check more precise, and thinking becomes more accurate on the questions it accepts by the same amount. On AR-LSAT, what a translation can settle and what thinking gets right are the same questions, whatever check is put on the translation. On ZebraLogic they are not: thinking is right on only 75–90% of the puzzles the translation settles. A likely reason: ZebraLogic's thinking errors come from search over a large grid, which the solver takes over, while AR-LSAT's come from reading the rules, which the translation shares. This is a hypothesis to test, not a result.
+
+## 2026-11-09 04:4x UTC — idea 26 killed on AR-LSAT: the gate's edge barely grows with the number of candidate arrangements
+
+**Why.** Idea 25 suggested that the gate pays where thinking's errors come from search, which the solver takes over. On ZebraLogic, the edge of the translation's precision over thinking's accuracy (p − A, on the puzzles the translation settles) is concentrated on large puzzles. For Qwen3-8B it is −2.3 points on puzzles of at most 9 cells and +30.5 on 20 or more. For gpt-oss-20b it is +2.2 and +62.1. The decision rule is in `IDEAS_COMPUTATION.md` row 26. The search size is the number of candidate arrangements, recounted from the recorded programs (`poc/ls_size.py`).
+
+**Result (AR-LSAT test, gpt-oss-20b, thinking with the 60k correction).** By tertile of candidates:
+
+| Candidates | p − A |
+|---|---|
+| 4–720 | −3.5 [−7.6, −0.3] |
+| 720–2,880 | −3.0 [−7.2, +0.1] |
+| 2,940–4.8M | +1.3 [−1.1, +3.6] |
+
+The top tertile is not above 0, so the idea is killed. Qwen3-8B shows no trend (+0.0, −7.5, +0.0, with intervals about ±10).
+
+**Reading.** The trend runs the predicted way, but too weakly to route on. The candidate count is the solver's search, not the thinker's: LSAT games are built for deduction by people, so a large arrangement space does not make them hard to think through. Whether the ZebraLogic gain is about search or about templated text is still open. Idea 27, ZebraLogic with paraphrased clues, separates the two.
