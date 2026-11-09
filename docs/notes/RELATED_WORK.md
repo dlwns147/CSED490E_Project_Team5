@@ -360,3 +360,16 @@ Three web searches, on translating AlphaGeometry or Newclid proofs into Lean or 
 - Solver errors or "no plan" are returned for up to 5 regenerations; the authors note this "has no bearing on existing wrong plans".
 - In 80 annotated outputs, wrong constraints are the majority of semantic errors (95% for Qwen3); missing constraints are rarer.
 - Our count gate (idea 14) catches wrong constraints that change the count; the minimality check (idea 24) catches some that do not, using ZebraLogic's clue pruning (2502.01100 §2: clues are removed until none can go without losing uniqueness).
+
+## Logic grid puzzles in human-written English (read 2026-11-09)
+
+- **GridPuzzle**, Tyagi et al., "Step-by-Step Reasoning to Solve Grid Puzzles: Where do LLMs Falter?", EMNLP 2024 (2407.14790; data github.com/Mihir3009/GridPuzzle, MIT).
+  - 274 Puzzle Baron puzzles, 3×4 to 4×6. Exact match of the whole table.
+  - Zero-shot chain of thought: GPT-4-Turbo 14/274 (5.1%), Llama-2-13B 1, Llama-70B 2. The paper's focus is a reasoning-chain metric (PuzzleEval).
+  - No solver baseline. Mitigations on 60 3×4 puzzles: Self-Discover 13/60 against 12/60.
+- **ZPS**, "Solving Zebra Puzzles Using Constraint-Guided Multi-Agent Systems" (2407.03956).
+  - 114 natural-language zebra puzzles: 59 from github.com/ross-nordstrom/LogicSolver (11 in the public repo when checked) and 55 from the web, not released.
+  - Decomposition agent, then GPT-4 writes SMT-LIB, with Z3's output fed back for up to four actions.
+  - Fully correct: GPT-4 27 → 59 (temperature 0) → 72 (variable temperature) of 114. GPT-3.5 and Llama3-8B reach 22 and 21.
+  - Z3 returns one model, with no uniqueness check, so a translation that allows several solutions is not caught.
+- **Where idea 27 differs.** The solution count as the accept signal, and the cost comparison against a thinking model on the same puzzles. The question it answers is whether ZebraLogic's gain needs templated clues.

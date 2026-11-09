@@ -428,6 +428,101 @@ def zl_main():
     print(tag, arm, seed, f"{sum(r['exact'] for r in rows)}/{len(rows)}", f"tokens {sum(r['tokens'] for r in rows) / len(rows):.0f}", flush=True)
 
 
+# GridPuzzle (Tyagi et al. 2024; Puzzle Baron puzzles written by people), idea 27: does the ZebraLogic count gate survive human-written clues? The first category is ordered
+# and plays the houses' role. usage: run_zebra.py --gp <tag> <arm gtr|gtrt|think> <seed> [--dev] [--max_tokens N]
+GP_SOLVE = """
+import ast, itertools, json
+from ortools.sat.python import cp_model
+class _C(cp_model.CpSolverSolutionCallback):
+    def __init__(self, v):
+        super().__init__(); self.v, self.s = v, []
+    def on_solution_callback(self):
+        self.s.append({k: self.Value(x) for k, x in self.v.items()})
+        if len(self.s) >= 2:
+            self.StopSearch()
+FIRST = __FIRST__
+n = len(FIRST)
+assert len(VALUES) == n, f"VALUES has {len(VALUES)} numbers, the puzzle has {n} {__FNAME__}"
+V = lambda k: VALUES[k - 1]
+at = lambda x: [str(y).lower() for y in FIRST].index(str(x).lower()) + 1
+m, v = cp_model.CpModel(), {}
+for a, vals in groups.items():
+    assert len(vals) == n, f"category {a} does not have {n} values"
+    for x in vals:
+        v[f"{a}:{x}"] = m.NewIntVar(1, n, f"{a}:{x}")
+    m.AddAllDifferent([v[f"{a}:{x}"] for x in vals])
+for c in clues:
+    keys = sorted({t.slice.value for t in ast.walk(ast.parse(c, mode="eval")) if isinstance(t, ast.Subscript) and isinstance(t.slice, ast.Constant) and isinstance(t.slice.value, str) and ":" in t.slice.value})
+    assert keys and all(k in v for k in keys), f"unknown name in clue: {c}"
+    code = compile(c, "clue", "eval")
+    ok = [t for t in itertools.product(range(1, n + 1), repeat=len(keys)) if eval(code, {"abs": abs, "min": min, "max": max, "V": V, "at": at}, {"p": dict(zip(keys, t))})]
+    m.AddAllowedAssignments([v[k] for k in keys], ok)
+s = cp_model.CpSolver(); s.parameters.enumerate_all_solutions = True; s.parameters.num_workers = 1
+cb = _C(v); s.Solve(m, cb)
+g = {}
+if cb.s:
+    for a, vals in groups.items():
+        row = [None] * n
+        for x in vals:
+            row[cb.s[0][f"{a}:{x}"] - 1] = x
+        g[a] = row
+print(json.dumps({"count": len(cb.s), "grid": g}))
+"""
+GP_TR = ("{p}\n\nDo not solve the puzzle. Translate it. Give one ```python block that defines three things. `VALUES`: the list of numbers that the {first} stand for, in the order "
+         "listed ({fv}); use the number itself for years, prices, ages, times or counts, and 1, 2, 3, ... for words like first or January. `groups`: a dict from each other category "
+         "to the list of its values, with exactly these category names: {cols}. `clues`: a list with one Python expression, as a string, for each clue. In an expression, "
+         "p['category:value'] is the position (1 to {n}) of the {first} that value goes with, V(k) is the number of position k, and at(x) is the position of the {first} value x. "
+         "Examples: \"p['A:x'] > p['B:y']\" (x comes after y), \"V(p['A:x']) - V(p['B:y']) == 4\" (x is 4 more than y), \"p['A:x'] == at('{f0}')\", "
+         "\"p['A:x'] != p['B:y']\", \"p['A:x'] in (p['B:y'], p['B:z'])\" (x is either y or z), and for \"of x and y, one is z and the other is w\": "
+         "\"(p['A:x'] == p['C:z'] and p['B:y'] == p['C:w']) or (p['A:x'] == p['C:w'] and p['B:y'] == p['C:z'])\". Keep each value exactly as the puzzle writes it.")
+GP_FMT = "{p}\n\nSolve the puzzle. On the last line give JSON mapping each category ({cols}) to the list of its values for the {first} {fv}, in that order."
+
+
+def gp_main():
+    tag, arm, seed = sys.argv[2], sys.argv[3], int(sys.argv[4])
+    dev = "--dev" in sys.argv
+    mt = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else 16000 if arm == "think" else 8192 if arm == "gtrt" else 4096
+    P = [r for r in map(json.loads, open(os.path.join(os.environ["POC_DATA"], "gridpuzzle", "grid.jsonl"))) if r["split"] == ("dev" if dev else "test")]
+
+    def run(r):
+        gold = {a: [str(x).strip().lower() for x in v] for a, v in r["gold"].items()}
+        (first, fv), cols, n = r["cats"][0], ", ".join(gold), len(r["cats"][0][1])
+        sd = seed * 10007 + int(r["id"].split("-")[1])
+        row = {"id": r["id"], "size": r["size"], "arm": arm, "seed": seed}
+        if arm == "think":
+            o = chat_msgs([{"role": "user", "content": GP_FMT.format(p=r["puzzle"], cols=cols, first=first, fv=", ".join(fv))}], think=True, max_tokens=mt, temperature=0.7, seed=sd)
+            ex, ca = zl_score(zl_extract(o["text"]), gold)
+            return {**row, "exact": ex, "cell_acc": ca, "tokens": o["out_tokens"], "finish": o["finish"], "text": (o["text"] or "")[-1500:]}
+        solve = GP_SOLVE.replace("__FIRST__", json.dumps(fv)).replace("__FNAME__", json.dumps(first))
+        msgs = [{"role": "user", "content": GP_TR.format(p=r["puzzle"], cols=cols, first=first, fv=", ".join(fv), n=n, f0=fv[0])}]
+        tok, hist = 0, []
+        for rnd in range(3):
+            o = chat_msgs(msgs, think=arm == "gtrt", max_tokens=mt, temperature=0.7, seed=sd + rnd)
+            tok += o["out_tokens"]
+            code = last_block(o["text"], ("python", "py", "python3"))
+            res = run_python(code + "\n" + solve, "", timeout=30, mem_bytes=4 << 30) if code else None
+            try:
+                out = json.loads(res.stdout.strip().splitlines()[-1])
+            except (AttributeError, IndexError, ValueError):
+                out = {"count": -1, "grid": {}}
+            ex, ca = zl_score(out["grid"], gold)
+            hist.append({"count": out["count"], "exact": ex, "cell_acc": ca, "tokens": o["out_tokens"], "err": (res.stderr[-300:] if res else "no code")})
+            if out["count"] == 1:
+                break
+            fb = {-1: f"it failed to run: {(res.stderr[-600:] if res else 'no python block')}", 0: "the clues as you wrote them have no solution, so one of them is wrong",
+                  2: "the clues as you wrote them allow more than one solution, so one of them is missing or too weak"}[out["count"]]
+            msgs += [{"role": "assistant", "content": o["text"] or "(empty)"},
+                     {"role": "user", "content": f"The puzzle has exactly one solution, but {fb}. Compare each clue with the puzzle and give the complete corrected ```python block."}]
+        return {**row, "exact": ex, "cell_acc": ca, "count": out["count"], "tokens": tok, "rounds": len(hist), "hist": hist, "code": code}
+
+    path = f"{RES}/gp_{tag}{'_dev' if dev else ''}_{arm}_s{seed}.jsonl"
+    with ThreadPoolExecutor(32) as ex, open(path, "w") as f:
+        rows = []
+        for r in ex.map(run, P):
+            rows.append(r); f.write(json.dumps(r) + "\n"); f.flush()
+    print(tag, arm, seed, f"{sum(r['exact'] for r in rows)}/{len(rows)}", f"tokens {sum(r['tokens'] for r in rows) / len(rows):.0f}", flush=True)
+
+
 # AR-LSAT (Zhong et al. 2022; test split of Logic-LM), idea 14 on real text: the model writes a program that enumerates the arrangements and marks the options. A question has
 # exactly one right option, so one mark is a free check, and any other number is label-free feedback. usage: run_zebra.py --ls <tag> <arm tr|trt|trs|trsd|trse|trk|think|direct> <seed> [--max_tokens N] [--dev]
 LS_SOLVE = """
@@ -596,4 +691,4 @@ def ls_main():
 
 
 if __name__ == "__main__":
-    {"--zl": zl_main, "--ls": ls_main}.get(sys.argv[1], main)()
+    {"--zl": zl_main, "--ls": ls_main, "--gp": gp_main}.get(sys.argv[1], main)()
