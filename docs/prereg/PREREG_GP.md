@@ -36,3 +36,25 @@ Utility per puzzle = 100·right − 0.5·ktok. Intervals: bootstrap over puzzles
 - P1 holds but P3 fails: the gate pays on human text, but not by size. The search explanation is not supported as stated.
 
 **Limits stated now.** The 3×4 to 4×6 grids are smaller than ZebraLogic's largest (6×6), so the size range is narrow. GridPuzzle's puzzle text carries an answer-format block meant for the original chain-of-thought prompt; it stays in, the same for every arm. Utility prices all tokens alike and ignores solver seconds.
+
+## Freeze (2026-11-09 14:5x UTC)
+
+The translation prompt and harness are frozen at commit f223d46. The test translation runs are jobs 1366020-2 (translation with thinking on GridPuzzle, seeds 1-3) and 1366023 (translation without thinking on both sets, and with thinking on Mitra-Baral).
+
+Changes made on dev before the freeze:
+- Value names are matched on format only.
+- A bare string value stands for its slot.
+- Clues compare the first category's numbers directly.
+- Months use their month number.
+- Retry rounds send back only the program.
+
+Last dev pilot (q8bh), right when the solver found exactly one solution:
+
+| Arm | GridPuzzle | Mitra-Baral |
+|---|---|---|
+| Without thinking (three seeds pooled) | 38 of 46 | 64 of 73 |
+| With thinking (seed 1) | 7 of 7 (8 of 40 puzzles done) | 33 of 35 |
+
+Two candidate checks were rejected on dev:
+- Agreement of 2 of 3 seeds: 4 of the 23 agreed grids were wrong.
+- Rejecting programs whose number of clue expressions differs from the puzzle's: it would drop 6 right programs to catch 4 wrong ones.
