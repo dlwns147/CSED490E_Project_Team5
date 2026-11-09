@@ -552,6 +552,7 @@ def ls_main():
         if arm in ("think", "direct"):
             o = chat_msgs([{"role": "user", "content": LS_FMT.format(q=q)}], think=arm == "think", max_tokens=mt, temperature=0.7, seed=sd)
             a = [x or y for x, y in re.findall(r"Answer:\W*([A-E])\b|\\boxed\{(?:\\text\{)?\s*\(?([A-E])\b", o["text"] or "")]   # Qwen3 often ends with \boxed{B} (100 of 690 test runs)
+            a = a or re.findall(r"^\W*([A-E])\W*$", o["text"] or "")   # gpt-oss at high effort sometimes answers with the bare letter (15 of 690 test runs)
             return {**row, "pick": a[-1] if a else None, "exact": bool(a) and a[-1] == r["answer"], "tokens": o["out_tokens"], "finish": o["finish"], "text": (o["text"] or "")[-800:]}
         msgs, tok, hist = [{"role": "user", "content": (LS_TRK if arm == "trk" else LS_TRS if arm in ("trs", "trsd", "trse") else LS_TR).format(q=q)}], 0, []
         marks, code = None, ""

@@ -75,3 +75,31 @@ Written 2026-11-08 20:4x UTC, before any test output of `trse` exists and before
 - **LO-P3 (reported):** trs one-mark coverage and precision, and thinking's accuracy on the questions trs settles.
 
 **Decision.** LO-P1 holds: the gate pays on real text when the translator is strong enough, and the claim is stated for both benchmarks with gpt-oss-20b. LO-P1 fails: on real text the gate does not pay even with a strong translator.
+
+### Results, 2026-11-09 03:2x UTC: LS-OSS, all three seeds complete
+
+**Parser fix first.** Reading the 91 thinking runs with no parsed answer: 73 hit the 22k cap, and 15 ended with a bare letter (for example the whole answer is `E`), which the parser did not read. All 15 are right. The parser now also accepts a bare letter (`poc/run_zebra.py`); the table below uses it. Before the fix, the gain was +3.6 [+1.9, +5.5].
+
+| Arm (gpt-oss-20b, 230 test questions × 3 seeds) | Accuracy | Tokens | Utility |
+|---|---|---|---|
+| Thinking, high effort | 85.2% | 9.01k | 80.7 |
+| Ladder trs (low effort) → think | 86.2% | 6.66k | 82.9 |
+
+- **LO-P1 holds:** utility +2.2 [+0.6, +3.9].
+- **LO-P2 holds:** accuracy +1.0 [−0.6, +2.5].
+- **LO-P3:** trs marks one option on 408 of 690 runs (59.1%, against 23% for Qwen3-8B), right on 383 (93.9%). Thinking is right on 92.2% of those same runs, at 7.8k tokens each.
+- **Where the gain comes from (idea 15).** The accuracy term is 100 × 0.591 × (0.939 − 0.922) = +1.0. The token term is 0.5 × (0.591 × 7.77 − 2.25) = +1.2. Together they give the measured +2.2. Half the gain is precision and half is skipped thinking.
+
+**The cap.** 19 of the 408 covered runs hit thinking's 22k cap and count as wrong. If all 19 would have been right with more room, thinking would gain about 2.8 utility points on them, more than the +2.2 gain. So the verdict depends on the cap, unlike ZL-OSS, where the bound cleared. The cap was fixed in the prereg, so LO-P1 holds as registered, but the claim waits for the test below.
+
+## Addendum: LO-CAP, thinking without the 22k cap (written 2026-11-09 03:2x UTC, before any run)
+
+**Why.** To settle whether the AR-LSAT gain with gpt-oss-20b is real or comes from the cap.
+
+**Setup.** The 73 capped thinking runs (29, 21 and 23 in seeds 1–3) are run again at the same seeds with a 60,000-token cap (`--max-model-len 65536`). The new rows replace the capped ones, in both the thinking arm and the ladder's fallback. All other rows are unchanged (tag `oss20x`, pre-filled with the 617 uncapped rows). Seeded sampling may not reproduce the old prefix exactly, so these are fresh samples with more room.
+
+**Predictions.**
+- **LC-P1:** ladder utility exceeds think, interval above 0.
+- **LC-P2 (reported):** how many reruns finish, their accuracy and tokens, and thinking's accuracy on the covered runs.
+
+**Decision.** LC-P1 holds: the AR-LSAT gain with gpt-oss-20b stands, and the gate's claim covers both benchmarks for that model. LC-P1 fails: the gain came from the cap, and the AR-LSAT verdict is a tie.
