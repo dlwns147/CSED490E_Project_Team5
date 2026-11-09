@@ -6109,3 +6109,13 @@ The solution-count claim stays limited to ZebraLogic, where the clues are templa
 **Raw rows read.** Most wrong flags on right translations come from the model adding a derived fact. For example, "the person who loves soccer is Eric" was written as `soccer == 2` beside "Eric is in house 2", which makes one expression redundant. A flagged wrong one (5×2-22): "the Huawei P50 and the OnePlus 9 are next to each other" became `abs(...) == 2`, the prompt's rule for "one house between" applied to the wrong clue. With that misreading, the correct clue "there is one house between Alice and Eric" is no longer needed, and the flag fires.
 
 **Reading.** The check is kept as a free part of the gate. It works on a property of how the benchmark was built, so it applies only where puzzles are minimal by construction. The nearest prior work (Amonkar et al. 2505.13252, read) feeds back only solver errors; they note this has no effect on wrong programs that run.
+
+## 2026-11-09 03:2x UTC — AR-LSAT with gpt-oss-20b: the gate pays on real text as registered, but within the cap's reach
+
+**Why we ran this.** With Qwen3-8B the gate tied on AR-LSAT: its translation settled only 23% of questions, all easy for thinking. `PREREG_LS.md` (LS-OSS) tests whether a stronger translator changes that.
+
+**Result (gpt-oss-20b, 230 test questions, 3 seeds; translation at low effort, thinking at high effort capped at 22k).**
+- The ladder gets 86.2% at 6.7k tokens and thinking 85.2% at 9.0k. Utility +2.2 [+0.6, +3.9] (LO-P1 holds), accuracy +1.0 [−0.6, +2.5].
+- The translation settles 59% of questions (Qwen3-8B: 23%) and is right on 93.9% of them. Thinking is right on 92.2% of those. Half the gain is that precision edge and half is the thinking tokens skipped (idea 15's two terms, +1.0 and +1.2).
+- **Parser bug, found by reading raw rows.** 15 thinking answers were a bare letter, unparsed, all right. The fix moved the gain from +3.6 to +2.2.
+- **Caveat.** 19 covered thinking runs hit the 22k cap. If they would all have been right, the gain would vanish. A rerun of all 73 capped runs at a 60k cap is pre-registered (LO-CAP, jobs 1360438–40).
