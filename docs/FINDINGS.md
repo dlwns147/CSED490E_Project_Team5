@@ -6130,3 +6130,16 @@ The solution-count claim stays limited to ZebraLogic, where the clues are templa
 - **ZebraLogic (ZL-OSS-ALL, `PREREG_ZL.md`).** gpt-oss-20b on the other 500 puzzles: ladder 99.5% at 0.87k tokens against thinking 74.2% at 8.1k, utility +28.9 [+25.3, +32.5].
   - Over the 750 puzzles never read while writing the prompt: 99.2% (Logic.py with Llama 3.1 70B: 91.4 on all 1,000).
   - Counting all 282 capped thinking runs as right would still give only 93.0%.
+
+## 2026-11-09 04:3x UTC — idea 25 killed: on AR-LSAT, agreement between two translations selects questions thinking already solves
+
+**Why.** On real text a single count of 1 is right 90.6–93.9% of the time, below thinking's accuracy on the same questions, so the gate cannot pay (idea 15). Requiring two independent translations to agree should raise precision cheaply. The decision rule was fixed in `IDEAS_COMPUTATION.md` row 25 before computing. The test is an offline replay of the recorded test runs, with 3 seeds per model.
+
+| Gate (thinker) | Coverage | Precision | Thinking on covered | Utility, ladder − think |
+|---|---|---|---|---|
+| gpt-oss ×2 (gpt-oss, 60k-corrected) | 40.0% | 97.1% | 97.2% | −0.76 [−1.40, −0.15] |
+| Qwen3-8B + gpt-oss (gpt-oss) | 14.3% | 100% | 99.7% | −1.60 [−1.82, −1.35] |
+| Qwen3-8B ×2 (Qwen3-8B) | 12.5% | 96.5% | 94.2% | −1.22 [−1.90, −0.31] |
+| Qwen3-8B + gpt-oss (Qwen3-8B) | 14.3% | 100% | 94.9% | −0.88 [−1.59, +0.05] |
+
+**Reading.** Agreement makes the check more precise, and thinking becomes more accurate on the questions it accepts by the same amount. On AR-LSAT, what a translation can settle and what thinking gets right are the same questions, whatever check is put on the translation. On ZebraLogic they are not: thinking is right on only 75–90% of the puzzles the translation settles. A likely reason: ZebraLogic's thinking errors come from search over a large grid, which the solver takes over, while AR-LSAT's come from reading the rules, which the translation shares. This is a hypothesis to test, not a result.
