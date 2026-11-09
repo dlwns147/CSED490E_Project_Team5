@@ -1,6 +1,8 @@
 """Idea 27, offline: compose the ladder and evaluate GP-P1..P5 as written in docs/prereg/PREREG_GP.md. No model call.
 
-Usage: python poc/gp_eval.py [tag q8b]
+Usage: python poc/gp_eval.py [tag q8b] [--check checkt]
+With --check, PREREG_GC: a count-1 step whose grid the checker flags (results/{gp,lgp}_<tag>_<check>.jsonl, poc/gp_check.py) goes on to the next step,
+and the check's tokens are paid on every count-1 step; the plain ladder is printed beside it.
 Reads results/{gp,lgp}_<tag>_{gtr,gtrt,think}_s{1,2,3}.jsonl. Ladder: gtr; if its count is not 1, gtrt; if not 1, think; every step paid.
 Utility per puzzle = 100*right - 0.5*ktok. Intervals: bootstrap over puzzles (10,000 draws, 95%), each puzzle's mean over seeds.
 Only puzzle-seeds present in all three arms are used (the count is printed), so a partial run reads as partial.
@@ -28,13 +30,16 @@ def load(s, tag):
     return R, keys
 
 
-def ladder(R, i, sd):
+def ladder(R, i, sd, C=None):
     tok = 0
     for arm in ["gtr", "gtrt"]:
         r = R[(arm, i, sd)]
         tok += r["tokens"]
         if r["count"] == 1:
-            return r["exact"], tok, arm
+            c = C[(arm, i, sd)] if C is not None else None   # a missing check row raises: the check must cover every count-1 step
+            tok += c["tokens"] if c else 0
+            if not (c and c["violated"]):
+                return r["exact"], tok, arm
     r = R[("think", i, sd)]
     return r["exact"], tok + r["tokens"], "think"
 
@@ -53,7 +58,8 @@ def mean(v):
 
 
 def main():
-    tag = sys.argv[1] if len(sys.argv) > 1 else "q8b"
+    tag = sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("--") else "q8b"
+    chk = sys.argv[sys.argv.index("--check") + 1] if "--check" in sys.argv else None
     out = {}
     for s in ["gp", "lgp"]:
         R, keys = load(s, tag)
@@ -69,6 +75,18 @@ def main():
             print(f"  {arm:5s} acc {100 * pm(lambda i, sd: R[(arm, i, sd)]['exact']):5.1f}  ktok {pm(lambda i, sd: R[(arm, i, sd)]['tokens']) / 1000:5.1f}  "
                   f"util {pm(lambda i, sd: 100 * R[(arm, i, sd)]['exact'] - 0.5 * R[(arm, i, sd)]['tokens'] / 1000):5.1f}")
         lad = {(i, sd): ladder(R, i, sd) for i, sd in keys}
+        if chk:
+            C = {(r["tr"], r["id"], r["seed"]): r for r in map(json.loads, open(os.path.join(RES, f"{s}_{tag}_{chk}.jsonl")))}
+            plain = lad
+            lad = {(i, sd): ladder(R, i, sd, C) for i, sd in keys}
+            dp = {i: mean([100 * lad[(i, sd)][0] - 0.5 * lad[(i, sd)][1] / 1000 - (100 * plain[(i, sd)][0] - 0.5 * plain[(i, sd)][1] / 1000) for j, sd in keys if j == i]) for i in ids}
+            b = boot(dp, mean)
+            Ck = [r for r in C.values() if (r["id"], r["seed"]) in set(keys)]
+            acc = [r for r in Ck if not r["violated"]]
+            print(f"  GC: checked ladder minus plain ladder, utility {b[0]:+.1f} [{b[1]:+.1f}, {b[2]:+.1f}]; unflagged count-1 precision "
+                  f"{sum(r['exact'] for r in acc)}/{len(acc)} = {100 * mean([r['exact'] for r in acc]):.1f}%; wrong flagged "
+                  f"{sum(bool(r['violated']) for r in Ck if not r['exact'])}/{sum(not r['exact'] for r in Ck)}, right flagged "
+                  f"{sum(bool(r['violated']) for r in Ck if r['exact'])}/{sum(r['exact'] for r in Ck)}. Rows below use the checked ladder.")
         print(f"  ladder acc {100 * pm(lambda i, sd: lad[(i, sd)][0]):5.1f}  ktok {pm(lambda i, sd: lad[(i, sd)][1]) / 1000:5.1f}  "
               f"util {pm(lambda i, sd: 100 * lad[(i, sd)][0] - 0.5 * lad[(i, sd)][1] / 1000):5.1f}  "
               f"stops: " + ", ".join(f"{a} {sum(x[2] == a for x in lad.values())}" for a in ARMS))
