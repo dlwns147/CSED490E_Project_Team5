@@ -466,7 +466,21 @@ def _res(k):
         return _al[" ".join(k.lower().split())]
     hit = {x for x in v if _nv(x.split(":", 1)[1]) == _nv(k.split(":", 1)[1])}
     return hit.pop() if len(hit) == 1 else None
+# a value written as a bare string stands for its position, so "p['types:Luzagueil'] == 'chardonnay'" means Luzagueil goes with the chardonnay
+# (q8bf dev: such comparisons are always false; replayed, 4 of 19 final Mitra-Baral programs with no solution get one, all right)
+def _sv(x):
+    hit = {k for k in v if _nv(k.split(":", 1)[1]) == _nv(x)}
+    return hit.pop() if len(hit) == 1 else None
+class _S(ast.NodeTransformer):
+    def visit_Subscript(self, t):
+        return t
+    def visit_Call(self, t):
+        return t if isinstance(t.func, ast.Name) and t.func.id == "at" else self.generic_visit(t)
+    def visit_Constant(self, t):
+        k = _sv(t.value) if isinstance(t.value, str) else None
+        return ast.Subscript(ast.Name("p", ast.Load()), ast.Constant(k), ast.Load()) if k else t
 for c in clues:
+    c = ast.unparse(ast.fix_missing_locations(_S().visit(ast.parse(c, mode="eval"))))
     keys = sorted({t.slice.value for t in ast.walk(ast.parse(c, mode="eval")) if isinstance(t, ast.Subscript) and isinstance(t.slice, ast.Constant) and isinstance(t.slice.value, str) and ":" in t.slice.value})
     assert keys and all(_res(k) for k in keys), f"unknown name in clue: {c}"
     code = compile(c, "clue", "eval")
@@ -487,7 +501,7 @@ GP_TR = ("{p}\n\nDo not solve the puzzle. Translate it. Give one ```python block
          "listed ({fv}); use the number itself for years, prices, ages, times or counts, and 1, 2, 3, ... for words like first or January. `groups`: a dict from each other category "
          "to the list of its values, with exactly these category names: {cols}. `clues`: a list with one Python expression, as a string, for each clue. In an expression, "
          "p['category:value'] is the position (1 to {n}) of the {first} that value goes with (so p['{first}:{f0}'] is 1), V(k) is the number of position k, and at(x) is the position of the {first} value x. "
-         "Examples: \"p['A:x'] > p['B:y']\" (x comes after y), \"V(p['A:x']) - V(p['B:y']) == 4\" (x is 4 more than y), \"p['A:x'] == at('{f0}')\", "
+         "Examples: \"p['A:x'] == p['B:y']\" (x goes with y), \"p['A:x'] > p['B:y']\" (x comes after y), \"V(p['A:x']) - V(p['B:y']) == 4\" (x is 4 more than y; amounts always go through V, since p is a position), \"p['A:x'] == at('{f0}')\", "
          "\"p['A:x'] != p['B:y']\", \"p['A:x'] in (p['B:y'], p['B:z'])\" (x is either y or z), and for \"of x and y, one is z and the other is w\": "
          "\"(p['A:x'] == p['C:z'] and p['B:y'] == p['C:w']) or (p['A:x'] == p['C:w'] and p['B:y'] == p['C:z'])\". Keep each value exactly as the puzzle writes it.")
 GP_FMT = "{p}\n\nSolve the puzzle. On the last line give JSON mapping each category ({cols}) to the list of its values for the {first} {fv}, in that order."
@@ -543,7 +557,8 @@ def gp_main():
                 break
             fb = {-1: f"it failed to run: {(res.stderr[-600:] if res else 'no python block')}", 0: "the clues as you wrote them have no solution, so one of them is wrong",
                   2: "the clues as you wrote them allow more than one solution, so one of them is missing or too weak"}[out["count"]]
-            msgs += [{"role": "assistant", "content": o["text"] or "(empty)"},
+            # only the program goes back: a reply cut at the cap keeps its unclosed thinking, and one dev round sent 18k tokens of it past the 34k context
+            msgs += [{"role": "assistant", "content": f"```python\n{code.rstrip()}\n```" if code else "(no python block)"},
                      {"role": "user", "content": f"The puzzle has exactly one solution, but {fb}. Compare each clue with the puzzle and give the complete corrected ```python block."}]
         return {**row, "exact": ex, "cell_acc": ca, "count": out["count"], "tokens": tok, "rounds": len(hist), "hist": hist, "code": code}
 
