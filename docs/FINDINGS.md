@@ -6070,3 +6070,22 @@ Idea 21 (the solver's 2–4-mark set as a free check on the thinker's answer), o
 - idea 21's flag counts.
 
 The solution-count claim stays limited to ZebraLogic, where the clues are templated. On real LSAT text, an 8B thinking model is right on about 86% of questions, and translation adds nothing at equal cost. Reversing the order (translate only when thinking hits its 16k cap) would add 4 right answers in 690 runs (+0.6 points), too little to test.
+
+## 2026-11-09 01:5x UTC — ZebraLogic: the count gate pays for three models, on all 750 unseen puzzles for Qwen3-8B
+
+**Why we ran this.** Two open questions about the ZebraLogic gain (translate, accept a count of 1, otherwise think): did it hold beyond the first 250 held-out puzzles, and did it need Qwen3-8B? `PREREG_ZL.md` (ZL-FULL, ZL-OSS) fixed the predictions before the runs. All rows are 3 seeds, utility = 100·right − 0.5·ktok, 95% bootstrap intervals over puzzles.
+
+| Model, puzzles | Ladder | Thinking | Utility, ladder − think | Accuracy, ladder − think |
+|---|---|---|---|---|
+| Qwen3-8B, 500 new | 95.8% at 2.1k | 83.3% at 6.3k | +14.6 [+11.8, +17.4] | +12.5 [+9.9, +15.1] |
+| Qwen3-4B, 250 held-out | 95.5% at 3.0k | 81.5% at 6.4k | +15.7 [+11.7, +19.9] | +14.0 [+10.1, +18.0] |
+| gpt-oss-20b, 250 held-out | 98.7% at 1.1k | 75.3% at 8.3k | +26.9 [+22.1, +31.8] | +23.3 [+18.9, +27.9] |
+
+- Every prediction holds (F-P1–F-P4, O-P1–O-P3).
+- Over the 750 puzzles never read while writing the prompt, Qwen3-8B's ladder is right on 95.6%. Its thinking scores 82.6%, close to the Qwen3 report's 84.8, which suggests our scoring is in line with theirs. Logic.py reports 91.4 with Llama 3.1 70B on all 1,000.
+- A count of 1 is right 96.5–99.6% of the time for every model and arm.
+- **Why it pays (idea 15).** On the puzzles the first translation accepts, thinking is right less often than the gate: Qwen3-8B 90.0% against 97.5%, Qwen3-4B 88.5% against 96.5%, gpt-oss-20b 76.1% against 99.6%. On AR-LSAT it was the other way round (93.1% against 90.6%), and the gate tied.
+- **Robustness.** Loose matching (letters and digits only) raises thinking by at most 1 point. For gpt-oss-20b, 132 of 750 thinking runs hit the 22k cap; counting them all right would still give only 92.9%.
+- **What the gate cannot catch.** Qwen3-8B's 29 wrong accepted translations fall on 15 puzzles, 9 of them wrong in two or three seeds. These are misreadings that still leave one solution: "Eric is the person whose birthday is in September" became "September is house 2". Resampling the same model will not find them.
+
+**Next.** gpt-oss-20b on the other 500 puzzles (ZL-OSS-ALL), for a 750-puzzle headline row. gpt-oss-20b on AR-LSAT (LS-OSS), to test whether a stronger translator changes the real-text tie.

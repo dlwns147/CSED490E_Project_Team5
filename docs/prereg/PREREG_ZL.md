@@ -104,7 +104,20 @@ The ladder is trf → trt → think, as before. Tokens include reasoning tokens.
 
 For Qwen3-4B the same comparison is 88.5% against 96.5%.
 
-ZL-F8 (Qwen3-8B, F-P1, F-P2, F-P5 and the Qwen3-8B part of F-P4) is still waiting on its thinking runs (483–490 of 500 rows written).
+### Results, 2026-11-09 01:5x UTC: ZL-F8 (Qwen3-8B, the remaining 500 puzzles), all three seeds complete
+
+| Puzzles | Ladder trf → trt → think | Think | Utility, ladder − think | Accuracy, ladder − think |
+|---|---|---|---|---|
+| 500 new (21–40 of each size) | 95.8% at 2.12k | 83.3% at 6.34k | +14.58 [+11.75, +17.38] | +12.5 [+9.9, +15.1] |
+| 750 unseen (11–40 of each size) | 95.6% | 82.6% | | |
+
+- **F-P1 holds.** **F-P2 holds** (accuracy lower bound +9.9).
+- **F-P4 (Qwen3-8B part) holds:** a count of 1 is right on trf 1,135 of 1,164 (97.5%) and trt 1,397 of 1,403 (99.6%).
+- **F-P5 (reported):** Qwen3-8B's ladder is right on 95.6% of the 750 unseen puzzles, beside Logic.py's 91.4 (Llama 3.1 70B, all 1,000). Its own thinking scores 82.6%, close to the Qwen3 report's 84.8, so our thinking runs and scoring are in line with the published number. The sets differ (we leave out the 250 puzzles used to write `ZL_FACT`), so the comparison is only indicative.
+- **Loose matching** (letters and digits only, so "F-150" matches "f150"): thinking 83.3 → 83.9% on the 500 new puzzles and 81.3 → 82.3% on the first 250 held-out ones. The gap stays above 11 points.
+- **Raw rows read.** On the 500 new puzzles thinking is right on 90.0% of the puzzles trf accepts, against trf's 97.5%. The 29 wrong accepted translations fall on only 15 puzzles, and 9 of these are wrong in two or three seeds. So these errors repeat across samples. An example (2×4-36): "Eric is the person whose birthday is in September" became `p['Birthday:sept'] == 2`. With "Eric is in the first house" that still leaves one solution, a wrong one, so the count cannot catch it.
+
+**Decision.** F-P1 and F-P3 hold, so the ladder is the ZebraLogic claim for Qwen3-8B and Qwen3-4B, and with ZL-OSS for gpt-oss-20b.
 
 ## ZL-OSS-ALL: gpt-oss-20b on the remaining 500 puzzles (written 2026-11-09 00:5x UTC, before any run)
 
