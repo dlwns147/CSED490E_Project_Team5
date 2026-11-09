@@ -440,9 +440,9 @@ class _C(cp_model.CpSolverSolutionCallback):
         self.s.append({k: self.Value(x) for k, x in self.v.items()})
         if len(self.s) >= 2:
             self.StopSearch()
-FIRST = __FIRST__
+FIRST, FNAME = __FIRST__, __FNAME__   # filled in as JSON literals; never inside an f-string (Python 3.11 rejects the nested quotes)
 n = len(FIRST)
-assert len(VALUES) == n, f"VALUES has {len(VALUES)} numbers, the puzzle has {n} " + __FNAME__   # outside the f-string: the name arrives in double quotes
+assert len(VALUES) == n, f"VALUES has {len(VALUES)} numbers, the puzzle has {n} " + FNAME
 V = lambda k: VALUES[k - 1]
 at = lambda x: [str(y).lower() for y in FIRST].index(str(x).lower()) + 1
 m, v = cp_model.CpModel(), {}
@@ -452,7 +452,7 @@ for a, vals in groups.items():
         v[f"{a}:{x}"] = m.NewIntVar(1, n, f"{a}:{x}")
     m.AddAllDifferent([v[f"{a}:{x}"] for x in vals])
 for k, x in enumerate(FIRST, 1):   # p['<first category>:x'] is x's own position (dev pilot: 40% of crashed rounds wrote it in place of at(x))
-    v.setdefault(f"{__FNAME__}:{x}", m.NewConstant(k))
+    v.setdefault(FNAME + ":" + str(x), m.NewConstant(k))
 _al = {" ".join(k.lower().split()): k for k in v}
 for c in clues:
     keys = sorted({t.slice.value for t in ast.walk(ast.parse(c, mode="eval")) if isinstance(t, ast.Subscript) and isinstance(t.slice, ast.Constant) and isinstance(t.slice.value, str) and ":" in t.slice.value})
