@@ -7,6 +7,7 @@ Usage (on a GPU lane):  $P poc/gp_check.py run <tag> <set gridpuzzle|lgp> <arm c
   re-runs each count-1 program in results/{gp,lgp}_<tag>[_dev]_{gtr,gtrt}_s*.jsonl under GP_SOLVE, asks for a per-clue check of the grid it prints,
   and writes results/{gp,lgp}_<tag>[_dev]_<arm>.jsonl (one row per program).
 Offline:  python poc/gp_check.py eval <tag> <think tag> [--dev]   ladder with and without the check, seed 1, as idea 28's decision rule reads it.
+--label L writes <L> in place of the arm in the output name (idea 30: the same check from another model family).
 Idea 29, arm enumt: for each program whose final count is 2, the solver lists up to 16 solutions and each grid gets the thinking check; if exactly one grid
 passes, the step is settled with it. Read by `eval` (with the checkt rows) at K = the next step's mean dev ktok over the mean check ktok.
 """
@@ -89,7 +90,8 @@ def run_main():
         return {**row, "pick": ok[0] if len(ok) == 1 else None, "exact": len(ok) == 1 and row["grids"][ok[0]]["exact"],
                 "gold_in": any(z["exact"] for z in row["grids"]), "tokens": sum(z["tokens"] for z in row["grids"])}
 
-    path = f"{RES}/{pre}_{tag}{'_dev' if dev else ''}_{arm}.jsonl"
+    lab = sys.argv[sys.argv.index("--label") + 1] if "--label" in sys.argv else arm   # e.g. checkt_oss: the same arm with another model serving
+    path = f"{RES}/{pre}_{tag}{'_dev' if dev else ''}_{lab}.jsonl"
     with ThreadPoolExecutor(32) as ex, open(path, "w") as f:
         rows = []
         for r in ex.map(run, todo):
