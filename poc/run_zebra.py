@@ -442,7 +442,7 @@ class _C(cp_model.CpSolverSolutionCallback):
             self.StopSearch()
 FIRST = __FIRST__
 n = len(FIRST)
-assert len(VALUES) == n, f"VALUES has {len(VALUES)} numbers, the puzzle has {n} {__FNAME__}"
+assert len(VALUES) == n, f"VALUES has {len(VALUES)} numbers, the puzzle has {n} " + __FNAME__   # outside the f-string: the name arrives in double quotes
 V = lambda k: VALUES[k - 1]
 at = lambda x: [str(y).lower() for y in FIRST].index(str(x).lower()) + 1
 m, v = cp_model.CpModel(), {}
@@ -478,6 +478,22 @@ GP_TR = ("{p}\n\nDo not solve the puzzle. Translate it. Give one ```python block
 GP_FMT = "{p}\n\nSolve the puzzle. On the last line give JSON mapping each category ({cols}) to the list of its values for the {first} {fv}, in that order."
 
 
+def gp_score(g, r):
+    """zl_score with names and values compared loosely: "10 day" and 10, "sections" and "section" (dev pilot: most wrong Mitra-Baral thinking runs were
+    format only). A category whose every value has a number compares by that number, others by letters and digits."""
+    if not isinstance(g, dict):
+        return False, 0.0
+    ck = lambda a: re.sub(r"[^a-z0-9]", "", str(a).lower()).rstrip("s")
+    num = lambda x: re.search(r"\d[\d:.]*", str(x).replace(",", ""))
+    vk = lambda x, vals: num(x).group() if vals and all(num(y) for y in vals) and num(x) else re.sub(r"[^a-z0-9]", "", str(x).lower())
+    vals = {ck(a): v for a, v in r["cats"][1:]}
+    got = {ck(k): [vk(x, vals.get(ck(k), [])) for x in v] for k, v in g.items() if isinstance(v, list)}
+    gold = {ck(a): [vk(x, vals[ck(a)]) for x in v] for a, v in r["gold"].items()}
+    n = sum(len(v) for v in gold.values())
+    c = sum(x == y for a, v in gold.items() for x, y in zip(v, got.get(a, [])))
+    return c == n, c / n
+
+
 def gp_main():
     tag, arm, seed = sys.argv[2], sys.argv[3], int(sys.argv[4])
     dev = "--dev" in sys.argv
@@ -492,7 +508,7 @@ def gp_main():
         row = {"id": r["id"], "size": r["size"], "arm": arm, "seed": seed}
         if arm == "think":
             o = chat_msgs([{"role": "user", "content": GP_FMT.format(p=r["puzzle"], cols=cols, first=first, fv=", ".join(fv))}], think=True, max_tokens=mt, temperature=0.7, seed=sd)
-            ex, ca = zl_score(zl_extract(o["text"]), gold)
+            ex, ca = gp_score(zl_extract(o["text"]), r)
             return {**row, "exact": ex, "cell_acc": ca, "tokens": o["out_tokens"], "finish": o["finish"], "text": (o["text"] or "")[-1500:]}
         solve = GP_SOLVE.replace("__FIRST__", json.dumps(fv)).replace("__FNAME__", json.dumps(first))
         msgs = [{"role": "user", "content": GP_TR.format(p=r["puzzle"], cols=cols, first=first, fv=", ".join(fv), n=n, f0=fv[0])}]
@@ -506,7 +522,7 @@ def gp_main():
                 out = json.loads(res.stdout.strip().splitlines()[-1])
             except (AttributeError, IndexError, ValueError):
                 out = {"count": -1, "grid": {}}
-            ex, ca = zl_score(out["grid"], gold)
+            ex, ca = gp_score(out["grid"], r)
             hist.append({"count": out["count"], "exact": ex, "cell_acc": ca, "tokens": o["out_tokens"], "err": (res.stderr[-300:] if res else "no code")})
             if out["count"] == 1:
                 break
