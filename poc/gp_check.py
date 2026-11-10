@@ -7,6 +7,7 @@ Usage (on a GPU lane):  $P poc/gp_check.py run <tag> <set gridpuzzle|lgp> <arm c
   re-runs each count-1 program in results/{gp,lgp}_<tag>[_dev]_{gtr,gtrt}_s*.jsonl under GP_SOLVE, asks for a per-clue check of the grid it prints,
   and writes results/{gp,lgp}_<tag>[_dev]_<arm>.jsonl (one row per program).
 Offline:  python poc/gp_check.py eval <tag> <think tag> [--dev]   ladder with and without the check, seed 1, as idea 28's decision rule reads it.
+--per-clue: one call per clue (idea 31); --nothink: enumt's checks without thinking.
 --label L writes <L> in place of the arm in the output name (idea 30: the same check from another model family).
 Idea 29, arm enumt: for each program whose final count is 2, the solver lists up to 16 solutions and each grid gets the thinking check; if exactly one grid
 passes, the step is settled with it. Read by `eval` (with the checkt rows) at K = the next step's mean dev ktok over the mean check ktok.
@@ -24,6 +25,9 @@ RES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "results")
 CHECK = ("{p}\n\nHere is a filled table for this puzzle, one row per {first}:\n{table}\n\nDo not solve the puzzle. Check the table against each clue in turn: "
          "for each clue write its number, yes if the table satisfies the clue as written or no if it does not, and a short reason. "
          "On the last line give JSON {{\"violated\": [the numbers of the clues the table breaks]}}.")
+
+CHECK_PC = ("{head}\n\nHere is a filled table for this puzzle, one row per {first}:\n{table}\n\nClue {num}: {clue}\n\nDoes the table satisfy this clue exactly as written? "
+            "Check it carefully, then end with a line \"Answer: yes\" or \"Answer: no\".")
 
 
 def run_main():
@@ -62,6 +66,8 @@ def run_main():
 
     def check(r, first, fv, cols, g, think, seed):
         table = "\n".join(f"{v} | " + " | ".join(f"{c}: {g.get(c, [None] * len(fv))[k]}" for c in cols) for k, v in enumerate(fv))
+        if "--per-clue" in sys.argv:
+            return check_pc(r, first, table, think, seed)
         o = chat_msgs([{"role": "user", "content": CHECK.format(p=r["puzzle"], first=first, table=table)}], think=think,
                       max_tokens=8000 if think else 2048, temperature=0.7, seed=seed)
         m = re.findall(r"\{[^{}]*\"violated\"[^{}]*\}", o["text"] or "")
@@ -70,6 +76,22 @@ def run_main():
         except (IndexError, ValueError, TypeError, KeyError):
             vio = None   # unparsed: read as no flag
         return vio, o
+
+    def check_pc(r, first, table, think, seed):
+        # idea 31: one call per clue, each seeing only the setup, the table and that clue (the factored checks of Chain-of-Verification, 2309.11495)
+        t = r["puzzle"]
+        head, body = t[:t.find("Clues:")], t[t.find("Clues:") + 6:t.find("While answering") if "While answering" in t else None]
+        clues = re.findall(r"^\s*(\d+)\.\s*(.+)$", body, re.M)
+        def one(a):
+            k, (num, c) = a
+            o = chat_msgs([{"role": "user", "content": CHECK_PC.format(head=head.strip(), first=first, table=table, num=num, clue=c.strip())}], think=think,
+                          max_tokens=4000 if think else 1024, temperature=0.7, seed=seed + 1000 * (k + 1))
+            v = re.findall(r"Answer:\W*(yes|no)\b", o["text"] or "", re.I)
+            return int(num), (v[-1].lower() if v else None), o
+        res = list(map(one, enumerate(clues)))
+        vio = [n for n, v, _ in res if v == "no"]
+        return vio, {"out_tokens": sum(o["out_tokens"] for _, _, o in res), "finish": ",".join(sorted({o["finish"] for _, _, o in res})),
+                     "text": " | ".join(f"{n}:{v}" for n, v, _ in res)}
 
     def enum(x, r, tr, sd, first, fv, cols, solve):
         # list up to 16 solutions (17 found means more than 16), then check each grid
@@ -84,7 +106,7 @@ def run_main():
         if not 2 <= out["count"] <= 16:
             return {**row, "exact": False, "pick": None, "tokens": 0}
         for k, g in enumerate(out["grids"]):
-            vio, o = check(r, first, fv, cols, g, True, sd * 10007 + int(x["id"].split("-")[1]) + 199 + k)
+            vio, o = check(r, first, fv, cols, g, "--nothink" not in sys.argv, sd * 10007 + int(x["id"].split("-")[1]) + 199 + k)
             row["grids"].append({"exact": gp_score(g, r)[0], "violated": vio, "tokens": o["out_tokens"]})
         ok = [k for k, z in enumerate(row["grids"]) if not z["violated"]]
         return {**row, "pick": ok[0] if len(ok) == 1 else None, "exact": len(ok) == 1 and row["grids"][ok[0]]["exact"],
