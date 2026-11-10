@@ -6,7 +6,7 @@ The interface is not specific to trips: the model writes an OR-Tools CP-SAT mode
 `plan(val)` that renders the answer; the harness (PL_SOLVE) counts distinct rendered answers (projected count: it blocks each found assignment of
 ANSWER until a second, different plan appears or none is left).
 
-usage: run_plan.py <tag> <arm tr|trt|think> <seed> [--dev N (first N trips outside Amonkar's 100)] [--max_tokens N] [--rounds N (default 3)]
+usage: run_plan.py <tag> <arm tr|trt|trc|trct|think> <seed> [--dev N (N trips outside Amonkar's 100, spread over the file, so over 3-10 cities)] [--max_tokens N] [--rounds N (default 3)]
 Default: Amonkar et al.'s 100 trips (data/trip_planning_100.json of github.com/rikhil-amonkar/llm-csp). Prompts: NaturalPlan's 5-shot prompt as is
 (as Amonkar et al. use it), with our instruction after the task. Writes results/np_<tag>[_dev]_<arm>_s<seed>.jsonl.
 """
@@ -57,6 +57,34 @@ NP_TR = ("{p}\n\nDo not solve the task. Translate it into a constraint model. Gi
          "solutions above); `ANSWER`, a dict from names to the model variables whose values decide the trip plan; and `plan(val)`, a function that, given "
          "val(name) = the solved value of ANSWER[name], returns the plan as a list of {{\"city\": name, \"start\": first day, \"end\": last day}} in visiting order. "
          "Do not call a solver and do not fix the answer by hand: a harness solves `m` and counts the plans it allows.")
+# Arms trc / trct (dev pilot 2026-11-10: in the CP-SAT interface the quick translation reached count 1 on 1 of 30 trips: it orders the cities in its
+# head and misplaces the shared flight day). Declarations only, as idea 18 on AR-LSAT: the model writes what an answer can look like and one check per
+# stated requirement; the harness enumerates and counts. Nothing here is specific to trips either.
+PC_SOLVE = """
+import json, time
+if callable(constraints):   # dev pilot: several programs made `constraints` a function returning the list
+    constraints = constraints()
+_t0, _seen, _n = time.time(), [], 0
+for _a in candidates():
+    _n += 1
+    if all(_f(_a) for _f in constraints):
+        _k = json.dumps(_a, sort_keys=True, default=str)
+        if _k not in _seen:
+            _seen.append(_k)
+            if len(_seen) >= 2:
+                break
+    if time.time() - _t0 > 240:
+        print(json.dumps({"count": -2, "plan": None, "n": _n})); raise SystemExit
+print(json.dumps({"count": len(_seen), "plan": json.loads(_seen[0]) if _seen else None, "n": _n}))
+"""
+NP_TRC = ("{p}\n\nDo not solve the task. Translate it. Give one ```python block that defines two things. `candidates()`: a generator that yields every "
+          "answer of the right form, a superset of the valid ones (what an answer could be before the task's requirements are checked; read the "
+          "day-counting convention off the example solutions above), each as a list of {{\"city\": name, \"start\": first day, \"end\": last day}} in "
+          "visiting order. `constraints`: a list of functions, one for each requirement the task states, each taking an answer and returning True or False. "
+          "Do not solve the task and do not fix the answer by hand: a harness keeps the answers that pass every constraint and counts them.")
+# PREREG_NP addendum NP-DAY: the day convention, shown only by NaturalPlan's examples, stated in the task for every arm (thinking included). In the dev pilot
+# 5 of 5 zero-plan declarations had right constraints and a candidate generator that started the next city the day after the last one ended.
+NP_DAY = " A day on which you fly from one city to another counts as a day in both cities, so the next city's stay starts on the day the previous stay ends."
 NP_FMT = "{p}\n\nSolve the task. On the last line give the plan as JSON: a list of {{\"city\": name, \"start\": first day, \"end\": last day}} in visiting order."
 
 
@@ -89,12 +117,14 @@ def main():
     a = [x for x in sys.argv[1:] if not x.startswith("--")]
     opt = lambda k, d: int(sys.argv[sys.argv.index(k) + 1]) if k in sys.argv else d
     tag, arm, seed = a[0], a[1], int(a[2])
-    mt, nr, dev = opt("--max_tokens", 32000 if arm == "think" else 16000 if arm == "trt" else 4096), opt("--rounds", 3), opt("--dev", 0)
+    mt, nr, dev = opt("--max_tokens", 32000 if arm == "think" else 16000 if arm in ("trt", "trct") else 4096), opt("--rounds", 3), opt("--dev", 0)
     R = [json.loads(l) for l in open(os.path.join(os.environ["POC_DATA"], "naturalplan", "trip.jsonl"))]
-    P = [r for r in R if not r["amonkar"]][:dev] if dev else [r for r in R if r["amonkar"]]
+    P = [r for r in R if not r["amonkar"]][::max(1, 1500 // dev)][:dev] if dev else [r for r in R if r["amonkar"]]
 
     def run(r):
         p = re.sub(r"\s*SOLUTION:\s*$", "", r["prompt"])
+        k = p.rindex("Find a trip plan")   # the task's own last sentence, after the five examples
+        p = p[:k] + p[k:].rstrip() + NP_DAY
         gold = np_norm({"city": c, "start": s, "end": e} for c, s, e in r["gold"])
         sd = seed * 10007 + int(r["id"].rsplit("_", 1)[1])
         row = {"id": r["id"], "ncity": r["ncity"], "arm": arm, "seed": seed}
@@ -102,13 +132,15 @@ def main():
             o = chat_msgs([{"role": "user", "content": NP_FMT.format(p=p)}], think=True, max_tokens=mt, temperature=0.7, seed=sd)
             pl = np_norm(np_extract(o["text"]) or [])
             return {**row, "exact": pl == gold, "plan": pl, "tokens": o["out_tokens"], "finish": o["finish"], "text": (o["text"] or "")[-1500:]}
-        msgs = [{"role": "user", "content": NP_TR.format(p=p)}]
+        dc = arm in ("trc", "trct")
+        msgs = [{"role": "user", "content": (NP_TRC if dc else NP_TR).format(p=p)}]
         tok, hist = 0, []
         for rnd in range(nr):
-            o = chat_msgs(msgs, think=arm == "trt", max_tokens=mt, temperature=0.7, seed=sd + rnd)
+            o = chat_msgs(msgs, think=arm in ("trt", "trct"), max_tokens=mt, temperature=0.7, seed=sd + rnd)
             tok += o["out_tokens"]
             code = last_block(o["text"], ("python", "py", "python3"))
-            res = run_python("from ortools.sat.python import cp_model\n" + code + "\n" + PL_SOLVE, "", timeout=300, mem_bytes=4 << 30) if code else None
+            res = (run_python(("import itertools\n" + code + "\n" + PC_SOLVE) if dc else ("from ortools.sat.python import cp_model\n" + code + "\n" + PL_SOLVE),
+                              "", timeout=300, mem_bytes=4 << 30) if code else None)
             try:
                 out = json.loads(res.stdout.strip().splitlines()[-1])
             except (AttributeError, IndexError, ValueError):
@@ -118,7 +150,7 @@ def main():
             if out["count"] == 1:
                 break
             fb = {-1: f"it failed to run: {(res.stderr[-600:] if res else 'no python block')}", -2: "the solver timed out on it",
-                  0: "the constraints as you wrote them allow no plan, so one of them is wrong",
+                  0: "the constraints as you wrote them allow no plan, so one of them is wrong" + (" (or `candidates` misses the valid plan)" if dc else ""),
                   2: "the constraints as you wrote them allow more than one plan, so one is missing or too weak"}[out["count"]]
             msgs += [{"role": "assistant", "content": o["text"] or "(empty)"},
                      {"role": "user", "content": f"The task has exactly one valid plan, but {fb}. Compare each constraint with the task and give the complete corrected ```python block."}]

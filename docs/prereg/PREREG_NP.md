@@ -45,3 +45,24 @@ An earlier note (RELATED_WORK, 2026-11-10 13:0x) said the count gate does not ap
   - Models: gpt-oss-20b (tag `oss20`) and gpt-oss-120b (tag `oss120`).
   - Reasoning effort: low for `tr`, high for `trt` and `think`.
   - Read with the same ladder and P1–P4 lines.
+
+## Addendum NP-DAY, written 2026-11-10 17:3x UTC, after the dev pilots and before any test-sample translation
+
+**Dev pilot, Qwen3-8B, 30 trips spread over 3–10 cities.** In both interfaces, the quick translation reached exactly one plan on 0 of 30 trips:
+- CP-SAT interface: 17 trips had no plan, 11 programs crashed, 2 had several plans.
+- Declarations interface (`trc`, below): 5 had no plan and 9 crashed.
+
+**Root cause, read in the programs** (`tmp/why0.py` on gs15: run each zero-plan program's checks on the gold plan):
+- In 5 of 5 zero-plan declarations every check is true on the gold plan, but the candidate generator never yields it. The generator starts the next city on the day after the previous stay ends. NaturalPlan's convention is that the flight day counts for both cities, and the prompt shows it only through the five worked examples.
+- In the CP-SAT programs, the quick model also fixes the city order in its head (Amonkar et al.'s "hard-coded" failure).
+
+**Changes, the same for every arm, thinking included:**
+1. **The convention is stated in the task.** One sentence follows the task's last line: "A day on which you fly from one city to another counts as a day in both cities, so the next city's stay starts on the day the previous stay ends."
+   - The 8 test-sample thinking runs already started under the old prompt are kept apart as `think0` and are not used.
+2. **Ladder steps change.** The ladder's translation steps become `trc` (quick) and `trct` (thinking, 16,000 tokens).
+   - Each step is a declarations-only translation. `candidates()` yields every answer of the right form, and `constraints` holds one check per stated requirement. The harness enumerates the answers and counts those that pass. Nothing in it is trip-specific.
+   - The CP-SAT arms `tr` / `trt` are dropped.
+   - `constraints` may also be a function that returns the list.
+3. **Predictions P1–P4 are unchanged**, with `trc` / `trct` in place of `tr` / `trt`.
+
+**Before the test translations:** a second dev pilot on the same 30 trips (tag `q8b3`, and `oss20` for format) runs under these changes. The test translations start after it is read for format and crashes only.
