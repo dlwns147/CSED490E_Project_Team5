@@ -41,3 +41,5 @@ At 2 ktok per check, the four values are +3.8, +3.9, +6.2 and +1.8. A real check
 - **NPC-P1 holds:** the gate with its check is valid on trips, and trips join grids as a second domain for the full method (count, then check, then escalate), with NPC-P3 as its result against thinking.
 - **NPC-P1 fails:** the checker shares the translator's misreading on trips as well (Semantic Self-Verification's stated gap, as for the thinking translation on GridPuzzle). Trips then stay a negative result for the gate, as PREREG_NP's rule reads.
 - **NPC-P2** is reported either way. It says whether the check pays for itself on trips; its ceiling is the table above.
+
+**Dev format pilot, read 2026-11-10 21:1x UTC.** The dev pilots hold only two count-1 rows (`q8b3` 1, `oss20` 1): both checks parsed, neither truncated (0.98 and 1.95 ktok). The format line is unchanged. The test checks started on all four models.
