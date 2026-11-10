@@ -66,3 +66,12 @@ An earlier note (RELATED_WORK, 2026-11-10 13:0x) said the count gate does not ap
 3. **Predictions P1–P4 are unchanged**, with `trc` / `trct` in place of `tr` / `trt`.
 
 **Before the test translations:** a second dev pilot on the same 30 trips (tag `q8b3`, and `oss20` for format) runs under these changes. The test translations start after it is read for format and crashes only.
+
+## Addendum NP-DP, written 2026-11-10 18:5x UTC, before any `trct` test run finished (Qwen3-8B and Qwen3-32B at 33–49 of 100 trips) and before any number below was computed, except the one disclosed
+
+**Why.** Draft-and-Prune (2603.17233, RELATED_WORK 2026-11-10 18:5x) publishes the closest mechanism: several formalizations, keep those with exactly one answer, majority vote, fall back to chain-of-thought. A reviewer will ask whether our one-translation ladder beats it, and whether it beats self-consistency of thinking at its tokens.
+
+**Reported rows, not deciding (P1–P4 and the decision rules are unchanged):**
+- **D&P-3:** for each trip, the three seeds' `trct` runs; keep those with count 1; majority of their plans (ties: lowest seed); if none survives, thinking seed 1. Tokens: all three `trct` runs, plus thinking when used. Compared with the ladder of each seed and with `think`, utility and accuracy, bootstrap over trips.
+- **SC-3:** majority of the three `think` plans (ties: lowest seed), tokens of all three. **Disclosure:** SC-3 accuracy was computed once, exploring, at 18:4x UTC, before this addendum: Qwen3-8B 37%, Qwen3-32B 59%, gpt-oss-20b 87%, gpt-oss-120b 80% (single `think` 33.3, 47.0, 71.3, 76.7%).
+- D&P's own setting (k = 10–20 drafts conditioned on plans) is not run. At our token price, k translations at Qwen3-32B's `trct` cost (7.5k tokens each) cost 0.5 · 7.5 · k = 3.75k utility points per trip, about 37 points at k = 10, so it cannot beat the ladder on utility unless it is about 37 points more accurate. We report this arithmetic, not a run.

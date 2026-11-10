@@ -62,8 +62,11 @@ NP_TR = ("{p}\n\nDo not solve the task. Translate it into a constraint model. Gi
 # stated requirement; the harness enumerates and counts. Nothing here is specific to trips either.
 PC_SOLVE = """
 import json, time
-if callable(constraints):   # dev pilot: several programs made `constraints` a function returning the list
-    constraints = constraints()
+if callable(constraints):   # dev pilots: `constraints` written as a function returning the list, or as one check taking an answer
+    try:
+        constraints = constraints()
+    except TypeError:
+        constraints = [constraints]
 _t0, _seen, _n = time.time(), [], 0
 for _a in candidates():
     _n += 1

@@ -326,6 +326,39 @@ def np_main():
         print(f"  {arm:6s} acc {100 * mean([r['exact'] for r in rs]):5.1f}  ktok {mean([r['tokens'] for r in rs]) / 1000:5.1f}" +
               (f"  count-1 {len(one)}, precision {sum(r['exact'] for r in one)}/{len(one)}" if arm != "think" else ""))
     print(f"  NP-P1 count-1 precision, trc + trct passes on the ladder: {sum(passes)}/{len(passes)} = {100 * mean(passes):.1f}% (holds if >= 95)")
+    # addendum NP-DP, reported rows: D&P-3 (count-1 trct plans of the three seeds, majority, else think seed 1) and SC-3 (majority of three think plans),
+    # each paying all its runs; on trips with all three seeds of every arm, against the ladder averaged over seeds
+    full = [i for i in nc if all((x, i, sd) in R for x in A for sd in [1, 2, 3])]
+    def vote(plans):
+        c = {}
+        for p in plans:
+            c[p] = c.get(p, 0) + 1
+        return max(c, key=lambda p: (c[p], -plans.index(p))) if c else None
+    gold = {i: next(tuple(map(tuple, R[(x, i, sd)]["plan"])) for x in A for sd in [1, 2, 3]
+                    if R[(x, i, sd)]["exact"] and R[(x, i, sd)]["plan"]) if any(R[(x, i, sd)]["exact"] for x in A for sd in [1, 2, 3]) else None
+            for i in full}
+    dp, sc = {}, {}
+    for i in full:
+        t = [R[("trct", i, sd)] for sd in [1, 2, 3]]
+        v = vote([tuple(map(tuple, r["plan"])) for r in t if r["count"] == 1 and r["plan"]])
+        tok = sum(r["tokens"] for r in t)
+        if v is None:
+            r1 = R[("think", i, 1)]; ok = r1["exact"]; tok += r1["tokens"]
+        else:
+            ok = gold[i] is not None and v == gold[i]
+        dp[i] = (ok, tok)
+        th = [R[("think", i, sd)] for sd in [1, 2, 3]]
+        v = vote([tuple(map(tuple, r["plan"])) for r in th if r["plan"]])
+        sc[i] = (v is not None and gold[i] is not None and v == gold[i], sum(r["tokens"] for r in th))
+    if full:
+        u = lambda D: {i: (100 * D[i][0] - 0.5 * D[i][1] / 1000) if isinstance(D[i], tuple) else mean([100 * x[0] - 0.5 * x[1] / 1000 for x in D[i]]) for i in full}
+        a_ = lambda D: mean([100 * D[i][0] if isinstance(D[i], tuple) else mean([100 * x[0] for x in D[i]]) for i in full])
+        k_ = lambda D: mean([D[i][1] if isinstance(D[i], tuple) else mean([x[1] for x in D[i]]) for i in full]) / 1000
+        ul = u(lad)
+        print(f"  NP-DP reported rows on {len(full)} trips with every seed: ladder {a_(lad):5.1f}% {k_(lad):5.1f} ktok, think {a_(thk):5.1f}% {k_(thk):5.1f} ktok")
+        for name, D in [("D&P-3", dp), ("SC-3", sc)]:
+            ud = u(D); d = boot({i: ul[i] - ud[i] for i in full}, mean)
+            print(f"    {name:5s} {a_(D):5.1f}% {k_(D):5.1f} ktok   ladder - {name} utility {d[0]:+.1f} [{d[1]:+.1f}, {d[2]:+.1f}]")
     strata = [("all", 3, 10), ("3-4", 3, 4), ("5-6", 5, 6), ("7-8", 7, 8), ("9-10", 9, 10), ("7-10", 7, 10)]
     for name, lo, hi in strata:
         P = [i for i in nc if lo <= nc[i] <= hi]
