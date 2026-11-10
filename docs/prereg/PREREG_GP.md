@@ -77,3 +77,18 @@ Mitra-Baral (GP-P4, GP-P5) waits for the re-run `gtrt` seeds.
 - **GP-P3 holds:** p − A on accepted puzzle-seeds +41.1 points on 4×5 and 4×6 (112) against −2.1 on 3×4 and 3×5 (234); difference +43.2 [+27.5, +58.9]. By size, ladder − think utility: 3×4 −5.6, 3×5 −0.9, 4×4 +4.3, 4×5 +5.3, 4×6 +33.2.
 
 **Decision, as registered.** GP-P2 fails, so the registered reading is the template one: wrong translations of human text pass the count, and the claim stays limited to templated puzzles. gpt-oss-20b is not run (it needed P1, P2 and P3). Stated beside it, without changing the decision: the gate still pays on human text (P1) and its edge grows with size (P3), so search is part of the gain too; and the exploratory 32B pilot (rule fixed before output, `IDEAS_COMPUTATION.md` row 27) put count-1 precision without thinking at 96.3% on dev, so at 8B the shortfall is the model's. The follow-up that targets P2's failure is registered separately (`PREREG_GC.md`).
+
+## Results, Mitra-Baral part (2026-11-10 00:1x UTC; all 282 puzzle-seeds, `gtrt` from the re-run)
+
+| Arm | Accuracy | ktok | Utility |
+|---|---|---|---|
+| `gtr` | 53.5 | 0.5 | 53.3 |
+| `gtrt` | 84.4 | 11.9 | 78.5 |
+| `think` | 85.5 | 6.3 | 82.3 |
+| Ladder | 90.1 | 9.8 | 85.2 |
+
+- **GP-P2 on Mitra-Baral:** `gtr` 136/150 = 90.7% (fails), `gtrt` 224/226 = 99.1% (holds). With GridPuzzle, P2 fails as recorded above.
+- **GP-P4 fails:** ladder − think accuracy +4.6 [−1.4, +10.6] (lower bound above −2, holds), utility +2.9 [−3.3, +9.2] (interval not above 0, fails).
+- **GP-P5:** ladder accuracy 90.1%, beside Ishay et al.'s GPT-4 with ASP 92% and Logicia 71%, with an 8B model at 9.8k tokens a puzzle.
+
+The registered decision stands as written in the GridPuzzle part: P2 fails, so the template reading is the registered one.

@@ -6236,3 +6236,21 @@ K per step (next step's dev ktok over the check's 0.9 ktok): 16 and 12 on GridPu
 - On dev it caught 17/20. The drop on test is in the thinking translator's errors, which the checker mostly repeats (SSV's stated gap, now measured).
 
 **Reading.** On human-written grid puzzles a cheap second reading by the same model is enough to bring the gate to the registered precision, just. Its limit is clear: it fixes careless quick translations, not the model's own considered misreadings. Mitra-Baral follows.
+
+## 2026-11-10 00:1x UTC — PREREG_GP, Mitra-Baral part: on small human-written grids the ladder ties thinking (90.1% vs 85.5%, utility +2.9 [−3.3, +9.2])
+
+**Result (94 test puzzles, all 3×4, 3 seeds).** Ladder 90.1% at 9.8 ktok against thinking 85.5% at 6.3 ktok; utility 85.2 vs 82.3, difference +2.9 [−3.3, +9.2], so GP-P4 fails on utility. Accepted precision: 90.7% quick, 99.1% with thinking. Beside prior work (GP-P5): GPT-4 writing ASP 92% (Ishay et al. 2023), Logicia 71%.
+
+**Reading.** As on GridPuzzle's 3×4 and 3×5 grids, small puzzles leave thinking little search to lose, so the gate's edge is small; the registered decision (P2 fails → template reading) stands. The 8B ladder comes within 2 points of GPT-4's published ASP pipeline on the same puzzles.
+
+## 2026-11-10 00:1x UTC — idea 30 killed on dev: a gpt-oss-20b checker catches more near-miss wrong grids than Qwen3-8B (219 vs 166 of 261, p = 3e−10) but flags 3 of 38 right grids against 0
+
+**Why.** Qwen's checker repeats its own misreadings (6 of 22 wrong thinking translations caught on test). Idea 5 found model family matters most for shared mistakes. Rule fixed before the run in `IDEAS_COMPUTATION.md` row 30.
+
+**Result (dev; the 261 wrong and 38 right grids listed from count-2 programs, paired with Qwen's checks).**
+- Wrong grids flagged: gpt-oss (low effort) 219, Qwen3-8B (thinking) 166; discordant pairs 64 against 11, exact McNemar p = 3e−10.
+- Right grids flagged: gpt-oss 3, Qwen 0. The rule required no more than Qwen, so the idea is killed.
+- On the 179 count-1 programs: gpt-oss catches 18/20 wrong (Qwen 17/20), flags 2/159 right (Qwen 0), at 0.3–0.6 ktok (Qwen 0.9).
+- The two count-1 false flags, read by hand, are gpt-oss misreadings, not label errors: an "of X and Y, one is A and the other is B" clue read as both being A, and "either the July game or Bubble Bombs" judged false for Bubble Bombs.
+
+**Reading.** The other family does decorrelate the misses, as idea 5 predicts, but brings its own misreadings onto right grids. Requiring both checkers to flag would keep 0 false flags but catch only 155; either one flagging catches 230 with 3 false flags. No combination is tested here; the trade-off is noted for later.
