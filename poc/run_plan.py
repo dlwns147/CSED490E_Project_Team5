@@ -7,7 +7,7 @@ The interface is not specific to trips: the model writes an OR-Tools CP-SAT mode
 ANSWER until a second, different plan appears or none is left).
 
 usage: run_plan.py <tag> <arm tr|trt|trc|trct|think> <seed> [--resume (keep the rows already written, run the rest)]
-       run_plan.py --check <tag> [--dev] (PREREG_NPC: the model checks each count-1 plan against the task, see check())
+       run_plan.py --check <tag> [--dev] [--label L (another model serving: writes np_<tag>_<L>.jsonl)] (PREREG_NPC: the model checks each count-1 plan against the task, see check())
        run_plan.py --rescore <result files> (re-run stored programs under the current harness, see rescore()) [--dev N (N trips outside Amonkar's 100, spread over the file, so over 3-10 cities)] [--max_tokens N] [--rounds N (default 3)]
 Default: Amonkar et al.'s 100 trips (data/trip_planning_100.json of github.com/rikhil-amonkar/llm-csp). Prompts: NaturalPlan's 5-shot prompt as is
 (as Amonkar et al. use it), with our instruction after the task. Writes results/np_<tag>[_dev]_<arm>_s<seed>.jsonl.
@@ -169,11 +169,12 @@ def check(tag, dev):
         return {"id": r["id"], "ncity": r["ncity"], "tr": tr, "seed": sd, "exact": r["exact"], "violated": vio, "tokens": o["out_tokens"],
                 "finish": o["finish"], "text": (o["text"] or "")[-2500:]}
     rows = []
-    with ThreadPoolExecutor(32) as ex, open(f"{pre}_checkt.jsonl", "w") as f:
+    lab = sys.argv[sys.argv.index("--label") + 1] if "--label" in sys.argv else "checkt"   # NPC-X: the same check served by another model family
+    with ThreadPoolExecutor(32) as ex, open(f"{pre}_{lab}.jsonl", "w") as f:
         for x in ex.map(one, jobs):
             rows.append(x); f.write(json.dumps(x) + "\n"); f.flush()
     W = [x for x in rows if not x["exact"]]
-    print(tag, "checkt", f"{len(rows)} checked; wrong flagged {sum(bool(x['violated']) for x in W)}/{len(W)}, right flagged "
+    print(tag, lab, f"{len(rows)} checked; wrong flagged {sum(bool(x['violated']) for x in W)}/{len(W)}, right flagged "
           f"{sum(bool(x['violated']) for x in rows if x['exact'])}/{len(rows) - len(W)}, unparsed {sum(x['violated'] is None for x in rows)}, "
           f"truncated {sum(x['finish'] == 'length' for x in rows)}, ktok {sum(x['tokens'] for x in rows) / max(1, len(rows)) / 1000:.2f}", flush=True)
 

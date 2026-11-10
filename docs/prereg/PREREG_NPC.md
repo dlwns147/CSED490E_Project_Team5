@@ -64,3 +64,22 @@ At 2 ktok per check, the four values are +3.8, +3.9, +6.2 and +1.8. A real check
 - It adds the stays' lengths as the total, ignoring the shared flight days ("22 days instead of 21").
 
 The convention sentence is in its prompt. On trips, the convention is the domain's one hard reading, and both the translator and the checker get it wrong. A checker from the same model does not read it independently.
+
+## Addendum NPC-X, written 2026-11-10 22:2x UTC, before any cross-family check has run: does the check fail because the checker shares the reading?
+
+**Why.** The result above has a mechanism claim in it: the same-model check fails on trips because the translator and the checker share the domain's one hard reading, the day convention. If that is the cause, a checker from another model family that reads the convention right should flag few right plans. gpt-oss-120b's own checks flagged only 18 of its 405 right plans. If the over-flagging comes from checking day ranges as such, it should persist. Prior work on checkers from another family:
+- VERGE (2601.20055): disagreement from another model family detects 94% of unfaithful unanimous formalizations, at 29% precision.
+- Ours: XPEER, a peer's quick answer as the check on MAMO; idea 30, gpt-oss-20b checking Qwen3-8B's grids (it catches more wrong grids, flags 3 of 38 right ones).
+
+**Setup.**
+- gpt-oss-120b (high effort) checks Qwen3-32B's 214 count-1 plans, with the same prompt, budget and seeds as PREREG_NPC (`run_plan.py --check q32 --label checkt_oss120`).
+- Read with `gp_eval.py --np q32 --check checkt_oss120`. Tokens are priced the same for both models (0.5 per ktok), so cost is counted, not price.
+
+**Predictions.**
+- **X1:** right plans flagged at most 10 of 196, against 115 for the same-model check.
+- **X2:** wrong plans flagged at least 9 of 18.
+- **X3** (reported): checked − plain ladder utility. The ceiling is +3.9 [+1.7, +6.4].
+
+**Decision.**
+- **X1 and X2 hold:** the same-model check failed because the reading is shared. On a domain with such a trap, the check must come from another family. That is a claim about when a free check works, and it goes to the report with the trips result.
+- **X1 fails:** checking day ranges is hard for strong models as well. Trips stay closed for checks.
