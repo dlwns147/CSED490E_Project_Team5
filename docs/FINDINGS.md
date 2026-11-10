@@ -6509,3 +6509,18 @@ All four pass idea 28's rule, and their differences from the registered checker 
 - **Registered X2-2 missed its bar narrowly:** 7/123 right plans flagged, 5.7% against 5%. So the registered combined claim is not made as written.
 - **Utility:** the checked ladder beats thinking for Qwen3-8B with gpt-oss-120b as checker (+8.4 [+3.3, +13.6]) and for Qwen3-32B (+17.9, NPC-X). Against the plain ladder, the gain is +1.5 [−1.6, +4.7] and +2.5 [+0.1, +5.1], bounded by small ceilings (+3.6, +3.5).
 - **For the paper:** this is the mechanism behind when a same-model check works (grids: the checker reads clues well) and when it fails (trips: a convention it misreads). The open method question is label-free: how to pick a checker that reads the domain right without labels. The checker's flag rate on count-1 answers is one label-free signal: the 32B checker flags 62% of its own and 60% of gpt-oss-120b's; gpt-oss-120b flags 6% of its own, 11% of Qwen3-32B's and 24% of Qwen3-8B's (whose count-1 plans are 20% wrong).
+
+## 2026-11-10 23:5x UTC — Trips: the misses of a plan check sit on one kind of break, not on one author; NPC-T registered
+
+**Question.** NPC-X2 (22:4x above) read gpt-oss-120b's low catch rate on its own trip plans (9 of 16, against 47 of 48 on the Qwen models') as "a checker shares its own model's errors". Is that what the misses are?
+
+**Read (offline, every stored wrong count-1 plan classified by how it breaks the task, `poc/np_uniq.py error_types`).**
+- 5 of gpt-oss-120b's 16 wrong plans, and 7 of gpt-oss-20b's 27, break the task in only one way: a dated event overlaps the stay without lying inside it. That is right under the "overlap" reading of "meet a friend between day 18 and day 20" and wrong under the task's "inside" reading.
+- Checkers flag almost none of these: gpt-oss-120b 0 of 5 (its own), Qwen3-32B 1 of 5 (gpt-oss-120b's), gpt-oss-20b 1 of 7 (its own).
+- On every other kind of break, gpt-oss-120b flags 9 of its own 11 and 47 of 48 of the Qwen models'. The Qwen models' wrong passes contain no overlap-only plan at all.
+- So most of the "own errors missed" are a reading that no checker seen so far treats as a break. Translator identity may matter only through which kinds of break each model makes.
+- How such plans reach a count of 1: under the overlap reading these trips have 2–25 valid plans, so a faithful program would count more than one. In trip 1392, gpt-oss-120b's program, after a count of 2, adds a requirement the text does not state ("in Split on some day 14–18"), which pins one plan.
+
+**Registered.** Addendum NPC-T in `docs/prereg/PREREG_NPC.md`: six check runs on the stored plans (Qwen checkers on gpt-oss plans; gpt-oss-120b on gpt-oss-20b's; the two Qwen models on each other's) test "type" against "identity" before any of them is read.
+
+**Exploratory, not registered (idea 39's paired test applied to trips).** Same-problem precision of passes reached after a repair minus first-attempt passes: Qwen3-32B −18 points [−32, −6] (25 trips), Qwen3-8B −15 [−33, +2], gpt-oss-20b +4 [−2, +10], gpt-oss-120b −3 [−11, +5]; pooled −4 [−9, +1] (175). Idea 39 was closed on SQL, programs and grids; on trips the drop appears for the Qwen models only. It does not reopen the idea.
