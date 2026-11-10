@@ -6293,3 +6293,27 @@ Over both registered sets, the checked ladder now beats thinking: +6.6 [+2.9, +1
 **Result (dev, the same near-miss grids).** Three samples of the whole-grid thinking check, flagging when any flags, cost 5.1 ktok a grid against 4.7 for per-clue. Pooled, they catch 195 against 203 wrong grids (discordant 19 vs 27, p = 0.3), and flag 1 against 0 of 38 right ones. By the rule fixed in `IDEAS_COMPUTATION.md` row 32, the gain of idea 31 is recorded as spending more on checking, not as checking clues separately. No claim about factoring stands.
 
 The two sets go opposite ways: on GridPuzzle per-clue wins (132 vs 112 of 160, p = 5e−4), on Mitra-Baral repeated samples win (83 vs 71 of 101, p = 0.002). This split was not registered, so it is a lead only: separation may help where grids are large and clue lists long.
+
+## 2026-11-10 06:4x UTC — idea 35: thinking fixes misread clues but not missing constraints; translations that allow several grids are the middle step's main failure
+
+**Question.** Where do the translation steps fail, by clue? The cheap step's failures are the reason the ladder pays for a thinking translation (17.5 ktok on GridPuzzle, more than thinking alone), so the cause sets which fix can work. No model call: `python poc/gp_misread.py q8b` evaluates every clue expression of every final test program (Qwen3-8B, seeds 1–3) on the true grid, through the same interface as the solver, in a `python -I` subprocess.
+
+**How a program fails (GridPuzzle test).** An expression false on the true grid is a misreading, because a right translation always holds on it.
+
+| Final program | gtr (no thinking), 645 | gtrt (thinking), 640 |
+|---|---|---|
+| One solution, right | 206 | 365 |
+| One solution, wrong | 39 (31 with a misreading, 8 a miscopied value name) | 22 (14, 8) |
+| No solution | 158 (157 with a misreading) | 36 (all) |
+| Several solutions | 170 (85 with a misreading, 85 without) | 170 (15, **155 without**) |
+| Crash | 72 | 47 |
+
+- Thinking cuts misreadings by 3–9 times per clue form. Numeric differences go from 10.6% misread to 1.2%; 85 of 130 misread differences in `gtr` hold once two values swap, i.e. "4 more than" written the wrong way round.
+- Thinking does not reduce translations that allow several grids: 170 in both arms. In `gtrt`, 155 of these have no misread clue; they are too weak. That is the step's largest failure (24% of runs), and the generic feedback ("one clue is wrong") does not describe it.
+- Mitra-Baral is the same pattern at a smaller scale: several solutions without a misreading are 15 → 12 runs of 282, misreadings fall from 104 programs to 21.
+
+**Which clues are too weak.** Judged against a right translation of the same puzzle (a one-solution right program from another seed or arm; puzzles that have one), a clue is weak if its expressions allow an assignment the right program's expressions for it rule out. In `gtrt` on GridPuzzle, weak rates are 17% for "Of A and B, one is X and the other Y", 19% for "A, B and C are all different", 11% for "either A or B", and 0–7% for order, difference, equality and negation clues. 31 of 33 several-solution programs have a weak clue, against 61 of 220 right programs, so a weak clue is nearly necessary for the failure, not sufficient.
+
+**A tested and mostly rejected explanation.** A known convention in these puzzles is that the two people in a pair clue are different rows. Adding exactly the different-category separations the right program implies fixes only 45 of 389 weak clues in `gtr` and 29 of 208 in `gtrt`. So missing distinctness is a minor cause. Read by hand, the rest are garbled compound clues: a wrong second branch of a disjunction, a first-category value written as a number in the wrong place.
+
+**Reading and consequence.** The middle step's money goes into thinking that repairs misreadings, while its main failure is missing constraints, which thinking leaves as they are. Idea 33's second branch (show two solutions and ask which clue rules one out) targets exactly this, so its several-solution rounds are the part to read in its dev result. Limits: the weakness test is relative to one right program and covers only puzzles that have one; clue forms are read off the text by patterns and are descriptive only.
