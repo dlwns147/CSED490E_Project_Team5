@@ -83,3 +83,31 @@ The convention sentence is in its prompt. On trips, the convention is the domain
 **Decision.**
 - **X1 and X2 hold:** the same-model check failed because the reading is shared. On a domain with such a trap, the check must come from another family. That is a claim about when a free check works, and it goes to the report with the trips result.
 - **X1 fails:** checking day ranges is hard for strong models as well. Trips stay closed for checks.
+
+### NPC-X result, read 2026-11-10 22:3x UTC (`gp_eval.py --np q32 --check checkt_oss120`)
+
+- **X1 holds:** gpt-oss-120b flags 6 of 196 right plans (same-model check: 115).
+- **X2 holds:** it flags 17 of 18 wrong plans.
+- **X3:** checked − plain ladder +2.5 [+0.1, +5.1] utility, 71% of the perfect-check ceiling (+3.5 on the same rows).
+- Unflagged precision is 177/179 = 98.9%, now with coverage kept. Checked ladder 72.0% at 21.2 ktok, against thinking 47.0%: **+17.9 [+11.9, +24.1] utility**.
+
+**Decision, as registered:** the same-model check failed because the reading is shared. On trips, a check from another model family makes the gate precise and pays.
+
+**Origin, stated plainly:** this addendum was written after the same-model result, on the same rows, so it is one pair of models on one test set. The 2×2 addendum below separates the checker's family from its strength.
+
+## Addendum NPC-X2, written 2026-11-10 22:3x UTC, before these runs: family or strength?
+
+In NPC-X the checker differed from the translator in two ways. It was from another family, and it was a model that reads the convention right on its own plans. The two must be separated before the claim "the check must come from another family" is written.
+
+**Runs (same prompt, budget and seeds):**
+1. Qwen3-32B checks gpt-oss-120b's 421 plans: another family, and a checker that misreads the convention.
+2. gpt-oss-120b checks Qwen3-8B's 153 plans: another family, strong checker.
+3. gpt-oss-20b checks Qwen3-32B's 214 plans: another family, weaker, high effort. Reported only, because 23% of its own checks were cut off at 8,000 tokens.
+
+**Predictions:**
+- **X2-1:** run 1 flags more than 25% of gpt-oss-120b's right plans. This would mean the checker's own misreading drives false flags, whoever wrote the plan.
+- **X2-2:** run 2 flags at most 5% of Qwen3-8B's right plans and at least 50% of its wrong ones.
+
+**Decision.**
+- **Both hold:** the claim is "a free check works when the checker reads the domain's hard reading right and does not share the translator's errors". A different family is the means, not the condition.
+- **X2-1 fails** (the 32B checker does not over-flag another model's right plans): its false flags depend on the plans it sees. That would point at shared-plan effects, read in the texts.

@@ -6481,3 +6481,18 @@ All four pass idea 28's rule, and their differences from the registered checker 
 - **Cause, from the checker's texts:** it counts a stay of days 9–13 as 4 days, and adds the stays as the total ("22 instead of 21"). That is the day convention again, now misapplied to right plans. The translator and the checker share the one hard reading of the domain, so a same-model check cannot catch the translator's misreading of it.
 - **Process fault:** I read the dev checks while they were still being written and recorded "two rows". The full dev files had 17 and 34 rows, and gpt-oss-20b's had 15% cut off, which would have allowed one format change. Corrected in PREREG_NPC.
 - **Trips closed.** The plain ladder beats thinking on utility for 3 of 4 models (+15.4 for Qwen3-32B), but neither the count alone nor count plus check is a precise gate here. Grids remain the domain where the full method is valid.
+
+## 2026-11-10 22:3x UTC — NPC-X: a checker from another family (gpt-oss-120b) makes the trip gate precise and pays; registered follow-up separates family from strength
+
+- **Cross-family check:** gpt-oss-120b checks Qwen3-32B's 214 count-1 plans. It flags 17 of 18 wrong plans and 6 of 196 right ones; the same-model check flagged 115 right ones.
+  - Unflagged precision: 98.9%, with coverage kept.
+  - Checked − plain ladder: +2.5 [+0.1, +5.1] utility, 71% of the perfect-check ceiling.
+  - Checked ladder against thinking: 72.0% vs 47.0%, **+17.9 [+11.9, +24.1] utility**.
+- **What this shows:** the same-model check failed because translator and checker share the day-convention misreading, not because checking plans is hard.
+- **Caveats:**
+  - This is one model pair, registered after the same-model result on the same rows (PREREG_NPC, NPC-X).
+  - The checker is also a stronger reader of the convention. NPC-X2 is now running, registered before its runs. It crosses family with strength: the 32B model checks gpt-oss-120b's plans, gpt-oss-120b checks Qwen3-8B's, and gpt-oss-20b checks the 32B model's.
+- **Related work:**
+  - VERGE (2601.20055): cross-family disagreement detects 94% of unfaithful formalizations at 29% precision, as an abstention signal.
+  - Ours: XPEER, a peer model's quick answer as the check.
+  - Here, a cross-family checker is the second part of a cost gate, and is judged on utility against thinking.
