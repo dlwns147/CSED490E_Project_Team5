@@ -6,7 +6,8 @@ constraint; here the example is the solver's own answer and the model is the che
 Usage (on a GPU lane):  $P poc/gp_check.py run <tag> <set gridpuzzle|lgp> <arm check|checkt> [--dev]
   re-runs each count-1 program in results/{gp,lgp}_<tag>[_dev]_{gtr,gtrt}_s*.jsonl under GP_SOLVE, asks for a per-clue check of the grid it prints,
   and writes results/{gp,lgp}_<tag>[_dev]_<arm>.jsonl (one row per program).
-Offline:  python poc/gp_check.py eval <tag> <think tag> [--dev]   ladder with and without the check, seed 1, as idea 28's decision rule reads it.
+Offline:  python poc/gp_check.py eval <tag> <think tag> [--dev] [--arms a,b]   ladder with and without the check, seed 1, as idea 28's decision rule reads it
+  (--arms: other check files of the same programs, e.g. checkt_oss and checkt_pc for idea 36).
 --per-clue: one call per clue (idea 31); --nothink: enumt's checks without thinking.
 --label L writes <L> in place of the arm in the output name (idea 30: the same check from another model family).
 --salt N: another sample of the same check, seeds shifted by N (idea 32: repeated whole-grid checks at the per-clue cost).
@@ -139,7 +140,7 @@ def eval_main():
     tag, ttag = sys.argv[2], sys.argv[3]
     d = "_dev" if "--dev" in sys.argv else ""
     for pre in ["gp", "lgp"]:
-        for arm in ["check", "checkt"]:
+        for arm in (sys.argv[sys.argv.index("--arms") + 1].split(",") if "--arms" in sys.argv else ["check", "checkt"]):   # idea 36: e.g. checkt_oss, checkt_pc
             cp = f"{RES}/{pre}_{tag}{d}_{arm}.jsonl"
             if not os.path.exists(cp):
                 continue

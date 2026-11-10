@@ -6317,3 +6317,20 @@ The two sets go opposite ways: on GridPuzzle per-clue wins (132 vs 112 of 160, p
 **A tested explanation that covers a third.** A convention of these puzzles is that the things a clue names are different rows unless it equates them ("either the event with 50 attendees or the graduation job" means the graduation job did not have 50; "the four conductors are Roderick, the one on June 10, ..." means all four differ). Adding exactly the separations the right program implies between the clue's named values fixes 45 of 389 weak clues in `gtr` and 29 of 208 in `gtrt` when only values of two non-first categories count, and 93 of 389 and 68 of 208 (24% and 33%) once the first category's values named in the clue count too (`all different` 6 of 7, `either-or` 21 of 45 in `gtrt`). Read by hand, most of the rest are garbled compound clues: a wrong second branch of a disjunction, a description resolved to the wrong value that happens to hold on the true grid. (Corrected 07:4x UTC: the first version counted only the two-category separations and read "about 14%".)
 
 **Reading and consequence.** The middle step's money goes into thinking that repairs misreadings, while its main failure is missing constraints, which thinking leaves as they are. Idea 33's second branch (show two solutions and ask which clue rules one out) targets exactly this, so its several-solution rounds are the part to read in its dev result. Limits: the weakness test is relative to one right program and covers only puzzles that have one; clue forms are read off the text by patterns and are descriptive only.
+
+## 2026-11-10 07:4x UTC — idea 36: read by utility, ideas 30 and 31 tie the thinking check instead of losing; the hand-set "no right grid flagged" rule was far too strict
+
+**Derivation.** A flag sends a count-1 program to the next step, which is right with probability A and costs k ktok. Among flagged programs let w be the share that are wrong. The flag gains w·(100A − 0.5k) and loses (1 − w)·(100(1 − A) + 0.5k), so flagging pays iff **w > (1 − A) + 0.5k/100**. The check as a whole pays iff that gain, summed over flags, exceeds its own cost, 0.5·k_check per checked program. On dev (seed 1) the break-even flag precision is 0.41 (GridPuzzle, next step `gtrt`: A 0.68, 16.1 ktok) and 0.48 (thinking: A 0.57, 11.6 ktok); 0.33 and 0.36 on Mitra-Baral. So more than half of the flags may hit right grids before flagging stops paying. Ideas 30 and 31 were judged by "no more right grids flagged than 0 of 38", a threshold I picked, not this one.
+
+**Re-read with idea 28's own replay** (`python poc/gp_check.py eval q8bh q8b --dev --arms checkt,checkt_oss,checkt_pc,check_pc`, dev, seed 1; checked ladder minus plain ladder, utility):
+
+| Checker | GridPuzzle (40) | Mitra-Baral (43) | Check ktok |
+|---|---|---|---|
+| Qwen3-8B, thinking, whole grid (idea 28, registered) | +4.6 [−0.3, +11.8] | +6.2 [−0.3, +14.7] | 0.8–1.0 |
+| gpt-oss-20b, whole grid (idea 30) | +4.5 [−0.5, +11.9] | +6.4 [−0.1, +14.9] | 0.3–0.6 |
+| Qwen3-8B, thinking, one call per clue (idea 31) | +3.5 [−1.5, +10.7] | +5.4 [−1.0, +13.8] | 2.5–3.6 |
+| Qwen3-8B, no thinking, one call per clue | +3.9 [−1.4, +11.3] | +6.1 [−0.4, +14.5] | 0.9–1.3 |
+
+All four pass idea 28's rule, and their differences from the registered checker (−1.1 to +0.2) are far inside the noise of 40 puzzles. The false flags that "killed" idea 30 (3 of 38) cost little, because the next step is right most of the time. The corrected verdict: on dev, the checkers tie; checker choice cannot be settled at this size, and the cheaper ones are not worse. The registered GC result is unchanged.
+
+**Consequence for later rules.** A checker or gate is judged by the ladder replay or the break-even precision above, never by a zero-false-flag threshold. The size of the dev set, not the rule, limits what these comparisons can show: differences of a few utility points need the test set.
