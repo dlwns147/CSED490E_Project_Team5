@@ -1,0 +1,38 @@
+# PREREG_NP: the count gate on trip planning (NaturalPlan), registered 2026-11-10 15:1x UTC before any run on the test sample
+
+**Why.** The paper's claim is that a cheap translation plus a free solution-count check, escalating to thinking when the check fails, beats thinking alone. So far it is tested on logic grids (ZebraLogic, GridPuzzle, Mitra-Baral). The closest paper, Amonkar et al. (2505.13252, RELATED_WORK), finds LLM-as-formalizer below LLM-as-solver most consistently on NaturalPlan's Trip Planning ("on the more challenging Trip Planning dataset, LLM-as-formalizer consistently underperforms LLM-as-solver", their section 5.1). They never count solutions and never fall back to solving.
+
+Trip Planning is a planning task, not a grid. NaturalPlan builds each trip "with enough constraints that there is only one solution" (Zheng et al. 2406.04520, section 2.1.1, read 2026-11-10). We checked this on Amonkar et al.'s 100 trips with their structured constraints, reading a dated event as lying inside that city's stay and parsing one-way flights ("from A to B") from the prompt: 95 have exactly one valid plan, 3 have two, 2 have three. (Reading a dated event as only overlapping the stay leaves 36 unique, so the "inside" reading is the task's.) This makes Trip Planning a second domain where the gate applies, and it is the domain where the closest paper's verdict is most negative.
+
+An earlier note (RELATED_WORK, 2026-11-10 13:0x) said the count gate does not apply on NaturalPlan. That holds for Meeting Planning (maximize friends met, many plans) and not for Trip Planning.
+
+**Interface (domain-general, `poc/run_plan.py`).** The model writes an OR-Tools CP-SAT model `m`, a dict `ANSWER` of the variables that decide the answer, and `plan(val)`, which renders the answer. The harness counts distinct rendered plans: it blocks each found assignment of `ANSWER` until a different plan appears or none is left. Nothing in the harness is specific to trips. The same three names fit any constraint problem with a unique answer.
+
+**Data.**
+- Test: Amonkar et al.'s exact 100 trips (github.com/rikhil-amonkar/llm-csp, data/trip_planning_100.json), 3–10 cities.
+- Dev, for a format check only: the first 30 other NaturalPlan trips, Qwen3-8B, seed 1. No prompt change after the first test run.
+- Prompt: NaturalPlan's 5-shot prompt as is. Its examples fix the day convention (a flight day counts for both cities). Our instruction follows the task.
+- Amonkar et al. use a one-shot prompt that shows the format only. So their accuracies are context, not a matched baseline. Our comparison is within our runs, on the same prompt.
+
+**Runs.** Seeds 1–3 each.
+- Arms:
+  - `tr`: no thinking, 4,096 tokens, up to 3 rounds, with generic count feedback ("allows no plan / more than one plan, so one constraint is wrong / missing").
+  - `trt`: thinking, 16,000 tokens, up to 3 rounds.
+  - `think`: thinking, 32,000 tokens, answers a JSON plan.
+- Models:
+  - Qwen3-8B (tag `q8b`, 1 × RTX 3090), first.
+  - Qwen3-32B-AWQ (tag `q32`, 2 × RTX 3090), when the ZL-AM lane frees its GPUs.
+
+**Ladder.** Run `tr`. If its count is not 1, run `trt`. If that count is not 1, answer with `think`. All tokens are paid. Utility = 100·right − 0.5·ktok, where right means the plan equals NaturalPlan's gold plan. We also report plans that satisfy every annotated constraint (Amonkar et al.'s metric) as a second column. Bootstrap over trips, 95%. Strata: 3–4, 5–6, 7–8 and 9–10 cities.
+
+**Predictions (each model separately; Qwen3-32B decides).**
+- NP-P1 (gate validity): count-1 precision of the translations (`tr` and `trt` passes pooled) at least 95%.
+- NP-P2: ladder − think utility, interval above 0.
+- NP-P3: on trips of 7–10 cities, ladder − think accuracy, lower bound above 0.
+- NP-P4 (Amonkar et al.'s verdict, replicated in our setup): `trt` alone, scored as is (count 1 gives its plan, otherwise wrong), has accuracy at most think's + 2 points.
+
+**Decision.**
+- P1 and P2 hold → the claim "a count gate plus escalation turns formalization from a loss into a win" carries to planning, on the closest paper's own sample and its most negative domain. It goes in the report as the second domain beside ZL-AM.
+- P4 also holding → the win comes from the gate and the escalation, not from a better formalizer.
+- P1 fails → translations pass the count while wrong on this task. The gate does not carry, and we report the domain as a negative result.
+- P2 fails with P1 holding → thinking alone is enough here, and the claim is limited to the domains where it holds.
