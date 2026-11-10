@@ -9,6 +9,7 @@ Usage (on a GPU lane):  $P poc/gp_check.py run <tag> <set gridpuzzle|lgp> <arm c
 Offline:  python poc/gp_check.py eval <tag> <think tag> [--dev]   ladder with and without the check, seed 1, as idea 28's decision rule reads it.
 --per-clue: one call per clue (idea 31); --nothink: enumt's checks without thinking.
 --label L writes <L> in place of the arm in the output name (idea 30: the same check from another model family).
+--salt N: another sample of the same check, seeds shifted by N (idea 32: repeated whole-grid checks at the per-clue cost).
 Idea 29, arm enumt: for each program whose final count is 2, the solver lists up to 16 solutions and each grid gets the thinking check; if exactly one grid
 passes, the step is settled with it. Read by `eval` (with the checkt rows) at K = the next step's mean dev ktok over the mean check ktok.
 """
@@ -41,7 +42,10 @@ def run_main():
     P = {r["id"]: r for r in map(json.loads, open(os.path.join(os.environ["POC_DATA"], src, "grid.jsonl")))}
     todo = []
     for f in sorted(glob.glob(f"{RES}/{pre}_{tag}{'_dev' if dev else ''}_gtr*_s*.jsonl")):
-        tr, sd = re.search(r"_(gtrt?)_s(\d+)\.jsonl$", f).groups()
+        m = re.search(r"_(gtrt?)_s(\d+)\.jsonl$", f)
+        if not m:   # e.g. *.crashed_tgrest.jsonl, partial files kept for the record
+            continue
+        tr, sd = m.groups()
         todo += [(tr, int(sd), x) for x in map(json.loads, open(f)) if x["count"] == (2 if arm == "enumt" else 1)]
 
     def run(a):
@@ -65,6 +69,8 @@ def run_main():
         return {**row, "exact": ex, "violated": vio, "tokens": o["out_tokens"], "finish": o["finish"], "text": (o["text"] or "")[-2500:]}
 
     def check(r, first, fv, cols, g, think, seed):
+        if "--salt" in sys.argv:   # idea 32: another sample of the same check (salt 0 = the original seeds)
+            seed += 1000003 * int(sys.argv[sys.argv.index("--salt") + 1])
         table = "\n".join(f"{v} | " + " | ".join(f"{c}: {g.get(c, [None] * len(fv))[k]}" for c in cols) for k, v in enumerate(fv))
         if "--per-clue" in sys.argv:
             return check_pc(r, first, table, think, seed)

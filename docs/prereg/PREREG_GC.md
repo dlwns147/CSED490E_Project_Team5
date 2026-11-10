@@ -37,3 +37,5 @@ Mitra-Baral (GC-P1's second set, GC-P4) waits for GP's re-run `gtrt` seed 1.
 - By size, checked ladder − think utility: 3×4 +0.3, 3×5 −1.7, 4×4 +8.4, 4×5 +6.7, 4×6 +30.6.
 
 Reading: the check catches most wrong quick translations (72%) but only 27% of wrong thinking translations, as SSV's stated gap predicts: what survives the model's own thinking translation is mostly a misreading the same model repeats when it checks. The precision bar is cleared by 0.4 points.
+
+**Run note (2026-11-10 01:2x UTC).** The first Mitra-Baral test run (job 1368632) stopped before any check: the file glob also matched the partial `*.crashed_tgrest.jsonl` files kept from the PREREG_GP rerun. `gp_check.py` now skips files whose names do not end in `_s<seed>.jsonl`. Nothing else changed, and the run was resubmitted as job 1368860.

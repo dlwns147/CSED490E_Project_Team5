@@ -6254,3 +6254,22 @@ K per step (next step's dev ktok over the check's 0.9 ktok): 16 and 12 on GridPu
 - The two count-1 false flags, read by hand, are gpt-oss misreadings, not label errors: an "of X and Y, one is A and the other is B" clue read as both being A, and "either the July game or Bubble Bombs" judged false for Bubble Bombs.
 
 **Reading.** The other family does decorrelate the misses, as idea 5 predicts, but brings its own misreadings onto right grids. Requiring both checkers to flag would keep 0 false flags but catch only 155; either one flagging catches 230 with 3 false flags. No combination is tested here; the trade-off is noted for later.
+
+## 2026-11-10 01:2x UTC — idea 31 on dev: checking one clue per call catches more wrong near-miss grids (203 vs 166 of 261, p = 2e−6) but has no use that gains utility yet
+
+**Why.** The whole-grid checker misses about a third of wrong grids that satisfy every translated clue (idea 29). Asked about one clue at a time, the model cannot carry one reading of the table through the list. Rule fixed before the run in `IDEAS_COMPUTATION.md` row 31, the same as idea 30.
+
+**Result (dev; the same 261 wrong and 38 right listed grids, paired with Qwen's whole-grid thinking check).**
+
+| Checker | Wrong flagged (of 261) | Right flagged (of 38) | ktok a grid | Rule |
+|---|---|---|---|---|
+| Whole grid, thinking (idea 28) | 166 | 0 | 1.7 | reference |
+| One clue per call, thinking | 203 (discordant 49 vs 12, p = 2e−6) | 0 | 4.7 | passes |
+| One clue per call, no thinking | 201 (59 vs 24, p = 1.5e−4) | 2 | 1.5 | killed |
+
+- The gain is all on GridPuzzle (132 vs 92 of 160). On Mitra-Baral it is 71 vs 74 of 101.
+- On the 179 count-1 programs, the use idea 28 tested, per-clue checking is worse. With thinking it catches 16/20 wrong and flags 3/159 right, at 2.6–3.6 ktok; the whole-grid check catches 17/20 and flags 0, at 0.9 ktok.
+- The false flags, read against the gold grids, are plain misreadings of easy clues ("Owens is staying for 3 days" judged false when the row says 3). Many independent calls each add a small error chance, so false flags grow with the number of clues.
+- Exploratory, not registered: idea 29's listing rerun with the per-clue check, with K recomputed from its cost, still loses: −0.5 [−0.9, −0.1] on GridPuzzle and −0.3 [−0.6, −0.1] on Mitra-Baral. Few listings settle, because the right grid is in the list only about half the time.
+
+**Reading.** Factoring the check finds wrong grids the whole-grid check passes, as Chain-of-Verification found for factored answers. It also costs 2.7 times as much, so it is not yet separated from simply spending more on checking. Idea 32 compares it with three whole-grid samples at the same cost. No prereg, because no use gains utility on dev.
