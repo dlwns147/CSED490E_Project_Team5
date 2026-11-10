@@ -429,7 +429,7 @@ def zl_main():
 
 
 # GridPuzzle (Tyagi et al. 2024; Puzzle Baron puzzles written by people), idea 27: does the ZebraLogic count gate survive human-written clues? The first category is ordered
-# and plays the houses' role. usage: run_zebra.py --gp <tag> <arm gtr|gtrt|think|gtrl|gtrtl> <seed> [--dev] [--max_tokens N] [--set gridpuzzle|lgp]
+# and plays the houses' role. usage: run_zebra.py --gp <tag> <arm gtr|gtrt|think|gtrl|gtrtl|thinkf> <seed> [--dev] [--max_tokens N] [--set gridpuzzle|lgp] [--ref <tag> for thinkf]
 GP_SOLVE = """
 import ast, itertools, json, re
 from ortools.sat.python import cp_model
@@ -562,6 +562,9 @@ GP_TR = ("{p}\n\nDo not solve the puzzle. Translate it. Give one ```python block
          "Examples: \"p['A:x'] == p['B:y']\" (x goes with y), \"p['A:x'] > p['B:y']\" (x is later or more than y), \"p['A:x'] - p['B:y'] == 4\" (x is 4 more than y), "
          "\"p['A:x'] == 4\" (x goes with the {first} whose number is 4), \"p['A:x'] != p['B:y']\", \"p['A:x'] in (p['B:y'], p['B:z'])\" (x is either y or z), and for \"of x and y, one is z and the other is w\": "
          "\"(p['A:x'] == p['C:z'] and p['B:y'] == p['C:w']) or (p['A:x'] == p['C:w'] and p['B:y'] == p['C:z'])\". Keep each value exactly as the puzzle writes it.")
+GP_REF = ("The clues, written as constraints and checked to be exactly right (together they have exactly one solution, the puzzle's):\n```python\n{code}\n```\n"
+          "p['<category>:<value>'] is the number in VALUES of the {first} that value goes with; VALUES lists the numbers for the {first} {fv}, in that order. "
+          "Do not write or run code; solve it yourself.")
 GP_FMT = "{p}\n\nSolve the puzzle. On the last line give JSON mapping each category ({cols}) to the list of its values for the {first} {fv}, in that order."
 
 
@@ -587,14 +590,25 @@ def gp_main():
     mt = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else 4096 if arm in ("gtr", "gtrl") else 16000   # gtrt: 21 of 94 dev rounds hit 8192 with no code
     src = sys.argv[sys.argv.index("--set") + 1] if "--set" in sys.argv else "gridpuzzle"   # or lgp: Mitra and Baral's puzzles (poc/gp_prep.py --lgp)
     P = [r for r in map(json.loads, open(os.path.join(os.environ["POC_DATA"], src, "grid.jsonl"))) if r["split"] == ("dev" if dev else "test")]
+    ref = {}
+    if arm == "thinkf":   # idea 34: thinking with the clues also given as a right translation (reading removed, search kept); --ref <tag> names the runs it comes from
+        rt = sys.argv[sys.argv.index("--ref") + 1]
+        for a, sd in [(a, sd) for a in ["gtrt", "gtr"] for sd in [1, 2, 3]]:
+            f = f"{RES}/{'gp' if src == 'gridpuzzle' else src}_{rt}{'_dev' if dev else ''}_{a}_s{sd}.jsonl"
+            for x in map(json.loads, open(f)) if os.path.exists(f) else []:
+                if x["count"] == 1 and x["exact"] and x.get("code"):
+                    ref.setdefault(x["id"], x["code"])
+        P = [r for r in P if r["id"] in ref]   # puzzles with a right translation only; the paired think runs are read on the same puzzles
 
     def run(r):
         gold = {a: [str(x).strip().lower() for x in v] for a, v in r["gold"].items()}
         (first, fv), cols, n = r["cats"][0], ", ".join(gold), len(r["cats"][0][1])
         sd = seed * 10007 + int(r["id"].split("-")[1])
         row = {"id": r["id"], "size": r["size"], "arm": arm, "seed": seed}
-        if arm == "think":
-            o = chat_msgs([{"role": "user", "content": GP_FMT.format(p=r["puzzle"], cols=cols, first=first, fv=", ".join(fv))}], think=True, max_tokens=mt, temperature=0.7, seed=sd)
+        if arm in ("think", "thinkf"):
+            pz = r["puzzle"] + ("\n\n" + GP_REF.format(first=first, fv=", ".join(fv), code=ref[r["id"]].strip()) if arm == "thinkf" else "")
+            q = GP_FMT.format(p=pz, cols=cols, first=first, fv=", ".join(fv))
+            o = chat_msgs([{"role": "user", "content": q}], think=True, max_tokens=mt, temperature=0.7, seed=sd)
             ex, ca = gp_score(zl_extract(o["text"]), r)
             return {**row, "exact": ex, "cell_acc": ca, "tokens": o["out_tokens"], "finish": o["finish"], "text": (o["text"] or "")[-1500:]}
         solve = GP_SOLVE.replace("__FIRST__", json.dumps(fv)).replace("__FNAME__", json.dumps(first))
