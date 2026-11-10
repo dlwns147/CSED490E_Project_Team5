@@ -17,6 +17,7 @@ python poc/gp_eval.py --thinkf: idea 34, thinking given a right translation vs p
 python poc/gp_eval.py --gts [tag q8bh] [think tag q8b]: idea 38 on dev, the per-clue search of Schrader et al. (gts) as the middle step in place
 of gtrt (--joint: gtsj, poc/gp_joint.py): ladder gtr (same seed) -> gts (same seed) -> think (seed 1) minus gtr -> gtrt (seed 1) -> think, per puzzle-seed (seeds 1-3).
 Rule (docs/notes/IDEAS_COMPUTATION.md row 38): pooled over both sets, point estimate above 0 -> gts replaces gtrt in a test prereg.
+python poc/gp_eval.py --np [tag q32]: PREREG_NP (with addendum NP-DAY), see np_main().
 """
 import json
 import os
@@ -284,5 +285,63 @@ def thinkf():
               f"share of errors removed {share[0]:+.2f} [{share[1]:+.2f}, {share[2]:+.2f}]")
 
 
+def np_main():
+    """PREREG_NP + addendum NP-DAY: python poc/gp_eval.py --np [tag q32]. NaturalPlan trips (Amonkar et al.'s 100), ladder trc -> trct -> think, every
+    step paid; right = the gold plan; "valid" = a plan meeting every annotated constraint (Amonkar et al.'s metric, poc/np_uniq.py cover reading).
+    NP-P1 count-1 precision of trc and trct passes pooled >= 95%; NP-P2 ladder - think utility, interval above 0; NP-P3 on 7-10 cities ladder - think
+    accuracy, lower bound above 0; NP-P4 trct alone (count 1 gives its plan, otherwise wrong) at most think + 2 points. Bootstrap over trips."""
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from np_uniq import valid_plans
+    a = [x for x in sys.argv[1:] if not x.startswith("--")]
+    tag = a[0] if a else "q32"
+    V = valid_plans(os.path.join(os.environ.get("POC_DATA", os.path.join(RES, "..", "..", "nlp_data")), "naturalplan_dl", "a_trip_planning_100_constraints.json"))
+    A = ["trc", "trct", "think"]
+    R = {}
+    for arm in A:
+        for sd in [1, 2, 3]:
+            f = os.path.join(RES, f"np_{tag}_{arm}_s{sd}.jsonl")
+            if os.path.exists(f):
+                for r in map(json.loads, open(f)):
+                    R[(arm, r["id"], sd)] = r
+    keys = sorted({(i, sd) for (_, i, sd) in R if all((x, i, sd) in R for x in A)})
+    val = lambda r, pl: tuple(map(tuple, pl)) in V.get(r["id"], set()) if pl else False
+    lad, thk, alone, nc = {}, {}, {}, {}
+    passes = []
+    for i, sd in keys:
+        tok = 0
+        for arm in ["trc", "trct"]:
+            r = R[(arm, i, sd)]; tok += r["tokens"]
+            if r["count"] == 1:
+                passes.append(r["exact"]); ex, va = r["exact"], val(r, r["plan"]); break
+        else:
+            r = R[("think", i, sd)]; tok += r["tokens"]; ex, va = r["exact"], val(r, r["plan"])
+        t, c = R[("think", i, sd)], R[("trct", i, sd)]
+        lad.setdefault(i, []).append((ex, tok, va)); thk.setdefault(i, []).append((t["exact"], t["tokens"], val(t, t["plan"])))
+        alone.setdefault(i, []).append((c["exact"] and c["count"] == 1, c["tokens"], c["count"] == 1 and val(c, c["plan"])))
+        nc[i] = t["ncity"]
+    print(f"== NP {tag}: {len(keys)} trip-seeds, {len(nc)} trips")
+    for arm in A:
+        rs = [R[(arm, i, sd)] for i, sd in keys]
+        one = [r for r in rs if r.get("count") == 1]
+        print(f"  {arm:6s} acc {100 * mean([r['exact'] for r in rs]):5.1f}  ktok {mean([r['tokens'] for r in rs]) / 1000:5.1f}" +
+              (f"  count-1 {len(one)}, precision {sum(r['exact'] for r in one)}/{len(one)}" if arm != "think" else ""))
+    print(f"  NP-P1 count-1 precision, trc + trct passes on the ladder: {sum(passes)}/{len(passes)} = {100 * mean(passes):.1f}% (holds if >= 95)")
+    strata = [("all", 3, 10), ("3-4", 3, 4), ("5-6", 5, 6), ("7-8", 7, 8), ("9-10", 9, 10), ("7-10", 7, 10)]
+    for name, lo, hi in strata:
+        P = [i for i in nc if lo <= nc[i] <= hi]
+        if not P:
+            continue
+        acc = lambda D, j=0: {i: mean([100 * x[j] for x in D[i]]) for i in P}
+        utl = lambda D: {i: mean([100 * x[0] - 0.5 * x[1] / 1000 for x in D[i]]) for i in P}
+        la, ta, ca = acc(lad), acc(thk), acc(alone)
+        da = boot({i: la[i] - ta[i] for i in P}, mean); du = boot({i: utl(lad)[i] - utl(thk)[i] for i in P}, mean)
+        d4 = boot({i: ca[i] - ta[i] for i in P}, mean)
+        kt = lambda D: mean([x[1] for i in P for x in D[i]]) / 1000
+        print(f"  {name:5s} ({len(P):3d} trips) ladder {mean(list(la.values())):5.1f}% {kt(lad):5.1f} ktok (valid {mean(list(acc(lad, 2).values())):5.1f})  "
+              f"think {mean(list(ta.values())):5.1f}% {kt(thk):5.1f} ktok (valid {mean(list(acc(thk, 2).values())):5.1f})  trct alone {mean(list(ca.values())):5.1f}%\n"
+              f"        acc diff {da[0]:+.1f} [{da[1]:+.1f}, {da[2]:+.1f}]  utility diff {du[0]:+.1f} [{du[1]:+.1f}, {du[2]:+.1f}]  "
+              f"trct alone - think {d4[0]:+.1f} [{d4[1]:+.1f}, {d4[2]:+.1f}]")
+
+
 if __name__ == "__main__":
-    thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()
+    np_main() if "--np" in sys.argv else thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()

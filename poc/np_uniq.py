@@ -3,7 +3,6 @@ prompt, "A and B" both ways), stays of the stated lengths sharing the flight day
 only overlapping it ("overlap"). usage: python3 poc/np_uniq.py <nlp_data>/naturalplan_dl/a_trip_planning_100_constraints.json
 (2026-11-10: cover 95 one plan, 3 two, 2 three; overlap 36 one)."""
 import json, ast, sys, collections
-c = json.load(open(sys.argv[1]))
 def count(C, mode):
     L = {d["city"]: d["days"] for d in C["city_length"]}
     E = set()
@@ -32,11 +31,23 @@ def count(C, mode):
             if e > C["trip_length"] or not ok(x, s, e): continue
             path.append((x, s, e)); dfs(path, e, left - {x}); path.pop()
     dfs([], 1, frozenset(L)); return sols
-H = collections.Counter()
-for k, v in c.items():
-    C = ast.literal_eval(v["constraints"]) if isinstance(v["constraints"], str) else v["constraints"]
-    C["_prompt"] = v["prompt_0shot"]
-    # directed? prompt says "from A to B" for some edges
-    for mode in ["cover", "overlap"]:
-        n = len(count(C, mode)); H[(mode, min(n, 3))] += 1
-print(sorted(H.items()))
+def valid_plans(path):
+    """{trip id: set of valid plans, each a tuple of (city lowercased, start, end)}, "cover" reading (poc/gp_eval.py --np)"""
+    out = {}
+    for k, v in json.load(open(path)).items():
+        C = ast.literal_eval(v["constraints"]) if isinstance(v["constraints"], str) else v["constraints"]
+        C["_prompt"] = v["prompt_0shot"]
+        out[k] = {tuple((x.lower(), s, e) for x, s, e in p) for p in count(C, "cover")}
+    return out
+
+
+if __name__ == "__main__":
+    c = json.load(open(sys.argv[1]))
+    H = collections.Counter()
+    for k, v in c.items():
+        C = ast.literal_eval(v["constraints"]) if isinstance(v["constraints"], str) else v["constraints"]
+        C["_prompt"] = v["prompt_0shot"]
+        # directed? prompt says "from A to B" for some edges
+        for mode in ["cover", "overlap"]:
+            n = len(count(C, mode)); H[(mode, min(n, 3))] += 1
+    print(sorted(H.items()))
