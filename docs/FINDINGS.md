@@ -6395,3 +6395,22 @@ All four pass idea 28's rule, and their differences from the registered checker 
 **Verdict: killed** (one non-grid domain, ZebraLogic, below 0, by 2 points). Raw post-repair precision is 7–31 points lower in every domain, but on the same problems the difference is zero within ±3 points for SQL and programs: repairs happen on harder problems, and a hard problem's first passes are as often wrong. So "the check is worth less after repair" is mostly selection, not the repair gaming the check. What stands from GP-LOC is narrower: on the same puzzles, feedback that names the conflicting clues produces less precise passes than generic feedback (a comparison between feedback types, not between repaired and fresh passes). The fresh-sample job for the 8B quick grid arm (1373018) was cancelled before it started, since it could not change the decision.
 
 **Relative to prior work.** Comparisons of pass precision before and after repair that do not pair by problem (as in our own GP-LOC rounds table, and pooled rates in the code literature) overstate the effect; a reviewer would ask for this pairing. That is a methodological caution, not a paper.
+
+## 2026-11-10 16:1x UTC — idea 34: thinking fails large grids at search, not reading; gpt-oss-20b's plain ladder beats its thinking on both grid sets; trip planning registered (PREREG_NP)
+
+**Idea 34 (rule fixed 06:4x UTC, IDEAS row 34).** Thinking was given each clue as a verified-right formal constraint next to the text: a count-1 program whose grid is the gold grid, with the instruction that it is exactly right and no code allowed (arm `thinkf`). This removes reading and keeps search. Setup: Qwen3-8B, GridPuzzle test, the 150 puzzles with such a program, 3 seeds, paired with plain thinking on the same puzzle-seeds (`python poc/gp_eval.py --thinkf`).
+
+| Grids | Puzzles | Thinking + right constraints | Thinking | ktok | Share of thinking's errors removed |
+|---|---|---|---|---|---|
+| 4×5, 4×6 | 42 | 54.0% | 49.2% | 14.9 vs 15.3 | **+0.09 [−0.16, +0.29]** |
+| 4×4 | 29 | 77.0% | 70.1% | 11.1 vs 11.3 | +0.23 [−0.21, +0.52] |
+| 3×4, 3×5 | 79 | 93.2% | 93.2% | 7.1 vs 6.9 | +0.00 |
+
+**Verdict as registered:** the upper bound 0.29 is below 0.5, so on large grids search is the main cause of thinking's errors. Handing thinking a right reading of every clue removes at most about a third of its errors, at the same tokens. On the same puzzles the ladder reaches 75–76% on 4×5 / 4×6 (GP test). The paper's mechanism stands: the gate wins because the solver takes over search, not because the translation reads better than thinking does. This agrees with ZebraLogic's "curse of complexity" (2502.01100: accuracy falls with search-space size). It adds the intervention: a right reading, given for free, does not rescue thinking. Caveat: these are the puzzles with a right translation, which are the easier ones.
+
+**GC-OSS, plain ladder (reported; the registered checked ladder waits for the check runs, jobs 1374195–6).** gpt-oss-20b, effort low for the quick translation and high for thinking, 3 seeds:
+- GridPuzzle: ladder 84.5% vs thinking 76.9%, utility +5.5 [+1.8, +9.3]. Count-1 precision is 95.9% for the quick translation and 99.3% for the thinking translation. On 4×5 / 4×6 the ladder adds 15–18 points; on 3×4 it loses 4.
+- Mitra-Baral: ladder 97.9% vs 94.7%, utility +3.5 [+1.0, +6.2].
+- So the gate's win over thinking holds for a second model family before any check is added.
+
+**Next domain registered: PREREG_NP** (15:1x UTC). NaturalPlan Trip Planning on Amonkar et al.'s 100 trips, where they find formalizers losing most consistently. 95 of the 100 have exactly one valid plan. A domain-general CP-SAT interface counts the plans (`poc/run_plan.py`). A dev format pilot is queued.

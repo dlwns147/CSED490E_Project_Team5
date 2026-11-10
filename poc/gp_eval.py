@@ -12,6 +12,8 @@ per puzzle-seed. Step 1: gtrl vs gtr (seeds 1-3), later steps from seed-1 gtrt a
 Both: gtrl+gtrtl vs gtr+gtrt. With --test (PREREG_GP addendum GP-LOC; also with --gts): the test split, generic arms and think from the q8b test runs of the same seed. Rule (docs/notes/IDEAS_COMPUTATION.md row 33): a step's localized arm passes if its point estimate pooled over
 both sets is above 0.
 
+python poc/gp_eval.py --thinkf: idea 34, thinking given a right translation vs plain thinking (see thinkf()).
+
 python poc/gp_eval.py --gts [tag q8bh] [think tag q8b]: idea 38 on dev, the per-clue search of Schrader et al. (gts) as the middle step in place
 of gtrt (--joint: gtsj, poc/gp_joint.py): ladder gtr (same seed) -> gts (same seed) -> think (seed 1) minus gtr -> gtrt (seed 1) -> think, per puzzle-seed (seeds 1-3).
 Rule (docs/notes/IDEAS_COMPUTATION.md row 38): pooled over both sets, point estimate above 0 -> gts replaces gtrt in a test prereg.
@@ -255,5 +257,32 @@ def zl_am():
               f"acc diff {da[0]:+.1f} [{da[1]:+.1f}, {da[2]:+.1f}]  utility diff {du[0]:+.1f} [{du[1]:+.1f}, {du[2]:+.1f}]")
 
 
+def thinkf():
+    """idea 34 (docs/notes/IDEAS_COMPUTATION.md row 34): thinking given a right translation (q8bf thinkf) vs plain thinking (q8b think), paired by
+    puzzle-seed on GridPuzzle test. Rule: on 4x5 and 4x6, share of thinking's errors removed = (acc thinkf - acc think) / (1 - acc think), bootstrap over
+    puzzles; upper bound < 0.5 -> search is the main cause; lower bound > 0.5 -> reading is; otherwise inconclusive."""
+    F, T = {}, {}
+    for sd in [1, 2, 3]:
+        for r in map(json.loads, open(os.path.join(RES, f"gp_q8bf_thinkf_s{sd}.jsonl"))):
+            F[(r["id"], sd)] = r
+        for r in map(json.loads, open(os.path.join(RES, f"gp_q8b_think_s{sd}.jsonl"))):
+            T[(r["id"], sd)] = r
+    keys = [k for k in F if k in T]
+    print(f"thinkf vs think: {len(keys)} puzzle-seeds, {len({i for i, _ in keys})} puzzles")
+    for name, sizes in [("4x5, 4x6", BIG), ("3x4, 3x5", SMALL), ("4x4", {"4*4"}), ("all", None)]:
+        per = {}
+        for i, sd in keys:
+            if sizes is None or F[(i, sd)]["size"] in sizes:
+                per.setdefault(i, []).append((F[(i, sd)]["exact"], T[(i, sd)]["exact"], F[(i, sd)]["tokens"], T[(i, sd)]["tokens"]))
+        if not per:
+            continue
+        af = lambda v: mean([x[0] for p in v for x in p])
+        at = lambda v: mean([x[1] for p in v for x in p])
+        share = boot(per, lambda v: (af(v) - at(v)) / max(1e-9, 1 - at(v)))
+        print(f"  {name:9s} {len(per):3d} puzzles  thinkf {100 * af(list(per.values())):5.1f}%  think {100 * at(list(per.values())):5.1f}%  "
+              f"ktok {mean([x[2] for p in per.values() for x in p]) / 1000:.1f} vs {mean([x[3] for p in per.values() for x in p]) / 1000:.1f}  "
+              f"share of errors removed {share[0]:+.2f} [{share[1]:+.2f}, {share[2]:+.2f}]")
+
+
 if __name__ == "__main__":
-    zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()
+    thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()
