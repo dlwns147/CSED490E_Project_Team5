@@ -6414,3 +6414,27 @@ All four pass idea 28's rule, and their differences from the registered checker 
 - So the gate's win over thinking holds for a second model family before any check is added.
 
 **Next domain registered: PREREG_NP** (15:1x UTC). NaturalPlan Trip Planning on Amonkar et al.'s 100 trips, where they find formalizers losing most consistently. 95 of the 100 have exactly one valid plan. A domain-general CP-SAT interface counts the plans (`poc/run_plan.py`). A dev format pilot is queued.
+
+## 2026-11-10 19:5x UTC — GP-LOC step 2: localized feedback does not help the thinking translation either; NaturalPlan interim (gpt-oss-20b, reported row): thinking translation alone ties thinking at twice the tokens; a harness false-pass bug found and fixed
+
+**GP-LOC step 2** (PREREG_GP addendum GP-LOC, test, Qwen3-8B): localized minus generic feedback in the thinking translation, ladder utility pooled **−1.80 [−4.59, +0.79]** over 309 puzzle-seeds (GridPuzzle −1.7, Mitra-Baral −2.1). Generic feedback stays at both steps. GP-LOC is closed: telling the translator which clues conflict does not pay, in line with Sarkar 2026.
+
+**NaturalPlan, gpt-oss-20b (reported row of PREREG_NP; final for `trct` and `think`, 100 trips × 3 seeds).** Its quick-translation rows are being rerun (item below), so the ladder itself is not read yet.
+
+| Arm | Accuracy | ktok | Count-1 precision |
+|---|---|---|---|
+| Thinking | 71.3% | 14.0 | — |
+| Thinking translation alone (`trct`, count 1 gives its plan) | 71.0% | 28.6 | 213 / 215 |
+| D&P-3 (addendum NP-DP) | 93.0% | 87.7 | — |
+| SC-3, majority of 3 thinking answers | 87.0% | 42.0 | — |
+
+- The thinking translation is almost never wrong when it reaches one plan (99%), but it reaches one plan on only 72% of runs, and costs twice thinking's tokens. trct alone − think: −0.3 [−7.3, +6.7] points, so P4 (Amonkar et al.'s verdict reproduced) holds for this model.
+- Majorities pay here: D&P-3 and SC-3 each add 16–22 points over one thinking run, but at 3–6× the tokens. Under our price (0.5 per ktok), SC-3 beats D&P-3 on utility.
+
+**Harness fault (PREREG_NP addendum NP-FIX).** I re-ran all stored final programs under a corrected harness, without model calls. 56 of gpt-oss-20b's 65 wrong quick-translation passes came from the bug: its programs often define `constraints(answer)` returning the list of checks, and the harness treated the returned list as one check that is always true. No other model or arm changed. The three gpt-oss-20b quick-translation runs are rerunning under the fix.
+
+**What remains, read in the programs:**
+- Some quick translations hard-code their own guessed plan as the only candidate (Amonkar et al.'s "hard-coded" failure). A count of 1 over a single candidate checks the guess against the model's constraints, not uniqueness. Single-candidate passes: Qwen3-8B 15 (4 right), Qwen3-32B 6 (1 right), gpt-oss-20b 10 (5 right).
+- Qwen3-32B's thinking translation also writes single-candidate programs, 17 of them, all right.
+- Under the corrected harness, the quick translation's count-1 precision so far is 9 / 25 (Qwen3-8B) and 14 / 22 (Qwen3-32B). P1 (≥ 95% pooled with the thinking translation) is at risk for the deciding model.
+- Unlike grids, the thinking translation's passes stay precise: 107 / 120, 164 / 172, 213 / 215, 159 / 161 across the four models.

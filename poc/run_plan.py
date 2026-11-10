@@ -6,7 +6,8 @@ The interface is not specific to trips: the model writes an OR-Tools CP-SAT mode
 `plan(val)` that renders the answer; the harness (PL_SOLVE) counts distinct rendered answers (projected count: it blocks each found assignment of
 ANSWER until a second, different plan appears or none is left).
 
-usage: run_plan.py <tag> <arm tr|trt|trc|trct|think> <seed> [--dev N (N trips outside Amonkar's 100, spread over the file, so over 3-10 cities)] [--max_tokens N] [--rounds N (default 3)]
+usage: run_plan.py <tag> <arm tr|trt|trc|trct|think> <seed> [--resume (keep the rows already written, run the rest)]
+       run_plan.py --rescore <result files> (re-run stored programs under the current harness, see rescore()) [--dev N (N trips outside Amonkar's 100, spread over the file, so over 3-10 cities)] [--max_tokens N] [--rounds N (default 3)]
 Default: Amonkar et al.'s 100 trips (data/trip_planning_100.json of github.com/rikhil-amonkar/llm-csp). Prompts: NaturalPlan's 5-shot prompt as is
 (as Amonkar et al. use it), with our instruction after the task. Writes results/np_<tag>[_dev]_<arm>_s<seed>.jsonl.
 """
@@ -67,10 +68,13 @@ if callable(constraints):   # dev pilots: `constraints` written as a function re
         constraints = constraints()
     except TypeError:
         constraints = [constraints]
+def _ok(f, a):   # 2026-11-10 19:5x fix: `constraints(answer)` that RETURNS the list of checks was taken as one check, and a non-empty list is true
+    v = f(a)
+    return all((g(a) if callable(g) else bool(g)) for g in v) if isinstance(v, (list, tuple)) else bool(v)
 _t0, _seen, _n = time.time(), [], 0
 for _a in candidates():
     _n += 1
-    if all(_f(_a) for _f in constraints):
+    if all(_ok(_f, _a) for _f in constraints):
         _k = json.dumps(_a, sort_keys=True, default=str)
         if _k not in _seen:
             _seen.append(_k)
@@ -116,7 +120,29 @@ def np_extract(text):
     return g
 
 
+def rescore(paths):
+    """run_plan.py --rescore <results/np_*_trc*.jsonl ...>: re-run each row's final program under the current PC_SOLVE (no model call); writes
+    results/np_rescore.jsonl with id, file, old count, new count, candidates enumerated (n) and whether the new plan is the gold plan."""
+    G = {r["id"]: r for r in map(json.loads, open(os.path.join(os.environ["POC_DATA"], "naturalplan", "trip.jsonl")))}
+    jobs = [(p, json.loads(l)) for p in paths for l in open(p)]
+    def one(pr):
+        p, r = pr
+        res = run_python("import itertools\n" + r["code"] + "\n" + PC_SOLVE, "", timeout=300, mem_bytes=4 << 30) if r.get("code") else None
+        try:
+            out = json.loads(res.stdout.strip().splitlines()[-1])
+        except (AttributeError, IndexError, ValueError):
+            out = {"count": -1, "plan": None}
+        gold = np_norm({"city": c, "start": s_, "end": e} for c, s_, e in G[r["id"]]["gold"])
+        pl = np_norm(out["plan"]) if out.get("plan") is not None else None
+        return {"file": os.path.basename(p), "id": r["id"], "seed": r["seed"], "old": r["count"], "new": out["count"], "n": out.get("n"), "exact": pl == gold, "old_exact": r["exact"]}
+    with ThreadPoolExecutor(32) as ex, open(f"{RES}/np_rescore.jsonl", "w") as f:
+        for x in ex.map(one, jobs):
+            f.write(json.dumps(x) + "\n")
+
+
 def main():
+    if "--rescore" in sys.argv:
+        return rescore([x for x in sys.argv[1:] if not x.startswith("--")])
     a = [x for x in sys.argv[1:] if not x.startswith("--")]
     opt = lambda k, d: int(sys.argv[sys.argv.index(k) + 1]) if k in sys.argv else d
     tag, arm, seed = a[0], a[1], int(a[2])
@@ -139,7 +165,13 @@ def main():
         msgs = [{"role": "user", "content": (NP_TRC if dc else NP_TR).format(p=p)}]
         tok, hist = 0, []
         for rnd in range(nr):
-            o = chat_msgs(msgs, think=arm in ("trt", "trct"), max_tokens=mt, temperature=0.7, seed=sd + rnd)
+            try:
+                o = chat_msgs(msgs, think=arm in ("trt", "trct"), max_tokens=mt, temperature=0.7, seed=sd + rnd)
+            except Exception as e:   # test run 2026-11-10: a repair round's history passed the 40,960-token context; the rounds end there, as on the grids
+                if rnd == 0:
+                    raise
+                hist.append({"count": None, "exact": False, "tokens": 0, "finish": "error", "err": repr(e)[:300]})
+                break
             tok += o["out_tokens"]
             code = last_block(o["text"], ("python", "py", "python3"))
             res = (run_python(("import itertools\n" + code + "\n" + PC_SOLVE) if dc else ("from ortools.sat.python import cp_model\n" + code + "\n" + PL_SOLVE),
@@ -149,7 +181,7 @@ def main():
             except (AttributeError, IndexError, ValueError):
                 out = {"count": -1, "plan": None}
             pl = np_norm(out["plan"]) if out.get("plan") is not None else None
-            hist.append({"count": out["count"], "exact": pl == gold, "tokens": o["out_tokens"], "finish": o["finish"], "err": (res.stderr[-300:] if res else "no code")})
+            hist.append({"count": out["count"], "exact": pl == gold, "tokens": o["out_tokens"], "finish": o["finish"], "n": out.get("n"), "err": (res.stderr[-300:] if res else "no code")})
             if out["count"] == 1:
                 break
             fb = {-1: f"it failed to run: {(res.stderr[-600:] if res else 'no python block')}", -2: "the solver timed out on it",
@@ -160,8 +192,11 @@ def main():
         return {**row, "exact": pl == gold, "plan": pl, "count": out["count"], "tokens": tok, "rounds": len(hist), "hist": hist, "code": code}
 
     path = f"{RES}/np_{tag}{'_dev' if dev else ''}_{arm}_s{seed}.jsonl"
-    with ThreadPoolExecutor(32) as ex, open(path, "w") as f:
-        rows = []
+    rows = []
+    if "--resume" in sys.argv and os.path.exists(path):   # keep the rows a crashed run wrote, run the rest
+        rows = [json.loads(l) for l in open(path)]
+        P = [r for r in P if r["id"] not in {x["id"] for x in rows}]
+    with ThreadPoolExecutor(32) as ex, open(path, "a" if rows else "w") as f:
         for r in ex.map(run, P):
             rows.append(r); f.write(json.dumps(r) + "\n"); f.flush()
     print(tag, arm, seed, f"{sum(r['exact'] for r in rows)}/{len(rows)}", f"tokens {sum(r['tokens'] for r in rows) / len(rows):.0f}", flush=True)
