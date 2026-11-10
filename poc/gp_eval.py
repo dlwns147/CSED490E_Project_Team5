@@ -9,7 +9,7 @@ Only puzzle-seeds present in all three arms are used (the count is printed), so 
 
 python poc/gp_eval.py --loc [tag q8bl] [think tag q8b]: idea 33 on dev, localized feedback (gtrl, gtrtl) minus generic (gtr, gtrt), ladder utility
 per puzzle-seed. Step 1: gtrl vs gtr (seeds 1-3), later steps from seed-1 gtrt and think. Step 2: gtrtl vs gtrt (seed 1), step 1 from seed-1 gtr.
-Both: gtrl+gtrtl vs gtr+gtrt. Rule (docs/notes/IDEAS_COMPUTATION.md row 33): a step's localized arm passes if its point estimate pooled over
+Both: gtrl+gtrtl vs gtr+gtrt. With --test (PREREG_GP addendum GP-LOC; also with --gts): the test split, generic arms and think from the q8b test runs of the same seed. Rule (docs/notes/IDEAS_COMPUTATION.md row 33): a step's localized arm passes if its point estimate pooled over
 both sets is above 0.
 
 python poc/gp_eval.py --gts [tag q8bh] [think tag q8b]: idea 38 on dev, the per-clue search of Schrader et al. (gts) as the middle step in place
@@ -153,12 +153,19 @@ def loc_main():
             ("step 2", lambda sd: ([("gtr", 1), ("gtrtl", 1), ("think", 1)], [("gtr", 1), ("gtrt", 1), ("think", 1)], [1])),
             ("both", lambda sd: ([("gtrl", sd), ("gtrtl", 1), ("think", 1)], [("gtr", sd), ("gtrt", 1), ("think", 1)], [1, 2, 3]))])
     SHOW = [("gtr", [1, 2, 3]), (mid, [1, 2, 3]), ("gtrt", [1])] if g else [("gtr", [1, 2, 3]), ("gtrl", [1, 2, 3]), ("gtrt", [1]), ("gtrtl", [1])]
+    dv, src = "_dev", lambda arm: tag
+    if "--test" in sys.argv:   # PREREG_GP addendum GP-LOC: test split; the generic arms and think are the q8b test runs, seeds 1-3
+        dv, src = "", lambda arm: tag if arm in ("gtrl", "gtrtl", "gts", "gtsj") else ttag
+        CMP = ([(mid, lambda sd: ([("gtr", sd), (mid, sd), ("think", sd)], [("gtr", sd), ("gtrt", sd), ("think", sd)], [1, 2, 3]))] if g else
+               [("step 1", lambda sd: ([("gtrl", sd), ("gtrt", sd), ("think", sd)], [("gtr", sd), ("gtrt", sd), ("think", sd)], [1, 2, 3])),
+                ("step 2", lambda sd: ([("gtr", 1), ("gtrtl", 1), ("think", 1)], [("gtr", 1), ("gtrt", 1), ("think", 1)], [1]))])
+        SHOW = [("gtr", [1, 2, 3]), (mid, [1, 2, 3]), ("gtrt", [1, 2, 3])] if g else [("gtr", [1, 2, 3]), ("gtrl", [1, 2, 3]), ("gtrt", [1, 2, 3]), ("gtrtl", [1])]
     pooled = {k: [] for k, _ in CMP}
     for s in ["gp", "lgp"]:
         R = {}
-        for arm, t, seeds in [(x, tag, sds) for x, sds in SHOW] + [("think", ttag, [1])]:
+        for arm, t, seeds in [(x, src(x), sds) for x, sds in SHOW] + [("think", ttag, [1, 2, 3] if dv == "" else [1])]:
             for sd in seeds:
-                f = os.path.join(RES, f"{s}_{t}_dev_{arm}_s{sd}.jsonl")
+                f = os.path.join(RES, f"{s}_{t}{dv}_{arm}_s{sd}.jsonl")
                 if os.path.exists(f):
                     for r in map(json.loads, open(f)):
                         R[(arm, r["id"], sd)] = r
@@ -173,8 +180,8 @@ def loc_main():
                 if r.get("count") == 1 or k == len(steps) - 1:
                     return 100 * r["exact"] - 0.5 * tok / 1000
         ids = sorted({i for (_, i, _) in R})
-        print(f"== {s} dev: {len(ids)} puzzles")
-        for arm, seeds in SHOW + [("think", [1])]:
+        print(f"== {s} {'dev' if dv else 'test'}: {len(ids)} puzzles")
+        for arm, seeds in SHOW + [("think", [1, 2, 3] if dv == "" else [1])]:
             rs = [R[(arm, i, sd)] for i in ids for sd in seeds if (arm, i, sd) in R]
             one = [r for r in rs if r.get("count") == 1]
             print(f"  {arm:6s} runs {len(rs):3d}  acc {100 * mean([r['exact'] for r in rs]):5.1f}  count-1 {len(one):3d}, precision "
@@ -197,8 +204,9 @@ def loc_main():
             for s, i, d in v:
                 per.setdefault((s, i), []).append(d)
             b = boot({k: mean(x) for k, x in per.items()}, mean)
-            print(f"POOLED {name}: {b[0]:+.1f} [{b[1]:+.1f}, {b[2]:+.1f}] over {len(v)} puzzle-seeds -> "
-                  f"{'passes (pre-register on test)' if b[0] > 0 else 'killed'}" + ("" if name != "both" else " (reported)"))
+            print(f"POOLED {name}: {b[0]:+.2f} [{b[1]:+.2f}, {b[2]:+.2f}] over {len(v)} puzzle-seeds -> " + (
+                  ("replaces the generic arm (interval above 0)" if b[1] > 0 else "generic arm stays") if not dv else
+                  ("passes (pre-register on test)" if b[0] > 0 else "killed")) + ("" if name != "both" else " (reported)"))
 
 
 if __name__ == "__main__":
