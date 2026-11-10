@@ -6310,7 +6310,7 @@ The two sets go opposite ways: on GridPuzzle per-clue wins (132 vs 112 of 160, p
 
 - Thinking cuts misreadings by 3–9 times per clue form. Numeric differences go from 10.6% misread to 1.2%; 85 of 130 misread differences in `gtr` hold once two values swap, i.e. "4 more than" written the wrong way round.
 - Thinking does not reduce translations that allow several grids: 170 in both arms. In `gtrt`, 155 of these have no misread clue; they are too weak. That is the step's largest failure (24% of runs), and the generic feedback ("one clue is wrong") does not describe it.
-- Mitra-Baral is the same pattern at a smaller scale: several solutions without a misreading are 15 → 12 runs of 282, misreadings fall from 104 programs to 21.
+- Mitra-Baral is the same pattern at a smaller scale: several solutions without a misreading are 30 → 26 runs of 282, while programs with a misreading fall from 90 to 18.
 
 **Which clues are too weak.** Judged against a right translation of the same puzzle (a one-solution right program from another seed or arm; puzzles that have one), a clue is weak if its expressions allow an assignment the right program's expressions for it rule out. In `gtrt` on GridPuzzle, weak rates are 17% for "Of A and B, one is X and the other Y", 19% for "A, B and C are all different", 11% for "either A or B", and 0–7% for order, difference, equality and negation clues. 31 of 33 several-solution programs have a weak clue, against 61 of 220 right programs, so a weak clue is nearly necessary for the failure, not sufficient.
 
