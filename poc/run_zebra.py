@@ -430,6 +430,7 @@ def zl_main():
 
 # GridPuzzle (Tyagi et al. 2024; Puzzle Baron puzzles written by people), idea 27: does the ZebraLogic count gate survive human-written clues? The first category is ordered
 # and plays the houses' role. usage: run_zebra.py --gp <tag> <arm gtr|gtrt|think|gtrl|gtrtl|thinkf|gts> <seed> [--dev] [--max_tokens N] [--set gridpuzzle|lgp] [--ref <tag> for thinkf]
+# [--ids <file of puzzle ids>] [--rounds N (default 3)]
 GP_SOLVE = """
 import ast, itertools, json, re
 from ortools.sat.python import cp_model
@@ -681,6 +682,10 @@ def gp_main():
     mt = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else 4096 if arm in ("gtr", "gtrl") else 16000   # gtrt: 21 of 94 dev rounds hit 8192 with no code
     src = sys.argv[sys.argv.index("--set") + 1] if "--set" in sys.argv else "gridpuzzle"   # or lgp: Mitra and Baral's puzzles (poc/gp_prep.py --lgp)
     P = [r for r in map(json.loads, open(os.path.join(os.environ["POC_DATA"], src, "grid.jsonl"))) if r["split"] == ("dev" if dev else "test")]
+    if "--ids" in sys.argv:   # idea 39: fresh first attempts on a listed subset of puzzles (one id per line)
+        keep = set(open(sys.argv[sys.argv.index("--ids") + 1]).read().split())
+        P = [r for r in P if r["id"] in keep]
+    nr = int(sys.argv[sys.argv.index("--rounds") + 1]) if "--rounds" in sys.argv else 3   # idea 39: --rounds 1 = first attempt only
     ref = {}
     if arm == "thinkf":   # idea 34: thinking with the clues also given as a right translation (reading removed, search kept); --ref <tag> names the runs it comes from
         rt = sys.argv[sys.argv.index("--ref") + 1]
@@ -707,7 +712,7 @@ def gp_main():
             return {**row, **gp_search(r, sd, first, fv, cols, n, solve)}
         msgs = [{"role": "user", "content": GP_TR.format(p=r["puzzle"], cols=cols, first=first, fv=", ".join(fv), n=n, f0=fv[0])}]
         tok, hist = 0, []
-        for rnd in range(3):
+        for rnd in range(nr):
             o = chat_msgs(msgs, think=arm in ("gtrt", "gtrtl"), max_tokens=mt, temperature=0.7, seed=sd + rnd)
             tok += o["out_tokens"]
             code = last_block(o["text"], ("python", "py", "python3"))
