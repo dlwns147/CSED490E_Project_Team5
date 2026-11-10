@@ -6467,3 +6467,17 @@ All four pass idea 28's rule, and their differences from the registered checker 
 - **On utility, those repairs are not needed:** a ladder that escalates at the first count other than 1 ties the registered ladder for all four models. The count's value on trips is deciding when to escalate, not driving repairs.
 - **The quick translation costs utility on trips:** dropping it helps three models by 2.5–6.2 points. For the three models where it hurts, its passes are rare (7–29% of runs) and imprecise, and a wrong pass stops the ladder where the thinking translation would often be right. For gpt-oss-120b, whose quick passes are 95% precise, dropping it ties.
 - These are post-hoc and do not change the registered decision; any use of them needs a fresh registered test.
+
+## 2026-11-10 22:1x UTC — PREREG_NPC: the grid clue check does not carry to trips; Qwen3-32B's checker flags 59% of right plans because it misapplies the day convention
+
+**Why this test.** On trips, the solution count lets through wrong plans that keep exactly one solution: a misreading that shifts the whole schedule (FINDINGS 21:1x). On grids, the same model checking the solver's answer against the text fixed this (PREREG_GC), so I registered the same check for trips before any run.
+
+- **Qwen3-32B (decides):**
+  - Its checker flags every wrong plan (18/18), and also 115 of 196 right plans.
+  - Precision of what it leaves is 98.7%, so the registered precision test passes. It passes only by flagging most plans, a flaw in the criterion I registered (precision without coverage).
+  - Checked ladder − plain ladder: −14.7 [−20.7, −8.8] utility. Checked ladder − thinking: +0.7 [−2.8, +4.4], a tie. The check does not work on trips.
+- **Other models:** Qwen3-8B, −0.2 against the plain ladder (22/123 right plans flagged); gpt-oss-120b, −0.6 (18/405); gpt-oss-20b, +1.3 [−0.4, +3.2], with 69 of 301 checks cut off at 8,000 tokens.
+  - Even a perfect check could add at most +1.4 to +4.8 utility (computed before the run).
+- **Cause, from the checker's texts:** it counts a stay of days 9–13 as 4 days, and adds the stays as the total ("22 instead of 21"). That is the day convention again, now misapplied to right plans. The translator and the checker share the one hard reading of the domain, so a same-model check cannot catch the translator's misreading of it.
+- **Process fault:** I read the dev checks while they were still being written and recorded "two rows". The full dev files had 17 and 34 rows, and gpt-oss-20b's had 15% cut off, which would have allowed one format change. Corrected in PREREG_NPC.
+- **Trips closed.** The plain ladder beats thinking on utility for 3 of 4 models (+15.4 for Qwen3-32B), but neither the count alone nor count plus check is a precise gate here. Grids remain the domain where the full method is valid.
