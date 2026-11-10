@@ -429,7 +429,7 @@ def zl_main():
 
 
 # GridPuzzle (Tyagi et al. 2024; Puzzle Baron puzzles written by people), idea 27: does the ZebraLogic count gate survive human-written clues? The first category is ordered
-# and plays the houses' role. usage: run_zebra.py --gp <tag> <arm gtr|gtrt|think> <seed> [--dev] [--max_tokens N] [--set gridpuzzle|lgp]
+# and plays the houses' role. usage: run_zebra.py --gp <tag> <arm gtr|gtrt|think|gtrl|gtrtl> <seed> [--dev] [--max_tokens N] [--set gridpuzzle|lgp]
 GP_SOLVE = """
 import ast, itertools, json, re
 from ortools.sat.python import cp_model
@@ -499,6 +499,62 @@ if cb.s:
         g[a] = row
 print(json.dumps({"count": len(cb.s), "grid": g}))
 """
+# idea 33, arm gtrl / gtrtl: the solver says WHERE a failed translation goes wrong, not only that it does. Built from GP_SOLVE's own text (unchanged), with the
+# model built for a subset of the clue list. No solution: a minimal set of the model's clue expressions that already has none (deletion filtering, as in the
+# minimal-core repair of Sarkar 2026, 2608.14771; correct expressions all hold on the true grid, so the set contains a wrong one). More than one: two of the
+# solutions, which some clue as written rules out.
+def _gp_diag_src():
+    a, b = GP_SOLVE.index("m, v = cp_model.CpModel(), {}"), GP_SOLVE.index("s = cp_model.CpSolver()")
+    body = GP_SOLVE[a:b].replace("for c in clues:", "for c in [clues[i] for i in _sel]:")
+    return (GP_SOLVE[:a] + "def _build(_sel):\n" + "".join("    " + ln + "\n" for ln in body.splitlines()) + "    return m, v\n" + """
+def _sols(sel):
+    m, v = _build(sel)
+    s = cp_model.CpSolver(); s.parameters.enumerate_all_solutions = True; s.parameters.num_workers = 1
+    cb = _C(v); s.Solve(m, cb)
+    return cb.s
+def _grid(x):
+    g = {}
+    for a, vals in groups.items():
+        row = [None] * n
+        for y in vals:
+            row[x[f"{a}:{y}"] - 1] = y
+        g[a] = row
+    return g
+allc = list(range(len(clues)))
+S = _sols(allc)
+if not S:
+    core = list(allc)
+    for i in list(core):
+        if not _sols([j for j in core if j != i]):
+            core.remove(i)
+    print(json.dumps({"core": core}))
+elif len(S) >= 2:
+    print(json.dumps({"grids": [_grid(S[0]), _grid(S[1])]}))
+else:
+    print(json.dumps({}))
+""")
+GP_DIAG = _gp_diag_src()
+
+
+def gp_feedback(code, solve_diag, out, fv, first):
+    """Localized feedback for gtrl / gtrtl; None when the diagnosis fails (the generic message is used then)."""
+    if out["count"] not in (0, 2):
+        return None
+    res = run_python(code + "\n" + solve_diag, "", timeout=60, mem_bytes=4 << 30)
+    try:
+        d = json.loads(res.stdout.strip().splitlines()[-1])
+    except (AttributeError, IndexError, ValueError):
+        return None
+    if out["count"] == 0 and d.get("core") is not None:
+        return ("the clues as you wrote them have no solution. The solver found that these entries of your `clues` list (counting from 0) already have no solution "
+                f"together, even with all the other entries removed: {d['core']}. At least one of them says something its clue does not; compare each with its clue")
+    if out["count"] == 2 and d.get("grids"):
+        tab = lambda g: "\n".join(f"{x} | " + " | ".join(f"{a}: {g[a][k]}" for a in g) for k, x in enumerate(fv))
+        return ("the clues as you wrote them allow more than one solution, for example these two (one row per " + first + "):\n" + tab(d["grids"][0]) + "\n\nand\n" +
+                tab(d["grids"][1]) + "\n\nThe puzzle has only one, so some clue rules out one of them and your expression for it is missing or too weak; find that clue")
+    return None
+
+
 GP_TR = ("{p}\n\nDo not solve the puzzle. Translate it. Give one ```python block that defines three things. `VALUES`: the list of numbers that the {first} stand for, in the order "
          "listed ({fv}); use the number itself for years, prices, ages, times or counts (7:30am is 7.5), the month number for months (January is 1), and 1, 2, 3, ... for words like first. "
          "`groups`: a dict from each other category to the list of its values, with exactly these category names: {cols}. `clues`: a list with one Python expression, as a string, for each clue. "
@@ -528,7 +584,7 @@ def gp_score(g, r):
 def gp_main():
     tag, arm, seed = sys.argv[2], sys.argv[3], int(sys.argv[4])
     dev = "--dev" in sys.argv
-    mt = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else 4096 if arm == "gtr" else 16000   # gtrt: 21 of 94 dev rounds hit 8192 with no code
+    mt = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else 4096 if arm in ("gtr", "gtrl") else 16000   # gtrt: 21 of 94 dev rounds hit 8192 with no code
     src = sys.argv[sys.argv.index("--set") + 1] if "--set" in sys.argv else "gridpuzzle"   # or lgp: Mitra and Baral's puzzles (poc/gp_prep.py --lgp)
     P = [r for r in map(json.loads, open(os.path.join(os.environ["POC_DATA"], src, "grid.jsonl"))) if r["split"] == ("dev" if dev else "test")]
 
@@ -545,7 +601,7 @@ def gp_main():
         msgs = [{"role": "user", "content": GP_TR.format(p=r["puzzle"], cols=cols, first=first, fv=", ".join(fv), n=n, f0=fv[0])}]
         tok, hist = 0, []
         for rnd in range(3):
-            o = chat_msgs(msgs, think=arm == "gtrt", max_tokens=mt, temperature=0.7, seed=sd + rnd)
+            o = chat_msgs(msgs, think=arm in ("gtrt", "gtrtl"), max_tokens=mt, temperature=0.7, seed=sd + rnd)
             tok += o["out_tokens"]
             code = last_block(o["text"], ("python", "py", "python3"))
             res = run_python(code + "\n" + solve, "", timeout=30, mem_bytes=4 << 30) if code else None
@@ -559,6 +615,10 @@ def gp_main():
                 break
             fb = {-1: f"it failed to run: {(res.stderr[-600:] if res else 'no python block')}", 0: "the clues as you wrote them have no solution, so one of them is wrong",
                   2: "the clues as you wrote them allow more than one solution, so one of them is missing or too weak"}[out["count"]]
+            if arm in ("gtrl", "gtrtl"):
+                loc = gp_feedback(code, GP_DIAG.replace("__FIRST__", json.dumps(fv)).replace("__FNAME__", json.dumps(first)), out, fv, first)
+                hist[-1]["loc"] = loc is not None
+                fb = loc or fb
             # only the program goes back: a reply cut at the cap keeps its unclosed thinking, and one dev round sent 18k tokens of it past the 34k context
             msgs += [{"role": "assistant", "content": f"```python\n{code.rstrip()}\n```" if code else "(no python block)"},
                      {"role": "user", "content": f"The puzzle has exactly one solution, but {fb}. Compare each clue with the puzzle and give the complete corrected ```python block."}]
