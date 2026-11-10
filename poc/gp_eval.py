@@ -412,6 +412,11 @@ def np_main():
         print(f"  NPC {ca}: {len(C)} checks, {kc / 1000:.2f} ktok each; wrong plans flagged {sum(bool(x['violated']) for x in W)}/{len(W)}, right plans flagged "
               f"{sum(bool(x['violated']) for x in C.values() if x['exact'])}/{len(C) - len(W)}, unparsed {sum(x['violated'] is None for x in C.values())}"
               + (f"; {miss} count-1 steps without a check row" if miss else ""))
+        # addendum NPC-T: wrong plans by error type; "overlap only" = the plan's one break is a dated event overlapping, not inside, its stay
+        from np_uniq import error_types
+        ET = error_types(os.path.join(os.environ.get("POC_DATA", os.path.join(RES, "..", "..", "nlp_data")), "naturalplan_dl", "a_trip_planning_100_constraints.json"))
+        ov = [x for x in W if ET[x["id"]](R[(x["tr"], x["id"], x["seed"])]["plan"]) == frozenset(["event_overlap_only"])]
+        print(f"  NPC-T wrong plans flagged: overlap only {sum(bool(x['violated']) for x in ov)}/{len(ov)}, other {sum(bool(x['violated']) for x in W if x not in ov)}/{len(W) - len(ov)}")
         print(f"  NPC-P1 unflagged count-1 precision on the checked ladder: {sum(kept)}/{len(kept)} = {100 * mean(kept):.1f}% (holds if >= 95)")
         ut = lambda D: {i: mean(D[i]) for i in nc}
         cl, th = ut(CL), {i: mean([100 * x[0] - 0.5 * x[1] / 1000 for x in thk[i]]) for i in nc}

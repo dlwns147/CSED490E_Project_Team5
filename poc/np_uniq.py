@@ -40,6 +40,38 @@ def valid_plans(path):
         out[k] = {tuple((x.lower(), s, e) for x, s, e in p) for p in count(C, "cover")}
     return out
 
+def error_types(path):
+    """PREREG_NPC addendum NPC-T: {trip id: f(plan) -> frozenset of the ways a plan breaks the task}: cities (wrong set), total (not day 1 to the
+    last day), dayafter (every stay starts the day after the last ends), gap (other start-day mismatch), stay (length), flight (no direct flight),
+    event_overlap_only (a dated event overlaps the stay but is not inside it: right under the "overlap" reading), event_miss; none if no break."""
+    out = {}
+    for k, v in json.load(open(path)).items():
+        C = ast.literal_eval(v["constraints"]) if isinstance(v["constraints"], str) else v["constraints"]
+        L = {d["city"].lower(): d["days"] for d in C["city_length"]}
+        E = set(); fl = v["prompt_0shot"].split("direct flights:")[1].split("\n\n")[0].strip().rstrip(".")
+        for part in fl.split(", "):
+            part = part.strip()
+            if part.startswith("from "):
+                a, b = part[5:].split(" to "); E.add((a.strip().lower(), b.strip().lower()))
+            else:
+                a, b = part.split(" and "); E.add((a.strip().lower(), b.strip().lower())); E.add((b.strip().lower(), a.strip().lower()))
+        R = collections.defaultdict(list)
+        for r in C["city_day_ranges"]: R[r["city"].lower()].append((r["start"], r["end"]))
+        def f(plan, L=L, E=E, R=R, T=C["trip_length"]):
+            P = [(c.lower(), s, e) for c, s, e in plan]; t = set()
+            if sorted(c for c, _, _ in P) != sorted(L): t.add("cities")
+            if P[0][1] != 1 or P[-1][2] != T: t.add("total")
+            if len(P) > 1 and all(P[i + 1][1] == P[i][2] + 1 for i in range(len(P) - 1)): t.add("dayafter")
+            elif any(P[i + 1][1] != P[i][2] for i in range(len(P) - 1)): t.add("gap")
+            if any(c in L and e - s + 1 != L[c] for c, s, e in P): t.add("stay")
+            if any((P[i][0], P[i + 1][0]) not in E for i in range(len(P) - 1)): t.add("flight")
+            for c, s, e in P:
+                for a, b in R.get(c, []):
+                    if not (s <= a and b <= e): t.add("event_overlap_only" if not (e < a or s > b) else "event_miss")
+            return frozenset(t) or frozenset(["none"])
+        out[k] = f
+    return out
+
 
 if __name__ == "__main__":
     c = json.load(open(sys.argv[1]))

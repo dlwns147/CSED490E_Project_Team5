@@ -128,3 +128,32 @@ In NPC-X the checker differed from the translator in two ways. It was from anoth
   - The checker's own reading of the domain's hard part decides how often it flags right plans (59% for the 32B checker on either model's plans; 1–6% for gpt-oss-120b on any model's).
   - Independence decides how many wrong plans it catches: gpt-oss-120b catches 17/18 and 30/30 of other models' wrong plans, but only 9/16 of its own.
   - A useful free check needs both: a checker that reads the trap right and does not share the translator's errors.
+
+### Addendum NPC-T, registered 2026-11-10 23:5x UTC, before any of its runs: is a miss decided by the error's type or by who wrote the plan?
+
+**Why.** The NPC-X2 reading above says a checker catches other models' errors but not its own ("independence"). Reading the 16 wrong plans of gpt-oss-120b that its own check sees, by the way each plan breaks the task (`poc/np_uniq.py error_types`, applied to every stored wrong count-1 plan; `poc/gp_eval.py --np <tag> --check <label>` prints the split), points elsewhere:
+- 5 of the 16 break the task in one way only: a dated event ("meet a friend in Naples between day 18 and day 20") overlaps the stay but is not inside it. This is right under the "overlap" reading of the window and wrong under the task's ("inside", the reading under which 95 of the 100 trips have one plan). The gpt-oss-120b checker flags 0 of these 5, the Qwen3-32B checker 1 of 5, and gpt-oss-20b flags 1 of its own 7.
+- On every other wrong plan, gpt-oss-120b flags 9 of its own 11, and 47 of 48 of the Qwen models'.
+- Qwen3-8B's and Qwen3-32B's wrong passes contain no plan of the overlap-only type. So "it misses its own errors" may only mean "its own errors include a type that no checker reads as an error".
+- Example, trip 1392: gpt-oss-120b's program reads the Naples window as an overlap and, after a count of 2, adds a requirement the task does not state ("in Split on some day 14–18"), which pins one plan. The checker reads the plan against the text; it sees the window the same way and passes it.
+
+**Two explanations, two predictions.**
+- **Type:** whether a checker flags a wrong plan depends on the kind of break and the checker's own reading of it, not on who wrote the plan; the window reading is shared by all four models.
+- **Identity:** a checker misses errors of its own model (or family); a checker from the other family catches the overlap-only plans.
+
+**Runs** (PREREG_NPC's prompt, thinking, 8,000 tokens, temperature 0.7, the same seeds; labels `checkt_<checker>`):
+1. Qwen3-8B checks gpt-oss-120b's 421 plans and gpt-oss-20b's 301 (other family; 12 overlap-only wrong plans).
+2. Qwen3-32B checks gpt-oss-20b's 301 plans (other family; 7 overlap-only).
+3. gpt-oss-120b checks gpt-oss-20b's 301 plans (same family; 7 overlap-only, 20 other).
+4. Qwen3-32B checks Qwen3-8B's 153 plans, and Qwen3-8B checks Qwen3-32B's 214 (false flags only).
+
+**Predictions** (counts of flags; unparsed reads as no flag, as registered):
+- **T1 (type):** each of Qwen3-8B (run 1, 12 plans) and Qwen3-32B (run 2 with its 1/5 above, 12 plans) flags at most 3 of 12 overlap-only wrong plans, and gpt-oss-120b (run 3) at most 2 of 7.
+- **T2 (type):** gpt-oss-120b flags at least 16 of gpt-oss-20b's 20 other wrong plans, as it does other models' (47/48), although they share a family.
+- **T3 (false flags are the checker's):** the share of right plans flagged lies, for Qwen3-8B, in [10%, 30%] on each of gpt-oss-120b's, gpt-oss-20b's and Qwen3-32B's plans (own: 22/123 = 18%); for Qwen3-32B, in [45%, 70%] on gpt-oss-20b's and Qwen3-8B's (own 59%, gpt-oss-120b's 59%); for gpt-oss-120b, at most 8% on gpt-oss-20b's (1–6% so far).
+
+**Decision.**
+- **T1 and T2 hold:** the claim in FINDINGS changes from "catches follow independence from the translator" to "a check catches the breaks the checker reads as breaks; a reading every model shares (here the event window) is invisible to any of them, whoever wrote the plan". The paper's condition for a useful free check then reads: the checker must read each requirement the way the task does, and translator identity matters only through which kinds of break it makes.
+- **A Qwen checker flags at least 6 of 12 overlap-only plans:** the window reading differs by family, and the identity reading of NPC-X2 stands for this break.
+- **T2 fails** (gpt-oss-120b flags fewer than 16 of 20): sharing a family hides errors beyond the window reading; read the missed plans.
+- T3 is read on its own: a miss means false flags depend on the plans seen, not only on the checker.
