@@ -429,7 +429,7 @@ def zl_main():
 
 
 # GridPuzzle (Tyagi et al. 2024; Puzzle Baron puzzles written by people), idea 27: does the ZebraLogic count gate survive human-written clues? The first category is ordered
-# and plays the houses' role. usage: run_zebra.py --gp <tag> <arm gtr|gtrt|think|gtrl|gtrtl|thinkf> <seed> [--dev] [--max_tokens N] [--set gridpuzzle|lgp] [--ref <tag> for thinkf]
+# and plays the houses' role. usage: run_zebra.py --gp <tag> <arm gtr|gtrt|think|gtrl|gtrtl|thinkf|gts> <seed> [--dev] [--max_tokens N] [--set gridpuzzle|lgp] [--ref <tag> for thinkf]
 GP_SOLVE = """
 import ast, itertools, json, re
 from ortools.sat.python import cp_model
@@ -555,6 +555,97 @@ def gp_feedback(code, solve_diag, out, fv, first):
     return None
 
 
+# arm gts: the test-time search of Schrader et al. 2025 (2512.17093, closest prior work for idea 38; no fine-tuning here), on our interface. The model writes VALUES
+# and groups, then each clue in turn as `new = [...]`; per clue, N = 5 samples at temperature 1.0 are run with the clues so far, and the one with the highest
+# reward 1/M is kept (M = number of solutions, counted up to GP_CAP; an error or no solution scores -1). If all score -1, 2N more are sampled; if still none,
+# the search goes back once per puzzle to the previous clue's next-best sample (their GridPuzzles setting), else the clue is left out. Final: GP_SOLVE as usual.
+GP_N, GP_CAP = 5, 1000   # N as in the paper; the cap is ours (the paper sets one by hand without giving it), not tuned
+GP_HDR = "\n\nThis time give `clues = []` (an empty list): the clues will be translated one at a time afterwards."
+GP_ONE = ("{p}\n\nThe puzzle is being translated to Python one clue at a time. The translation so far (the clues before this one are in `clues`):\n```python\n{prog}\n```\n"
+          "In an expression, p['category:value'] is the number (from VALUES) of the {first} that value goes with. "
+          "Examples: \"p['A:x'] == p['B:y']\" (x goes with y), \"p['A:x'] > p['B:y']\" (x is later or more than y), \"p['A:x'] - p['B:y'] == 4\" (x is 4 more than y), "
+          "\"p['A:x'] == 4\" (x goes with the {first} whose number is 4), \"p['A:x'] != p['B:y']\", \"p['A:x'] in (p['B:y'], p['B:z'])\" (x is either y or z), and for \"of x and y, one is z and the other is w\": "
+          "\"(p['A:x'] == p['C:z'] and p['B:y'] == p['C:w']) or (p['A:x'] == p['C:w'] and p['B:y'] == p['C:z'])\". Keep each value exactly as the puzzle writes it.\n\n"
+          "Now translate only clue {j}: \"{text}\". Do not solve the puzzle. Give one ```python block that defines `new`: a list of one or more Python expressions, "
+          "as strings, that together say exactly what this clue says.")
+
+
+def gp_clues(puzzle):
+    t = puzzle.split("Clues:")[1].split("While answering")[0] if "Clues:" in puzzle else ""
+    return re.findall(r"^\s*\d+\.\s*(.+)$", t, re.M)
+
+
+def gp_search(r, sd, first, fv, cols, n, solve):
+    """Arm gts (see GP_N above). Returns the row fields; tokens are all sampled output tokens."""
+    cap = solve.replace("if len(self.s) >= 2:", f"if len(self.s) >= {GP_CAP}:")
+    assert cap != solve
+    tok = [0]
+
+    def sample(q, k, seed0, mt):
+        with ThreadPoolExecutor(k) as ex:
+            outs = list(ex.map(lambda i: chat_msgs([{"role": "user", "content": q}], think=False, max_tokens=mt, temperature=1.0, seed=seed0 + i), range(k)))
+        tok[0] += sum(o["out_tokens"] for o in outs)
+        return [last_block(o["text"], ("python", "py", "python3")) for o in outs]
+
+    def score(prog):   # -> (reward, count)
+        res = run_python(prog + "\n" + cap, "", timeout=60, mem_bytes=4 << 30)
+        try:
+            out = json.loads(res.stdout.strip().splitlines()[-1])
+        except (AttributeError, IndexError, ValueError):
+            return -1, -1
+        return (1 / out["count"] if out["count"] > 0 else -1), out["count"]
+
+    def new_of(c):   # the sample's `new`, read in the sandbox on its own, so a sample cannot change the program around it
+        res = run_python(c + "\nimport json\nprint(json.dumps({'new': new}))", "", timeout=30, mem_bytes=1 << 30)
+        try:
+            nw = json.loads(res.stdout.strip().splitlines()[-1])["new"]
+        except (AttributeError, IndexError, ValueError, KeyError, TypeError):
+            return None
+        return nw if isinstance(nw, list) and nw and all(isinstance(x, str) for x in nw) else None
+
+    hdr = None
+    for c in sample(GP_TR.format(p=r["puzzle"], cols=cols, first=first, fv=", ".join(fv), n=n, f0=fv[0]) + GP_HDR, GP_N, sd, 2048):
+        if c:
+            c = c + "\nclues = []"   # a header that wrote clues anyway keeps none of them
+            if score(c)[0] > 0:
+                hdr = c
+                break
+    if hdr is None:
+        return {"exact": False, "cell_acc": 0.0, "count": -1, "tokens": tok[0], "steps": [], "code": None}
+    cl = gp_clues(r["puzzle"])
+    chosen, alts, steps, back, j = [], [], [], 1, 0
+    while j < len(cl):
+        prog = hdr + "\nclues = " + json.dumps(sum(chosen, [])) + "\n"
+        q = GP_ONE.format(p=r["puzzle"], prog=prog, first=first, j=j + 1, text=cl[j])
+        cands = []
+        for k, m in [(GP_N, 0), (2 * GP_N, GP_N)]:
+            for c in sample(q, k, sd + 7919 * (j + 1) + 104729 * (2 - back) + m, 1024):
+                nw = new_of(c) if c else None
+                if nw:
+                    cands.append(score(prog + "clues = clues + " + json.dumps(nw)) + (nw,))
+                else:
+                    cands.append((-1, -1, None))
+            if max([x[0] for x in cands] or [-1]) > 0:
+                break
+        good = sorted([x for x in cands if x[0] > 0], key=lambda x: -x[0])
+        cs = [[x[1], x[2]] for x in cands]   # every sample's count and expressions, kept for idea 38 (joint choice by uniqueness, offline)
+        if good:
+            chosen.append(good[0][2]); alts.append(good[1:]); steps.append({"clue": j, "count": good[0][1], "samples": len(cands), "cands": cs}); j += 1
+        elif back and j > 0 and alts[-1]:
+            back -= 1
+            chosen[-1] = alts[-1].pop(0)[2]; steps.append({"clue": j, "back": True, "samples": len(cands), "cands": cs})
+        else:
+            chosen.append([]); alts.append([]); steps.append({"clue": j, "skipped": True, "samples": len(cands), "cands": cs}); j += 1
+    code = hdr + "\nclues = " + json.dumps(sum(chosen, [])) + "\n"
+    res = run_python(code + "\n" + solve, "", timeout=60, mem_bytes=4 << 30)
+    try:
+        out = json.loads(res.stdout.strip().splitlines()[-1])
+    except (AttributeError, IndexError, ValueError):
+        out = {"count": -1, "grid": {}}
+    ex, ca = gp_score(out["grid"], r)
+    return {"exact": ex, "cell_acc": ca, "count": out["count"], "tokens": tok[0], "steps": steps, "code": code}
+
+
 GP_TR = ("{p}\n\nDo not solve the puzzle. Translate it. Give one ```python block that defines three things. `VALUES`: the list of numbers that the {first} stand for, in the order "
          "listed ({fv}); use the number itself for years, prices, ages, times or counts (7:30am is 7.5), the month number for months (January is 1), and 1, 2, 3, ... for words like first. "
          "`groups`: a dict from each other category to the list of its values, with exactly these category names: {cols}. `clues`: a list with one Python expression, as a string, for each clue. "
@@ -612,6 +703,8 @@ def gp_main():
             ex, ca = gp_score(zl_extract(o["text"]), r)
             return {**row, "exact": ex, "cell_acc": ca, "tokens": o["out_tokens"], "finish": o["finish"], "text": (o["text"] or "")[-1500:]}
         solve = GP_SOLVE.replace("__FIRST__", json.dumps(fv)).replace("__FNAME__", json.dumps(first))
+        if arm == "gts":
+            return {**row, **gp_search(r, sd, first, fv, cols, n, solve)}
         msgs = [{"role": "user", "content": GP_TR.format(p=r["puzzle"], cols=cols, first=first, fv=", ".join(fv), n=n, f0=fv[0])}]
         tok, hist = 0, []
         for rnd in range(3):

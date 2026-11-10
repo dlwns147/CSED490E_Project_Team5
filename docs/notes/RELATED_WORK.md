@@ -391,3 +391,20 @@ Three web searches, on translating AlphaGeometry or Newclid proofs into Lean or 
 ## Chain-of-Verification (Dhuliawala et al., 2309.11495; read via the arXiv HTML, 2026-11-10)
 
 The model drafts an answer, plans verification questions, answers them, then revises. Answering each question in its own prompt without the draft ("factored") beat answering them together ("joint") on all four tasks with Llama 65B: Wikidata list precision 0.32 vs 0.29 (2-step 0.36), Wiki-Category 0.22 vs 0.15, MultiSpanQA F1 0.48 vs 0.46, biography FactScore 63.7 vs 60.8 (factor+revise 71.4). The authors' explanation is that the model cannot attend to, and so copy, its earlier hallucinations. Costs are noted as higher but not reported, and there is no equal-compute control. Difference from our check (ideas 31–32): our draft is the solver's grid, not the model's text, so there is no hallucination to copy; what could carry over is a misreading of the table across clues.
+
+## Solver feedback per clue on the same benchmarks: Schrader et al. 2512.17093, and Sarkar 2608.14771 (read 2026-11-10 08:4x UTC via the arXiv HTML)
+
+**Schrader, Lange, Kaminski, Razniewski, Friedrich (Bosch / Augsburg / Dresden), arXiv Dec 2025.** The closest prior work for ideas 33 and 38, on the same two benchmarks we use. An LLM writes Answer Set Programming for a grid puzzle one clue at a time; after each clue clingo runs the partial program. Training: per clue, 5 samples at temperature 0.8, a sample is "chosen" if the ground truth is still among its answer sets; fine-tuning (LoRA) on chosen samples. Test-time search: per clue, N = 5 samples (temperature 1.0), keep the one with the highest reward 1/M (M answer sets) minus penalties for errors and no answer set; if all are negative, sample 2N more, then backtrack (once on GridPuzzles); greedy. A program with more than one answer set counts as wrong. Results (accuracy, two-shot / six-step pipeline of Ishay et al.):
+
+| Model | LogicPuzzles (Mitra-Baral, 48 clean test) | GridPuzzles (274) |
+|---|---|---|
+| Llama-3.3 70B, fine-tuned + search | 66.8 / 78.4 | 23.7 / 55.5 |
+| Qwen3 32B, fine-tuned + search | 50.3 / 67.6 | 33.9 / 37.2 |
+| Qwen3 8B, fine-tuned + search | 43.2 / 24.3 | 21.2 / 16.1 |
+| DeepSeek-R1 distill Qwen 32B, no ASP | 62.1 | 18.2 |
+
+They report output tokens only relative to each other (search tokens grow linearly with N); no thinking-mode baseline of the same model. Uniqueness is used only as "fewer answer sets is better" in a greedy reward, not as a joint condition.
+
+**Where we stand against it.** Qwen3-8B without fine-tuning: thinking alone 63.7% on our 215 GridPuzzle test puzzles and 85.5% on 94 Mitra-Baral test puzzles; the checked ladder 74.7% and 93.6% (PREREG_GP, PREREG_GC). The sets differ (we drop 19 GridPuzzle puzzles in preparation and use a different Mitra-Baral split), so this is not a paired comparison; it says that their GridPuzzles numbers are far below what thinking alone reaches with an 8B model at 32k tokens, so the baseline any solver method must beat is thinking, which they do not run. Their search is the prior method for a per-clue middle step: arm `gts` in `run_zebra.py --gp` reimplements it on our interface (no fine-tuning, our solver and prompt), as a baseline and as a candidate middle step.
+
+**Sarkar 2608.14771** (IJCAI-ECAI 2026 workshop): minimal-core repair for ASP on 77 templated instances with gemma 31B: 89.6% vs generic repair 88.3% (p = 1.0), chain-of-thought 98.7%; no token counts, no several-solution case. Our idea 33 dev result on the cheap step agrees with this null so far.
