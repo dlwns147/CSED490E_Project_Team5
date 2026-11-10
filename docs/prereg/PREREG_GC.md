@@ -49,3 +49,19 @@ Reading: the check catches most wrong quick translations (72%) but only 27% of w
 - Beside prior work: 93.6% against GPT-4 writing ASP, 92% (Ishay et al. 2023).
 
 **Decision, as registered.** GC-P1 and GC-P2 hold, so the clue check is part of the gate on human-written grids, and the AR-LSAT gate is named as the next place to test it. Before running it, I bounded what any check could do there. On the AR-LSAT test runs of `PREREG_LS.md` (690 question-seeds, think rescored with the `\boxed{}` fix), a perfect check costing 0.9 ktok sends all 15 wrong one-mark answers to thinking and none of the 145 right ones. That gives ladder − think +0.3 [−0.4, +1.2], still a tie. No real check can beat a perfect one, so a check cannot change LS-P1's verdict, and the AR-LSAT run is not made. The reason AR-LSAT differs: the gate there covers only 23% of questions and is wrong on just 15. On grids, the gate covers most puzzles and thinking fails on large ones.
+
+## Addendum: a second model size, Qwen3-32B (GC32)
+
+Written 2026-11-10 02:2x UTC, before any test output from Qwen3-32B exists. Only its dev translation pilot has been read: `gtr` count-1 precision 80/85 on GridPuzzle and 104/106 on Mitra-Baral.
+
+**Why.** All results above use Qwen3-8B. If the ladder's edge comes from thinking failing at search on large grids (GridPuzzle 4×6: think 23.1%, checked ladder 57.7%), then a stronger thinker should narrow it. The open question is whether it closes. A paper claim needs to know whether the method works only because the 8B thinker is weak.
+
+**Setup.** As above, with Qwen3-32B-AWQ (2 × RTX 3090, tensor parallel) as translator, checker and thinker. Tag `q32a`. Both test sets, seeds 1, 2, 3, arms `gtr`, `gtrt`, `think` (32,000 tokens), then `gp_check.py run q32a <set> checkt`. Read with `python poc/gp_eval.py q32a --check checkt`. Utility and intervals as above.
+
+**Predictions.**
+- **GC32-P1:** unflagged count-1 precision at least 95% on each set.
+- **GC32-P2:** on GridPuzzle, checked ladder − think utility interval above 0.
+- **GC32-P3:** on Mitra-Baral, accuracy lower bound above −2 and utility interval above 0.
+- **GC32-P4 (mechanism, reported):** on GridPuzzle 4×5 and 4×6 grids together, checked ladder − think accuracy has its lower bound above 0, and is smaller than Qwen3-8B's on the same grids.
+
+**Decision.** If GC32-P1 and GC32-P2 hold, the claim covers two sizes of Qwen3, and a second family is the next test. If P1 holds and P2 fails, the edge comes from the 8B thinker's weakness, and the claim is stated for 8B only, with this as its limit. If P1 fails, the check does not carry to the larger model.
