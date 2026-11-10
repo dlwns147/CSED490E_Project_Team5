@@ -31,6 +31,8 @@ def _solve():
     st = s.Solve(m)
     return s if st in (cp_model.OPTIMAL, cp_model.FEASIBLE) else ("unknown" if st == cp_model.UNKNOWN else None)
 assert isinstance(ANSWER, dict) and ANSWER, "ANSWER must be a non-empty dict of model variables"
+class _V(dict):   # val(name) as asked; val[name] also works (the dev pilot's first programs indexed it)
+    __call__ = dict.__getitem__
 first, cnt = None, 0
 for _ in range(50):
     s = _solve()
@@ -39,7 +41,7 @@ for _ in range(50):
     if s is None:
         break
     v = {k: s.Value(x) for k, x in ANSWER.items()}
-    p = plan(lambda k: v[k])
+    p = plan(_V(v))
     if first is None:
         first, cnt = p, 1
     elif p != first:
@@ -106,7 +108,7 @@ def main():
             o = chat_msgs(msgs, think=arm == "trt", max_tokens=mt, temperature=0.7, seed=sd + rnd)
             tok += o["out_tokens"]
             code = last_block(o["text"], ("python", "py", "python3"))
-            res = run_python(code + "\n" + PL_SOLVE, "", timeout=300, mem_bytes=4 << 30) if code else None
+            res = run_python("from ortools.sat.python import cp_model\n" + code + "\n" + PL_SOLVE, "", timeout=300, mem_bytes=4 << 30) if code else None
             try:
                 out = json.loads(res.stdout.strip().splitlines()[-1])
             except (AttributeError, IndexError, ValueError):

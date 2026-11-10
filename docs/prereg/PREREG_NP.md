@@ -36,3 +36,12 @@ An earlier note (RELATED_WORK, 2026-11-10 13:0x) said the count gate does not ap
 - P4 also holding → the win comes from the gate and the escalation, not from a better formalizer.
 - P1 fails → translations pass the count while wrong on this task. The gate does not carry, and we report the domain as a negative result.
 - P2 fails with P1 holding → thinking alone is enough here, and the claim is limited to the domains where it holds.
+
+## Addendum NP-HW, written 2026-11-10 17:1x UTC, before any test-sample run
+
+- **Hardware.** The runs move to gs15 (RTX PRO 6000 Blackwell, 96 GB, one GPU per model; user 2026-11-11). The image and vLLM version are the same as on Slurm. Qwen3-32B stays the AWQ checkpoint, as registered, on one GPU.
+- **Dev pilot fix (format only).** The first pilot programs indexed `val[name]` and left out the import. The harness now accepts both `val(name)` and `val[name]`, and imports cp_model before the program. The prompts are unchanged.
+- **Reported rows, not deciding.** These rows test whether the gate still pays for stronger reasoning models: Amonkar et al.'s formalizer loses most against strong reasoners.
+  - Models: gpt-oss-20b (tag `oss20`) and gpt-oss-120b (tag `oss120`).
+  - Reasoning effort: low for `tr`, high for `trt` and `think`.
+  - Read with the same ladder and P1–P4 lines.
