@@ -81,3 +81,20 @@ An earlier note (RELATED_WORK, 2026-11-10 13:0x) said the count gate does not ap
 1. **A false-pass bug in the declarations harness** (addendum NP-DAY allowed `constraints` to be a function). When `constraints(answer)` takes the answer and *returns* the list of checks, the harness took the function as one check, and a non-empty list counts as true, so every candidate passed. Re-running every stored final program under the fixed harness (`run_plan.py --rescore`, no model call, results/np_rescore.jsonl): only gpt-oss-20b's quick translation is affected (count-1 rows 115 → 59; 56 of its 65 wrong passes were this bug); no other model's or arm's count changes. The three `oss20 trc` runs are set aside as `trcbug` and rerun with the fixed harness (repair rounds depend on the counts, so re-scoring alone is not enough).
 2. **Context overflow in repair rounds.** Two Qwen3-8B `trct` runs (seeds 1 and 2) stopped at 81 and 69 of 100 trips when a repair round's history passed the 40,960-token context. As on the grids, a failed request now ends that trip's rounds (the last count stands); the missing trips run with `--resume`, which keeps the rows already written.
 Predictions, arms and decision rules are unchanged. The harness now also records how many candidates each program enumerated (`n`).
+
+## Result, read 2026-11-10 21:1x UTC (all 100 trips × 3 seeds × 3 arms, four models; `python3 poc/gp_eval.py --np <tag>`)
+
+Every stored translation was re-run under the fixed harness after the last runs finished (`run_plan.py --rescore`, 2,400 programs): no count changed, so the old-harness rows of gpt-oss-120b stand.
+
+| Model | P1 precision (≥ 95) | Ladder | Think | P2 ladder − think utility | P3 7–10 cities accuracy diff | P4 `trct` alone − think (≤ +2) |
+|---|---|---|---|---|---|---|
+| **Qwen3-32B (decides)** | **176/194 = 90.7% ✗** | 68.3% / 18.9 ktok | 47.0% / 6.9 | **+15.4 [+8.7, +22.3] ✓** | **+32.7 [+24.0, +41.3] ✓** | **+13.7 [+6.3, +21.0] ✗** |
+| Qwen3-8B | 114/143 = 79.7% ✗ | 49.0% / 27.9 | 33.3% / 10.3 | +6.8 [+0.9, +12.8] ✓ | +16.0 [+10.0, +22.0] ✓ | +4.7 [−2.7, +12.0] (point above +2) |
+| gpt-oss-20b | 198/226 = 87.6% ✗ | 79.0% / 31.5 | 71.3% / 14.0 | −1.1 [−6.8, +4.9] ✗ | +16.7 [+9.3, +24.7] ✓ | −0.3 [−7.3, +6.7] ✓ |
+| gpt-oss-120b | 246/258 = 95.3% ✓ | 86.0% / 16.1 | 76.7% / 9.0 | +5.8 [+1.0, +10.9] ✓ | +13.3 [+6.7, +20.7] ✓ | +3.0 [−3.0, +9.0] (point above +2) |
+
+Reported rows (addendum NP-DP), ladder − D&P-3 / ladder − SC-3 utility: Qwen3-32B −3.0 [−7.7, +2.0] / +10.3 [+2.1, +19.0]; Qwen3-8B +0.7 [−6.7, +8.1] / +13.4 [+5.6, +21.5]; gpt-oss-20b +14.1 [+9.5, +18.8] / −2.8 [−8.6, +3.5]; gpt-oss-120b +11.4 [+6.7, +16.2] / +11.4 [+4.8, +18.2].
+
+**Decision, by the registered rule.** For the deciding model P1 fails (90.7% < 95%), so the rule reads: the count gate does not carry to trip planning as a validity check, and the domain is reported as a negative result for the gate. P2 and P3 hold by wide margins, and P4 fails in the direction opposite to Amonkar et al.: with count feedback, Qwen3-32B's thinking translation alone beats its thinking by 13.7 points. So the ladder's utility gain on trips is real, but by the rule it is not credited to a valid gate.
+
+**Why P1 fails, read in the programs.** All 11 of Qwen3-32B's wrong `trct` passes enumerate two or more candidates, and none is a plan that meets the annotated constraints. In 7 of them each stay starts the day after the previous one ends, against the stated convention, so the whole schedule shifts and stays unique. The misreading turns the task into a different problem that still has exactly one answer, which a count cannot see. The quick translation's wrong passes are mostly single-candidate programs (5 of its 8 wrong passes enumerate one candidate).

@@ -359,7 +359,68 @@ def np_main():
         for name, D in [("D&P-3", dp), ("SC-3", sc)]:
             ud = u(D); d = boot({i: ul[i] - ud[i] for i in full}, mean)
             print(f"    {name:5s} {a_(D):5.1f}% {k_(D):5.1f} ktok   ladder - {name} utility {d[0]:+.1f} [{d[1]:+.1f}, {d[2]:+.1f}]")
-    strata = [("all", 3, 10), ("3-4", 3, 4), ("5-6", 5, 6), ("7-8", 7, 8), ("9-10", 9, 10), ("7-10", 7, 10)]
+    # exploratory, after the registered reading (2026-11-10 21:xx): where the ladder's gain comes from, all from stored rounds (hist[0] = a 1-round run)
+    #   r1: trct's first round alone vs think; L1: trc -> trct -> think with first rounds only (no count feedback, escalate at once); noq: trct -> think (no trc)
+    r1a, L1, NQ, LL = {}, {}, {}, {}
+    for i, sd in keys:
+        h = {x: R[(x, i, sd)]["hist"][0] for x in ["trc", "trct"]}; t = R[("think", i, sd)]
+        r1a.setdefault(i, []).append(100 * (h["trct"]["count"] == 1 and h["trct"]["exact"]) - 100 * t["exact"])
+        tok = 0
+        for x in ["trc", "trct"]:
+            tok += h[x]["tokens"]
+            if h[x]["count"] == 1:
+                ok = h[x]["exact"]; break
+        else:
+            tok += t["tokens"]; ok = t["exact"]
+        L1.setdefault(i, []).append(100 * ok - 0.5 * tok / 1000)
+        c = R[("trct", i, sd)]
+        ok, tok = (c["exact"], c["tokens"]) if c["count"] == 1 else (t["exact"], c["tokens"] + t["tokens"])
+        NQ.setdefault(i, []).append(100 * ok - 0.5 * tok / 1000)
+    for i in nc:
+        LL[i] = mean([100 * x[0] - 0.5 * x[1] / 1000 for x in lad[i]])
+    for name, D in [("trct round 1 alone - think, accuracy", {i: mean(v) for i, v in r1a.items()}),
+                    ("ladder - L1 (first rounds only), utility", {i: LL[i] - mean(L1[i]) for i in nc}),
+                    ("ladder - (trct -> think, no trc), utility", {i: LL[i] - mean(NQ[i]) for i in nc})]:
+        d = boot(D, mean)
+        print(f"  exploratory {name}: {d[0]:+.1f} [{d[1]:+.1f}, {d[2]:+.1f}]")
+    # PREREG_NPC (--check checkt): a count-1 step whose plan the model flags goes on down the ladder; the check's tokens are paid on every count-1
+    # step reached. Also the ceiling of the registration: a perfect check at the real check's mean tokens.
+    ca = sys.argv[sys.argv.index("--check") + 1] if "--check" in sys.argv else None
+    if ca:
+        C = {(x["tr"], x["id"], x["seed"]): x for x in map(json.loads, open(os.path.join(RES, f"np_{tag}_{ca}.jsonl")))}
+        kc = mean([x["tokens"] for x in C.values()])
+        CL, CA, PF, kept, miss = {}, {}, {}, [], 0
+        for i, sd in keys:
+            def run(perfect):
+                tok = 0
+                for arm in ["trc", "trct"]:
+                    r = R[(arm, i, sd)]; tok += r["tokens"]
+                    if r["count"] == 1:
+                        c = C.get((arm, i, sd))
+                        tok += kc if perfect else (c["tokens"] if c else 0)
+                        flag = (not r["exact"]) if perfect else bool(c and c["violated"])
+                        if not flag:
+                            return r["exact"], tok, True
+                t = R[("think", i, sd)]
+                return t["exact"], tok + t["tokens"], False
+            ex, tok, gate = run(False)
+            if gate:
+                kept.append(ex)
+            miss += any(R[(a_r, i, sd)]["count"] == 1 and (a_r, i, sd) not in C for a_r in ["trc", "trct"])
+            CA.setdefault(i, []).append((ex, tok)); CL.setdefault(i, []).append(100 * ex - 0.5 * tok / 1000); PF.setdefault(i, []).append(100 * run(True)[0] - 0.5 * run(True)[1] / 1000)
+        W = [x for x in C.values() if not x["exact"]]
+        print(f"  NPC {ca}: {len(C)} checks, {kc / 1000:.2f} ktok each; wrong plans flagged {sum(bool(x['violated']) for x in W)}/{len(W)}, right plans flagged "
+              f"{sum(bool(x['violated']) for x in C.values() if x['exact'])}/{len(C) - len(W)}, unparsed {sum(x['violated'] is None for x in C.values())}"
+              + (f"; {miss} count-1 steps without a check row" if miss else ""))
+        print(f"  NPC-P1 unflagged count-1 precision on the checked ladder: {sum(kept)}/{len(kept)} = {100 * mean(kept):.1f}% (holds if >= 95)")
+        ut = lambda D: {i: mean(D[i]) for i in nc}
+        cl, th = ut(CL), {i: mean([100 * x[0] - 0.5 * x[1] / 1000 for x in thk[i]]) for i in nc}
+        print(f"  checked ladder {mean([100 * x[0] for v in CA.values() for x in v]):.1f}% {mean([x[1] for v in CA.values() for x in v]) / 1000:.1f} ktok")
+        for name, D in [("NPC-P2 checked - plain ladder", {i: cl[i] - LL[i] for i in nc}), ("NPC-P3 checked ladder - think", {i: cl[i] - th[i] for i in nc}),
+                        ("ceiling: perfect check - plain ladder", {i: mean(PF[i]) - LL[i] for i in nc})]:
+            d = boot(D, mean)
+            print(f"  {name}, utility: {d[0]:+.1f} [{d[1]:+.1f}, {d[2]:+.1f}]")
+    strata =[("all", 3, 10), ("3-4", 3, 4), ("5-6", 5, 6), ("7-8", 7, 8), ("9-10", 9, 10), ("7-10", 7, 10)]
     for name, lo, hi in strata:
         P = [i for i in nc if lo <= nc[i] <= hi]
         if not P:

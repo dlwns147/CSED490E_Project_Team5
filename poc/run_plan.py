@@ -7,6 +7,7 @@ The interface is not specific to trips: the model writes an OR-Tools CP-SAT mode
 ANSWER until a second, different plan appears or none is left).
 
 usage: run_plan.py <tag> <arm tr|trt|trc|trct|think> <seed> [--resume (keep the rows already written, run the rest)]
+       run_plan.py --check <tag> [--dev] (PREREG_NPC: the model checks each count-1 plan against the task, see check())
        run_plan.py --rescore <result files> (re-run stored programs under the current harness, see rescore()) [--dev N (N trips outside Amonkar's 100, spread over the file, so over 3-10 cities)] [--max_tokens N] [--rounds N (default 3)]
 Default: Amonkar et al.'s 100 trips (data/trip_planning_100.json of github.com/rikhil-amonkar/llm-csp). Prompts: NaturalPlan's 5-shot prompt as is
 (as Amonkar et al. use it), with our instruction after the task. Writes results/np_<tag>[_dev]_<arm>_s<seed>.jsonl.
@@ -140,9 +141,49 @@ def rescore(paths):
             f.write(json.dumps(x) + "\n")
 
 
+# PREREG_NPC: PREREG_GC's clue check on trips. The same model, thinking, is shown the task (0-shot text plus NP_DAY) and the stored count-1 plan, and
+# lists the requirements the plan breaks; a non-empty list sends the ladder step on. Aimed at misreadings that keep the count at 1 (a shifted schedule).
+NP_CHECK = ("{p}\n\nHere is a proposed plan, one line per stay:\n{plan}\n\nDo not solve the task. Check the plan against each requirement the task states, "
+            "in turn: for each requirement write it briefly, yes if the plan satisfies it as written or no if it does not, and a short reason. "
+            "On the last line give JSON {{\"violated\": [short names of the requirements the plan breaks]}}.")
+
+
+def check(tag, dev):
+    """run_plan.py --check <tag> [--dev]: PREREG_NPC's check on every count-1 row of results/np_<tag>[_dev]_{trc,trct}_s{1,2,3}.jsonl;
+    writes results/np_<tag>[_dev]_checkt.jsonl (id, tr, seed, exact, violated (None = unparsed, read as no flag), tokens, finish, text tail)."""
+    G = {r["id"]: r for r in map(json.loads, open(os.path.join(os.environ["POC_DATA"], "naturalplan", "trip.jsonl")))}
+    pre = f"{RES}/np_{tag}{'_dev' if dev else ''}"
+    jobs = [(tr, sd, r) for tr in ["trc", "trct"] for sd in [1, 2, 3] if os.path.exists(f"{pre}_{tr}_s{sd}.jsonl")
+            for r in map(json.loads, open(f"{pre}_{tr}_s{sd}.jsonl")) if r["count"] == 1 and r["plan"]]
+    def one(j):
+        tr, sd, r = j
+        p = G[r["id"]]["prompt0"].rstrip() + NP_DAY
+        plan = "\n".join(f"Day {s_}-{e}: {c.title()}" for c, s_, e in r["plan"])
+        o = chat_msgs([{"role": "user", "content": NP_CHECK.format(p=p, plan=plan)}], think=True, max_tokens=8000, temperature=0.7,
+                      seed=sd * 10007 + int(r["id"].rsplit("_", 1)[1]) + 99)
+        m = re.findall(r"\{[^{}]*\"violated\"[^{}]*\}", o["text"] or "")
+        try:
+            vio = list(json.loads(m[-1])["violated"])
+        except (IndexError, ValueError, TypeError, KeyError):
+            vio = None
+        return {"id": r["id"], "ncity": r["ncity"], "tr": tr, "seed": sd, "exact": r["exact"], "violated": vio, "tokens": o["out_tokens"],
+                "finish": o["finish"], "text": (o["text"] or "")[-2500:]}
+    rows = []
+    with ThreadPoolExecutor(32) as ex, open(f"{pre}_checkt.jsonl", "w") as f:
+        for x in ex.map(one, jobs):
+            rows.append(x); f.write(json.dumps(x) + "\n"); f.flush()
+    W = [x for x in rows if not x["exact"]]
+    print(tag, "checkt", f"{len(rows)} checked; wrong flagged {sum(bool(x['violated']) for x in W)}/{len(W)}, right flagged "
+          f"{sum(bool(x['violated']) for x in rows if x['exact'])}/{len(rows) - len(W)}, unparsed {sum(x['violated'] is None for x in rows)}, "
+          f"truncated {sum(x['finish'] == 'length' for x in rows)}, ktok {sum(x['tokens'] for x in rows) / max(1, len(rows)) / 1000:.2f}", flush=True)
+
+
 def main():
     if "--rescore" in sys.argv:
         return rescore([x for x in sys.argv[1:] if not x.startswith("--")])
+    if "--check" in sys.argv:
+        a = [x for x in sys.argv[1:] if not x.startswith("--")]
+        return check(a[0], "--dev" in sys.argv)
     a = [x for x in sys.argv[1:] if not x.startswith("--")]
     opt = lambda k, d: int(sys.argv[sys.argv.index(k) + 1]) if k in sys.argv else d
     tag, arm, seed = a[0], a[1], int(a[2])

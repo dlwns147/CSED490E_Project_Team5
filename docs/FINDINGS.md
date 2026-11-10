@@ -6438,3 +6438,32 @@ All four pass idea 28's rule, and their differences from the registered checker 
 - Qwen3-32B's thinking translation also writes single-candidate programs, 17 of them, all right.
 - Under the corrected harness, the quick translation's count-1 precision so far is 9 / 25 (Qwen3-8B) and 14 / 22 (Qwen3-32B). P1 (≥ 95% pooled with the thinking translation) is at risk for the deciding model.
 - Unlike grids, the thinking translation's passes stay precise: 107 / 120, 164 / 172, 213 / 215, 159 / 161 across the four models.
+
+## 2026-11-10 21:1x UTC — NaturalPlan trips (PREREG_NP) read: the ladder beats thinking on utility for 3 of 4 models, but the count gate fails its precision test (P1), so by the registered rule trips are a negative result for the gate
+
+**Why this test.** Amonkar et al. (2505.13252) find formalizers lose to thinking most clearly on NaturalPlan's trips. If a cheap translation with a free solution count, escalating to thinking, wins there, the paper's claim reaches a second domain beyond logic grids. Full table and rule: `docs/prereg/PREREG_NP.md`, section "Result".
+
+| Model | Ladder | Thinking | Ladder − thinking utility | Count-1 precision (P1 ≥ 95%) |
+|---|---|---|---|---|
+| Qwen3-32B (decides) | 68.3% at 18.9 ktok | 47.0% at 6.9 | **+15.4 [+8.7, +22.3]** | **90.7% — fails** |
+| Qwen3-8B | 49.0% at 27.9 | 33.3% at 10.3 | +6.8 [+0.9, +12.8] | 79.7% |
+| gpt-oss-20b | 79.0% at 31.5 | 71.3% at 14.0 | −1.1 [−6.8, +4.9] | 87.6% |
+| gpt-oss-120b | 86.0% at 16.1 | 76.7% at 9.0 | +5.8 [+1.0, +10.9] | 95.3% |
+
+- **Registered reading:** P2 (utility) and P3 (7–10 city trips, +32.7 points for Qwen3-32B) hold. P1 fails, so by the rule the gate is not a valid check on trips, and the domain is reported as negative for the gate. P4 fails in the direction opposite to Amonkar et al.: Qwen3-32B's thinking translation alone, with count feedback, beats its thinking by +13.7 [+6.3, +21.0] points.
+- **Why P1 fails (programs read):** the wrong thinking-translation passes are not single-candidate programs. 7 of Qwen3-32B's 11 start each stay the day after the previous one ends, against the convention stated in the task. A misreading that shifts every stay by the same rule leaves exactly one plan, so a count cannot see it. **A count catches a misreading only when the misreading changes the number of answers; the gate's precision is the share of misreadings that do, which depends on the domain and on which misreadings the model makes.**
+- **Reported baselines:** the ladder beats SC-3 (majority of 3 thinking answers) for 3 of 4 models (+10 to +13). It ties D&P-3 for the Qwen models and beats it for gpt-oss (+11 to +14), because D&P-3 pays three thinking translations per trip.
+
+**Exploratory, after the registered reading (same stored runs, no new run; `gp_eval.py --np` prints these rows):**
+
+| Model | `trct` first round alone − thinking, accuracy | Ladder − first-rounds-only ladder, utility | Ladder − ladder without the quick step, utility |
+|---|---|---|---|
+| Qwen3-32B | +4.0 [−4.0, +12.3] | −2.5 [−5.6, +0.8] | −3.4 [−5.4, −1.4] |
+| Qwen3-8B | −9.3 [−17.0, −2.0] | −1.1 [−4.6, +2.5] | −2.5 [−4.3, −0.8] |
+| gpt-oss-20b | −37.7 [−45.0, −30.7] | −0.7 [−5.1, +3.9] | −6.2 [−9.2, −3.4] |
+| gpt-oss-120b | −16.3 [−23.0, −9.7] | +2.1 [−1.6, +6.0] | +1.0 [−1.8, +3.7] |
+
+- **Amonkar et al.'s verdict holds for a single translation:** at its first round, the thinking translation ties thinking (Qwen3-32B) or loses to it (the other three). Repair rounds driven by the count (10–37 points) are what turn it into a win.
+- **On utility, those repairs are not needed:** a ladder that escalates at the first count other than 1 ties the registered ladder for all four models. The count's value on trips is deciding when to escalate, not driving repairs.
+- **The quick translation costs utility on trips:** dropping it helps three models by 2.5–6.2 points. For the three models where it hurts, its passes are rare (7–29% of runs) and imprecise, and a wrong pass stops the ladder where the thinking translation would often be right. For gpt-oss-120b, whose quick passes are 95% precise, dropping it ties.
+- These are post-hoc and do not change the registered decision; any use of them needs a fresh registered test.
