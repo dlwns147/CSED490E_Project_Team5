@@ -6496,3 +6496,16 @@ All four pass idea 28's rule, and their differences from the registered checker 
   - VERGE (2601.20055): cross-family disagreement detects 94% of unfaithful formalizations at 29% precision, as an abstention signal.
   - Ours: XPEER, a peer model's quick answer as the check.
   - Here, a cross-family checker is the second part of a cost gate, and is judged on utility against thinking.
+
+## 2026-11-10 22:4x UTC — NPC-X2: a free check needs a checker that reads the domain's trap right and does not share the translator's errors; another family alone is not enough
+
+| Checker | Its own plans: wrong / right flagged | Another model's plans: wrong / right flagged |
+|---|---|---|
+| Qwen3-32B | 18/18, 115/196 | gpt-oss-120b's: 12/16, 239/405 |
+| gpt-oss-120b | **9/16**, 18/405 | Qwen3-32B's: **17/18**, 6/196; Qwen3-8B's: **30/30**, 7/123 |
+
+- **False flags follow the checker:** the 32B checker flags about 59% of right plans whoever wrote them. It misreads the day convention (registered X2-1 holds).
+- **Catches follow independence:** gpt-oss-120b catches nearly all of other models' wrong plans but only 9 of its own 16. Its own remaining errors are ones it repeats when checking.
+- **Registered X2-2 missed its bar narrowly:** 7/123 right plans flagged, 5.7% against 5%. So the registered combined claim is not made as written.
+- **Utility:** the checked ladder beats thinking for Qwen3-8B with gpt-oss-120b as checker (+8.4 [+3.3, +13.6]) and for Qwen3-32B (+17.9, NPC-X). Against the plain ladder, the gain is +1.5 [−1.6, +4.7] and +2.5 [+0.1, +5.1], bounded by small ceilings (+3.6, +3.5).
+- **For the paper:** this is the mechanism behind when a same-model check works (grids: the checker reads clues well) and when it fails (trips: a convention it misreads). The open method question is label-free: how to pick a checker that reads the domain right without labels. The checker's flag rate on count-1 answers is one label-free signal: 62% for the 32B checker against 4–6% for gpt-oss-120b.

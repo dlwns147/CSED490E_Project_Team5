@@ -111,3 +111,20 @@ In NPC-X the checker differed from the translator in two ways. It was from anoth
 **Decision.**
 - **Both hold:** the claim is "a free check works when the checker reads the domain's hard reading right and does not share the translator's errors". A different family is the means, not the condition.
 - **X2-1 fails** (the 32B checker does not over-flag another model's right plans): its false flags depend on the plans it sees. That would point at shared-plan effects, read in the texts.
+
+### NPC-X2 result, read 2026-11-10 22:4x UTC
+
+| Checker → plans of | Wrong flagged | Right flagged | Unflagged precision | Checked − plain ladder | Checked ladder − think |
+|---|---|---|---|---|---|
+| Qwen3-32B → gpt-oss-120b | 12/16 | **239/405 (59%)** | 97.4% | −9.8 [−14.2, −5.9] | −4.1 [−6.9, −0.8] |
+| gpt-oss-120b → Qwen3-8B | 30/30 | **7/123 (5.7%)** | 100% | +1.5 [−1.6, +4.7] | +8.4 [+3.3, +13.6] |
+| gpt-oss-20b → Qwen3-32B (reported) | 6/18 | 2/196 | 93.1% | −1.2 [−2.8, +0.4] | +14.1 [+7.8, +20.6] |
+
+(gpt-oss-20b: 44 of 214 checks cut off at 8,000 tokens and read as no flag.)
+
+- **X2-1 holds:** the 32B checker flags 59% of gpt-oss-120b's right plans, the same rate as on its own plans (115/196). Its false flags come from its own misreading of the day convention, whoever wrote the plan. A checker from another family is not enough.
+- **X2-2 fails narrowly:** gpt-oss-120b flags 7 of 123 right Qwen3-8B plans (5.7%, against a bar of 5%), and all 30 wrong ones.
+- So the registered "both hold" decision is not reached. The reading the data support:
+  - The checker's own reading of the domain's hard part decides how often it flags right plans (59% for the 32B checker on either model's plans; 1–6% for gpt-oss-120b on any model's).
+  - Independence decides how many wrong plans it catches: gpt-oss-120b catches 17/18 and 30/30 of other models' wrong plans, but only 9/16 of its own.
+  - A useful free check needs both: a checker that reads the trap right and does not share the translator's errors.
