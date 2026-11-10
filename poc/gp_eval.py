@@ -11,6 +11,10 @@ python poc/gp_eval.py --loc [tag q8bl] [think tag q8b]: idea 33 on dev, localize
 per puzzle-seed. Step 1: gtrl vs gtr (seeds 1-3), later steps from seed-1 gtrt and think. Step 2: gtrtl vs gtrt (seed 1), step 1 from seed-1 gtr.
 Both: gtrl+gtrtl vs gtr+gtrt. Rule (docs/notes/IDEAS_COMPUTATION.md row 33): a step's localized arm passes if its point estimate pooled over
 both sets is above 0.
+
+python poc/gp_eval.py --gts [tag q8bh] [think tag q8b]: idea 38 on dev, the per-clue search of Schrader et al. (gts) as the middle step in place
+of gtrt: ladder gtr (same seed) -> gts (same seed) -> think (seed 1) minus gtr -> gtrt (seed 1) -> think, per puzzle-seed (seeds 1-3).
+Rule (docs/notes/IDEAS_COMPUTATION.md row 38): pooled over both sets, point estimate above 0 -> gts replaces gtrt in a test prereg.
 """
 import json
 import os
@@ -141,11 +145,17 @@ def main():
 
 def loc_main():
     a = [x for x in sys.argv[1:] if not x.startswith("--")]
-    tag, ttag = (a + ["q8bl", "q8b"][len(a):])[:2]
-    pooled = {k: [] for k in ["step 1", "step 2", "both"]}
+    g = "--gts" in sys.argv
+    tag, ttag = (a + ["q8bh" if g else "q8bl", "q8b"][len(a):])[:2]
+    CMP = ([("gts", lambda sd: ([("gtr", sd), ("gts", sd), ("think", 1)], [("gtr", sd), ("gtrt", 1), ("think", 1)], [1, 2, 3]))] if g else
+           [("step 1", lambda sd: ([("gtrl", sd), ("gtrt", 1), ("think", 1)], [("gtr", sd), ("gtrt", 1), ("think", 1)], [1, 2, 3])),
+            ("step 2", lambda sd: ([("gtr", 1), ("gtrtl", 1), ("think", 1)], [("gtr", 1), ("gtrt", 1), ("think", 1)], [1])),
+            ("both", lambda sd: ([("gtrl", sd), ("gtrtl", 1), ("think", 1)], [("gtr", sd), ("gtrt", 1), ("think", 1)], [1, 2, 3]))])
+    SHOW = [("gtr", [1, 2, 3]), ("gts", [1, 2, 3]), ("gtrt", [1])] if g else [("gtr", [1, 2, 3]), ("gtrl", [1, 2, 3]), ("gtrt", [1]), ("gtrtl", [1])]
+    pooled = {k: [] for k, _ in CMP}
     for s in ["gp", "lgp"]:
         R = {}
-        for arm, t, seeds in [("gtr", tag, [1, 2, 3]), ("gtrl", tag, [1, 2, 3]), ("gtrt", tag, [1]), ("gtrtl", tag, [1]), ("think", ttag, [1])]:
+        for arm, t, seeds in [(x, tag, sds) for x, sds in SHOW] + [("think", ttag, [1])]:
             for sd in seeds:
                 f = os.path.join(RES, f"{s}_{t}_dev_{arm}_s{sd}.jsonl")
                 if os.path.exists(f):
@@ -159,18 +169,16 @@ def loc_main():
                 if r is None:
                     return None
                 tok += r["tokens"]
-                if r["count"] == 1 or k == len(steps) - 1:
+                if r.get("count") == 1 or k == len(steps) - 1:
                     return 100 * r["exact"] - 0.5 * tok / 1000
         ids = sorted({i for (_, i, _) in R})
         print(f"== {s} dev: {len(ids)} puzzles")
-        for arm, seeds in [("gtr", [1, 2, 3]), ("gtrl", [1, 2, 3]), ("gtrt", [1]), ("gtrtl", [1])]:
+        for arm, seeds in SHOW + [("think", [1])]:
             rs = [R[(arm, i, sd)] for i in ids for sd in seeds if (arm, i, sd) in R]
-            one = [r for r in rs if r["count"] == 1]
+            one = [r for r in rs if r.get("count") == 1]
             print(f"  {arm:6s} runs {len(rs):3d}  acc {100 * mean([r['exact'] for r in rs]):5.1f}  count-1 {len(one):3d}, precision "
-                  f"{sum(r['exact'] for r in one)}/{len(one)}  rounds {mean([r['rounds'] for r in rs]):.2f}  ktok {mean([r['tokens'] for r in rs]) / 1000:5.1f}")
-        for name, cmp in [("step 1", lambda sd: ([("gtrl", sd), ("gtrt", 1), ("think", 1)], [("gtr", sd), ("gtrt", 1), ("think", 1)], [1, 2, 3])),
-                          ("step 2", lambda sd: ([("gtr", 1), ("gtrtl", 1), ("think", 1)], [("gtr", 1), ("gtrt", 1), ("think", 1)], [1])),
-                          ("both", lambda sd: ([("gtrl", sd), ("gtrtl", 1), ("think", 1)], [("gtr", sd), ("gtrt", 1), ("think", 1)], [1, 2, 3]))]:
+                  f"{sum(r['exact'] for r in one)}/{len(one)}  rounds {mean([r.get('rounds', 0) for r in rs]):.2f}  ktok {mean([r['tokens'] for r in rs]) / 1000:5.1f}")
+        for name, cmp in CMP:
             per = {}
             for i in ids:
                 for sd in cmp(1)[2]:
@@ -181,7 +189,7 @@ def loc_main():
             n = sum(len(v) for v in per.values())
             if per:
                 b = boot({i: mean(v) for i, v in per.items()}, mean)
-                print(f"  {name}: localized minus generic ladder utility {b[0]:+.1f} [{b[1]:+.1f}, {b[2]:+.1f}] over {n} puzzle-seeds")
+                print(f"  {name}: {'gts minus gtrt' if g else 'localized minus generic'} ladder utility {b[0]:+.1f} [{b[1]:+.1f}, {b[2]:+.1f}] over {n} puzzle-seeds")
     for name, v in pooled.items():
         if v:
             per = {}
@@ -193,4 +201,4 @@ def loc_main():
 
 
 if __name__ == "__main__":
-    loc_main() if "--loc" in sys.argv else main()
+    loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()

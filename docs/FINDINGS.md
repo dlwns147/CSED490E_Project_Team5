@@ -6334,3 +6334,22 @@ The two sets go opposite ways: on GridPuzzle per-clue wins (132 vs 112 of 160, p
 All four pass idea 28's rule, and their differences from the registered checker (−1.1 to +0.2) are far inside the noise of 40 puzzles. The false flags that "killed" idea 30 (3 of 38) cost little, because the next step is right most of the time. The corrected verdict: on dev, the checkers tie; checker choice cannot be settled at this size, and the cheaper ones are not worse. The registered GC result is unchanged.
 
 **Consequence for later rules.** A checker or gate is judged by the ladder replay or the break-even precision above, never by a zero-false-flag threshold. The size of the dev set, not the rule, limits what these comparisons can show: differences of a few utility points need the test set.
+
+## 2026-11-10 09:4x UTC — idea 38, prior-work baseline: Schrader et al.'s per-clue search (gts) does not replace the thinking translation as the middle step (pooled −0.6 [−6.0, +4.0])
+
+**What ran.** Arm `gts` (`poc/run_zebra.py`): the search of Schrader et al. 2025 (2512.17093) on our solver and prompt, Qwen3-8B with no fine-tuning: a header from 5 samples, then per clue 5 samples at temperature 1.0 (10 more if none fits), the one leaving the fewest solutions kept, one step back, otherwise the clue is skipped. Dev, seeds 1–3, both sets (job 1372208, 25 min).
+
+| Dev | gtr (no thinking) | **gts** | gtrt (thinking translation) | think |
+|---|---|---|---|---|
+| GridPuzzle (40), accuracy | 31.7% | **48.3%** | 67.5% | 57.5% |
+| GridPuzzle, ktok | 1.0 | **4.5** | 16.1 | 11.6 |
+| GridPuzzle, count-1 precision | 38/47 | **48/48** | 24/24 | — |
+| Mitra-Baral (48), accuracy | 50.7% | **59.0%** | 72.9% | 67.4% |
+| Mitra-Baral, ktok | 0.5 | **1.7** | 12.5 | 6.4 |
+| Mitra-Baral, count-1 precision | 64/73 | **74/79** | 33/35 | — |
+
+**Rule (IDEAS row 38, fixed 08:4x before the run):** ladder gtr → gts → think minus gtr → gtrt → think, per puzzle-seed: GridPuzzle +3.3 [−3.1, +9.5] (120), Mitra-Baral −4.0 [−12.2, +2.6] (135), **pooled −0.6 [−6.0, +4.0] (255) → killed; gtrt stays** (`python poc/gp_eval.py --gts`).
+
+**Reading.** The search alone beats one quick translation by 17 points on GridPuzzle at 4.5× its tokens and a quarter of the thinking translation's, and its count-1 answers are right 48 of 48 times; but it reaches count 1 in only 40% (GridPuzzle) and 55% (Mitra-Baral) of runs, so the ladder pays thinking for the rest. Where it fails (137 runs): half skip a clue because every sample contradicts the clues kept before it (68), the other half keep a reading of every clue and still allow two grids (62): the strongest sampled reading of some clue is still too weak, the missing-constraint failure of idea 35. In Schrader et al.'s own table, search gains Qwen3-8B nothing on GridPuzzles without fine-tuning (21.2% with search after fine-tuning); here, on our interface, it gains 17 points, but stays below thinking alone (57.5%).
+
+**Next (same tick).** The joint choice (idea 38's new part): pick one reading per clue (or a skip) so that the whole program has exactly one solution, fewest skips first, then votes, on the samples gts already drew, so with no new tokens (`poc/gp_joint.py`, CPU job 1372504; rule in IDEAS row 38). It can only help the skip half; the weak-reading half needs a stronger reading than any sample. gts on test is running as the prior-work baseline (job 1372505).
