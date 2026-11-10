@@ -301,7 +301,7 @@ def main():
 
 
 # ZebraLogic (2502.01100), idea 14: the model only translates, a solver in the sandbox counts the solutions. A puzzle has exactly one, so a count of 1 is a free
-# check on the translation, and 0 or 2 is label-free feedback. usage: run_zebra.py --zl <tag> <arm tr|think|direct> <seed> [--per K] [--max_tokens N]
+# check on the translation, and 0 or 2 is label-free feedback. usage: run_zebra.py --zl <tag> <arm tr|think|direct> <seed> [--per K] [--max_tokens N] [--ids <file>]
 ZL_SOLVE = """
 import ast, itertools, json
 from ortools.sat.python import cp_model
@@ -389,6 +389,9 @@ def zl_main():
         seen[r["size"]] = seen.get(r["size"], 0) + 1
         if skip < seen[r["size"]] <= skip + per:   # --skip 10: the next puzzles of each size, unseen when ZL_FACT was written
             P.append(r)
+    if "--ids" in sys.argv:   # PREREG_ZL addendum ZL-AM: a listed sample (Amonkar et al.'s 100 ZebraLogic puzzles), in place of --per / --skip
+        keep = set(open(sys.argv[sys.argv.index("--ids") + 1]).read().split())
+        P = [r for r in R if r["id"] in keep]
 
     def run(r):
         gold = zl_gold(r)

@@ -143,3 +143,16 @@ For Qwen3-4B the same comparison is 88.5% against 96.5%.
 - Thinking is right on 74.8% of the puzzles trf accepts.
 
 **Decision.** gpt-oss-20b's ladder is the headline ZebraLogic row: 99.2% over 750 unseen puzzles at under 1k tokens a puzzle.
+
+## Addendum ZL-AM: the ladder on Amonkar et al.'s ZebraLogic sample, registered 2026-11-10 13:0x UTC before any run on it
+
+**Why.** The closest paper (Amonkar et al., 2505.13252 v6, read in full via a reader, RELATED_WORK) finds LLM-as-formalizer below LLM-as-solver in 15 of 24 cells, and on ZebraLogic below it for every reasoning model (Qwen3-32B: direct 92, best formalizer 87, Python with up to 5 regenerations). They never count solutions and never fall back to direct solving. Our claim is that the free solution-count gate plus escalation reverses their verdict. A reviewer would ask for their sample, their model and their complexity strata.
+**Data.** Their exact 100 ZebraLogic puzzles (github.com/rikhil-amonkar/llm-csp, data/zebralogic_sample_100.json; ids mapped to our zebralogic/grid.jsonl, all 100 present; results/a_zl100_ids.txt).
+**Runs.** Qwen3-32B-AWQ (2 × RTX 3090, tensor parallel), tag `q32am`, seeds 1–3: `tr` (no thinking, 4,096 tokens, up to 3 rounds), `trt` (thinking, 16,000), `think` (32,000), no template fact (`trf` is not used: its fact is specific to ZebraLogic's templates). Same prompts as ZL. Qwen3-8B (`q8bam`) and gpt-oss-20b (`oss20am`, effort low / high) follow as reported rows when GPUs free up.
+**Ladder.** tr; if its count is not 1, trt; if not 1, think; all tokens paid. Utility 100·right − 0.5·ktok; bootstrap over puzzles, 95%. Strata: ZebraLogic's search-space bins ((n!)^m: small < 10^3, medium < 10^6, large < 10^10, x-large ≥ 10^10).
+**Predictions.**
+- ZL-AM-P1 (setup check): our Qwen3-32B think accuracy is within 8 points of their reported 92.
+- ZL-AM-P2: ladder − think utility interval above 0 (Qwen3-32B).
+- ZL-AM-P3: on the large and x-large strata together, ladder − think accuracy has its lower bound above 0.
+- ZL-AM-P4: count-1 precision of the translations at least 95%.
+**Decision.** P2 and P4 hold → the claim "the count gate and escalation turn formalization from a loss into a win" stands on the closest paper's own sample and model family, and goes in the report beside their table. P2 fails with P4 holding → on small template puzzles thinking alone is enough, and the claim is stated for large and human-written grids only (P3 decides which). P4 fails → the gate does not carry to this sample.
