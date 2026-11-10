@@ -65,3 +65,5 @@ Written 2026-11-10 02:2x UTC, before any test output from Qwen3-32B exists. Only
 - **GC32-P4 (mechanism, reported):** on GridPuzzle 4×5 and 4×6 grids together, checked ladder − think accuracy has its lower bound above 0, and is smaller than Qwen3-8B's on the same grids.
 
 **Decision.** If GC32-P1 and GC32-P2 hold, the claim covers two sizes of Qwen3, and a second family is the next test. If P1 holds and P2 fails, the edge comes from the 8B thinker's weakness, and the claim is stated for 8B only, with this as its limit. If P1 fails, the check does not carry to the larger model.
+
+**GC32 results, GridPuzzle part, 2026-11-10 10:5x UTC** (`python poc/gp_eval.py q32a --check checkt`; Mitra-Baral check, job 1372744, still to run). Checked ladder 82.6% at 10.5 ktok, thinking 70.1% at 8.9 ktok. GC32-P1 on GridPuzzle: unflagged count-1 precision 836/846 = 98.8%, holds. GC32-P2: checked ladder − think utility +11.7 [+8.1, +15.6], holds. GC32-P4 (reported): 4×5 and 4×6 accuracy gain +26.0 [+18.7, +33.3] over 73 puzzles, against Qwen3-8B's +21.9 [+14.2, +30.1]; lower bound above 0 holds, "smaller than 8B's" fails.

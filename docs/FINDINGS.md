@@ -6353,3 +6353,20 @@ All four pass idea 28's rule, and their differences from the registered checker 
 **Reading.** The search alone beats one quick translation by 17 points on GridPuzzle at 4.5× its tokens and a quarter of the thinking translation's, and its count-1 answers are right 48 of 48 times; but it reaches count 1 in only 40% (GridPuzzle) and 55% (Mitra-Baral) of runs, so the ladder pays thinking for the rest. Where it does not reach count 1 (137 runs): 75 skip a clue because every sample contradicts the clues kept before it, the other 62 keep a reading of every clue and still allow two grids (62): the strongest sampled reading of some clue is still too weak, the missing-constraint failure of idea 35. In Schrader et al.'s own table, search gains Qwen3-8B nothing on GridPuzzles without fine-tuning (21.2% with search after fine-tuning); here, on our interface, it gains 17 points, but stays below thinking alone (57.5%).
 
 **Next (same tick).** The joint choice (idea 38's new part): pick one reading per clue (or a skip) so that the whole program has exactly one solution, fewest skips first, then votes, on the samples gts already drew, so with no new tokens (`poc/gp_joint.py`, CPU job 1372504; rule in IDEAS row 38). It can only help the 75 with a skip; the 62 with weak readings needs a stronger reading than any sample. gts on test is running as the prior-work baseline (job 1372505).
+
+## 2026-11-10 10:5x UTC — idea 38 killed: choosing readings jointly adds almost nothing, because the right readings are mostly not among the samples
+
+**What ran.** `poc/gp_joint.py` (CPU job 1372504, 5 min), on the readings gts sampled on dev (no new tokens): one reading per clue, or a skip, such that the program has exactly one solution; fewest skips first, then the largest product of vote shares; found by CP-SAT with cuts (a selection that keeps two solutions x, x' is cut together with every selection whose readings all hold on both).
+
+| Dev | right count-1, gts | right count-1, joint | wrong count-1, gts / joint | **ceiling** (a gold-true selection whose one solution is gold) |
+|---|---|---|---|---|
+| GridPuzzle (120 runs) | 48 | 52 | 0 / 2 | **53** |
+| Mitra-Baral (144 runs) | 74 | 74 | 5 / 8 | **75** |
+
+**Rule (IDEAS row 38):** ladder gtr → joint → think minus gtr → gtrt → think: GridPuzzle +4.5 [−3.3, +13.4], Mitra-Baral −3.9 [−12.0, +2.7], **pooled −0.0 [−5.7, +5.6] → killed** (`python poc/gp_eval.py --gts --joint`).
+
+**Why it fails (the ceiling column).** Even an oracle that knew which sampled readings are right could reach gold as the one solution in only 53 of 120 GridPuzzle runs and 75 of 144 Mitra-Baral runs, 5 and 1 more than gts's greedy search already gets. In the remaining runs, some clue has no right reading among its 5–15 samples, or the right readings together still allow two grids. So the per-clue samples of the quick model are the limit, not how they are combined; my prediction (more count-1 runs, precision at least 90%) held for count-1 share on GridPuzzle only (54 vs 48) and its precision did hold (52/54, 74/82), but there was nothing left to gain. This agrees with idea 35: the failures are readings the quick model does not produce, not wrong choices among readings it does.
+
+**Idea 33 (dev, finished):** step 1 +0.6 [−2.9, +4.3], step 2 +0.5 [−5.3, +6.4]: both pass the registered point-estimate rule with intervals that hold 0; registered on test as PREREG_GP addendum GP-LOC (predicting a tie, as Sarkar 2026 found).
+
+**GC32, GridPuzzle part (Qwen3-32B-AWQ, test, 3 seeds):** checked ladder 82.6% at 10.5 ktok against thinking 70.1% at 8.9: utility +11.7 [+8.1, +15.6], accuracy +12.6 [+9.3, +16.1]; unflagged count-1 precision 836/846 = 98.8%. GC32-P1 (GridPuzzle) and GC32-P2 hold. GC32-P4: on 4×5 and 4×6 grids the ladder's accuracy gain over thinking is +26.0 [+18.7, +33.3] for 32B against +21.9 [+14.2, +30.1] for 8B: lower bound above 0 holds, but "smaller than 8B's" fails. The larger thinker does not close the gap on the largest grids (28.2% thinking on 4×6 for 32B), which supports search, not reading, as what thinking lacks there. The Mitra-Baral check (job 1372744) completes the prereg.

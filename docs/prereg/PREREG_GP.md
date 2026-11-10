@@ -92,3 +92,11 @@ Mitra-Baral (GP-P4, GP-P5) waits for the re-run `gtrt` seeds.
 - **GP-P5:** ladder accuracy 90.1%, beside Ishay et al.'s GPT-4 with ASP 92% and Logicia 71%, with an 8B model at 9.8k tokens a puzzle.
 
 The registered decision stands as written in the GridPuzzle part: P2 fails, so the template reading is the registered one.
+
+## Addendum GP-LOC (idea 33 on test), registered 2026-11-10 10:5x UTC before any test run
+
+**Why.** Idea 33's dev rule (IDEAS row 33, fixed 05:3x) passed both steps by point estimate: step 1 (gtrl vs gtr) +0.6 [−2.9, +4.3] over 259 puzzle-seeds, step 2 (gtrtl vs gtrt) +0.5 [−5.3, +6.4] over 87. Both intervals hold 0, so dev cannot tell; the registered rule sends it here. Prior work (Sarkar 2026, 2608.14771) found minimal-core repair no better than generic repair (89.6% vs 88.3%).
+**Runs.** Qwen3-8B, tag `q8bl`, test split, both sets: `gtrl` seeds 1–3; `gtrtl` seed 1. Same prompts, token limits (4096 / 16000) and rounds as the `q8b` test runs of `gtr` / `gtrt` / `think`, which serve as the generic arms.
+**Measure.** Per puzzle-seed, ladder utility (100·right − 0.5·ktok). Step 1: gtrl (seed s) → gtrt (`q8b`, seed s) → think (`q8b`, seed s) minus gtr (`q8b`, seed s) → same; seeds 1–3. Step 2: gtr (`q8b` s1) → gtrtl (s1) → think (s1) minus gtr → gtrt → think, seed 1. Bootstrap over puzzles, 95%, pooled over both sets and per set.
+**Predictions.** GP-LOC-P1: step 1 pooled interval contains 0 (no gain). GP-LOC-P2: step 2 pooled interval contains 0. GP-LOC-P3 (mechanism): gtrl's own accuracy is not above gtr's (dev: 30.8 vs 33.3, 43.1 vs 50.7), so any step-1 gain comes from fewer wrong count-1 stops, not more right ones.
+**Decision.** A step's localized feedback replaces the generic one in the registered ladder only if its pooled utility interval lies above 0; otherwise the generic feedback stays and idea 33 is closed as a tie with Sarkar's finding.
