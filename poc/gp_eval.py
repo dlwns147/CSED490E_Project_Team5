@@ -209,5 +209,51 @@ def loc_main():
                   ("passes (pre-register on test)" if b[0] > 0 else "killed")) + ("" if name != "both" else " (reported)"))
 
 
+def zl_am():
+    """PREREG_ZL addendum ZL-AM: python poc/gp_eval.py --zlam [tag q32am]. Ladder tr -> trt -> think on Amonkar et al.'s 100 ZebraLogic puzzles,
+    each step paid; strata by search space (n!)^m (small < 1e3, medium < 1e6, large < 1e10, x-large); bootstrap over puzzles."""
+    import math
+    a = [x for x in sys.argv[1:] if not x.startswith("--")]
+    tag = a[0] if a else "q32am"
+    R = {}
+    for arm in ["tr", "trt", "think"]:
+        for sd in [1, 2, 3]:
+            f = os.path.join(RES, f"zl_{tag}_{arm}_s{sd}.jsonl")
+            if os.path.exists(f):
+                for r in map(json.loads, open(f)):
+                    R[(arm, r["id"], sd)] = r
+    keys = sorted({(i, sd) for (_, i, sd) in R if all((x, i, sd) in R for x in ["tr", "trt", "think"])})
+    def stratum(size):
+        n, m = map(int, size.lower().replace("*", "x").split("x"))
+        v = math.factorial(n) ** m
+        return "small" if v < 1e3 else "medium" if v < 1e6 else "large" if v < 1e10 else "x-large"
+    lad, thk, ids = {}, {}, {}
+    for i, sd in keys:
+        tok = 0
+        for arm in ["tr", "trt"]:
+            r = R[(arm, i, sd)]; tok += r["tokens"]
+            if r["count"] == 1:
+                ex = r["exact"]; break
+        else:
+            r = R[("think", i, sd)]; tok += r["tokens"]; ex = r["exact"]
+        t = R[("think", i, sd)]
+        lad.setdefault(i, []).append((ex, tok)); thk.setdefault(i, []).append((t["exact"], t["tokens"])); ids[i] = stratum(t["size"])
+    print(f"== ZL-AM {tag}: {len(keys)} puzzle-seeds, {len(ids)} puzzles")
+    for arm in ["tr", "trt", "think"]:
+        rs = [R[(arm, i, sd)] for i, sd in keys]
+        one = [r for r in rs if r.get("count") == 1]
+        print(f"  {arm:6s} acc {100 * mean([r['exact'] for r in rs]):5.1f}  ktok {mean([r['tokens'] for r in rs]) / 1000:5.1f}" + (f"  count-1 precision {sum(r['exact'] for r in one)}/{len(one)}" if arm != "think" else ""))
+    for name, sel in [("all", lambda s_: True), ("large + x-large", lambda s_: s_ in ("large", "x-large"))] + [(k, (lambda k: lambda s_: s_ == k)(k)) for k in ["small", "medium", "large", "x-large"]]:
+        P = [i for i in ids if sel(ids[i])]
+        if not P:
+            continue
+        acc = lambda D: {i: mean([100 * e for e, _ in D[i]]) for i in P}
+        utl = lambda D: {i: mean([100 * e - 0.5 * k / 1000 for e, k in D[i]]) for i in P}
+        la, ta, lu, tu = acc(lad), acc(thk), utl(lad), utl(thk)
+        da = boot({i: la[i] - ta[i] for i in P}, mean); du = boot({i: lu[i] - tu[i] for i in P}, mean)
+        print(f"  {name:16s} ({len(P):3d} puzzles): ladder {mean(list(la.values())):5.1f}  think {mean(list(ta.values())):5.1f}  "
+              f"acc diff {da[0]:+.1f} [{da[1]:+.1f}, {da[2]:+.1f}]  utility diff {du[0]:+.1f} [{du[1]:+.1f}, {du[2]:+.1f}]")
+
+
 if __name__ == "__main__":
-    loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()
+    zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()
