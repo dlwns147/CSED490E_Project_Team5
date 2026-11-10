@@ -39,3 +39,13 @@ Mitra-Baral (GC-P1's second set, GC-P4) waits for GP's re-run `gtrt` seed 1.
 Reading: the check catches most wrong quick translations (72%) but only 27% of wrong thinking translations, as SSV's stated gap predicts: what survives the model's own thinking translation is mostly a misreading the same model repeats when it checks. The precision bar is cleared by 0.4 points.
 
 **Run note (2026-11-10 01:2x UTC).** The first Mitra-Baral test run (job 1368632) stopped before any check: the file glob also matched the partial `*.crashed_tgrest.jsonl` files kept from the PREREG_GP rerun. `gp_check.py` now skips files whose names do not end in `_s<seed>.jsonl`. Nothing else changed, and the run was resubmitted as job 1368860.
+
+## Results, Mitra-Baral part (2026-11-10 02:2x UTC; `python poc/gp_eval.py q8b --check checkt`, job 1368860, 376 count-1 programs)
+
+- Wrong grids flagged 13/16 (`gtr` 12/14, `gtrt` 1/2). Right grids flagged 1/360. Check 0.86 ktok; none unparsed.
+- **GC-P1 (Mitra-Baral) holds:** unflagged count-1 precision 359/362 = 99.2%.
+- **GC-P4 holds:** checked ladder − think, accuracy +8.2 [+3.5, +13.1] points (lower bound above −2), utility +5.6 [+0.9, +10.9]. Checked ladder 93.6% at 11.4 ktok, think 85.5% at 6.3 ktok. (The plain ladder tied: +2.9 [−3.3, +9.2].)
+- Checked − plain ladder on this set: +2.7 [−0.2, +6.2] (GC-P2 was registered on GridPuzzle only).
+- Beside prior work: 93.6% against GPT-4 writing ASP, 92% (Ishay et al. 2023).
+
+**Decision, as registered.** GC-P1 and GC-P2 hold, so the clue check is part of the gate on human-written grids, and the AR-LSAT gate is named as the next place to test it. Before running it, I bounded what any check could do there. On the AR-LSAT test runs of `PREREG_LS.md` (690 question-seeds, think rescored with the `\boxed{}` fix), a perfect check costing 0.9 ktok sends all 15 wrong one-mark answers to thinking and none of the 145 right ones. That gives ladder − think +0.3 [−0.4, +1.2], still a tie. No real check can beat a perfect one, so a check cannot change LS-P1's verdict, and the AR-LSAT run is not made. The reason AR-LSAT differs: the gate there covers only 23% of questions and is wrong on just 15. On grids, the gate covers most puzzles and thinking fails on large ones.

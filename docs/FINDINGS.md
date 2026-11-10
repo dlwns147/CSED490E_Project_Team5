@@ -6273,3 +6273,23 @@ K per step (next step's dev ktok over the check's 0.9 ktok): 16 and 12 on GridPu
 - Exploratory, not registered: idea 29's listing rerun with the per-clue check, with K recomputed from its cost, still loses: −0.5 [−0.9, −0.1] on GridPuzzle and −0.3 [−0.6, −0.1] on Mitra-Baral. Few listings settle, because the right grid is in the list only about half the time.
 
 **Reading.** Factoring the check finds wrong grids the whole-grid check passes, as Chain-of-Verification found for factored answers. It also costs 2.7 times as much, so it is not yet separated from simply spending more on checking. Idea 32 compares it with three whole-grid samples at the same cost. No prereg, because no use gains utility on dev.
+
+## 2026-11-10 02:2x UTC — PREREG_GC, Mitra-Baral part: with the clue check, the ladder beats thinking on small human-written grids too (93.6% vs 85.5%, utility +5.6 [+0.9, +10.9])
+
+**Result (94 test puzzles, 3 seeds, 376 count-1 programs checked).** The check flags 13 of 16 wrong grids and 1 of 360 right ones, and accepted precision rises to 99.2%. GC-P1 and GC-P4 hold. Without the check, the ladder tied thinking on this set (+2.9 [−3.3, +9.2]).
+
+| Mitra-Baral test | Accuracy | ktok | Utility |
+|---|---|---|---|
+| Thinking alone | 85.5% | 6.3 | 82.3 |
+| Plain ladder | 90.1% | 9.8 | 85.2 |
+| Checked ladder | 93.6% | 11.4 | 87.9 |
+
+Over both registered sets, the checked ladder now beats thinking: +6.6 [+2.9, +10.6] on GridPuzzle and +5.6 [+0.9, +10.9] on Mitra-Baral. On Mitra-Baral it matches GPT-4's published ASP pipeline (92%) using an 8B model.
+
+**AR-LSAT, the registered next step, is not run.** A perfect check could only bring ladder − think to +0.3 [−0.4, +1.2] there, so no check can change that verdict (details in `PREREG_GC.md`).
+
+## 2026-11-10 02:2x UTC — idea 32: idea 31's per-clue gain is compute, not separation (pooled 203 vs 195 of 261, p = 0.3)
+
+**Result (dev, the same near-miss grids).** Three samples of the whole-grid thinking check, flagging when any flags, cost 5.1 ktok a grid against 4.7 for per-clue. Pooled, they catch 195 against 203 wrong grids (discordant 19 vs 27, p = 0.3), and flag 1 against 0 of 38 right ones. By the rule fixed in `IDEAS_COMPUTATION.md` row 32, the gain of idea 31 is recorded as spending more on checking, not as checking clues separately. No claim about factoring stands.
+
+The two sets go opposite ways: on GridPuzzle per-clue wins (132 vs 112 of 160, p = 5e−4), on Mitra-Baral repeated samples win (83 vs 71 of 101, p = 0.002). This split was not registered, so it is a lead only: separation may help where grids are large and clue lists long.
