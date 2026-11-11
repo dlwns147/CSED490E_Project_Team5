@@ -21,7 +21,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0, os.path.dirname(__file__))
 from llm import chat_msgs, last_block, strip_think, think_cuts  # noqa: E402
-from grid_score import free_checks  # noqa: E402
+from grid_score import clue_pairs, free_checks  # noqa: E402
 from sandbox import run_python  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
@@ -342,6 +342,8 @@ ZL_TR = ("{p}\n\nDo not solve the puzzle. Translate it. Give one ```python block
          "house number (1 to {n}) of that value. Examples of strings: \"p['Name:Bob'] == p['Pet:cat']\", \"p['Name:Bob'] != 2\", \"p['Name:Bob'] < p['Pet:cat']\", "
          "\"p['Name:Bob'] + 1 == p['Pet:cat']\", \"abs(p['Name:Bob'] - p['Pet:cat']) == 1\". Keep each value exactly as the puzzle writes it.")
 ZL_FACT = " \"There is one house between A and B\" means abs(p[A] - p[B]) == 2, two houses between means 3. A clue about one value's house uses a house number; never compare p[...] with a string."
+ZL_MEM = ("\n\nOn earlier puzzles of this set, these clues were read as below, and that reading made the solver find exactly one solution where another "
+          "reading had not:\n{pairs}")   # PREREG_CONV, arm trm
 ZL_FMT = "{p}\n\nSolve the puzzle. On the last line give JSON mapping each attribute ({cols}) to the list of its values for houses 1 to {n} in order."
 
 
@@ -383,7 +385,7 @@ def zl_main():
     tag, arm, seed = sys.argv[2], sys.argv[3], int(sys.argv[4])
     opt = lambda k, d: int(sys.argv[sys.argv.index(k) + 1]) if k in sys.argv else d
     per, mt, skip = opt("--per", 10), opt("--max_tokens", 16000 if arm == "think" else 8192 if arm == "trt" else 4096), opt("--skip", 0)
-    tr = arm in ("tr", "trf", "trt")   # trf: with the fact below; trt: a translation with thinking on
+    tr = arm in ("tr", "trf", "trt", "trm")   # trf: with the fact below; trt: a translation with thinking on; trm: with the clue readings learned so far (PREREG_CONV)
     R = [json.loads(l) for l in open(os.path.join(os.environ["POC_DATA"], "zebralogic", "grid.jsonl"))]
     seen, P = {}, []
     for r in sorted(R, key=lambda r: (r["size"], int(r["id"].rsplit("-", 1)[1]))):
@@ -394,7 +396,7 @@ def zl_main():
         keep = set(open(sys.argv[sys.argv.index("--ids") + 1]).read().split())
         P = [r for r in R if r["id"] in keep]
 
-    def run(r):
+    def run(r, mem=None):
         gold = zl_gold(r)
         n, cols = len(next(iter(gold.values()))), ", ".join(gold)
         sd = seed * 10007 + int(r["id"].rsplit("-", 1)[1])
@@ -403,7 +405,8 @@ def zl_main():
             o = chat_msgs([{"role": "user", "content": ZL_FMT.format(p=r["puzzle"], cols=cols, n=n)}], think=arm == "think", max_tokens=mt, temperature=0.7, seed=sd)
             ex, ca = zl_score(zl_extract(o["text"]), gold)
             return {**row, "exact": ex, "cell_acc": ca, "tokens": o["out_tokens"], "finish": o["finish"], "text": (o["text"] or "")[-1500:]}
-        msgs = [{"role": "user", "content": ZL_TR.format(p=r["puzzle"], cols=cols, n=n) + (ZL_FACT if arm == "trf" else "")}]
+        msgs = [{"role": "user", "content": ZL_TR.format(p=r["puzzle"], cols=cols, n=n) + (ZL_FACT if arm == "trf" else "")
+                 + (ZL_MEM.format(pairs="\n".join(f"- {json.dumps(t)} -> {json.dumps(x)}" for t, x in mem)) if mem else "")}]
         tok, hist = 0, []
         for rnd in range(3):
             o = chat_msgs(msgs, think=arm == "trt", max_tokens=mt, temperature=0.7, seed=sd + rnd)
@@ -422,9 +425,27 @@ def zl_main():
                   2: "the clues as you wrote them allow more than one solution, so one of them is missing or too weak"}[out["count"]]
             msgs += [{"role": "assistant", "content": o["text"] or "(empty)"},
                      {"role": "user", "content": f"The puzzle has exactly one solution, but {fb}. Compare each clue with the puzzle and give the complete corrected ```python block."}]
-        return {**row, "exact": ex, "cell_acc": ca, "count": out["count"], "tokens": tok, "rounds": len(hist), "hist": hist, "code": code, "grid": out["grid"]}
+        return {**row, "exact": ex, "cell_acc": ca, "count": out["count"], "tokens": tok, "rounds": len(hist), "hist": hist, "code": code, "grid": out["grid"],
+                **({"mem": len(mem or [])} if arm == "trm" else {})}
 
     path = f"{RES}/zl_{tag}_{arm}_s{seed}.jsonl"
+    if arm == "trm":
+        # PREREG_CONV: the puzzles in order, one at a time. When a puzzle's quick translation ends without a count of 1, the ladder's next step is the
+        # thinking translation; where that (stored, same seed: results/zl_<--memtag, default tag>_trt_s<seed>.jsonl) reaches a count of 1, the clues the
+        # two programs read differently are kept, with the thinking program's expression, and shown to the quick translation of every later puzzle.
+        src = sys.argv[sys.argv.index("--memtag") + 1] if "--memtag" in sys.argv else tag
+        T = {x["id"]: x for x in map(json.loads, open(f"{RES}/zl_{src}_trt_s{seed}.jsonl"))}
+        mem, rows = [], []
+        with open(path, "w") as f:
+            for r in P:
+                x, b = run(r, list(mem)), T.get(r["id"])
+                new = clue_pairs(x["code"], b.get("code"), r["puzzle"], len(r["solution"]["rows"])) if x["count"] != 1 and b and b.get("count") == 1 else []
+                new = [(t, e) for t, e in new if t not in {u for u, _ in mem}]
+                mem += new
+                x["mem_added"] = new
+                rows.append(x); f.write(json.dumps(x) + "\n"); f.flush()
+        print(tag, arm, seed, f"{sum(r['exact'] for r in rows)}/{len(rows)}", f"tokens {sum(r['tokens'] for r in rows) / len(rows):.0f}", f"memory {len(mem)}", flush=True)
+        return
     with ThreadPoolExecutor(32) as ex, open(path, "w") as f:
         rows = []
         for r in ex.map(run, P):

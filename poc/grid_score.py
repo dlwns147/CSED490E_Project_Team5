@@ -187,3 +187,87 @@ def or_check(grid, r):
                 out.append(("OR", f"clue {i + 1} says either {r['cats'][a[0][0]][1][a[0][1]]} or {r['cats'][b[0][0]][1][b[0][1]]}, and the solution makes them the same {r['cats'][0][0]}"))
     return out
 
+
+
+def expr_eval(e, p):
+    """value of a parsed clue expression (ast) with p = {key: house}, by a whitelisted interpreter (comparisons, + - *, abs / min / max, and / or /
+    not, in): the model's expression is read, never executed. Raises ValueError on anything else and KeyError on an unknown key."""
+    import ast
+    import operator as O
+    cmp = {ast.Eq: O.eq, ast.NotEq: O.ne, ast.Lt: O.lt, ast.Gt: O.gt, ast.LtE: O.le, ast.GtE: O.ge,
+           ast.In: lambda a, b: a in b, ast.NotIn: lambda a, b: a not in b}
+    binop = {ast.Add: O.add, ast.Sub: O.sub, ast.Mult: O.mul}
+    n, ev = e, lambda x: expr_eval(x, p)
+    if isinstance(n, ast.Expression):
+        return ev(n.body)
+    if isinstance(n, ast.Constant):
+        return n.value
+    if isinstance(n, ast.Subscript) and isinstance(n.slice, ast.Constant):
+        return p[n.slice.value]
+    if isinstance(n, ast.BinOp) and type(n.op) in binop:
+        return binop[type(n.op)](ev(n.left), ev(n.right))
+    if isinstance(n, ast.UnaryOp) and isinstance(n.op, (ast.USub, ast.Not)):
+        return -ev(n.operand) if isinstance(n.op, ast.USub) else not ev(n.operand)
+    if isinstance(n, ast.BoolOp):
+        v = [ev(x) for x in n.values]
+        return all(v) if isinstance(n.op, ast.And) else any(v)
+    if isinstance(n, (ast.Tuple, ast.List, ast.Set)):
+        return [ev(x) for x in n.elts]
+    if isinstance(n, ast.Call) and isinstance(n.func, ast.Name) and n.func.id in ("abs", "min", "max") and not n.keywords:
+        return {"abs": abs, "min": min, "max": max}[n.func.id](*[ev(x) for x in n.args])
+    if isinstance(n, ast.Compare) and all(type(o) in cmp for o in n.ops):
+        a = ev(n.left)
+        for o, c in zip(n.ops, n.comparators):
+            b = ev(c)
+            if not cmp[type(o)](a, b):
+                return False
+            a = b
+        return True
+    raise ValueError(type(n).__name__)
+
+
+def disagree(a, b, n, tries=300, seed=0):
+    """PREREG_CONV: do clue expressions a and b (strings) say different things? True if they name different values (keys compared after _norm) or
+    differ on some assignment of houses 1..n to the values they name (every assignment when they name at most 3 values, else `tries` random ones);
+    False if they agree on all tried; None if either cannot be read."""
+    import ast
+    import itertools
+    import random
+    try:
+        ea, eb = ast.parse(a, mode="eval"), ast.parse(b, mode="eval")
+    except (SyntaxError, ValueError, TypeError, MemoryError, RecursionError):
+        return None
+    key = lambda e: {s.slice.value for s in ast.walk(e) if isinstance(s, ast.Subscript) and isinstance(s.slice, ast.Constant)}
+    ka, kb = key(ea), key(eb)
+    if {_norm(k) for k in ka} != {_norm(k) for k in kb}:
+        return True
+    keys, nb = sorted(ka), {_norm(k): k for k in kb}
+    rng = random.Random(seed)
+    pts = itertools.product(range(1, n + 1), repeat=len(keys)) if len(keys) <= 3 else (tuple(rng.randint(1, n) for _ in keys) for _ in range(tries))
+    for t in pts:
+        pa = dict(zip(keys, t))
+        try:
+            if bool(expr_eval(ea, pa)) != bool(expr_eval(eb, {nb[_norm(k)]: v for k, v in pa.items()})):
+                return True
+        except (ValueError, KeyError, TypeError, ZeroDivisionError, RecursionError):
+            return None
+    return False
+
+
+def clue_pairs(code_a, code_b, puzzle, n):
+    """PREREG_CONV: [(clue text, b's expression)] for the clues that programs a and b (both with one expression per clue, in order) read differently"""
+    import ast
+
+    def clues(code):
+        try:
+            for nd in ast.parse(code or "").body:
+                if isinstance(nd, ast.Assign) and any(isinstance(t, ast.Name) and t.id == "clues" for t in nd.targets):
+                    v = ast.literal_eval(nd.value)
+                    return [str(x) for x in v] if isinstance(v, (list, tuple)) else []
+        except (SyntaxError, ValueError, TypeError, MemoryError, RecursionError):
+            pass
+        return []
+    tx, ca, cb = clue_texts(puzzle), clues(code_a), clues(code_b)
+    if not tx or not (len(tx) == len(ca) == len(cb)):
+        return []
+    return [(t, y) for t, x, y in zip(tx, ca, cb) if disagree(x, y, n)]
