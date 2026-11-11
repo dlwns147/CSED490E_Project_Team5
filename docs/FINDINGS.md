@@ -6858,3 +6858,10 @@ Job 1382299 (one GPU, queued).
 **FREE, Qwen3-8B (fresh seeds 4–6).**
 - With the text checks, the GridPuzzle ladder gains +2.6 [+0.6, +4.9] over the plain ladder (P1 holds). Against thinking: +3.6 [−0.6, +7.9] (P2 fails).
 - Accepted count-1 precision is 91.9% (GridPuzzle) and 93.3% (Mitra-Baral), under the registered 98% (P4 fails). So the checks are not stated as part of the method. They cost nothing for precise translators and help the imprecise one, but do not make it precise.
+
+## 2026-11-11 23:5x UTC — RULE3 ablation: the check is what makes a carried rule library safe; from an empty start it adds nothing
+- Same seeds 7–9. The unchecked dev library (the one with the inverted rule) again makes the quick translation misread "between" in 50% of clues. The checked library: 8%.
+- Utility: checked minus unchecked carried library +1.4 [−0.9, +3.7] (A1 holds, as registered: point above 0, with the 50% misread reproduced).
+- From an empty start, checked minus unchecked: −0.2 [−1.6, +1.1] (A2 fails). Cold unchecked rules sit at +1.4 against the fact on these seeds, and at −0.2 and −0.3 on seeds 1–3 and 4–6.
+- **So the method is:** rules stated from count-admitted readings; the check is needed when rules are carried from earlier puzzles, and costs about 0.1 ktok per puzzle otherwise.
+- PREREG_RULE3G (the same method on GridPuzzle and Mitra-Baral) is running; Mitra-Baral has finished.

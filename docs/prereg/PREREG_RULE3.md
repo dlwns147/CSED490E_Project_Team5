@@ -91,3 +91,21 @@ Predictions (paired, same seeds; `python poc/gp_eval.py --conv --rule3` prints t
 **Use.**
 - If A1's misread prediction holds, the check is stated as the component that protects a carried library from a wrong rule, with the utility difference as measured.
 - If `trrw` misreads under 40% on these seeds, the inverted rule is not reproduced, and the check is reported as a filter of misattributed rules only.
+
+## Ablation result (2026-11-11 23:5x UTC): A1 holds, A2 fails. The check protects a carried library; from an empty start it adds nothing.
+Same seeds 7–9, 750 puzzle-seeds.
+
+| Quick step | Ladder accuracy | ktok | "Between" misread | Rules shown (mean) |
+|---|---|---|---|---|
+| `trr` (unchecked, from empty) | 95.6% | 2.15 | 35/270 = 13% | 13.0 |
+| `trrv` (checked, from empty) | 95.5% | 2.30 | 42/244 = 17% | 7.3 |
+| `trrw` (unchecked, from the unchecked dev library) | 94.0% | 2.75 | 100/200 = 50% | 48.8 |
+| `trrvw` (checked, from the checked dev library) | 95.2% | 2.29 | 22/277 = 8% | 7.8 |
+
+- **RULE3-A1 holds.**
+  - The unchecked dev library misreads "between" in 50% of clues (at least 40% predicted), against 8% with the checked one. RULE2's failure reproduces on fresh seeds.
+  - Utility: `trrvw` − `trrw` = +1.4 [−0.9, +3.7], point above 0. The interval includes 0.
+  - As registered, the check is stated as the component that keeps a carried library from a wrong rule.
+- **RULE3-A2 fails.** From empty, `trrv` − `trr` = −0.2 [−1.6, +1.1], and the point is below 0. Without a carried library, the check adds nothing measurable here.
+- **Cold, unchecked rules on these seeds:** +1.4 [−0.7, +3.7] against the fact and +4.3 [+2.3, +6.6] against no fact. On seeds 1–3 and 4–6 the same arm was −0.2 and −0.3 against the fact, so across nine seeds the cold rules are level with the fact.
+- **What the check changes in the dev library.** The unchecked library carries 40 lines, 14 distinct, one of them inverted. The checked one carries 5 lines, all right. With the unchecked library, the quick prompt shows 49 rules on average; with the checked one, 8.
