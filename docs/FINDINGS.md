@@ -6698,3 +6698,23 @@ The choice was easy here, because one checker dominates. The estimates' accuracy
 **Why the quick translation is wrong (PREREG_FREE addendum FREE-ZL).** 20 of Qwen3-8B's 25 wrong count-1 programs read "there is one house between A and B" as adjacent houses, or "two houses between" as a distance of 2. The phrase means a distance of 2 (or 3), and ZebraLogic's own template fact, which the main ZL runs gave the model, says so. With that fact the main runs' count-1 precision was 96–99%. The free text checks catch 3 of the other 5 (conclusions written in place of a clue) and none of the 20. FREE-ZL-P1 fails, P2 holds (2.2% false flags).
 
 **What it says across domains.** Each domain's dominant residual error is one systematic reading of a template phrase that still leaves a unique solution: "either A or B" on grids (inclusive instead of exclusive), "N houses between" on ZebraLogic (off by one), and the event window on trips. The count cannot see these, nor can text checks or a thinking check from the same model family. Stating the convention once in the prompt removes most of them (the ZebraLogic template fact). A free check would have to test the answer under each reading the phrase allows; that needs the list of ambiguous phrases, which is domain knowledge. This is the open method gap shared by all three domains.
+
+## 2026-11-11 11:3x UTC — PREREG_CONV registered: the hand-written ZebraLogic fact may be learnable from the ladder's own escalations
+
+**Why.** The headline ZebraLogic ladder gives the quick translator a fact we wrote after reading dev errors ("one house between" means a distance of 2). Without it, that phrase is the quick translator's main error (previous entry). If the ladder can learn the convention itself, with no labels, the claim no longer rests on domain knowledge we supplied.
+
+**What the stored runs show (Qwen3-8B, ZL-AM, 3 seeds; gold used only to score clues).**
+- **The model knows the convention only when it thinks.** The quick translation misreads "N houses between" in 81 of 85 clues. The thinking translation misreads 8 of 150.
+- **The ladder already pays for the right reading.** When the quick translation fails the count, the ladder runs the thinking translation. Where that reaches a count of 1, comparing the two programs clue by clue gives 115 pairs whose readings differ, and the thinking reading agrees with the gold solution in all 115.
+- **The first such pair comes early.** It is a "between" clue, at the first escalated puzzle in every seed. 15 of the 21 wrong count-1 quick programs come after the memory already holds a right reading of each clue form they misread.
+- **Grids differ.** The pairs are just as right (312 of 318), but human-written clues rarely repeat a form, so no grid run is registered.
+
+**The test (`docs/prereg/PREREG_CONV.md`, arm `trm`).**
+- Puzzles go in order. Every quick translation sees the pairs collected so far. Nothing is tuned.
+- **Decides (P3):** ladder with memory − ladder without, on the 250 unseen main puzzles × 3 seeds.
+- **P4:** the memory ladder is no worse than the hand-fact ladder by more than 2 utility points.
+- **Mechanism (P1, P2):** reported on Amonkar et al.'s 100 puzzles, with `gp_eval.py --conv` as committed.
+
+**Limit stated in advance.** This cannot fix a convention the thinking translation also misreads: "either A or B" on grids, where it is read inclusively in 116 of 117 clues, and the day window on trips.
+
+Job 1382299 (one GPU, queued).

@@ -21,6 +21,7 @@ Rule (docs/notes/IDEAS_COMPUTATION.md row 38): pooled over both sets, point esti
 python poc/gp_eval.py --np [tag q32]: PREREG_NP (with addendum NP-DAY), see np_main().
 python poc/gp_eval.py --zl <tag> [...] [--score2]: PREREG_ZL ladder against thinking, see zl_main().
 python poc/gp_eval.py --mot <tag>: PREREG_MOT, the ladder against an agreement cascade, see mot_main().
+python poc/gp_eval.py --conv: PREREG_CONV, quick translations with clue readings learned from the ladder's own escalations (trm), see conv_main().
 """
 import json
 import os
@@ -712,5 +713,95 @@ def free_main():
               f"runs given free-check feedback {fb}, still flagged at the end {fl}")
 
 
+def conv_main():
+    """PREREG_CONV: ladder (quick step -> trt -> think, every step paid) with the quick step tr, trf or trm, per cell; utility differences with
+    bootstrap over puzzles (a puzzle's seeds kept together); count-1 precision of each quick arm (P2); and P1, the share of "N houses between"
+    clues whose expression the gold solution violates (gold used only here), in trm programs with one expression per clue, from the first puzzle
+    at which the memory holds such a clue (tr: all puzzles). Scoring: zl_score, the stored `exact`."""
+    import ast
+    import re
+    from grid_score import _norm, clue_texts, expr_eval
+    data = os.environ.get("POC_DATA", os.path.join(RES, "..", "..", "nlp_data"))
+    P = {r["id"]: r for r in map(json.loads, open(os.path.join(data, "zebralogic", "grid.jsonl")))}
+    btw = re.compile(r"there (?:is|are) \w+ houses? between", re.I)
+    U = lambda e, t: 100 * e - 0.5 * t / 1000
+
+    def violated(c, r):
+        pos = {}
+        for i, a in enumerate(r["solution"]["header"]):
+            for j, y in enumerate(r["solution"]["rows"]):
+                if a != "House":
+                    pos.setdefault(_norm(str(y[i])), set()).add(j + 1)
+        try:
+            e = ast.parse(c, mode="eval")
+            keys = {t.slice.value for t in ast.walk(e) if isinstance(t, ast.Subscript) and isinstance(t.slice, ast.Constant)}
+            p = {k: pos.get(_norm(str(k).split(":", 1)[-1]), set()) for k in keys}
+            if any(len(v) != 1 for v in p.values()):
+                return None
+            return not expr_eval(e, {k: next(iter(v)) for k, v in p.items()})
+        except Exception:
+            return None
+    for cell, tag, firsts in [("A, ZL-AM", "q8bam", ["tr", "trm"]), ("B, unseen main puzzles", "q8bh", ["tr", "trf", "trm"])]:
+        R, order = {}, {}
+        for arm in firsts + ["trt", "think"]:
+            for sd in [1, 2, 3]:
+                f = os.path.join(RES, f"zl_{tag}_{arm}_s{sd}.jsonl")
+                if os.path.exists(f):
+                    rows = [json.loads(x) for x in open(f)]
+                    order[(arm, sd)] = [x["id"] for x in rows]
+                    for x in rows:
+                        R[(arm, x["id"], sd)] = x
+        keys = sorted({(i, sd) for (_, i, sd) in R if all((a, i, sd) in R for a in firsts + ["trt", "think"])})
+        print(f"== PREREG_CONV cell {cell} ({tag}): {len(keys)} puzzle-seeds")
+        if not keys:
+            continue
+
+        def lad(first, i, sd):
+            tok = 0
+            for arm in [first, "trt"]:
+                r = R[(arm, i, sd)]; tok += r["tokens"]
+                if r["count"] == 1:
+                    return r["exact"], tok
+            r = R[("think", i, sd)]
+            return r["exact"], tok + r["tokens"]
+        for a in firsts:
+            L = [lad(a, i, sd) for i, sd in keys]
+            q = [R[(a, i, sd)] for i, sd in keys]
+            c1 = [x for x in q if x["count"] == 1]
+            print(f"  ladder with {a:4s}: {100 * mean([e for e, _ in L]):5.1f}% at {mean([t for _, t in L]) / 1000:5.2f} ktok; quick step count-1 "
+                  f"{len(c1)}/{len(q)}, precision {sum(x['exact'] for x in c1)}/{len(c1)} = {100 * sum(x['exact'] for x in c1) / max(len(c1), 1):.1f}% (P2: trm >= 95%)"
+                  + (f"; memory lines shown, mean {mean([x.get('mem', 0) for x in q]):.1f}" if a == "trm" else ""))
+        for a, b, rule in [("trm", "tr", "P3: interval above 0 in cell B"), ("trm", "trf", "P4: lower bound above -2.0")]:
+            if a in firsts and b in firsts:
+                per = {}
+                for i, sd in keys:
+                    (ea, ta), (eb, tb) = lad(a, i, sd), lad(b, i, sd)
+                    per.setdefault(i, []).append((U(ea, ta) - U(eb, tb), ea - eb, (ta - tb) / 1000))
+                f = lambda k: (lambda v: mean([mean([z[k] for z in x]) for x in v]))
+                pt, lo, hi = boot(per, f(0))
+                print(f"  ladder({a}) - ladder({b}): utility {pt:+.1f} [{lo:+.1f}, {hi:+.1f}], accuracy {100 * f(1)(list(per.values())):+.1f} points, "
+                      f"ktok {f(2)(list(per.values())):+.2f}   ({rule})")
+        for a in firsts:
+            n = bad = 0
+            for sd in [1, 2, 3]:
+                on = a != "trm"
+                for i in order.get((a, sd), []):
+                    x, r = R[(a, i, sd)], P[i]
+                    if (i, sd) in set(keys) and on:
+                        try:
+                            cl = [str(c) for nd in ast.parse(x.get("code") or "").body if isinstance(nd, ast.Assign) and any(getattr(t, "id", "") == "clues" for t in nd.targets)
+                                  for c in ast.literal_eval(nd.value)]
+                        except Exception:
+                            cl = []
+                        tx = clue_texts(r["puzzle"])
+                        if len(cl) == len(tx):
+                            for c, t in zip(cl, tx):
+                                v = violated(c, r) if btw.search(t) else None
+                                if v is not None:
+                                    n += 1; bad += v
+                    on = on or any(btw.search(t) for t, _ in x.get("mem_added", []))
+            print(f"  {a}: 'N houses between' clues read against the gold solution {bad}/{n} = {100 * bad / max(n, 1):.0f}%" + (" (P1: at most 30%)" if a == "trm" else ""))
+
+
 if __name__ == "__main__":
-    free_main() if "--free" in sys.argv else bud_main() if "--bud" in sys.argv else mot_main() if "--mot" in sys.argv else zl_main() if "--zl" in sys.argv else np_main() if "--np" in sys.argv else thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()
+    conv_main() if "--conv" in sys.argv else free_main() if "--free" in sys.argv else bud_main() if "--bud" in sys.argv else mot_main() if "--mot" in sys.argv else zl_main() if "--zl" in sys.argv else np_main() if "--np" in sys.argv else thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()
