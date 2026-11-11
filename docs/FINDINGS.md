@@ -6524,3 +6524,30 @@ All four pass idea 28's rule, and their differences from the registered checker 
 **Registered.** Addendum NPC-T in `docs/prereg/PREREG_NPC.md`: six check runs on the stored plans (Qwen checkers on gpt-oss plans; gpt-oss-120b on gpt-oss-20b's; the two Qwen models on each other's) test "type" against "identity" before any of them is read.
 
 **Exploratory, not registered (idea 39's paired test applied to trips).** Same-problem precision of passes reached after a repair minus first-attempt passes: Qwen3-32B −18 points [−32, −6] (25 trips), Qwen3-8B −15 [−33, +2], gpt-oss-20b +4 [−2, +10], gpt-oss-120b −3 [−11, +5]; pooled −4 [−9, +1] (175). Idea 39 was closed on SQL, programs and grids; on trips the drop appears for the Qwen models only. It does not reopen the idea.
+
+## 2026-11-11 00:5x UTC — NPC-T: a checker's false-flag rate is its own (same within 4 points across four translators); the "own errors" reading of NPC-X2 is withdrawn
+
+**Question (registered 2026-11-10 23:5x, PREREG_NPC addendum NPC-T).** On trips, does a plan check miss a wrong plan because of who wrote the plan, or because of the kind of break?
+
+**Result** (six check runs on stored plans; full table in PREREG_NPC):
+- **False flags belong to the checker.** Right plans flagged:
+
+  | Checker | Range across four translators |
+  |---|---|
+  | Qwen3-8B | 18–22% |
+  | Qwen3-32B | 58–60% |
+  | gpt-oss-120b | 1.5–5.7% |
+
+  Each checker stays within 4 points of its own rate. All six registered T3 cells hold.
+- **The same family does not hide errors.** gpt-oss-120b flags 19 of gpt-oss-20b's 20 non-window wrong plans. T2 holds.
+- **The event-window break is mostly unseen.**
+  - Qwen3-8B flags 3 of 12 and gpt-oss-120b 2 of 7. Qwen3-32B flags 5 of 12, which breaks the registered bar of 3 (T1 fails for it).
+  - Its 5 of 12 is the rate at which it flags right plans of the same translator (58%).
+  - Read afterwards, so reported only: 2 of those 5 flags name the broken event.
+  - No checker reaches the identity bar (6 of 12).
+- **One checker is best for every translator.** gpt-oss-120b checking gives the largest checked-ladder gain over the plain ladder on each other translator: +2.5, +1.5 and +3.9 [+1.3, +6.7]. On its own plans it gives −0.6.
+
+**What changes.**
+- The NPC-X2 reading "catches follow independence from the translator" is withdrawn.
+- The supported statement: a check's value on trips is set mostly by the checker's own false-flag rate, which is stable across translators. A break that every model reads the same way (here the event window) is mostly missed by every checker.
+- The registered full claim (T1 and T2) is not made, because T1 fails for Qwen3-32B.
