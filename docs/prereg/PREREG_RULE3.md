@@ -49,3 +49,14 @@
 - AutoManual (2405.16247) lets a builder agent manage rules from environment feedback, with case-conditioned prompting against hallucinated rules.
 - RIMRULE (2601.00086, ACL 2026) proposes rules from failures and consolidates them under an MDL objective.
 - Here the reference is a reading that the solver count admitted. The check asks whether the rule makes the cheap model reproduce that reading, so neither labels nor rewards are used.
+
+**RULE3-P0 result (2026-11-11 22:4x UTC, the dev pass `zl_q8b_trrv_s1`, read before the unseen runs): holds.**
+- The rule writer stated 35 rules on the 250 dev puzzles; the check kept 5 and rejected 30.
+- Kept: four copies of "one house between means a difference of 2, not 1" (positions 58, 62, 94, 190) and one "two houses between means a difference of 3, not 2" (153). All right; no inverted rule.
+- No inverted rule was stated at all in this pass, so the check did not have to catch one. Position 58, where the RULE2 dev pass stated the inverted rule, now states the right one; the rule list before it differs (position 31's rule was rejected), so the prompt differs.
+- What the check did reject:
+  - 22 of 30 are "between" rules. 19 of these were stated for a clue that has no "between" in it ("The person who has blonde hair is Arnold."), so giving the rule cannot change that clue's reading. The rule writer attaches the same generic rule to unrelated pairs.
+  - 3 right "between" rules for real "between" clues (positions 210, 230, 236) were rejected because the quick translation still misread the clue with the rule given.
+  - The rest are restatements of what the quick reading already did ("X is Y" means equality, "directly left" means a difference of 1).
+- Check cost on the dev pass: 13,920 tokens over 250 puzzles, about 0.03 utility per puzzle.
+- So the check's observed work here is removing misattributed and ineffective rules. Whether it rejects an inverted rule when one is stated is read on the unseen runs (`rules_rejected` in `trrv`, `trrvw`).
