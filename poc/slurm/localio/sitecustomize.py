@@ -1,7 +1,7 @@
 """Node-local staging of a Slurm job's output files (user 2026-11-11: write to /local-data on the node, then move to /home1).
 
 poc/slurm/job.sh puts this folder on PYTHONPATH and sets POC_LOCAL to the job's own directory under /local-data, so every Python
-process of the job imports this module at startup. Without POC_LOCAL it does nothing (gs15 lanes, the login node, older jobs).
+process of the job imports this module at startup. Without POC_LOCAL it does nothing (other servers, the login node, older jobs).
 
 A file under /NAS/SJ/POSTECH (the repo and nlp_data, the container's view of /home1/leesangjun/SJ/POSTECH) that is opened for writing
 is written to $POC_LOCAL/stage/<the same relative path> instead. Reads, existence checks, directory listings and globs see the staged
