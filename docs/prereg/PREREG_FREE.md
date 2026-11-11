@@ -51,3 +51,16 @@ The parser fixes were quoted values ("perle d'or"), values written as listed ("7
 - P1, P3 and P4 hold: the free checks become part of the method, stated as checking the translation against its source text at no model cost.
 - P1 fails: the checks are reported as a diagnostic only.
 - P3 fails: the checks are stated as paying only for imprecise translators.
+
+## Addendum FREE-ZL: the same checks on ZebraLogic, registered 2026-11-11 10:1x UTC, before they are run there
+
+**Why.** The checks were designed on grid puzzles (Puzzle Baron). ZebraLogic is a different generator with numbered clues and listed values too, so it tests whether they carry to a domain they were not shaped on. Amonkar et al.'s 100 puzzles (ZL-AM) have stored first-step translations (`tr`, no thinking, no template fact): count-1 precision 176 of 197 for Qwen3-8B and 296 of 298 for gpt-oss-20b.
+- **Seen before this file:** 3 of Qwen3-8B's 21 wrong count-1 programs. One writes a conclusion in place of a clue (Eric's September birthday as "September is house 2"). Two read "there is one house between" or "two houses between" as a distance of 1 or 2, not 2 or 3, which no text check can see.
+
+**Setup.** `grid_score.free_checks` unchanged. A ZebraLogic puzzle is given to it with the houses as the first category and each attribute's listed values from the puzzle's header (the gold rows' values, as `gp_rescore.py --zl` does). Count-1 programs of `tr` and `trt`, three seeds, both translators. OR does not apply (ZebraLogic's clues say "either" rarely).
+
+**Predictions.**
+- **FREE-ZL-P1.** Qwen3-8B: the checks flag at least a third of the wrong count-1 programs. The distance misreading is invisible to them, and it is at least a third of the errors.
+- **FREE-ZL-P2.** False flags at most 5% of right count-1 programs, for each translator.
+
+**Decision.** Both hold: the checks are stated as carrying to a second puzzle generator. P2 fails: their false-flag rate is generator-specific, and the parser is reported as the limit.
