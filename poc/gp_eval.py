@@ -580,5 +580,65 @@ def mot_main():
                 line += f"; tau {co}/{n} picked on {o}: {res[(s, name, co)][0]:+.1f} [{res[(s, name, co)][1]:+.1f}, {res[(s, name, co)][2]:+.1f}]"
             print(line)
 
+def bud_main():
+    """PREREG_BUD: the plain ladder against budget-forced thinking (arm thinkb, one think cut at each budget) and full thinking, same seed k.
+    usage: python poc/gp_eval.py --bud <tag> --score2   grids: results/{gp,lgp}_<tag>_thinkb_s{1,2,3}.jsonl, every cut scored with scoring v2
+           python poc/gp_eval.py --bud <tag> --np       trips: results/np_<tag>_thinkb_s{1,2,3}.jsonl, ladder trc -> trct -> think"""
+    tag = sys.argv[sys.argv.index("--bud") + 1]
+    U = lambda ok, t: 100 * ok - 0.5 * t / 1000
+    from grid_score import score
+    data = os.environ.get("POC_DATA", os.path.join(RES, "..", "..", "nlp_data"))
+    for s, src in ([("np", None)] if "--np" in sys.argv else [("gp", "gridpuzzle"), ("lgp", "lgp")]):
+        Bk = {}
+        for k in [1, 2, 3]:
+            f = os.path.join(RES, f"{s}_{tag}_thinkb_s{k}.jsonl")
+            for x in map(json.loads, open(f)) if os.path.exists(f) else []:
+                Bk[(x["id"], k)] = x
+        if s == "np":
+            R = {}
+            for arm in ["trc", "trct", "think"]:
+                for sd in [1, 2, 3]:
+                    f = os.path.join(RES, f"np_{tag}_{arm}_s{sd}.jsonl")
+                    for r in map(json.loads, open(f)) if os.path.exists(f) else []:
+                        R[(arm, r["id"], sd)] = r
+
+            def lad(i, k):
+                tok = 0
+                for arm in ["trc", "trct"]:
+                    r = R[(arm, i, k)]; tok += r["tokens"]
+                    if r["count"] == 1:
+                        return U(r["exact"], tok)
+                r = R[("think", i, k)]; return U(r["exact"], tok + r["tokens"])
+            ok = lambda c, i: c["exact"]
+            keys = [(i, k) for (i, k) in Bk if all((a, i, k) in R for a in ["trc", "trct", "think"])]
+        else:
+            PZ = {r["id"]: r for r in map(json.loads, open(os.path.join(data, src, "grid.jsonl")))}
+            R, keys0 = load(s, tag)
+            lad = lambda i, k: U(*ladder(R, i, k)[:2])
+            ok = lambda c, i: score(c.get("grid"), PZ[i])[0]
+            keys = [x for x in keys0 if x in Bk]
+        if not keys:
+            print(s, "no budget runs yet"); continue
+        ids = sorted({i for i, _ in keys})
+        bs = sorted({int(b) for x in Bk.values() for b in x["cuts"]})
+        th = lambda i, k: U(R[("think", i, k)]["exact"], R[("think", i, k)]["tokens"])
+        print(f"== {s} {tag}: {len(ids)} problems, {len(keys)} problem-seeds; ladder {mean([lad(i, k) for i, k in keys]):.1f}, "
+              f"full think {mean([th(i, k) for i, k in keys]):.1f} ({100 * mean([R[('think', i, k)]['exact'] for i, k in keys]):.1f}% at "
+              f"{mean([R[('think', i, k)]['tokens'] for i, k in keys]) / 1000:.1f} ktok)")
+        res = {}
+        for b in bs + ["full"]:
+            ub = (lambda i, k: th(i, k)) if b == "full" else (lambda i, k, b=b: U(ok(Bk[(i, k)]["cuts"][str(b)], i), Bk[(i, k)]["cuts"][str(b)]["tokens"]))
+            per = {i: [lad(i, k) - ub(i, k) for ii, k in keys if ii == i] for i in ids}
+            res[b] = boot(per, lambda v: mean([mean(x) for x in v]))
+            if b != "full":
+                C = [Bk[x]["cuts"][str(b)] for x in keys]
+                print(f"  think cut at {b:5d}: {100 * mean([ok(Bk[(i, k)]['cuts'][str(b)], i) for i, k in keys]):5.1f}% at {mean([c['tokens'] for c in C]) / 1000:4.1f} ktok, "
+                      f"cut {mean([c['cut'] for c in C]):.2f}; ladder - it {res[b][0]:+5.1f} [{res[b][1]:+5.1f}, {res[b][2]:+5.1f}]")
+            else:
+                print(f"  full think        : ladder - it {res[b][0]:+5.1f} [{res[b][1]:+5.1f}, {res[b][2]:+5.1f}]")
+        b = min(res, key=lambda b: res[b][0])   # oracle: the budget (or full thinking) that does best against the ladder
+        print(f"  {s} best budget {b}: ladder - it {res[b][0]:+.1f} [{res[b][1]:+.1f}, {res[b][2]:+.1f}]")
+
+
 if __name__ == "__main__":
-    mot_main() if "--mot" in sys.argv else zl_main() if "--zl" in sys.argv else np_main() if "--np" in sys.argv else thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()
+    bud_main() if "--bud" in sys.argv else mot_main() if "--mot" in sys.argv else zl_main() if "--zl" in sys.argv else np_main() if "--np" in sys.argv else thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()

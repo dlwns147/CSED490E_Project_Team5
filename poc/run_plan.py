@@ -8,6 +8,7 @@ ANSWER until a second, different plan appears or none is left).
 
 usage: run_plan.py <tag> <arm tr|trt|trc|trct|think|direct> <seed> [--resume (keep the rows already written, run the rest)]
        (arm direct, PREREG_MOT addendum MOT-T: the think prompt without thinking; every round keeps its plan)
+       (arm thinkb, PREREG_BUD: the think prompt under budget forcing at each of --budgets, default 1000,2000,4000,8000, cut from one think; row["cuts"][B])
        run_plan.py --check <tag> [--dev] [--label L (another model serving: writes np_<tag>_<L>.jsonl)] (PREREG_NPC: the model checks each count-1 plan against the task, see check())
        run_plan.py --rescore <result files> (re-run stored programs under the current harness, see rescore()) [--dev N (N trips outside Amonkar's 100, spread over the file, so over 3-10 cities)] [--max_tokens N] [--rounds N (default 3)]
 Default: Amonkar et al.'s 100 trips (data/trip_planning_100.json of github.com/rikhil-amonkar/llm-csp). Prompts: NaturalPlan's 5-shot prompt as is
@@ -20,7 +21,7 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0, os.path.dirname(__file__))
-from llm import chat_msgs, last_block  # noqa: E402
+from llm import chat_msgs, last_block, think_cuts  # noqa: E402
 from sandbox import run_python  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -190,6 +191,7 @@ def main():
     opt = lambda k, d: int(sys.argv[sys.argv.index(k) + 1]) if k in sys.argv else d
     tag, arm, seed = a[0], a[1], int(a[2])
     mt, nr, dev = opt("--max_tokens", 32000 if arm == "think" else 16000 if arm in ("trt", "trct") else 4096), opt("--rounds", 3), opt("--dev", 0)
+    BUD = [int(x) for x in sys.argv[sys.argv.index("--budgets") + 1].split(",")] if "--budgets" in sys.argv else [1000, 2000, 4000, 8000]
     R = [json.loads(l) for l in open(os.path.join(os.environ["POC_DATA"], "naturalplan", "trip.jsonl"))]
     P = [r for r in R if not r["amonkar"]][::max(1, 1500 // dev)][:dev] if dev else [r for r in R if r["amonkar"]]
 
@@ -200,6 +202,11 @@ def main():
         gold = np_norm({"city": c, "start": s, "end": e} for c, s, e in r["gold"])
         sd = seed * 10007 + int(r["id"].rsplit("_", 1)[1])
         row = {"id": r["id"], "ncity": r["ncity"], "arm": arm, "seed": seed}
+        if arm == "thinkb":   # PREREG_BUD: budget-forced thinking at every budget of --budgets, cut from one think (llm.think_cuts)
+            C = think_cuts(NP_FMT.format(p=p), BUD, seed=sd)
+            cuts = {str(b): {"exact": pl == gold, "tokens": o["out_tokens"], "cut": o["cut"], "finish": o["finish"], "plan": pl}
+                    for b, o in C.items() for pl in [np_norm(np_extract(o["text"]) or [])]}
+            return {**row, "exact": cuts[str(max(BUD))]["exact"], "tokens": cuts[str(max(BUD))]["tokens"], "cuts": cuts}
         if arm in ("think", "direct"):
             o = chat_msgs([{"role": "user", "content": NP_FMT.format(p=p)}], think=arm == "think", max_tokens=mt, temperature=0.7, seed=sd)
             pl = np_norm(np_extract(o["text"]) or [])

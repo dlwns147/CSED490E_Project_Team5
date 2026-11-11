@@ -120,3 +120,41 @@ def chat_msgs(msgs: list, model: str = "local", temperature: float = 0.7, max_to
         lc = r.choices[0].logprobs.content or []
         out.update(lp=[t.logprob for t in lc], lp_tok=[t.token for t in lc])
     return out
+
+
+EARLY_STOP = "Considering the limited time by the user, I have to give the solution based on the thinking directly now."   # Qwen3 docs, thinking budget
+
+
+def think_cuts(prompt: str, budgets, seed: int | None = None, temperature: float = 0.7, max_answer: int = 4096) -> dict:
+    """PREREG_BUD: budget forcing (s1, 2501.19393; Qwen3's documented thinking budget) at several budgets from one think. The think runs once, to
+    max(budgets) tokens; for budget B its first B tokens are kept, EARLY_STOP is appended, the think is closed and the answer generated. A think that
+    ends by itself within B is answered once, and that answer is shared by every such B. Raw completions in the Qwen3 chat format, or gpt-oss harmony
+    when POC_HARMONY is set (effort POC_REASONING_EFFORT, default medium). Returns {B: {"text", "finish", "out_tokens", "think_tokens", "cut"}}."""
+    import time
+    if os.environ.get("POC_HARMONY"):
+        head = ("<|start|>system<|message|>You are ChatGPT, a large language model trained by OpenAI.\nKnowledge cutoff: 2024-06\n"
+                f"Current date: {time.strftime('%Y-%m-%d')}\n\nReasoning: {EFFORT or 'medium'}\n\n"
+                "# Valid channels: analysis, commentary, final. Channel must be included for every message.<|end|>"
+                f"<|start|>user<|message|>{prompt}<|end|><|start|>assistant<|channel|>analysis<|message|>")
+        stop, close, astop = {"extra_body": {"stop_token_ids": [200007]}}, "<|end|><|start|>assistant<|channel|>final<|message|>", {}
+    else:
+        head = f"<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n<think>\n"
+        stop, close, astop = {"stop": ["</think>"]}, "\n</think>\n\n", {"stop": ["<|im_end|>"]}
+    kw = dict(model="local", temperature=temperature, top_p=0.95 if temperature > 0 else 1.0, seed=seed)
+    r = client.completions.create(prompt=head, max_tokens=max(budgets), **kw, **stop)
+    th, used, ended = r.choices[0].text, r.usage.completion_tokens, r.choices[0].finish_reason == "stop"
+    ids = post_json("/tokenize", {"model": "local", "prompt": th, "add_special_tokens": False})["tokens"]
+    out, natural = {}, None
+    for b in sorted(budgets):
+        if ended and used <= b:
+            if natural is None:
+                a = client.completions.create(prompt=head + th + close, max_tokens=max_answer, **kw, **astop)
+                natural = {"text": strip_think(a.choices[0].text), "finish": a.choices[0].finish_reason, "out_tokens": used + a.usage.completion_tokens,
+                           "think_tokens": used, "cut": False}
+            out[b] = natural
+            continue
+        pre = post_json("/detokenize", {"model": "local", "tokens": ids[:b]})["prompt"]
+        a = client.completions.create(prompt=head + pre + "\n\n" + EARLY_STOP + close, max_tokens=max_answer, **kw, **astop)
+        out[b] = {"text": strip_think(a.choices[0].text), "finish": a.choices[0].finish_reason, "out_tokens": min(b, used) + a.usage.completion_tokens,
+                  "think_tokens": min(b, used), "cut": True}
+    return out

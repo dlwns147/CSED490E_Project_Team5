@@ -20,7 +20,7 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0, os.path.dirname(__file__))
-from llm import chat_msgs, last_block, strip_think  # noqa: E402
+from llm import chat_msgs, last_block, strip_think, think_cuts  # noqa: E402
 from sandbox import run_python  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
@@ -434,6 +434,7 @@ def zl_main():
 # GridPuzzle (Tyagi et al. 2024; Puzzle Baron puzzles written by people), idea 27: does the ZebraLogic count gate survive human-written clues? The first category is ordered
 # and plays the houses' role. usage: run_zebra.py --gp <tag> <arm gtr|gtrt|think|direct|gtrl|gtrtl|thinkf|gts> <seed> [--dev] [--max_tokens N] [--set gridpuzzle|lgp] [--ref <tag> for thinkf]
 # [--ids <file of puzzle ids>] [--rounds N (default 3)]. Arm direct (PREREG_MOT): the think prompt without thinking (Yue et al.'s CoT sample); every row and round keeps its grid.
+# Arm thinkb (PREREG_BUD): the think prompt under budget forcing at each of --budgets (default 1000,2000,4000,8000), all cut from one think; row["cuts"][B].
 GP_SOLVE = """
 import ast, itertools, json, re
 from ortools.sat.python import cp_model
@@ -689,6 +690,7 @@ def gp_main():
         keep = set(open(sys.argv[sys.argv.index("--ids") + 1]).read().split())
         P = [r for r in P if r["id"] in keep]
     nr = int(sys.argv[sys.argv.index("--rounds") + 1]) if "--rounds" in sys.argv else 3   # idea 39: --rounds 1 = first attempt only
+    BUD = [int(x) for x in sys.argv[sys.argv.index("--budgets") + 1].split(",")] if "--budgets" in sys.argv else [1000, 2000, 4000, 8000]
     ref = {}
     if arm == "thinkf":   # idea 34: thinking with the clues also given as a right translation (reading removed, search kept); --ref <tag> names the runs it comes from
         rt = sys.argv[sys.argv.index("--ref") + 1]
@@ -704,6 +706,11 @@ def gp_main():
         (first, fv), cols, n = r["cats"][0], ", ".join(gold), len(r["cats"][0][1])
         sd = seed * 10007 + int(r["id"].split("-")[1])
         row = {"id": r["id"], "size": r["size"], "arm": arm, "seed": seed}
+        if arm == "thinkb":   # PREREG_BUD: budget-forced thinking at every budget of --budgets, cut from one think (llm.think_cuts)
+            C = think_cuts(GP_FMT.format(p=r["puzzle"], cols=cols, first=first, fv=", ".join(fv)), BUD, seed=sd)
+            cuts = {str(b): {"exact": gp_score(g, r)[0], "tokens": o["out_tokens"], "cut": o["cut"], "finish": o["finish"], "grid": g}
+                    for b, o in C.items() for g in [zl_extract(o["text"])]}
+            return {**row, "exact": cuts[str(max(BUD))]["exact"], "tokens": cuts[str(max(BUD))]["tokens"], "cuts": cuts}
         if arm in ("think", "thinkf", "direct"):
             pz = r["puzzle"] + ("\n\n" + GP_REF.format(first=first, fv=", ".join(fv), code=ref[r["id"]].strip()) if arm == "thinkf" else "")
             q = GP_FMT.format(p=pz, cols=cols, first=first, fv=", ".join(fv))
