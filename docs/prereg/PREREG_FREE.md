@@ -64,3 +64,9 @@ The parser fixes were quoted values ("perle d'or"), values written as listed ("7
 - **FREE-ZL-P2.** False flags at most 5% of right count-1 programs, for each translator.
 
 **Decision.** Both hold: the checks are stated as carrying to a second puzzle generator. P2 fails: their false-flag rate is generator-specific, and the parser is reported as the limit.
+
+### FREE-ZL result (2026-11-11 10:1x UTC): P1 fails, P2 holds
+- **P1 fails:** the checks flag 4 of Qwen3-8B's 25 wrong count-1 programs (16%; tr and trt, three seeds). gpt-oss-20b: 1 of 2.
+- **P2 holds:** false flags 10 of 456 right programs (2.2%) for Qwen3-8B and 1 of 593 (0.2%) for gpt-oss-20b.
+- **Why P1 fails:** 20 of the 25 wrong programs misread "there is one house between A and B" (or two) as a distance of 1 (or 2), one less than meant. That is far more than the third I assumed. The checks see none of these by design: the program names the right values and keeps one expression per clue. Of the other 5, they flag 3, each a conclusion written in place of a clue.
+- **Decision as registered:** the checks are not stated as carrying to ZebraLogic. Their false-flag rate is low there too, so they cost little, but the dominant error on this generator is a reading of one template phrase.
