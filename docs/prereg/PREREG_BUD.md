@@ -54,3 +54,10 @@ So a cut that loses nothing would tie or beat the ladder in most cells; the ques
 
 ## Pilot read (2026-11-11 05:0x UTC, format only)
 Qwen3-8B and gpt-oss-20b, dev, seed 1: every cut answer parsed (grids and trips), cuts happened at every budget below the think's own end, and tokens were charged as registered. A cut think often keeps reasoning in its answer (Qwen3-8B, 1k budget: up to 2.5k answer tokens); that is budget forcing as specified and is charged. No change to the setup. Test lanes started on seven GPUs.
+
+## Interim result (2026-11-11 06:0x UTC): trips complete, BUD-P2 holds; gpt-oss-20b grids complete
+Ladder − budget-forced think, utility, three seeds (`gp_eval.py --bud`). Cut accuracy at 1k / 2k / 4k / 8k, against full thinking:
+- **Trips.** Qwen3-8B 13 / 13 / 15 / 28% (full 33%); Qwen3-32B-AWQ 25 / 28 / 43 / 48% (full 47%); gpt-oss-20b 14 / 18 / 32 / 51% (full 71%); gpt-oss-120b 16 / 25 / 41 / 60% (full 77%).
+- **Best baseline:** full thinking for Qwen3-8B (+6.8 [+0.9, +12.8]), gpt-oss-20b (−1.1 [−6.8, +4.9], tie; BUD-P4) and gpt-oss-120b (+5.8 [+1.0, +10.9]). For Qwen3-32B-AWQ it is the 8k cut, whose accuracy matches full thinking at fewer tokens (+13.9 [+6.4, +21.4]). **BUD-P2 holds.**
+- **gpt-oss-20b grids** (P1 and P3 wait for the Qwen3 lanes): GridPuzzle cuts 18 / 26 / 40 / 56% (full 79%); the best baseline is full thinking, +3.9 [+0.5, +7.5]. Mitra-Baral cuts 16 / 49 / 81 / 92% (full 96.5%); full thinking again, +1.8 [−0.5, +4.1].
+- **Harness check.** Thinks that ended by themselves within 8k are right as often as stored full thinks of the same length (GridPuzzle 95.8% against 95.6%; Mitra-Baral 98.8 / 97.0; trips 78 / 76, 71 / 67, 97 / 92, 92 / 93). So the raw-completion path is not what lowers the cut accuracy; the cut is.
