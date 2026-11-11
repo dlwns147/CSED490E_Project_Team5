@@ -113,3 +113,21 @@ Job 1384271 (`poc/gp_rescore.py --zlmin`), read with `python poc/gp_eval.py --zl
 | gpt-oss-20b, Mitra-Baral | +1.5 [+0.2, +3.3] | +2.0 [+0.1, +4.1] | 268/269 = 99.6% |
 
 - **Qwen3-8B rerun.** Its runs (Slurm job 1379922, one A5000) had finished about 30 of 215 puzzles per run after 7 hours. The 24 GB card held 10 requests at a time, with 374 waiting. I cancelled the job, dropped those partial rows, and restarted all 12 runs from the first puzzle on two 96 GB GPUs of the second server, with every setting unchanged.
+
+## Result (2026-11-11 23:1x UTC): with Qwen3-8B, FREE-P1 holds, FREE-P2 fails, FREE-P4 fails. The checks are not stated as part of the method.
+Fresh seeds 4–6, all 645 GridPuzzle and 282 Mitra-Baral puzzle-seeds, `python poc/gp_eval.py --free q8b --score2`.
+
+| Translator, set | v-ladder − plain ladder | v-ladder − think | Accepted count-1 precision (P4: ≥ 98%) |
+|---|---|---|---|
+| Qwen3-8B, GridPuzzle | **+2.6 [+0.6, +4.9]** (P1: interval above 0) | +3.6 [−0.6, +7.9] (P2: interval above 0) | 372/405 = 91.9% |
+| Qwen3-8B, Mitra-Baral | −1.3 [−3.2, +0.4] (not registered) | −1.4 [−7.2, +4.9] | 209/224 = 93.3% |
+
+- **FREE-P1 holds.** For the imprecise translator the checks pay on GridPuzzle: 104 of 645 runs got check feedback, and 45 were still flagged at the end.
+- **FREE-P2 fails.** Against thinking the interval reaches −0.6, so the GP-P1 win lost under scoring v2 is not restored.
+- **FREE-P3 holds** (interim above, the two precise translators).
+- **FREE-P4 fails for Qwen3-8B:** 91.9% and 93.3%. The checks remove some wrong count-1 programs but leave 33 and 15 accepted.
+- **Decision.** The registered statement needs P1, P3 and P4 together, and P4 fails, so the checks are not stated as part of the method. A P4 failure has no branch of its own; I read it as the condition not being met. What is reported:
+  - the checks cost nothing for precise translators (P3);
+  - they gain +2.6 for Qwen3-8B on GridPuzzle;
+  - they do not make Qwen3-8B's accepted programs precise, which is what a free check would need to carry the claim.
+- On Mitra-Baral, Qwen3-8B loses −1.3 [−3.2, +0.4] with the checks (not registered; the interval includes 0).

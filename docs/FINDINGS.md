@@ -6846,3 +6846,15 @@ Job 1382299 (one GPU, queued).
 - **Checked by re-translating the same puzzles with edited lists.** First-round misreads: 70% with the list as shown, 43% without the inverted rule, 67% with repeats removed. The inverted rule is the cause; the list's length is not.
 - **Next (PREREG_RULE3, fresh seeds 7–9).** A stated rule is kept only if the quick translation, given that rule, reads the clue as the count admitted. The check uses no label. Prior work keeps rules by labelled accuracy (HtT) or by environment reward (AutoManual, RIMRULE).
 - **Expected:** a close call against the fact. Without the inverted rule, misreading still rises on the late, larger puzzles (to about half at positions 200–249).
+
+## 2026-11-11 23:1x UTC — PREREG_RULE3 holds: with self-stated rules kept by a label-free check, the ZebraLogic ladder matches the hand fact, which is now an ablation. FREE fails its precision condition for Qwen3-8B.
+**RULE3 (fresh seeds 7–9, 250 unseen puzzles).**
+- The quick model states a rule from each count-admitted pair of readings. The rule is kept only if a quick translation given it writes that clue as the thinking translation did.
+- Ladder with checked rules from the checked dev library − ladder with the hand fact: +0.9 [−0.9, +3.0]. P1 (lower bound above −2.0, point at or above 0) holds. Against no fact: +3.9 [+1.4, +6.5]. "Between" misread: 8% (fact 17%, no fact 95%).
+- From an empty start, the checked rules are similar: +1.2 [−1.0, +3.4] against the fact.
+- **Decision as registered:** the ZebraLogic headline no longer uses a hand-written sentence. The fact is an ablation.
+- **Caveat.** No inverted rule was stated in any RULE3 run, so the check never had to catch one. On the dev pass it removed 30 of 35 rules, mostly a generic "between" rule attached to clues without "between". An ablation without the check on the same seeds (registered in the PREREG_RULE3 addendum) is running.
+
+**FREE, Qwen3-8B (fresh seeds 4–6).**
+- With the text checks, the GridPuzzle ladder gains +2.6 [+0.6, +4.9] over the plain ladder (P1 holds). Against thinking: +3.6 [−0.6, +7.9] (P2 fails).
+- Accepted count-1 precision is 91.9% (GridPuzzle) and 93.3% (Mitra-Baral), under the registered 98% (P4 fails). So the checks are not stated as part of the method. They cost nothing for precise translators and help the imprecise one, but do not make it precise.

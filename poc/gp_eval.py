@@ -981,7 +981,8 @@ def conv_main():
     the first puzzle at which a rule was stated from such a clue. --rule2 (PREREG_RULE2): cell B on fresh seeds 4-6 with the quick steps tr, trf and
     trrw (trr started from the rules stated on the dev puzzles), P1 counted from the first puzzle; trr there is the cold start on the same
     seeds (the first trrw run, whose dev pass stated no rule, see the PREREG_RULE2 addendum). --rule3 (PREREG_RULE3): fresh seeds 7-9 with trrv / trrvw,
-    trr / trrw whose stated rules are kept only when a quick translation with them reads the clue as admitted (run_zebra --check)."""
+    trr / trrw whose stated rules are kept only when a quick translation with them reads the clue as admitted (run_zebra --check); trr / trrw
+    on the same seeds, when present, are the ablation without the check (RULE3 addendum)."""
     import ast
     import re
     from grid_score import _norm, clue_texts, expr_eval
@@ -1006,7 +1007,7 @@ def conv_main():
         except Exception:
             return None
     SD = [7, 8, 9] if "--rule3" in sys.argv else [4, 5, 6] if "--rule2" in sys.argv else [1, 2, 3]
-    cells = [("B, unseen main puzzles, fresh seeds 7-9", "q8bh", ["tr", "trf", "trrv", "trrvw"])] if "--rule3" in sys.argv else \
+    cells = [("B, unseen main puzzles, fresh seeds 7-9", "q8bh", ["tr", "trf", "trrv", "trrvw", "trr", "trrw"])] if "--rule3" in sys.argv else \
         [("B, unseen main puzzles, fresh seeds 4-6", "q8bh", ["tr", "trf", "trr", "trrw"])] if "--rule2" in sys.argv else \
         [("A, ZL-AM", "q8bam", ["tr", "trm", "trr"]), ("B, unseen main puzzles", "q8bh", ["tr", "trf", "trm", "trr"])]
     for cell, tag, firsts in cells:
@@ -1046,7 +1047,8 @@ def conv_main():
                            ("trr", "tr", "RULE-P3: interval above 0 in cell B"), ("trr", "trf", "RULE-P4: lower bound above -2.0"),
                            ("trrw", "tr", "RULE2-P2: interval above 0"), ("trrw", "trf", "RULE2-P1: lower bound above -2.0, point at or above 0"),
                            ("trrvw", "tr", "RULE3-P2: interval above 0"), ("trrvw", "trf", "RULE3-P1: lower bound above -2.0, point at or above 0"),
-                           ("trrv", "tr", "reported"), ("trrv", "trf", "reported")]:
+                           ("trrv", "tr", "reported"), ("trrv", "trf", "reported"),
+                           ("trrvw", "trrw", "RULE3-A1: point above 0, ablation"), ("trrv", "trr", "RULE3-A2: point at or above 0, ablation")]:
             if a in firsts and b in firsts:
                 per = {}
                 for i, sd in keys:

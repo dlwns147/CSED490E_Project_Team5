@@ -60,3 +60,34 @@
   - The rest are restatements of what the quick reading already did ("X is Y" means equality, "directly left" means a difference of 1).
 - Check cost on the dev pass: 13,920 tokens over 250 puzzles, about 0.03 utility per puzzle.
 - So the check's observed work here is removing misattributed and ineffective rules. Whether it rejects an inverted rule when one is stated is read on the unseen runs (`rules_rejected` in `trrv`, `trrvw`).
+
+## Result (2026-11-11 23:1x UTC): P0, P1, P2 and P3 hold. The ZebraLogic headline drops the hand-written fact.
+`python poc/gp_eval.py --conv --rule3`, the 250 unseen main puzzles, fresh seeds 7–9, 750 puzzle-seeds.
+
+| Quick step | Ladder accuracy | ktok | Quick count-1 precision | "Between" misread |
+|---|---|---|---|---|
+| `tr` (no fact, no rules) | 91.7% | 3.10 | 441/480 = 91.9% | 157/166 = 95% |
+| `trf` (hand fact) | 94.3% | 2.26 | 558/583 = 95.7% | 46/271 = 17% |
+| `trrv` (checked rules, from empty) | 95.5% | 2.30 | 572/590 = 96.9% | 42/244 = 17% |
+| `trrvw` (checked rules, from the checked dev library) | 95.2% | 2.29 | 569/589 = 96.6% | 22/277 = 8% |
+
+- **P1 holds:** `trrvw` − `trf` = +0.9 [−0.9, +3.0]. The point is above 0 and the lower bound above −2.0. This is non-inferiority within the registered margin, not a win over the fact.
+- **P2 holds:** `trrvw` − `tr` = +3.9 [+1.4, +6.5].
+- **P3 holds:** 8% misread, under 30% (I expected about 35%).
+- **Reported:** `trrv` − `trf` = +1.2 [−1.0, +3.4]; `trrv` − `tr` = +4.1 [+1.9, +6.5].
+- Rule calls, including the check, cost 0.10–0.11 ktok per puzzle. The check rejected 102 (`trrv`) and 152 (`trrvw`) stated rules.
+- **No inverted rule was stated in any run** (dev pass or the six unseen runs). So the check was never asked to catch one. What these runs show is that the checked rules match the fact. They do not show that the check is what removed RULE2's failure, because RULE2's inverted rule may be a rare event.
+- **Decision as registered:** the ZebraLogic headline is restated without the hand-written fact. The quick translation reads with rules it stated itself, each kept only when it reproduces a reading that the count admitted. The fact becomes an ablation.
+
+## Addendum (2026-11-11 23:1x UTC, before running): ablation of the check on the same seeds
+The result above leaves open whether the check matters. Two arms run without the check on seeds 7–9, with everything else unchanged:
+- `trr`: from empty, as in PREREG_RULE.
+- `trrw`: from the unchecked dev library `zl_q8b_trr_s1`, which holds the inverted rule (as in RULE2).
+
+Predictions (paired, same seeds; `python poc/gp_eval.py --conv --rule3` prints them):
+- **RULE3-A1:** `trrvw` − `trrw`: "between" misread at least 40% in `trrw` (RULE2: 56%), against 8% in `trrvw`. Utility point estimate above 0. RULE2 → RULE3 moved −0.4 → +0.9 against the fact, so I expect about +1.3 with a half-width of about 2. The interval may include 0, and that alone does not decide anything.
+- **RULE3-A2:** `trrv` − `trr`: point at or above 0. Expected 0 to +1.5: from empty, the check removes misattributed rules, and RULE2's cold `trr` misread 27% against 17% here.
+
+**Use.**
+- If A1's misread prediction holds, the check is stated as the component that protects a carried library from a wrong rule, with the utility difference as measured.
+- If `trrw` misreads under 40% on these seeds, the inverted rule is not reproduced, and the check is reported as a filter of misattributed rules only.
