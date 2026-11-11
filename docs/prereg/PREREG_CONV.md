@@ -43,3 +43,13 @@
 - **Self-ICL** (2305.15035) and **Auto-CoT** (2210.03493) use the model's own demonstrations without a check.
 - **Semantic self-verification** (Raza and Milic-Frayling, 2501.16961) has the model write examples per constraint and checks them with a solver, but only within one problem.
 - **Here:** an entry is admitted only by a free, label-free signal, a solution count of 1 where the cheap reading did not reach one. The teacher is the ladder's own expensive step on other problems, and it costs no additional call. A search found no prior work that stores solver-verified encoding conventions across problems.
+
+## Result (2026-11-11 16:0x UTC): CONV-P1 fails, so trm is killed. P2, P3 and P4 fail as well.
+Job 1382299, `python poc/gp_eval.py --conv`. Qwen3-8B, three seeds.
+- **CONV-P1 fails.** "N houses between" clues that the gold solution violates, in trm programs once the memory holds such a clue: 50 of 82 (61%) in cell A and 123 of 144 (85%) in cell B. The limit was 30%. Without memory: 95% and 94%. With the hand-written fact (trf): 18%.
+- **CONV-P2 fails.** trm count-1 precision is 90.7% in cell A and 91.9% in cell B.
+- **CONV-P3 fails.** Ladder(trm) − ladder(tr): cell B −0.4 [−1.8, +1.1]; cell A +0.6 [−2.1, +3.0].
+- **CONV-P4 fails.** Ladder(trm) − ladder(trf): −4.0 [−6.9, −1.2].
+- **Why: the quick translation copies its own reading, even with right examples in front of it.** In seed 1 of cell B, the memory holds 30 "between" pairs by the end, every one written as a distance of 2 for "one house between". Yet late puzzles shown 21–27 lines of memory still write "There is one house between Eric and Alice" as `abs(p['Name:Eric'] - p['Name:Alice']) == 1` (six such cases in a row from lgp-test-5x4-12 on).
+  - The same model follows a one-sentence explicit rule (trf: 18% misread). Worked examples of the phrase do not override its prior; a stated rule does.
+- **Decision (as registered):** P1 fails, so the quick translation does not use the memory. trm is killed. The hand-written fact stays as stated in the ZebraLogic ladder, with its provenance (mined from dev errors) disclosed.

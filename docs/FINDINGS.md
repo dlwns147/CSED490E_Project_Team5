@@ -6774,3 +6774,18 @@ Job 1382299 (one GPU, queued).
 - The stronger-thinker result stays a tie for the fixed ladder.
 
 **Next.** An uncertainty-aware version (skip only when the held-out value is confidently below 0) is suggested by this result. It needs puzzles or seeds this result has not seen before it can be registered.
+
+## 2026-11-11 16:0x UTC — PREREG_CONV: examples of the right reading do not move the quick translator; a stated rule does. trm killed.
+
+**Result.** With the memory of (clue, thinking expression) pairs from the ladder's own escalations, the quick translation still misreads "N houses between":
+- 61% in cell A and 85% in cell B, against 94–95% without memory and 18% with the one-sentence hand fact.
+- Ladder utility with memory − without: −0.4 [−1.8, +1.1] on the 250 unseen puzzles.
+- Against the hand fact: −4.0 [−6.9, −1.2].
+- All four predictions fail, and trm is killed as registered.
+
+**Root cause, read from the programs.** The memory is right and is shown: 30 "between" pairs by the end of seed 1, all written as a distance of 2. The quick model still writes the phrase as adjacency (`== 1`) right under 21–27 memory lines. In-context worked examples of the very same phrase do not override the model's prior reading. An explicit rule sentence does.
+
+**Related work this points to.** Hypotheses-to-Theories (Zhu et al., 2310.07064) induces a library of rules from examples whose answers are verified, then gives the rules (not the examples) at deduction time.
+- The analogue here would be the thinking step stating the convention as a rule, admitted by the count.
+- That is a new method. It would need its own registration, and our count signal is the novelty against HtT's label-checked rules.
+- Not started. The hand fact stays disclosed as dev-mined.
