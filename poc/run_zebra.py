@@ -344,6 +344,12 @@ ZL_TR = ("{p}\n\nDo not solve the puzzle. Translate it. Give one ```python block
 ZL_FACT = " \"There is one house between A and B\" means abs(p[A] - p[B]) == 2, two houses between means 3. A clue about one value's house uses a house number; never compare p[...] with a string."
 ZL_MEM = ("\n\nOn earlier puzzles of this set, these clues were read as below, and that reading made the solver find exactly one solution where another "
           "reading had not:\n{pairs}")   # PREREG_CONV, arm trm
+ZL_RULES = ("\n\nReading rules for this set of puzzles, each learned on an earlier puzzle where it made the solver find exactly one solution where another "
+            "reading had not:\n{rules}")   # PREREG_RULE, arm trr
+ZL_RULE = ("In a set of logic-grid puzzles, a translation wrote the clue {t} as {x}, and the solver did not find exactly one solution. A second translation "
+           "wrote it as {y}, and the solver found exactly one solution. Reading rules learned so far for this set:\n{rules}\n\nIf one of these rules already "
+           "gives the second reading, reply SAME. Otherwise reply with one sentence, starting with RULE:, that states the general reading rule behind the second "
+           "expression, for any clue worded this way with other names or numbers.")   # PREREG_RULE: the rule is stated by the quick model, no thinking
 ZL_FMT = "{p}\n\nSolve the puzzle. On the last line give JSON mapping each attribute ({cols}) to the list of its values for houses 1 to {n} in order."
 
 
@@ -385,7 +391,8 @@ def zl_main():
     tag, arm, seed = sys.argv[2], sys.argv[3], int(sys.argv[4])
     opt = lambda k, d: int(sys.argv[sys.argv.index(k) + 1]) if k in sys.argv else d
     per, mt, skip = opt("--per", 10), opt("--max_tokens", 16000 if arm == "think" else 8192 if arm == "trt" else 4096), opt("--skip", 0)
-    tr = arm in ("tr", "trf", "trt", "trm")   # trf: with the fact below; trt: a translation with thinking on; trm: with the clue readings learned so far (PREREG_CONV)
+    tr = arm in ("tr", "trf", "trt", "trm", "trr")   # trf: with the fact below; trt: a translation with thinking on; trm: with the clue readings learned so far (PREREG_CONV);
+    # trr: with the reading rules stated so far (PREREG_RULE)
     R = [json.loads(l) for l in open(os.path.join(os.environ["POC_DATA"], "zebralogic", "grid.jsonl"))]
     seen, P = {}, []
     for r in sorted(R, key=lambda r: (r["size"], int(r["id"].rsplit("-", 1)[1]))):
@@ -406,7 +413,8 @@ def zl_main():
             ex, ca = zl_score(zl_extract(o["text"]), gold)
             return {**row, "exact": ex, "cell_acc": ca, "tokens": o["out_tokens"], "finish": o["finish"], "text": (o["text"] or "")[-1500:]}
         msgs = [{"role": "user", "content": ZL_TR.format(p=r["puzzle"], cols=cols, n=n) + (ZL_FACT if arm == "trf" else "")
-                 + (ZL_MEM.format(pairs="\n".join(f"- {json.dumps(t)} -> {json.dumps(x)}" for t, x in mem)) if mem else "")}]
+                 + ((ZL_RULES.format(rules="\n".join(f"- {u}" for u in mem)) if arm == "trr" else
+                     ZL_MEM.format(pairs="\n".join(f"- {json.dumps(t)} -> {json.dumps(x)}" for t, x in mem))) if mem else "")}]
         tok, hist = 0, []
         for rnd in range(3):
             o = chat_msgs(msgs, think=arm == "trt", max_tokens=mt, temperature=0.7, seed=sd + rnd)
@@ -426,7 +434,7 @@ def zl_main():
             msgs += [{"role": "assistant", "content": o["text"] or "(empty)"},
                      {"role": "user", "content": f"The puzzle has exactly one solution, but {fb}. Compare each clue with the puzzle and give the complete corrected ```python block."}]
         return {**row, "exact": ex, "cell_acc": ca, "count": out["count"], "tokens": tok, "rounds": len(hist), "hist": hist, "code": code, "grid": out["grid"],
-                **({"mem": len(mem or [])} if arm == "trm" else {})}
+                **({"mem": len(mem or [])} if arm in ("trm", "trr") else {})}
 
     path = f"{RES}/zl_{tag}_{arm}_s{seed}.jsonl"
     if arm == "trm":
@@ -445,6 +453,31 @@ def zl_main():
                 x["mem_added"] = new
                 rows.append(x); f.write(json.dumps(x) + "\n"); f.flush()
         print(tag, arm, seed, f"{sum(r['exact'] for r in rows)}/{len(rows)}", f"tokens {sum(r['tokens'] for r in rows) / len(rows):.0f}", f"memory {len(mem)}", flush=True)
+        return
+    if arm == "trr":
+        # PREREG_RULE: as trm, but each clue read differently is turned into a stated rule. The quick model (no thinking) gets the clue, both expressions
+        # and the rules so far, and replies SAME or one new rule; later quick translations get the rules, not the examples. The rule calls' tokens are
+        # paid at the puzzle where they are made (row["rule_tokens"]).
+        T = {x["id"]: x for x in map(json.loads, open(f"{RES}/zl_{tag}_trt_s{seed}.jsonl"))}
+        mem, rows, seen = [], [], set()
+        with open(path, "w") as f:
+            for r in P:
+                x, b = run(r, list(mem)), T.get(r["id"])
+                new = clue_pairs(x["code"], b.get("code"), r["puzzle"], len(r["solution"]["rows"]), both=True) if x["count"] != 1 and b and b.get("count") == 1 else []
+                added, rt = [], 0
+                for j, (t, qe, te) in enumerate(new):
+                    if t in seen:
+                        continue
+                    seen.add(t)
+                    o = chat_msgs([{"role": "user", "content": ZL_RULE.format(t=json.dumps(t), x=json.dumps(qe), y=json.dumps(te), rules="\n".join(f"- {u}" for u in mem) or "(none)")}],
+                                  think=False, max_tokens=512, temperature=0.7, seed=seed * 10007 + int(r["id"].rsplit("-", 1)[1]) + 100 + j)
+                    rt += o["out_tokens"]
+                    m = re.search(r"RULE:\s*(.+)", o["text"] or "")
+                    if m and "SAME" not in (o["text"] or "").split("RULE:")[0]:
+                        mem.append(m.group(1).strip().splitlines()[0]); added.append((t, mem[-1]))
+                x["rules_added"], x["rule_tokens"], x["pairs"] = added, rt, len(new)
+                rows.append(x); f.write(json.dumps(x) + "\n"); f.flush()
+        print(tag, arm, seed, f"{sum(r['exact'] for r in rows)}/{len(rows)}", f"tokens {sum(r['tokens'] for r in rows) / len(rows):.0f}", f"rules {len(mem)}", flush=True)
         return
     rows = [json.loads(l) for l in open(path)] if os.path.exists(path) else []   # resume: keep rows already written
     done = {r["id"] for r in rows}

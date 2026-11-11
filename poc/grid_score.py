@@ -254,8 +254,9 @@ def disagree(a, b, n, tries=300, seed=0):
     return False
 
 
-def clue_pairs(code_a, code_b, puzzle, n):
-    """PREREG_CONV: [(clue text, b's expression)] for the clues that programs a and b (both with one expression per clue, in order) read differently"""
+def clue_pairs(code_a, code_b, puzzle, n, both=False):
+    """PREREG_CONV: [(clue text, b's expression)] for the clues that programs a and b (both with one expression per clue, in order) read differently;
+    both=True (PREREG_RULE): [(clue text, a's expression, b's expression)]"""
     import ast
 
     def clues(code):
@@ -270,4 +271,4 @@ def clue_pairs(code_a, code_b, puzzle, n):
     tx, ca, cb = clue_texts(puzzle), clues(code_a), clues(code_b)
     if not tx or not (len(tx) == len(ca) == len(cb)):
         return []
-    return [(t, y) for t, x, y in zip(tx, ca, cb) if disagree(x, y, n)]
+    return [(t, x, y) if both else (t, y) for t, x, y in zip(tx, ca, cb) if disagree(x, y, n)]
