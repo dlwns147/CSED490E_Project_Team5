@@ -6789,3 +6789,10 @@ Job 1382299 (one GPU, queued).
 - The analogue here would be the thinking step stating the convention as a rule, admitted by the count.
 - That is a new method. It would need its own registration, and our count signal is the novelty against HtT's label-checked rules.
 - Not started. The hand fact stays disclosed as dev-mined.
+
+## 2026-11-11 16:0x UTC — ZL-AM with Qwen3-32B: on Amonkar et al.'s own sample and model, the gated ladder beats thinking (all predictions hold)
+- On Amonkar et al.'s 100 ZebraLogic puzzles, with their model family (Qwen3-32B, here AWQ), the ladder reaches 96.7% against thinking's 90.0%. Utility +9.1 [+3.3, +15.2].
+- The gain sits on the large puzzles: on x-large, thinking falls to 63% and the ladder keeps 96%.
+- The translations are right when the count is 1: 96.5% for the quick translation and 100% for the thinking one.
+- They found formalization below direct solving on ZebraLogic for every reasoning model (Qwen3-32B: 87 against 92), with no solution count and no fallback. The count gate and escalation reverse that verdict on their data.
+- With Qwen3-8B (+7.4 [+0.6, +14.4]) and gpt-oss-20b (+20.9 [+14.3, +27.9]), this makes three of three models.

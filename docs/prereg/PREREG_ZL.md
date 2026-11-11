@@ -168,3 +168,11 @@ For Qwen3-4B the same comparison is 88.5% against 96.5%.
 | gpt-oss-20b, 750 | +28.2 [+25.4, +31.1] | +26.2 [+23.5, +29.1] |
 
 Thinking accuracy rises by 1–2 points. Every ZL prediction holds as registered.
+
+## ZL-AM result, Qwen3-32B-AWQ (2026-11-11 16:0x UTC): all four predictions hold
+`python poc/gp_eval.py --zlam q32am`, Amonkar et al.'s 100 puzzles, three seeds. Scoring v2 changes no row (0 of 900).
+- **ZL-AM-P1 holds.** Thinking reaches 90.0% at 5.4 ktok, against their reported 92.
+- **ZL-AM-P2 holds.** Ladder 96.7% against thinking 90.0%. Utility +9.1 [+3.3, +15.2], accuracy +6.7 [+1.0, +12.3].
+- **ZL-AM-P3 holds.** On large and x-large together (43 puzzles), accuracy +14.0 [+3.1, +25.6]. On x-large alone (18 puzzles), thinking falls to 63.0% while the ladder keeps 96.3%.
+- **ZL-AM-P4 holds.** Count-1 precision: `tr` 272 of 282 (96.5%), `trt` 298 of 298.
+- **Decision (as registered):** the claim "the count gate and escalation turn formalization from a loss into a win" stands on the closest paper's own sample and model. It goes in the report beside their table, where their best formalizer was 87 against direct solving's 92.
