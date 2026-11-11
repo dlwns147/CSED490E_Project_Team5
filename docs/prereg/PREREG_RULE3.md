@@ -55,8 +55,8 @@
 - Kept: four copies of "one house between means a difference of 2, not 1" (positions 58, 62, 94, 190) and one "two houses between means a difference of 3, not 2" (153). All right; no inverted rule.
 - No inverted rule was stated at all in this pass, so the check did not have to catch one. Position 58, where the RULE2 dev pass stated the inverted rule, now states the right one; the rule list before it differs (position 31's rule was rejected), so the prompt differs.
 - What the check did reject:
-  - 22 of 30 are "between" rules. 19 of these were stated for a clue that has no "between" in it ("The person who has blonde hair is Arnold."), so giving the rule cannot change that clue's reading. The rule writer attaches the same generic rule to unrelated pairs.
-  - 3 right "between" rules for real "between" clues (positions 210, 230, 236) were rejected because the quick translation still misread the clue with the rule given.
+  - 22 of 30 are "between" rules. 18 of these were stated for a clue that has no "between" in it ("The person who has blonde hair is Arnold."), so giving the rule cannot change that clue's reading. The rule writer attaches the same generic rule to unrelated pairs.
+  - 4 right "between" rules for real "between" clues (positions 210, 230 twice, 236) were rejected because the quick translation still misread the clue with the rule given.
   - The rest are restatements of what the quick reading already did ("X is Y" means equality, "directly left" means a difference of 1).
 - Check cost on the dev pass: 13,920 tokens over 250 puzzles, about 0.03 utility per puzzle.
 - So the check's observed work here is removing misattributed and ineffective rules. Whether it rejects an inverted rule when one is stated is read on the unseen runs (`rules_rejected` in `trrv`, `trrvw`).
