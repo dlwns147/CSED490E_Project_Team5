@@ -25,9 +25,33 @@ Side work may use the Slurm server's GPUs: a model server and client commands ru
 
 **Running now (geometry):** nothing; SIDE-GT-MG finished 2026-11-08 11:5x UTC.
 
-## Guidance for the teammate taking this on
+## Goal for the teammate (set 2026-11-11)
 
-Our side of the proof work is now testing and analysis only, to guide you (decided 2026-11-07). The method work is yours. Numbers marked *pending* come from runs still going and are filled in here when they end.
+The proof part is a bounded deliverable, not an open research track. The results above are frozen as the proof section of the report; the
+work left is one or two well-specified algorithm tasks, each with frozen inputs, one scoring command and a baseline number. We prepare these
+kits, run anything that needs a model, and read every result with you.
+
+**The goal:** from the same frozen translations, more problems end with a machine-checked proof, at no added model cost. It is the
+project's goal (exactly right at the lowest cost) on the side that needs no ML: the model's tokens stay fixed, and only CPU time may grow.
+
+**Task 1, the fresh-figure solver.** On MechGeo's 44 IMO problems, 13 whole problems are counted in each arm: a faithful statement, proved,
+its certificate accepted, and its goal held on 8 of 8 fresh figures. 8 more problems are proved and certified but lose only because the
+figure solver built fewer than 8 fresh figures (9 statements per arm got none). Every figure that was built satisfied the goal.
+- Metric: whole problems counted by that rule, per arm (now 13; at most 20 and 21 if every lost problem gets its figures).
+- Constraint (soundness): the rule may not get weaker. A fresh figure must satisfy every hypothesis to tolerance, differ from the first
+  figure, and be non-degenerate; the known false proofs (IMO 2011 P6 and the controls in `PREREG_SIDE.md`) must still be rejected.
+- Cost: CPU seconds per statement, reported next to the count.
+- Before running it, pre-register a predicted count with a decision rule (we write it together).
+
+**Task 2, only after task 1:** HAGeo-409 coverage (263 of 409 now; HAGeo reports 287, random points 218), a public benchmark with
+published numbers, so any gain compares directly.
+
+**Out of scope:** telling a faithful translation from an unfaithful one without a human, translation and prompting, and new benchmarks.
+They stay as future work in the report.
+
+## Background for the teammate
+
+Our side of the proof work was testing and analysis only from 2026-11-07; since 2026-11-11 we also prepare the task kits above and review the results with you. Numbers marked *pending* come from runs still going and are filled in here when they end.
 
 **What exists.** A model translates a geometry problem into a declarative statement (`geo_decl.py`). A least-squares solver builds figures of it, and a CPU engine proves it by linear algebra over directions, log lengths and squared lengths (`geo_closure.py`). An exact Python checker tests the proof (`geo_check.py`). `geo_lean.py` writes each proof as a Lean theorem over the rule library in `side/lean/` (Lean 4.15.0 with the matching Mathlib; no `sorry`, standard axioms only).
 
