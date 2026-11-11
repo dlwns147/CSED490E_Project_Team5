@@ -783,6 +783,87 @@ def esc2_main():
                   f"ESC2 - think {b2[0]:+.1f} [{b2[1]:+.1f}, {b2[2]:+.1f}]  fixed - think {b3[0]:+.1f} [{b3[1]:+.1f}, {b3[2]:+.1f}]")
 
 
+def esc3_main():
+    """Diagnostic after PREREG_ESC2 failed (not registered): as ESC2, but the middle step's value for an outcome is bounded from its two parts. For a puzzle-seed whose quick count failed,
+    value = 100 * (rescue - harm) + token term, where rescue = the middle step reaches count 1 and is right while thinking is wrong, harm = the
+    reverse, token term = 0.5 * (thinking tokens - middle tokens) / 1000 if the middle step reaches count 1, else -0.5 * middle tokens / 1000.
+    Rescues are rare 100-point jumps, so a bootstrap that saw none bounds their rate at 0 (ESC2's failure on Mitra-Baral, Qwen3-32B-AWQ).
+    Upper bound = 100 * Clopper-Pearson 97.5% upper bound on the rescue rate + 97.5% bootstrap upper bound on the token term, harm dropped
+    (both per puzzle, its seeds averaged; the rescue count is the rounded-up sum of per-puzzle rates over the number of puzzles, which is valid
+    for variables in [0, 1]). Skip the middle step for an outcome when that bound is below 0. Learned on seeds 1-6 for fresh seeds 7-9 (it skips
+    nothing there, so no such runs were made).
+    --learn prints only the learned skips; --back learns on seeds 1-3 and reports seeds 4-6 (already seen: descriptive)."""
+    import math
+    from grid_score import score
+    from scipy.stats import beta
+    U = lambda e, t: 100 * e - 0.5 * t / 1000
+    sig = lambda c: "none" if c == 0 else "several" if isinstance(c, int) and c > 1 else "no count"
+    learn, test = ([1, 2, 3], [4, 5, 6]) if "--back" in sys.argv else ([1, 2, 3, 4, 5, 6], [7, 8, 9])
+    data = os.environ.get("POC_DATA", os.path.join(RES, "..", "..", "nlp_data"))
+    for s, src in [("gp", "gridpuzzle"), ("lgp", "lgp")]:
+        PZ = {r["id"]: r for r in map(json.loads, open(os.path.join(data, src, "grid.jsonl")))}
+        for tag in ["q8b", "q32a", "oss20", "oss120"]:
+            S2 = json.load(open(os.path.join(RES, f"{s}_{tag}_score2.json")))
+
+            def rows(seeds):
+                R = {}
+                for arm in ARMS:
+                    for sd in seeds:
+                        f = os.path.join(RES, f"{s}_{tag}_{arm}_s{sd}.jsonl")
+                        for r in map(json.loads, open(f)) if os.path.exists(f) else []:   # scoring v2, as esc2_main
+                            k = f"{arm}|{r['id']}|{sd}"
+                            if k in S2:
+                                e = S2[k][0]
+                            else:
+                                from run_zebra import zl_extract
+                                e = score(r["grid"] if "grid" in r else zl_extract(r.get("text") or "") if arm == "think" else {}, PZ[r["id"]])[0]
+                            R[(arm, r["id"], sd)] = {**r, "exact": e}
+                return R, sorted({(i, sd) for (_, i, sd) in R if all((a, i, sd) in R for a in ARMS)})
+
+            def lad(R, i, k, skip):
+                a = R[("gtr", i, k)]; tok = a["tokens"]
+                if a["count"] == 1:
+                    return U(a["exact"], tok)
+                if sig(a["count"]) not in skip:
+                    b = R[("gtrt", i, k)]; tok += b["tokens"]
+                    if b["count"] == 1:
+                        return U(b["exact"], tok)
+                t = R[("think", i, k)]; return U(t["exact"], tok + t["tokens"])
+            R, keys = rows(learn)
+            V = {}
+            for i, k in keys:
+                a, b, t = R[("gtr", i, k)], R[("gtrt", i, k)], R[("think", i, k)]
+                if a["count"] != 1:
+                    c1 = b["count"] == 1
+                    V.setdefault(sig(a["count"]), {}).setdefault(i, []).append(
+                        (c1 and b["exact"] and not t["exact"], 0.5 * (t["tokens"] - b["tokens"]) / 1000 if c1 else -0.5 * b["tokens"] / 1000))
+            skip, desc = set(), []
+            for g, per in sorted(V.items()):
+                rate = {i: mean([x[0] for x in v]) for i, v in per.items()}
+                n, k = len(rate), math.ceil(sum(rate.values()) - 1e-9)
+                ub_r = beta.ppf(0.975, k + 1, n - k) if k < n else 1.0
+                bt = boot({i: mean([x[1] for x in v]) for i, v in per.items()}, mean)
+                ub = 100 * ub_r + bt[2]
+                desc.append(f"{g} bound {ub:+.1f} (rescues {k}/{n} puzzles, rate bound {ub_r:.3f}; token term {bt[0]:+.1f}, bound {bt[2]:+.1f})")
+                if ub < 0:
+                    skip.add(g)
+            line = f"== {s:3s} {tag:6s} learned on seeds {learn[0]}-{learn[-1]}: skip middle step for {', '.join(sorted(skip)) or 'nothing'}; " + "; ".join(desc)
+            if "--learn" in sys.argv:
+                print(line); continue
+            F, fk = rows(test)
+            if not fk:
+                print(line + " | no fresh runs"); continue
+            ids = sorted({i for i, _ in fk})
+            per = lambda g: {i: [g(i, k) for ii, k in fk if ii == i] for i in ids}
+            f = lambda v: mean([mean(x) for x in v])
+            th = lambda i, k: U(F[("think", i, k)]["exact"], F[("think", i, k)]["tokens"])
+            b1 = boot(per(lambda i, k: lad(F, i, k, skip) - lad(F, i, k, set())), f)
+            b2 = boot(per(lambda i, k: lad(F, i, k, skip) - th(i, k)), f)
+            b3 = boot(per(lambda i, k: lad(F, i, k, set()) - th(i, k)), f)
+            print(line + f"\n   seeds {test[0]}-{test[-1]} ({len(ids)} puzzles, {len(fk)} puzzle-seeds): ESC3 - fixed {b1[0]:+.1f} [{b1[1]:+.1f}, {b1[2]:+.1f}]  "
+                  f"ESC3 - think {b2[0]:+.1f} [{b2[1]:+.1f}, {b2[2]:+.1f}]  fixed - think {b3[0]:+.1f} [{b3[1]:+.1f}, {b3[2]:+.1f}]")
+
+
 def esc_main():
     """PREREG_ESC: after the quick step fails its count, run the middle step (thinking translation) only if, on the other half of the puzzles, it was
     worth its tokens for the same outcome of the failed count (no solution / several / no count). Value of the middle step for a puzzle-seed whose
@@ -982,4 +1063,4 @@ def conv_main():
 
 
 if __name__ == "__main__":
-    esc2_main() if "--esc2" in sys.argv else esc_main() if "--esc" in sys.argv else min_main() if "--zlmin" in sys.argv else conv_main() if "--conv" in sys.argv else free_main() if "--free" in sys.argv else bud_main() if "--bud" in sys.argv else mot_main() if "--mot" in sys.argv else zl_main() if "--zl" in sys.argv else np_main() if "--np" in sys.argv else thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()
+    esc3_main() if "--esc3" in sys.argv else esc2_main() if "--esc2" in sys.argv else esc_main() if "--esc" in sys.argv else min_main() if "--zlmin" in sys.argv else conv_main() if "--conv" in sys.argv else free_main() if "--free" in sys.argv else bud_main() if "--bud" in sys.argv else mot_main() if "--mot" in sys.argv else zl_main() if "--zl" in sys.argv else np_main() if "--np" in sys.argv else thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()

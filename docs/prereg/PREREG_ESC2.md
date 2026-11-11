@@ -51,3 +51,33 @@ Run in the container, since the thinking answers are re-read with `run_zebra.zl_
 - The two derived gains were +2.7 and +1.8; the fresh seeds give +2.7 and +2.1.
 - The Qwen3 GridPuzzle rules skip nothing, so those cells are 0 by construction.
 - P1 now waits only on the Qwen3 Mitra-Baral cells. Partial so far: Qwen3-8B +0.8 [+0.2, +1.8] on 94 of 94 puzzles but 240 of 282 puzzle-seeds; Qwen3-32B-AWQ 2 puzzles.
+
+## Result (2026-11-11 18:1x UTC): ESC2-P1 fails on Mitra-Baral with Qwen3-32B-AWQ, so the fixed ladder stays. ESC2-P2 holds.
+`python poc/gp_eval.py --esc2` in the container, all fresh seeds 4–6 runs that decide P1 complete.
+
+| Cell, fresh seeds 4–6 | ESC2 − fixed ladder | ESC2 − think | Fixed − think |
+|---|---|---|---|
+| GridPuzzle, Qwen3-8B (nothing skipped) | +0.0 | +1.9 [−2.7, +6.7] | +1.9 [−2.7, +6.7] |
+| GridPuzzle, Qwen3-32B-AWQ (nothing skipped) | +0.0 | +17.5 [+9.1, +26.1] | +17.5 [+9.1, +26.1] |
+| GridPuzzle, gpt-oss-20b | +2.7 [+1.6, +3.9] | +6.6 [+3.4, +10.1] | +3.9 [+0.2, +7.7] |
+| GridPuzzle, gpt-oss-120b | +2.1 [+1.3, +3.0] | +2.6 [+0.7, +4.6] | +0.5 [−1.7, +2.7] |
+| Mitra-Baral, Qwen3-8B | +0.8 [+0.2, +1.7] | −0.1 [−5.2, +5.4] | −0.9 [−6.1, +4.7] |
+| **Mitra-Baral, Qwen3-32B-AWQ** | **−0.9 [−2.3, +0.1]** | +2.5 [−1.1, +6.1] | +3.4 [−0.5, +7.6] |
+| Mitra-Baral, gpt-oss-20b | +0.0 [+0.0, +0.1] | −2.5 [−5.6, +0.4] | −2.5 [−5.6, +0.4] |
+| Mitra-Baral, gpt-oss-120b | +0.2 [+0.1, +0.3] | +2.1 [+0.7, +3.8] | +1.9 [+0.5, +3.6] |
+
+The Qwen3 GridPuzzle cells are 0 by construction; their remaining fresh runs only add puzzle-seeds to the last two columns (Qwen3-8B 500 of 645, Qwen3-32B-AWQ 187 of 645 at this time).
+
+- **ESC2-P1 fails.** Mitra-Baral with Qwen3-32B-AWQ is −0.9, below the −0.5 floor. The two gain conditions hold (+2.7 and +2.1, derived +2.7 and +1.8).
+- **ESC2-P2 holds.** GridPuzzle gpt-oss-120b, ESC2 − think +2.6 [+0.7, +4.6].
+- **Decision (as registered):** the fixed ladder stays as the paper's method. The gpt-oss GridPuzzle gain of the confident skip is reported as descriptive, and the escalation choice remains an open gap.
+
+**Root cause, read from the rows.** The middle step's value for a failed outcome has two parts: rare 100-point rescues (the middle step reaches count 1 and is right while thinking is wrong, or the reverse) and a token term (the middle step's extra tokens).
+- In the failing cell, the learned skip was "no count". On seeds 1–3 it had 21 puzzle-seeds over 14 puzzles, with 0 rescues and a token term of −2.3. The bootstrap cannot draw an event it never saw, so its interval [−4.1, −0.9] described only the token cost.
+- On seeds 4–6 the same outcome had 3 rescues in 23 puzzle-seeds (3 puzzles), so the middle step was worth +11.1 there.
+- In the cells that gained, the skipped outcome ("several" for both gpt-oss models) had about 100 puzzle-seeds, few rescues (3 and 4) and a large token term (−15 and −11), and it repeated on the fresh seeds (−16.4 and −10.8).
+
+**Post-hoc check, not registered (`poc/gp_eval.py --esc3`).** A valid bound for this value treats the rescue rate exactly: Clopper–Pearson on the number of puzzles with a rescue, plus the token term's bootstrap bound.
+- Learned on seeds 1–3, it keeps only gpt-oss-20b's "several" skip (bound −0.7). On seeds 4–6 that gives +2.7 [+1.6, +3.9] with no cell below 0.
+- Learned on seeds 1–6, it skips nothing. gpt-oss-20b's "several" bound becomes +0.7: the fresh seeds added puzzles with a rescue, and a puzzle's seeds do not add independent evidence. So there is nothing to test on seeds 7–9, and no run is made.
+- Conclusion: with about 200 puzzles per set, a skip that is safe against rare rescues cannot be certified. The gain the bootstrap rule found is real on these two cells, but the rule that finds it is not safe elsewhere.

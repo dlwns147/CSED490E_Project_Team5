@@ -6804,3 +6804,17 @@ Job 1382299 (one GPU, queued).
 - Mitra-Baral moves by +0.0 and +0.2.
 - The Qwen3 lanes are still running. Their GridPuzzle cells are 0 by construction (nothing is skipped), and the Mitra-Baral cells decide P1's no-harm side.
 - **The task 1 proof kit is checked:** the default solver through the kit reproduces the stored 13 whole problems per arm, with the same lost problems (side/README.md).
+
+## 2026-11-11 18:1x UTC — PREREG_ESC2 final: the confident skip fails its no-harm condition on one cell; the fixed ladder stays. FREE-MIN: the clue-necessity check is clean but catches few misreadings.
+**ESC2.**
+- The gains held on fresh seeds: GridPuzzle gpt-oss-20b +2.7 [+1.6, +3.9] and gpt-oss-120b +2.1 [+1.3, +3.0].
+- With the skip, gpt-oss-120b's ladder beats its thinking, +2.6 [+0.7, +4.6].
+- But Mitra-Baral with Qwen3-32B-AWQ lost −0.9 [−2.3, +0.1], below the registered −0.5 floor. So P1 fails, and the fixed ladder stays as the method.
+- **Why it failed.** The middle step's value is rare 100-point rescues plus a token cost. The losing skip was learned from 21 puzzle-seeds with 0 rescues. The bootstrap cannot draw an unseen event, so its interval covered only the token cost. On fresh seeds the same outcome had 3 rescues in 23 puzzle-seeds.
+- **Post-hoc, not registered.** An exact bound on the rescue rate, counted by puzzle, keeps one skip from seeds 1–3, and that skip still gains on seeds 4–6. From seeds 1–6 it keeps none. With about 200 puzzles per set, a skip that is safe against rare rescues cannot be certified. The escalation choice is limited by the number of puzzles, not by the rule.
+
+**FREE-MIN.**
+- The check drops each clue in turn and flags the program if the solution stays unique without that clue.
+- It flags at most 1.0% of right count-1 programs per tag, so P1 holds.
+- It flags only 6 of Qwen3-8B's 26 wrong ZL-AM programs, so P2 fails. On the unseen main puzzles it flags 31 of 60 (descriptive).
+- A misread clue usually remains needed, so the reading gap stays open.

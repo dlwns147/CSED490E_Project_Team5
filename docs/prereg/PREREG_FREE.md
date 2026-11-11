@@ -84,3 +84,20 @@ The parser fixes were quoted values ("perle d'or"), values written as listed ("7
 - **FREE-MIN-P2.** Qwen3-8B's 25 wrong ZL-AM programs: at least half flagged.
 
 **Decision.** Both hold: the necessity check joins the free checks for generators that minimise their clues, and a fresh-run test of it as feedback is registered next. P1 fails: the check is too strict for translations as written. P2 fails: misreadings keep every clue needed, and the reading gap stays open.
+
+## Result FREE-MIN (2026-11-11 18:1x UTC): FREE-MIN-P1 holds, FREE-MIN-P2 fails
+Job 1384271 (`poc/gp_rescore.py --zlmin`), read with `python poc/gp_eval.py --zlmin`. A program is flagged when some clue can be dropped with the solution staying unique.
+
+| Tag | Right count-1 flagged (P1: ≤ 10%) | Wrong count-1 flagged |
+|---|---|---|
+| q8bam (ZL-AM, Qwen3-8B) | 3/455 (0.7%) | **6/26 (23%)** (P2: ≥ half) |
+| oss20am (ZL-AM, gpt-oss-20b) | 0/593 (0.0%) | 0/2 |
+| q8bh (main, Qwen3-8B, unseen puzzles) | 16/1687 (0.9%) | 31/60 (52%) |
+| q8bf (main, Qwen3-8B, dev) | 25/2532 (1.0%) | 12/35 (34%) |
+
+- Every program re-ran to count 1 with all clues, and every clue list was read.
+- The stored q8bam set has 26 wrong count-1 programs (21 quick, 5 thinking), one more than the 25 written in the registration; scoring v2 is not stored for q8bam, so the stored `exact` is used.
+- **FREE-MIN-P1 holds.** Right programs are flagged in at most 1.0% of cases per tag.
+- **FREE-MIN-P2 fails.** 23% of the Qwen3-8B ZL-AM wrong programs are flagged, below half.
+- **Decision (as registered):** misreadings mostly keep every clue needed, and the reading gap stays open. On the main puzzles the flag catches half of the wrong programs (52%) at a 0.9% false-flag rate; that set was not registered, so this is descriptive.
+- Flags are uneven by puzzle: they cluster on some sizes (for q8bh, 5×2 6/6 and 6×4 4/4, but 2×6 0/7 and 6×5 0/6). Whether a misread clue leaves another clue unneeded depends on the puzzle, not on the misreading.
