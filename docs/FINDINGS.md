@@ -6630,3 +6630,23 @@ The choice was easy here, because one checker dominates. The estimates' accuracy
 - Before any baseline comparison, a scorer that is strict about names biases results toward the arm that copies names. That is a reviewer's check we now pass. The same audit applies to any future grid-like domain.
 
 **Relative to prior work.** Exclusive "either…or" is a known Puzzle Baron convention, stated nowhere in the puzzle text. Inclusive-versus-exclusive "or" is a known LLM reading gap, but not, as far as we found, as the cause of misses in solver-checked translation. The added-constraint repair matches test-feedback overfitting in self-repair (2608.09740) and GP-LOC.
+
+## 2026-11-11 04:5x UTC — PREREG_MOT result: the count beats an agreement cascade (Mixture-of-Thought) on GridPuzzle and trips, and ties it on Mitra-Baral
+
+**Why.** The usual training-free way to decide when to escalate is agreement between cheap samples (MoT cascade, Yue et al., ICLR 2024). If agreement worked as well as the count, the paper's free check would add nothing. Registered predictions M1–M3 (grids) and M-T1 (trips) were fixed before any sample ran.
+
+**Result (scoring v2; three replicates; the cascade's τ picked on test, which favours it).** Ladder minus cascade, utility:
+- **GridPuzzle:** +8.1 [+3.9, +12.4] (Qwen3-8B), +8.9 [+4.8, +13.0] (Qwen3-32B-AWQ), +3.6 [−0.5, +7.8] (gpt-oss-20b). M1 holds.
+- **Program-only vote on GridPuzzle:** +5.5, +4.3, +0.8. M2 holds: the vote never beats the count.
+- **Mitra-Baral:** ties for all three translators, both baselines (−1.8 to +2.0). M3 holds.
+- **Trips (addendum MOT-T):** +9.9 [+3.9, +15.8] (Qwen3-8B), +16.5 [+10.0, +23.2] (Qwen3-32B-AWQ), +11.1 [+6.4, +16.2] (gpt-oss-120b). M-T1 holds. gpt-oss-20b ties (+1.3 [−4.4, +7.3]).
+- Picking τ on the other grid set changes no verdict.
+
+**Why the cascade loses.**
+- **Agreement accepts correlated errors.** When the cascade accepts often, its precision on GridPuzzle is 35–72%. Most false accepts are wrong grids shared by two or more independent program samples (152 for Qwen3-8B at τ = 1/6). Programs from the same model misread the same clue the same way, so agreement is weak evidence. The count rejects any program whose clues allow several grids, however many samples share its first solution.
+- **When it is strict, it is thinking plus overhead.** At its best τ the cascade accepts 1–26% of grids and 1–19% of trips. Without thinking, answers are rarely right (GridPuzzle 9–27%, trips 15–42%), so six cheap samples rarely agree on a right answer. The cascade then pays for six samples and still thinks.
+- **Where cheap answers are often right, the two tie.** On Mitra-Baral's small grids, direct accuracy is 25–61%, agreement becomes informative, and the cascade ties the ladder.
+
+**What it means for the paper.** The count is a different signal from agreement, not a cheaper version of it. Agreement measures whether samples coincide; the count measures whether the translated constraints pin down one answer. The second is checkable by a solver at no model cost and is blind to correlated misreadings only when they also yield a unique solution (the "either…or" misses, FINDINGS 03:3x). The comparison now covers SatLM- and Logic-LM-style gates (stored rounds), SC-3 and D&P-3 (trips), and the MoT cascade (grids and trips).
+
+**Relative to prior work.** Yue et al. report the cascade against a stronger model, with no solver check, and choose τ on validation. ABC (2407.02348) and semantic-agreement cascades (2509.21837) use the same signal. None compares agreement with solution uniqueness at equal tokens. The correlated-error finding matches the known limit of self-consistency on systematic misreadings (Wang et al. 2203.11171 note it for arithmetic), here measured per program.

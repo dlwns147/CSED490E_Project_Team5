@@ -60,3 +60,28 @@ Answers are compared, and the ladder is scored, under scoring v2 (`poc/grid_scor
 - **M-T1.** Ladder − MoT cascade at its best τ: point estimate above 0 for Qwen3-8B, Qwen3-32B and gpt-oss-120b.
   - Derivation: quick translations rarely give one plan, so their answers rarely agree, and the cascade mostly escalates to thinking after paying for 6 samples. The ladder instead escalates to a thinking translation, whose count-1 plans are 90–99% right.
 - **M-T2.** gpt-oss-20b, where the ladder ties thinking (−1.1 [−6.8, +4.9]): no prediction, reported as measured.
+
+## Result (2026-11-11 04:5x UTC): M1, M2, M3 and M-T1 hold
+
+All lanes finished; scoring v2; three replicates; 10,000-draw puzzle bootstrap. Ladder minus baseline, utility, at the baseline's best τ on the same set (oracle):
+
+| Translator | GridPuzzle, MoT | GridPuzzle, PoT vote | Mitra-Baral, MoT | Mitra-Baral, PoT vote | Trips, MoT | Trips, PoT vote |
+|---|---|---|---|---|---|---|
+| Qwen3-8B | +8.1 [+3.9, +12.4] (τ 5/6) | +5.5 [+1.1, +10.0] (3/3) | +1.8 [−3.8, +7.4] (4/6) | +0.3 [−4.7, +5.1] (3/3) | +9.9 [+3.9, +15.8] (4/6) | +8.7 [+2.7, +14.6] (2/3) |
+| Qwen3-32B-AWQ | +8.9 [+4.8, +13.0] (2/6) | +4.3 [+0.2, +8.3] (2/3) | +2.0 [−2.7, +6.6] (3/6) | −1.8 [−6.0, +2.2] (3/3) | +16.5 [+10.0, +23.2] (3/6) | +16.7 [+10.0, +23.6] (2/3) |
+| gpt-oss-20b | +3.6 [−0.5, +7.8] (2/6) | +0.8 [−3.3, +5.1] (2/3) | +1.7 [−0.6, +4.2] (3/6) | +0.3 [−2.3, +3.0] (2/3) | +1.3 [−4.4, +7.3] (3/6) | +1.0 [−4.7, +7.1] (3/3) |
+| gpt-oss-120b | — | — | — | — | +11.1 [+6.4, +16.2] (5/6) | +10.0 [+5.1, +15.3] (3/3) |
+
+- **M1 holds.** Points are above 0 for all three translators; intervals are above 0 for Qwen3-8B and Qwen3-32B-AWQ, not for gpt-oss-20b.
+- **M2 holds.** Points are at or above 0 for all three (+5.5, +4.3, +0.8).
+- **M3 holds.** All six Mitra-Baral differences are at or above −2 (lowest: Qwen3-32B PoT vote −1.8). All six are ties.
+- **M-T1 holds.** Points are above 0 for Qwen3-8B, Qwen3-32B-AWQ and gpt-oss-120b, and every interval excludes 0. **M-T2:** gpt-oss-20b ties (+1.3 [−4.4, +7.3]).
+- τ picked on the other grid set changes no verdict (GridPuzzle MoT: +8.5, +9.5, +4.4; all intervals above 0).
+
+**Mechanism (also reported).**
+- Direct (no thinking) accuracy: GridPuzzle 8.9 / 11.2 / 27.4%, Mitra-Baral 25.4 / 40.3 / 60.5%, trips 15.3 / 22.8 / 26.9 / 42.3%.
+- At low τ the cascade accepts most puzzles, and its precision falls to 35–72% on GridPuzzle. The false accepts are correlated programs: at τ = 1/6, 152 (Qwen3-8B), 87 (Qwen3-32B) and 74 (gpt-oss-20b) accepted wrong answers are shared by two or more program samples.
+- At the best τ the cascade accepts few puzzles (GridPuzzle coverage 0.02 / 0.74 / 0.77; trips 0.01 / 0.13 / 0.13 / 0.19). Where it accepts few, it is close to thinking plus the cost of six samples. Its gap to the ladder is then the samples' cost plus the ladder's own gain over thinking.
+- The count accepts a single first solution only when it is the only solution. That is what separates it from agreement: correlated wrong programs agree with each other, but a program that admits several grids fails the count.
+
+**Decision (as registered).** The paper states that the count beats an agreement cascade on grids and trips, even with the cascade's τ chosen on test, for Qwen3-8B, Qwen3-32B-AWQ and (trips) gpt-oss-120b. gpt-oss-20b and Mitra-Baral are ties and are stated as ties. The program-only vote does not beat the count anywhere, so the count stays the gate to use.
