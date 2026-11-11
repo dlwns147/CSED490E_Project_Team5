@@ -54,6 +54,8 @@ the verdicts, and the checker's results, 73 of 78 and 78 of 82 accepted as regis
 - Baseline (the stored run): 13 whole problems per arm. Lost at the rule: NL 7 problems (IMO 2005 P1, 2007 P2, 2012 P1, 2015 P4, 2019 P6,
   2023 P2, 2025 P2), LEAN 8 (IMO 2000 P1, 2007 P2, 2012 P1, 2013 P4, 2015 P3, 2015 P4, 2019 P6, 2023 P2). Several statements got 0 fresh
   figures; others got 1 to 7. The default solver is `geo_decl.solve` (least squares from 240 random starts, generic figures first).
+- Kit checked (2026-11-11 17:0x UTC): the default solver run through the kit reproduces the stored count exactly, 13 whole problems per arm, with the
+  same 7 and 8 problems lost, at about 84 CPU s per statement (58 NL and 61 LEAN statements, 8 workers). The kit is ready to hand over.
 - Where to start: why `geo_decl.solve` returns few figures on these statements (few starts converge; or the converged ones are rejected as
   degenerate or of another orientation), then a solver that samples the solution set directly, for example by moving along it from one
   solution found.
