@@ -6796,3 +6796,11 @@ Job 1382299 (one GPU, queued).
 - The translations are right when the count is 1: 96.5% for the quick translation and 100% for the thinking one.
 - They found formalization below direct solving on ZebraLogic for every reasoning model (Qwen3-32B: 87 against 92), with no solution count and no fallback. The count gate and escalation reverse that verdict on their data.
 - With Qwen3-8B (+7.4 [+0.6, +14.4]) and gpt-oss-20b (+20.9 [+14.3, +27.9]), this makes three of three models.
+
+## 2026-11-11 17:0x UTC — PREREG_ESC2 interim: on fresh seeds, skipping the middle step when it is confidently a loss gains what the derivation said
+- The rule was learned on seeds 1–3 and tested on new seeds 4–6. It skips the thinking translation only for failed-count outcomes whose value on seeds 1–3 was below 0 with 95% confidence.
+- Gains: GridPuzzle gpt-oss-20b +2.7 [+1.6, +3.9] (derived +2.7) and gpt-oss-120b +2.1 [+1.3, +3.0] (derived +1.8).
+- With it, the gpt-oss-120b ladder beats its thinking, +2.6 [+0.7, +4.6], where the fixed ladder tied (+0.5 [−1.7, +2.7] on these seeds).
+- Mitra-Baral moves by +0.0 and +0.2.
+- The Qwen3 lanes are still running. Their GridPuzzle cells are 0 by construction (nothing is skipped), and the Mitra-Baral cells decide P1's no-harm side.
+- **The task 1 proof kit is checked:** the default solver through the kit reproduces the stored 13 whole problems per arm, with the same lost problems (side/README.md).

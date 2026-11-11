@@ -37,3 +37,17 @@ This result suggests a rule that acts only on confident estimates. A clean test 
 - **P1 fails:** the fixed ladder stays. The gpt-oss grid effect is reported as descriptive, and the escalation choice remains an open gap.
 
 **Prior work.** As PREREG_ESC: FrugalGPT (2305.05176), AutoMix (2310.12963), and cascade routing (Dekoninck et al. 2410.10347). The confident-skip rule is the standard way to act on estimated cascade values under estimation error; the signal (an exact solver count and how it failed) is ours.
+
+## Interim (2026-11-11 17:0x UTC): gpt-oss cells complete; both gain conditions of ESC2-P1 hold, and ESC2-P2 holds
+Run in the container, since the thinking answers are re-read with `run_zebra.zl_extract`. The learned rules were re-derived after this hour's grid rescore (`fr_resc`) and are identical to the ones registered above.
+
+| Cell, fresh seeds 4–6 | ESC2 − fixed ladder | ESC2 − think | Fixed − think |
+|---|---|---|---|
+| GridPuzzle, gpt-oss-20b (645 puzzle-seeds) | +2.7 [+1.6, +3.9] | +6.6 [+3.4, +10.1] | +3.9 [+0.2, +7.7] |
+| GridPuzzle, gpt-oss-120b | +2.1 [+1.3, +3.0] | +2.6 [+0.7, +4.6] | +0.5 [−1.7, +2.7] |
+| Mitra-Baral, gpt-oss-20b | +0.0 [+0.0, +0.1] | −2.5 [−5.6, +0.4] | −2.5 [−5.6, +0.4] |
+| Mitra-Baral, gpt-oss-120b | +0.2 [+0.1, +0.3] | +2.1 [+0.7, +3.8] | +1.9 [+0.5, +3.6] |
+
+- The two derived gains were +2.7 and +1.8; the fresh seeds give +2.7 and +2.1.
+- The Qwen3 GridPuzzle rules skip nothing, so those cells are 0 by construction.
+- P1 now waits only on the Qwen3 Mitra-Baral cells. Partial so far: Qwen3-8B +0.8 [+0.2, +1.8] on 94 of 94 puzzles but 240 of 282 puzzle-seeds; Qwen3-32B-AWQ 2 puzzles.
