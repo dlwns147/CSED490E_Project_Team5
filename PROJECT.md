@@ -103,6 +103,11 @@ OptMATH is partly broken: its statements omit what its gold answers need.
    - **Compare with the state of the art on standard benchmarks,** with the conditions stated, not with the most convenient number. Run the published baselines on the same data where possible.
    - **Claim novelty only after naming the nearest prior work.** "No paper found" must say what was searched, and it never means new.
    - **State each result's contribution** as a reviewer would judge it: what is new, what is known, and what would make it publishable or not.
+10. **Job outputs go to the node first; nothing is left owned by root** (user, 11-11). Jobs run in a root container. `poc/slurm/job.sh` writes the
+    job's output to `/local-data/<job>` on the node and moves it to /home1 when the job ends, as the user. Python processes do this through
+    `poc/slurm/localio/sitecustomize.py`, and `lane.sh` / `start_server.sh` stage their logs the same way. Any root-owned file left under the
+    repo or nlp_data is chowned back. Scratch files go to the container's /tmp, never to /home1. A command's own shell redirection
+    (`> results/x.log`) bypasses the staging, so log through `lane.sh` or write to `$POC_LOCAL/stage/nlp/results/`.
 
 ## 5. Status and next steps (2026-11-07)
 
