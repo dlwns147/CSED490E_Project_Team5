@@ -979,7 +979,8 @@ def conv_main():
     at which the memory holds such a clue (tr: all puzzles). Scoring: zl_score, the stored `exact`.
     PREREG_RULE: the same with the quick step trr (stated rules); its rule calls' tokens are paid at the puzzle where they are made, and P1 counts from
     the first puzzle at which a rule was stated from such a clue. --rule2 (PREREG_RULE2): cell B on fresh seeds 4-6 with the quick steps tr, trf and
-    trrw (trr started from the rules stated on the dev puzzles), P1 counted from the first puzzle."""
+    trrw (trr started from the rules stated on the dev puzzles), P1 counted from the first puzzle; trr there is the cold start on the same
+    seeds (the first trrw run, whose dev pass stated no rule, see the PREREG_RULE2 addendum)."""
     import ast
     import re
     from grid_score import _norm, clue_texts, expr_eval
@@ -1004,7 +1005,7 @@ def conv_main():
         except Exception:
             return None
     SD = [4, 5, 6] if "--rule2" in sys.argv else [1, 2, 3]
-    cells = [("B, unseen main puzzles, fresh seeds 4-6", "q8bh", ["tr", "trf", "trrw"])] if "--rule2" in sys.argv else \
+    cells = [("B, unseen main puzzles, fresh seeds 4-6", "q8bh", ["tr", "trf", "trr", "trrw"])] if "--rule2" in sys.argv else \
         [("A, ZL-AM", "q8bam", ["tr", "trm", "trr"]), ("B, unseen main puzzles", "q8bh", ["tr", "trf", "trm", "trr"])]
     for cell, tag, firsts in cells:
         firsts = [a for a in firsts if a not in ("trr", "trrw") or all(os.path.exists(os.path.join(RES, f"zl_{tag}_{a}_s{sd}.jsonl")) for sd in SD)]

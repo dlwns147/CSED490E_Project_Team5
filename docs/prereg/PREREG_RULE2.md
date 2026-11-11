@@ -32,3 +32,16 @@ The fact is present from the first puzzle; the rules have to be learned. A deplo
 - In both cases the seeds 1–3 cold-start result is reported alongside.
 
 **Prior work.** As PREREG_RULE: HtT (2310.07064), TRAN (2310.15746), LEAP (2402.05403), Dynamic Cheatsheet (2504.07952). Carrying a rule library from a training pass to test is HtT's setting; ours builds the library without labels.
+
+## Addendum (2026-11-11 20:3x UTC): the first run tested nothing new, because its dev pass read the wrong file. Rerun with the registered method; predictions unchanged.
+- **What went wrong.** The command above names `q8bf` as the dev pass. The 250 dev puzzles (ids 0–9 of each size, where the fact was written) have their thinking translations under tag `q8b` (`zl_q8b_trt_s1`). `zl_q8bf_trt_s1` holds 500 other puzzles (ids 20–39). So the dev pass found no thinking row for any of its puzzles, stated no rule, and every `trrw` run started empty. Those runs are `trr` with a cold start on seeds 4–6, not the registered method.
+- **Fix.** The dev pass is now `--zl q8b trr 1`, and `trrw` uses `--warm q8b:1`. `run_zebra.py` now stops when the thinking file lacks any of the puzzles.
+- **The first runs are kept** as `zl_q8bh_trr_s{4,5,6}` (cold start, fresh seeds). They replicate PREREG_RULE on new seeds. I read them before the rerun, so I report them here, and they change no prediction.
+
+| Fresh seeds 4–6, 707 of 750 puzzle-seeds (thinking still running on 43) | Utility difference |
+|---|---|
+| ladder(trr, cold) − ladder(tr) | +2.2 [+0.2, +4.4] |
+| ladder(trr, cold) − ladder(trf) | −0.3 [−2.2, +1.5] |
+
+- "Between" clues misread: tr 94%, trf 13%, trr (cold) 24%. Count-1 precision: trr 96.4%, trf 96.6%.
+- The seeds 1–3 values were +3.5 and −0.2. So the cold start sits near the fact again, with its lower bound again at about −2.2.

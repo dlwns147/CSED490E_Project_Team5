@@ -6827,3 +6827,14 @@ Job 1382299 (one GPU, queued).
 - **Why it falls short.** The deficit sits where the stream is still cold: −4.0 and −2.9 per puzzle at positions 50–149 in two seeds, before the rule is stated at positions 86–96. After the rules are in place it is +1.7 to +2.0 in every seed.
 - **Next, registered before running (PREREG_RULE2):** start from the rules stated on the 250 dev puzzles (label-free) and test on fresh seeds.
 - **Related work.** HtT, TRAN and LEAP induce rules from mistakes found with labels. Here the solver's count admits the reading, and no label is used.
+
+## 2026-11-11 20:3x UTC — RULE2's first run started with no rules (wrong dev file); rerunning. The cold start replicates on fresh seeds. FREE holds its no-cost and precision checks for the precise translators.
+**RULE2.**
+- The dev pass read thinking rows of other puzzles, so it stated no rule and the "warm" runs started empty. The method itself was not tested. The dev pass now reads the right file (tag `q8b`), and the run stops if the file does not cover its puzzles. The rerun is going, with predictions unchanged.
+- The empty-start runs are a cold-start replication of PREREG_RULE on fresh seeds 4–6: +2.2 [+0.2, +4.4] over the plain quick step, and −0.3 [−2.2, +1.5] against the hand fact. On seeds 1–3 these were +3.5 and −0.2.
+- So the cold start reproduces: about level with the fact, with a lower bound near −2.2.
+
+**FREE (fresh seeds 4–6).**
+- For Qwen3-32B-AWQ and gpt-oss-20b on both sets, the text checks cost nothing: v-ladder − plain ladder ranges from +0.3 to +1.5, with no lower bound below −0.3.
+- Accepted count-1 precision is 98.1–99.6%. So FREE-P3 and FREE-P4 hold for these two translators.
+- The Qwen3-8B runs decide P1 and P2. They had finished about 15% of puzzles after 7 hours on a 24 GB card, so I restarted them on 96 GB GPUs, with settings unchanged.

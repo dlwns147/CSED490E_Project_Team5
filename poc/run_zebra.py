@@ -460,6 +460,8 @@ def zl_main():
         # paid at the puzzle where they are made (row["rule_tokens"]).
         # --warm <tag>:<seed> (PREREG_RULE2): start from the rules that trr stated on that earlier run, in order, and keep adding
         T = {x["id"]: x for x in map(json.loads, open(f"{RES}/zl_{tag}_trt_s{seed}.jsonl"))}
+        # PREREG_RULE2 addendum: the first dev pass read a trt file of other puzzles (q8bf, ids 20-39), so it found no pair and stated no rule
+        assert all(r["id"] in T for r in P), f"zl_{tag}_trt_s{seed} lacks {sum(r['id'] not in T for r in P)} of these {len(P)} puzzles"
         w = sys.argv[sys.argv.index("--warm") + 1].split(":") if "--warm" in sys.argv else None
         mem = [u for x in map(json.loads, open(f"{RES}/zl_{w[0]}_trr_s{w[1]}.jsonl")) for _, u in x["rules_added"]] if w else []
         path = path.replace("_trr_", "_trrw_") if w else path

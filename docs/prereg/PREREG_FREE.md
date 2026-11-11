@@ -101,3 +101,15 @@ Job 1384271 (`poc/gp_rescore.py --zlmin`), read with `python poc/gp_eval.py --zl
 - **FREE-MIN-P2 fails.** 23% of the Qwen3-8B ZL-AM wrong programs are flagged, below half.
 - **Decision (as registered):** misreadings mostly keep every clue needed, and the reading gap stays open. On the main puzzles the flag catches half of the wrong programs (52%) at a 0.9% false-flag rate; that set was not registered, so this is descriptive.
 - Flags are uneven by puzzle: they cluster on some sizes (for q8bh, 5×2 6/6 and 6×4 4/4, but 2×6 0/7 and 6×5 0/6). Whether a misread clue leaves another clue unneeded depends on the puzzle, not on the misreading.
+
+## Interim (2026-11-11 20:3x UTC): FREE-P3 and FREE-P4 hold for Qwen3-32B-AWQ and gpt-oss-20b; P1 and P2 wait on the Qwen3-8B rerun
+`python poc/gp_eval.py --free <tag> --score2`, fresh seeds 4–6, all 645 GridPuzzle and 282 Mitra-Baral puzzle-seeds.
+
+| Translator, set | v-ladder − plain ladder (P3: point ≥ −0.5) | v-ladder − think | Accepted count-1 precision (P4: ≥ 98%) |
+|---|---|---|---|
+| Qwen3-32B-AWQ, GridPuzzle | +0.3 [−0.3, +1.0] | +10.6 [+6.9, +14.5] | 461/468 = 98.5% |
+| Qwen3-32B-AWQ, Mitra-Baral | +0.5 [−0.2, +1.6] | +1.3 [−1.3, +3.9] | 252/257 = 98.1% |
+| gpt-oss-20b, GridPuzzle | +1.3 [+0.0, +2.8] | +4.8 [+1.5, +8.2] | 473/480 = 98.5% |
+| gpt-oss-20b, Mitra-Baral | +1.5 [+0.2, +3.3] | +2.0 [+0.1, +4.1] | 268/269 = 99.6% |
+
+- **Qwen3-8B rerun.** Its runs (Slurm job 1379922, one A5000) had finished about 30 of 215 puzzles per run after 7 hours. The 24 GB card held 10 requests at a time, with 374 waiting. I cancelled the job, dropped those partial rows, and restarted all 12 runs from the first puzzle on two 96 GB GPUs of the second server, with every setting unchanged.
