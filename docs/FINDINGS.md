@@ -6662,3 +6662,31 @@ The choice was easy here, because one checker dominates. The estimates' accuracy
 - P1–P4 hold, so the claim is stated for two families.
 
 **The check is not the reason for it.** For gpt-oss-20b, the checked ladder ties the plain ladder on both sets (−0.1 and +0.4). Its count-1 translations are already 97–99% right, so the check has little to catch. The check paid for Qwen3-8B (Mitra-Baral +3.4 [+0.4, +7.0]), whose count-1 programs were 90–96% right (61 of 632 and 16 of 376 wrong). So the free solver count carries across families, and the thinking check is an add-on that pays only when the translator's count-1 precision is low.
+
+## 2026-11-11 07:5x UTC — Token price: the ladder is cheaper than thinking only on ZebraLogic; on grids and trips it buys accuracy with tokens, and the verdict depends on the price
+
+**Why.** Every verdict so far uses one price, 0.5 utility points per thousand output tokens. A reviewer will ask whether the claim survives other prices. This is a sweep over the stored runs, with no model call, three seeds, puzzle bootstrap, scoring v2.
+
+**Ladder minus thinking: accuracy (points) and extra thousand tokens; utility at prices 0 / 0.25 / 0.5 / 1 / 2 (* = interval above 0, − = below 0); price where the difference is zero:**
+
+| Cell | Δ accuracy | Δ ktok | 0 | 0.25 | 0.5 | 1 | 2 | Break-even |
+|---|---|---|---|---|---|---|---|---|
+| ZebraLogic, Qwen3-8B (750) | +11.9* | −4.3 | +11.9* | +12.9* | +14.0* | +16.1* | +20.4* | none: wins at every price |
+| ZebraLogic, Qwen3-4B (250) | +12.1* | −3.4 | +12.1* | +13.0* | +13.8* | +15.5* | +18.8* | none |
+| ZebraLogic, gpt-oss-20b (750) | +22.6* | −7.2 | +22.6* | +24.4* | +26.2* | +29.8* | +37.0* | none |
+| GridPuzzle, Qwen3-32B-AWQ | +11.3* | +0.7 | +11.3* | +11.1* | +11.0* | +10.6* | +9.9* | 15.7 |
+| GridPuzzle, Qwen3-8B | +7.0* | +7.0 | +7.0* | +5.2* | +3.5 | 0.0 | −7.0− | 1.0 |
+| GridPuzzle, gpt-oss-20b | +6.0* | +4.2 | +6.0* | +5.0* | +3.9* | +1.8 | −2.4 | 1.4 |
+| Mitra-Baral, all three | +0.4 to +2.1 | −0.9 to +3.5 | ties at every price | | | | | |
+| Trips, Qwen3-8B | +15.7* | +17.7 | +15.7* | +11.3* | +6.8* | −2.0 | −19.6− | 0.9 |
+| Trips, Qwen3-32B-AWQ | +21.3* | +11.9 | +21.3* | +18.3* | +15.4* | +9.4* | −2.6 | 1.8 |
+| Trips, gpt-oss-20b | +7.7* | +17.5 | +7.7* | +3.3 | −1.1 | −9.8− | −27.3− | 0.4 |
+| Trips, gpt-oss-120b | +9.3* | +7.1 | +9.3* | +7.5* | +5.8* | +2.2 | −5.0 | 1.3 |
+
+**Reading.**
+- **Only on ZebraLogic is the ladder both more accurate and cheaper,** so it wins at every price. There the quick translation stops most puzzles at a few hundred tokens.
+- **On GridPuzzle and on trips the ladder is more accurate at every price, but it spends more tokens than thinking.** On trips that is 7–18 thousand more, because the middle step is a thinking translation and the repair rounds add up. Its utility lead therefore holds only below a break-even price of 0.4–1.8 points per thousand tokens. Qwen3-32B-AWQ on GridPuzzle is the exception (break-even 15.7).
+- **So the honest statement of the claim is two claims.** On ZebraLogic: same model, higher accuracy at lower cost. On grids and trips: higher accuracy, the gain is worth its tokens at prices up to about 1 point per thousand tokens, and at higher prices thinking wins. The paper should report accuracy and tokens separately, with the break-even price, not one utility number.
+- **What it changes for the method.** The trip ladder's cost comes from its middle step. A cheaper middle step is the lever on trips, not a better check. That is the open method gap on trips, beside the free text checks (PREREG_FREE) on grids.
+
+**Also recorded:** gpt-oss-20b on Amonkar et al.'s 100 ZebraLogic puzzles (ZL-AM, reported row, registered scoring): ladder 99.0% against thinking 82.0%; utility +20.9 [+14.3, +27.9]. On large and x-large puzzles, 97.7% against 61.2%. The ZL-AM resubmission had failed at first on a quoting error in my submit command (every command was "$P: command not found"); the rerun completed for gpt-oss-20b, and Qwen3-8B and Qwen3-32B are still running or queued.
