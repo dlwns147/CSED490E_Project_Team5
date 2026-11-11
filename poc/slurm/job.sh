@@ -27,7 +27,7 @@
 [ -n "$1" ] || { echo "usage: sbatch poc/slurm/job.sh <lane script .sh> [args ...] | '<command>'"; exit 1; }
 case "$1" in *.sh) LANE="bash $(printf '%q ' "$@")" ;; *) LANE="$*" ;; esac   # a lane script keeps each argument's quoting
 IMAGE_NAME="nlp_project:261021"
-IMAGE_FILE="/home1/leesangjun/nlp_project_261021.tar"
+IMAGE_FILE="/home/leesangjun/images/nlp_project_261021.tar"
 DOCKER_NAME="leesangjun_nlp_${SLURM_JOB_ID:-x}_${RANDOM}"
 HOST_UID=$(id -u); HOST_GID=$(id -g)
 LOCAL=/local-data/${DOCKER_NAME}
@@ -37,7 +37,7 @@ cleanup() {
 	/home1/leesangjun/script/cleanup.sh "${DOCKER_NAME}" "${IMAGE_NAME}"
 	if [ -d "${LOCAL}/stage" ]; then rsync -a --remove-source-files "${LOCAL}/stage/" /home1/leesangjun/SJ/POSTECH/ && echo "staged outputs moved to /home1 $(date -u '+%F %T') UTC"; fi
 	if [ -f "${LOCAL}/job.out" ]; then exec 1>&3 2>&4; cat "${LOCAL}/job.out"; fi
-	rm -rf "${LOCAL}"
+	rm -rf "${LOCAL}" 2> /dev/null || docker run --rm --entrypoint "" -v /local-data:/local-data ${IMAGE_NAME} rm -rf "${LOCAL}"   # /local-data is root's: only root can remove the directory itself
 	exit
 }
 trap cleanup 0
