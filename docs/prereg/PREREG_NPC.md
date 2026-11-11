@@ -186,3 +186,20 @@ All six runs finished; unparsed checks 0–5 per run. Rows: who checks whose pla
 4. **One checker is best for every translator.** gpt-oss-120b, the checker with the fewest false flags, gives the largest checked-ladder gain over the plain ladder on all three other translators: +2.5, +1.5 and +3.9 for Qwen3-32B, Qwen3-8B and gpt-oss-20b. On its own plans it gives −0.6.
 
 **For idea 43.** False flags are a stable property of a checker, and they decide most of a check's value here. So a checker could be chosen by measuring its false-flag rate once, on any one translator's plans, and carrying it to the others. That measurement still needs labels. A label-free version would need the flag rate, which mixes false flags with catches. That is the next question.
+
+### Addendum NPC-L, registered 2026-11-11 00:5x UTC, before any number below is computed: can the checker be chosen without labels?
+
+**Why.** NPC-T shows that a checker's false-flag rate is its own, stable across translators. That is the assumption that makes a classic label-free design identifiable: several checkers applied to several populations with different shares of wrong items (Hui and Walter 1980, two tests in two populations; Dawid and Skene 1979 for many raters). The estimability limit read on 2026-11-10 (Koreddi, NeurIPS 2026) warns that conditional independence cannot be checked from unlabeled data. The overlap-only window break, which every checker mostly misses, is exactly such a dependence. It should make the latent model call those plans right, which leaves the choice of checker untouched but biases the estimated share of wrong plans downward.
+
+**Test (offline, stored flags only, no labels used in fitting).**
+- Data: count-1 plans of the four translators (Qwen3-8B, Qwen3-32B, gpt-oss-20b, gpt-oss-120b), each checked by Qwen3-8B, Qwen3-32B and gpt-oss-120b. Unparsed reads as no flag.
+- Model: a latent wrong/right state per plan. Per checker, a catch rate κ and a false-flag rate φ, shared across translators. Per translator, a wrong share π. Flags are independent given the state.
+- Fit by EM from 20 random starts; keep the best likelihood, with the solution labeled so that φ < κ for the majority of checkers.
+- Choice: for each translator, pick the checker with the largest estimated π·κ − (1 − π)·φ, the expected net share of flags that are catches.
+
+**Predictions.**
+- **L1:** each checker's estimated φ is within 5 points of its true false-flag rate pooled over the four translators.
+- **L2:** for every translator, the chosen checker is the one with the best true checked − plain ladder utility among the three.
+- **L3:** each translator's estimated π is within the true share's 95% interval, or below it by no more than its overlap-only share.
+
+**Decision.** L1 and L2 hold: label-free choice works here and goes into the paper as the way to pick a checker, with L3 reporting the cost of the shared blind spot. L2 fails: choosing the checker needs labels, stated as a limit.
