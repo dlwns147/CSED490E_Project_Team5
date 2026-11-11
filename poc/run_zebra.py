@@ -21,7 +21,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0, os.path.dirname(__file__))
 from llm import chat_msgs, last_block, strip_think, think_cuts  # noqa: E402
-from grid_score import clue_pairs, clue_texts, disagree, free_checks  # noqa: E402
+from grid_score import clue_pairs, clue_texts, disagree, free_checks, gp_clue_pairs, gp_disagree, gp_program  # noqa: E402
 from sandbox import run_python  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
@@ -520,6 +520,7 @@ def zl_main():
 # [--ids <file of puzzle ids>] [--rounds N (default 3)]. Arm direct (PREREG_MOT): the think prompt without thinking (Yue et al.'s CoT sample); every row and round keeps its grid.
 # Arms gtrv / gtrtv (PREREG_FREE): gtr / gtrt whose count-1 program must also pass grid_score.free_checks (the puzzle's own text, no model call);
 # a flagged program gets the flags as feedback within the same rounds, and a program still flagged after the last round is not accepted (row["free"]).
+# Arm gtrr [--check] (PREREG_RULE3G): the quick translation with the reading rules stated so far, stated and checked as in PREREG_RULE3 (writes gtrrv with --check).
 # Arm thinkb (PREREG_BUD): the think prompt under budget forcing at each of --budgets (default 1000,2000,4000,8000), all cut from one think; row["cuts"][B].
 GP_SOLVE = """
 import ast, itertools, json, re
@@ -769,7 +770,7 @@ def gp_score(g, r):
 def gp_main():
     tag, arm, seed = sys.argv[2], sys.argv[3], int(sys.argv[4])
     dev = "--dev" in sys.argv
-    mt = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else 4096 if arm in ("gtr", "gtrl", "gtrv", "direct") else 16000   # gtrt: 21 of 94 dev rounds hit 8192 with no code
+    mt = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else 4096 if arm in ("gtr", "gtrl", "gtrv", "gtrr", "direct") else 16000   # gtrt: 21 of 94 dev rounds hit 8192 with no code
     src = sys.argv[sys.argv.index("--set") + 1] if "--set" in sys.argv else "gridpuzzle"   # or lgp: Mitra and Baral's puzzles (poc/gp_prep.py --lgp)
     P = [r for r in map(json.loads, open(os.path.join(os.environ["POC_DATA"], src, "grid.jsonl"))) if r["split"] == ("dev" if dev else "test")]
     if "--ids" in sys.argv:   # idea 39: fresh first attempts on a listed subset of puzzles (one id per line)
@@ -787,7 +788,7 @@ def gp_main():
                     ref.setdefault(x["id"], x["code"])
         P = [r for r in P if r["id"] in ref]   # puzzles with a right translation only; the paired think runs are read on the same puzzles
 
-    def run(r):
+    def run(r, mem=None):
         gold = {a: [str(x).strip().lower() for x in v] for a, v in r["gold"].items()}
         (first, fv), cols, n = r["cats"][0], ", ".join(gold), len(r["cats"][0][1])
         sd = seed * 10007 + int(r["id"].split("-")[1])
@@ -806,7 +807,8 @@ def gp_main():
         solve = GP_SOLVE.replace("__FIRST__", json.dumps(fv)).replace("__FNAME__", json.dumps(first))
         if arm == "gts":
             return {**row, **gp_search(r, sd, first, fv, cols, n, solve)}
-        msgs = [{"role": "user", "content": GP_TR.format(p=r["puzzle"], cols=cols, first=first, fv=", ".join(fv), n=n, f0=fv[0])}]
+        msgs = [{"role": "user", "content": GP_TR.format(p=r["puzzle"], cols=cols, first=first, fv=", ".join(fv), n=n, f0=fv[0])
+                 + (ZL_RULES.format(rules="\n".join(f"- {u}" for u in mem)) if mem else "")}]   # arm gtrr (PREREG_RULE3G): the rules stated so far
         tok, hist = 0, []
         for rnd in range(nr):
             o = chat_msgs(msgs, think=arm in ("gtrt", "gtrtl", "gtrtv"), max_tokens=mt, temperature=0.7, seed=sd + rnd)
@@ -842,9 +844,56 @@ def gp_main():
             msgs += [{"role": "assistant", "content": f"```python\n{code.rstrip()}\n```" if code else "(no python block)"},
                      {"role": "user", "content": f"The puzzle has exactly one solution, but {fb}. Compare each clue with the puzzle and give the complete corrected ```python block."}]
         return {**row, "exact": ex, "cell_acc": ca, "count": out["count"], "tokens": tok, "rounds": len(hist), "hist": hist, "code": code, "grid": out["grid"],
-                **({"free": free} if arm in ("gtrv", "gtrtv") else {})}
+                **({"free": free} if arm in ("gtrv", "gtrtv") else {}), **({"mem": len(mem or [])} if arm == "gtrr" else {})}
 
     path = f"{RES}/{'gp' if src == 'gridpuzzle' else src}_{tag}{'_dev' if dev else ''}_{arm}_s{seed}.jsonl"
+    if arm == "gtrr":
+        # PREREG_RULE3G: PREREG_RULE3's method on GridPuzzle / Mitra-Baral. The puzzles in order, one at a time, from no rules. When the quick translation
+        # ends without a count of 1 and the thinking translation (stored, same seed: gtrt) reaches one, each clue the two read differently
+        # (grid_score.gp_clue_pairs, both resolved as the solver resolves names) goes to the quick model, which states a rule (ZL_RULE) or replies SAME.
+        # --check: the rule is kept only if one quick translation of this puzzle with it (first round) writes that clue as the thinking one did.
+        T = {x["id"]: x for x in map(json.loads, open(path.replace("_gtrr_", "_gtrt_")))}
+        assert all(r["id"] in T for r in P), f"{path.replace('_gtrr_', '_gtrt_')} lacks some of these {len(P)} puzzles"
+        chk = "--check" in sys.argv
+        path = path.replace("_gtrr_", "_gtrr" + "v" * chk + "_")
+        mem, rows, seen = [], [], set()
+
+        def rule_reads(r, rules, t, te, sd):
+            (first, fv), cols = r["cats"][0], ", ".join(r["gold"])
+            msg = GP_TR.format(p=r["puzzle"], cols=cols, first=first, fv=", ".join(fv), n=len(fv), f0=fv[0]) + ZL_RULES.format(rules="\n".join(f"- {u}" for u in rules))
+            o = chat_msgs([{"role": "user", "content": msg}], think=False, max_tokens=mt, temperature=0.7, seed=sd)
+            vq, cq = gp_program(last_block(o["text"], ("python", "py", "python3")))
+            vt, _ = gp_program(T[r["id"]].get("code"))
+            tx = clue_texts(r["puzzle"])
+            return len(cq) == len(tx) and vq == vt and gp_disagree(cq[tx.index(t)], te, r["cats"], vt) is False, o["out_tokens"]
+        with open(path, "w") as f:
+            for r in P:
+                x, b = run(r, list(mem)), T[r["id"]]
+                new = gp_clue_pairs(x["code"], b.get("code"), r) if x["count"] != 1 and b.get("count") == 1 else []
+                added, rejected, rt = [], [], 0
+                sd0 = seed * 10007 + int(r["id"].split("-")[1])
+                for j, (t, qe, te) in enumerate(new):
+                    if t in seen:
+                        continue
+                    seen.add(t)
+                    o = chat_msgs([{"role": "user", "content": ZL_RULE.format(t=json.dumps(t), x=json.dumps(qe), y=json.dumps(te), rules="\n".join(f"- {u}" for u in mem) or "(none)")}],
+                                  think=False, max_tokens=512, temperature=0.7, seed=sd0 + 100 + j)
+                    rt += o["out_tokens"]
+                    m = re.search(r"RULE:\s*(.+)", o["text"] or "")
+                    if m and "SAME" not in (o["text"] or "").split("RULE:")[0]:
+                        u = m.group(1).strip().splitlines()[0]
+                        if chk:
+                            ok, ct = rule_reads(r, mem + [u], t, te, sd0 + 200 + j)
+                            rt += ct
+                            if not ok:
+                                rejected.append((t, u)); continue
+                        mem.append(u); added.append((t, u))
+                x["rules_added"], x["rule_tokens"], x["pairs"] = added, rt, len(new)
+                if chk:
+                    x["rules_rejected"] = rejected
+                rows.append(x); f.write(json.dumps(x) + "\n"); f.flush()
+        print(tag, arm, seed, f"{sum(r['exact'] for r in rows)}/{len(rows)}", f"tokens {sum(r['tokens'] for r in rows) / len(rows):.0f}", f"rules {len(mem)}", flush=True)
+        return
     rows = [json.loads(l) for l in open(path)] if os.path.exists(path) else []   # resume: keep rows already written
     done = {r["id"] for r in rows}
     with ThreadPoolExecutor(32) as ex, open(path, "a") as f:

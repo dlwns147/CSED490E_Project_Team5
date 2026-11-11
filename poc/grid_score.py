@@ -226,10 +226,11 @@ def expr_eval(e, p):
     raise ValueError(type(n).__name__)
 
 
-def disagree(a, b, n, tries=300, seed=0):
+def disagree(a, b, n, tries=300, seed=0, dom=None):
     """PREREG_CONV: do clue expressions a and b (strings) say different things? True if they name different values (keys compared after _norm) or
     differ on some assignment of houses 1..n to the values they name (every assignment when they name at most 3 values, else `tries` random ones);
-    False if they agree on all tried; None if either cannot be read."""
+    False if they agree on all tried; None if either cannot be read. dom (PREREG_RULE3G, GridPuzzle): the numbers a value may take (the program's
+    VALUES) in place of 1..n."""
     import ast
     import itertools
     import random
@@ -243,7 +244,8 @@ def disagree(a, b, n, tries=300, seed=0):
         return True
     keys, nb = sorted(ka), {_norm(k): k for k in kb}
     rng = random.Random(seed)
-    pts = itertools.product(range(1, n + 1), repeat=len(keys)) if len(keys) <= 3 else (tuple(rng.randint(1, n) for _ in keys) for _ in range(tries))
+    dom = list(dom) if dom else list(range(1, n + 1))
+    pts = itertools.product(dom, repeat=len(keys)) if len(keys) <= 3 else (tuple(rng.choice(dom) for _ in keys) for _ in range(tries))
     for t in pts:
         pa = dict(zip(keys, t))
         try:
@@ -254,9 +256,10 @@ def disagree(a, b, n, tries=300, seed=0):
     return False
 
 
-def clue_pairs(code_a, code_b, puzzle, n, both=False):
+def clue_pairs(code_a, code_b, puzzle, n, both=False, dom=False):
     """PREREG_CONV: [(clue text, b's expression)] for the clues that programs a and b (both with one expression per clue, in order) read differently;
-    both=True (PREREG_RULE): [(clue text, a's expression, b's expression)]"""
+    both=True (PREREG_RULE): [(clue text, a's expression, b's expression)]. dom=True (PREREG_RULE3G, GridPuzzle): values range over the programs'
+    VALUES, and programs whose VALUES differ give no pairs."""
     import ast
 
     def clues(code):
@@ -268,7 +271,104 @@ def clue_pairs(code_a, code_b, puzzle, n, both=False):
         except (SyntaxError, ValueError, TypeError, MemoryError, RecursionError):
             pass
         return []
+    def values(code):
+        try:
+            return [ast.literal_eval(nd.value) for nd in ast.parse(code or "").body if isinstance(nd, ast.Assign)
+                    and any(isinstance(t, ast.Name) and t.id == "VALUES" for t in nd.targets)][-1]
+        except (SyntaxError, ValueError, TypeError, MemoryError, RecursionError, IndexError):
+            return None
     tx, ca, cb = clue_texts(puzzle), clues(code_a), clues(code_b)
     if not tx or not (len(tx) == len(ca) == len(cb)):
         return []
-    return [(t, x, y) if both else (t, y) for t, x, y in zip(tx, ca, cb) if disagree(x, y, n)]
+    d = None
+    if dom:
+        d = values(code_b)
+        if not isinstance(d, list) or not d or d != values(code_a):
+            return []
+    return [(t, x, y) if both else (t, y) for t, x, y in zip(tx, ca, cb) if disagree(x, y, n, dom=d)]
+
+
+def gp_canon(e, cats, values):
+    """PREREG_RULE3G: a GridPuzzle clue expression (string) with every name resolved as GP_SOLVE resolves it, read from the puzzle's listed values:
+    p['<category>:<value>'] (or a bare string naming a value, or at(x)) becomes the key 'j:k' of the one listed value whose number (or letters and
+    digits) matches, and a value of the first category becomes its number in `values`. Returns the parsed expression, or None if a name is unknown."""
+    import ast
+    nv = lambda x: re.search(r"\d[\d:.]*", str(x).replace(",", "")).group() if re.search(r"\d", str(x)) else re.sub(r"[^a-z0-9]", "", str(x).lower())
+
+    def res(x):
+        h = [(j, k) for j, (_, v) in enumerate(cats) for k, y in enumerate(v) if nv(y) == nv(x)]
+        if len(h) != 1:
+            return None
+        j, k = h[0]
+        return ast.Constant(values[k]) if j == 0 else ast.Subscript(ast.Name("p", ast.Load()), ast.Constant(f"{j}:{k}"), ast.Load())
+
+    class T(ast.NodeTransformer):
+        def visit_Subscript(self, t):
+            if isinstance(t.value, ast.Name) and t.value.id == "p" and isinstance(t.slice, ast.Constant) and isinstance(t.slice.value, str):
+                n = res(t.slice.value.split(":", 1)[-1])
+                if n is None:
+                    raise KeyError(t.slice.value)
+                return n
+            return self.generic_visit(t)
+
+        def visit_Call(self, t):
+            if isinstance(t.func, ast.Name) and t.func.id in ("at", "V") and len(t.args) == 1 and isinstance(t.args[0], ast.Constant):
+                if t.func.id == "V":
+                    return t.args[0]
+                n = res(t.args[0].value)
+                if not isinstance(n, ast.Constant):
+                    raise KeyError(t.args[0].value)
+                return n
+            return self.generic_visit(t)
+
+        def visit_Constant(self, t):
+            n = res(t.value) if isinstance(t.value, str) else None
+            return n if n is not None else t
+    try:
+        return ast.fix_missing_locations(T().visit(ast.parse(str(e), mode="eval")))
+    except (SyntaxError, ValueError, TypeError, KeyError, MemoryError, RecursionError):
+        return None
+
+
+def gp_disagree(a, b, cats, values, tries=300, seed=0):
+    """PREREG_RULE3G: do GridPuzzle clue expressions a and b say different things? Both are resolved (gp_canon) and evaluated on `tries` random
+    solutions (each other category a random permutation of `values`); True if they differ on one, False if never, None if either cannot be read."""
+    import random
+    ea, eb = gp_canon(a, cats, values), gp_canon(b, cats, values)
+    if ea is None or eb is None or len(values) != len(cats[0][1]):
+        return None
+    rng = random.Random(seed)
+    for _ in range(tries):
+        p = {f"{j}:{k}": x for j in range(1, len(cats)) for k, x in enumerate(rng.sample(list(values), len(values)))}
+        try:
+            if bool(expr_eval(ea, p)) != bool(expr_eval(eb, p)):
+                return True
+        except (ValueError, KeyError, TypeError, ZeroDivisionError, RecursionError):
+            return None
+    return False
+
+
+def gp_program(code):
+    """(VALUES, clues) of a GridPuzzle translation, read from its syntax tree; (None, []) if they cannot be read"""
+    import ast
+    out = {}
+    try:
+        for nd in ast.parse(code or "").body:
+            if isinstance(nd, ast.Assign):
+                for t in nd.targets:
+                    if isinstance(t, ast.Name) and t.id in ("VALUES", "clues"):
+                        out[t.id] = ast.literal_eval(nd.value)
+    except (SyntaxError, ValueError, TypeError, MemoryError, RecursionError):
+        return None, []
+    v, c = out.get("VALUES"), out.get("clues")
+    return (list(v) if isinstance(v, (list, tuple)) else None), ([str(x) for x in c] if isinstance(c, (list, tuple)) else [])
+
+
+def gp_clue_pairs(code_a, code_b, r):
+    """PREREG_RULE3G: [(clue text, a's expression, b's expression)] for the clues that GridPuzzle programs a and b (one expression per clue, in
+    order, the same VALUES) read differently (gp_disagree True)"""
+    (va, ca), (vb, cb) = gp_program(code_a), gp_program(code_b)
+    tx = clue_texts(r["puzzle"])
+    if not tx or not (len(tx) == len(ca) == len(cb)) or not vb or va != vb:
+        return []
+    return [(t, x, y) for t, x, y in zip(tx, ca, cb) if gp_disagree(x, y, r["cats"], vb)]
