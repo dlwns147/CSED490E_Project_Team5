@@ -38,7 +38,7 @@
 - **Here:** a rule is induced only from a reading the solver's count admitted (exactly one solution where the cheap reading had not), with no label. Its teacher is the ladder's own expensive step on other puzzles, and it costs one short call per new clue.
 
 ## Result (2026-11-11 19:2x UTC): RULE-P1, P2 and P3 hold; RULE-P4 misses its margin by 0.2, so the headline is not restated
-`python poc/gp_eval.py --conv`. Qwen3-8B, seeds 1–3, every run complete (gs15 lanes rulea and ruleb).
+`python poc/gp_eval.py --conv`. Qwen3-8B, seeds 1–3, every run complete (lanes rulea and ruleb).
 
 | | Cell A, ZL-AM | Cell B, unseen main puzzles |
 |---|---|---|
