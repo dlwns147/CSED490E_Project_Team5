@@ -21,7 +21,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0, os.path.dirname(__file__))
 from llm import chat_msgs, last_block, strip_think, think_cuts  # noqa: E402
-from grid_score import clue_pairs, free_checks  # noqa: E402
+from grid_score import clue_pairs, clue_texts, disagree, free_checks  # noqa: E402
 from sandbox import run_python  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
@@ -463,14 +463,28 @@ def zl_main():
         # PREREG_RULE2 addendum: the first dev pass read a trt file of other puzzles (q8bf, ids 20-39), so it found no pair and stated no rule
         assert all(r["id"] in T for r in P), f"zl_{tag}_trt_s{seed} lacks {sum(r['id'] not in T for r in P)} of these {len(P)} puzzles"
         w = sys.argv[sys.argv.index("--warm") + 1].split(":") if "--warm" in sys.argv else None
-        mem = [u for x in map(json.loads, open(f"{RES}/zl_{w[0]}_trr_s{w[1]}.jsonl")) for _, u in x["rules_added"]] if w else []
-        path = path.replace("_trr_", "_trrw_") if w else path
+        chk = "--check" in sys.argv   # --check (PREREG_RULE3): arms trrv / trrvw; a warm start then reads the checked dev pass (trrv)
+        mem = [u for x in map(json.loads, open(f"{RES}/zl_{w[0]}_trr{'v' * chk}_s{w[1]}.jsonl")) for _, u in x["rules_added"]] if w else []
+        path = path.replace("_trr_", "_trr" + "v" * chk + "w" * bool(w) + "_")
+
+        def rule_reads(r, rules, t, te, sd):
+            # the quick translation (first round, as run's) with these rules; True if its expression for clue t agrees with te on every assignment tried
+            gold, n = zl_gold(r), len(r["solution"]["rows"])
+            msg = ZL_TR.format(p=r["puzzle"], cols=", ".join(gold), n=n) + ZL_RULES.format(rules="\n".join(f"- {u}" for u in rules))
+            o = chat_msgs([{"role": "user", "content": msg}], think=False, max_tokens=mt, temperature=0.7, seed=sd)
+            tx = clue_texts(r["puzzle"])
+            try:
+                cl = [str(c) for nd in ast.parse(last_block(o["text"], ("python", "py", "python3")) or "").body
+                      if isinstance(nd, ast.Assign) and any(getattr(v, "id", "") == "clues" for v in nd.targets) for c in ast.literal_eval(nd.value)]
+            except Exception:
+                cl = []
+            return len(cl) == len(tx) and not disagree(cl[tx.index(t)], te, n), o["out_tokens"]
         rows, seen = [], set()
         with open(path, "w") as f:
             for r in P:
                 x, b = run(r, list(mem)), T.get(r["id"])
                 new = clue_pairs(x["code"], b.get("code"), r["puzzle"], len(r["solution"]["rows"]), both=True) if x["count"] != 1 and b and b.get("count") == 1 else []
-                added, rt = [], 0
+                added, rejected, rt = [], [], 0
                 for j, (t, qe, te) in enumerate(new):
                     if t in seen:
                         continue
@@ -480,8 +494,16 @@ def zl_main():
                     rt += o["out_tokens"]
                     m = re.search(r"RULE:\s*(.+)", o["text"] or "")
                     if m and "SAME" not in (o["text"] or "").split("RULE:")[0]:
-                        mem.append(m.group(1).strip().splitlines()[0]); added.append((t, mem[-1]))
+                        u = m.group(1).strip().splitlines()[0]
+                        if chk:   # --check (PREREG_RULE3): keep the rule only if one quick translation of this puzzle with it reads the clue as admitted
+                            ok, ct = rule_reads(r, mem + [u], t, te, seed * 10007 + int(r["id"].rsplit("-", 1)[1]) + 200 + j)
+                            rt += ct
+                            if not ok:
+                                rejected.append((t, u)); continue
+                        mem.append(u); added.append((t, mem[-1]))
                 x["rules_added"], x["rule_tokens"], x["pairs"] = added, rt, len(new)
+                if chk:
+                    x["rules_rejected"] = rejected
                 rows.append(x); f.write(json.dumps(x) + "\n"); f.flush()
         print(tag, arm, seed, f"{sum(r['exact'] for r in rows)}/{len(rows)}", f"tokens {sum(r['tokens'] for r in rows) / len(rows):.0f}", f"rules {len(mem)}", flush=True)
         return

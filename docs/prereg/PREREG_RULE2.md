@@ -45,3 +45,35 @@ The fact is present from the first puzzle; the rules have to be learned. A deplo
 
 - "Between" clues misread: tr 94%, trf 13%, trr (cold) 24%. Count-1 precision: trr 96.4%, trf 96.6%.
 - The seeds 1–3 values were +3.5 and −0.2. So the cold start sits near the fact again, with its lower bound again at about −2.2.
+
+## Result (2026-11-11 21:3x UTC): RULE2-P1 and P3 fail, P2 holds. The hand fact stays. The carried rules made the reading worse.
+`python poc/gp_eval.py --conv --rule2`, all 750 puzzle-seeds, seeds 4–6.
+
+| Fresh seeds 4–6 | Utility difference |
+|---|---|
+| ladder(trrw) − ladder(trf) (P1: lower bound > −2.0, point ≥ 0) | **−0.4 [−2.4, +1.8]**, fails |
+| ladder(trrw) − ladder(tr) (P2: interval above 0) | +2.0 [+0.4, +3.7], holds |
+| ladder(trr, cold) − ladder(trf) | −0.2 [−2.1, +1.7] |
+| ladder(trr, cold) − ladder(tr) | +2.1 [+0.2, +4.2] |
+
+- **RULE2-P3 fails.** "Between" clues misread from the first puzzle: trrw 119/214 = 56%. Cold trr 27%, trf 19%, tr 95%.
+- **Decision (as registered):** the hand fact stays, disclosed as dev-mined. trr is reported as the label-free alternative that beats no fact.
+
+**Root cause (read from the rows).**
+- **The dev library holds an inverted rule.** Its first "between" rule (position 58) says "a difference of 1 indicates one house between them, and a difference of 2 indicates two houses between them".
+  - The pair it came from was right: the quick translation wrote `== 1`, the thinking translation `== 2`, and the count admitted the second.
+  - The rule writer restated that pair in its own wrong reading. Right "between" rules follow from position 117 on, so the library contradicts itself.
+- **The errors follow the inverted rule.** In trrw, "one house between" was written as a distance of 1 in 67 of 149 clues (cold trr: 36 of 170), and "two houses between" as 2 in 40 of 52 (cold trr: 33 of 74).
+- **The library is long and repetitive.** The dev pass kept 40 rules, only 14 of them distinct. The runs added 41–69 more, with 8–14 distinct each, so late puzzles saw 80–100 lines.
+- **The misreading grows along the stream:**
+
+| Positions | trrw misread | cold trr misread |
+|---|---|---|
+| 50–149 | 20/47 | 19/49 |
+| 150–199 | 39/71 | 15/80 |
+| 200–249 | 60/96 | 35/109 |
+
+- The inverted rule and the list's length can each explain this. A diagnostic (`poc/rule_diag.py`, not registered) re-translates the same puzzles with the same lists: with and without the inverted rule, and with each rule text kept only once.
+- **Diagnostic result (21:4x UTC).** First-round misreads with the list as shown: 70%. Without the inverted rule: 43%. With each rule kept once: 67%. With both changes: 59%.
+  - The inverted rule is the main cause; length is not.
+  - The fix, a check that a stated rule reproduces the admitted reading, is registered as PREREG_RULE3.

@@ -980,7 +980,8 @@ def conv_main():
     PREREG_RULE: the same with the quick step trr (stated rules); its rule calls' tokens are paid at the puzzle where they are made, and P1 counts from
     the first puzzle at which a rule was stated from such a clue. --rule2 (PREREG_RULE2): cell B on fresh seeds 4-6 with the quick steps tr, trf and
     trrw (trr started from the rules stated on the dev puzzles), P1 counted from the first puzzle; trr there is the cold start on the same
-    seeds (the first trrw run, whose dev pass stated no rule, see the PREREG_RULE2 addendum)."""
+    seeds (the first trrw run, whose dev pass stated no rule, see the PREREG_RULE2 addendum). --rule3 (PREREG_RULE3): fresh seeds 7-9 with trrv / trrvw,
+    trr / trrw whose stated rules are kept only when a quick translation with them reads the clue as admitted (run_zebra --check)."""
     import ast
     import re
     from grid_score import _norm, clue_texts, expr_eval
@@ -1004,11 +1005,12 @@ def conv_main():
             return not expr_eval(e, {k: next(iter(v)) for k, v in p.items()})
         except Exception:
             return None
-    SD = [4, 5, 6] if "--rule2" in sys.argv else [1, 2, 3]
-    cells = [("B, unseen main puzzles, fresh seeds 4-6", "q8bh", ["tr", "trf", "trr", "trrw"])] if "--rule2" in sys.argv else \
+    SD = [7, 8, 9] if "--rule3" in sys.argv else [4, 5, 6] if "--rule2" in sys.argv else [1, 2, 3]
+    cells = [("B, unseen main puzzles, fresh seeds 7-9", "q8bh", ["tr", "trf", "trrv", "trrvw"])] if "--rule3" in sys.argv else \
+        [("B, unseen main puzzles, fresh seeds 4-6", "q8bh", ["tr", "trf", "trr", "trrw"])] if "--rule2" in sys.argv else \
         [("A, ZL-AM", "q8bam", ["tr", "trm", "trr"]), ("B, unseen main puzzles", "q8bh", ["tr", "trf", "trm", "trr"])]
     for cell, tag, firsts in cells:
-        firsts = [a for a in firsts if a not in ("trr", "trrw") or all(os.path.exists(os.path.join(RES, f"zl_{tag}_{a}_s{sd}.jsonl")) for sd in SD)]
+        firsts = [a for a in firsts if a not in ("trr", "trrw", "trrv", "trrvw") or all(os.path.exists(os.path.join(RES, f"zl_{tag}_{a}_s{sd}.jsonl")) for sd in SD)]
         R, order = {}, {}
         for arm in firsts + ["trt", "think"]:
             for sd in SD:
@@ -1037,11 +1039,14 @@ def conv_main():
             c1 = [x for x in q if x["count"] == 1]
             print(f"  ladder with {a:4s}: {100 * mean([e for e, _ in L]):5.1f}% at {mean([t for _, t in L]) / 1000:5.2f} ktok; quick step count-1 "
                   f"{len(c1)}/{len(q)}, precision {sum(x['exact'] for x in c1)}/{len(c1)} = {100 * sum(x['exact'] for x in c1) / max(len(c1), 1):.1f}% (P2: trm >= 95%)"
-                  + (f"; memory lines shown, mean {mean([x.get('mem', 0) for x in q]):.1f}" if a in ("trm", "trr", "trrw") else "")
-                  + (f"; rule calls {mean([x.get('rule_tokens', 0) for x in q]) / 1000:.2f} ktok per puzzle" if a in ("trr", "trrw") else ""))
+                  + (f"; memory lines shown, mean {mean([x.get('mem', 0) for x in q]):.1f}" if a in ("trm", "trr", "trrw", "trrv", "trrvw") else "")
+                  + (f"; rule calls {mean([x.get('rule_tokens', 0) for x in q]) / 1000:.2f} ktok per puzzle" if a in ("trr", "trrw", "trrv", "trrvw") else "")
+                  + (f"; rules rejected by the check {sum(len(x.get('rules_rejected', [])) for x in q)}" if a in ("trrv", "trrvw") else ""))
         for a, b, rule in [("trm", "tr", "P3: interval above 0 in cell B"), ("trm", "trf", "P4: lower bound above -2.0"),
                            ("trr", "tr", "RULE-P3: interval above 0 in cell B"), ("trr", "trf", "RULE-P4: lower bound above -2.0"),
-                           ("trrw", "tr", "RULE2-P2: interval above 0"), ("trrw", "trf", "RULE2-P1: lower bound above -2.0, point at or above 0")]:
+                           ("trrw", "tr", "RULE2-P2: interval above 0"), ("trrw", "trf", "RULE2-P1: lower bound above -2.0, point at or above 0"),
+                           ("trrvw", "tr", "RULE3-P2: interval above 0"), ("trrvw", "trf", "RULE3-P1: lower bound above -2.0, point at or above 0"),
+                           ("trrv", "tr", "reported"), ("trrv", "trf", "reported")]:
             if a in firsts and b in firsts:
                 per = {}
                 for i, sd in keys:
@@ -1054,7 +1059,7 @@ def conv_main():
         for a in firsts:
             n = bad = 0
             for sd in SD:
-                on = a not in ("trm", "trr")
+                on = a not in ("trm", "trr", "trrv")
                 for i in order.get((a, sd), []):
                     x, r = R[(a, i, sd)], P[i]
                     if (i, sd) in set(keys) and on:
@@ -1070,7 +1075,7 @@ def conv_main():
                                 if v is not None:
                                     n += 1; bad += v
                     on = on or any(btw.search(t) for t, _ in x.get("mem_added", []) + x.get("rules_added", []))
-            print(f"  {a}: 'N houses between' clues read against the gold solution {bad}/{n} = {100 * bad / max(n, 1):.0f}%" + (" (P1: at most 30%)" if a in ("trm", "trr", "trrw") else ""))
+            print(f"  {a}: 'N houses between' clues read against the gold solution {bad}/{n} = {100 * bad / max(n, 1):.0f}%" + (" (P1: at most 30%)" if a in ("trm", "trr", "trrw", "trrv", "trrvw") else ""))
 
 
 if __name__ == "__main__":

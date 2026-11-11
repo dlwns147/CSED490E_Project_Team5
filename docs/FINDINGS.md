@@ -6838,3 +6838,11 @@ Job 1382299 (one GPU, queued).
 - For Qwen3-32B-AWQ and gpt-oss-20b on both sets, the text checks cost nothing: v-ladder − plain ladder ranges from +0.3 to +1.5, with no lower bound below −0.3.
 - Accepted count-1 precision is 98.1–99.6%. So FREE-P3 and FREE-P4 hold for these two translators.
 - The Qwen3-8B runs decide P1 and P2. They had finished about 15% of puzzles after 7 hours on a 24 GB card, so I restarted them on 96 GB GPUs, with settings unchanged.
+
+## 2026-11-11 21:4x UTC — PREREG_RULE2 fails: rules carried from earlier puzzles made the quick reading worse, because one of them is inverted. The hand fact stays. PREREG_RULE3 registered.
+- **Result, fresh seeds 4–6.** Ladder with the carried rules − ladder with the hand fact: −0.4 [−2.4, +1.8]. P1 needed a lower bound above −2.0 and a point at or above 0, so it fails. Against no fact: +2.0 [+0.4, +3.7] (P2 holds).
+- **"Between" misread:** 56% with carried rules, 27% with rules learned from scratch, 19% with the fact.
+- **Root cause.** On the dev puzzles the rule writer restated a right pair (the quick translation wrote 1, the thinking translation 2, and the count admitted 2) as "a difference of 1 indicates one house between". Right rules came later, so the carried list contradicts itself.
+- **Checked by re-translating the same puzzles with edited lists.** First-round misreads: 70% with the list as shown, 43% without the inverted rule, 67% with repeats removed. The inverted rule is the cause; the list's length is not.
+- **Next (PREREG_RULE3, fresh seeds 7–9).** A stated rule is kept only if the quick translation, given that rule, reads the clue as the count admitted. The check uses no label. Prior work keeps rules by labelled accuracy (HtT) or by environment reward (AutoManual, RIMRULE).
+- **Expected:** a close call against the fact. Without the inverted rule, misreading still rises on the late, larger puzzles (to about half at positions 200–249).
