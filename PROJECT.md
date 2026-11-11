@@ -107,7 +107,7 @@ OptMATH is partly broken: its statements omit what its gold answers need.
     job's output to `/local-data/<job>` on the node and moves it to /home1 when the job ends, as the user. Python processes do this through
     `poc/slurm/localio/sitecustomize.py`, and `lane.sh` / `start_server.sh` stage their logs the same way. Any root-owned file left under the
     repo or nlp_data is chowned back. Scratch files go to the container's /tmp, never to /home1. A command's own shell redirection
-    (`> results/x.log`) bypasses the staging, so log through `lane.sh` or write to `$POC_LOCAL/stage/nlp/results/`.
+    (`> results/x.log`) bypasses the staging, so log through `lane.sh` or write to `$POC_LOCAL/stage/nlp/results/` (after `mkdir -p` of it).
 
 ## 5. Status and next steps (2026-11-07)
 
