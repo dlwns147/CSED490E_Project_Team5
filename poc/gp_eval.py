@@ -487,13 +487,13 @@ def zl_main():
 
 
 def mot_main():
-    """PREREG_MOT: the plain ladder against the MoT agreement cascade (Yue et al. 2310.03094; 3 direct + 3 one-round gtr samples) and a 3-program vote,
-    each escalating to think when the top answer's share is below tau. Replicate k: samples of seeds 10k+1..10k+3, think and ladder of seed k.
-    usage: python poc/gp_eval.py --mot <tag> --score2   (reads results/{gp,lgp}_<tag>_{gtr,direct}_s1[1-3]|s2[1-3]|s3[1-3].jsonl; --score2 for the ladder)"""
+    """PREREG_MOT: the plain ladder against the MoT agreement cascade (Yue et al. 2310.03094; 3 direct + 3 one-round program samples) and a 3-program
+    vote, each escalating to think when the top answer's share is below tau. Replicate k: samples of seeds 10k+1..10k+3, think and ladder of seed k.
+    usage: python poc/gp_eval.py --mot <tag> --score2   grids: results/{gp,lgp}_<tag>_{gtr,direct}_s{11..33}.jsonl; --score2 for the ladder
+           python poc/gp_eval.py --mot <tag> --np       trips (addendum MOT-T): results/np_<tag>_{trc,direct}_s{11..33}.jsonl, ladder trc -> trct -> think"""
     import re
     tag = sys.argv[sys.argv.index("--mot") + 1]
     U = lambda ok, t: 100 * ok - 0.5 * t / 1000
-
     from grid_score import match
 
     def canon(g, r):   # scoring v2 (poc/grid_score.py, PREREG_MOT addendum): the listed value each cell names, as a hashable answer; None for no answer
@@ -503,61 +503,74 @@ def mot_main():
         got = {ck(k): v for k, v in g.items() if isinstance(v, list)}
         return tuple((ck(a), tuple(match(x, vals) for x in (got.get(ck(a)) or []))) for a, vals in r["cats"][1:])
     data = os.environ.get("POC_DATA", os.path.join(RES, "..", "..", "nlp_data"))
-    res, curves = {}, {}
-    for s, src in [("gp", "gridpuzzle"), ("lgp", "lgp")]:
-        PZ = {r["id"]: r for r in map(json.loads, open(os.path.join(data, src, "grid.jsonl")))}
-        R, keys = load(s, tag)
+    seeds = [10 * k + j for k in [1, 2, 3] for j in [1, 2, 3]]
+    res = {}
+    sets = [("np", None)] if "--np" in sys.argv else [("gp", "gridpuzzle"), ("lgp", "lgp")]
+    for s, src in sets:
         S = {}
-        for arm in ["gtr", "direct"]:
-            for sd in [10 * k + j for k in [1, 2, 3] for j in [1, 2, 3]]:
+        q = "trc" if s == "np" else "gtr"
+        for arm in [q, "direct"]:
+            for sd in seeds:
                 f = os.path.join(RES, f"{s}_{tag}_{arm}_s{sd}.jsonl")
                 for x in map(json.loads, open(f)) if os.path.exists(f) else []:
                     S[(arm, x["id"], sd)] = x
-        gold = {i: canon(PZ[i]["gold"], PZ[i]) for i in PZ}
-        ks = [(i, k) for i, k in keys if all((a, i, 10 * k + j) in S for a in ["gtr", "direct"] for j in [1, 2, 3])]
+        if s == "np":   # trips: an answer is the plan as (city, start, end) rows; right when it is the gold plan (np_norm)
+            R = {}
+            for arm in ["trc", "trct", "think"]:
+                for sd in [1, 2, 3]:
+                    f = os.path.join(RES, f"np_{tag}_{arm}_s{sd}.jsonl")
+                    for r in map(json.loads, open(f)) if os.path.exists(f) else []:
+                        R[(arm, r["id"], sd)] = r
+            keys = sorted({(i, sd) for (_, i, sd) in R if all((a, i, sd) in R for a in ["trc", "trct", "think"])})
+            gold = {r["id"]: tuple((str(c).strip().lower(), int(a), int(b)) for c, a, b in r["gold"])
+                    for r in map(json.loads, open(os.path.join(data, "naturalplan", "trip.jsonl"))) if r["amonkar"]}
+            ans = lambda x, a, i: (tuple(map(tuple, x["hist"][0]["plan"])) if x["hist"][0].get("plan") and x["hist"][0]["count"] >= 1 else None) if a == q \
+                else (tuple(map(tuple, x["plan"])) if x.get("plan") else None)
+
+            def lad(i, k):
+                tok = 0
+                for arm in ["trc", "trct"]:
+                    r = R[(arm, i, k)]; tok += r["tokens"]
+                    if r["count"] == 1:
+                        return U(r["exact"], tok)
+                r = R[("think", i, k)]; return U(r["exact"], tok + r["tokens"])
+        else:
+            PZ = {r["id"]: r for r in map(json.loads, open(os.path.join(data, src, "grid.jsonl")))}
+            R, keys = load(s, tag)
+            gold = {i: canon(PZ[i]["gold"], PZ[i]) for i in PZ}
+            ans = lambda x, a, i: (canon(x["hist"][0].get("grid"), PZ[i]) if x["hist"][0]["count"] >= 1 else None) if a == q else canon(x.get("grid"), PZ[i])
+            lad = lambda i, k: U(*ladder(R, i, k)[:2])
+        ks = [(i, k) for i, k in keys if all((a, i, 10 * k + j) in S for a in [q, "direct"] for j in [1, 2, 3])]
         ids = sorted({i for i, _ in ks})
         if not ids:
             print(s, "no complete replicates yet"); continue
 
-        def samples(i, k, arms):
-            out = []
-            for a in arms:
-                for j in [1, 2, 3]:
-                    x = S[(a, i, 10 * k + j)]
-                    g = x["hist"][0].get("grid") if a == "gtr" else x.get("grid")
-                    ok = a == "direct" or x["hist"][0]["count"] >= 1
-                    out.append((canon(g, PZ[i]) if ok else None, x["tokens"]))
-            return out
-
         def cascade(i, k, arms, tau):
-            sm = samples(i, k, arms); tok = sum(t for _, t in sm)
-            votes = {}
+            sm = [(ans(S[(a, i, 10 * k + j)], a, i), S[(a, i, 10 * k + j)]["tokens"]) for a in arms for j in [1, 2, 3]]
+            tok, votes = sum(t for _, t in sm), {}
             for a, _ in sm:
                 if a is not None:
                     votes[a] = votes.get(a, 0) + 1
             if votes:
                 a, c = max(votes.items(), key=lambda kv: kv[1])
                 if c / len(sm) >= tau - 1e-9:
-                    return U(a == gold[i], tok), True, a == gold[i], c >= 1 and sum(1 for b, _ in sm[-3:] if b == a and a != gold[i]) >= 2
+                    return U(a == gold[i], tok), True, a == gold[i], sum(1 for b, _ in sm[-3:] if b == a and a != gold[i]) >= 2
             r = R[("think", i, k)]
             return U(r["exact"], tok + r["tokens"]), False, None, False
-        lad = lambda i, k: U(*ladder(R, i, k)[:2])
-        dacc = {i: mean([100 * S[("direct", i, 10 * k + j)]["exact"] for ii, k in ks if ii == i for j in [1, 2, 3]]) for i in ids}
+        dacc = mean([100 * (ans(S[("direct", i, 10 * k + j)], "direct", i) == gold[i]) for i, k in ks for j in [1, 2, 3]])
         dtok = mean([S[("direct", i, 10 * k + j)]["tokens"] for i, k in ks for j in [1, 2, 3]]) / 1000
-        print(f"== {s} {tag}: {len(ids)} puzzles, {len(ks)} puzzle-replicates; direct (no thinking) {mean(list(dacc.values())):.1f}% at {dtok:.2f} ktok")
-        for name, arms, n in [("MoT CoT+PoT", ["direct", "gtr"], 6), ("PoT vote", ["gtr"], 3)]:
+        print(f"== {s} {tag}: {len(ids)} problems, {len(ks)} problem-replicates; direct (no thinking) {dacc:.1f}% at {dtok:.2f} ktok")
+        for name, arms, n in [("MoT CoT+PoT", ["direct", q], 6), ("PoT vote", [q], 3)]:
             for c in range(1, n + 1):
-                tau = c / n
-                per = {i: [lad(i, k) - cascade(i, k, arms, tau)[0] for ii, k in ks if ii == i] for i in ids}
-                acc = [cascade(i, k, arms, tau) for i, k in ks]
+                per = {i: [lad(i, k) - cascade(i, k, arms, c / n)[0] for ii, k in ks if ii == i] for i in ids}
+                acc = [cascade(i, k, arms, c / n) for i, k in ks]
                 cov = mean([a[1] for a in acc]); prec = mean([a[2] for a in acc if a[1]]) if any(a[1] for a in acc) else float("nan")
-                corr = sum(a[3] for a in acc)
                 pt, lo, hi = boot(per, lambda v: mean([mean(x) for x in v]))
-                curves[(s, name, c)] = pt; res[(s, name, c)] = (pt, lo, hi)
+                res[(s, name, c)] = (pt, lo, hi)
                 print(f"  {name:11s} tau {c}/{n}: ladder - cascade {pt:+5.1f} [{lo:+5.1f}, {hi:+5.1f}]  coverage {cov:.2f}  precision {100 * prec:5.1f}%  "
-                      f"accepted wrong with 2+ programs sharing it {corr}")
+                      f"accepted wrong with 2+ programs sharing it {sum(a[3] for a in acc)}")
     for name, n in [("MoT CoT+PoT", 6), ("PoT vote", 3)]:
-        for s, o in [("gp", "lgp"), ("lgp", "gp")]:
+        for s, o in [("gp", "lgp"), ("lgp", "gp"), ("np", None)]:
             if (s, name, 1) not in res:
                 continue
             c = min(range(1, n + 1), key=lambda c: res[(s, name, c)][0])   # oracle: tau where the cascade does best against the ladder
@@ -566,7 +579,6 @@ def mot_main():
                 co = min(range(1, n + 1), key=lambda c: res[(o, name, c)][0])
                 line += f"; tau {co}/{n} picked on {o}: {res[(s, name, co)][0]:+.1f} [{res[(s, name, co)][1]:+.1f}, {res[(s, name, co)][2]:+.1f}]"
             print(line)
-
 
 if __name__ == "__main__":
     mot_main() if "--mot" in sys.argv else zl_main() if "--zl" in sys.argv else np_main() if "--np" in sys.argv else thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()

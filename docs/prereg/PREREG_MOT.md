@@ -49,3 +49,14 @@ Reading: what carries the ladder is escalating on a count other than 1; the repa
 ## Addendum (2026-11-11 03:3x UTC, before any sample was read): scoring v2
 
 Answers are compared, and the ladder is scored, under scoring v2 (`poc/grid_score.py`; PREREG_GP "Scoring correction"). A cell's answer is the listed value it names, so the vote's answers are tuples of listed values. Command: `python poc/gp_eval.py --mot <tag> --score2`. Nothing else changes.
+
+## Addendum MOT-T: the same comparison on trips, registered 2026-11-11 03:3x UTC, before any trip sample has run
+
+**Why.** Trips have SC-3 and D&P-3 rows, which are majorities of thinking answers and of thinking translations. They have no cascade that starts from cheap samples, which is the cascade's actual claim. Same design as the grids: 3 no-thinking answers (`run_plan.py <tag> direct <seed>`, the thinking prompt with thinking off) plus 3 first-round quick translations (`trc --rounds 1`). Their plan, when the count is at least 1, is the program's answer. Seeds 10k+1..10k+3 for replicate k, escalating to the stored `think` of seed k. Translators: `q8b`, `q32` (Qwen3-32B-AWQ), `oss20`, `oss120` (gpt-oss: effort low for both quick arms). Amonkar et al.'s 100 trips. An answer is right when it equals the gold plan, the ladder's rule. Command: `python poc/gp_eval.py --mot <tag> --np`.
+
+**From stored runs, before this addendum (no model call).** A first-round quick translation reaches count 1 on few trips: 11/300 for Qwen3-8B, 7/300 for Qwen3-32B, 25/300 for gpt-oss-20b, 78/300 for gpt-oss-120b. The SatLM-style gate (first round, count 1, else think) therefore trails the ladder: +6.6 [+0.9, +12.4], +15.1 [+8.5, +21.9], +0.3 [−4.9, +5.9] and +5.2 [+0.8, +10.1]. On trips the ladder's middle step (a thinking translation) is what pays.
+
+**Predictions:**
+- **M-T1.** Ladder − MoT cascade at its best τ: point estimate above 0 for Qwen3-8B, Qwen3-32B and gpt-oss-120b.
+  - Derivation: quick translations rarely give one plan, so their answers rarely agree, and the cascade mostly escalates to thinking after paying for 6 samples. The ladder instead escalates to a thinking translation, whose count-1 plans are 90–99% right.
+- **M-T2.** gpt-oss-20b, where the ladder ties thinking (−1.1 [−6.8, +4.9]): no prediction, reported as measured.

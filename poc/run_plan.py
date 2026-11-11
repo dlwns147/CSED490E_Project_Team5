@@ -6,7 +6,8 @@ The interface is not specific to trips: the model writes an OR-Tools CP-SAT mode
 `plan(val)` that renders the answer; the harness (PL_SOLVE) counts distinct rendered answers (projected count: it blocks each found assignment of
 ANSWER until a second, different plan appears or none is left).
 
-usage: run_plan.py <tag> <arm tr|trt|trc|trct|think> <seed> [--resume (keep the rows already written, run the rest)]
+usage: run_plan.py <tag> <arm tr|trt|trc|trct|think|direct> <seed> [--resume (keep the rows already written, run the rest)]
+       (arm direct, PREREG_MOT addendum MOT-T: the think prompt without thinking; every round keeps its plan)
        run_plan.py --check <tag> [--dev] [--label L (another model serving: writes np_<tag>_<L>.jsonl)] (PREREG_NPC: the model checks each count-1 plan against the task, see check())
        run_plan.py --rescore <result files> (re-run stored programs under the current harness, see rescore()) [--dev N (N trips outside Amonkar's 100, spread over the file, so over 3-10 cities)] [--max_tokens N] [--rounds N (default 3)]
 Default: Amonkar et al.'s 100 trips (data/trip_planning_100.json of github.com/rikhil-amonkar/llm-csp). Prompts: NaturalPlan's 5-shot prompt as is
@@ -199,8 +200,8 @@ def main():
         gold = np_norm({"city": c, "start": s, "end": e} for c, s, e in r["gold"])
         sd = seed * 10007 + int(r["id"].rsplit("_", 1)[1])
         row = {"id": r["id"], "ncity": r["ncity"], "arm": arm, "seed": seed}
-        if arm == "think":
-            o = chat_msgs([{"role": "user", "content": NP_FMT.format(p=p)}], think=True, max_tokens=mt, temperature=0.7, seed=sd)
+        if arm in ("think", "direct"):
+            o = chat_msgs([{"role": "user", "content": NP_FMT.format(p=p)}], think=arm == "think", max_tokens=mt, temperature=0.7, seed=sd)
             pl = np_norm(np_extract(o["text"]) or [])
             return {**row, "exact": pl == gold, "plan": pl, "tokens": o["out_tokens"], "finish": o["finish"], "text": (o["text"] or "")[-1500:]}
         dc = arm in ("trc", "trct")
@@ -223,7 +224,7 @@ def main():
             except (AttributeError, IndexError, ValueError):
                 out = {"count": -1, "plan": None}
             pl = np_norm(out["plan"]) if out.get("plan") is not None else None
-            hist.append({"count": out["count"], "exact": pl == gold, "tokens": o["out_tokens"], "finish": o["finish"], "n": out.get("n"), "err": (res.stderr[-300:] if res else "no code")})
+            hist.append({"count": out["count"], "exact": pl == gold, "tokens": o["out_tokens"], "finish": o["finish"], "n": out.get("n"), "err": (res.stderr[-300:] if res else "no code"), "plan": pl})
             if out["count"] == 1:
                 break
             fb = {-1: f"it failed to run: {(res.stderr[-600:] if res else 'no python block')}", -2: "the solver timed out on it",
