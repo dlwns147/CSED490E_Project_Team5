@@ -180,7 +180,7 @@ All six runs finished; unparsed checks 0–5 per run. Rows: who checks whose pla
 **Decision.** T1 is not met, so the registered "T1 and T2 hold" change is not made in full. What the data do support:
 1. **False flags are the checker's, not the plan's.** Across four translators each, each checker's right-plan flag rate stays within 4 points of its own rate (T3). This is the strongest result of the three checks on trips.
 2. **The identity reading of NPC-X2 is withdrawn.** gpt-oss-120b catches 19/20 of its own family's other errors (T2). Its earlier misses on its own plans are window breaks. No Qwen checker reaches the identity bar on those breaks.
-3. **The window break is mostly unseen:** 9 of 31 checks of overlap-only plans flag them.
+3. **The window break is mostly unseen:** 10 of the 31 checks of overlap-only plans by these three checkers flag them.
    - Qwen3-32B's 5 of 12 flags are at the rate it flags right plans of the same translator (58%), so they do not show it reading the window.
    - Read after the result, so reported only: 2 of its 5 flags name the broken event. The other three cite the trip's length or a stay, or list every requirement.
 4. **One checker is best for every translator.** gpt-oss-120b, the checker with the fewest false flags, gives the largest checked-ladder gain over the plain ladder on all three other translators: +2.5, +1.5 and +3.9 for Qwen3-32B, Qwen3-8B and gpt-oss-20b. On its own plans it gives −0.6.
