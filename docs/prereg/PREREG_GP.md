@@ -104,3 +104,18 @@ The registered decision stands as written in the GridPuzzle part: P2 fails, so t
 **GP-LOC step 1 result, 2026-11-10 11:5x UTC** (`python poc/gp_eval.py --loc --test`; jobs 1372759 done, step 2 job 1372760 running). gtrl 35.5% vs gtr 35.7% (GridPuzzle), 53.5% vs 53.5% (Mitra-Baral), same 1.0 / 0.5 ktok. Step 1 ladder utility, localized minus generic: GridPuzzle −1.6 [−3.8, +0.6], Mitra-Baral −1.7 [−3.9, +0.6], **pooled −1.64 [−3.34, −0.01] over 927 puzzle-seeds → generic feedback stays.** GP-LOC-P1 (interval contains 0) fails narrowly, on the losing side. GP-LOC-P3 (gtrl accuracy not above gtr's) holds, but its stated mechanism is wrong: count-1 precision falls (212/273 = 77.7% vs 206/245 = 84.1%; Mitra-Baral 145/170 vs 136/150), so the localized arm stops wrongly more often, not less.
 
 **GP-LOC step 2 result, 2026-11-10 19:5x UTC** (`python poc/gp_eval.py --loc --test`; job 1372760 done). gtrtl 61.9% vs gtrt 64.0% (GridPuzzle, seed 1), 83.0% vs 84.4% (Mitra-Baral) at 17.1 / 11.7 vs 17.5 / 11.9 ktok. Step 2 ladder utility, localized minus generic: GridPuzzle −1.7 [−5.1, +1.6], Mitra-Baral −2.1 [−6.9, +2.2], **pooled −1.80 [−4.59, +0.79] over 309 puzzle-seeds → generic feedback stays.** GP-LOC-P2 (interval contains 0) holds. With step 1, localized feedback does not help at either step; the thinking translation's count-1 precision stays high under it (121/131, 73/74), so step 2's loss is fewer right stops, not more wrong ones.
+
+## Scoring correction (2026-11-11 03:3x UTC; FINDINGS same time)
+
+`gp_score` failed right answers on format alone ("blu-ray" for "blu-ray player", 5.5 for "$5.50", "78 million" as 78000000) and passed "B-" for "B+". Thinking answers are hit more than programs, which copy the listed names. Scoring v2 (`poc/grid_score.py`): a cell is right when it names the gold value and no other listed value. Rows rescored by `poc/gp_rescore.py` (programs re-run in the container; no count changed); read with `--score2`.
+
+| Ladder − think, utility | As registered | Scoring v2 |
+|---|---|---|
+| Qwen3-8B, GridPuzzle (GP-P1) | +4.6 [+0.4, +8.9] | **+3.5 [−0.7, +7.7]** |
+| Qwen3-8B, Mitra-Baral | +2.9 [−3.3, +9.2] | +0.4 [−5.6, +6.7] |
+| Qwen3-32B-AWQ, GridPuzzle | +11.3 [+7.4, +15.3] | +11.0 [+7.1, +14.9] |
+| Qwen3-32B-AWQ, Mitra-Baral | +0.4 [−2.9, +3.7] | +0.8 [−2.5, +4.0] |
+| gpt-oss-20b, GridPuzzle | +5.5 [+1.8, +9.3] | +3.9 [+0.5, +7.5] |
+| gpt-oss-20b, Mitra-Baral | +3.5 [+1.0, +6.2] | **+1.8 [−0.5, +4.1]** |
+
+GP-P1 no longer holds for Qwen3-8B under v2: its interval now includes 0. The plain ladder's lead on GridPuzzle stands for the two larger models. gpt-oss-20b's plain-ladder win on Mitra-Baral (FINDINGS 2026-11-10 16:1x) becomes a tie. Scoring v2 is used from here on.

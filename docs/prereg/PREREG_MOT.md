@@ -45,3 +45,7 @@ Reading: what carries the ladder is escalating on a count other than 1; the repa
 **Also reported:** coverage and precision of each gate at the chosen τ; the number of accepted wrong answers where two or more program samples share the same wrong grid (correlated misreadings, the mechanism behind the false accepts); direct-arm accuracy and tokens.
 
 **Run.** On the paper-extension GPU server, one lane per translator and set. Evaluation: `python poc/gp_eval.py --mot <tag>`, written before the samples come back.
+
+## Addendum (2026-11-11 03:3x UTC, before any sample was read): scoring v2
+
+Answers are compared, and the ladder is scored, under scoring v2 (`poc/grid_score.py`; PREREG_GP "Scoring correction"). A cell's answer is the listed value it names, so the vote's answers are tuples of listed values. Command: `python poc/gp_eval.py --mot <tag> --score2`. Nothing else changes.

@@ -78,3 +78,18 @@ Written 2026-11-10 11:5x UTC, before any grid output from gpt-oss-20b exists (it
 **Setup.** As GC32 with `openai/gpt-oss-20b` as translator, checker and thinker, tag `oss20`; the quick mode is reasoning effort low, the thinking modes are effort high: `gtr` (low, 4,096 tokens), `gtrt` (high, 16,000), `think` (high, 32,000), `gp_check.py run oss20 <set> checkt` (high). Both test sets, seeds 1, 2, 3. A dev `gtr` seed-1 pilot on both sets runs first and is read for crashes and format only. Read with `python poc/gp_eval.py oss20 --check checkt`.
 **Predictions.** GC-OSS-P1: unflagged count-1 precision at least 95% on each set. GC-OSS-P2: GridPuzzle checked ladder − think utility interval above 0. GC-OSS-P3: Mitra-Baral accuracy lower bound above −2 and utility interval above 0. GC-OSS-P4 (mechanism, reported): GridPuzzle 4×5 and 4×6 accuracy gain lower bound above 0.
 **Decision.** P1 and P2 hold → the claim is stated for two families. P1 holds, P2 fails → the claim is stated for Qwen3 only, and the gpt-oss numbers are reported as its limit. P1 fails → the free check does not carry across families.
+
+## Scoring correction (2026-11-11 03:3x UTC; see PREREG_GP's section of the same name)
+
+Checked ladder − think, utility, as registered → scoring v2 (`python poc/gp_eval.py <tag> --check checkt --score2`):
+
+| Translator | GridPuzzle | Mitra-Baral |
+|---|---|---|
+| Qwen3-8B | +6.6 [+2.9, +10.6] → +5.5 [+1.8, +9.4] | +5.6 [+0.9, +10.9] → **+3.8 [−0.6, +8.8]** |
+| Qwen3-32B-AWQ | +11.7 [+8.1, +15.6] → +11.4 [+7.9, +15.3] | +2.9 [+0.6, +5.5] → +3.2 [+1.2, +5.7] |
+| gpt-oss-20b | +5.4 [+1.8, +9.1] → +3.8 [+0.5, +7.3] | +3.9 [+1.8, +6.3] → +2.1 [+0.4, +4.1] |
+
+- GC-P1 holds under v2: unflagged precision is 95.8% and 99.2% for Qwen3-8B.
+- GC-P2 and GC-P3 hold under v2.
+- GC-P4's utility half fails under v2 for Qwen3-8B, whose interval now includes 0. Its accuracy half holds: +6.4 [+2.1, +11.0].
+- Checked − plain is unchanged except Qwen3-8B on Mitra-Baral (+2.7 → +3.4 [+0.4, +7.0]).

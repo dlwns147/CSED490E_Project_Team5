@@ -6603,3 +6603,30 @@ The choice was easy here, because one checker dominates. The estimates' accuracy
 - The MoT cascade and a program-only vote are evaluated at every threshold, with the headline using the threshold that is best on test. That favours the baseline.
 - Prediction M1: the ladder beats the MoT cascade on GridPuzzle for all three translators.
 - Six lanes started on the paper-extension server. Evaluation: `python poc/gp_eval.py --mot <tag>`.
+
+## 2026-11-11 03:3x UTC — Reading the 34 grid programs that every checker passes: a scorer bias against thinking, misspelled names, and "either A or B" read inclusively
+
+**Why.** NPC-L2 left 34 wrong count-1 grid programs that all three checkers pass. Misses shared by every checker are the limit of the free check, so their cause decides what can fix them. Each program was re-run in the container and its grid read against the gold.
+
+**What they are:**
+- **5 are right answers that our scorer failed:** "earthquake" for "earthquakes", "D" for "Line D", 5.5 for "$5.50", 78000000 for "78 million".
+- **12 misspell a name** ("Vuria Mari" for "Viria Mari"), so the answer names nothing the puzzle lists. Ten of these come from two puzzles. No model call is needed to catch them.
+- **17 are real errors, all on puzzles with an "either A or B" clue.** Puzzle Baron means exactly one of the two, and A and B are different entities. Every model, translating or checking, reads it inclusively, so a grid that puts A and B in one row passes every checker. In 11 of the 17, the inclusive reading left several solutions, and the repair round added a constraint the text does not give ("Additional clue to ensure uniqueness: the wedding event has 125 attendees"), which picks one of them. That is the GP-LOC mechanism again: the repair satisfies the count, not the text.
+- **Across all 3,729 count-1 programs,** those with more expressions than the puzzle has clues are right 72% of the time (81/113), against 97.3% for the rest (3,518/3,616). They are 3% of passes but a quarter of wrong passes.
+- **As a gate this signal does not pay.** Sending such programs down the ladder changes utility by −1.7 to +0.2. Most of them are right, and splitting one clue into several expressions is legitimate.
+
+**The scorer bias, checked on every grid set.** `gp_score` and `zl_score` compared names as strings. Thinking answers paraphrase names more than programs do, because programs copy the listed names. Scoring v2 (`poc/grid_score.py`) counts a cell right when it names the gold value and no other listed value. It applies to every arm, with no model call.
+- **Thinking accuracy rises** 0.4–2.5 points on grids and 1–2 points on ZebraLogic. Programs barely change, and no re-run program changed its count.
+- **Ladder − think, utility, registered → v2:**
+  - Qwen3-8B, GridPuzzle (GP-P1): +4.6 [+0.4, +8.9] → **+3.5 [−0.7, +7.7]**.
+  - Qwen3-8B, Mitra-Baral, checked ladder (GC-P4): +5.6 [+0.9, +10.9] → **+3.8 [−0.6, +8.8]**.
+  - gpt-oss-20b, Mitra-Baral, plain ladder: +3.5 → **+1.8 [−0.5, +4.1]**.
+  - Qwen3-32B-AWQ is unchanged within 0.4.
+  - ZebraLogic: +15.1 → +14.0 (Qwen3-8B, 750 puzzles) and +28.2 → +26.2 (gpt-oss-20b, 750).
+- So three registered grid wins become ties under v2: GP-P1 and GC-P4's utility half for Qwen3-8B, and gpt-oss-20b's plain ladder on Mitra-Baral. Every other grid claim, and every ZebraLogic claim, holds. The addenda (PREREG_GP, PREREG_GC, PREREG_ZL, PREREG_MOT) record both scorings, and v2 is used from here on.
+
+**What it means for the paper.**
+- A free check fails exactly where every reader shares a convention. On trips that convention is the event window; on grids it is the exclusive "either…or".
+- Before any baseline comparison, a scorer that is strict about names biases results toward the arm that copies names. That is a reviewer's check we now pass. The same audit applies to any future grid-like domain.
+
+**Relative to prior work.** Exclusive "either…or" is a known Puzzle Baron convention, stated nowhere in the puzzle text. Inclusive-versus-exclusive "or" is a known LLM reading gap, but not, as far as we found, as the cause of misses in solver-checked translation. The added-constraint repair matches test-feedback overfitting in self-repair (2608.09740) and GP-LOC.

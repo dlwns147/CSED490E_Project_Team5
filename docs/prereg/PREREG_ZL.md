@@ -156,3 +156,15 @@ For Qwen3-4B the same comparison is 88.5% against 96.5%.
 - ZL-AM-P3: on the large and x-large strata together, ladder − think accuracy has its lower bound above 0.
 - ZL-AM-P4: count-1 precision of the translations at least 95%.
 **Decision.** P2 and P4 hold → the claim "the count gate and escalation turn formalization from a loss into a win" stands on the closest paper's own sample and model family, and goes in the report beside their table. P2 fails with P4 holding → on small template puzzles thinking alone is enough, and the claim is stated for large and human-written grids only (P3 decides which). P4 fails → the gate does not carry to this sample.
+
+## Scoring correction (2026-11-11 03:3x UTC; `poc/grid_score.py`, `python poc/gp_eval.py --zl <tags> [--score2]`)
+
+`zl_score` compared lowercased strings, so thinking answers such as "Ford F-150" for "ford f150" were scored wrong. Under scoring v2, ladder − think utility becomes:
+
+| Model, puzzles | As registered | Scoring v2 |
+|---|---|---|
+| Qwen3-8B, 750 unseen | +15.1 [+12.7, +17.6] | +14.0 [+11.7, +16.4] |
+| Qwen3-4B, 250 | +15.7 [+11.6, +19.9] | +13.8 [+9.9, +17.9] |
+| gpt-oss-20b, 750 | +28.2 [+25.4, +31.1] | +26.2 [+23.5, +29.1] |
+
+Thinking accuracy rises by 1–2 points. Every ZL prediction holds as registered.

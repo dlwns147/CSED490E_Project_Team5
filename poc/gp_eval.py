@@ -1,6 +1,7 @@
 """Idea 27, offline: compose the ladder and evaluate GP-P1..P5 as written in docs/prereg/PREREG_GP.md. No model call.
 
-Usage: python poc/gp_eval.py [tag q8b] [--check checkt]
+Usage: python poc/gp_eval.py [tag q8b] [--check checkt] [--score2]
+--score2 (any mode that uses load()): exact from scoring v2, poc/grid_score.py.
 With --check, PREREG_GC: a count-1 step whose grid the checker flags (results/{gp,lgp}_<tag>_<check>.jsonl, poc/gp_check.py) goes on to the next step,
 and the check's tokens are paid on every count-1 step; the plain ladder is printed beside it.
 Reads results/{gp,lgp}_<tag>_{gtr,gtrt,think}_s{1,2,3}.jsonl. Ladder: gtr; if its count is not 1, gtrt; if not 1, think; every step paid.
@@ -18,6 +19,7 @@ python poc/gp_eval.py --gts [tag q8bh] [think tag q8b]: idea 38 on dev, the per-
 of gtrt (--joint: gtsj, poc/gp_joint.py): ladder gtr (same seed) -> gts (same seed) -> think (seed 1) minus gtr -> gtrt (seed 1) -> think, per puzzle-seed (seeds 1-3).
 Rule (docs/notes/IDEAS_COMPUTATION.md row 38): pooled over both sets, point estimate above 0 -> gts replaces gtrt in a test prereg.
 python poc/gp_eval.py --np [tag q32]: PREREG_NP (with addendum NP-DAY), see np_main().
+python poc/gp_eval.py --zl <tag> [...] [--score2]: PREREG_ZL ladder against thinking, see zl_main().
 python poc/gp_eval.py --mot <tag>: PREREG_MOT, the ladder against an agreement cascade, see mot_main().
 """
 import json
@@ -39,6 +41,10 @@ def load(s, tag):
             if os.path.exists(f):
                 for r in map(json.loads, open(f)):
                     R[(arm, r["id"], sd)] = r
+    if "--score2" in sys.argv:   # scoring v2 (poc/grid_score.py, poc/gp_rescore.py): exact from results/<s>_<tag>_score2.json
+        S2 = json.load(open(os.path.join(RES, f"{s}_{tag}_score2.json")))
+        for (arm, i, sd), r in R.items():
+            R[(arm, i, sd)] = {**r, "exact": S2[f"{arm}|{i}|{sd}"][0]}
     keys = sorted({(i, sd) for (_, i, sd) in R if all((a, i, sd) in R for a in ARMS)})
     return R, keys
 
@@ -90,6 +96,8 @@ def main():
         lad = {(i, sd): ladder(R, i, sd) for i, sd in keys}
         if chk:
             C = {(r["tr"], r["id"], r["seed"]): r for r in map(json.loads, open(os.path.join(RES, f"{s}_{tag}_{chk}.jsonl")))}
+            if "--score2" in sys.argv:   # a checked program is right when its own row is, under scoring v2
+                C = {k: {**r, "exact": R[(k[0], k[1], k[2])]["exact"]} for k, r in C.items()}
             plain = lad
             lad = {(i, sd): ladder(R, i, sd, C) for i, sd in keys}
             dp = {i: mean([100 * lad[(i, sd)][0] - 0.5 * lad[(i, sd)][1] / 1000 - (100 * plain[(i, sd)][0] - 0.5 * plain[(i, sd)][1] / 1000) for j, sd in keys if j == i]) for i in ids}
@@ -443,22 +451,57 @@ def np_main():
               f"trct alone - think {d4[0]:+.1f} [{d4[1]:+.1f}, {d4[2]:+.1f}]")
 
 
+def zl_main():
+    """ZebraLogic ladder trf -> trt -> think against think (PREREG_ZL), several tags pooled as one puzzle set (q8bh q8bf = Qwen3-8B's 750 unseen puzzles).
+    usage: python poc/gp_eval.py --zl <tag> [<tag> ...] [--score2]"""
+    tags = [a for a in sys.argv[sys.argv.index("--zl") + 1:] if not a.startswith("--")]
+    U = lambda ok, t: 100 * ok - 0.5 * t / 1000
+    R = {}
+    for tag in tags:
+        S2 = json.load(open(os.path.join(RES, f"zl_{tag}_score2.json"))) if "--score2" in sys.argv else {}
+        for arm in ["trf", "trt", "think"]:
+            for sd in [1, 2, 3]:
+                f = os.path.join(RES, f"zl_{tag}_{arm}_s{sd}.jsonl")
+                for r in map(json.loads, open(f)) if os.path.exists(f) else []:
+                    R[(arm, r["id"], sd)] = {**r, "exact": S2[f"{arm}|{r['id']}|{sd}"][0]} if S2 else r
+    keys = sorted({(i, sd) for (_, i, sd) in R if all((a, i, sd) in R for a in ["trf", "trt", "think"])})
+    ids = sorted({i for i, _ in keys})
+
+    def lad(i, sd):
+        tok = 0
+        for arm in ["trf", "trt"]:
+            r = R[(arm, i, sd)]; tok += r["tokens"]
+            if r["count"] == 1:
+                return r["exact"], tok
+        r = R[("think", i, sd)]; return r["exact"], tok + r["tokens"]
+    th = lambda i, sd: (R[("think", i, sd)]["exact"], R[("think", i, sd)]["tokens"])
+    f = lambda v: mean([mean(x) for x in v])
+    per = lambda g: {i: [g(i, sd) for j, sd in keys if j == i] for i in ids}
+    acc = lambda g: 100 * f(list(per(lambda i, sd: g(i, sd)[0]).values()))
+    du = boot(per(lambda i, sd: U(*lad(i, sd)) - U(*th(i, sd))), f)
+    da = boot(per(lambda i, sd: 100 * (lad(i, sd)[0] - th(i, sd)[0])), f)
+    one = [R[(a, i, sd)] for a in ["trf", "trt"] for i, sd in keys if R[(a, i, sd)]["count"] == 1]
+    print(f"== ZL {'+'.join(tags)}{' (scoring v2)' if '--score2' in sys.argv else ''}: {len(keys)} puzzle-seeds, {len(ids)} puzzles; ladder {acc(lad):.1f}%, "
+          f"think {acc(th):.1f}%; ladder - think utility {du[0]:+.1f} [{du[1]:+.1f}, {du[2]:+.1f}], accuracy {da[0]:+.1f} [{da[1]:+.1f}, {da[2]:+.1f}]; "
+          f"count-1 precision {sum(r['exact'] for r in one)}/{len(one)}")
+
+
 def mot_main():
     """PREREG_MOT: the plain ladder against the MoT agreement cascade (Yue et al. 2310.03094; 3 direct + 3 one-round gtr samples) and a 3-program vote,
     each escalating to think when the top answer's share is below tau. Replicate k: samples of seeds 10k+1..10k+3, think and ladder of seed k.
-    usage: python poc/gp_eval.py --mot <tag>   (reads results/{gp,lgp}_<tag>_{gtr,direct}_s1[1-3]|s2[1-3]|s3[1-3].jsonl)"""
+    usage: python poc/gp_eval.py --mot <tag> --score2   (reads results/{gp,lgp}_<tag>_{gtr,direct}_s1[1-3]|s2[1-3]|s3[1-3].jsonl; --score2 for the ladder)"""
     import re
     tag = sys.argv[sys.argv.index("--mot") + 1]
     U = lambda ok, t: 100 * ok - 0.5 * t / 1000
-    ck = lambda a: re.sub(r"[^a-z0-9]", "", str(a).lower()).rstrip("s")
-    num = lambda x: re.search(r"\d[\d:.]*", str(x).replace(",", ""))
 
-    def canon(g, r):   # gp_score's normalization (poc/run_zebra.py), as a hashable answer; None for no answer
+    from grid_score import match
+
+    def canon(g, r):   # scoring v2 (poc/grid_score.py, PREREG_MOT addendum): the listed value each cell names, as a hashable answer; None for no answer
         if not isinstance(g, dict) or not g:
             return None
-        vals = {ck(a): v for a, v in r["cats"][1:]}
-        vk = lambda x, v: num(x).group() if v and all(num(y) for y in v) and num(x) else re.sub(r"[^a-z0-9]", "", str(x).lower())
-        return tuple(sorted((ck(k), tuple(vk(x, vals.get(ck(k), [])) for x in v)) for k, v in g.items() if isinstance(v, list)))
+        ck = lambda a: re.sub(r"[^a-z0-9]", "", str(a).lower()).rstrip("s")
+        got = {ck(k): v for k, v in g.items() if isinstance(v, list)}
+        return tuple((ck(a), tuple(match(x, vals) for x in (got.get(ck(a)) or []))) for a, vals in r["cats"][1:])
     data = os.environ.get("POC_DATA", os.path.join(RES, "..", "..", "nlp_data"))
     res, curves = {}, {}
     for s, src in [("gp", "gridpuzzle"), ("lgp", "lgp")]:
@@ -526,4 +569,4 @@ def mot_main():
 
 
 if __name__ == "__main__":
-    mot_main() if "--mot" in sys.argv else np_main() if "--np" in sys.argv else thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()
+    mot_main() if "--mot" in sys.argv else zl_main() if "--zl" in sys.argv else np_main() if "--np" in sys.argv else thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()
