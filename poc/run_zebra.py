@@ -458,8 +458,12 @@ def zl_main():
         # PREREG_RULE: as trm, but each clue read differently is turned into a stated rule. The quick model (no thinking) gets the clue, both expressions
         # and the rules so far, and replies SAME or one new rule; later quick translations get the rules, not the examples. The rule calls' tokens are
         # paid at the puzzle where they are made (row["rule_tokens"]).
+        # --warm <tag>:<seed> (PREREG_RULE2): start from the rules that trr stated on that earlier run, in order, and keep adding
         T = {x["id"]: x for x in map(json.loads, open(f"{RES}/zl_{tag}_trt_s{seed}.jsonl"))}
-        mem, rows, seen = [], [], set()
+        w = sys.argv[sys.argv.index("--warm") + 1].split(":") if "--warm" in sys.argv else None
+        mem = [u for x in map(json.loads, open(f"{RES}/zl_{w[0]}_trr_s{w[1]}.jsonl")) for _, u in x["rules_added"]] if w else []
+        path = path.replace("_trr_", "_trrw_") if w else path
+        rows, seen = [], set()
         with open(path, "w") as f:
             for r in P:
                 x, b = run(r, list(mem)), T.get(r["id"])

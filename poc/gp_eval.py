@@ -978,7 +978,8 @@ def conv_main():
     clues whose expression the gold solution violates (gold used only here), in trm programs with one expression per clue, from the first puzzle
     at which the memory holds such a clue (tr: all puzzles). Scoring: zl_score, the stored `exact`.
     PREREG_RULE: the same with the quick step trr (stated rules); its rule calls' tokens are paid at the puzzle where they are made, and P1 counts from
-    the first puzzle at which a rule was stated from such a clue."""
+    the first puzzle at which a rule was stated from such a clue. --rule2 (PREREG_RULE2): cell B on fresh seeds 4-6 with the quick steps tr, trf and
+    trrw (trr started from the rules stated on the dev puzzles), P1 counted from the first puzzle."""
     import ast
     import re
     from grid_score import _norm, clue_texts, expr_eval
@@ -1002,11 +1003,14 @@ def conv_main():
             return not expr_eval(e, {k: next(iter(v)) for k, v in p.items()})
         except Exception:
             return None
-    for cell, tag, firsts in [("A, ZL-AM", "q8bam", ["tr", "trm", "trr"]), ("B, unseen main puzzles", "q8bh", ["tr", "trf", "trm", "trr"])]:
-        firsts = [a for a in firsts if a != "trr" or all(os.path.exists(os.path.join(RES, f"zl_{tag}_trr_s{sd}.jsonl")) for sd in [1, 2, 3])]
+    SD = [4, 5, 6] if "--rule2" in sys.argv else [1, 2, 3]
+    cells = [("B, unseen main puzzles, fresh seeds 4-6", "q8bh", ["tr", "trf", "trrw"])] if "--rule2" in sys.argv else \
+        [("A, ZL-AM", "q8bam", ["tr", "trm", "trr"]), ("B, unseen main puzzles", "q8bh", ["tr", "trf", "trm", "trr"])]
+    for cell, tag, firsts in cells:
+        firsts = [a for a in firsts if a not in ("trr", "trrw") or all(os.path.exists(os.path.join(RES, f"zl_{tag}_{a}_s{sd}.jsonl")) for sd in SD)]
         R, order = {}, {}
         for arm in firsts + ["trt", "think"]:
-            for sd in [1, 2, 3]:
+            for sd in SD:
                 f = os.path.join(RES, f"zl_{tag}_{arm}_s{sd}.jsonl")
                 if os.path.exists(f):
                     rows = [json.loads(x) for x in open(f)]
@@ -1032,10 +1036,11 @@ def conv_main():
             c1 = [x for x in q if x["count"] == 1]
             print(f"  ladder with {a:4s}: {100 * mean([e for e, _ in L]):5.1f}% at {mean([t for _, t in L]) / 1000:5.2f} ktok; quick step count-1 "
                   f"{len(c1)}/{len(q)}, precision {sum(x['exact'] for x in c1)}/{len(c1)} = {100 * sum(x['exact'] for x in c1) / max(len(c1), 1):.1f}% (P2: trm >= 95%)"
-                  + (f"; memory lines shown, mean {mean([x.get('mem', 0) for x in q]):.1f}" if a in ("trm", "trr") else "")
-                  + (f"; rule calls {mean([x.get('rule_tokens', 0) for x in q]) / 1000:.2f} ktok per puzzle" if a == "trr" else ""))
+                  + (f"; memory lines shown, mean {mean([x.get('mem', 0) for x in q]):.1f}" if a in ("trm", "trr", "trrw") else "")
+                  + (f"; rule calls {mean([x.get('rule_tokens', 0) for x in q]) / 1000:.2f} ktok per puzzle" if a in ("trr", "trrw") else ""))
         for a, b, rule in [("trm", "tr", "P3: interval above 0 in cell B"), ("trm", "trf", "P4: lower bound above -2.0"),
-                           ("trr", "tr", "RULE-P3: interval above 0 in cell B"), ("trr", "trf", "RULE-P4: lower bound above -2.0")]:
+                           ("trr", "tr", "RULE-P3: interval above 0 in cell B"), ("trr", "trf", "RULE-P4: lower bound above -2.0"),
+                           ("trrw", "tr", "RULE2-P2: interval above 0"), ("trrw", "trf", "RULE2-P1: lower bound above -2.0, point at or above 0")]:
             if a in firsts and b in firsts:
                 per = {}
                 for i, sd in keys:
@@ -1047,7 +1052,7 @@ def conv_main():
                       f"ktok {f(2)(list(per.values())):+.2f}   ({rule})")
         for a in firsts:
             n = bad = 0
-            for sd in [1, 2, 3]:
+            for sd in SD:
                 on = a not in ("trm", "trr")
                 for i in order.get((a, sd), []):
                     x, r = R[(a, i, sd)], P[i]
@@ -1064,7 +1069,7 @@ def conv_main():
                                 if v is not None:
                                     n += 1; bad += v
                     on = on or any(btw.search(t) for t, _ in x.get("mem_added", []) + x.get("rules_added", []))
-            print(f"  {a}: 'N houses between' clues read against the gold solution {bad}/{n} = {100 * bad / max(n, 1):.0f}%" + (" (P1: at most 30%)" if a in ("trm", "trr") else ""))
+            print(f"  {a}: 'N houses between' clues read against the gold solution {bad}/{n} = {100 * bad / max(n, 1):.0f}%" + (" (P1: at most 30%)" if a in ("trm", "trr", "trrw") else ""))
 
 
 if __name__ == "__main__":

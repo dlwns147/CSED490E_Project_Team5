@@ -6818,3 +6818,12 @@ Job 1382299 (one GPU, queued).
 - It flags at most 1.0% of right count-1 programs per tag, so P1 holds.
 - It flags only 6 of Qwen3-8B's 26 wrong ZL-AM programs, so P2 fails. On the unseen main puzzles it flags 31 of 60 (descriptive).
 - A misread clue usually remains needed, so the reading gap stays open.
+
+## 2026-11-11 19:2x UTC — PREREG_RULE: the model's own stated rule fixes its quick reading; the ladder gains +3.5 without the hand fact, but misses non-inferiority to the fact by 0.2
+- **Mechanism.** Each count-admitted escalation that reads a clue differently from the quick translation is turned into a one-sentence rule by the quick model. Later quick translations get the rules.
+- **Effect on the reading.** "N houses between" is misread 11–15% of the time, against 61–85% with the same readings shown as examples (CONV) and 18% with our hand-written sentence.
+- **Ladder without any hand fact,** 250 unseen puzzles: +3.5 [+1.3, +5.9] over the plain quick step. On Amonkar et al.'s 100: +3.7 [−0.3, +7.9].
+- **Against the hand fact:** −0.2 [−2.2, +2.0]. The registered margin was a lower bound above −2.0, so P4 fails and the headline keeps the fact.
+- **Why it falls short.** The deficit sits where the stream is still cold: −4.0 and −2.9 per puzzle at positions 50–149 in two seeds, before the rule is stated at positions 86–96. After the rules are in place it is +1.7 to +2.0 in every seed.
+- **Next, registered before running (PREREG_RULE2):** start from the rules stated on the 250 dev puzzles (label-free) and test on fresh seeds.
+- **Related work.** HtT, TRAN and LEAP induce rules from mistakes found with labels. Here the solver's count admits the reading, and no label is used.

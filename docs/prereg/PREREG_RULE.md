@@ -36,3 +36,26 @@
 - **LEAP** (Zhang et al., 2402.05403) states principles from mistakes the model makes on labelled few-shot examples.
 - **Dynamic Cheatsheet** (2504.07952) curates its own memory with no external check.
 - **Here:** a rule is induced only from a reading the solver's count admitted (exactly one solution where the cheap reading had not), with no label. Its teacher is the ladder's own expensive step on other puzzles, and it costs one short call per new clue.
+
+## Result (2026-11-11 19:2x UTC): RULE-P1, P2 and P3 hold; RULE-P4 misses its margin by 0.2, so the headline is not restated
+`python poc/gp_eval.py --conv`. Qwen3-8B, seeds 1–3, every run complete (gs15 lanes rulea and ruleb).
+
+| | Cell A, ZL-AM | Cell B, unseen main puzzles |
+|---|---|---|
+| "Between" clues misread (P1: ≤ 30%) | **15%** (16/106); tr 95%, trm 61% | **11%** (27/249); tr 94%, trm 85%, trf 18% |
+| Quick count-1 precision (P2: ≥ 95%) | **95.0%** (228/240); tr 89.3% | **97.0%** (580/598); trf 96.6% |
+| Ladder accuracy, ktok | 95.3%, 1.75 (tr 92.0%, 2.54) | 95.2%, 2.32 (tr 92.1%, 3.15; trf 95.3%, 2.27) |
+| ladder(trr) − ladder(tr) (P3) | +3.7 [−0.3, +7.9] | **+3.5 [+1.3, +5.9]** |
+| ladder(trr) − ladder(trf) (P4: lower > −2.0) | — | −0.2 **[−2.2**, +2.0] |
+
+- **P1, P2, P3 hold.** The model's own stated rule moves its quick reading where its own examples did not: 11–15% misread, against 61–85% with the examples (trm) and 18% with our sentence.
+- **P4 fails:** the lower bound is −2.2, not above −2.0. The point is −0.2.
+- **Decision (as registered):** P3 and P4 must both hold to restate the headline, so the ZebraLogic ladder keeps the hand fact, disclosed as dev-mined. The "P1 holds and P3 fails" branch does not apply; trr is not killed.
+- **Rules stated.** The first rule, in every run, is the "one house between" convention, stated correctly and in general form at the first escalated puzzle with such a clue, e.g. "The correct reading for a clue stating 'There is one house between X and Y' is that the absolute difference between their positions is 2, not 1." "N houses between means N + 1" follows.
+  - Rule calls cost 238–2,976 output tokens per 250-puzzle run, under 0.01 ktok per puzzle.
+  - The model rarely replies SAME, so the list repeats itself (cell B seed 3: 62 rules, most of them copies of "The person who [attribute] is [name]"). Some are puzzle-specific ("p['BookGenre:X'] == p['PhoneModel:Y']"). Repetition did not hurt here: seed 3 is the best seed late in the stream.
+- **Where P4's deficit sits (descriptive, by position in the stream; puzzles run in size order).** trr − trf per puzzle:
+  - positions 0–49: 0.0 in all seeds (small grids, no "between" clue yet);
+  - positions 50–149: −4.0, −2.9, +0.3 (the first "between" clues arrive here, and the rule is stated only at positions 86–96, after a miss);
+  - positions 150–249: +1.7, +2.0, +1.7 (rules in place).
+  - So the shortfall is the cold start: the fact is there from the first puzzle, and the rule has to be learned first.
