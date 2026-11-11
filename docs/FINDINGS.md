@@ -6551,3 +6551,20 @@ All four pass idea 28's rule, and their differences from the registered checker 
 - The NPC-X2 reading "catches follow independence from the translator" is withdrawn.
 - The supported statement: a check's value on trips is set mostly by the checker's own false-flag rate, which is stable across translators. A break that every model reads the same way (here the event window) is mostly missed by every checker.
 - The registered full claim (T1 and T2) is not made, because T1 fails for Qwen3-32B.
+
+## 2026-11-11 00:5x UTC — NPC-L: the trip checker can be chosen without labels; the same fit audits the count gate's precision
+
+**Question (registered 00:5x, PREREG_NPC addendum NPC-L).** NPC-T showed that each checker's false-flag rate is the same across translators. Several checkers on several translators then form the classic label-free design: Hui and Walter 1980, and Dawid and Skene with several populations. Do its estimates choose the right checker on trips?
+
+**Result** (`poc/np_labelfree.py`): 1,089 count-1 plans, three checkers, four translators, fitted without labels.
+- **False-flag rates** are estimated within 1.5 points: 0.183, 0.585 and 0.029, against true 0.198, 0.588 and 0.037.
+- **The pick is right for every translator:** gpt-oss-120b, the checker with the best true utility gain on each.
+- **Each translator's wrong share lies inside its true 95% interval.** For Qwen3-32B the estimate is 8.7% against a true 8.4%. So the gate's 91% precision, the P1 failure in PREREG_NP, is visible without any labels.
+- **Catch rates are overestimated by 2–14 points.** These are the window plans every checker passes, as predicted.
+
+**What it adds to the paper.** A practical recipe for the check step:
+- Run a few candidate checkers on the unlabeled count-1 answers of a few models.
+- Fit the latent model, and keep the checker with the best estimated net catches.
+- Read off each model's gate precision.
+
+The choice was easy here, because one checker dominates. The estimates' accuracy is the stronger evidence. Conditional independence is still unverifiable (Koreddi, NeurIPS 2026); on trips its violation, the shared window misreading, cost only the catch-rate estimates.

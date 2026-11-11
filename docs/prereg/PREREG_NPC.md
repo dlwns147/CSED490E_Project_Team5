@@ -204,7 +204,7 @@ All six runs finished; unparsed checks 0–5 per run. Rows: who checks whose pla
 
 **Decision.** L1 and L2 hold: label-free choice works here and goes into the paper as the way to pick a checker, with L3 reporting the cost of the shared blind spot. L2 fails: choosing the checker needs labels, stated as a limit.
 
-### NPC-L result, read 2026-11-11 01:0x UTC (`poc/np_labelfree.py`)
+### NPC-L result, read 2026-11-11 00:5x UTC (`poc/np_labelfree.py`)
 
 1,089 count-1 plans carry all three checks. Estimates are fitted without labels; the truth is shown beside them.
 
