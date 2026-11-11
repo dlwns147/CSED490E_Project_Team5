@@ -1,12 +1,14 @@
 """PREREG_NPC addendum NPC-L, offline: choose a trip-plan checker without labels. Dawid-Skene with several populations (Hui-Walter): latent wrong/right
 per count-1 plan; per checker a catch rate k and false-flag rate f shared across translators; per translator a wrong share p; EM from 20 random starts.
-Labels are used only to report the truth beside the estimates. usage: python3 poc/np_labelfree.py"""
-import json, os, random, math
+Labels are used only to report the truth beside the estimates. usage: python3 poc/np_labelfree.py [--grid]
+--grid (addendum NPC-L2): GridPuzzle test + Mitra-Baral count-1 programs, results/{gp,lgp}_<translator>_checkt[_<checker>].jsonl, the same model."""
+import json, os, random, math, sys
 R = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "results")
-TR, CH = ["q8b", "q32", "oss20", "oss120"], ["q8b", "q32", "oss120"]
+GRID = "--grid" in sys.argv
+TR, CH = (["q8b", "q32a", "oss20"], ["q8b", "q32a", "oss120"]) if GRID else (["q8b", "q32", "oss20", "oss120"], ["q8b", "q32", "oss120"])
 def load(t, c):
-    f = os.path.join(R, f"np_{t}_checkt{'' if c == t else '_' + c}.jsonl")
-    return {(x["id"], x["tr"], x["seed"]): x for x in map(json.loads, open(f))}
+    return {(s, x["id"], x["tr"], x["seed"]): x for s in (["gp", "lgp"] if GRID else ["np"])
+            for x in map(json.loads, open(os.path.join(R, f"{s}_{t}_checkt{'' if c == t else '_' + c}.jsonl")))}
 items = []  # (translator, exact, [flag per checker])
 for t in TR:
     F = {c: load(t, c) for c in CH}
