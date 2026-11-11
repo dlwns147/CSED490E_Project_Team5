@@ -231,3 +231,23 @@ All six runs finished; unparsed checks 0–5 per run. Rows: who checks whose pla
 **Limits.**
 - The choice here is easy, because one checker dominates on false flags. The test that matters more is how accurate the estimates are, and that passed.
 - The estimated wrong share also audits the count gate without labels. For Qwen3-32B the estimated precision is 91.3%, against a true 91.6%. So the PREREG_NP failure of P1 (precision under 95%) was visible without labels.
+
+### Addendum NPC-L2, registered 2026-11-11 01:0x UTC, before any of its runs: the label-free choice on grids, where the best checker may differ
+
+**Why.** On trips one checker dominated, so the pick was easy. On grids the same-model thinking check works (PREREG_GC), and gpt-oss checkers were killed on dev by false flags (idea 30). So the best checker per translator is open, and a label-free pick there is a real test.
+
+**Runs.** The PREREG_GC whole-grid thinking check (`poc/gp_check.py run <translator> <set> checkt --label checkt_<checker>`; 8,000 tokens, temperature 0.7, the same seeds) on GridPuzzle test and Mitra–Baral (lgp) count-1 programs.
+- Translators: Qwen3-8B, Qwen3-32B-AWQ, gpt-oss-20b.
+- Checkers: Qwen3-8B, Qwen3-32B-AWQ, gpt-oss-120b. The two Qwen self-checks exist; seven cross cells are new.
+- gpt-oss-20b's self-check (GC-OSS, queued on the cluster) is not part of this design.
+
+**Model and pick.** The same as NPC-L (`poc/np_labelfree.py`, generalized to grids without changing the model), with both sets pooled per translator. The true best checker for a translator is the one with the best checked − plain ladder utility, computed per set and pooled over both sets the same way as `poc/gp_check.py eval`.
+
+**Predictions.**
+- **L2-1:** every estimated false-flag rate is within 5 points of the truth.
+- **L2-2:** the label-free pick equals the true best checker for every translator, or ties it: their utility difference has a 95% interval containing 0.
+- **L2-3:** every estimated wrong share is within the true 95% interval, or below it by no more than the share of wrong plans that all three checkers pass.
+
+**Decision.**
+- L2-1 and L2-2 hold: the recipe holds in two domains and goes into the paper.
+- L2-2 fails: the label-free pick is domain-dependent and is reported as a limit.
