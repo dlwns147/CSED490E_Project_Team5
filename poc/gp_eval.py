@@ -22,6 +22,7 @@ python poc/gp_eval.py --np [tag q32]: PREREG_NP (with addendum NP-DAY), see np_m
 python poc/gp_eval.py --zl <tag> [...] [--score2]: PREREG_ZL ladder against thinking, see zl_main().
 python poc/gp_eval.py --mot <tag>: PREREG_MOT, the ladder against an agreement cascade, see mot_main().
 python poc/gp_eval.py --conv: PREREG_CONV, quick translations with clue readings learned from the ladder's own escalations (trm), see conv_main().
+python poc/gp_eval.py --zlmin: PREREG_FREE addendum FREE-MIN, the clue-necessity check on stored count-1 ZebraLogic programs, see min_main().
 """
 import json
 import os
@@ -713,6 +714,51 @@ def free_main():
               f"runs given free-check feedback {fb}, still flagged at the end {fl}")
 
 
+def min_main():
+    """PREREG_FREE addendum FREE-MIN: from results/zl_<tag>_min.json (poc/gp_rescore.py --zlmin), a count-1 program is flagged when some clue can be
+    dropped with the solution staying unique. P1: right count-1 programs flagged, per tag (arms tr, trt, trf). P2: Qwen3-8B's wrong count-1 programs
+    on ZL-AM (q8bam, tr and trt, three seeds). Right and wrong from scoring v2 (zl_<tag>_score2.json) where it exists, else the stored `exact`.
+    Programs whose count with all clues is not 1 on re-run, or whose clue list is not a literal list, are counted apart."""
+    for tag in ["q8bam", "oss20am", "q8bh", "q8bf"]:
+        f = os.path.join(RES, f"zl_{tag}_min.json")
+        if not os.path.exists(f):
+            print(f"== {tag}: no {os.path.basename(f)}")
+            continue
+        M = json.load(open(f))
+        s2 = os.path.join(RES, f"zl_{tag}_score2.json")
+        S2 = json.load(open(s2)) if os.path.exists(s2) else None
+        E = {}
+        for arm in ["tr", "trt", "trf"]:
+            for sd in [1, 2, 3]:
+                g = os.path.join(RES, f"zl_{tag}_{arm}_s{sd}.jsonl")
+                for r in map(json.loads, open(g)) if os.path.exists(g) else []:
+                    k = f"{arm}|{r['id']}|{sd}"
+                    E[k] = S2[k][0] if S2 and k in S2 else r["exact"]
+        print(f"== {tag} ({'scoring v2' if S2 else 'stored exact'}): {len(M)} count-1 programs")
+        T = {"right": [0, 0], "wrong": [0, 0]}
+        pct = lambda n: f"{n[0]}/{n[1]} ({100 * n[0] / max(1, n[1]):.1f}%)"
+        for arm in ["tr", "trt", "trf"]:
+            N = {"right": [0, 0], "wrong": [0, 0]}
+            moved = unread = 0
+            for k, (c, drops) in M.items():
+                if not k.startswith(arm + "|"):
+                    continue
+                if c != 1:
+                    moved += 1
+                    continue
+                if drops is None:
+                    unread += 1
+                    continue
+                n = N["right" if E[k] else "wrong"]
+                n[0] += any(d == 1 for d in drops)
+                n[1] += 1
+            for v in N:
+                T[v] = [a + b for a, b in zip(T[v], N[v])]
+            if sum(n[1] for n in N.values()) + moved + unread:
+                print(f"  {arm:4s} flagged: right {pct(N['right'])}, wrong {pct(N['wrong'])}; count not 1 on re-run {moved}, clue list unread {unread}")
+        print(f"  all  flagged: right {pct(T['right'])} (P1: at most 10%), wrong {pct(T['wrong'])}" + ("  (P2, q8bam: at least half)" if tag == "q8bam" else ""))
+
+
 def conv_main():
     """PREREG_CONV: ladder (quick step -> trt -> think, every step paid) with the quick step tr, trf or trm, per cell; utility differences with
     bootstrap over puzzles (a puzzle's seeds kept together); count-1 precision of each quick arm (P2); and P1, the share of "N houses between"
@@ -804,4 +850,4 @@ def conv_main():
 
 
 if __name__ == "__main__":
-    conv_main() if "--conv" in sys.argv else free_main() if "--free" in sys.argv else bud_main() if "--bud" in sys.argv else mot_main() if "--mot" in sys.argv else zl_main() if "--zl" in sys.argv else np_main() if "--np" in sys.argv else thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()
+    min_main() if "--zlmin" in sys.argv else conv_main() if "--conv" in sys.argv else free_main() if "--free" in sys.argv else bud_main() if "--bud" in sys.argv else mot_main() if "--mot" in sys.argv else zl_main() if "--zl" in sys.argv else np_main() if "--np" in sys.argv else thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()
