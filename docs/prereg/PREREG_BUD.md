@@ -51,3 +51,6 @@ So a cut that loses nothing would tie or beat the ladder in most cells; the ques
 **Decision.**
 - BUD-P1 and BUD-P2 hold: the paper states that the ladder beats thinking at any budget we tried, with the budget chosen on test.
 - BUD-P1 fails for two or more translators: the paper's baseline becomes budget-forced thinking. The ladder's gain is stated only where it survives. A ladder whose last step is the budget-forced think is the next registered test.
+
+## Pilot read (2026-11-11 05:0x UTC, format only)
+Qwen3-8B and gpt-oss-20b, dev, seed 1: every cut answer parsed (grids and trips), cuts happened at every budget below the think's own end, and tokens were charged as registered. A cut think often keeps reasoning in its answer (Qwen3-8B, 1k budget: up to 2.5k answer tokens); that is budget forcing as specified and is charged. No change to the setup. Test lanes started on seven GPUs.
