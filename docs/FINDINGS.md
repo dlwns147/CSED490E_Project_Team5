@@ -6718,3 +6718,39 @@ The choice was easy here, because one checker dominates. The estimates' accuracy
 **Limit stated in advance.** This cannot fix a convention the thinking translation also misreads: "either A or B" on grids, where it is read inclusively in 116 of 117 clues, and the day window on trips.
 
 Job 1382299 (one GPU, queued).
+
+## 2026-11-11 14:5x UTC — budget-forced thinking never beats full thinking on grids (BUD holds); with gpt-oss-120b the grid ladder ties thinking, because escalation costs as much as early stops save
+
+**Why these runs.** A reviewer's two obvious replies to the paper are "think less" (budget forcing) and "use a stronger thinker". Both runs had stopped when the second server was paused at 07 UTC. They were resumed from the rows already written and finished at 14:5x UTC.
+
+**Budget forcing (PREREG_BUD, all predictions hold).**
+- On GridPuzzle and Mitra-Baral, no budget of 1k, 2k, 4k or 8k beats full thinking for any translator. The best baseline is full thinking in all six cells.
+- Ladder − best baseline, GridPuzzle: Qwen3-8B +3.5 [−0.7, +7.7], Qwen3-32B-AWQ +11.0 [+7.1, +14.9], gpt-oss-20b +3.9 [+0.5, +7.5].
+- Mitra-Baral: +0.4, +0.8, +1.8, all intervals spanning 0.
+- On trips (06 UTC), the best baseline was also full thinking, except Qwen3-32B-AWQ, where the 8k cut was best.
+- So the ladder's gain is not a token saving that a budget gives for free.
+
+**Stronger thinker (PREREG_GP addendum GP-120).**
+- gpt-oss-120b thinks at 92.4% on GridPuzzle. The ladder ties it: −0.0 [−1.8, +1.7]. GP-120-P2 fails.
+- Mitra-Baral: +1.2 [+0.1, +2.5]. Count-1 precision is 98–100% for both translation steps.
+
+**Where the ladder's lead comes from (GridPuzzle, per puzzle-seed, split by the step at which the ladder stops; gpt-oss-120b, plus the stored runs of the others).**
+
+| Model | Thinking | Quick step stops | Lead from quick stops | Lead from middle-step stops | Lead on puzzles sent to thinking | Ladder − think | Quick step, then thinking |
+|---|---|---|---|---|---|---|---|
+| Qwen3-8B | 65% at 11.4k | 38% | +2.2 | +6.0 | −4.7 | +3.5 | +1.8 |
+| Qwen3-32B-AWQ | 70.5% at 8.9k | 63% | +11.6 | +1.9 | −2.5 | +11.0 | +11.1 |
+| gpt-oss-20b | 79% at 14.5k | 64% | +8.0 | +1.2 | −5.2 | +3.9 | +7.4 |
+| gpt-oss-120b | 92% at 9.1k | 76% | +2.3 | +0.0 | −2.4 | −0.0 | +1.9 |
+
+(The last column is a ladder chosen after seeing test, shown only as a direction.)
+
+**Reading.**
+- The quick step's lead falls as thinking gets stronger: little accuracy is left to gain on the puzzles it stops.
+- The escalation cost does not fall: every puzzle sent on pays both translations before thinking.
+- gpt-oss-120b's thinking translation costs 10.2 ktok, more than its thinking (9.1 ktok). There it adds nothing.
+- Only for Qwen3-8B, the weakest thinker, does the middle step carry the ladder (+6.0).
+- This is the same gap as on trips (FINDINGS 2026-11-10: the trip ladder's cost is its middle step), now on grids for three of four models.
+- **The method gap is when to escalate, and to what.** Which step to run after a failed count should depend on how likely that step is to stop the puzzle, at its price, against thinking's price. It should not be fixed per ladder.
+
+**Next.** I will derive the escalation choice from quantities measurable without labels on dev: each step's stop rate given the failed count's outcome (no solution or several), its tokens, and thinking's tokens. I will check related work on cost-aware cascades first (FrugalGPT 2305.05176 and cascade-routing work), and register the test before any run.

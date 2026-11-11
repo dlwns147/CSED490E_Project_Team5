@@ -134,3 +134,27 @@ GP-P1 no longer holds for Qwen3-8B under v2: its interval now includes 0. The pl
 - **GP-120-P3.** Mitra-Baral, ladder − think utility: point estimate at or above −2.
 
 **Decision.** P2 holds: the paper states the gain survives the strongest thinker we can serve. P2's point is at or below 0: the paper states the gain shrinks with thinking strength and gives the measured trend over the four models (thinking accuracy against gain).
+
+### GP-120 result (2026-11-11 14:5x UTC): P1 and P3 hold, P2 fails (a tie)
+gpt-oss-120b, seeds 1–3, scoring v2 (`python poc/gp_eval.py oss120 --score2`). The lanes stopped at the 07 UTC pause and were resumed from the rows already written.
+- **GridPuzzle.** Thinking 92.4% at 9.1 ktok. The quick translation stops 491 of 645 puzzle-seeds at 1.7 ktok, with count-1 precision 98.2% (the thinking translation: 99.1%). The ladder reaches 92.9% at 10.1 ktok.
+- **Mitra-Baral.** Thinking 99.3% at 3.3 ktok; the ladder 99.6% at 1.6 ktok.
+- **GP-120-P1 holds.** Count-1 precision: `gtr` 98.2% and 99.6%, `gtrt` 99.1% and 100%.
+- **GP-120-P2 fails.** GridPuzzle, ladder − think: utility −0.0 [−1.8, +1.7], accuracy +0.5 [−0.9, +1.9]. The point is at 0, a tie.
+- **GP-120-P3 holds.** Mitra-Baral: +1.2 [+0.1, +2.5].
+- **Why P2 fails.** The derivation priced the token saving on early stops (about +2) and left the cost of escalation unestimated. Per puzzle-seed, the ladder's lead splits by where it stops:
+  - accepted by the quick translation: +2.3, close to the derived +2;
+  - accepted by the thinking translation: 0.0;
+  - sent on to thinking: −2.4, the quick and thinking translations paid in vain.
+  - On this model the thinking translation costs 10.2 ktok, more than thinking itself (9.1). So it can only pay through precision above thinking's 92%, and it gains nothing.
+- **Decision (as registered):** the paper states that the gain shrinks with thinking strength and gives the measured trend. GridPuzzle, thinking accuracy → ladder − think:
+
+| Model | Thinking accuracy | Ladder − think |
+|---|---|---|
+| Qwen3-8B | 65% | +3.5 |
+| Qwen3-32B-AWQ | 70.5% | +11.0 |
+| gpt-oss-20b | 79% | +3.9 |
+| gpt-oss-120b | 92% | −0.0 |
+
+  The trend is not monotone: Qwen3-32B-AWQ's quick translation stops more puzzles at higher precision.
+- **Not a claim:** the ladder without the thinking translation (quick translation, then thinking) gives +1.9 [+0.6, +3.4] here. That ladder was chosen after seeing test, so it is reported only as the direction of the open middle-step gap (FINDINGS 2026-11-10).
