@@ -42,3 +42,22 @@ The fixed three-step ladder runs the middle step on every failed count, whatever
 - **P1 holds:** the paper's ladder becomes ESC. The fixed three-step ladder is reported as the ablation, and GP-120 is restated with ESC (the fixed-ladder tie stays reported).
 - **P1 fails in some cell, with an interval below 0:** the per-outcome estimates overfit at these sample sizes, and the fixed ladder stays. I then report which outcome's estimate flipped.
 - **P1 fails only because an interval for gpt-oss-20b or gpt-oss-120b crosses 0, with every point ≥ −0.5:** the rule is safe but its gain is not resolved, and the fixed ladder stays as the headline.
+
+## Result (2026-11-11 15:0x UTC): ESC-P1 fails (two cells with intervals below 0), P2 holds, P3 fails. The fixed ladder stays.
+`python poc/gp_eval.py --esc --score2`. Utility, ESC − fixed ladder:
+
+| Cell | Qwen3-8B | Qwen3-32B-AWQ | gpt-oss-20b | gpt-oss-120b |
+|---|---|---|---|---|
+| GridPuzzle | **−1.2 [−2.4, −0.2]** | −0.2 [−1.1, +0.6] | +3.4 [+1.8, +4.9] | +1.9 [+1.0, +2.7] |
+| Mitra-Baral | +0.1 [−2.0, +1.6] | −0.5 [−1.4, +0.2] | +0.7 [+0.0, +1.5] | +0.2 [+0.0, +0.3] |
+| Trips | −0.0 [−1.0, +0.8] | −0.7 [−1.9, +0.2] | **−1.0 [−1.8, −0.3]** | −0.6 [−1.7, +0.3] |
+
+- **ESC-P1 fails.** Four points are below −0.5, and two intervals are below 0: GridPuzzle Qwen3-8B and trips gpt-oss-20b. The gain part holds: GridPuzzle gpt-oss-20b +3.4 [+1.8, +4.9] and gpt-oss-120b +1.9 [+1.0, +2.7].
+- **ESC-P2 holds.** GridPuzzle, gpt-oss-120b, ESC − think: +1.8 [+0.5, +3.3].
+- **ESC-P3 fails.** Trips: all four points are at or below 0.
+- **Why it fails: the estimate's noise, not the signal.** A puzzle-seed's middle-step value is a difference of utilities that jumps by 100 whenever rightness changes, so a half-sample mean per outcome has a standard error of several points.
+  - Where the true mean is near 0 or modestly positive, the estimate's sign flips between folds. Qwen3-8B on GridPuzzle is positive for every outcome on the full set (+1.5 to +4.2), yet the middle step was skipped for some outcome in 21 of 40 folds. On trips, every model's common skip set appears in only 12–26 of 40 folds.
+  - A wrong skip costs the full value. A right skip near 0 gains nothing.
+  - Where the value is large and negative (gpt-oss-20b, several solutions; gpt-oss-120b, all outcomes), the estimate is stable (23 and 30 of 40 folds) and the rule gains.
+- **Decision (as registered):** the per-outcome estimates overfit at these sample sizes. The fixed ladder stays as the paper's ladder. ESC on GridPuzzle with the gpt-oss models is reported as a measured effect of the signal, not as the method.
+- **Not tested here (a new registration would need fresh puzzles or seeds):** a rule that accounts for the estimate's uncertainty, skipping only when the held-out value is below 0 with confidence. It was suggested by this result, so testing it on these runs would not be clean.

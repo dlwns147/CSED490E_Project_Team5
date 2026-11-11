@@ -6754,3 +6754,23 @@ Job 1382299 (one GPU, queued).
 - **The method gap is when to escalate, and to what.** Which step to run after a failed count should depend on how likely that step is to stop the puzzle, at its price, against thinking's price. It should not be fixed per ladder.
 
 **Next.** I will derive the escalation choice from quantities measurable without labels on dev: each step's stop rate given the failed count's outcome (no solution or several), its tokens, and thinking's tokens. I will check related work on cost-aware cascades first (FrugalGPT 2305.05176 and cascade-routing work), and register the test before any run.
+
+## 2026-11-11 15:0x UTC — PREREG_ESC: choosing the escalation step from the failed count helps the gpt-oss models on grids but overfits elsewhere; the fixed ladder stays
+
+**Question.** The middle step (thinking translation) loses for strong thinkers. Can the ladder decide, per failed-count outcome (no solution / several / no count), whether to run it, using the value measured on other puzzles? This needs no model call (2-fold cross-fitting, 20 splits, 12 cells).
+
+**Result.**
+- **ESC-P1 fails.** GridPuzzle Qwen3-8B −1.2 [−2.4, −0.2] and trips gpt-oss-20b −1.0 [−1.8, −0.3].
+- **The gain is real where the middle step is clearly bad.** GridPuzzle gpt-oss-20b +3.4 [+1.8, +4.9] and gpt-oss-120b +1.9 [+1.0, +2.7]. The latter turns the GP-120 tie into ESC − think +1.8 [+0.5, +3.3] (ESC-P2 holds).
+- **Trips: no gain** (ESC-P3 fails).
+
+**Why.** The middle step's value per puzzle jumps by 100 with each rightness flip, so per-outcome half-sample means are noisy.
+- Near-zero or modest values flip sign between folds, and every wrong skip costs.
+- Only large negative values (the gpt-oss models on grids) are stable enough to act on.
+
+**Consequence for the paper.**
+- The fixed ladder stays.
+- The signal story is reported: how the count fails predicts whether a re-translation can fix it. Several solutions means a missing constraint; gpt-oss-20b's middle step stops only 18% of those.
+- The stronger-thinker result stays a tie for the fixed ladder.
+
+**Next.** An uncertainty-aware version (skip only when the held-out value is confidently below 0) is suggested by this result. It needs puzzles or seeds this result has not seen before it can be registered.
