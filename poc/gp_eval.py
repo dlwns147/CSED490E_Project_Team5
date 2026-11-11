@@ -22,6 +22,7 @@ python poc/gp_eval.py --np [tag q32]: PREREG_NP (with addendum NP-DAY), see np_m
 python poc/gp_eval.py --zl <tag> [...] [--score2]: PREREG_ZL ladder against thinking, see zl_main().
 python poc/gp_eval.py --mot <tag>: PREREG_MOT, the ladder against an agreement cascade, see mot_main().
 python poc/gp_eval.py --conv: PREREG_CONV, quick translations with clue readings learned from the ladder's own escalations (trm), see conv_main().
+python poc/gp_eval.py --esc: PREREG_ESC, the escalation step chosen by its cross-fitted value for each outcome of the failed count, see esc_main().
 python poc/gp_eval.py --zlmin: PREREG_FREE addendum FREE-MIN, the clue-necessity check on stored count-1 ZebraLogic programs, see min_main().
 """
 import json
@@ -714,6 +715,69 @@ def free_main():
               f"runs given free-check feedback {fb}, still flagged at the end {fl}")
 
 
+def esc_main():
+    """PREREG_ESC: after the quick step fails its count, run the middle step (thinking translation) only if, on the other half of the puzzles, it was
+    worth its tokens for the same outcome of the failed count (no solution / several / no count). Value of the middle step for a puzzle-seed whose
+    quick step failed = utility(middle step, then thinking if its count is not 1) - utility(thinking), quick tokens being paid either way. The middle
+    step is skipped for an outcome whose mean value on the training half is below 0 (kept when that half has no such case). 2-fold cross-fitting
+    over puzzles, 20 random splits; each puzzle's ESC utility is its mean over splits. Bootstrap over puzzles (a puzzle's seeds together).
+    Cells: GridPuzzle and Mitra-Baral (gtr -> gtrt -> think, scoring v2) for q8b, q32a, oss20, oss120; trips (trc -> trct -> think) for q8b, q32,
+    oss20, oss120."""
+    U = lambda e, t: 100 * e - 0.5 * t / 1000
+    sig = lambda c: "none" if c == 0 else "several" if isinstance(c, int) and c > 1 else "no count"
+    cells = [(s, t) for s in ["gp", "lgp"] for t in ["q8b", "q32a", "oss20", "oss120"]] + [("np", t) for t in ["q8b", "q32", "oss20", "oss120"]]
+    for s, tag in cells:
+        if s == "np":
+            q, m, R = "trc", "trct", {}
+            for arm in ["trc", "trct", "think"]:
+                for sd in [1, 2, 3]:
+                    f = os.path.join(RES, f"np_{tag}_{arm}_s{sd}.jsonl")
+                    for r in map(json.loads, open(f)) if os.path.exists(f) else []:
+                        R[(arm, r["id"], sd)] = r
+            keys = sorted({(i, sd) for (_, i, sd) in R if all((a, i, sd) in R for a in ["trc", "trct", "think"])})
+        else:
+            q, m = "gtr", "gtrt"
+            R, keys = load(s, tag)
+        if not keys:
+            print(f"== {s} {tag}: no runs"); continue
+        ids = sorted({i for i, _ in keys})
+        th = lambda i, k: U(R[("think", i, k)]["exact"], R[("think", i, k)]["tokens"])
+
+        def lad(i, k, skip):
+            a = R[(q, i, k)]; tok = a["tokens"]
+            if a["count"] == 1:
+                return U(a["exact"], tok)
+            if sig(a["count"]) not in skip:
+                b = R[(m, i, k)]; tok += b["tokens"]
+                if b["count"] == 1:
+                    return U(b["exact"], tok)
+            t = R[("think", i, k)]; return U(t["exact"], tok + t["tokens"])
+
+        def value(i, k):   # the middle step's value on a failed quick step, quick tokens cancelling
+            a = R[(q, i, k)]
+            return lad(i, k, set()) - lad(i, k, {sig(a["count"])})
+        rng, esc, skips = random.Random(0), {i: [] for i in ids}, []
+        for _ in range(20):
+            sh = ids[:]; rng.shuffle(sh); half = [set(sh[:len(sh) // 2]), set(sh[len(sh) // 2:])]
+            for tr, te in [(half[0], half[1]), (half[1], half[0])]:
+                V = {}
+                for i, k in keys:
+                    if i in tr and R[(q, i, k)]["count"] != 1:
+                        V.setdefault(sig(R[(q, i, k)]["count"]), []).append(value(i, k))
+                skip = {g for g, v in V.items() if mean(v) < 0}
+                skips.append(tuple(sorted(skip)))
+                for i, k in keys:
+                    if i in te:
+                        esc[i].append(lad(i, k, skip))
+        fixed = {i: mean([lad(i, k, set()) for ii, k in keys if ii == i]) for i in ids}
+        thk = {i: mean([th(i, k) for ii, k in keys if ii == i]) for i in ids}
+        E = {i: mean(v) for i, v in esc.items()}
+        b1 = boot({i: E[i] - fixed[i] for i in ids}, mean); b2 = boot({i: E[i] - thk[i] for i in ids}, mean); b3 = boot({i: fixed[i] - thk[i] for i in ids}, mean)
+        common = max(set(skips), key=skips.count)
+        print(f"== {s:3s} {tag:6s} {len(ids):3d} problems: ESC - fixed ladder {b1[0]:+5.1f} [{b1[1]:+5.1f}, {b1[2]:+5.1f}]   ESC - think {b2[0]:+5.1f} [{b2[1]:+5.1f}, {b2[2]:+5.1f}]"
+              f"   (fixed - think {b3[0]:+5.1f} [{b3[1]:+5.1f}, {b3[2]:+5.1f}])   middle step skipped for {', '.join(common) or 'nothing'} in {skips.count(common)}/{len(skips)} folds")
+
+
 def min_main():
     """PREREG_FREE addendum FREE-MIN: from results/zl_<tag>_min.json (poc/gp_rescore.py --zlmin), a count-1 program is flagged when some clue can be
     dropped with the solution staying unique. P1: right count-1 programs flagged, per tag (arms tr, trt, trf). P2: Qwen3-8B's wrong count-1 programs
@@ -850,4 +914,4 @@ def conv_main():
 
 
 if __name__ == "__main__":
-    min_main() if "--zlmin" in sys.argv else conv_main() if "--conv" in sys.argv else free_main() if "--free" in sys.argv else bud_main() if "--bud" in sys.argv else mot_main() if "--mot" in sys.argv else zl_main() if "--zl" in sys.argv else np_main() if "--np" in sys.argv else thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()
+    esc_main() if "--esc" in sys.argv else min_main() if "--zlmin" in sys.argv else conv_main() if "--conv" in sys.argv else free_main() if "--free" in sys.argv else bud_main() if "--bud" in sys.argv else mot_main() if "--mot" in sys.argv else zl_main() if "--zl" in sys.argv else np_main() if "--np" in sys.argv else thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()
