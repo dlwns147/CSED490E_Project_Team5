@@ -446,9 +446,10 @@ def zl_main():
                 rows.append(x); f.write(json.dumps(x) + "\n"); f.flush()
         print(tag, arm, seed, f"{sum(r['exact'] for r in rows)}/{len(rows)}", f"tokens {sum(r['tokens'] for r in rows) / len(rows):.0f}", f"memory {len(mem)}", flush=True)
         return
-    with ThreadPoolExecutor(32) as ex, open(path, "w") as f:
-        rows = []
-        for r in ex.map(run, P):
+    rows = [json.loads(l) for l in open(path)] if os.path.exists(path) else []   # resume: keep rows already written
+    done = {r["id"] for r in rows}
+    with ThreadPoolExecutor(32) as ex, open(path, "a") as f:
+        for r in ex.map(run, [r for r in P if r["id"] not in done]):
             rows.append(r); f.write(json.dumps(r) + "\n"); f.flush()
     print(tag, arm, seed, f"{sum(r['exact'] for r in rows)}/{len(rows)}", f"tokens {sum(r['tokens'] for r in rows) / len(rows):.0f}", flush=True)
 
@@ -783,9 +784,10 @@ def gp_main():
                 **({"free": free} if arm in ("gtrv", "gtrtv") else {})}
 
     path = f"{RES}/{'gp' if src == 'gridpuzzle' else src}_{tag}{'_dev' if dev else ''}_{arm}_s{seed}.jsonl"
-    with ThreadPoolExecutor(32) as ex, open(path, "w") as f:
-        rows = []
-        for r in ex.map(run, P):
+    rows = [json.loads(l) for l in open(path)] if os.path.exists(path) else []   # resume: keep rows already written
+    done = {r["id"] for r in rows}
+    with ThreadPoolExecutor(32) as ex, open(path, "a") as f:
+        for r in ex.map(run, [r for r in P if r["id"] not in done]):
             rows.append(r); f.write(json.dumps(r) + "\n"); f.flush()
     print(tag, arm, seed, f"{sum(r['exact'] for r in rows)}/{len(rows)}", f"tokens {sum(r['tokens'] for r in rows) / len(rows):.0f}", flush=True)
 
