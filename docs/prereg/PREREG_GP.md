@@ -119,3 +119,18 @@ The registered decision stands as written in the GridPuzzle part: P2 fails, so t
 | gpt-oss-20b, Mitra-Baral | +3.5 [+1.0, +6.2] | **+1.8 [−0.5, +4.1]** |
 
 GP-P1 no longer holds for Qwen3-8B under v2: its interval now includes 0. The plain ladder's lead on GridPuzzle stands for the two larger models. gpt-oss-20b's plain-ladder win on Mitra-Baral (FINDINGS 2026-11-10 16:1x) becomes a tie. Scoring v2 is used from here on.
+
+## Addendum GP-120: a stronger thinker, gpt-oss-120b, registered 2026-11-11 06:0x UTC before any of its grid runs
+
+**Why.** A reviewer's next question: as thinking gets stronger, does the ladder's gain vanish? Our grid translators think at 65–79% on GridPuzzle. gpt-oss-120b is the strongest model we can serve. On trips its ladder beats its thinking by +5.8 [+1.0, +10.9] (PREREG_BUD interim), but it has no grid runs.
+
+**Setup.** As GC-OSS, with `openai/gpt-oss-120b` (tag `oss120`) as translator and thinker: `gtr` (effort low, 4,096 tokens, up to 3 rounds), `gtrt` (effort high, 16,000), `think` (effort high, 32,000). GridPuzzle and Mitra-Baral test sets, seeds 1–3, plain ladder, scoring v2 (`python poc/gp_eval.py oss120 --score2`).
+
+**Derivation.** Ladder − think = Σ over puzzles the ladder accepts early of [100 · (right_ladder − right_think) − 0.5 · (tokens_ladder − tokens_think)/1000], minus the translation tokens spent on puzzles that go on to think. A stronger thinker shrinks the first term, not the second. For gpt-oss-20b, the quick translation stopped 61% of GridPuzzle puzzle-seeds at 2.0 ktok against thinking's 14.5 ktok. If gpt-oss-120b thinks with about 0.64 times the tokens (its ratio to gpt-oss-20b on trips: 9.0 against 14.0), the token term alone is about 0.6 × 0.5 × (9.3 − 2.0) ≈ +2 points. The accuracy term stays positive while count-1 precision (≥ 96% for every translator so far) exceeds thinking's accuracy on the accepted puzzles.
+
+**Predictions.**
+- **GP-120-P1.** Count-1 precision of `gtr` and of `gtrt` at least 95% on each set.
+- **GP-120-P2.** GridPuzzle, ladder − think utility: point estimate above 0, interval above 0.
+- **GP-120-P3.** Mitra-Baral, ladder − think utility: point estimate at or above −2.
+
+**Decision.** P2 holds: the paper states the gain survives the strongest thinker we can serve. P2's point is at or below 0: the paper states the gain shrinks with thinking strength and gives the measured trend over the four models (thinking accuracy against gain).
