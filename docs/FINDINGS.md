@@ -6568,3 +6568,23 @@ All four pass idea 28's rule, and their differences from the registered checker 
 - Read off each model's gate precision.
 
 The choice was easy here, because one checker dominates. The estimates' accuracy is the stronger evidence. Conditional independence is still unverifiable (Koreddi, NeurIPS 2026); on trips its violation, the shared window misreading, cost only the catch-rate estimates.
+
+## 2026-11-11 02:0x UTC — NPC-L2: label-free checker choice also holds on grids, but there all checkers tie; the false-flag mechanism explains why
+
+**Question (registered 01:0x, PREREG_NPC addendum NPC-L2).** Does the label-free fit (NPC-L) pick the right checker on grids, where the same model's check already works?
+
+**Result** (seven cross-check runs; 3,729 count-1 grid programs; three checkers × three translators):
+- **False-flag rates** are estimated within 0.2 points. The true rates are 1.4%, 0.6% and 0.6%.
+- **The pick** (Qwen3-32B for every translator) ties the best checker: differences of −0.16, −0.12 and 0 utility, all intervals containing 0.
+- **The wrong-share estimates** are within, or just below, the truth. They miss low only by the wrong programs that every checker passes.
+- All three predictions hold.
+
+**Limits of the result.**
+- On grids every checker is about equally good: about 1% false flags, 59–69% catches, checked ladders within 0.5 utility.
+- On trips one checker dominated.
+- So the recipe has only been tested where choosing was easy. Its value would show where checkers have similar flag rates but differ in what they catch, and we have not found such a case yet.
+
+**Mechanism, now across two domains.**
+- A checker's false flags come from its own misreading of a domain convention: the trip day rule for Qwen3-32B, at 58–60% on every translator's plans.
+- Grids have no such convention, so all checkers sit near 1%, and another model adds nothing over the same model checking itself.
+- Catches are limited by readings the checkers share: 34 of 130 wrong grid programs, and the trip event window, pass every checker.

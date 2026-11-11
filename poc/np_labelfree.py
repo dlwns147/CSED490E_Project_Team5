@@ -44,3 +44,18 @@ for t in TR:
     I = [ex for tt, ex, _ in items if tt == t]; w = sum(not e for e in I); lo, hi = wil(w, len(I))
     pick = max(CH, key=lambda c: p[t] * k[c] - (1 - p[t]) * f[c])
     print(f"translator {t:6s}: est wrong share {p[t]:.3f} | true {w}/{len(I)} = {w / len(I):.3f} [{lo:.3f}, {hi:.3f}]; label-free pick {pick}")
+if GRID:  # L2-2: true checked-ladder utility per checker, pooled over both sets (puzzles of gp and lgp), and pick minus best, paired by puzzle
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from gp_eval import load as gload, ladder, boot, mean
+    for t in TR:
+        pick = max(CH, key=lambda c: p[t] * k[c] - (1 - p[t]) * f[c]); U = {c: {} for c in CH}
+        for s in ["gp", "lgp"]:
+            Rg, keys = gload(s, t)
+            for c in CH:
+                C = {(r["tr"], r["id"], r["seed"]): r for r in map(json.loads, open(os.path.join(R, f"{s}_{t}_checkt{'' if c == t else '_' + c}.jsonl")))}
+                for i in sorted({i for i, _ in keys}):
+                    U[c][(s, i)] = mean([100 * x[0] - 0.5 * x[1] / 1000 for x in (ladder(Rg, i, sd, C) for j, sd in keys if j == i)])
+        best = max(CH, key=lambda c: mean(list(U[c].values())))
+        d = boot({i: U[pick][i] - U[best][i] for i in U[best]}, mean)
+        print(f"translator {t:6s}: checked-ladder utility " + ", ".join(f"{c} {mean(list(U[c].values())):.2f}" for c in CH)
+              + f" ({len(U[best])} puzzles); pick {pick} - best {best}: {d[0]:+.2f} [{d[1]:+.2f}, {d[2]:+.2f}]")

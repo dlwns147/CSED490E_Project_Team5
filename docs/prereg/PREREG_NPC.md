@@ -251,3 +251,30 @@ All six runs finished; unparsed checks 0–5 per run. Rows: who checks whose pla
 **Decision.**
 - L2-1 and L2-2 hold: the recipe holds in two domains and goes into the paper.
 - L2-2 fails: the label-free pick is domain-dependent and is reported as a limit.
+
+### NPC-L2 result, read 2026-11-11 02:0x UTC (`poc/np_labelfree.py --grid`)
+
+All seven cross runs finished, with 0–2 unparsed checks each. 3,729 count-1 programs (GridPuzzle test and Mitra–Baral pooled) carry all three checks.
+
+| Checker | Estimated catch rate | True catch rate | Estimated false-flag rate | True false-flag rate |
+|---|---|---|---|---|
+| Qwen3-8B | 0.906 | 82/130 = 0.631 | 0.012 | 51/3599 = 0.014 |
+| Qwen3-32B-AWQ | 0.852 | 77/130 = 0.592 | 0.004 | 22/3599 = 0.006 |
+| gpt-oss-120b | 0.887 | 89/130 = 0.685 | 0.006 | 21/3599 = 0.006 |
+
+| Translator | Estimated wrong share | True [95%] | Wrong plans all three pass | Pick | Checked-ladder utility: Qwen3-8B / 32B / gpt-oss-120b checker | Pick − best [95%] |
+|---|---|---|---|---|---|---|
+| Qwen3-8B | 0.055 | 0.076 [0.062, 0.094] | 19 (1.9% of plans) | Qwen3-32B | 71.70 / 72.00 / 72.16 | −0.16 [−0.99, +0.47] |
+| Qwen3-32B-AWQ | 0.021 | 0.022 [0.016, 0.032] | 5 (0.4%) | Qwen3-32B | 82.46 / 82.44 / 82.56 | −0.12 [−0.76, +0.26] |
+| gpt-oss-20b | 0.010 | 0.017 [0.011, 0.025] | 10 (0.7%) | Qwen3-32B | 81.56 / 81.59 / 81.46 | 0 (the pick is the best) |
+
+- **L2-1 holds:** every estimated false-flag rate is within 0.2 points of the truth.
+- **L2-2 holds by the tie clause:** the pick ties the best checker for every translator.
+- **L2-3 holds by its second clause:** two estimated wrong shares fall below the true interval, by 0.7 and 0.1 points, less than the share of wrong plans that all three checkers pass (1.9% and 0.7%).
+- **Decision as registered:** the recipe holds in two domains.
+
+**What the registration did not foresee, and limits the claim.**
+- **On grids there is no choice to make.** All three checkers flag about 1% of right grids and catch 59–69% of wrong ones. Their checked ladders differ by at most 0.5 utility. So L2-2 could not have failed by much.
+- **On trips one checker dominated.** So the recipe passed two tests in which picking was easy. The case that would show its value is untested: checkers with similar flag rates but different utility.
+- **The shared blind spot is larger on grids.** Catch rates are overestimated by 22–26 points, because 34 of 130 wrong programs pass every checker; these are grids that meet every clue as the checkers read them (idea 29). Label-free estimates of gate precision are therefore optimistic by up to 2 points.
+- **This fits the trips mechanism.** False flags come from a checker misreading a domain convention. Grids have no such trap, so every checker's false-flag rate is about 1%, and checking with another model adds nothing over the same model checking itself.
