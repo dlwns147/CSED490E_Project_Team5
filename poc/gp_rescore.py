@@ -98,5 +98,42 @@ def zl_main():
         moved.clear()
 
 
+def zl_min():
+    """PREREG_FREE addendum FREE-MIN: is every clue of a count-1 ZebraLogic program needed? ZebraLogic's generator removes clues until none can go
+    (Lin et al. 2502.01100), so in a faithful translation dropping any one clue leaves more than one solution. Each stored count-1 program (arms tr,
+    trt, trf) is re-run once per clue with that clue dropped (container: model-written code). -> results/zl_<tag>_min.json
+    {"<arm>|<id>|<seed>": [count with all clues, [count without clue j for each j]]}"""
+    from run_zebra import ZL_SOLVE
+    from sandbox import run_python
+
+    def count(code):
+        res = run_python(code + "\n" + ZL_SOLVE, "", timeout=30, mem_bytes=4 << 30)
+        try:
+            return json.loads(res.stdout.strip().splitlines()[-1])["count"]
+        except (AttributeError, IndexError, ValueError, KeyError):
+            return -1
+    for tag in [a for a in sys.argv[1:] if not a.startswith("--")]:
+        todo = []
+        for f in sorted(glob.glob(f"{RES}/zl_{tag}_*_s*.jsonl")):
+            m = re.search(rf"zl_{re.escape(tag)}_(tr|trt|trf)_s(\d+)\.jsonl$", f)
+            if m:
+                todo += [(m.group(1), int(m.group(2)), x) for x in map(json.loads, open(f)) if x.get("count") == 1 and x.get("code")]
+
+        def one(a):
+            import ast
+            arm, sd, x = a
+            try:   # the number of clue expressions, read from the program's syntax (not run)
+                nc = next(len(n.value.elts) for n in ast.parse(x["code"]).body if isinstance(n, ast.Assign) and isinstance(n.value, ast.List)
+                          and any(isinstance(t, ast.Name) and t.id == "clues" for t in n.targets))
+            except (StopIteration, SyntaxError, ValueError):
+                return f"{arm}|{x['id']}|{sd}", [count(x["code"]), None]
+            drops = [count(x["code"] + f"\nclues = list(clues)[:{k}] + list(clues)[{k} + 1:]\n") for k in range(nc)]
+            return f"{arm}|{x['id']}|{sd}", [count(x["code"]), drops]
+        with ThreadPoolExecutor(int(os.environ.get("ZLMIN_WORKERS", 16))) as ex:
+            D = dict(ex.map(one, todo))
+        json.dump(D, open(f"{RES}/zl_{tag}_min.json", "w"))
+        print(tag, len(D), "programs", flush=True)
+
+
 if __name__ == "__main__":
-    zl_main() if "--zl" in sys.argv else main()
+    zl_min() if "--zlmin" in sys.argv else zl_main() if "--zl" in sys.argv else main()

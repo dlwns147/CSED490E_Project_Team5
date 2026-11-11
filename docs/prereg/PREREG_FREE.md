@@ -70,3 +70,17 @@ The parser fixes were quoted values ("perle d'or"), values written as listed ("7
 - **P2 holds:** false flags 10 of 456 right programs (2.2%) for Qwen3-8B and 1 of 593 (0.2%) for gpt-oss-20b.
 - **Why P1 fails:** 20 of the 25 wrong programs misread "there is one house between A and B" (or two) as a distance of 1 (or 2), one less than meant. That is far more than the third I assumed. The checks see none of these by design: the program names the right values and keeps one expression per clue. Of the other 5, they flag 3, each a conclusion written in place of a clue.
 - **Decision as registered:** the checks are not stated as carrying to ZebraLogic. Their false-flag rate is low there too, so they cost little, but the dominant error on this generator is a reading of one template phrase.
+
+## Addendum FREE-MIN: a free check from how the puzzle was made, registered 2026-11-11 10:1x UTC, before any program is re-run for it
+
+**Why.** On ZebraLogic, 20 of 25 wrong count-1 programs misread one template phrase and still have a unique solution, so neither the count nor the text checks see them (FREE-ZL). One more property of the puzzle is free. ZebraLogic's generator removes clues, one at a time, until no clue can go without a second solution appearing (Lin et al. 2502.01100, section on generation). So in a faithful translation every clue is needed: dropping any one leaves at least two solutions. A misread clue changes the constraint, and the other clues were not chosen to be minimal for it, so some clue may become unneeded. The check uses only the solver, and no list of phrases.
+
+**Check (`poc/gp_rescore.py --zlmin`, in the container).** Each stored count-1 program is re-run once per clue, with that clue dropped. The program is flagged if some clue can be dropped with the solution staying unique.
+
+**Data.** ZL-AM (`q8bam`, `oss20am`; arms tr and trt) and the main ZebraLogic runs of Qwen3-8B (`q8bh`, `q8bf`; arms trf and trt). Three seeds each; scoring v2 for right and wrong.
+
+**Predictions.**
+- **FREE-MIN-P1.** Right count-1 programs: at most 10% flagged, per tag. A faithful translation that splits one clue into two expressions can leave one of them unneeded, which is why this is not 0%.
+- **FREE-MIN-P2.** Qwen3-8B's 25 wrong ZL-AM programs: at least half flagged.
+
+**Decision.** Both hold: the necessity check joins the free checks for generators that minimise their clues, and a fresh-run test of it as feedback is registered next. P1 fails: the check is too strict for translations as written. P2 fails: misreadings keep every clue needed, and the reading gap stays open.
