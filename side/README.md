@@ -43,6 +43,21 @@ figure solver built fewer than 8 fresh figures (9 statements per arm got none). 
 - Cost: CPU seconds per statement, reported next to the count.
 - Before running it, pre-register a predicted count with a decision rule (we write it together).
 
+**Task 1 kit** (`side/kit_fresh.py`; frozen inputs in `nlp_data/geo/kit_fresh/`, not in the repository: both arms' certificates,
+the verdicts, and the checker's results, 73 of 78 and 78 of 82 accepted as registered).
+- Run: `python side/kit_fresh.py <kit dir> [--solver <your module>] [--only <problem id>]`. It prints, per arm, the whole problems counted,
+  the faithful certified problems lost at the fresh-figure rule, and CPU seconds per statement.
+- Your part: a module with `figures(dsl, n, seed)` that returns candidate figures (lists of complex coordinates in the statement's point
+  order, `geo_decl.parse`). The kit, not your solver, decides what counts as a fresh figure: every hypothesis and order condition holds, the
+  points are apart, the configuration (orientation of unsigned angles) is the proof's own, there are no more chance collinearities than on the
+  proof's figure, and the figure is not similar to one already accepted. Then the proof's auxiliary points are rebuilt and every step must hold.
+- Baseline (the stored run): 13 whole problems per arm. Lost at the rule: NL 7 problems (IMO 2005 P1, 2007 P2, 2012 P1, 2015 P4, 2019 P6,
+  2023 P2, 2025 P2), LEAN 8 (IMO 2000 P1, 2007 P2, 2012 P1, 2013 P4, 2015 P3, 2015 P4, 2019 P6, 2023 P2). Several statements got 0 fresh
+  figures; others got 1 to 7. The default solver is `geo_decl.solve` (least squares from 80 random starts, generic figures first).
+- Where to start: why `geo_decl.solve` returns few figures on these statements (few starts converge; or the converged ones are rejected as
+  degenerate or of another orientation), then a solver that samples the solution set directly, for example by moving along it from one
+  solution found.
+
 **Task 2, only after task 1:** HAGeo-409 coverage (263 of 409 now; HAGeo reports 287, random points 218), a public benchmark with
 published numbers, so any gain compares directly.
 
