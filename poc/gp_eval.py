@@ -23,6 +23,7 @@ python poc/gp_eval.py --zl <tag> [...] [--score2]: PREREG_ZL ladder against thin
 python poc/gp_eval.py --mot <tag>: PREREG_MOT, the ladder against an agreement cascade, see mot_main().
 python poc/gp_eval.py --conv: PREREG_CONV, quick translations with clue readings learned from the ladder's own escalations (trm), see conv_main().
 python poc/gp_eval.py --esc: PREREG_ESC, the escalation step chosen by its cross-fitted value for each outcome of the failed count, see esc_main().
+python poc/gp_eval.py --esc2 [--learn]: PREREG_ESC2, the confident-skip rule learned on seeds 1-3 and tested on fresh seeds 4-6, see esc2_main().
 python poc/gp_eval.py --zlmin: PREREG_FREE addendum FREE-MIN, the clue-necessity check on stored count-1 ZebraLogic programs, see min_main().
 """
 import json
@@ -715,6 +716,73 @@ def free_main():
               f"runs given free-check feedback {fb}, still flagged at the end {fl}")
 
 
+def esc2_main():
+    """PREREG_ESC2: after the quick step's count fails, skip the middle step for an outcome (no solution / several / no count) only when its value
+    (as in esc_main) on seeds 1-3 is below 0 with confidence: the upper end of its 95% bootstrap interval over puzzles (10,000 draws) is below 0.
+    Learned on seeds 1-3 of GridPuzzle and Mitra-Baral for q8b, q32a, oss20, oss120 (scoring v2); tested on fresh seeds 4-6 (gtr, gtrt, think of
+    the same seed), ESC2 - fixed ladder and ESC2 - think, bootstrap over puzzles. --learn prints only the learned skips."""
+    from grid_score import score
+    U = lambda e, t: 100 * e - 0.5 * t / 1000
+    sig = lambda c: "none" if c == 0 else "several" if isinstance(c, int) and c > 1 else "no count"
+    data = os.environ.get("POC_DATA", os.path.join(RES, "..", "..", "nlp_data"))
+    for s, src in [("gp", "gridpuzzle"), ("lgp", "lgp")]:
+        PZ = {r["id"]: r for r in map(json.loads, open(os.path.join(data, src, "grid.jsonl")))}
+        for tag in ["q8b", "q32a", "oss20", "oss120"]:
+            S2 = json.load(open(os.path.join(RES, f"{s}_{tag}_score2.json")))
+
+            def rows(seeds):
+                R = {}
+                for arm in ARMS:
+                    for sd in seeds:
+                        f = os.path.join(RES, f"{s}_{tag}_{arm}_s{sd}.jsonl")
+                        for r in map(json.loads, open(f)) if os.path.exists(f) else []:   # scoring v2: stored for seeds 1-3, computed here for fresh rows
+                            k = f"{arm}|{r['id']}|{sd}"
+                            if k in S2:
+                                e = S2[k][0]
+                            else:   # as poc/gp_rescore.py: the stored grid, or a thinking answer re-read from its text
+                                from run_zebra import zl_extract
+                                e = score(r["grid"] if "grid" in r else zl_extract(r.get("text") or "") if arm == "think" else {}, PZ[r["id"]])[0]
+                            R[(arm, r["id"], sd)] = {**r, "exact": e}
+                return R, sorted({(i, sd) for (_, i, sd) in R if all((a, i, sd) in R for a in ARMS)})
+
+            def lad(R, i, k, skip):
+                a = R[("gtr", i, k)]; tok = a["tokens"]
+                if a["count"] == 1:
+                    return U(a["exact"], tok)
+                if sig(a["count"]) not in skip:
+                    b = R[("gtrt", i, k)]; tok += b["tokens"]
+                    if b["count"] == 1:
+                        return U(b["exact"], tok)
+                t = R[("think", i, k)]; return U(t["exact"], tok + t["tokens"])
+            R, keys = rows([1, 2, 3])
+            V = {}
+            for i, k in keys:
+                c = R[("gtr", i, k)]["count"]
+                if c != 1:
+                    V.setdefault(sig(c), {}).setdefault(i, []).append(lad(R, i, k, set()) - lad(R, i, k, {sig(c)}))
+            skip, desc = set(), []
+            for g, per in sorted(V.items()):
+                b = boot(per, lambda v: mean([x for p in v for x in p]))
+                desc.append(f"{g} {b[0]:+.1f} [{b[1]:+.1f}, {b[2]:+.1f}] (n={sum(len(p) for p in per.values())})")
+                if b[2] < 0:
+                    skip.add(g)
+            line = f"== {s:3s} {tag:6s} learned on seeds 1-3: skip middle step for {', '.join(sorted(skip)) or 'nothing'}; value " + "; ".join(desc)
+            if "--learn" in sys.argv:
+                print(line); continue
+            F, fk = rows([4, 5, 6])
+            if not fk:
+                print(line + " | no fresh runs"); continue
+            ids = sorted({i for i, _ in fk})
+            per = lambda g: {i: [g(i, k) for ii, k in fk if ii == i] for i in ids}
+            f = lambda v: mean([mean(x) for x in v])
+            th = lambda i, k: U(F[("think", i, k)]["exact"], F[("think", i, k)]["tokens"])
+            b1 = boot(per(lambda i, k: lad(F, i, k, skip) - lad(F, i, k, set())), f)
+            b2 = boot(per(lambda i, k: lad(F, i, k, skip) - th(i, k)), f)
+            b3 = boot(per(lambda i, k: lad(F, i, k, set()) - th(i, k)), f)
+            print(line + f"\n   fresh seeds 4-6 ({len(ids)} puzzles, {len(fk)} puzzle-seeds): ESC2 - fixed {b1[0]:+.1f} [{b1[1]:+.1f}, {b1[2]:+.1f}]  "
+                  f"ESC2 - think {b2[0]:+.1f} [{b2[1]:+.1f}, {b2[2]:+.1f}]  fixed - think {b3[0]:+.1f} [{b3[1]:+.1f}, {b3[2]:+.1f}]")
+
+
 def esc_main():
     """PREREG_ESC: after the quick step fails its count, run the middle step (thinking translation) only if, on the other half of the puzzles, it was
     worth its tokens for the same outcome of the failed count (no solution / several / no count). Value of the middle step for a puzzle-seed whose
@@ -914,4 +982,4 @@ def conv_main():
 
 
 if __name__ == "__main__":
-    esc_main() if "--esc" in sys.argv else min_main() if "--zlmin" in sys.argv else conv_main() if "--conv" in sys.argv else free_main() if "--free" in sys.argv else bud_main() if "--bud" in sys.argv else mot_main() if "--mot" in sys.argv else zl_main() if "--zl" in sys.argv else np_main() if "--np" in sys.argv else thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()
+    esc2_main() if "--esc2" in sys.argv else esc_main() if "--esc" in sys.argv else min_main() if "--zlmin" in sys.argv else conv_main() if "--conv" in sys.argv else free_main() if "--free" in sys.argv else bud_main() if "--bud" in sys.argv else mot_main() if "--mot" in sys.argv else zl_main() if "--zl" in sys.argv else np_main() if "--np" in sys.argv else thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()
