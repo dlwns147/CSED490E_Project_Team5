@@ -93,3 +93,14 @@ Checked ladder − think, utility, as registered → scoring v2 (`python poc/gp_
 - GC-P2 and GC-P3 hold under v2.
 - GC-P4's utility half fails under v2 for Qwen3-8B, whose interval now includes 0. Its accuracy half holds: +6.4 [+2.1, +11.0].
 - Checked − plain is unchanged except Qwen3-8B on Mitra-Baral (+2.7 → +3.4 [+0.4, +7.0]).
+
+## GC-OSS result (2026-11-11 04:5x UTC): P1–P4 hold under both scorings, so the claim is stated for two families
+
+All check runs are complete (the last, Mitra-Baral, replayed with 0 differences from its saved rows). gpt-oss-20b, 3 seeds, checked ladder − think (`python poc/gp_eval.py oss20 --check checkt [--score2]`), registered scoring → scoring v2:
+- **GC-OSS-P1 holds.** Unflagged count-1 precision 98.7% → 98.8% (GridPuzzle, 837 programs) and 100% (Mitra-Baral, 511).
+- **GC-OSS-P2 holds.** GridPuzzle utility +5.4 [+1.8, +9.1] → +3.8 [+0.5, +7.3]; accuracy +8.5 → +7.0 [+4.3, +9.6].
+- **GC-OSS-P3 holds.** Mitra-Baral accuracy +4.3 [+2.1, +6.7] → +2.5 [+1.1, +4.3]; utility +3.9 [+1.8, +6.3] → +2.1 [+0.4, +4.1].
+- **GC-OSS-P4 (reported) holds.** GridPuzzle 4×5 and 4×6, 73 puzzles, accuracy gain +16.4 [+11.0, +22.4] → +14.6 [+9.6, +20.1] (Qwen3-8B +20.5, Qwen3-32B-AWQ +25.1 under v2).
+- **The check itself does not pay for gpt-oss-20b.** Checked − plain ladder: −0.1 [−0.8, +0.8] (GridPuzzle) and +0.4 [−0.6, +1.6] (Mitra-Baral). Its translations are already precise (20 and 3 wrong count-1 programs), so there is little left for the check to catch.
+
+**Decision as registered:** P1 and P2 hold, so the claim (count gate plus escalation beats thinking on grids) is stated for two families, Qwen3 and gpt-oss. The thinking check is stated as paying for Qwen3-8B only.

@@ -6650,3 +6650,15 @@ The choice was easy here, because one checker dominates. The estimates' accuracy
 **What it means for the paper.** The count is a different signal from agreement, not a cheaper version of it. Agreement measures whether samples coincide; the count measures whether the translated constraints pin down one answer. The second is checkable by a solver at no model cost and is blind to correlated misreadings only when they also yield a unique solution (the "either…or" misses, FINDINGS 03:3x). The comparison now covers SatLM- and Logic-LM-style gates (stored rounds), SC-3 and D&P-3 (trips), and the MoT cascade (grids and trips).
 
 **Relative to prior work.** Yue et al. report the cascade against a stronger model, with no solver check, and choose τ on validation. ABC (2407.02348) and semantic-agreement cascades (2509.21837) use the same signal. None compares agreement with solution uniqueness at equal tokens.
+
+## 2026-11-11 04:5x UTC — GC-OSS complete: the grid result holds for a second model family; the thinking check pays only where translations are imprecise
+
+**Why.** Every grid claim was Qwen3 until gpt-oss-20b (PREREG_GC addendum GC-OSS, registered before any of its grid output). The last check run (Mitra-Baral) finished, so all four predictions can be read.
+
+**Result (3 seeds; scoring v2, registered scoring in PREREG_GC).**
+- Checked ladder − think, utility: GridPuzzle +3.8 [+0.5, +7.3], Mitra-Baral +2.1 [+0.4, +4.1]. Accuracy +7.0 and +2.5 points, both intervals above 0.
+- Unflagged count-1 precision 98.8% and 100%.
+- On the largest grids (4×5, 4×6) the accuracy gain is +14.6 [+9.6, +20.1], against +20.5 and +25.1 for the two Qwen3 sizes.
+- P1–P4 hold, so the claim is stated for two families.
+
+**The check is not the reason for it.** For gpt-oss-20b, the checked ladder ties the plain ladder on both sets (−0.1 and +0.4). Its count-1 translations are already 97–99% right, so the check has little to catch. The check paid for Qwen3-8B (Mitra-Baral +3.4 [+0.4, +7.0]), whose count-1 programs were 92–96% right. So the free solver count carries across families, and the thinking check is an add-on that pays only when the translator's count-1 precision is low.
