@@ -203,3 +203,31 @@ All six runs finished; unparsed checks 0–5 per run. Rows: who checks whose pla
 - **L3:** each translator's estimated π is within the true share's 95% interval, or below it by no more than its overlap-only share.
 
 **Decision.** L1 and L2 hold: label-free choice works here and goes into the paper as the way to pick a checker, with L3 reporting the cost of the shared blind spot. L2 fails: choosing the checker needs labels, stated as a limit.
+
+### NPC-L result, read 2026-11-11 01:0x UTC (`poc/np_labelfree.py`)
+
+1,089 count-1 plans carry all three checks. Estimates are fitted without labels; the truth is shown beside them.
+
+| Checker | Estimated catch rate | True catch rate | Estimated false-flag rate | True false-flag rate |
+|---|---|---|---|---|
+| Qwen3-8B | 0.953 | 74/91 = 0.813 | 0.183 | 198/998 = 0.198 |
+| Qwen3-32B | 0.932 | 83/91 = 0.912 | 0.585 | 587/998 = 0.588 |
+| gpt-oss-120b | 0.906 | 77/91 = 0.846 | 0.029 | 37/998 = 0.037 |
+
+| Translator | Estimated wrong share | True wrong share [95%] | Label-free pick |
+|---|---|---|---|
+| Qwen3-8B | 0.239 | 30/153 = 0.196 [0.141, 0.266] | gpt-oss-120b |
+| Qwen3-32B | 0.087 | 18/214 = 0.084 [0.054, 0.129] | gpt-oss-120b |
+| gpt-oss-20b | 0.081 | 27/301 = 0.090 [0.062, 0.127] | gpt-oss-120b |
+| gpt-oss-120b | 0.035 | 16/421 = 0.038 [0.024, 0.061] | gpt-oss-120b |
+
+- **L1 holds:** every false-flag estimate is within 1.5 points of the truth.
+- **L2 holds:** the label-free pick is gpt-oss-120b for every translator, which is the checker with the best true checked − plain ladder utility for each.
+- **L3 holds:** every estimated wrong share lies inside the true 95% interval.
+- Catch rates are overestimated by 2–14 points. This is the shared blind spot predicted above: plans every checker passes count as right.
+
+**Decision (as registered).** Label-free choice of the checker works on trips, and it goes into the paper as the way to pick one.
+
+**Limits.**
+- The choice here is easy, because one checker dominates on false flags. The test that matters more is how accurate the estimates are, and that passed.
+- The estimated wrong share also audits the count gate without labels. For Qwen3-32B the estimated precision is 91.3%, against a true 91.6%. So the PREREG_NP failure of P1 (precision under 95%) was visible without labels.
