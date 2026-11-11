@@ -36,8 +36,8 @@ def main():
                 if arm in ("think", "direct"):
                     g = x["grid"] if "grid" in x else zl_extract(x.get("text") or "")
                     return f"{arm}|{x['id']}|{sd}", [score(g, r)[0], None]
-                if "grid" in x or not x.get("code"):
-                    return f"{arm}|{x['id']}|{sd}", [score(x.get("grid"), r)[0], x["count"]]
+                if "grid" in x or not x.get("code"):   # program rows also keep their solution grid (third field; PREREG_FREE's OR check reads it)
+                    return f"{arm}|{x['id']}|{sd}", [score(x.get("grid"), r)[0], x["count"], x.get("grid")]
                 fv, first = r["cats"][0][1], r["cats"][0][0]
                 res = run_python(x["code"] + "\n" + GP_SOLVE.replace("__FIRST__", json.dumps(fv)).replace("__FNAME__", json.dumps(first)), "",
                                  timeout=30, mem_bytes=4 << 30)
@@ -45,7 +45,7 @@ def main():
                     out = json.loads(res.stdout.strip().splitlines()[-1])
                 except (AttributeError, IndexError, ValueError):
                     out = {"count": -1, "grid": {}}
-                return f"{arm}|{x['id']}|{sd}", [score(out["grid"], r)[0], out["count"]]
+                return f"{arm}|{x['id']}|{sd}", [score(out["grid"], r)[0], out["count"], out["grid"]]
             with ThreadPoolExecutor(16) as ex:
                 D = dict(ex.map(one, todo))
             json.dump(D, open(f"{RES}/{s}_{tag}_score2.json", "w"))

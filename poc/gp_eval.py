@@ -640,5 +640,77 @@ def bud_main():
         print(f"  {s} best budget {b}: ladder - it {res[b][0]:+.1f} [{res[b][1]:+.1f}, {res[b][2]:+.1f}]")
 
 
+def free_main():
+    """PREREG_FREE: the free text checks (grid_score.free_checks). usage: python poc/gp_eval.py --free <tag> --score2
+    Replay: on the stored ladders (seeds 1-3), a count-1 program that a check flags is not accepted and the ladder moves on (no repair); the
+    solution grid for the OR check is the one gp_rescore.py --grids saved (results/<set>_<tag>_score2.json, third field).
+    Fresh: the v-ladder gtrv -> gtrtv -> think on seeds 4-6 (think of seed k - 3), against the plain ladder and think of seeds 1-3, per puzzle."""
+    tag = sys.argv[sys.argv.index("--free") + 1]
+    U = lambda ok, t: 100 * ok - 0.5 * t / 1000
+    from grid_score import free_checks, score
+    data = os.environ.get("POC_DATA", os.path.join(RES, "..", "..", "nlp_data"))
+    for s, src in [("gp", "gridpuzzle"), ("lgp", "lgp")]:
+        PZ = {r["id"]: r for r in map(json.loads, open(os.path.join(data, src, "grid.jsonl")))}
+        R, keys = load(s, tag)
+        if not keys:
+            continue
+        S2 = json.load(open(os.path.join(RES, f"{s}_{tag}_score2.json")))
+        ids = sorted({i for i, _ in keys})
+        F, N = {}, {"right": [0, 0], "wrong": [0, 0]}
+        for (arm, i, k), x in R.items():
+            if arm in ("gtr", "gtrt") and x["count"] == 1:
+                g = S2[f"{arm}|{i}|{k}"][2] if len(S2[f"{arm}|{i}|{k}"]) > 2 else x.get("grid")
+                F[(arm, i, k)] = free_checks(x.get("code"), PZ[i], g)
+                n = N["right" if x["exact"] else "wrong"]; n[0] += bool(F[(arm, i, k)]); n[1] += 1
+
+        def lad(i, k, use):
+            tok = 0
+            for arm in ["gtr", "gtrt"]:
+                r = R[(arm, i, k)]; tok += r["tokens"]
+                if r["count"] == 1 and not (use and F[(arm, i, k)]):
+                    return U(r["exact"], tok)
+            r = R[("think", i, k)]; return U(r["exact"], tok + r["tokens"])
+        th = lambda i, k: U(R[("think", i, k)]["exact"], R[("think", i, k)]["tokens"])
+        b = boot({i: [lad(i, k, True) - lad(i, k, False) for ii, k in keys if ii == i] for i in ids}, lambda v: mean([mean(x) for x in v]))
+        print(f"== {s} {tag}: replay on {len(keys)} puzzle-seeds. Flagged count-1 programs: wrong {N['wrong'][0]}/{N['wrong'][1]}, right {N['right'][0]}/{N['right'][1]}; "
+              f"flagged-escalates ladder - plain ladder {b[0]:+.1f} [{b[1]:+.1f}, {b[2]:+.1f}]")
+        V = {}
+        for arm in ["gtrv", "gtrtv"]:
+            for k in [4, 5, 6]:
+                f = os.path.join(RES, f"{s}_{tag}_{arm}_s{k}.jsonl")
+                for x in map(json.loads, open(f)) if os.path.exists(f) else []:
+                    V[(arm, x["id"], k)] = {**x, "exact": score(x.get("grid"), PZ[x["id"]])[0]}
+        vk = [(i, k) for i in ids for k in [4, 5, 6] if all((a, i, k) in V for a in ["gtrv", "gtrtv"]) and ("think", i, k - 3) in R]
+        if not vk:
+            print("  fresh v-ladder: no complete runs yet"); continue
+
+        def vlad(i, k):
+            tok = 0
+            for arm in ["gtrv", "gtrtv"]:
+                r = V[(arm, i, k)]; tok += r["tokens"]
+                if r["count"] == 1 and not r.get("free"):
+                    return U(r["exact"], tok), True, r["exact"]
+            r = R[("think", i, k - 3)]; return U(r["exact"], tok + r["tokens"]), False, None
+        def plad(i, k):   # the plain ladder on the same runs: a v-run is the plain run up to its first count-1 round, which the plain ladder accepts
+            tok = 0
+            for arm in ["gtrv", "gtrtv"]:
+                for h in V[(arm, i, k)]["hist"]:
+                    tok += h["tokens"]
+                    if h["count"] == 1:
+                        return U(score(h.get("grid"), PZ[i])[0], tok)
+            r = R[("think", i, k - 3)]; return U(r["exact"], tok + r["tokens"])
+        vi = sorted({i for i, _ in vk})
+        acc = [vlad(i, k) for i, k in vk]
+        pv = {i: mean([vlad(i, k)[0] for ii, k in vk if ii == i]) for i in vi}
+        for name, base in [("plain ladder on the same runs", lambda i, k: plad(i, k)), ("think (seed k - 3)", lambda i, k: th(i, k - 3))]:
+            b = boot({i: [vlad(i, k)[0] - base(i, k) for ii, k in vk if ii == i] for i in vi}, lambda v: mean([mean(x) for x in v]))
+            print(f"  fresh v-ladder (seeds 4-6, {len(vi)} puzzles, {len(vk)} puzzle-seeds) - {name}: {b[0]:+.1f} [{b[1]:+.1f}, {b[2]:+.1f}]")
+        ok = [a[2] for a in acc if a[1]]
+        fb = sum(any(h.get("free") for h in V[(a, i, k)]["hist"]) for a in ["gtrv", "gtrtv"] for i, k in vk)
+        fl = sum(bool(V[(a, i, k)].get("free")) for a in ["gtrv", "gtrtv"] for i, k in vk)
+        print(f"  v-ladder utility {mean(pv.values()):.1f}, accepted count-1 precision {sum(ok)}/{len(ok)} = {100 * mean(ok):.1f}%; "
+              f"runs given free-check feedback {fb}, still flagged at the end {fl}")
+
+
 if __name__ == "__main__":
-    bud_main() if "--bud" in sys.argv else mot_main() if "--mot" in sys.argv else zl_main() if "--zl" in sys.argv else np_main() if "--np" in sys.argv else thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()
+    free_main() if "--free" in sys.argv else bud_main() if "--bud" in sys.argv else mot_main() if "--mot" in sys.argv else zl_main() if "--zl" in sys.argv else np_main() if "--np" in sys.argv else thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()

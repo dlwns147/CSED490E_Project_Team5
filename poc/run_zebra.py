@@ -21,6 +21,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0, os.path.dirname(__file__))
 from llm import chat_msgs, last_block, strip_think, think_cuts  # noqa: E402
+from grid_score import free_checks  # noqa: E402
 from sandbox import run_python  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # repository root (was hard-coded)
@@ -434,6 +435,8 @@ def zl_main():
 # GridPuzzle (Tyagi et al. 2024; Puzzle Baron puzzles written by people), idea 27: does the ZebraLogic count gate survive human-written clues? The first category is ordered
 # and plays the houses' role. usage: run_zebra.py --gp <tag> <arm gtr|gtrt|think|direct|gtrl|gtrtl|thinkf|gts> <seed> [--dev] [--max_tokens N] [--set gridpuzzle|lgp] [--ref <tag> for thinkf]
 # [--ids <file of puzzle ids>] [--rounds N (default 3)]. Arm direct (PREREG_MOT): the think prompt without thinking (Yue et al.'s CoT sample); every row and round keeps its grid.
+# Arms gtrv / gtrtv (PREREG_FREE): gtr / gtrt whose count-1 program must also pass grid_score.free_checks (the puzzle's own text, no model call);
+# a flagged program gets the flags as feedback within the same rounds, and a program still flagged after the last round is not accepted (row["free"]).
 # Arm thinkb (PREREG_BUD): the think prompt under budget forcing at each of --budgets (default 1000,2000,4000,8000), all cut from one think; row["cuts"][B].
 GP_SOLVE = """
 import ast, itertools, json, re
@@ -683,7 +686,7 @@ def gp_score(g, r):
 def gp_main():
     tag, arm, seed = sys.argv[2], sys.argv[3], int(sys.argv[4])
     dev = "--dev" in sys.argv
-    mt = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else 4096 if arm in ("gtr", "gtrl", "direct") else 16000   # gtrt: 21 of 94 dev rounds hit 8192 with no code
+    mt = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else 4096 if arm in ("gtr", "gtrl", "gtrv", "direct") else 16000   # gtrt: 21 of 94 dev rounds hit 8192 with no code
     src = sys.argv[sys.argv.index("--set") + 1] if "--set" in sys.argv else "gridpuzzle"   # or lgp: Mitra and Baral's puzzles (poc/gp_prep.py --lgp)
     P = [r for r in map(json.loads, open(os.path.join(os.environ["POC_DATA"], src, "grid.jsonl"))) if r["split"] == ("dev" if dev else "test")]
     if "--ids" in sys.argv:   # idea 39: fresh first attempts on a listed subset of puzzles (one id per line)
@@ -723,7 +726,7 @@ def gp_main():
         msgs = [{"role": "user", "content": GP_TR.format(p=r["puzzle"], cols=cols, first=first, fv=", ".join(fv), n=n, f0=fv[0])}]
         tok, hist = 0, []
         for rnd in range(nr):
-            o = chat_msgs(msgs, think=arm in ("gtrt", "gtrtl"), max_tokens=mt, temperature=0.7, seed=sd + rnd)
+            o = chat_msgs(msgs, think=arm in ("gtrt", "gtrtl", "gtrtv"), max_tokens=mt, temperature=0.7, seed=sd + rnd)
             tok += o["out_tokens"]
             code = last_block(o["text"], ("python", "py", "python3"))
             res = run_python(code + "\n" + solve, "", timeout=30, mem_bytes=4 << 30) if code else None
@@ -733,8 +736,19 @@ def gp_main():
                 out = {"count": -1, "grid": {}}
             ex, ca = gp_score(out["grid"], r)
             hist.append({"count": out["count"], "exact": ex, "cell_acc": ca, "tokens": o["out_tokens"], "err": (res.stderr[-300:] if res else "no code"), "grid": out["grid"]})
-            if out["count"] == 1:
+            free = free_checks(code, r, out["grid"]) if arm in ("gtrv", "gtrtv") and out["count"] == 1 else []   # PREREG_FREE
+            if arm in ("gtrv", "gtrtv"):
+                hist[-1]["free"] = free
+            if out["count"] == 1 and not free:
                 break
+            if free:
+                if rnd == nr - 1:
+                    break
+                msgs += [{"role": "assistant", "content": f"```python\n{code.rstrip()}\n```"},
+                         {"role": "user", "content": "The clues as you wrote them have exactly one solution, but they do not say what the puzzle says: "
+                          + "; ".join(m for _, m in free[:6]) + ". Write each clue as the puzzle states it (not a conclusion drawn from several clues), "
+                          "with each value exactly as listed, and give the complete corrected ```python block."}]
+                continue
             fb = {-1: f"it failed to run: {(res.stderr[-600:] if res else 'no python block')}", 0: "the clues as you wrote them have no solution, so one of them is wrong",
                   2: "the clues as you wrote them allow more than one solution, so one of them is missing or too weak"}[out["count"]]
             if arm in ("gtrl", "gtrtl"):
@@ -744,7 +758,8 @@ def gp_main():
             # only the program goes back: a reply cut at the cap keeps its unclosed thinking, and one dev round sent 18k tokens of it past the 34k context
             msgs += [{"role": "assistant", "content": f"```python\n{code.rstrip()}\n```" if code else "(no python block)"},
                      {"role": "user", "content": f"The puzzle has exactly one solution, but {fb}. Compare each clue with the puzzle and give the complete corrected ```python block."}]
-        return {**row, "exact": ex, "cell_acc": ca, "count": out["count"], "tokens": tok, "rounds": len(hist), "hist": hist, "code": code, "grid": out["grid"]}
+        return {**row, "exact": ex, "cell_acc": ca, "count": out["count"], "tokens": tok, "rounds": len(hist), "hist": hist, "code": code, "grid": out["grid"],
+                **({"free": free} if arm in ("gtrv", "gtrtv") else {})}
 
     path = f"{RES}/{'gp' if src == 'gridpuzzle' else src}_{tag}{'_dev' if dev else ''}_{arm}_s{seed}.jsonl"
     with ThreadPoolExecutor(32) as ex, open(path, "w") as f:
