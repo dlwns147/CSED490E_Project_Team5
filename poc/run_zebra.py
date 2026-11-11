@@ -414,14 +414,14 @@ def zl_main():
             except (AttributeError, IndexError, ValueError):
                 out = {"count": -1, "grid": {}}
             ex, ca = zl_score(out["grid"], gold)
-            hist.append({"count": out["count"], "exact": ex, "cell_acc": ca, "tokens": o["out_tokens"], "err": (res.stderr[-300:] if res else "no code")})
+            hist.append({"count": out["count"], "exact": ex, "cell_acc": ca, "tokens": o["out_tokens"], "err": (res.stderr[-300:] if res else "no code"), "grid": out["grid"]})
             if out["count"] == 1:
                 break
             fb = {-1: f"it failed to run: {(res.stderr[-600:] if res else 'no python block')}", 0: "the clues as you wrote them have no solution, so one of them is wrong",
                   2: "the clues as you wrote them allow more than one solution, so one of them is missing or too weak"}[out["count"]]
             msgs += [{"role": "assistant", "content": o["text"] or "(empty)"},
                      {"role": "user", "content": f"The puzzle has exactly one solution, but {fb}. Compare each clue with the puzzle and give the complete corrected ```python block."}]
-        return {**row, "exact": ex, "cell_acc": ca, "count": out["count"], "tokens": tok, "rounds": len(hist), "hist": hist, "code": code}
+        return {**row, "exact": ex, "cell_acc": ca, "count": out["count"], "tokens": tok, "rounds": len(hist), "hist": hist, "code": code, "grid": out["grid"]}
 
     path = f"{RES}/zl_{tag}_{arm}_s{seed}.jsonl"
     with ThreadPoolExecutor(32) as ex, open(path, "w") as f:
@@ -432,8 +432,8 @@ def zl_main():
 
 
 # GridPuzzle (Tyagi et al. 2024; Puzzle Baron puzzles written by people), idea 27: does the ZebraLogic count gate survive human-written clues? The first category is ordered
-# and plays the houses' role. usage: run_zebra.py --gp <tag> <arm gtr|gtrt|think|gtrl|gtrtl|thinkf|gts> <seed> [--dev] [--max_tokens N] [--set gridpuzzle|lgp] [--ref <tag> for thinkf]
-# [--ids <file of puzzle ids>] [--rounds N (default 3)]
+# and plays the houses' role. usage: run_zebra.py --gp <tag> <arm gtr|gtrt|think|direct|gtrl|gtrtl|thinkf|gts> <seed> [--dev] [--max_tokens N] [--set gridpuzzle|lgp] [--ref <tag> for thinkf]
+# [--ids <file of puzzle ids>] [--rounds N (default 3)]. Arm direct (PREREG_MOT): the think prompt without thinking (Yue et al.'s CoT sample); every row and round keeps its grid.
 GP_SOLVE = """
 import ast, itertools, json, re
 from ortools.sat.python import cp_model
@@ -682,7 +682,7 @@ def gp_score(g, r):
 def gp_main():
     tag, arm, seed = sys.argv[2], sys.argv[3], int(sys.argv[4])
     dev = "--dev" in sys.argv
-    mt = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else 4096 if arm in ("gtr", "gtrl") else 16000   # gtrt: 21 of 94 dev rounds hit 8192 with no code
+    mt = int(sys.argv[sys.argv.index("--max_tokens") + 1]) if "--max_tokens" in sys.argv else 4096 if arm in ("gtr", "gtrl", "direct") else 16000   # gtrt: 21 of 94 dev rounds hit 8192 with no code
     src = sys.argv[sys.argv.index("--set") + 1] if "--set" in sys.argv else "gridpuzzle"   # or lgp: Mitra and Baral's puzzles (poc/gp_prep.py --lgp)
     P = [r for r in map(json.loads, open(os.path.join(os.environ["POC_DATA"], src, "grid.jsonl"))) if r["split"] == ("dev" if dev else "test")]
     if "--ids" in sys.argv:   # idea 39: fresh first attempts on a listed subset of puzzles (one id per line)
@@ -704,12 +704,12 @@ def gp_main():
         (first, fv), cols, n = r["cats"][0], ", ".join(gold), len(r["cats"][0][1])
         sd = seed * 10007 + int(r["id"].split("-")[1])
         row = {"id": r["id"], "size": r["size"], "arm": arm, "seed": seed}
-        if arm in ("think", "thinkf"):
+        if arm in ("think", "thinkf", "direct"):
             pz = r["puzzle"] + ("\n\n" + GP_REF.format(first=first, fv=", ".join(fv), code=ref[r["id"]].strip()) if arm == "thinkf" else "")
             q = GP_FMT.format(p=pz, cols=cols, first=first, fv=", ".join(fv))
-            o = chat_msgs([{"role": "user", "content": q}], think=True, max_tokens=mt, temperature=0.7, seed=sd)
-            ex, ca = gp_score(zl_extract(o["text"]), r)
-            return {**row, "exact": ex, "cell_acc": ca, "tokens": o["out_tokens"], "finish": o["finish"], "text": (o["text"] or "")[-1500:]}
+            o = chat_msgs([{"role": "user", "content": q}], think=arm != "direct", max_tokens=mt, temperature=0.7, seed=sd)
+            g = zl_extract(o["text"]); ex, ca = gp_score(g, r)
+            return {**row, "exact": ex, "cell_acc": ca, "tokens": o["out_tokens"], "finish": o["finish"], "grid": g, "text": (o["text"] or "")[-1500:]}
         solve = GP_SOLVE.replace("__FIRST__", json.dumps(fv)).replace("__FNAME__", json.dumps(first))
         if arm == "gts":
             return {**row, **gp_search(r, sd, first, fv, cols, n, solve)}
@@ -725,7 +725,7 @@ def gp_main():
             except (AttributeError, IndexError, ValueError):
                 out = {"count": -1, "grid": {}}
             ex, ca = gp_score(out["grid"], r)
-            hist.append({"count": out["count"], "exact": ex, "cell_acc": ca, "tokens": o["out_tokens"], "err": (res.stderr[-300:] if res else "no code")})
+            hist.append({"count": out["count"], "exact": ex, "cell_acc": ca, "tokens": o["out_tokens"], "err": (res.stderr[-300:] if res else "no code"), "grid": out["grid"]})
             if out["count"] == 1:
                 break
             fb = {-1: f"it failed to run: {(res.stderr[-600:] if res else 'no python block')}", 0: "the clues as you wrote them have no solution, so one of them is wrong",
@@ -737,7 +737,7 @@ def gp_main():
             # only the program goes back: a reply cut at the cap keeps its unclosed thinking, and one dev round sent 18k tokens of it past the 34k context
             msgs += [{"role": "assistant", "content": f"```python\n{code.rstrip()}\n```" if code else "(no python block)"},
                      {"role": "user", "content": f"The puzzle has exactly one solution, but {fb}. Compare each clue with the puzzle and give the complete corrected ```python block."}]
-        return {**row, "exact": ex, "cell_acc": ca, "count": out["count"], "tokens": tok, "rounds": len(hist), "hist": hist, "code": code}
+        return {**row, "exact": ex, "cell_acc": ca, "count": out["count"], "tokens": tok, "rounds": len(hist), "hist": hist, "code": code, "grid": out["grid"]}
 
     path = f"{RES}/{'gp' if src == 'gridpuzzle' else src}_{tag}{'_dev' if dev else ''}_{arm}_s{seed}.jsonl"
     with ThreadPoolExecutor(32) as ex, open(path, "w") as f:

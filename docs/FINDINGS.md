@@ -6588,3 +6588,18 @@ The choice was easy here, because one checker dominates. The estimates' accuracy
 - A checker's false flags come from its own misreading of a domain convention: the trip day rule for Qwen3-32B, at 58–60% on every translator's plans.
 - Grids have no such convention, so all checkers sit near 1%, and another model adds nothing over the same model checking itself.
 - Catches are limited by readings the checkers share: 34 of 130 wrong grid programs, and the trip event window, pass every checker.
+
+## 2026-11-11 03:1x UTC — PREREG_MOT registered: the count gate against an agreement cascade on grids; stored first rounds show the uniqueness test is what pays
+
+**Why.** A reviewer's first question for "cheap answer + free check" is whether the check beats the usual training-free cascade, which escalates when cheap samples disagree (Mixture-of-Thought cascade, Yue et al., ICLR 2024). Trips have SC-3 and D&P-3 rows; grids had only thinking. Related work checked again before registering: JointThinking (2508.03363) uses thinking/no-thinking agreement but always thinks, so it is not a cost baseline. The exact-cover zebra paper (ICLR 2026 workshop) refines encodings by uniqueness but reports no tokens and no thinking-model comparison.
+
+**Reported rows from stored first rounds (no model call; three seeds; ladder minus gate, utility):**
+- **SatLM-style gate** (accept a first-round count of 1, else think) ties the ladder in 5 of 6 translator × set cells. The exception is Qwen3-32B on GridPuzzle, where the ladder leads by +2.9 [+0.7, +5.3]. So escalating on a count other than 1 is what carries the ladder; the repair rounds and middle step add little, as on trips.
+- **Logic-LM-style gate** (accept any first-round solution, else think) loses to the ladder in 5 of 6 cells, by +4.2 to +10.9.
+- So the uniqueness test, not running a solver, is the part that pays.
+
+**Registered (PREREG_MOT).** Three translators (Qwen3-8B, Qwen3-32B-AWQ, gpt-oss-20b), GridPuzzle and Mitra-Baral test sets, three replicates.
+- Each replicate has 3 no-thinking answers plus 3 one-round programs (new arm `direct`; rounds now keep their solver grid).
+- The MoT cascade and a program-only vote are evaluated at every threshold, with the headline using the threshold that is best on test. That favours the baseline.
+- Prediction M1: the ladder beats the MoT cascade on GridPuzzle for all three translators.
+- Six lanes started on the paper-extension server. Evaluation: `python poc/gp_eval.py --mot <tag>`.

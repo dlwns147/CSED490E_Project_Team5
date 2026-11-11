@@ -18,6 +18,7 @@ python poc/gp_eval.py --gts [tag q8bh] [think tag q8b]: idea 38 on dev, the per-
 of gtrt (--joint: gtsj, poc/gp_joint.py): ladder gtr (same seed) -> gts (same seed) -> think (seed 1) minus gtr -> gtrt (seed 1) -> think, per puzzle-seed (seeds 1-3).
 Rule (docs/notes/IDEAS_COMPUTATION.md row 38): pooled over both sets, point estimate above 0 -> gts replaces gtrt in a test prereg.
 python poc/gp_eval.py --np [tag q32]: PREREG_NP (with addendum NP-DAY), see np_main().
+python poc/gp_eval.py --mot <tag>: PREREG_MOT, the ladder against an agreement cascade, see mot_main().
 """
 import json
 import os
@@ -442,5 +443,87 @@ def np_main():
               f"trct alone - think {d4[0]:+.1f} [{d4[1]:+.1f}, {d4[2]:+.1f}]")
 
 
+def mot_main():
+    """PREREG_MOT: the plain ladder against the MoT agreement cascade (Yue et al. 2310.03094; 3 direct + 3 one-round gtr samples) and a 3-program vote,
+    each escalating to think when the top answer's share is below tau. Replicate k: samples of seeds 10k+1..10k+3, think and ladder of seed k.
+    usage: python poc/gp_eval.py --mot <tag>   (reads results/{gp,lgp}_<tag>_{gtr,direct}_s1[1-3]|s2[1-3]|s3[1-3].jsonl)"""
+    import re
+    tag = sys.argv[sys.argv.index("--mot") + 1]
+    U = lambda ok, t: 100 * ok - 0.5 * t / 1000
+    ck = lambda a: re.sub(r"[^a-z0-9]", "", str(a).lower()).rstrip("s")
+    num = lambda x: re.search(r"\d[\d:.]*", str(x).replace(",", ""))
+
+    def canon(g, r):   # gp_score's normalization (poc/run_zebra.py), as a hashable answer; None for no answer
+        if not isinstance(g, dict) or not g:
+            return None
+        vals = {ck(a): v for a, v in r["cats"][1:]}
+        vk = lambda x, v: num(x).group() if v and all(num(y) for y in v) and num(x) else re.sub(r"[^a-z0-9]", "", str(x).lower())
+        return tuple(sorted((ck(k), tuple(vk(x, vals.get(ck(k), [])) for x in v)) for k, v in g.items() if isinstance(v, list)))
+    data = os.environ.get("POC_DATA", os.path.join(RES, "..", "..", "nlp_data"))
+    res, curves = {}, {}
+    for s, src in [("gp", "gridpuzzle"), ("lgp", "lgp")]:
+        PZ = {r["id"]: r for r in map(json.loads, open(os.path.join(data, src, "grid.jsonl")))}
+        R, keys = load(s, tag)
+        S = {}
+        for arm in ["gtr", "direct"]:
+            for sd in [10 * k + j for k in [1, 2, 3] for j in [1, 2, 3]]:
+                f = os.path.join(RES, f"{s}_{tag}_{arm}_s{sd}.jsonl")
+                for x in map(json.loads, open(f)) if os.path.exists(f) else []:
+                    S[(arm, x["id"], sd)] = x
+        gold = {i: canon(PZ[i]["gold"], PZ[i]) for i in PZ}
+        ks = [(i, k) for i, k in keys if all((a, i, 10 * k + j) in S for a in ["gtr", "direct"] for j in [1, 2, 3])]
+        ids = sorted({i for i, _ in ks})
+        if not ids:
+            print(s, "no complete replicates yet"); continue
+
+        def samples(i, k, arms):
+            out = []
+            for a in arms:
+                for j in [1, 2, 3]:
+                    x = S[(a, i, 10 * k + j)]
+                    g = x["hist"][0].get("grid") if a == "gtr" else x.get("grid")
+                    ok = a == "direct" or x["hist"][0]["count"] >= 1
+                    out.append((canon(g, PZ[i]) if ok else None, x["tokens"]))
+            return out
+
+        def cascade(i, k, arms, tau):
+            sm = samples(i, k, arms); tok = sum(t for _, t in sm)
+            votes = {}
+            for a, _ in sm:
+                if a is not None:
+                    votes[a] = votes.get(a, 0) + 1
+            if votes:
+                a, c = max(votes.items(), key=lambda kv: kv[1])
+                if c / len(sm) >= tau - 1e-9:
+                    return U(a == gold[i], tok), True, a == gold[i], c >= 1 and sum(1 for b, _ in sm[-3:] if b == a and a != gold[i]) >= 2
+            r = R[("think", i, k)]
+            return U(r["exact"], tok + r["tokens"]), False, None, False
+        lad = lambda i, k: U(*ladder(R, i, k)[:2])
+        dacc = {i: mean([100 * S[("direct", i, 10 * k + j)]["exact"] for ii, k in ks if ii == i for j in [1, 2, 3]]) for i in ids}
+        dtok = mean([S[("direct", i, 10 * k + j)]["tokens"] for i, k in ks for j in [1, 2, 3]]) / 1000
+        print(f"== {s} {tag}: {len(ids)} puzzles, {len(ks)} puzzle-replicates; direct (no thinking) {mean(list(dacc.values())):.1f}% at {dtok:.2f} ktok")
+        for name, arms, n in [("MoT CoT+PoT", ["direct", "gtr"], 6), ("PoT vote", ["gtr"], 3)]:
+            for c in range(1, n + 1):
+                tau = c / n
+                per = {i: [lad(i, k) - cascade(i, k, arms, tau)[0] for ii, k in ks if ii == i] for i in ids}
+                acc = [cascade(i, k, arms, tau) for i, k in ks]
+                cov = mean([a[1] for a in acc]); prec = mean([a[2] for a in acc if a[1]]) if any(a[1] for a in acc) else float("nan")
+                corr = sum(a[3] for a in acc)
+                pt, lo, hi = boot(per, lambda v: mean([mean(x) for x in v]))
+                curves[(s, name, c)] = pt; res[(s, name, c)] = (pt, lo, hi)
+                print(f"  {name:11s} tau {c}/{n}: ladder - cascade {pt:+5.1f} [{lo:+5.1f}, {hi:+5.1f}]  coverage {cov:.2f}  precision {100 * prec:5.1f}%  "
+                      f"accepted wrong with 2+ programs sharing it {corr}")
+    for name, n in [("MoT CoT+PoT", 6), ("PoT vote", 3)]:
+        for s, o in [("gp", "lgp"), ("lgp", "gp")]:
+            if (s, name, 1) not in res:
+                continue
+            c = min(range(1, n + 1), key=lambda c: res[(s, name, c)][0])   # oracle: tau where the cascade does best against the ladder
+            line = f"  {s} {name}: best tau {c}/{n} on this set: {res[(s, name, c)][0]:+.1f} [{res[(s, name, c)][1]:+.1f}, {res[(s, name, c)][2]:+.1f}]"
+            if (o, name, 1) in res:
+                co = min(range(1, n + 1), key=lambda c: res[(o, name, c)][0])
+                line += f"; tau {co}/{n} picked on {o}: {res[(s, name, co)][0]:+.1f} [{res[(s, name, co)][1]:+.1f}, {res[(s, name, co)][2]:+.1f}]"
+            print(line)
+
+
 if __name__ == "__main__":
-    np_main() if "--np" in sys.argv else thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()
+    mot_main() if "--mot" in sys.argv else np_main() if "--np" in sys.argv else thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()
