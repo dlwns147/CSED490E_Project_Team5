@@ -13,12 +13,15 @@ A fresh figure is accepted only if, checked here and not by the solver:
 Then the proof's auxiliary points are rebuilt on it, and every step's conclusion and premises must hold.
 
 Plug in your solver: a Python module (on the path) with `figures(dsl, n, seed)` returning a list of candidate figures, each a list of complex numbers in the
-statement's point order (geo_decl.parse). The default is geo_decl.solve, the solver that produced the stored count.
-usage: python side/kit_fresh.py <kit dir> [--solver module] [--n 8] [--only <problem id>]
+statement's point order (geo_decl.parse). The default is geo_decl.solve with the stored run's 240 starts, the solver that produced the stored count.
+usage: python side/kit_fresh.py <kit dir> [--solver module] [--n 8] [--only <problem id>] [--workers W (default solver only)]
 The kit dir holds certs_nl/, certs_lean/ (certificates), verdicts.json and checked.json (geo_check results); frozen copies, not in the repository.
 Prints, per arm, the whole problems counted, the problems lost at the fresh-figure rule, and the CPU seconds per statement."""
 import importlib, json, os, sys, time
 import numpy as np
+
+for k, v in dict(GT_DECL_STARTS="240", GT_SOUND="1", GT_STRICT="1", GT_SQ="1", OMP_NUM_THREADS="1", OPENBLAS_NUM_THREADS="1").items():
+    os.environ.setdefault(k, v)   # the stored run's settings (nlp_data/geo/mg_close.sh): 240 starts per statement
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import geo_closure as GC   # noqa: E402
@@ -118,6 +121,11 @@ def score_cert(cert, solver, n):
     return acc, held, time.time() - t0
 
 
+def _one(a):
+    (pid, sample, cert), n = a
+    return (pid, sample, *score_cert(cert, default_figures, n))
+
+
 def main():
     kit = sys.argv[1]
     opt = lambda k, d: sys.argv[sys.argv.index(k) + 1] if k in sys.argv else d
@@ -126,25 +134,33 @@ def main():
     only = opt("--only", None)
     V = json.load(open(os.path.join(kit, "verdicts.json")))
     ok = json.load(open(os.path.join(kit, "checked.json")))
+    workers = int(opt("--workers", 1))
     for arm in ["nl", "lean"]:
         d = os.path.join(kit, f"certs_{arm}")
-        whole, lost, secs, rows = set(), set(), [], []
+        whole, lost, secs, rows, todo = set(), set(), [], [], []
         for fn in sorted(os.listdir(d)):
-            cert = json.load(open(os.path.join(d, fn)))
             pid, sample = fn.split("_", 1)[1].rsplit("_", 2)[0], int(fn.rsplit("_", 2)[1])
             if only and pid != only:
                 continue
             if V.get(f"{arm}|{pid}:{sample}", {}).get("verdict") != "faithful" or not ok.get(f"{arm}/{fn}"):
                 continue
-            acc, held, sec = score_cert(cert, solver, n)
+            todo.append((pid, sample, json.load(open(os.path.join(d, fn)))))
+        one = lambda t: (t[0], t[1], *score_cert(t[2], solver, n))
+        if workers > 1:   # one process per statement (the solver holds the CPU); fork, so a --solver module is shared
+            from multiprocessing import get_context
+            with get_context("fork").Pool(workers) as pool:
+                res = pool.imap_unordered(_one, [(t, n) for t in todo]) if solver is default_figures else map(one, todo)
+                res = list(res)
+        else:
+            res = map(one, todo)
+        for pid, sample, acc, held, sec in res:
+            print(f"  {arm} {pid} {sample}: fresh {acc}, proof holds on {held}, {sec:.0f} s", flush=True)
             secs.append(sec)
             rows.append((pid, sample, acc, held))
             (whole if acc >= n and held == acc else lost).add(pid)
         lost -= whole
         print(f"{arm}: whole problems {len(whole)}; faithful certified problems lost at the fresh-figure rule {len(lost)} {sorted(lost)}; "
               f"{len(secs)} statements, {np.mean(secs) if secs else 0:.1f} CPU s each")
-        for r in sorted(rows):
-            print("  ", *r)
 
 
 if __name__ == "__main__":
