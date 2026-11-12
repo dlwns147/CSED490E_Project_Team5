@@ -6927,3 +6927,43 @@ Job 1382299 (one GPU, queued).
 - **Fixes this tick.**
   - `run_zebra.py` and `gp_train.grade` no longer crash when a program prints its own last line (Llama-3.1-8B did).
   - The trainer's forward applies Granite's embedding and logit multipliers, checked against the model's own log-probability.
+
+## 2026-11-12 08:0x UTC — Where else could the free check be the training reward? Check precision across every domain with stored runs (offline, Qwen3-8B quick answers, no new runs)
+- **Why.** The user asked why only puzzles. GRLLF showed that rewarding the check alone trains the grid translator. If the same holds elsewhere, the method is general; if it fails, we need to say when it works. Earlier label-free self-training on word problems failed (DT3–DT6), so the rule is not "always".
+- **Measure.** Among quick samples that pass the free check, right : wrong. That is the label-free reward's precision.
+  - Also the share of questions whose samples split under the check (the reward's signal), and pass@k against the mean (headroom).
+  - Scratch scripts are in the session scratchpad. Every number is recomputed from stored rows.
+
+| Domain | Free check | right : wrong among passing | Precision | Questions split (check / gold) | Headroom (pass@k vs mean) |
+|---|---|---|---|---|---|
+| GridPuzzle (`gtr` round 1) | one solution | **6.0** | 86% | 19% / 17% | 34.9 vs 24.7 |
+| Mitra-Baral | one solution | **18.6** | 95% | 22% / 22% | 55.3 vs 42.9 |
+| ZebraLogic (`trf`) | one solution | **37.6** | 97% | 15% / 16% | 74.4 vs 66.9 |
+| MATH-500 | text answer = own program's answer | **64.8** | 98.5% | 27% / 16% | 91.8 vs 84.3 |
+| IFEval | model-written checker passes | **42.9** | 97.7% | 32% / 11% | 87.8 vs 82.6 |
+| AIME 24+25 | text = program | 2.6 | 72% | 12% / 17% | 31.7 vs 23.9 |
+| IFBench | model-written checker | 1.8 | 64% | 22% / 12% | 32.0 vs 25.6 |
+| LiveCodeBench | passes the statement's examples | 2.9 | 74% | 19% / 7% | 28.6 vs 24.9 |
+| Codeforces geometry | passes the statement's examples | 1.6 | 61% | 38% / 22% | 23.8 vs 11.4 |
+| Word problems (4 held-out sets) | program runs and prints a value | 1.3 | 56% | 44% / 29% | 36.2 vs 21.4 |
+| Word problems | two own samples agree | 2.5 | 71% | – | – |
+| OptMATH-Train (DT3's pool) | two own samples agree | 7.7 | 89% | 71% / 50% | 63.4 vs 35.4 |
+| BIRD (SQL) | runs and returns rows | 1.3 | 57% | 8% / 7% | 49.5 vs 46.0 |
+| BFCL (tool calls) | schema check | 4.3 | 81% | 3% / 4% | 78.3 vs 76.6 |
+
+- **Reading.**
+  - The grid check is not unique. MATH-500's text-versus-program agreement and IFEval's model-written checker are even more precise.
+  - The obvious checks elsewhere are weak, below 3 : 1: "runs", "returns rows" and "passes the examples".
+  - SQL and tool calls have almost no headroom: gold splits only 3–7% of questions.
+- **One case the simple rule does not explain.** On DT3's own pool, two-sample agreement is 7.7 : 1, above GridPuzzle's 6.0, yet DT3 failed. Differences that may explain it:
+  - DT3 was supervised fine-tuning on agreeing programs, not RL that contrasts samples of the same question.
+  - In a third of the check-split groups no passing sample is right.
+  - On the matching held-out set, agreement is right only 53% of the time.
+  - So precision on the training pool is not enough. It must hold on the questions the model will answer, and the update must contrast samples.
+- **Caveats.**
+  - Where most quick answers are already right (IFEval, MATH-500: 82–84%), the ratio is inflated. The likelihood ratio P(pass | right) / P(pass | wrong) is the fairer comparison: 5–12 there, against 14–19 on grids.
+  - On grids a right translation always passes. Elsewhere the check also rejects right answers (34% of right IFEval answers), which cuts the reward's recall.
+- **Next (to be registered).** A two-sided test of the rule in one domain:
+  - Label-free RL with the model's own check where the table says it should work: IFEval's checker, or MATH-500's text = program.
+  - The same where it says it should fail: IFBench, AIME.
+  - Cross-fitted as on grids. This gets the claim off puzzles, or bounds it.
