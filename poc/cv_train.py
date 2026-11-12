@@ -120,9 +120,16 @@ def post(path, body, timeout=1800):
         return {"text": raw.decode(errors="replace")}
 
 
-def sample(model, msgs, n, max_tokens, seed, temperature=TEMP):
-    r = post("/v1/chat/completions", {"model": model, "messages": msgs, "n": n, "temperature": temperature, "top_p": 0.95,
-                                      "max_tokens": max_tokens, "seed": seed, "chat_template_kwargs": {"enable_thinking": False}})
+def sample(model, msgs, n, max_tokens, seed, temperature=TEMP, raw=False):
+    """the n replies' texts; raw (gpt-oss, PREREG_GRLO): dicts with the text and the exact prompt and completion token ids (harmony: the
+    analysis channel, then the final one), reasoning effort POC_REASONING_EFFORT (low)"""
+    body = {"model": model, "messages": msgs, "n": n, "temperature": temperature, "top_p": 0.95, "max_tokens": max_tokens, "seed": seed,
+            "chat_template_kwargs": {"enable_thinking": False}}
+    if raw:
+        body.update(return_token_ids=True, reasoning_effort=os.environ.get("POC_REASONING_EFFORT", "low"))
+    r = post("/v1/chat/completions", body)
+    if raw:
+        return [{"text": c["message"]["content"] or "", "ids": c["token_ids"], "prompt_ids": r["prompt_token_ids"]} for c in r["choices"]]
     return [c["message"]["content"] or "" for c in r["choices"]]
 
 
@@ -168,12 +175,22 @@ class Policy:
 
     def __init__(self, base, lr):
         import torch
-        from transformers import AutoModelForCausalLM, AutoTokenizer
+        from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
         from peft import LoraConfig, get_peft_model
         self.torch = torch
         self.tok = AutoTokenizer.from_pretrained(base)
-        m = AutoModelForCausalLM.from_pretrained(base, torch_dtype=torch.bfloat16, device_map={"": 0})
-        self.model = get_peft_model(m, LoraConfig(r=16, lora_alpha=32, lora_dropout=0.0, task_type="CAUSAL_LM", target_modules=TARGETS))
+        # gpt-oss (PREREG_GRLO): MXFP4 experts dequantized to bf16, eager attention (its sinks), LoRA on attention only (the experts are fused
+        # parameters, not linear layers), train mode so that each token runs only its routed experts
+        self.oss = AutoConfig.from_pretrained(base).model_type == "gpt_oss"
+        kw = {}
+        if self.oss:
+            from transformers import Mxfp4Config
+            kw = dict(quantization_config=Mxfp4Config(dequantize=True), attn_implementation="eager")
+        m = AutoModelForCausalLM.from_pretrained(base, torch_dtype=torch.bfloat16, device_map={"": 0}, **kw)
+        if self.oss:
+            m.train()
+        self.model = get_peft_model(m, LoraConfig(r=16, lora_alpha=32, lora_dropout=0.0, task_type="CAUSAL_LM",
+                                                  target_modules=TARGETS[:4] if self.oss else TARGETS))
         self.model.print_trainable_parameters()
         self.opt = torch.optim.AdamW([p for p in self.model.parameters() if p.requires_grad], lr=lr, betas=(0.9, 0.99), weight_decay=0.0)
         self.net, self.head = self.model.base_model.model.model, self.model.base_model.model.lm_head   # LoRA sits inside net's layers
@@ -196,8 +213,12 @@ class Policy:
         return [tuple(x) for x in cache]
 
     def prefix(self, ids):
+        kw = {}
+        if self.oss:   # a cache without the model's config keeps every key of the sliding-window layers too (forward's mask needs them)
+            from transformers import DynamicCache
+            kw = {"past_key_values": DynamicCache()}
         with self.torch.no_grad():   # the decoder only: no logits over the prompt
-            return self.kv(self.net(input_ids=self.torch.tensor([ids], device="cuda"), use_cache=True).past_key_values)
+            return self.kv(self.net(input_ids=self.torch.tensor([ids], device="cuda"), use_cache=True, **kw).past_key_values)
 
     def forward(self, kv, l, seqs):
         """final-norm hidden states for each sequence in seqs (token lists continuing the cached prefix of length l), right-padded, with
@@ -212,10 +233,15 @@ class Policy:
         mask = (k < l) | ((k - l <= q) & (k - l < n))   # (B, 1, L, l + L): the prompt, then causal over the sequence's own tokens
         h = self.net.embed_tokens(inp) * self.emul
         pe = self.net.rotary_emb(h, pos)
+        masks = None
+        if self.oss:   # eager attention adds its mask; sliding-window layers see only keys within the window of the query's absolute position
+            neg, W = torch.finfo(h.dtype).min, self.net.config.sliding_window
+            masks = {t: torch.zeros(b.shape, dtype=h.dtype, device="cuda").masked_fill(~b, neg)
+                     for t, b in (("full_attention", mask), ("sliding_attention", mask & (l + q - k < W)))}
 
         def layer(h, i):
             k0, v0 = kv[i]
-            out = self.net.layers[i](h, attention_mask=mask, position_ids=pos, use_cache=True, position_embeddings=pe,
+            out = self.net.layers[i](h, attention_mask=masks[self.net.layers[i].attention_type] if masks else mask, position_ids=pos, use_cache=True, position_embeddings=pe,
                                      past_key_values=_Prefix(k0[:, :, :l].expand(B, -1, -1, -1), v0[:, :, :l].expand(B, -1, -1, -1)))
             return out[0] if isinstance(out, tuple) else out
         for i in range(len(self.net.layers)):

@@ -114,9 +114,13 @@ def write_checkers(bench):
     C = json.load(open(path)) if os.path.exists(path) else {}
     P = [p for p in prompts(bench) if p["id"] not in C]
 
-    def one(p):   # run_if's checker call at seed 1
-        c = budget_chat(CHECKER.format(q=p["prompt"]), 2000, max_tokens=2048, temperature=0.7, seed=1000 + zlib.crc32(p["id"].encode()) % 997,
-                        cut_note="I will now write the code.")
+    def one(p):   # run_if's checker call at seed 1; a failed call (e.g. a prompt longer than the context) leaves no checker ("error")
+        try:
+            c = budget_chat(CHECKER.format(q=p["prompt"]), 2000, max_tokens=2048, temperature=0.7, seed=1000 + zlib.crc32(p["id"].encode()) % 997,
+                            cut_note="I will now write the code.")
+        except Exception as e:
+            print("checker call failed:", p["id"], str(e)[:200], flush=True)
+            return p["id"], None
         return p["id"], last_block(c["text"] or "", ("python", "py", "python3"))
     with ThreadPoolExecutor(64) as ex:
         for k, (i, code) in enumerate(ex.map(one, P)):
@@ -136,11 +140,16 @@ def base_samples(bench, n):
     out = open(path, "a")
 
     def one(p):
-        ts = sample("local", [{"role": "user", "content": p["prompt"]}], n, CAP, 7 * 1000 + zlib.crc32(p["id"].encode()) % 997)
+        try:
+            ts = sample("local", [{"role": "user", "content": p["prompt"]}], n, CAP, 7 * 1000 + zlib.crc32(p["id"].encode()) % 997)
+        except Exception as e:
+            print("sample failed:", p["id"], str(e)[:200], flush=True)
+            return None
         return {"id": p["id"], "texts": ts, "checks": [check(C.get(p["id"]), t) for t in ts]}
     with ThreadPoolExecutor(32) as ex:
         for row in ex.map(one, [p for p in prompts(bench) if p["id"] not in done and zlib.crc32(p["id"].encode()) % K == k]):
-            out.write(json.dumps(row) + "\n"); out.flush()
+            if row:
+                out.write(json.dumps(row) + "\n"); out.flush()
     print(bench, "samples done", flush=True)
 
 

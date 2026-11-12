@@ -11,7 +11,9 @@ PREREG_GRLV: --reward vote is TTRL's (2504.16084) majority vote: 1 if the sample
 group's samples that have one (no label, no uniqueness check).
 PREREG_GRLLF: --reward count1 rewards the free check alone (solver count 1, no label); fold "all" trains on every puzzle, test included
 (transductive, label-free only), and is evaluated on all test puzzles.
-usage: /opt/conda/bin/python gp_train.py <out dir> <fold 0|1|all> [--reward gold|count1|vote] [--epochs 4] [--batch 16] [--group 8] [--lr 2e-5] [--smoke N]
+PREREG_GRLO: gpt-oss-20b (--base its directory; reasoning effort POC_REASONING_EFFORT, low as gtr's rows) is trained on the exact tokens it
+sampled, harmony's analysis channel included (cv_train.sample raw), up to --cap tokens (2048: its first rounds' 95th percentile is 1793).
+usage: /opt/conda/bin/python gp_train.py <out dir> <fold 0|1|all> [--reward gold|count1|vote] [--epochs 4] [--batch 16] [--group 8] [--lr 2e-5] [--cap 1536] [--smoke N]
        python gp_train.py --folds <dir>   (writes <dir>/fold{0,1}_ids.txt: the test puzzles each fold's model is evaluated on)
 (POC_PYTHON: the sandbox python with OR-Tools; POC_BASE_URL: vLLM with --enable-lora and VLLM_ALLOW_RUNTIME_LORA_UPDATING=True)"""
 import ast, itertools, json, os, random, sys, time, zlib
@@ -117,7 +119,7 @@ def main():
     from cv_train import Policy, arg, post, sample
     out, F = sys.argv[1], (None if sys.argv[2] == "all" else int(sys.argv[2]))
     ep, B, G, lr, smoke = arg("--epochs", 4), arg("--batch", 16), arg("--group", 8), arg("--lr", 2e-5), arg("--smoke", 0)
-    rw = arg("--reward", "gold")
+    rw, cap = arg("--reward", "gold"), arg("--cap", CAP)
     assert rw in ("gold", "count1", "vote") and (F is not None or rw != "gold"), "fold all only with a label-free reward"
     base = arg("--base", "/SSD/huggingface/Qwen/Qwen3-8B")
     os.makedirs(out, exist_ok=True)
@@ -130,7 +132,7 @@ def main():
         e = list(train); rng.shuffle(e); items += e
     items = items[:smoke or len(items)]
     print(f"grl fold {F}: {len(train)} training puzzles ({sum(r['set'] == 'gridpuzzle' for r in train)} GridPuzzle), {ep} epochs, "
-          f"batch {B}, group {G}, lr {lr}, cap {CAP}, reward {rw}", flush=True)
+          f"batch {B}, group {G}, lr {lr}, cap {cap}, reward {rw}", flush=True)
     pol = Policy(base, lr)
     log = open(f"{out}/log.jsonl", "a")
     model_name = "local"   # round 0: the adapter is zero, the base model samples
@@ -140,7 +142,8 @@ def main():
         batch = items[a:a + B]
         msgs = [[{"role": "user", "content": prompt(r)}] for r in batch]
         with ThreadPoolExecutor(32) as sx:
-            drafts = list(sx.map(lambda m: sample(model_name, m, G, CAP, random.randrange(1 << 30)), msgs))
+            raws = list(sx.map(lambda m: sample(model_name, m, G, cap, random.randrange(1 << 30), raw=pol.oss), msgs))
+        drafts = [[d["text"] for d in ds] for ds in raws] if pol.oss else raws
         t1 = time.time()
         jobs = [(qi, d) for qi, ds in enumerate(drafts) for d in ds]
         res = list(ex.map(lambda x: grade_full(x[1], batch[x[0]]), jobs))
@@ -159,12 +162,15 @@ def main():
             A = [x - mu for x in W]
             if any(abs(x) > 1e-9 for x in A):
                 st["mixed"] += 1
-                Pi = pol.ids(msgs[qi])
+                if pol.oss:   # the exact tokens sampled: harmony's analysis and final channels
+                    Pi, comps = raws[qi][0]["prompt_ids"], [d["ids"][:cap] for d in raws[qi]]
+                else:
+                    Pi = pol.ids(msgs[qi])
+                    comps = [pol.tok(d, add_special_tokens=False)["input_ids"][:cap] + [pol.end] for d in ds]
                 kv = pol.prefix(Pi[:-1])
-                comps = [pol.tok(d, add_special_tokens=False)["input_ids"][:CAP] + [pol.end] for d in ds]
                 for sub, lp in pol.turn1_logp(kv, Pi, comps):
                     adv = pol.torch.tensor([A[b] for b in sub], device="cuda")
-                    (-(adv * lp).sum() / (G * len(batch) * CAP)).backward()
+                    (-(adv * lp).sum() / (G * len(batch) * cap)).backward()
                 del kv
         pol.step()
         t3 = time.time()
