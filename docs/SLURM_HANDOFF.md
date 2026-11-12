@@ -229,7 +229,7 @@ POSTECH CSED490E team project: exactly right answers from LLMs at the lowest cos
    benchmark (in 24 GB only gpt-oss-20b comes close; gpt-oss-120b would need an A100 / H200 the user keeps for other sessions — ask first).
    Practical rule meanwhile: use the library by default.
 3. **Write-up** (open; format, length and deadline asked of the user 10-22): fold HO / OB / HOG / HOGC / HO2 / CD / WF into the final report
-   around one claim, every number with tokens and a 95% interval (draft outline: docs/notes/REPORT_OUTLINE.md). Held-out tally for the report:
+   around one claim, every number with tokens and a 95% interval (the draft and its outline were removed 2026-11-12). Held-out tally for the report:
    the recipe ties or beats always thinking for gpt-oss-20b and Qwen3-14B-AWQ on every unseen benchmark at 28–88% of its output tokens
    (37–97% with input tokens); for Qwen3-8B it holds only on OptiBench with the library; the limit is the free check's leak. No new
    replications or baselines unless a claim in the report needs them (user, 2026-10-19).
