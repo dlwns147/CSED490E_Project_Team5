@@ -7,12 +7,15 @@ run_zebra.GP_SOLVE in the sandbox, as gtr does (30 s, 4 GB). Programs are sample
 Folds (`folds`): test puzzles of both sets, joined with any puzzle whose value set overlaps theirs by Jaccard >= 0.9 (Mitra-Baral has 25
 dev-test and 3 test-test copies; Schrader et al. 2512.17093 found the same), fold = crc32 of the component's smallest test id mod 2.
 Fold f trains on every puzzle (dev and test, both sets) outside fold f's components and is evaluated on fold f's test puzzles.
+PREREG_GRLV: --reward vote is TTRL's (2504.16084) majority vote: 1 if the sample's first-solution grid is the most common grid among the
+group's samples that have one (no label, no uniqueness check).
 PREREG_GRLLF: --reward count1 rewards the free check alone (solver count 1, no label); fold "all" trains on every puzzle, test included
 (transductive, label-free only), and is evaluated on all test puzzles.
-usage: /opt/conda/bin/python gp_train.py <out dir> <fold 0|1|all> [--reward gold|count1] [--epochs 4] [--batch 16] [--group 8] [--lr 2e-5] [--smoke N]
+usage: /opt/conda/bin/python gp_train.py <out dir> <fold 0|1|all> [--reward gold|count1|vote] [--epochs 4] [--batch 16] [--group 8] [--lr 2e-5] [--smoke N]
        python gp_train.py --folds <dir>   (writes <dir>/fold{0,1}_ids.txt: the test puzzles each fold's model is evaluated on)
 (POC_PYTHON: the sandbox python with OR-Tools; POC_BASE_URL: vLLM with --enable-lora and VLLM_ALLOW_RUNTIME_LORA_UPDATING=True)"""
 import ast, itertools, json, os, random, sys, time, zlib
+from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -80,19 +83,26 @@ def last_block(text, langs):   # as llm.last_block
 
 def grade(text, r):
     """(solver count, right): count -1 when the program fails, as gtr records it"""
+    return grade_full(text, r)[:2]
+
+
+def grade_full(text, r):
+    """(solver count, right, answer key): the key is the first solution's grid, lower-cased, for the vote reward (PREREG_GRLV); None if none"""
     code = last_block(text or "", ("python", "py", "python3"))
     if not code:
-        return -1, False
+        return -1, False, None
     (first, fv) = r["cats"][0]
     solve = GP_SOLVE.replace("__FIRST__", json.dumps(fv)).replace("__FNAME__", json.dumps(first))
     res = run_python(code + "\n" + solve, "", timeout=30, mem_bytes=4 << 30)
     try:
         out = json.loads(res.stdout.strip().splitlines()[-1])
     except (AttributeError, IndexError, ValueError):
-        return -1, False
+        return -1, False, None
     if not isinstance(out, dict) or "count" not in out:   # the program printed its own last line
-        return -1, False
-    return out["count"], out["count"] == 1 and score(out.get("grid"), r)[0]
+        return -1, False, None
+    g = out.get("grid") or {}
+    key = json.dumps({str(k).lower(): [str(v).lower() for v in vs] for k, vs in sorted(g.items())}) if out["count"] >= 1 and g else None
+    return out["count"], out["count"] == 1 and score(g, r)[0], key
 
 
 def main():
@@ -108,7 +118,7 @@ def main():
     out, F = sys.argv[1], (None if sys.argv[2] == "all" else int(sys.argv[2]))
     ep, B, G, lr, smoke = arg("--epochs", 4), arg("--batch", 16), arg("--group", 8), arg("--lr", 2e-5), arg("--smoke", 0)
     rw = arg("--reward", "gold")
-    assert rw in ("gold", "count1") and (F is not None or rw == "count1"), "fold all only with the label-free reward"
+    assert rw in ("gold", "count1", "vote") and (F is not None or rw != "gold"), "fold all only with a label-free reward"
     base = arg("--base", "/SSD/huggingface/Qwen/Qwen3-8B")
     os.makedirs(out, exist_ok=True)
     P = puzzles()
@@ -133,10 +143,15 @@ def main():
             drafts = list(sx.map(lambda m: sample(model_name, m, G, CAP, random.randrange(1 << 30)), msgs))
         t1 = time.time()
         jobs = [(qi, d) for qi, ds in enumerate(drafts) for d in ds]
-        res = list(ex.map(lambda x: grade(x[1], batch[x[0]]), jobs))
-        R = [[float(res[qi * G + j][1] if rw == "gold" else res[qi * G + j][0] == 1) for j in range(G)] for qi in range(len(batch))]
+        res = list(ex.map(lambda x: grade_full(x[1], batch[x[0]]), jobs))
+        if rw == "vote":
+            top = [Counter(k for _, _, k in res[qi * G:(qi + 1) * G] if k).most_common(1) for qi in range(len(batch))]
+            R = [[float(bool(top[qi]) and res[qi * G + j][2] == top[qi][0][0]) for j in range(G)] for qi in range(len(batch))]
+        else:
+            R = [[float(res[qi * G + j][1] if rw == "gold" else res[qi * G + j][0] == 1) for j in range(G)] for qi in range(len(batch))]
         t2 = time.time()
-        st = {"right": sum(ok for _, ok in res), "n": 0, "mixed": 0, "count1": sum(c == 1 for c, _ in res), "fail": sum(c == -1 for c, _ in res)}
+        st = {"right": sum(ok for _, ok, _ in res), "n": 0, "mixed": 0, "count1": sum(c == 1 for c, _, _ in res), "fail": sum(c == -1 for c, _, _ in res),
+              "reward": sum(map(sum, R))}
         for qi in range(len(batch)):
             ds, W = drafts[qi], R[qi]
             st["n"] += G
@@ -165,7 +180,7 @@ def main():
                     os.remove(os.path.join(old, f))
                 os.rmdir(old)
         model_name = name
-        rec = {"round": rnd + 1, "puzzles": a + len(batch), "right": st["right"] / st["n"], "count1": st["count1"] / st["n"],
+        rec = {"round": rnd + 1, "puzzles": a + len(batch), "right": st["right"] / st["n"], "count1": st["count1"] / st["n"], "reward": st["reward"] / st["n"],
                "fail": st["fail"] / st["n"], "mixed": st["mixed"] / len(batch), "t_sample": round(t1 - t0), "t_exec": round(t2 - t1),
                "t_train": round(t3 - t2), "load": str(r)[:80]}
         log.write(json.dumps(rec) + "\n"); log.flush()
