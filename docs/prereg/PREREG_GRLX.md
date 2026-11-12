@@ -30,3 +30,23 @@
 - **X-P1 fails:** the RL result is stated for Qwen3-8B only.
 
 **Runs.** On the paper-extension server: lf fold 0, lf fold 1 and gold fold 0 in parallel, then gold fold 1.
+
+## Result (2026-11-12 09:1x UTC)
+
+`python poc/gp_eval.py --quick g8b gold=g8bgrlg0+g8bgrlg1 lf=g8bgrllf0+g8bgrllf1`, seeds 4–6, all four lanes complete.
+
+| Granite quick step | Right count-1 | Wrong count-1 | Precision | ktok |
+|---|---|---|---|---|
+| GridPuzzle, base | 18.0% | 5.1% | 77.9% | 1.65 |
+| GridPuzzle, gold | 40.8% | 5.3% | 88.6% | 1.39 |
+| GridPuzzle, lf | 38.4% | 5.1% | 88.3% | 1.51 |
+| Mitra-Baral, base | 32.3% | 10.6% | 75.2% | 0.76 |
+| Mitra-Baral, gold | 50.4% | 8.9% | 85.0% | 0.62 |
+| Mitra-Baral, lf | 49.3% | 10.6% | 82.2% | 0.61 |
+
+- **X-P1 holds.** GridPuzzle gold − base, right count-1: +22.8 [+18.1, +27.4]. Mitra-Baral: +18.1 [+9.6, +26.6].
+- **X-P2 holds.** GridPuzzle lf − base: +20.5 [+15.8, +25.3]. Mitra-Baral: +17.0 [+8.5, +25.2].
+- **X-P3 fails as registered.** GridPuzzle lf − base, wrong count-1: +0.0 [−2.6, +2.6]; the upper bound is above +2.0. Mitra-Baral: −0.0 [−5.3, +5.3].
+- lf − gold: GridPuzzle right count-1 −2.3 [−7.0, +2.3], wrong −0.2 [−2.8, +2.5]. Mitra-Baral right −1.1 [−6.4, +4.6], wrong +1.8 [−2.5, +6.0].
+
+**Decision (as registered: X-P1 holds, X-P3 fails).** Gold-reward RL on the cheap translation is stated for two families. The label-free form is stated with its limit. On Granite, whose check is less precise (right : wrong 3.5), we cannot rule out a rise in wrong passes of up to 2.6 points. The point estimate is zero and precision rose from 77.9% to 88.3%, so this is a failure to bound, not observed hacking; the paper reports it as the bound that was not met.

@@ -1143,7 +1143,7 @@ def grl_main():
     as the ladder's first step, against base gtr and against thinking; seeds 4-9 (--seeds to override). usage: python poc/gp_eval.py --grl
     Ladder and scoring as rule3g_main; first step "grl" = the trained gtr, then base gtrt -> think, every step paid.
     --extra name=tag[+tag...][,...] (PREREG_GRLLF): more trained quick steps, each compared with gtr, grl and think, e.g.
-    --extra lf=q8bgrllf0+q8bgrllf1,tt=q8bgrltt"""
+    --extra lf=q8bgrllf0+q8bgrllf1,tt=q8bgrltt. With two or more extras, the first is also compared with each later one (PREREG_GRLV)."""
     from grid_score import score
     SD = [int(x) for x in sys.argv[sys.argv.index("--seeds") + 1].split(",")] if "--seeds" in sys.argv else [4, 5, 6, 7, 8, 9]
     data = os.environ.get("POC_DATA", os.path.join(RES, "..", "..", "nlp_data"))
@@ -1187,7 +1187,7 @@ def grl_main():
             print(line)
         for a, b, rule in [("grl", "gtr", "GRL-P2: interval above 0 on GridPuzzle; GRL-P3: lower bound above -2.0 on Mitra-Baral"),
                            ("grl", "think", "GRL-P4: reported"), ("gtr", "think", "reported")] + \
-                [(n, b, "GRLLF") for n, _ in EX for b in ("gtr", "grl", "think")]:
+                [(n, b, "GRLLF") for n, _ in EX for b in ("gtr", "grl", "think")] + [(EX[0][0], n, "GRLV") for n, _ in EX[1:]]:
             per = {}
             for i, sd in keys:
                 (ea, ta), (eb, tb) = lad(a, i, sd), lad(b, i, sd)

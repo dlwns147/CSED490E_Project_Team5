@@ -6967,3 +6967,22 @@ Job 1382299 (one GPU, queued).
   - Label-free RL with the model's own check where the table says it should work: IFEval's checker, or MATH-500's text = program.
   - The same where it says it should fail: IFBench, AIME.
   - Cross-fitted as on grids. This gets the claim off puzzles, or bounds it.
+
+## 2026-11-12 09:1x UTC — PREREG_GRLX and PREREG_GRLV: RL on the cheap translation works on a second family (Granite), and the check beats a majority vote as a label-free reward
+
+**Why these runs.** GRL and GRLLF showed that RL on the quick grid translation lifts the ladder, and that the free check (the program has exactly one solution) works as the reward without labels. Two doubts remained. Is this a Qwen-only effect, as Spurious Rewards (2506.10947) found for other RL gains? And is it the check that matters, or would any label-free reward, such as TTRL's majority vote (2504.16084), do as well?
+
+**Granite-4.1-8B (PREREG_GRLX, quick step, seeds 4–6).**
+- gold − base, right with one solution: GridPuzzle +22.8 [+18.1, +27.4]; Mitra-Baral +18.1 [+9.6, +26.6].
+- lf − base: GridPuzzle +20.5 [+15.8, +25.3]; Mitra-Baral +17.0 [+8.5, +25.2]. lf − gold: −2.3 [−7.0, +2.3].
+- Wrong with one solution, lf − base: +0.0 [−2.6, +2.6]. The registered bound was +2.0, so X-P3 fails. Precision rose from 77.9% to 88.3%.
+- Decision: gold-reward RL holds for two families. The label-free form is stated with its limit: on a check this imprecise (right : wrong 3.5) we could not bound added wrong passes below 2.6 points.
+
+**Vote against check (PREREG_GRLV, Qwen3-8B, seeds 4–9, same folds and loop).**
+- Ladder(check) − ladder(vote) on GridPuzzle: utility +5.0 [+2.9, +7.5]. V-P1 holds. Mitra-Baral: +1.0 [−2.8, +4.7].
+- Quick step right with one solution: base 31.9%, vote 46.7%, check 57.8%. Vote − check: −11.1 [−15.0, −7.3].
+- The vote still helps (+14.8 over base), although it rewards right and wrong grids about equally. It mostly rewards agreement (62.5% of samples rewarded against 20.3% right in the last round), and agreement also raises the share of programs with one solution.
+
+**What this changes in the claim.** The RL result is no longer one model's. The check's advantage over the standard label-free reward is measured, not argued: about +11 points of the quick step and +5 utility on the full ladder. The reason is the one derived before the run: the check rewards 6.0 right samples per wrong one, the vote 1.1.
+
+**Next.** The Qwen3-32B label-free run (PREREG_GRL32) is training (rounds 26–28 of 54 per fold). The two-sided test off puzzles (check precise: IFEval checker, MATH-500 text = program; check imprecise: IFBench, AIME) is the next registration.
