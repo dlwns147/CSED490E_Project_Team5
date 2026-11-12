@@ -109,6 +109,7 @@ Our side of the proof work was testing and analysis only from 2026-11-07; since 
   - that the known false proofs (IMO 2011 P6 and the controls in `PREREG_SIDE.md`) are still rejected;
   - whether figures near the proof's own figure test the proof as well as distant ones.
   These are task 1's registered run.
+- **Distance check (job 1397601, same 41 statements):** the walk's accepted figures sit closer to the proof's figure than the default solver's. The median shape distance is 0.30 against 0.73 (points 0 and 1 fixed; the largest point move). That is still far beyond the 7e-5 near-coincidence behind the false IMO 2011 P6 proof. But task 1 should spread its figures as far as the default's: larger steps, or chaining from the farthest accepted figure, with the distance reported. That false proof is stored in the older AG format, which the kit can't read, so task 1 also needs a planted false proof in the decl format as its soundness control.
 - The probe script stays outside the repository (`nlp_data/geo/kit_fresh_probe/`), so the method is the teammate's to write.
 
 **2026-11-08 11:5x UTC: MechGeo's 44 IMO problems, final (SIDE-GT-MG): 13 whole problems with or without the audited Lean statement.**
