@@ -1198,5 +1198,41 @@ def grl_main():
             be = f", break-even price {da / dk:.2f} per ktok" if da * dk > 0 else ""
             print(f"  ladder({a}) - {'ladder(' + b + ')' if b != 'think' else 'think'}: utility {pt:+.1f} [{lo:+.1f}, {hi:+.1f}], accuracy {da:+.1f} points, ktok {dk:+.2f}{be}   ({rule})")
 
+
+def quick_main():
+    """PREREG_GRLX: the quick step alone (gtr, 3 rounds) for a model without a stored ladder, base against trained arms, per puzzle-seed with a
+    95% bootstrap over puzzles. usage: python poc/gp_eval.py --quick <base tag> <name>=<tag>[+<tag>...] ... [--seeds 4,5,6]
+    e.g. --quick g8b gold=g8bgrlg0+g8bgrlg1 lf=g8bgrllf0+g8bgrllf1. Right = solver count 1 and exact (scoring v2)."""
+    from grid_score import score
+    SD = [int(x) for x in sys.argv[sys.argv.index("--seeds") + 1].split(",")] if "--seeds" in sys.argv else [4, 5, 6]
+    i = sys.argv.index("--quick")
+    base, arms = sys.argv[i + 1], [(a.split("=")[0], a.split("=")[1].split("+")) for a in sys.argv[i + 2:] if "=" in a]
+    data = os.environ.get("POC_DATA", os.path.join(RES, "..", "..", "nlp_data"))
+    for s, src in [("gp", "gridpuzzle"), ("lgp", "lgp")]:
+        PZ = {r["id"]: r for r in map(json.loads, open(os.path.join(data, src, "grid.jsonl")))}
+        R = {}
+        for arm, tags in [("base", [base])] + arms:
+            for tag in tags:
+                for sd in SD:
+                    f = os.path.join(RES, f"{s}_{tag}_gtr_s{sd}.jsonl")
+                    for x in map(json.loads, open(f)) if os.path.exists(f) else []:
+                        ok = x["count"] == 1 and score(x.get("grid"), PZ[x["id"]])[0]
+                        R[(arm, x["id"], sd)] = (bool(ok), x["count"] == 1 and not ok, x["tokens"])
+        A = ["base"] + [a for a, _ in arms]
+        keys = sorted({(i, sd) for (_, i, sd) in R if all((a, i, sd) in R for a in A)})
+        print(f"== {s}: {len(keys)} puzzle-seeds, seeds {SD}")
+        for a in A:
+            q = [R[(a, i, sd)] for i, sd in keys]
+            nr, nw = sum(x[0] for x in q), sum(x[1] for x in q)
+            print(f"  {a:6s}: right count-1 {100 * nr / max(1, len(q)):5.1f}%, wrong count-1 {100 * nw / max(1, len(q)):5.1f}%, "
+                  f"precision {100 * nr / max(1, nr + nw):5.1f}%, {mean([x[2] for x in q]) / 1000:.2f} ktok")
+        for a, b in [(a, "base") for a, _ in arms] + ([(arms[1][0], arms[0][0])] if len(arms) > 1 else []):
+            per = {}
+            for i, sd in keys:
+                per.setdefault(i, []).append((R[(a, i, sd)][0] - R[(b, i, sd)][0], R[(a, i, sd)][1] - R[(b, i, sd)][1]))
+            for k, nm in ((0, "right count-1"), (1, "wrong count-1")):
+                pt, lo, hi = boot(per, lambda v: 100 * mean([mean([z[k] for z in x]) for x in v]))
+                print(f"  {a} - {b}: {nm} {pt:+.1f} [{lo:+.1f}, {hi:+.1f}] points")
+
 if __name__ == "__main__":
-    grl_main() if "--grl" in sys.argv else rule3g_main() if "--rule3g" in sys.argv else esc3_main() if "--esc3" in sys.argv else esc2_main() if "--esc2" in sys.argv else esc_main() if "--esc" in sys.argv else min_main() if "--zlmin" in sys.argv else conv_main() if "--conv" in sys.argv else free_main() if "--free" in sys.argv else bud_main() if "--bud" in sys.argv else mot_main() if "--mot" in sys.argv else zl_main() if "--zl" in sys.argv else np_main() if "--np" in sys.argv else thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()
+    quick_main() if "--quick" in sys.argv else grl_main() if "--grl" in sys.argv else rule3g_main() if "--rule3g" in sys.argv else esc3_main() if "--esc3" in sys.argv else esc2_main() if "--esc2" in sys.argv else esc_main() if "--esc" in sys.argv else min_main() if "--zlmin" in sys.argv else conv_main() if "--conv" in sys.argv else free_main() if "--free" in sys.argv else bud_main() if "--bud" in sys.argv else mot_main() if "--mot" in sys.argv else zl_main() if "--zl" in sys.argv else np_main() if "--np" in sys.argv else thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()

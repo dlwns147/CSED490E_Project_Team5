@@ -824,7 +824,9 @@ def gp_main():
                 out = json.loads(res.stdout.strip().splitlines()[-1])
             except (AttributeError, IndexError, ValueError):
                 out = {"count": -1, "grid": {}}
-            ex, ca = gp_score(out["grid"], r)
+            if not isinstance(out, dict) or "count" not in out:   # the program printed its own last line (Llama-3.1, PREREG_GRLX)
+                out = {"count": -1, "grid": {}}
+            ex, ca = gp_score(out.get("grid"), r)
             hist.append({"count": out["count"], "exact": ex, "cell_acc": ca, "tokens": o["out_tokens"], "err": (res.stderr[-300:] if res else "no code"), "grid": out["grid"]})
             free = free_checks(code, r, out["grid"]) if arm in ("gtrv", "gtrtv") and out["count"] == 1 else []   # PREREG_FREE
             if arm in ("gtrv", "gtrtv"):

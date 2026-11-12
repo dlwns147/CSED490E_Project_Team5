@@ -177,7 +177,9 @@ class Policy:
         self.model.print_trainable_parameters()
         self.opt = torch.optim.AdamW([p for p in self.model.parameters() if p.requires_grad], lr=lr, betas=(0.9, 0.99), weight_decay=0.0)
         self.net, self.head = self.model.base_model.model.model, self.model.base_model.model.lm_head   # LoRA sits inside net's layers
-        self.end = self.tok.convert_tokens_to_ids("<|im_end|>")
+        # Granite (PREREG_GRLX) scales the embeddings and the logits outside the modules used below; 1.0 for Qwen / Llama
+        self.emul, self.lscale = getattr(m.config, "embedding_multiplier", 1.0), getattr(m.config, "logits_scaling", 1.0)
+        self.end = self.tok.convert_tokens_to_ids("<|im_end|>") if "<|im_end|>" in self.tok.get_vocab() else self.tok.eos_token_id
         self.pad = self.tok.pad_token_id if self.tok.pad_token_id is not None else self.end
         self.acc, self.de = self.tok.convert_tokens_to_ids("ACCEPT"), self.tok.convert_tokens_to_ids("DE")
 
@@ -208,7 +210,7 @@ class Policy:
         q, k = torch.arange(L, device="cuda")[:, None], torch.arange(l + L, device="cuda")[None]
         n = torch.tensor([len(s) for s in seqs], device="cuda")[:, None, None, None]
         mask = (k < l) | ((k - l <= q) & (k - l < n))   # (B, 1, L, l + L): the prompt, then causal over the sequence's own tokens
-        h = self.net.embed_tokens(inp)
+        h = self.net.embed_tokens(inp) * self.emul
         pe = self.net.rotary_emb(h, pos)
 
         def layer(h, i):
@@ -236,7 +238,7 @@ class Policy:
         from torch.utils.checkpoint import checkpoint
 
         def logp(h, t):
-            lg = self.head(h).float() / TEMP
+            lg = self.head(h).float() / self.lscale / TEMP
             return lg.gather(-1, t[..., None])[..., 0] - torch.logsumexp(lg, -1)
         seqs = [[P[-1]] + c for c in comps]
         for sub in self.packs([len(s) for s in seqs]):

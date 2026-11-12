@@ -90,7 +90,9 @@ def grade(text, r):
         out = json.loads(res.stdout.strip().splitlines()[-1])
     except (AttributeError, IndexError, ValueError):
         return -1, False
-    return out["count"], out["count"] == 1 and score(out["grid"], r)[0]
+    if not isinstance(out, dict) or "count" not in out:   # the program printed its own last line
+        return -1, False
+    return out["count"], out["count"] == 1 and score(out.get("grid"), r)[0]
 
 
 def main():
