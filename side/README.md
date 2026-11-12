@@ -99,6 +99,18 @@ Our side of the proof work was testing and analysis only from 2026-11-07; since 
 
 ## Log
 
+**2026-11-12 12:5x UTC: task 1 diagnosed: the default solver rarely lands on the solution set; a walk along the set from the proof's figure gives 8 fresh figures on every lost statement (a difficulty probe, not the registered task-1 run).**
+- **Why:** to judge how hard task 1 is before handing it over.
+- **Root cause:** on the 41 faithful, certified statements of the 15 lost problems (7 NL, 8 LEAN), least squares from random starts converges on only 1–8 of 240 starts (1 on 15 statements). Every figure it does find passes the kit's rule. So the loss comes from too few starts landing on the solution set, not from figures being rejected. Up to similarity, the set has dimension 1–3 (2 on 25 statements), inside 14–22 coordinates.
+- **Probe:** from the proof's own figure, take a random step in the null space of the hypotheses' Jacobian (the tangent space of the set), then least squares back onto the set. Repeat from figures already accepted.
+- **Result:** on all 41 statements, 8 fresh figures pass the kit's rule, and the proof holds on all 8. That takes 1–6 s per statement, against 107 s for the default solver. All 15 lost problems would count, so the estimate is 20 (NL) and 21 (LEAN) whole problems, from 13 each.
+- **Not yet shown:**
+  - the count through `kit_fresh.py` with this solver as `--solver`;
+  - that the known false proofs (IMO 2011 P6 and the controls in `PREREG_SIDE.md`) are still rejected;
+  - whether figures near the proof's own figure test the proof as well as distant ones.
+  These are task 1's registered run.
+- The probe script stays outside the repository (`nlp_data/geo/kit_fresh_probe/`), so the method is the teammate's to write.
+
 **2026-11-08 11:5x UTC: MechGeo's 44 IMO problems, final (SIDE-GT-MG): 13 whole problems with or without the audited Lean statement.**
 - **MG-P2:** whole problems (faithful, proved, certified, 8 of 8 fresh figures): **NL 13, LEAN 13** (predicted 9 and 15; both in range). Faithful or half: 15 each. MechGeo without a human: 29 of 43.
 - **MG-P3 fails:** LEAN − NL = 0 [−0.09, +0.09] per problem. So at IMO level the translator's reading is not what limits us.
