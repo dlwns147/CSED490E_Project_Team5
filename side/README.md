@@ -47,6 +47,9 @@ figure solver built fewer than 8 fresh figures (9 statements per arm got none). 
 the verdicts, and the checker's results, 73 of 78 and 78 of 82 accepted as registered).
 - Run: `python side/kit_fresh.py <kit dir> [--solver <your module>] [--only <problem id>]`. It prints, per arm, the whole problems counted,
   the faithful certified problems lost at the fresh-figure rule, and CPU seconds per statement.
+- Soundness control: `python side/kit_fresh.py <kit dir> --control [--solver <your module>]`. It scores 267 planted false steps
+  (`plants.json` in the kit dir): each is a proof step that holds exactly on a proof's figure moved to a coincidence, and is false in
+  general. A sound solver counts none of them whole. If your `figures` takes a keyword `ref`, the kit passes the proof's figure.
 - Your part: a module with `figures(dsl, n, seed)` that returns candidate figures (lists of complex coordinates in the statement's point
   order, `geo_decl.parse`). The kit, not your solver, decides what counts as a fresh figure: every hypothesis and order condition holds, the
   points are apart, the configuration (orientation of unsigned angles) is the proof's own, there are no more chance collinearities than on the
@@ -98,6 +101,18 @@ Our side of the proof work was testing and analysis only from 2026-11-07; since 
 **Where things are.** Status and dated log below; predictions and verdicts in `docs/prereg/PREREG_SIDE.md`; prior work in `docs/notes/RELATED_WORK.md`.
 
 ## Log
+
+**2026-11-12 17:4x UTC: the kit now has a soundness control, and both solvers pass it; the walk counts 20 and 21 through the kit (a reference run, not the registered task-1 run).**
+- **Why:** task 1 needs a check that a new solver does not weaken the rule, in the kit's own format; the stored false proof (IMO 2011 P6) is in an older format.
+- **Kit changes** (`side/kit_fresh.py`): `--control` (above); the proof's figure is passed to a solver that takes `ref`; fact kinds the
+  numeric check does not know are rejected (none occur, so no count changes); `--workers` works for any solver.
+- **Count through the kit:** the default solver still gives 13 and 13 with the same 7 and 8 problems lost (68 CPU s per statement),
+  so the changes leave the stored count as it was. The walk (`nlp_data/geo/kit_fresh_probe/walk_solver.py`, outside the repository)
+  gives **20 (NL) and 21 (LEAN), none lost**, at 71 CPU s per statement, most of it building the proof's own figure. This is task 1's expected answer.
+- **Control (267 plants on 91 statements, 3 per statement at most; the proof's figure moved by a median 2e-4 to make each step hold exactly):**
+  the walk counts **0** whole and gives 8 figures for every plant, so every plant was tested and rejected. The default solver also counts
+  0, but gives fewer than 8 figures on 125, so on those it rejects for lack of figures, not by testing.
+- Plants were kept only if false by more than 1e-4 on some figure, which excludes the three IMO 2019 P6 facts that were wrong only by numerical noise.
 
 **2026-11-12 15:2x UTC: planted false steps: the walk's nearer figures still expose every false step tried, so nearness is not a soundness problem for task 1 (probe, not the registered run).**
 - **Why:** the walk's figures sit nearer the proof's figure (entry below; the nearest accepted one is under 0.01 on 8 of 41 statements). A false step could pass on figures that all lie close to the figure it was found on. Prediction, written before the run: no false step missed by either solver.
