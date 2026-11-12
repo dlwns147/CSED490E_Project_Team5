@@ -57,3 +57,11 @@ The verdict is final: P1 needs both sets, and Mitra-Baral's seeds 4–9 are comp
 - What the data do say: the rules bring no gain on Mitra-Baral. The quick translation there is already 92% precise, and its errors do not repeat in a way one stated rule can fix.
 - **Decision as registered:** P1 fails, so the rule method stays stated for ZebraLogic only, and `trrc` does not replace `trrvw` there (that needed P1, P2 and P4).
 - The rule line ends here for human-written puzzles. Two registrations (RULE3G, RULE4) failed on the same set, and a third would be a knob variant.
+
+## Addendum (2026-11-12 04:2x UTC): GridPuzzle seeds 7–9 complete (`python poc/gp_eval.py --rule3g --rule4`)
+- **P0, GridPuzzle, holds.** Seeds 7–9: `gtrrc` kept 25 rules, `gtrrv` 59 (seeds 4–9: 50 and 110).
+- **P1, GridPuzzle, holds.** ladder(`gtrrc`) − ladder(`gtr`) +1.6 [−0.4, +3.8], 1290 puzzle-seeds. The verdict stays "fails", because Mitra-Baral fails.
+- **P2 holds.** Quick count-1: 540 against 500. Precision 87.6% against 82.4%.
+- **P3 fails.** The interval includes 0.
+- **Reported.** ladder(`gtrrv`) − ladder(`gtr`) +2.2 [+0.2, +4.3] on GridPuzzle; `gtrrc` − `gtrrv` −0.6 [−1.9, +0.8].
+- **Against GRL.** The trained quick step's +7.0 [+4.0, +10.2] on the same puzzle-seeds is about three times the best rule arm's. The decision stands: rules for ZebraLogic, RL for human-written puzzles.

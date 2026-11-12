@@ -6896,3 +6896,16 @@ Job 1382299 (one GPU, queued).
 - **Decision (registered).** The trained translator becomes the quick step of the grid ladder for human-written puzzles.
 - **Why RL works here when prompting did not.** RULE3G and RULE4 tried to fix readings with stated rules. RL instead moves the whole distribution of readings toward the ones the solver confirms. WP-RL on word problems gained only +4.7 points of quick right; there, the base was already near its coverage.
 - **Next, registered: PREREG_GRLK.** pass@k up to 128, base against trained, first round. The question is whether RL here only sharpens what the base can write (Yue et al. 2504.13837: the base wins at large k) or reaches new puzzles. Four lanes are running on the paper-extension server.
+
+## 2026-11-12 04:2x UTC — PREREG_GRLK holds: the RL-trained grid translator is ahead of the base at every k up to 128 (GridPuzzle +17.7 [+12.6, +23.3] at k = 128), so RL here reaches new puzzles, not only sharpens; GRLLF registered (check-only reward, no labels)
+- **What ran.** 128 first-round quick translations per puzzle from base Qwen3-8B and from the held-out GRL adapters.
+- **pass@k** (k = 1 / 128):
+  - GridPuzzle: base 25.0% / 45.1%, trained 49.4% / 62.8%.
+  - Mitra-Baral: base 43.1% / 62.8%, trained 64.8% / 78.7%.
+- **No crossing.** Yue et al. (2504.13837) find that the base wins at large k on math and code; here it does not. The trained model gets 41 of the 118 GridPuzzle puzzles that the base never gets in 128 samples.
+- **Reading.** The reward fixes misreadings that are shared across the base's samples, which no amount of sampling escapes. So sampling many base programs and gating them by the count is not a rival at equal coverage.
+- **RULE4 addendum.** GridPuzzle seeds 7–9 complete: `gtrrc` +1.6 [−0.4, +3.8] (P3 fails, P0 and P2 hold). The verdict is unchanged.
+- **Next, registered: PREREG_GRLLF.** Reward only the free check (solver count 1), with no labels:
+  - cross-fitted, comparable with GRL;
+  - transductive, training on the test puzzles themselves without labels, as TTRL (2504.16084) does with votes.
+  - This decides whether the check that gates the ladder is also enough to train its cheap step. Three lanes are running.
