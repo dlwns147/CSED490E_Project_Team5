@@ -5,7 +5,6 @@ Goal, scope and working rules: `PROJECT.md`; how to set up and run: `README.md` 
 | File | Contents |
 |---|---|
 | `FINDINGS.md` | Chronological lab log (newest at the end) |
-| `REPORT.md` | Draft of the final report |
 | `proposal/` | The proposal (`PROPOSAL.md`, Korean `PROPOSAL_ko.md`), its decks (`*.pptx`), its earlier versions (`archive/`) |
 | `prereg/PREREG_<id>.md` | One file per experiment: predictions before the run → results and verdicts |
 | `notes/` | Self-critique (CRITIQUE), check coverage (CHECKS), failure → fix map (FIX_MAP), related work (RELATED_WORK), drafts |

@@ -24,8 +24,8 @@ poc/run_*.py                   benchmark harnesses (each explains its options at
 poc/analyze_*.py               analyses of the stored rows
 poc/slurm/                     Slurm job template (job.sh), generic lane (lane.sh), experiment lanes
 poc/queues/                    the exact commands of the old servers' runs (records; see poc/queues/README.md)
-docs/                          lab log (FINDINGS.md), pre-registrations (prereg/), notes, cluster state (SLURM_HANDOFF.md),
-                               the report draft (REPORT.md); index docs/README.md
+docs/                          lab log (FINDINGS.md), pre-registrations (prereg/), notes, cluster state (SLURM_HANDOFF.md);
+                               index docs/README.md
 docs/proposal/                 the proposal (paused; the project does not follow it): PROPOSAL.md, PROPOSAL_ko.md,
                                the talk (Proposal_Team5*.pptx), the full findings deck, earlier versions (archive/)
 side/                          the side project, proofs: geometry by translation, natural-language checks, constructions; side/README.md

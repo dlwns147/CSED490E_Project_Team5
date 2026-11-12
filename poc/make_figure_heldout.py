@@ -1,4 +1,4 @@
-"""Report figure (docs/REPORT.md §5): on each held-out benchmark, accuracy vs output tokens per problem of always thinking and of the
+"""Figure (held-out benchmarks): on each held-out benchmark, accuracy vs output tokens per problem of always thinking and of the
 recipe (fact first, think only when the free check fails), one panel per 24 GB model, computed from the stored rows (seed means);
 the fourth panel is Qwen3.5-9B, a model the recipe was never developed with (HO-N; OptMATH with the library, thinking at 32k).
 Always thinking is given the same fact as the recipe (HO-TF / HO-TF2: formxt, thinkfact; OptiBench on the HO-TF third).

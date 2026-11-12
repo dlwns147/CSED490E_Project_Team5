@@ -1,4 +1,4 @@
-"""Report figure (docs/REPORT.md §5.6b): accuracy vs output tokens per problem of five policies, every one given the same fact, on each
+"""Figure (held-out benchmarks): accuracy vs output tokens per problem of five policies, every one given the same fact, on each
 held-out benchmark (columns) for the four hybrid-thinking models, gpt-oss-20b (HO-OSB: low effort first; the short think = medium
 effort cut at 2,000 tokens) and Qwen3-32B-AWQ (HO-32) (rows), from the stored rows (seed means; 3 seeds):
   one think (formxt / thinkfact), think + retry on a visible failure (T->T: the next seed's think), non-thinking program first (FF+F, the
