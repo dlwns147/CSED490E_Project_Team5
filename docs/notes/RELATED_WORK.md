@@ -476,3 +476,20 @@ Training the quick translator on the count is therefore at most an increment ove
 - Below about 20B parameters, only 30% of its SMT programs are valid ("formalization barrier").
 - Against ours: it verifies the thinker's own claims, not a translation of the problem, and has no solution count and no cost gate; its baselines are single-pass CoT and SC-3 at a 4,000-token budget, not full thinking. Our AR-LSAT work (FINDINGS 2026-11-08/09, PREREG_LS) already found the count gate ties thinking there for Qwen3-8B and gpt-oss-20b, so VERGE's AR-LSAT gain is not one our ladder claims.
 - Searches (extended and standard): "AR-LSAT reasoning model autoformalization Z3 token cost comparison thinking 2026", "AR-LSAT Qwen3 thinking accuracy solver-aided formalization exactly one option unique answer".
+
+## Solvers against long reasoning, for the grid result and the computation direction (2026-11-12 17:2x UTC)
+- **He and Wang, "When Do Symbolic Solvers Enhance Reasoning in LLMs?" (2512.03272, Dec 2025; read via the arXiv HTML, experiments and tables).**
+  GPT-4o and CodeLlama-13B, greedy, on GSM8K / GSM-Reversed / GSM-Hard, EntailmentBank (Prolog) and ZebraLogic (Python `constraint`).
+  A one-shot declarative exemplar is what makes the solver route work. GPT-4o on ZebraLogic easy / hard / average: CoT 77.9 / 8.9 / 28.2,
+  declarative Python 96.4 / 62.1 / 71.7. On GSM8K CoT stays ahead (94.6 vs 90.1); on GSM-Hard the solver leads (72.6–78.0 vs 69.1).
+  Conclusion: solvers help where the search space is large and little implicit reasoning is needed, not on shallow deduction.
+  - **Overlap with ours:** idea 26 / 34 (the gate's edge grows with puzzle size; thinking fails large grids at search, not reading) states
+    their conclusion for thinking models. Cite it as prior; what remains ours is the test against *thinking* models (they run none),
+    tokens and utility (they report none), the count of solutions as a free check and the escalation ladder (they retry only on errors).
+  - **For the computation direction:** their GSM8K row is the warning. On word problems the reading is the hard part, so translation
+    to a solver loses to CoT; a unique-answer check on contest math must beat thinking, not CoT, and it does nothing about readings that
+    stay unique.
+- **He-Yueya et al. (2304.09102):** declarative formalization with SymPy, +20 over PAL on ALGEBRA (222 problems); already noted above.
+- **Zhao et al., "Dissecting Tool-Integrated Reasoning" (2508.15754, Aug 2025; abstract only, not read):** TIR models beat non-TIR ones on
+  math and non-math (ReasonZoo) and reduce overthinking by their cost-aware metrics (PAC, AUC-PCC). The nearest token-efficiency
+  comparison of tools against thinking; idea 13 (tool calls inside thinking) must be read against it before any claim.
