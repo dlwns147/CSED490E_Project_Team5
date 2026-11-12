@@ -4,6 +4,27 @@ Four literature searches (one per theme), each opening the papers on arXiv / pro
 ("Deep related-work check for G2 and CO1", "Novelty check T1 / T2", "Related-work check for the toolbox/distractor theme").
 Numbers quoted from papers came through a page reader: re-check before citing exact figures. "(search only)" = not opened.
 
+## Where the project stands against prior work, per track (2026-11-12 17:3x UTC)
+
+Compiled from PROJECT §2, this file, FINDINGS and the pre-registrations. "Ran" means the prior method ran on our harness and data;
+"published" means a paper's own number set beside ours. Numbers marked (unsure) need a re-check before citing.
+
+| Track | Our best (cost) | Prior methods we ran (who wins) | Published numbers beside ours | Closest prior work never compared (gap) |
+|---|---|---|---|---|
+| Optimization and geometry programs | MAMO: gpt-oss-20b 78.8% at 1.9k tokens; Qwen3-8B with the gpt-oss peer 79.8% at 2.1k vs its default 76.1% at 3.5k (XPEER) | ORLM-8B ties Qwen3-8B (69.5% both). **STORM-4B wins on accuracy** at 4–8× our tokens (MAMO 81.8% at 8.4k; OptiBench 78.7% vs our 73.0%). Snell-style allocation, FrugalGPT-style cascade, DRoC, CodeT and SC-3 lose | ORLM, STORM and OptiSkill reported MAMO numbers; not matched (noisy labels, grading differs) | OptiMind (2509.22979) on our own gpt-oss-20b base; SIRL, EVOM, OR-R1, Step-Opt, OptiMUS |
+| Short-answer math | Qwen3-8B thinking AIME 68.3%, MATH-500 97.0%; the text = program gate 96.7% at 4.3k (X1-SIZE) | AdaptThink-7B: neither dominates (ADAPT). MoT cascade: cheaper on MATH-500, dearer than thinking on AIME. START-style tools in thinking: tie (TIR) | AdaptThink replicated within 1–3 points of its paper | Early exit inside thinking (DEER, ThinkBrake), full DART; SatLM, Logic-LM and PAL on AIME |
+| Contest code | Retry on a visible failure +4.5 / +6.4 (HO-CC) | AlphaCode-style filter, MBR-exec, Self-Debugging; ties or small gaps | Qwen3 report on LiveCodeBench; not matched (our problems are newer, our 14B is AWQ) | S*, CodeT, MBR-exec on LiveCodeBench; ALGO |
+| Text-to-SQL | BIRD dev 62.2% at 1.36k vs default 59.5% at 1.68k; Spider test 81.2% | Agreement and confidence gates lose to the peer (EXT) | **None** | CHASE-SQL, OmniSQL, Reasoning-SQL; public RL-trained 7–8B checkpoints may score higher (unsure) |
+| Tool calls | BFCL 88.3% vs 83.9%; ACEBench 80.6% vs 74.0% | ToolRM as selector loses by 8–10 utility (SEL-RM) | None matched (we pool items; the leaderboard averages categories) | ToolACE-8B, xLAM-2, Hammer, Tool-N1 checkpoints |
+| Multi-turn agents | MT-SO 48.8%, +7.1 [+3.3, +10.9] over Qwen3-8B's best form (MT-FC) | **EnvScaler-8B beats us** +5.4 [+1.7, +9.1] (one seed); selection adds nothing on top (MT-FCS) | EnvScaler, EnvACE, Arctic-AWM: matched after the YaRN fix | TwinCheck, CrEST, MUA-RL, ToolACE-MT |
+| Instruction following | Gated think +1.1 to +2.5 at 1.0–2.6× tokens (IF-1) | Own yes/no selection; rewrite on failure (both lose) | **None** | ProgCo (2501.01264); IFBench's RLVR |
+| Logic grids and planning | ZebraLogic gpt-oss 99.2%; GridPuzzle checked ladder +6.6 [+2.9, +10.6]; GRL +7.0; trips Qwen3-32B +15.4 | MoT cascade loses on GridPuzzle and trips, ties Mitra-Baral (MOT); Schrader-style search ties as a middle step; SC-3 and D&P-3 on trips mostly lose; majority-vote reward loses to the check (GRLV) | Logic.py (not matched); Qwen3 report ZebraLogic 84.8 vs our 85.3 (matched); Ishay et al. Mitra-Baral 92% vs our 93.6% | **He and Wang 2512.03272** states the search-not-reading mechanism (ideas 26, 34); AR-LSAT methods SSV, D&P, VERGE never run; Schrader with fine-tuning |
+| Proofs | HAGeo-409 263; IMO-AG-30 27; MechGeo 13 per arm (20 / 21 with task 1); miniF2F Goedel-V2-8B 180/244 | Random points 226 vs our greedy 263, +37 [+23, +51] | HAGeo 287, AG2 / TongGeometry 30, MechGeo 29/43 (frontier models); none matched | NL2AGBench, LeanGeo; an 8-point gap to Goedel's own pass@32 is unexplained |
+
+**Where a reviewer would object first:** (1) agents: the best public 8B checkpoint beats us; (2) SQL: no external number;
+(3) optimization: STORM wins on accuracy and OptiMind is unrun, so the claim rests on tokens; (4) tool calls: no public trained
+checkpoint run; (5) AR-LSAT: SSV / D&P / VERGE unrun; (6) instruction following: ProgCo unrun; (7) math: early-exit baselines unrun.
+
 ## Verdict per finding
 
 | finding | already known (cite) | what looks new in ours |
