@@ -99,3 +99,11 @@ IFBench, both folds held out, seeds 4–6 (`--report ifbench q8bif gold=q8bifg0+
 - IF-P5, IFEval fold 0 (279 prompts; fold 1 still training): gold − base +0.5 [−1.2, +2.0], check − base +0.7 [−0.8, +2.3], ratio 1.50 [−2.0, 11.0].
 
 **Decision (as registered: IF-P1 fails).** IFBench is not usable at this scale: 152 training prompts per fold over 58 constraint types give too few steps with a gradient. IFEval's ratio alone is too wide to test anything. The test of the check is IFRL2.
+
+## IFRL2: J of the check, measured before any training round (2026-11-12 12:0x UTC)
+
+`python poc/if_train.py --jstat pool`: 4 base samples for each of the 2,000 pool prompts (8,000 samples), drawn as training draws them; gold = IFEval's grader.
+- Base right 72.0%. The check: TPR 0.419, FPR 0.058, **J = 0.361**; precision 0.949 (right : wrong among passing 18.4); no checker in 4.9% of samples (counted as fail).
+- Prompts whose 4 samples are split: by the check 11.2%, by gold 17.9%. So, as in IFRL, few prompts carry a gradient; with 8 samples per prompt in training the share is higher. The registered design is kept.
+- The noisy arm runs with `--tpr 0.419 --fpr 0.058`. I2-P3's band is [0.36, 1].
+- Two fixes before training, neither touching the design: the servers' context is 32,768 tokens (the pool's longest prompt is ~22k tokens and stopped the first checker pass), and a failed checker call leaves that prompt without a checker. The first 800 checkers came from the Slurm pass, the rest from the paper-extension server, same prompt and seeds.
