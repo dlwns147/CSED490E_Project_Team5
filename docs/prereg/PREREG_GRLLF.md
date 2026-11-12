@@ -59,3 +59,18 @@ Seeds 4–9, `python poc/gp_eval.py --grl --extra lf=q8bgrllf0+q8bgrllf1,tt=q8bg
   - So lf is the method; tt is the deployment variant for a fixed pool of questions.
 - **Decision (as registered).** P1 and P2 hold. The free check is both the gate and the training signal: label-free GRL is the stated method, and gold-reward GRL is its labelled reference. P4 holds, and tt is reported as the transductive deployment variant, with its training cost.
 - **Why it does not hack** (a reading, to be tested). Right translations share reusable rules (how a comparison clue maps to code). Wrong translations that happen to have one solution are puzzle-specific accidents. Shared parameters therefore move right readings up faster than wrong ones, even though both earn the same reward. PREREG_GRLX tests the same reward on a family whose check is less precise (Granite, right : wrong 3.5 and 3.0 against Qwen's 4.7 and 11.5).
+
+## Prior work read after the result (2026-11-12 06:5x UTC), for positioning
+- **Label-free RLVR is an active area.** Each method below makes its own reward from the model's samples:
+  - TTRL (2504.16084) uses the majority vote.
+  - Co-rewarding (2508.00410, ICLR 2026) uses votes crossed between a question and its rephrasing.
+  - RESTRAIN (2510.02172) penalises low-agreement prompts.
+  - OM-GRPO (2608.03119) uses soft consensus, with gradients masked on the answer span.
+  - Spark (2512.03244) uses generative process rewards.
+  - All of these are math or general reasoning with a final answer. Their known failure is a reward for confident consensus on a wrong answer.
+- **Closest: JURY-RL** (ICML 2026, OpenReview EzgoVswq4a). Votes propose an answer, and Lean must verify it before it is rewarded; unverified pluralities are dropped. It matches ground-truth training at pass@1.
+- **How ours differs.**
+  - The check is structural and built into the task. The model's own formalisation of the puzzle must have exactly one solution. No vote, no answer proposal and no prover are needed.
+  - The same check gates the cheap → thinking ladder at test time, and tokens are counted.
+  - Its false-positive rate can be measured offline before training. Wrong passes were 3.8% of samples against 25.0% right on GridPuzzle, a right : wrong of 6.6 per sample (PREREG_GRLK). PREREG_GRLX tests a model with a lower ratio.
+  - A paper claim needs a comparison with a vote reward on the same puzzles. A majority vote over the grids of a group's count-1 programs is the TTRL analogue here; it is not yet run.
