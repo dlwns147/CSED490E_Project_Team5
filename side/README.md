@@ -99,6 +99,26 @@ Our side of the proof work was testing and analysis only from 2026-11-07; since 
 
 ## Log
 
+**2026-11-12 15:2x UTC: planted false steps: the walk's nearer figures still expose every false step tried, so nearness is not a soundness problem for task 1 (probe, not the registered run).**
+- **Why:** the walk's figures sit nearer the proof's figure (entry below; the nearest accepted one is under 0.01 on 8 of 41 statements). A false step could pass on figures that all lie close to the figure it was found on. Prediction, written before the run: no false step missed by either solver.
+- **Setup:** all 119 faithful, certified statements, both arms (Slurm jobs 1398661–2). Each solver's figures are the 8 the kit would accept. Two kinds of plant:
+  - **Near-coincidences:** every para, perp, cong, eqangle, eqratio and cyclic fact over the statement's points that is off by less than 1e-4 on the proof's figure (the false 2011 P6 proof rested on 7e-5), and is false: it fails at the kit's tolerance (1e-6) on the proof's figure or on some accepted figure. A solver misses one if all 8 of its figures pass it.
+  - **Exact coincidences:** for the 3 false facts per statement that vary least over the default figures, move the proof's figure along the solution set until the fact holds exactly, treat that as the proof's figure, and draw 8 new figures from there. This is a proof found on a coincidental figure.
+- **Result:**
+
+  | | default solver | walk |
+  |---|---|---|
+  | statements with 8 figures | 66 | 119 |
+  | false near-coincidences missed | 0 of 15,972 | 0 of 35,499 |
+  | of which pass the proof's figure at 1e-6 | 0 of 1,395 | 0 of 1,970 |
+  | exact-coincidence plants exposed | 156 of 156 | 277 of 280 |
+
+  The 3 the walk did not expose (IMO 2019 P6, NL) are not false. They are true angle facts whose numerical error reaches 6e-7 on some figures, close to the 1e-6 tolerance, so they were labelled false by noise. The walk exposes 269 of its 277 plants on all 8 figures.
+- **What it means for task 1:** a walk-style solver keeps the check sound; its figures need not be as far apart as the default's. The kit's 1e-6 tolerance is close to the numerical error on IMO 2019 P6, so a true step can fail there by noise. Task 1 should report the largest deviation of the proof's own steps on its figures.
+- **Kit gap found:** `geo_closure.num_fact` passes any fact kind it does not know. No stored certificate uses one (checked: every kind in the 119 certificates is handled, apart from the skipped bookkeeping rows), so no count changes, but task 1 should reject unknown kinds.
+- Addition to the entry below: per statement, the nearest accepted walk figure has median distance 0.033 (default 0.60), not counting copies of the proof's own figure, which the kit rejects.
+- Script: `nlp_data/geo/kit_fresh_probe/plant.py` (outside the repository, as before).
+
 **2026-11-12 12:5x UTC: task 1 diagnosed: the default solver rarely lands on the solution set; a walk along the set from the proof's figure gives 8 fresh figures on every lost statement (a difficulty probe, not the registered task-1 run).**
 - **Why:** to judge how hard task 1 is before handing it over.
 - **Root cause:** on the 41 faithful, certified statements of the 15 lost problems (7 NL, 8 LEAN), least squares from random starts converges on only 1–8 of 240 starts (1 on 15 statements). Every figure it does find passes the kit's rule. So the loss comes from too few starts landing on the solution set, not from figures being rejected. Up to similarity, the set has dimension 1–3 (2 on 25 statements), inside 14–22 coordinates.
