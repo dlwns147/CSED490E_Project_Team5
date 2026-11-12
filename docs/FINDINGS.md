@@ -6909,3 +6909,21 @@ Job 1382299 (one GPU, queued).
   - cross-fitted, comparable with GRL;
   - transductive, training on the test puzzles themselves without labels, as TTRL (2504.16084) does with votes.
   - This decides whether the check that gates the ladder is also enough to train its cheap step. Three lanes are running.
+
+## 2026-11-12 05:5x UTC — PREREG_GRLLF holds: rewarding only the free check (one solution, no labels) trains the quick grid translation as well as gold labels (+8.4 [+5.4, +11.5] over the base ladder on GridPuzzle); trained on the test puzzles without labels, the ladder beats thinking on both accuracy and tokens
+- **Cross-fitted, check-only (lf).**
+  - GridPuzzle ladder 75.8% at 14.0 ktok, against 69.6% at 18.3 (base) and 74.7% at 14.4 (gold reward).
+  - lf − gold: +1.3 [−0.6, +3.3].
+  - Mitra-Baral +3.2 [−1.1, +7.4] over base.
+  - No hacking: precision 82.4% → 93.0%, wrong count-1 6.8% → 4.3%.
+- **Transductive, check-only (tt), trained on all puzzles including test.**
+  - GridPuzzle 79.7% at 10.96 ktok against thinking's 63.4% at 11.53: **+16.6 [+12.3, +21.1]**.
+  - Mitra-Baral 93.6% at 3.69 against 87.1% at 6.31: +7.9 [+3.3, +12.9].
+  - Its training sampled 13–17 ktok per test puzzle. That costs about as much as its gain over lf when each puzzle is answered once, so it is the variant for a fixed pool, and lf is the method.
+- **What this means for the paper.**
+  - The free check is both the gate and the training signal. Labels are needed only to evaluate.
+  - Prior label-free RL uses majority votes as the reward (TTRL 2504.16084). Puzzle RL uses generators or checkers that know the answer.
+- **Next, registered: PREREG_GRLX.** The same two rewards on Granite-4.1-8B, a second family with a less precise check (right : wrong 3.5 on GridPuzzle against Qwen's 4.7). This answers the Spurious Rewards (2506.10947) concern about Qwen-only gains and tests the no-hacking reading where it is weakest. Four lanes are running.
+- **Fixes this tick.**
+  - `run_zebra.py` and `gp_train.grade` no longer crash when a program prints its own last line (Llama-3.1-8B did).
+  - The trainer's forward applies Granite's embedding and logit multipliers, checked against the model's own log-probability.
