@@ -12,6 +12,8 @@ Modes:
   progc  Euler, no thinking: a program with solve(...) and CHECKS, the small cases the statement itself gives with their values, copied
          from it; the harness runs solve on each check (free check: the problem setter's own numbers) and runs the program for the answer.
          MathConstruct, no thinking: construct() and verify(obj), the problem's stated conditions as code; the harness runs verify(construct())
+  thinkp Euler and MathConstruct: thinking on, then the quick program's prompt (a program we run): thinking with code, the strong
+         baseline on problems that need computation (the pilot found plain thinking at 16k capped on most Euler problems)
   brute  OEIS only, no thinking: a deliberately slow program written straight from the definition, for comparing with `prog` on small n
   mem    Euler only, no thinking, no work shown: the answer at once (memorization control: old answers are public)
 Grading: MathConstruct its own parse_and_check; Euler exact integer string; OEIS a(n) on the first 20 listed terms (4 s each, as the benchmark's most lenient limit), right only if all match.
@@ -150,13 +152,14 @@ def main():
     def one(p):
         sd = seed * 1000 + zlib.crc32(p["id"].encode()) % 997
         if mcon:
-            q = {"think": "{p}", "prog": MC_PROG, "progc": MC_PROGC}[mode].format(p=p["problem"])
+            q = {"think": "{p}", "prog": MC_PROG, "thinkp": MC_PROG, "progc": MC_PROGC}[mode].format(p=p["problem"])
         elif euler:
-            q = {"think": EULER_THINK, "prog": EULER_PROG, "progc": EULER_PROGC, "mem": EULER_MEM}[mode].format(p=p["problem"])
+            q = {"think": EULER_THINK, "prog": EULER_PROG, "thinkp": EULER_PROG, "progc": EULER_PROGC, "mem": EULER_MEM}[mode].format(p=p["problem"])
         else:
             q = OEIS.format(name=p["name"], comments=p["comments"])
             q = OEIS_BRUTE.format(q=q) if mode == "brute" else q
-        o = chat(q, think=mode == "think", max_tokens=mt, temperature=0.6 if mode == "think" else 0.7, seed=sd)
+        th = mode in ("think", "thinkp")
+        o = chat(q, think=th, max_tokens=mt, temperature=0.6 if th else 0.7, seed=sd)
         text = o["text"] or ""
         row = {"id": p["id"], "mode": mode, "out_tokens": o.get("out_tokens"), "finish": o.get("finish")}
         if mcon:
