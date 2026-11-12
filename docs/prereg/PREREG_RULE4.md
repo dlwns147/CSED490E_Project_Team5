@@ -33,3 +33,27 @@
 - **P0 fails:** the counterfactual does not remove rules, and the result is not read as its effect.
 
 **Prior work.** As PREREG_RULE3. Ablation-style acceptance (keep a component only if removing it changes the outcome) is standard. Here it is applied per rule, on the reading of one clue, with the reading that the count admitted as the reference and no label.
+
+## Result (2026-11-12 02:0x UTC): P1 fails on Mitra-Baral, P4 holds; the rule method stays stated for ZebraLogic only
+
+The verdict is final: P1 needs both sets, and Mitra-Baral's seeds 4–9 are complete. GridPuzzle seeds 7–9 are still running. They decide only P0 on GridPuzzle and the reported P2 and P3, which will be added as an addendum.
+
+| Prediction | Result | Verdict |
+|---|---|---|
+| P0, Mitra-Baral (seeds 7–9) | `gtrrc` kept 16 rules, `gtrrv` 22 (seeds 4–9: 35 and 51) | holds |
+| P0, GridPuzzle | seeds 4–6 so far: 25 against 51 | pending (7–9) |
+| P1, Mitra-Baral (seeds 4–9, 564 puzzle-seeds) | ladder(`gtrrc`) − ladder(`gtr`) −0.3 [−2.8, +2.2]; fresh seeds 7–9 alone −0.3 [−3.0, +2.3] | **fails** (lower bound below −2.0) |
+| P1, GridPuzzle | seeds 4–6 so far: +1.3 [−1.3, +3.9] | pending, cannot change the verdict |
+| P4, ZebraLogic (seeds 7–9, 750) | ladder(`trrc`) − ladder(`trf`) +0.3 [−1.8, +2.5] | holds |
+
+**Reported.**
+- Mitra-Baral, seeds 4–9: `gtrrv` − `gtr` −0.6 [−3.2, +2.1]; `gtrrc` − `gtrrv` +0.2 [−1.5, +2.0]. Quick count-1 precision: `gtr` 92.1%, `gtrrv` 89.4%, `gtrrc` 90.5%.
+- ZebraLogic: `trrc` − `trrv` −0.9 [−2.2, +0.4]. `trrc` shows 3.2 rules per puzzle against 7.3 and misreads "N houses between" in 12% of clues against 17%.
+- GridPuzzle seeds 4–6: `gtrrc` 71.0% at 17.97 ktok, `gtrrv` 71.2% at 16.97, `gtr` 69.8% at 18.05. Quick count-1 precision 85.9%, 84.5% and 80.5%.
+
+**Reading.**
+- The counterfactual does what P0 said: it keeps about a third fewer rules on Mitra-Baral and half as many on GridPuzzle.
+- On Mitra-Baral it moved the point from −0.6 to −0.3, not to the 0 to +1 derived. With a half-width of 2.5, a no-harm bound of −2.0 needs a point above +0.5. A method whose best case on this set is "no harm" cannot pass that test on 94 puzzles.
+- What the data do say: the rules bring no gain on Mitra-Baral. The quick translation there is already 92% precise, and its errors do not repeat in a way one stated rule can fix.
+- **Decision as registered:** P1 fails, so the rule method stays stated for ZebraLogic only, and `trrc` does not replace `trrvw` there (that needed P1, P2 and P4).
+- The rule line ends here for human-written puzzles. Two registrations (RULE3G, RULE4) failed on the same set, and a third would be a knob variant.

@@ -6871,3 +6871,11 @@ Job 1382299 (one GPU, queued).
 - GridPuzzle: more puzzles finish at the quick step, and they are more often right. The ladder saves 1.1 ktok per puzzle and gains 1.4 accuracy points.
 - Mitra-Baral (94 puzzles): the lower bound is −4.4, below the registered −2.0, so P1 fails and the claim stays on ZebraLogic. Its kept rules are mostly generic ("equate the two values"), repeated for each pair of categories, and name no misread phrase. The interval is also wide: half-width 3.6 on 94 puzzles.
 - Open problem: the check accepts a rule that is true but empty. It tests whether the rule reproduces one reading, not whether the rule changed anything. One way to close this: keep a rule only if the quick translation without it misreads the clue and with it does not, both read on the same puzzle. That costs one more quick translation per rule. Not run; it would need its own registration.
+
+## 2026-11-12 02:0x UTC — PREREG_RULE4: the counterfactual check removes rules as predicted, but Mitra-Baral still fails the no-harm bound (−0.3 [−2.8, +2.2]); the rule method stays on ZebraLogic, and the rule line closes for human-written puzzles
+- **What ran.** The stricter check keeps a model-stated rule only if the quick translation misreads the clue without it and reads it right with it, both at the same seed. Qwen3-8B, Mitra-Baral and GridPuzzle seeds 4–9, ZebraLogic seeds 7–9.
+- **Mechanism holds (P0).** Mitra-Baral keeps 35 rules against 51 over seeds 4–9. GridPuzzle seeds 4–6 keep 25 against 51.
+- **Outcome on Mitra-Baral (P1, decides):** ladder minus plain ladder −0.3 [−2.8, +2.2], so the result fails, as RULE3G did (−0.9 [−4.4, +2.8]). The quick translation there is 92% precise, and the stated rules fix nothing that repeats.
+- **ZebraLogic (P4) holds:** +0.3 [−1.8, +2.5] against the hand fact. But the result sits below the plain checked rules (−0.9 [−2.2, +0.4]), so it does not replace them.
+- **GridPuzzle seeds 4–6:** +1.3 [−1.3, +3.9], quick precision 85.9% against 80.5%. Seeds 7–9 are still running, for the record only.
+- **Consequence.** Prompting has run out on human-written grids: two registered rule methods leave Mitra-Baral flat. The open question is §1's "what should be trained when prompting runs out". The next entry registers plain RL on the quick translation, the recipe that worked on SQL and tool calls.
