@@ -18,6 +18,7 @@ Modes:
   mem    Euler only, no thinking, no work shown: the answer at once (memorization control: old answers are public)
 Grading: MathConstruct its own parse_and_check; Euler exact integer string; OEIS a(n) on the first 20 listed terms (4 s each, as the benchmark's most lenient limit), right only if all match.
 usage: POC_BASE_URL=... python run_compute.py <set> <tag> <mode> <seed> [--max_tokens N] [--n K]
+       python run_compute.py mcon <tag> <mode> <seed> --regrade   (grade stored program output again)
        -> results/x44/<set>_<tag>_<mode>_s<seed>.jsonl"""
 import json, os, re, sys, threading, zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -148,6 +149,20 @@ def main():
     if "--n" in sys.argv:
         P = P[:int(sys.argv[sys.argv.index("--n") + 1])]
     euler, mcon = s.startswith("euler"), s == "mcon"
+    path = f"{RES}/{s}_{tag}_{mode}_s{seed}.jsonl"
+    if "--regrade" in sys.argv and mcon and mode != "think":   # grade stored program output again (2026-11-13: backspace fix); no model calls
+        rows = _rows(path)
+        for r in rows:
+            ans = (r.get("stdout") or "").replace("\x08", "\\b")
+            try:
+                _, ok, detail = _MC[r["id"]].parse_and_check([{"role": "assistant", "content": ans}]) if ans else (None, False, "no answer")
+            except Exception as e:
+                ok, detail = False, f"grader error {type(e).__name__}"
+            r.update(stdout=ans, correct=bool(ok), detail=str(detail)[:300])
+        with open(path, "w") as f:
+            f.writelines(json.dumps(r) + "\n" for r in rows)
+        print(s, tag, mode, seed, "regraded", f"{sum(r['correct'] for r in rows)}/{len(rows)}", flush=True)
+        return
 
     def one(p):
         sd = seed * 1000 + zlib.crc32(p["id"].encode()) % 997
@@ -171,6 +186,7 @@ def main():
                 code = last_block(text, ("python", "py", "python3"))
                 r = run_python(code, "", timeout=PROG_S, mem_bytes=4 << 30) if code else None
                 ans = ((r.stdout if r and r.status == "ok" else "") or "").strip()
+                ans = ans.replace("\x08", "\\b")   # print("\boxed{..}") in a non-raw string prints a backspace + "oxed{..}"; restore it
                 row.update(code=code, status=(r.status if r else "no_code"), stdout=ans[-2000:])
                 if mode == "progc" and code:
                     rv = run_python("__name__ = '__check__'\n" + code + "\n\nprint('__VERIFY__', bool(verify(construct())))\n", "",
@@ -206,7 +222,6 @@ def main():
         return row
 
     os.makedirs(RES, exist_ok=True)
-    path = f"{RES}/{s}_{tag}_{mode}_s{seed}.jsonl"
     done = {r["id"] for r in _rows(path)}
     lock = threading.Lock()
     with ThreadPoolExecutor(32) as ex, open(path, "a") as f:
