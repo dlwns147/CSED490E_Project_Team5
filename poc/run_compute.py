@@ -12,6 +12,9 @@ Modes:
   progc  Euler, no thinking: a program with solve(...) and CHECKS, the small cases the statement itself gives with their values, copied
          from it; the harness runs solve on each check (free check: the problem setter's own numbers) and runs the program for the answer.
          MathConstruct, no thinking: construct() and verify(obj), the problem's stated conditions as code; the harness runs verify(construct())
+  progc2 Euler: progc with each check naming the function it tests (the pilot's right programs failed CHECKS when the statement's example
+         is about an intermediate quantity, not the one solve returns) and the stated value's provenance tested: a check counts only if its
+         value appears in the statement (the pilot's other failures were values the model made up)
   thinkp Euler and MathConstruct: thinking on, then the quick program's prompt (a program we run): thinking with code, the strong
          baseline on problems that need computation (the pilot found plain thinking at 16k capped on most Euler problems)
   thinkpb Euler: thinkp with budget forcing (s1 2501.19393; llm.think_cuts): one think cut at each of --budgets (default 2000,4000,8000,14000),
@@ -51,6 +54,14 @@ EULER_PROGC = ("{p}\n\nDo not solve this by hand. Write a complete, efficient Py
                "copied exactly from the statement (an empty list if it gives none);\n"
                "3. under `if __name__ == \"__main__\":`, a call of `solve` with the parameters the problem asks about, printing ONLY that answer.\n"
                "It must finish within one minute. Give the program in a single ```python code block.")
+EULER_PROGC2 = ("{p}\n\nDo not solve this by hand. Write a complete, efficient Python 3 program (standard library, sympy, numpy allowed) with:\n"
+                "1. a function `solve(...)` that computes the quantity asked for, with the problem's parameters as arguments, and a separate function "
+                "for every other quantity the statement gives an example of;\n"
+                "2. a list `CHECKS = [(\"function_name\", (arguments...), value), ...]` holding every small case whose value the problem statement "
+                "itself gives, each with the function that computes that quantity, the value copied exactly from the statement (an empty list "
+                "if it gives none; never a value you computed or remember);\n"
+                "3. under `if __name__ == \"__main__\":`, a call of `solve` with the parameters the problem asks about, printing ONLY that answer.\n"
+                "It must finish within one minute. Give the program in a single ```python code block.")
 EULER_MEM = "{p}\n\nGive only the final answer in \\boxed{{}}, with no working."
 OEIS = ("Write a python code that takes a number n as input from stdin, outputs a single element of a sequence as a string to stdout. Just output "
         "the n-th element in the sequence, not the whole sequence or anything other than the single sequence element. You will be graded by my "
@@ -133,6 +144,34 @@ def run_seq(code, offset, terms, k=NTERMS):
     return right == len(outs) and len(outs) > 0, right, outs
 
 
+def stated(v, problem):
+    """progc2 provenance: the check's value, as digits (or a decimal), appears in the statement once LaTeX spacing and digit grouping are removed"""
+    t = re.sub(r"(?<=\d)(\\[,;! ]|\{,\}|,(?=\d{3}))(?=\d)", "", problem)
+    v = str(v).strip().strip("'\"")
+    return bool(re.fullmatch(r"-?\d+(\.\d+)?", v)) and re.search(r"(?<![\d.])" + re.escape(v) + r"(?![\d]|\.\d)", t) is not None
+
+
+def run_checks2(code, problem):
+    """Euler progc2: run each named function on its check -> list of (name, args, stated, got, equal, stated-in-statement)"""
+    runner = ("\n\nimport json as _j\n_out = []\nfor _c in CHECKS:\n    try:\n        _f, _a, _v = _c\n        _g = globals()[_f](*(_a if isinstance(_a, (tuple, list)) else (_a,)))\n"
+              "    except Exception as _e:\n        _f, _a, _v, _g = str(_c[0]) if _c else '', _c[1:2], _c[-1] if _c else '', 'error ' + type(_e).__name__\n"
+              "    _out.append([str(_f), repr(_a), repr(_v), repr(_g), str(_g).strip() == str(_v).strip()])\n"
+              "print('__CHECKS__' + _j.dumps(_out))\n")
+    r = run_python("__name__ = '__check__'\n" + code + runner, "", timeout=PROG_S, mem_bytes=4 << 30)
+    m = re.search(r"__CHECKS__(.*)", r.stdout or "")
+    if r.status != "ok" or not m:
+        return None, r.status
+    return [c + [stated(eval_lit(c[2]), problem)] for c in json.loads(m.group(1))], "ok"
+
+
+def eval_lit(x):
+    import ast
+    try:
+        return ast.literal_eval(x)
+    except Exception:
+        return x
+
+
 def run_checks(code):
     """Euler progc: run solve on the program's CHECKS (with its main block switched off) -> list of (args, stated, got, equal)"""
     runner = ("\n\nimport json as _j\n_out = []\nfor _a, _v in CHECKS:\n    try:\n        _g = solve(*(_a if isinstance(_a, (tuple, list)) else (_a,)))\n"
@@ -173,7 +212,7 @@ def main():
         if mcon:
             q = {"think": "{p}", "prog": MC_PROG, "thinkp": MC_PROG, "progc": MC_PROGC}[mode].format(p=p["problem"])
         elif euler:
-            q = {"think": EULER_THINK, "prog": EULER_PROG, "thinkp": EULER_PROG, "thinkpb": EULER_PROG, "progc": EULER_PROGC, "mem": EULER_MEM}[mode].format(p=p["problem"])
+            q = {"think": EULER_THINK, "prog": EULER_PROG, "thinkp": EULER_PROG, "thinkpb": EULER_PROG, "progc": EULER_PROGC, "progc2": EULER_PROGC2, "mem": EULER_MEM}[mode].format(p=p["problem"])
         else:
             q = OEIS.format(name=p["name"], comments=p["comments"])
             q = OEIS_BRUTE.format(q=q) if mode == "brute" else q
@@ -228,6 +267,8 @@ def main():
                 row.update(code=code, status=(r.status if r else "no_code"), answer=out.splitlines()[-1] if out else "")
                 if mode == "progc" and code:
                     row["checks"], row["check_status"] = run_checks(code)
+                if mode == "progc2" and code:
+                    row["checks"], row["check_status"] = run_checks2(code, p["problem"])
             row["correct"] = bool(row["answer"]) and norm(row["answer"]) == norm(p["answer"])
         else:
             row.update(level=p["level"])
