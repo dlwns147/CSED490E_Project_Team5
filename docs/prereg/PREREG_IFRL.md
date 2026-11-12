@@ -51,3 +51,35 @@ The vote's right : wrong among rewarded samples is 1.1, yet it kept 64% of the g
 - **IF-P1 fails:** IFBench is not usable at this scale. The test moves to IFEval's ratio alone, stated as weaker.
 
 **Runs.** On the paper-extension server, after the Qwen3-32B runs free their GPUs: IFBench folds first (gold and check), then IFEval. Base rows (seeds 4–6, all prompts) on the Slurm cluster.
+
+## Interim and amendment (2026-11-12 10:2x UTC): IFBench fold 0 shows no learning even on the training prompts; IFRL2 registered
+
+**Interim, IFBench fold 0** (148 held-out prompts, seeds 4–6; fold 1 still training; `--report ifbench q8bif gold=q8bifg0 check=q8bifc0`).
+- gold − base, right: +1.1 [−0.9, +3.4]. check − base: +1.6 [−0.5, +3.6]. Wrong and passes the checker: +0.0 and −0.2.
+- **Root cause.** The gold reward did not rise on the training prompts themselves. The training log's right share by epoch was 0.274, 0.261, 0.260, 0.291. Only 22% of prompts per round had samples that both passed and failed, so about 3.5 of 16 prompts carried a gradient. 38 steps over 152 prompts, each with its own mix of 58 constraint types, are too few for the policy to move.
+- IFBench's authors trained on about 95,000 prompts. Their training constraints repeat across thousands of prompts; ours appear a few times each.
+- So IF-P1 is on course to fail, and the registered test would say nothing about the check. Fold 1 and the IFEval folds are left to finish, and the registered result will be reported as registered.
+
+**IFRL2 (new test, registered before any of its runs).** The same question at a scale where gold RL can move.
+- **Training pool.** 2,000 prompts from Ai2's IF-RLVR training data (`allenai/IF_multi_constraints_upto5`, the IFBench paper's training set). Only rows whose constraints are all among IFEval's 25 types are used (18,221 of 95,373), so IFEval's official grader is the gold. They are shuffled with seed 0. None is an IFEval or IFBench test prompt.
+- **The check.** Qwen3-8B writes a checker for every pool prompt with IF-1's checker prompt and 2,000-token think (`if_train.py --checkers pool`). The checker is fixed before training.
+- **J of the check.** Measured on 4 base samples per pool prompt, drawn as in training (`--sample pool 4`, `--jstat pool`). This finishes before training starts and is recorded here before any training round.
+- **Arms.** One epoch over the pool (125 rounds), GRL's loop otherwise unchanged. One GPU per run.
+  - gold (`q8bifpg`);
+  - check (`q8bifpc`);
+  - **noisy:** gold passed through random, class-conditional noise with the check's measured TPR and FPR (`--reward noisy --tpr --fpr`, tag `q8bifpn`). Same J as the check, but its errors do not depend on which response is given.
+  - The noisy arm separates the two parts of the derivation. Check ≈ noisy means the J rule is the whole story. Check < noisy means the checker's errors are structured and the policy exploits them.
+- **Evaluation.** Every IFEval and IFBench test prompt, seeds 4–6, against the base rows `q8bif` (already collected). IFEval's fixed checker (IF-1 seed 1) gives the "wrong and passes" share.
+
+**Predictions (IFEval decides: the pool's constraints are IFEval's types; IFBench is reported).**
+- **I2-P1 (precondition).** IFEval gold − base, right: interval above 0.
+- **I2-P2.** IFEval noisy − base, right: interval above 0. The derivation says J > 0 is enough.
+- **I2-P3.** IFEval ratio (noisy − base) / (gold − base): interval overlaps [J, 1].
+- **I2-P4.** IFEval check − noisy, right: interval contains 0 (the checker's errors behave as class-conditional).
+- **I2-P5.** IFEval check − base, wrong and passes the checker: point estimate below check − base's right gain.
+- **Reported.** The same on IFBench (unseen constraint types).
+
+**Decision.**
+- **I2-P1–P4 hold:** the paper states the J rule. A label-free check trains a model at about J times the gold gain, and real checkers here act as class-conditional noise. This holds on grids and instruction following alike.
+- **I2-P1–P3 hold and I2-P4 fails (check below noisy):** the J rule is stated as an upper bound for real checkers. The shortfall is the structured part of the checker's errors, measured by I2-P5.
+- **I2-P1 fails:** RL does not move IFEval at this scale. Instruction following is reported as a domain where we could not test the check.
