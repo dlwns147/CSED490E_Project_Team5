@@ -514,3 +514,30 @@ Training the quick translator on the count is therefore at most an increment ove
 - **Zhao et al., "Dissecting Tool-Integrated Reasoning" (2508.15754, Aug 2025; abstract only, not read):** TIR models beat non-TIR ones on
   math and non-math (ReasonZoo) and reduce overthinking by their cost-aware metrics (PAC, AUC-PCC). The nearest token-efficiency
   comparison of tools against thinking; idea 13 (tool calls inside thinking) must be read against it before any claim.
+
+## Choosing math computation targets: benchmarks and methods (2026-11-12 17:4x UTC; two searches, arXiv abs pages opened, IDs checked)
+**Benchmarks where a program does the real work** (published accuracy; none reports Qwen3 dense or gpt-oss on these):
+- **Project Euler.** PECC 2404.18766 (LREC-COLING 2024; GPT-3.5 8% of Euler problems). MathArena's split PE 943–992 (50 problems,
+  late 2025; HF `MathArena/project_euler`); Holmes and Schmitt 2606.21972 on it: best 89%, DeepSeek-v3.2 48%, Kimi K2 Thinking 50%,
+  GLM 5.1 66%, with code tools. Contamination on old problems is shown (2310.10628: pass rate tracks GitHub frequency). Free check:
+  the statement's small worked case (about 70% of PECC statements), brute force on small n.
+- **OEIS integer sequences** (2411.04372; half the sequences added after July 2024): a program checked on the first N terms, lookup
+  tables scored 0. Free check: a slow program from the definition against the fast one on small n. UTMath (2411.07240, 1,053 OEIS
+  problems with large-n tests): o1-mini 32.6%, Qwen2.5-72B 23.5%.
+- **MathConstruct** (2502.10197, 121 construction problems, verifier-graded): o3-mini 60.5%, QwQ 15.9%; code runs roughly double accuracy.
+- **HARDMath2** (2505.11774, NeurIPS 2025 D&B, 211 asymptotics problems, graded numerically): o3 52.5%, DeepSeek-V3 18.9%.
+  Free check: numerical solution against the formula. HARDMath (2410.09988): GPT-4 43.8%.
+- Rejected: OlymMATH (2503.21380; insight, like AIME; Qwen3-30B-A3B 87.2 / 26.3), U-MATH and Omni-MATH (LLM-judged), FrontierMath
+  (closed), MathOdyssey, TheoremQA, CombiBench (Lean proofs).
+**Methods** (PAL 2211.10435, PoT 2211.12588, ToRA 2309.17452, START 2503.04625, ReTool 2504.11536, ZeroTIR 2505.07773, CoRT 2506.09820,
+SimpleTIR 2509.02479, AIMO-2 2504.16891, Dissecting TIR 2508.15754, code self-verification 2308.07921, PROVE 2410.12608, SatLM 2305.09656,
+2304.09102, 2512.03272, ECP 2505.18492, MoT 2310.03094, AutoMix 2310.12963, AdaptThink, Thinkless, DEER 2504.15895, ThinkBrake 2510.00546,
+Cost-of-Pass 2504.13359; self-critique collapse 2402.08115):
+- Programs beat thinking at lower cost on heavy arithmetic, search and constraint problems (ToRA's largest gains: algebra +45, number
+  theory +43; Dissecting TIR, Qwen3-8B/32B: puzzles +24, operations research +11/+15, number calculation +6/+8, physics −4/−10; a single
+  program on Qwen3-8B 37.6 → 43.0 with fewer tokens). At AIME level tools raise accuracy, not efficiency (AIMO-2's TIR uses more tokens).
+- A label-free execution check is precise when it tests the answer against the problem's specification independently of how the
+  answer was made (constraints, substitution, a verifier, enumeration on the instance). Agreement between representations (MoT, PROVE)
+  helps but no paper reports its precision; model self-critique is unreliable (2402.08115). This matches our AIME and BWOR failures.
+- **Open:** precision and recall of a label-free gate on "compute a number" problems for 8–32B models, and full token accounting
+  (cheap attempt + check + escalation) against thinking. Nobody reports either.
