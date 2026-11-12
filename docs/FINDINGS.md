@@ -6865,3 +6865,9 @@ Job 1382299 (one GPU, queued).
 - From an empty start, checked minus unchecked: −0.2 [−1.6, +1.1] (A2 fails). Cold unchecked rules sit at +1.4 against the fact on these seeds, and at −0.2 and −0.3 on seeds 1–3 and 4–6.
 - **So the method is:** rules stated from count-admitted readings; the check is needed when rules are carried from earlier puzzles, and costs about 0.1 ktok per puzzle otherwise.
 - PREREG_RULE3G (the same method on GridPuzzle and Mitra-Baral) is running; Mitra-Baral has finished.
+
+## 2026-11-12 00:2x UTC — PREREG_RULE3G: the checked rules help on GridPuzzle (+1.9 [−0.7, +4.6], 41 more quick count-1 programs, precision +4 points) but fail the no-harm bound on Mitra-Baral (−0.9 [−4.4, +2.8]); the method stays stated for ZebraLogic only
+- This tests whether the rule method carries to puzzles written by people. It is the method that matched the hand fact on ZebraLogic.
+- GridPuzzle: more puzzles finish at the quick step, and they are more often right. The ladder saves 1.1 ktok per puzzle and gains 1.4 accuracy points.
+- Mitra-Baral (94 puzzles): the lower bound is −4.4, below the registered −2.0, so P1 fails and the claim stays on ZebraLogic. Its kept rules are mostly generic ("equate the two values"), repeated for each pair of categories, and name no misread phrase. The interval is also wide: half-width 3.6 on 94 puzzles.
+- Open problem: the check accepts a rule that is true but empty. It tests whether the rule reproduces one reading, not whether the rule changed anything. One way to close this: keep a rule only if the quick translation without it misreads the clue and with it does not, both read on the same puzzle. That costs one more quick translation per rule. Not run; it would need its own registration.

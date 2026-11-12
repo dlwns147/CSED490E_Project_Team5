@@ -34,3 +34,23 @@
 - **P1 holds, P2 fails:** the rules do not carry; reported as no effect.
 
 **Prior work.** As PREREG_RULE3: HtT (2310.07064) and RIMRULE (2601.00086) keep rules by labelled accuracy; AutoManual (2405.16247) by environment feedback. Here the reference is the reading that the count admitted, and the check uses no label.
+
+## Result (2026-11-12 00:2x UTC): P1 fails on Mitra-Baral, P2 holds, P3 fails
+`python poc/gp_eval.py --rule3g`, seeds 4–6, scoring v2.
+
+| Set | Ladder, plain quick step | Ladder, checked rules | Difference (P1: lower bound > −2.0) | Quick count-1, precision: plain → rules |
+|---|---|---|---|---|
+| GridPuzzle (645 puzzle-seeds) | 69.8% at 18.05 ktok | 71.2% at 16.97 ktok | **+1.9 [−0.7, +4.6]** | 256 → 297; 80.5% → 84.5% |
+| Mitra-Baral (282 puzzle-seeds) | 87.2% at 9.55 ktok | 86.2% at 9.20 ktok | **−0.9 [−4.4, +2.8]** | 156 → 155; 91.7% → 87.7% |
+
+- **P1 fails:** the Mitra-Baral lower bound is −4.4, below −2.0. GridPuzzle passes (−0.7).
+- **P2 holds:** on GridPuzzle the quick step reaches a count of 1 on 41 more puzzle-seeds, and its precision rises by 4 points.
+- **P3 fails:** the GridPuzzle interval includes 0. The point, +1.9, is above the +0.5 to +1.5 I expected.
+- Rules: 51 kept and 114 rejected on GridPuzzle; 29 kept and 42 rejected on Mitra-Baral. Rule calls cost 0.12 and 0.07 ktok per puzzle.
+- **Decision as registered:** the method is stated as shown on template-generated clues (ZebraLogic). On human-written puzzles it is reported with these numbers, not claimed.
+- **Cause, Mitra-Baral (analysis after the result).**
+  - Against the plain runs, the rules turned 23 puzzle-seeds into right count-1 programs and 13 into wrong ones (GridPuzzle: 97 and 29).
+  - 3 of the 13 wrong ones came with no rule shown yet. The prompt was identical, so these are run-to-run sampling differences, not the rules.
+  - The kept Mitra-Baral rules are mostly generic: "when a clue relates two entities, equate their values", stated again for each new pair of categories. Seed 5 kept six near-copies.
+  - These rules name no phrase that the quick translation misreads. The ZebraLogic and GridPuzzle rules do: "N houses between", "N months before", "X is 11 years old". The check accepts a generic rule whenever the quick translation, given it, happens to reproduce the reading once.
+  - The interval is also wide: 94 puzzles give a half-width of 3.6, against the 2 I assumed. A point of −0.9 with this width does not separate harm from noise. Under the registered rule, that counts as a failure.
