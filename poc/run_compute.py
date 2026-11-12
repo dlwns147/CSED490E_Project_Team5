@@ -176,7 +176,7 @@ def main():
                     row["verify"] = (m.group(1) == "True") if (rv.status == "ok" and m) else None
                     row["check_status"] = rv.status
             try:
-                _, ok, detail = obj.parse_and_check(ans) if ans else (None, False, "no answer")
+                _, ok, detail = obj.parse_and_check([{"role": "assistant", "content": ans}]) if ans else (None, False, "no answer")   # it takes messages
             except Exception as e:
                 ok, detail = False, f"grader error {type(e).__name__}"
             row.update(correct=bool(ok), detail=str(detail)[:300])
