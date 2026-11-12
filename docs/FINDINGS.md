@@ -6879,3 +6879,20 @@ Job 1382299 (one GPU, queued).
 - **ZebraLogic (P4) holds:** +0.3 [−1.8, +2.5] against the hand fact. But the result sits below the plain checked rules (−0.9 [−2.2, +0.4]), so it does not replace them.
 - **GridPuzzle seeds 4–6:** +1.3 [−1.3, +3.9], quick precision 85.9% against 80.5%. Seeds 7–9 are still running, for the record only.
 - **Consequence.** Prompting has run out on human-written grids: two registered rule methods leave Mitra-Baral flat. The open question is §1's "what should be trained when prompting runs out". The next entry registers plain RL on the quick translation, the recipe that worked on SQL and tool calls.
+
+## 2026-11-12 03:1x UTC — PREREG_GRL holds: plain RL on the quick grid translation lifts the ladder by +7.0 on GridPuzzle and +3.8 on Mitra-Baral, held out by cross-fitting
+- **What ran.** GRPO with LoRA on Qwen3-8B's quick (no thinking) grid translation. Reward: the program has one solution and it is the gold grid. Two folds: each test puzzle is translated by a model that never trained on it or on a copy of it. Seeds 4–9, both sets.
+- **Quick step (P1 holds).** Right with one solution: GridPuzzle 31.9% → 55.2%, Mitra-Baral 49.6% → 69.5%. Count-1 precision rises: 82.4% → 91.8% and 92.1% → 94.9%. The quick step's cost barely moves (1.01 → 1.12 ktok on GridPuzzle).
+- **Ladder (P2, P3 hold).** Trained ladder minus base ladder:
+  - GridPuzzle **+7.0 [+4.0, +10.2]**: 69.6% at 18.3 ktok → 74.7% at 14.4 ktok.
+  - Mitra-Baral **+3.8 [+0.3, +7.4]**: 88.5% at 9.7 ktok → 90.8% at 6.7 ktok.
+- **Against thinking (P4).** GridPuzzle +9.8 [+5.7, +14.1] (+11.2 points at +2.85 ktok, break-even 3.95 per ktok, up from 0.91). Mitra-Baral +3.5 [−0.4, +7.8].
+- **Checks** (details in PREREG_GRL's result):
+  - the gain holds in both folds;
+  - it holds on puzzles with no same-story sibling in training;
+  - trained programs still translate every clue and pin fewer cells than the base;
+  - at matched k = 6 the trained model covers 69.3% of GridPuzzle against 46.0%.
+- **Prior work.** Schrader et al. 2512.17093 use SFT on solver-checked encodings, with no RL, gate or token accounting. Our run of their search with Qwen3-8B: 50.4% at 4.3 ktok on GridPuzzle. The trained quick step alone: 55.2% at 1.12 ktok.
+- **Decision (registered).** The trained translator becomes the quick step of the grid ladder for human-written puzzles.
+- **Why RL works here when prompting did not.** RULE3G and RULE4 tried to fix readings with stated rules. RL instead moves the whole distribution of readings toward the ones the solver confirms. WP-RL on word problems gained only +4.7 points of quick right; there, the base was already near its coverage.
+- **Next, registered: PREREG_GRLK.** pass@k up to 128, base against trained, first round. The question is whether RL here only sharpens what the base can write (Yue et al. 2504.13837: the base wins at large k) or reaches new puzzles. Four lanes are running on the paper-extension server.

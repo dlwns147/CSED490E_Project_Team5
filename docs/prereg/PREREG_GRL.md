@@ -43,3 +43,28 @@
 - **P1 fails:** RL does not sharpen this translation (WP-RL's pattern). The ladder stays training-free.
 
 **Runs.** On the paper-extension server. Fold 0 and fold 1 run in parallel, each with a vLLM GPU and a trainer GPU. Base `gtr`, `gtrt` and `think` for seeds 4–9 are the RULE4 runs (seeds 7–9 still finishing).
+
+## Result (2026-11-12 03:1x UTC): P1, P2 and P3 hold; the RL-trained translator becomes the quick step
+
+**What ran.** Both folds trained to the end (fold 0: 62 rounds, 246 puzzles × 4 epochs; fold 1: 54 rounds). Each fold's final adapter ran arm `gtr` on its own held-out test puzzles, seeds 4–9, both sets. The base `gtr`, `gtrt` and `think` rows for seeds 4–9 are complete. Command: `python poc/gp_eval.py --grl`.
+
+| Seeds 4–9 | Ladder with base `gtr` | Ladder with trained `gtr` | Think alone |
+|---|---|---|---|
+| GridPuzzle (1290 puzzle-seeds) | 69.6% at 18.31 ktok, utility 60.5 | **74.7% at 14.37 ktok, utility 67.5** | 63.4% at 11.53 ktok, utility 57.6 |
+| Mitra-Baral (564) | 88.5% at 9.71 ktok, utility 83.6 | **90.8% at 6.73 ktok, utility 87.4** | 87.1% at 6.31 ktok, utility 83.9 |
+
+- **P1 holds.** GridPuzzle quick step right with one solution: 31.9% → 55.2% (+23.3 points; at least +5 predicted). Count-1 precision rises, 82.4% → 91.8% (no more than 2 points down was allowed). Mitra-Baral: 49.6% → 69.5%, precision 92.1% → 94.9%. The quick step costs 1.12 ktok against 1.01.
+- **P2 holds.** GridPuzzle ladder(trained) − ladder(base): utility **+7.0 [+4.0, +10.2]**, accuracy +5.0 points, −3.93 ktok.
+- **P3 holds.** Mitra-Baral: **+3.8 [+0.3, +7.4]** (lower bound above −2.0), accuracy +2.3, −2.98 ktok.
+- **P4 (reported).** Against thinking: GridPuzzle +9.8 [+5.7, +14.1], +11.2 points at +2.85 ktok, break-even price 3.95 per ktok (the base ladder: +2.8 [−1.0, +6.7], break-even 0.91). Mitra-Baral +3.5 [−0.4, +7.8], +3.7 points at +0.41 ktok, break-even 8.99 (base ladder −0.3).
+- **Against the derivation.** It predicted +4.6 at +10 points right on GridPuzzle. The gain is +23 points right with fewer wrong passes, so +7.0 is below the linear reading. As expected, the moved puzzles are easier than the escalated pool, so G was an upper estimate.
+
+**Checks that the gain is not leakage or a trick** (scratch analyses, not registered):
+- **Per fold.** GridPuzzle 32.8% → 56.9% and 31.2% → 53.8%; Mitra-Baral 43.0% → 70.2% and 55.2% → 69.0%.
+- **Same story template in training or not.** Many puzzles share a story with other puzzles (same first sentence, other names and clues). On GridPuzzle test puzzles with such a sibling in the fold's training set (123): 29.5% → 52.6%. Without one (92): 35.1% → 58.7%. Mitra-Baral: 56.0% → 73.0% with, 42.4% → 65.5% without. The gain does not need a sibling.
+- **No pinned answers.** Trained programs still write one entry per clue (1.05 entries per puzzle clue against 1.07 for the base; none below 0.8). They fix fewer cells to constants than the base (0.32 against 0.52 per program). The count stays a check of the translation, not of a guessed grid.
+- **Coverage.** At matched k (6 runs each, after 3 rounds), GridPuzzle pass@6 is 46.0% for the base and 69.3% trained. Of the 116 puzzles the base never got right in 6 runs, the trained model got 58 at least once; it lost 8 that the base got. Whether this holds at large k is registered as PREREG_GRLK.
+
+**Prior work, compared.** Schrader et al. (2512.17093) fine-tune with SFT on solver-checked ASP from Mitra-Baral's training puzzles. They report about 55 on GridPuzzle and 55.4 (66.8 with search) on LogicPuzzles for Llama-3.3-70B. Their numbers use their own pipeline and scoring, so they are not directly comparable. Our run of their search with Qwen3-8B (gts, FINDINGS 2026-11-10 11:5x) reached 50.4% at 4.3 ktok on GridPuzzle and 56.0% at 1.6 ktok on Mitra-Baral. The trained quick step alone reaches 55.2% at 1.12 ktok and 69.5% at 0.59 ktok.
+
+**Decision (as registered).** P2 and P3 hold. Plain RL on the quick translation, cross-fitted, is the grid method for human-written puzzles. The trained translator becomes the ladder's quick step, and labels are used in training only.
