@@ -23,3 +23,21 @@
 - **B-P2 fails:** reward hacking at scale is reported, with cases.
 
 **Runs.** On the paper-extension server, two lanes (fold 0 and fold 1), each with a vLLM GPU and a trainer GPU, started as the GRLV lanes free their GPUs.
+
+## Result (2026-11-12 11:3x UTC)
+
+Quick step, seeds 4–6, both folds held out (`python poc/gp_eval.py --quick q32 lf=q32grllf0+q32grllf1`). Base = `q32` (full precision).
+
+| Set, arm | Right, one solution | Wrong, one solution | Precision | ktok |
+|---|---|---|---|---|
+| GridPuzzle, base | 61.7% | 2.0% | 96.8% | 1.37 |
+| GridPuzzle, lf | 68.7% | 0.8% | 98.9% | 1.24 |
+| Mitra-Baral, base | 74.5% | 1.4% | 98.1% | 0.65 |
+| Mitra-Baral, lf | 87.6% | 0.7% | 99.2% | 0.55 |
+
+- **B-P1 holds.** GridPuzzle lf − base, right count-1: +7.0 [+4.0, +10.2]. Mitra-Baral: +13.1 [+8.5, +18.1].
+- **B-P2 holds.** GridPuzzle lf − base, wrong count-1: −1.2 [−2.8, +0.0]; the upper bound is below +2.0. Mitra-Baral: −0.7 [−2.5, +1.1].
+- The trained quick step is also shorter: 1.37 → 1.24 ktok on GridPuzzle.
+- The gain is a third of the 8B one (+7.0 vs about +20), as expected from a base already right 62% of the time.
+
+**Decision (both hold).** Check-only RL on the cheap translation is stated at 8B and 32B.

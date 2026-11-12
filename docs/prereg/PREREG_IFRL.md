@@ -83,3 +83,19 @@ The vote's right : wrong among rewarded samples is 1.1, yet it kept 64% of the g
 - **I2-P1–P4 hold:** the paper states the J rule. A label-free check trains a model at about J times the gold gain, and real checkers here act as class-conditional noise. This holds on grids and instruction following alike.
 - **I2-P1–P3 hold and I2-P4 fails (check below noisy):** the J rule is stated as an upper bound for real checkers. The shortfall is the structured part of the checker's errors, measured by I2-P5.
 - **I2-P1 fails:** RL does not move IFEval at this scale. Instruction following is reported as a domain where we could not test the check.
+
+## Registered result, IFRL (2026-11-12 11:3x UTC)
+
+IFBench, both folds held out, seeds 4–6 (`--report ifbench q8bif gold=q8bifg0+q8bifg1 check=q8bifc0+q8bifc1`; 900 prompt-seeds).
+
+| Arm | Right | Passes own check | Right and passes | Wrong and passes | J |
+|---|---|---|---|---|---|
+| base | 26.6% | 18.7% | 13.2% | 5.4% | 0.42 |
+| gold | 26.6% | 18.4% | 12.7% | 5.8% | 0.40 |
+| check | 26.0% | 19.4% | 13.6% | 5.9% | 0.44 |
+
+- **IF-P1 fails.** gold − base, right: +0.0 [−1.7, +1.7]. Training on the official grader did not move IFBench. Fold 1's training-prompt accuracy also stayed flat: 0.25, 0.25, 0.24 and 0.26 by epoch; 20% of prompts had a gradient.
+- IF-P2: check − base −0.6 [−2.2, +0.9]. IF-P3: undefined (no gold gain). IF-P4: check − base wrong and passes +0.4 [−0.4, +1.4].
+- IF-P5, IFEval fold 0 (279 prompts; fold 1 still training): gold − base +0.5 [−1.2, +2.0], check − base +0.7 [−0.8, +2.3], ratio 1.50 [−2.0, 11.0].
+
+**Decision (as registered: IF-P1 fails).** IFBench is not usable at this scale: 152 training prompts per fold over 58 constraint types give too few steps with a gradient. IFEval's ratio alone is too wide to test anything. The test of the check is IFRL2.

@@ -25,7 +25,7 @@ pool (it shares no prompt with either test set), evaluated on all IFEval and IFB
        python if_train.py --report <bench> <base tag> <name>=<tag>[+<tag>] ... [--seeds 4,5,6]   (held-out right / own-check pass shares,
            paired 95% bootstrap over prompts)
 (POC_PYTHON: the sandbox python; IF_PKGS: a directory with the graders' packages, for the gold reward)"""
-import ast, json, os, random, sys, time, zlib
+import ast, glob, json, os, random, sys, time, zlib
 from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -130,7 +130,8 @@ def write_checkers(bench):
 def base_samples(bench, n):
     from cv_train import sample
     C = checkers(bench)
-    path = f"{RES}/{bench}_base_samples.jsonl"
+    k, K = map(int, os.environ.get("IF_SHARD", "0/1").split("/"))   # IF_SHARD=k/K: this lane's share of the prompts, own file
+    path = f"{RES}/{bench}_base_samples.jsonl" + (f".{k}" if K > 1 else "")
     done = {json.loads(l)["id"] for l in open(path)} if os.path.exists(path) else set()
     out = open(path, "a")
 
@@ -138,7 +139,7 @@ def base_samples(bench, n):
         ts = sample("local", [{"role": "user", "content": p["prompt"]}], n, CAP, 7 * 1000 + zlib.crc32(p["id"].encode()) % 997)
         return {"id": p["id"], "texts": ts, "checks": [check(C.get(p["id"]), t) for t in ts]}
     with ThreadPoolExecutor(32) as ex:
-        for row in ex.map(one, [p for p in prompts(bench) if p["id"] not in done]):
+        for row in ex.map(one, [p for p in prompts(bench) if p["id"] not in done and zlib.crc32(p["id"].encode()) % K == k]):
             out.write(json.dumps(row) + "\n"); out.flush()
     print(bench, "samples done", flush=True)
 
@@ -146,7 +147,7 @@ def base_samples(bench, n):
 def jstat(bench):
     gold = Gold(bench if bench != "pool" else "ifeval")
     P = {p["id"]: p for p in prompts(bench)}
-    S = [json.loads(l) for l in open(f"{RES}/{bench}_base_samples.jsonl")]
+    S = [json.loads(l) for f in sorted(glob.glob(f"{RES}/{bench}_base_samples.jsonl*")) for l in open(f)]
     n = r = rp = wp = err = sc = sg = 0
     for x in S:
         g = [gold(P[x["id"]], t) for t in x["texts"]]
@@ -197,7 +198,7 @@ def report(bench, base, arms, seeds):
         for i, s in keys:
             per.setdefault(i, []).append((R[(g, i, s)][0] - R[("base", i, s)][0], R[(c, i, s)][0] - R[("base", i, s)][0]))
         m = {i: (sum(z[0] for z in v) / len(v), sum(z[1] for z in v) / len(v)) for i, v in per.items()}
-        rat = lambda S: sum(m[i][1] for i in S) / sum(m[i][0] for i in S) if sum(m[i][0] for i in S) > 0 else None
+        rat = lambda S: sum(m[i][1] for i in S) / sum(m[i][0] for i in S) if sum(m[i][0] for i in S) > 1e-9 else None
         d = [rat(bt) for bt in boots]
         ok = sorted(x for x in d if x is not None)
         q = (lambda k: ok[min(len(ok) - 1, int(k * len(ok)))]) if ok else (lambda k: float("nan"))

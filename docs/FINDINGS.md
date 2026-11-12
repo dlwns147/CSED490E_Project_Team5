@@ -6986,3 +6986,16 @@ Job 1382299 (one GPU, queued).
 **What this changes in the claim.** The RL result is no longer one model's. The check's advantage over the standard label-free reward is measured, not argued: about +11 points of the quick step and +5 utility on the full ladder. The reason is the one derived before the run: the check rewards 6.0 right samples per wrong one, the vote 1.1.
 
 **Next.** The Qwen3-32B label-free run (PREREG_GRL32) is training (rounds 26–28 of 54 per fold). The two-sided test off puzzles (check precise: IFEval checker, MATH-500 text = program; check imprecise: IFBench, AIME) is the next registration.
+
+## 2026-11-12 11:3x UTC — PREREG_GRL32 holds (label-free RL on grids works at 32B); PREREG_IFRL fails its precondition (gold RL does not move IFBench at this scale)
+
+**Qwen3-32B, full precision (PREREG_GRL32, quick step, seeds 4–6).**
+- lf − base, right with one solution: GridPuzzle +7.0 [+4.0, +10.2]; Mitra-Baral +13.1 [+8.5, +18.1]. B-P1 holds.
+- Wrong with one solution: GridPuzzle −1.2 [−2.8, +0.0]; Mitra-Baral −0.7 [−2.5, +1.1]. B-P2 holds; precision 96.8% → 98.9%.
+- Shorter output: 1.37 → 1.24 ktok.
+- So label-free RL on the cheap translation now holds on two families (Qwen, Granite) and two sizes (8B, 32B). The 32B gain is a third of the 8B one, because the 32B base is already right 62% of the time.
+
+**Instruction following (PREREG_IFRL, Qwen3-8B, IFBench, both folds, seeds 4–6).**
+- gold − base, right: +0.0 [−1.7, +1.7]. IF-P1, the precondition, fails, so the test says nothing about the check (check − base −0.6 [−2.2, +0.9]).
+- Root cause: the model did not learn even on its training prompts (accuracy by epoch 0.27, 0.24, 0.28, 0.28 and 0.25, 0.25, 0.24, 0.26 for the two folds). Only 20% of prompts had both passing and failing samples, so about 3 of 16 prompts per step carried a gradient, over 38 steps and 58 constraint types. The IFBench authors trained on about 95,000 prompts.
+- The replacement test, IFRL2 (registered 10:2x, before its runs), trains on 2,000 prompts from that training set restricted to IFEval's constraint types, with a gold arm, a check arm and a noisy-gold arm at the check's J. Its checkers and base samples are being written now; J is recorded before training.
