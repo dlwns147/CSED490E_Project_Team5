@@ -465,7 +465,8 @@ def zl_main():
         w = sys.argv[sys.argv.index("--warm") + 1].split(":") if "--warm" in sys.argv else None
         chk = "--check" in sys.argv   # --check (PREREG_RULE3): arms trrv / trrvw; a warm start then reads the checked dev pass (trrv)
         mem = [u for x in map(json.loads, open(f"{RES}/zl_{w[0]}_trr{'v' * chk}_s{w[1]}.jsonl")) for _, u in x["rules_added"]] if w else []
-        path = path.replace("_trr_", "_trr" + "v" * chk + "w" * bool(w) + "_")
+        cf = chk and "--cf" in sys.argv   # --check --cf (PREREG_RULE4): arm trrc, the check also needs the clue misread without the rule
+        path = path.replace("_trr_", "_trr" + ("c" if cf else "v" * chk) + "w" * bool(w) + "_")
 
         def rule_reads(r, rules, t, te, sd):
             # the quick translation (first round, as run's) with these rules; True if its expression for clue t agrees with te on every assignment tried
@@ -498,6 +499,9 @@ def zl_main():
                         if chk:   # --check (PREREG_RULE3): keep the rule only if one quick translation of this puzzle with it reads the clue as admitted
                             ok, ct = rule_reads(r, mem + [u], t, te, seed * 10007 + int(r["id"].rsplit("-", 1)[1]) + 200 + j)
                             rt += ct
+                            if ok and cf:   # PREREG_RULE4: the same translation, same seed, without the rule must not already read it so
+                                ok0, ct = rule_reads(r, mem, t, te, seed * 10007 + int(r["id"].rsplit("-", 1)[1]) + 200 + j)
+                                rt += ct; ok = not ok0
                             if not ok:
                                 rejected.append((t, u)); continue
                         mem.append(u); added.append((t, mem[-1]))
@@ -520,7 +524,8 @@ def zl_main():
 # [--ids <file of puzzle ids>] [--rounds N (default 3)]. Arm direct (PREREG_MOT): the think prompt without thinking (Yue et al.'s CoT sample); every row and round keeps its grid.
 # Arms gtrv / gtrtv (PREREG_FREE): gtr / gtrt whose count-1 program must also pass grid_score.free_checks (the puzzle's own text, no model call);
 # a flagged program gets the flags as feedback within the same rounds, and a program still flagged after the last round is not accepted (row["free"]).
-# Arm gtrr [--check] (PREREG_RULE3G): the quick translation with the reading rules stated so far, stated and checked as in PREREG_RULE3 (writes gtrrv with --check).
+# Arm gtrr [--check [--cf]] (PREREG_RULE3G, PREREG_RULE4): the quick translation with the reading rules stated so far, stated and checked as in PREREG_RULE3
+# (writes gtrrv with --check; gtrrc with --check --cf, where the clue must also be misread without the rule).
 # Arm thinkb (PREREG_BUD): the think prompt under budget forcing at each of --budgets (default 1000,2000,4000,8000), all cut from one think; row["cuts"][B].
 GP_SOLVE = """
 import ast, itertools, json, re
@@ -855,7 +860,8 @@ def gp_main():
         T = {x["id"]: x for x in map(json.loads, open(path.replace("_gtrr_", "_gtrt_")))}
         assert all(r["id"] in T for r in P), f"{path.replace('_gtrr_', '_gtrt_')} lacks some of these {len(P)} puzzles"
         chk = "--check" in sys.argv
-        path = path.replace("_gtrr_", "_gtrr" + "v" * chk + "_")
+        cf = chk and "--cf" in sys.argv   # --check --cf (PREREG_RULE4): arm gtrrc, as trrc
+        path = path.replace("_gtrr_", "_gtrr" + ("c" if cf else "v" * chk) + "_")
         mem, rows, seen = [], [], set()
 
         def rule_reads(r, rules, t, te, sd):
@@ -885,6 +891,9 @@ def gp_main():
                         if chk:
                             ok, ct = rule_reads(r, mem + [u], t, te, sd0 + 200 + j)
                             rt += ct
+                            if ok and cf:   # PREREG_RULE4: the same translation, same seed, without the rule must not already read it so
+                                ok0, ct = rule_reads(r, mem, t, te, sd0 + 200 + j)
+                                rt += ct; ok = not ok0
                             if not ok:
                                 rejected.append((t, u)); continue
                         mem.append(u); added.append((t, u))

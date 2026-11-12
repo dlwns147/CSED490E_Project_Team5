@@ -1007,11 +1007,11 @@ def conv_main():
         except Exception:
             return None
     SD = [7, 8, 9] if "--rule3" in sys.argv else [4, 5, 6] if "--rule2" in sys.argv else [1, 2, 3]
-    cells = [("B, unseen main puzzles, fresh seeds 7-9", "q8bh", ["tr", "trf", "trrv", "trrvw", "trr", "trrw"])] if "--rule3" in sys.argv else \
+    cells = [("B, unseen main puzzles, fresh seeds 7-9", "q8bh", ["tr", "trf", "trrv", "trrvw", "trr", "trrw", "trrc"])] if "--rule3" in sys.argv else \
         [("B, unseen main puzzles, fresh seeds 4-6", "q8bh", ["tr", "trf", "trr", "trrw"])] if "--rule2" in sys.argv else \
         [("A, ZL-AM", "q8bam", ["tr", "trm", "trr"]), ("B, unseen main puzzles", "q8bh", ["tr", "trf", "trm", "trr"])]
     for cell, tag, firsts in cells:
-        firsts = [a for a in firsts if a not in ("trr", "trrw", "trrv", "trrvw") or all(os.path.exists(os.path.join(RES, f"zl_{tag}_{a}_s{sd}.jsonl")) for sd in SD)]
+        firsts = [a for a in firsts if a not in ("trr", "trrw", "trrv", "trrvw", "trrc") or all(os.path.exists(os.path.join(RES, f"zl_{tag}_{a}_s{sd}.jsonl")) for sd in SD)]
         R, order = {}, {}
         for arm in firsts + ["trt", "think"]:
             for sd in SD:
@@ -1040,15 +1040,16 @@ def conv_main():
             c1 = [x for x in q if x["count"] == 1]
             print(f"  ladder with {a:4s}: {100 * mean([e for e, _ in L]):5.1f}% at {mean([t for _, t in L]) / 1000:5.2f} ktok; quick step count-1 "
                   f"{len(c1)}/{len(q)}, precision {sum(x['exact'] for x in c1)}/{len(c1)} = {100 * sum(x['exact'] for x in c1) / max(len(c1), 1):.1f}% (P2: trm >= 95%)"
-                  + (f"; memory lines shown, mean {mean([x.get('mem', 0) for x in q]):.1f}" if a in ("trm", "trr", "trrw", "trrv", "trrvw") else "")
-                  + (f"; rule calls {mean([x.get('rule_tokens', 0) for x in q]) / 1000:.2f} ktok per puzzle" if a in ("trr", "trrw", "trrv", "trrvw") else "")
-                  + (f"; rules rejected by the check {sum(len(x.get('rules_rejected', [])) for x in q)}" if a in ("trrv", "trrvw") else ""))
+                  + (f"; memory lines shown, mean {mean([x.get('mem', 0) for x in q]):.1f}" if a in ("trm", "trr", "trrw", "trrv", "trrvw", "trrc") else "")
+                  + (f"; rule calls {mean([x.get('rule_tokens', 0) for x in q]) / 1000:.2f} ktok per puzzle" if a in ("trr", "trrw", "trrv", "trrvw", "trrc") else "")
+                  + (f"; rules rejected by the check {sum(len(x.get('rules_rejected', [])) for x in q)}" if a in ("trrv", "trrvw", "trrc") else ""))
         for a, b, rule in [("trm", "tr", "P3: interval above 0 in cell B"), ("trm", "trf", "P4: lower bound above -2.0"),
                            ("trr", "tr", "RULE-P3: interval above 0 in cell B"), ("trr", "trf", "RULE-P4: lower bound above -2.0"),
                            ("trrw", "tr", "RULE2-P2: interval above 0"), ("trrw", "trf", "RULE2-P1: lower bound above -2.0, point at or above 0"),
                            ("trrvw", "tr", "RULE3-P2: interval above 0"), ("trrvw", "trf", "RULE3-P1: lower bound above -2.0, point at or above 0"),
                            ("trrv", "tr", "reported"), ("trrv", "trf", "reported"),
-                           ("trrvw", "trrw", "RULE3-A1: point above 0, ablation"), ("trrv", "trr", "RULE3-A2: point at or above 0, ablation")]:
+                           ("trrvw", "trrw", "RULE3-A1: point above 0, ablation"), ("trrv", "trr", "RULE3-A2: point at or above 0, ablation"),
+                           ("trrc", "trf", "RULE4-P4: lower bound above -2.0"), ("trrc", "trrv", "RULE4: reported")]:
             if a in firsts and b in firsts:
                 per = {}
                 for i, sd in keys:
@@ -1061,7 +1062,7 @@ def conv_main():
         for a in firsts:
             n = bad = 0
             for sd in SD:
-                on = a not in ("trm", "trr", "trrv")
+                on = a not in ("trm", "trr", "trrv", "trrc")
                 for i in order.get((a, sd), []):
                     x, r = R[(a, i, sd)], P[i]
                     if (i, sd) in set(keys) and on:
@@ -1081,22 +1082,27 @@ def conv_main():
 
 
 def rule3g_main():
-    """PREREG_RULE3G: PREREG_RULE3's checked rules on GridPuzzle and Mitra-Baral, Qwen3-8B, seeds 4-6. usage: python poc/gp_eval.py --rule3g [tag q8b]
+    """PREREG_RULE3G: PREREG_RULE3's checked rules on GridPuzzle and Mitra-Baral, Qwen3-8B, seeds 4-6. usage: python poc/gp_eval.py --rule3g [tag q8b] [--rule4]
+    --rule4 (PREREG_RULE4): seeds 4-9 with gtrrc too (the check also needs the clue misread without the rule); --seeds 7,8,9 for the fresh seeds alone.
     Ladder: quick step (gtr, or gtrrv: with the checked rules stated so far) -> gtrt -> think, every step paid, rule calls paid at their puzzle; every
     grid scored by grid_score.score (scoring v2). Utility differences per puzzle (seeds together), 95% bootstrap."""
     from grid_score import score
-    tag = sys.argv[sys.argv.index("--rule3g") + 1] if len(sys.argv) > sys.argv.index("--rule3g") + 1 else "q8b"
+    tag = sys.argv[sys.argv.index("--rule3g") + 1] if len(sys.argv) > sys.argv.index("--rule3g") + 1 and not sys.argv[sys.argv.index("--rule3g") + 1].startswith("--") else "q8b"
+    r4 = "--rule4" in sys.argv
+    SD, FIRSTS = ([4, 5, 6, 7, 8, 9], ["gtr", "gtrrv", "gtrrc"]) if r4 else ([4, 5, 6], ["gtr", "gtrrv"])
+    if "--seeds" in sys.argv:   # e.g. --seeds 7,8,9: the fresh seeds alone
+        SD = [int(x) for x in sys.argv[sys.argv.index("--seeds") + 1].split(",")]
     data = os.environ.get("POC_DATA", os.path.join(RES, "..", "..", "nlp_data"))
     U = lambda e, t: 100 * e - 0.5 * t / 1000
     for s, src in [("gp", "gridpuzzle"), ("lgp", "lgp")]:
         PZ = {r["id"]: r for r in map(json.loads, open(os.path.join(data, src, "grid.jsonl")))}
         R = {}
-        for arm in ["gtr", "gtrrv", "gtrt", "think"]:
-            for sd in [4, 5, 6]:
+        for arm in FIRSTS + ["gtrt", "think"]:
+            for sd in SD:
                 f = os.path.join(RES, f"{s}_{tag}_{arm}_s{sd}.jsonl")
                 for x in map(json.loads, open(f)) if os.path.exists(f) else []:
                     R[(arm, x["id"], sd)] = {**x, "exact": score(x.get("grid"), PZ[x["id"]])[0]}
-        keys = sorted({(i, sd) for (_, i, sd) in R if all((a, i, sd) in R for a in ["gtr", "gtrrv", "gtrt", "think"])})
+        keys = sorted({(i, sd) for (_, i, sd) in R if all((a, i, sd) in R for a in FIRSTS + ["gtrt", "think"])})
         print(f"== {s} {tag}: {len(keys)} puzzle-seeds")
         if not keys:
             continue
@@ -1109,23 +1115,27 @@ def rule3g_main():
                     return r["exact"], tok
             r = R[("think", i, sd)]
             return r["exact"], tok + r["tokens"]
-        for a in ["gtr", "gtrrv"]:
+        for a in FIRSTS:
             L = [lad(a, i, sd) for i, sd in keys]
             q = [R[(a, i, sd)] for i, sd in keys]
             c1 = [x for x in q if x["count"] == 1]
             print(f"  ladder with {a:5s}: {100 * mean([e for e, _ in L]):5.1f}% at {mean([t for _, t in L]) / 1000:5.2f} ktok, utility {mean([U(e, t) for e, t in L]):.1f}; "
                   f"quick count-1 {len(c1)}/{len(q)}, precision {sum(x['exact'] for x in c1)}/{len(c1)} = {100 * sum(x['exact'] for x in c1) / max(len(c1), 1):.1f}%"
                   + (f"; rules kept {sum(len(x.get('rules_added', [])) for x in q)}, rejected {sum(len(x.get('rules_rejected', [])) for x in q)}, "
-                     f"rule calls {mean([x.get('rule_tokens', 0) for x in q]) / 1000:.2f} ktok per puzzle" if a == "gtrrv" else ""))
-        per = {}
-        for i, sd in keys:
-            (ea, ta), (eb, tb) = lad("gtrrv", i, sd), lad("gtr", i, sd)
-            per.setdefault(i, []).append((U(ea, ta) - U(eb, tb), ea - eb, (ta - tb) / 1000))
-        f = lambda k: (lambda v: mean([mean([z[k] for z in x]) for x in v]))
-        pt, lo, hi = boot(per, f(0))
-        print(f"  ladder(gtrrv) - ladder(gtr): utility {pt:+.1f} [{lo:+.1f}, {hi:+.1f}], accuracy {100 * f(1)(list(per.values())):+.1f} points, "
-              f"ktok {f(2)(list(per.values())):+.2f}   (RULE3G-P1: lower bound above -2.0 on both sets; RULE3G-P3: interval above 0 on GridPuzzle)")
-
+                     f"rule calls {mean([x.get('rule_tokens', 0) for x in q]) / 1000:.2f} ktok per puzzle" if a != "gtr" else ""))
+        for a, b, rule in [("gtrrv", "gtr", "RULE3G-P1: lower bound above -2.0 on both sets; RULE3G-P3: interval above 0 on GridPuzzle" if not r4 else "RULE4: reported"),
+                           ("gtrrc", "gtr", "RULE4-P1: lower bound above -2.0 on both sets; RULE4-P3: interval above 0 on GridPuzzle"),
+                           ("gtrrc", "gtrrv", "RULE4: reported")]:
+            if a not in FIRSTS or b not in FIRSTS:
+                continue
+            per = {}
+            for i, sd in keys:
+                (ea, ta), (eb, tb) = lad(a, i, sd), lad(b, i, sd)
+                per.setdefault(i, []).append((U(ea, ta) - U(eb, tb), ea - eb, (ta - tb) / 1000))
+            f = lambda k: (lambda v: mean([mean([z[k] for z in x]) for x in v]))
+            pt, lo, hi = boot(per, f(0))
+            print(f"  ladder({a}) - ladder({b}): utility {pt:+.1f} [{lo:+.1f}, {hi:+.1f}], accuracy {100 * f(1)(list(per.values())):+.1f} points, "
+                  f"ktok {f(2)(list(per.values())):+.2f}   ({rule})")
 
 if __name__ == "__main__":
     rule3g_main() if "--rule3g" in sys.argv else esc3_main() if "--esc3" in sys.argv else esc2_main() if "--esc2" in sys.argv else esc_main() if "--esc" in sys.argv else min_main() if "--zlmin" in sys.argv else conv_main() if "--conv" in sys.argv else free_main() if "--free" in sys.argv else bud_main() if "--bud" in sys.argv else mot_main() if "--mot" in sys.argv else zl_main() if "--zl" in sys.argv else np_main() if "--np" in sys.argv else thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()
