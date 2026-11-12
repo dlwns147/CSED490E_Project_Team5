@@ -1137,5 +1137,61 @@ def rule3g_main():
             print(f"  ladder({a}) - ladder({b}): utility {pt:+.1f} [{lo:+.1f}, {hi:+.1f}], accuracy {100 * f(1)(list(per.values())):+.1f} points, "
                   f"ktok {f(2)(list(per.values())):+.2f}   ({rule})")
 
+
+def grl_main():
+    """PREREG_GRL: the quick translation trained by plain RL, cross-fitted (fold f's adapter on fold f's test puzzles, tags q8bgrl0 / q8bgrl1),
+    as the ladder's first step, against base gtr and against thinking; seeds 4-9 (--seeds to override). usage: python poc/gp_eval.py --grl
+    Ladder and scoring as rule3g_main; first step "grl" = the trained gtr, then base gtrt -> think, every step paid."""
+    from grid_score import score
+    SD = [int(x) for x in sys.argv[sys.argv.index("--seeds") + 1].split(",")] if "--seeds" in sys.argv else [4, 5, 6, 7, 8, 9]
+    data = os.environ.get("POC_DATA", os.path.join(RES, "..", "..", "nlp_data"))
+    U = lambda e, t: 100 * e - 0.5 * t / 1000
+    for s, src in [("gp", "gridpuzzle"), ("lgp", "lgp")]:
+        PZ = {r["id"]: r for r in map(json.loads, open(os.path.join(data, src, "grid.jsonl")))}
+        R = {}
+        for arm, tags in [("gtr", ["q8b"]), ("gtrt", ["q8b"]), ("think", ["q8b"]), ("grl", ["q8bgrl0", "q8bgrl1"])]:
+            for tag in tags:
+                for sd in SD:
+                    f = os.path.join(RES, f"{s}_{tag}_{'gtr' if arm == 'grl' else arm}_s{sd}.jsonl")
+                    for x in map(json.loads, open(f)) if os.path.exists(f) else []:
+                        R[(arm, x["id"], sd)] = {**x, "exact": score(x.get("grid"), PZ[x["id"]])[0]}
+        A = ["gtr", "grl", "gtrt", "think"]
+        keys = sorted({(i, sd) for (_, i, sd) in R if all((a, i, sd) in R for a in A)})
+        print(f"== {s}: {len(keys)} puzzle-seeds, seeds {SD}")
+        if not keys:
+            continue
+
+        def lad(first, i, sd):
+            if first == "think":
+                r = R[("think", i, sd)]
+                return r["exact"], r["tokens"]
+            tok = 0
+            for arm in [first, "gtrt"]:
+                r = R[(arm, i, sd)]; tok += r["tokens"]
+                if r["count"] == 1:
+                    return r["exact"], tok
+            r = R[("think", i, sd)]
+            return r["exact"], tok + r["tokens"]
+        for a in ["gtr", "grl", "think"]:
+            L = [lad(a, i, sd) for i, sd in keys]
+            line = f"  {'ladder with ' + a if a != 'think' else 'think alone':16s}: {100 * mean([e for e, _ in L]):5.1f}% at {mean([t for _, t in L]) / 1000:5.2f} ktok, utility {mean([U(e, t) for e, t in L]):.1f}"
+            if a != "think":
+                q = [R[(a, i, sd)] for i, sd in keys]
+                c1 = [x for x in q if x["count"] == 1]
+                line += (f"; quick right count-1 {100 * sum(x['exact'] for x in c1) / len(q):.1f}% (GRL-P1), count-1 {len(c1)}/{len(q)}, "
+                         f"precision {100 * sum(x['exact'] for x in c1) / max(len(c1), 1):.1f}%, quick {mean([x['tokens'] for x in q]) / 1000:.2f} ktok")
+            print(line)
+        for a, b, rule in [("grl", "gtr", "GRL-P2: interval above 0 on GridPuzzle; GRL-P3: lower bound above -2.0 on Mitra-Baral"),
+                           ("grl", "think", "GRL-P4: reported"), ("gtr", "think", "reported")]:
+            per = {}
+            for i, sd in keys:
+                (ea, ta), (eb, tb) = lad(a, i, sd), lad(b, i, sd)
+                per.setdefault(i, []).append((U(ea, ta) - U(eb, tb), ea - eb, (ta - tb) / 1000))
+            f = lambda k: (lambda v: mean([mean([z[k] for z in x]) for x in v]))
+            pt, lo, hi = boot(per, f(0))
+            da, dk = 100 * f(1)(list(per.values())), f(2)(list(per.values()))
+            be = f", break-even price {da / dk:.2f} per ktok" if da * dk > 0 else ""
+            print(f"  ladder({a}) - {'ladder(' + b + ')' if b != 'think' else 'think'}: utility {pt:+.1f} [{lo:+.1f}, {hi:+.1f}], accuracy {da:+.1f} points, ktok {dk:+.2f}{be}   ({rule})")
+
 if __name__ == "__main__":
-    rule3g_main() if "--rule3g" in sys.argv else esc3_main() if "--esc3" in sys.argv else esc2_main() if "--esc2" in sys.argv else esc_main() if "--esc" in sys.argv else min_main() if "--zlmin" in sys.argv else conv_main() if "--conv" in sys.argv else free_main() if "--free" in sys.argv else bud_main() if "--bud" in sys.argv else mot_main() if "--mot" in sys.argv else zl_main() if "--zl" in sys.argv else np_main() if "--np" in sys.argv else thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()
+    grl_main() if "--grl" in sys.argv else rule3g_main() if "--rule3g" in sys.argv else esc3_main() if "--esc3" in sys.argv else esc2_main() if "--esc2" in sys.argv else esc_main() if "--esc" in sys.argv else min_main() if "--zlmin" in sys.argv else conv_main() if "--conv" in sys.argv else free_main() if "--free" in sys.argv else bud_main() if "--bud" in sys.argv else mot_main() if "--mot" in sys.argv else zl_main() if "--zl" in sys.argv else np_main() if "--np" in sys.argv else thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()
