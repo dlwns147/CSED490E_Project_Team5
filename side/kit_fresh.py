@@ -13,11 +13,17 @@ A fresh figure is accepted only if, checked here and not by the solver:
 Then the proof's auxiliary points are rebuilt on it, and every step's conclusion and premises must hold.
 
 Plug in your solver: a Python module (on the path) with `figures(dsl, n, seed)` returning a list of candidate figures, each a list of complex numbers in the
-statement's point order (geo_decl.parse). The default is geo_decl.solve with the stored run's 240 starts, the solver that produced the stored count.
-usage: python side/kit_fresh.py <kit dir> [--solver module] [--n 8] [--only <problem id>] [--workers W (default solver only)]
+statement's point order (geo_decl.parse). If `figures` also takes a keyword `ref`, it is given the proof's figure (same format). The default is
+geo_decl.solve with the stored run's 240 starts, the solver that produced the stored count.
+usage: python side/kit_fresh.py <kit dir> [--solver module] [--n 8] [--only <problem id>] [--workers W] [--control]
+
+--control runs the soundness control instead of the count: plants.json in the kit dir holds false steps, each with a statement and a
+proof's figure moved along the solution set until the false step holds on it exactly (a proof found on a coincidental figure). Each plant
+is added to its certificate as one more step and scored with the moved figure as the proof's figure. A sound fresh-figure stage counts
+none of them whole; the kit prints how many it does, and on how many the solver gave fewer than n figures (no evidence either way).
 The kit dir holds certs_nl/, certs_lean/ (certificates), verdicts.json and checked.json (geo_check results); frozen copies, not in the repository.
 Prints, per arm, the whole problems counted, the problems lost at the fresh-figure rule, and the CPU seconds per statement."""
-import importlib, json, os, sys, time
+import importlib, inspect, json, os, sys, time
 import numpy as np
 
 for k, v in dict(GT_DECL_STARTS="240", GT_SOUND="1", GT_STRICT="1", GT_SQ="1", OMP_NUM_THREADS="1", OPENBLAS_NUM_THREADS="1").items():
@@ -28,6 +34,8 @@ import geo_closure as GC   # noqa: E402
 import geo_decl as GD   # noqa: E402
 
 SKIP = ("given_", "const", "tdiff", "cyclic_group")
+KNOWN = {"coll", "para", "perp", "cong", "half", "eqangle", "eqratio", "cyclic", "circle", "sqperp", "sqcong", "sqmid", "sqmedian", "simtri",
+         "simtri2"}   # the kinds geo_closure.num_fact checks; it passes any other kind, so the kit rejects them
 
 
 def default_figures(dsl, n, seed=0):
@@ -82,6 +90,8 @@ def holds(cert, P, pts):
     for F in facts:
         if not F or F[0] in SKIP:
             continue
+        if F[0] not in KNOWN:
+            return False
         try:
             Fi = (F[0], *[ix[x] if isinstance(x, str) and x in ix else x for x in F[1:]])
             if not GC.num_fact(Fi, XY):
@@ -91,18 +101,20 @@ def holds(cert, P, pts):
     return True
 
 
-def score_cert(cert, solver, n):
-    """-> (fresh figures accepted, of which the proof holds on all, seconds)"""
+def score_cert(cert, solver, n, ref=None):
+    """-> (fresh figures accepted, of which the proof holds on all, seconds); ref: the proof's figure (default: the closure's)"""
     t0 = time.time()
     dsl = cert["dsl"]
     pts = GD.parse(dsl)[0]
+    if ref is None:
+        try:
+            ref_names, ref_xy, _, _ = GD.figure(dsl, 0)   # the proof's own figure, as the closure saw it
+        except ValueError:
+            return 0, 0, time.time() - t0
+        ref = np.array([complex(*ref_xy[ref_names.index(p)]) for p in pts])
     try:
-        ref_names, ref_xy, _, _ = GD.figure(dsl, 0)   # the proof's own figure, as the closure saw it
-    except ValueError:
-        return 0, 0, time.time() - t0
-    ref = np.array([complex(*ref_xy[ref_names.index(p)]) for p in pts])
-    try:
-        cands = solver(dsl, 4 * n, 1)
+        takes_ref = "ref" in inspect.signature(solver).parameters
+        cands = solver(dsl, 4 * n, 1, ref=list(ref)) if takes_ref else solver(dsl, 4 * n, 1)
     except Exception:
         cands = []
     acc, shapes = 0, [_shape(ref)]
@@ -121,9 +133,45 @@ def score_cert(cert, solver, n):
     return acc, held, time.time() - t0
 
 
+_SOLVER = default_figures   # set by main before the pool forks, so workers share it
+
+
 def _one(a):
     (pid, sample, cert), n = a
-    return (pid, sample, *score_cert(cert, default_figures, n))
+    return (pid, sample, *score_cert(cert, _SOLVER, n))
+
+
+def _plants(a):
+    """score one statement's plants (one process, so the default solver's figures are built once)"""
+    (kit, group), n = a
+    out = []
+    for i, pl in group:
+        cert = json.load(open(os.path.join(kit, f"certs_{pl['arm']}", pl["file"])))
+        cert = dict(cert, rows=cert["rows"] + [{"concl": pl["fact"], "prem": []}])
+        out.append((i, pl, *score_cert(cert, _SOLVER, n, ref=np.array([complex(x, y) for x, y in pl["ref"]]))))
+    return out
+
+
+def control(kit, n, workers):
+    """the soundness control (--control): planted false steps on moved proof figures; a sound stage counts none whole"""
+    plants = json.load(open(os.path.join(kit, "plants.json")))
+    groups = {}
+    for i, pl in enumerate(plants):
+        groups.setdefault((pl["arm"], pl["file"]), []).append((i, pl))
+    jobs = [((kit, g), n) for g in groups.values()]
+    if workers > 1:
+        from multiprocessing import get_context
+        with get_context("fork").Pool(workers) as pool:
+            res = [r for rs in pool.imap_unordered(_plants, jobs) for r in rs]
+    else:
+        res = [r for j in jobs for r in _plants(j)]
+    whole, short = [], 0
+    for i, pl, acc, held, sec in sorted(res, key=lambda r: r[0]):
+        short += acc < n
+        if acc >= n and held == acc:
+            whole.append(i)
+        print(f"  plant {i} {pl['arm']} {pl['file']} {' '.join(pl['fact'])}: fresh {acc}, proof holds on {held}, {sec:.0f} s", flush=True)
+    print(f"control: {len(plants)} planted false steps; counted whole {len(whole)} (must be 0) {whole}; fewer than {n} figures on {short}")
 
 
 def main():
@@ -132,6 +180,10 @@ def main():
     n = int(opt("--n", 8))
     solver = getattr(importlib.import_module(opt("--solver", "")), "figures") if "--solver" in sys.argv else default_figures
     only = opt("--only", None)
+    global _SOLVER
+    _SOLVER = solver
+    if "--control" in sys.argv:
+        return control(kit, n, int(opt("--workers", 1)))
     V = json.load(open(os.path.join(kit, "verdicts.json")))
     ok = json.load(open(os.path.join(kit, "checked.json")))
     workers = int(opt("--workers", 1))
@@ -149,7 +201,7 @@ def main():
         if workers > 1:   # one process per statement (the solver holds the CPU); fork, so a --solver module is shared
             from multiprocessing import get_context
             with get_context("fork").Pool(workers) as pool:
-                res = pool.imap_unordered(_one, [(t, n) for t in todo]) if solver is default_figures else map(one, todo)
+                res = pool.imap_unordered(_one, [(t, n) for t in todo])
                 res = list(res)
         else:
             res = map(one, todo)
