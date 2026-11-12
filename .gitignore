@@ -34,3 +34,6 @@ models/
 .env
 *.pem
 *_key*
+
+# ML main-conference paper extension: private working folder, never pushed to this public repo (user 2026-11-12)
+paper/
