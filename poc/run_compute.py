@@ -14,17 +14,20 @@ Modes:
          MathConstruct, no thinking: construct() and verify(obj), the problem's stated conditions as code; the harness runs verify(construct())
   thinkp Euler and MathConstruct: thinking on, then the quick program's prompt (a program we run): thinking with code, the strong
          baseline on problems that need computation (the pilot found plain thinking at 16k capped on most Euler problems)
+  thinkpb Euler: thinkp with budget forcing (s1 2501.19393; llm.think_cuts): one think cut at each of --budgets (default 2000,4000,8000,14000),
+         the program written after each cut; row["cuts"] holds every budget, the row itself the largest (pilot: thinkp at 16k capped
+         without a program on half the easy problems, so the plain cap undersells thinking)
   brute  OEIS only, no thinking: a deliberately slow program written straight from the definition, for comparing with `prog` on small n
   mem    Euler only, no thinking, no work shown: the answer at once (memorization control: old answers are public)
 Grading: MathConstruct its own parse_and_check; Euler exact integer string; OEIS a(n) on the first 20 listed terms (4 s each, as the benchmark's most lenient limit), right only if all match.
-usage: POC_BASE_URL=... python run_compute.py <set> <tag> <mode> <seed> [--max_tokens N] [--n K]
+usage: POC_BASE_URL=... python run_compute.py <set> <tag> <mode> <seed> [--max_tokens N] [--n K] [--budgets B1,B2,..]
        python run_compute.py mcon <tag> <mode> <seed> --regrade   (grade stored program output again)
        -> results/x44/<set>_<tag>_<mode>_s<seed>.jsonl"""
 import json, os, re, sys, threading, zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from llm import chat, last_block  # noqa: E402
+from llm import chat, last_block, think_cuts  # noqa: E402
 from sandbox import run_python as _run_python  # noqa: E402
 
 _SEM = threading.Semaphore(int(os.environ.get("X44_PAR", 4)))   # runs are timed by the wall clock: no more at once than the job's CPUs
@@ -149,6 +152,7 @@ def main():
     if "--n" in sys.argv:
         P = P[:int(sys.argv[sys.argv.index("--n") + 1])]
     euler, mcon = s.startswith("euler"), s == "mcon"
+    BUD = [int(x) for x in sys.argv[sys.argv.index("--budgets") + 1].split(",")] if "--budgets" in sys.argv else [2000, 4000, 8000, 14000]
     path = f"{RES}/{s}_{tag}_{mode}_s{seed}.jsonl"
     if "--regrade" in sys.argv and mcon and mode != "think":   # grade stored program output again (2026-11-13: backspace fix); no model calls
         rows = _rows(path)
@@ -169,11 +173,25 @@ def main():
         if mcon:
             q = {"think": "{p}", "prog": MC_PROG, "thinkp": MC_PROG, "progc": MC_PROGC}[mode].format(p=p["problem"])
         elif euler:
-            q = {"think": EULER_THINK, "prog": EULER_PROG, "thinkp": EULER_PROG, "progc": EULER_PROGC, "mem": EULER_MEM}[mode].format(p=p["problem"])
+            q = {"think": EULER_THINK, "prog": EULER_PROG, "thinkp": EULER_PROG, "thinkpb": EULER_PROG, "progc": EULER_PROGC, "mem": EULER_MEM}[mode].format(p=p["problem"])
         else:
             q = OEIS.format(name=p["name"], comments=p["comments"])
             q = OEIS_BRUTE.format(q=q) if mode == "brute" else q
         th = mode in ("think", "thinkp")
+        if mode == "thinkpb":
+            C = think_cuts(EULER_PROG.format(p=p["problem"]), BUD, seed=sd, temperature=0.6)
+            cuts = {}
+            for b, o in C.items():
+                code = last_block(o["text"] or "", ("python", "py", "python3"))
+                r = run_python(code, "", timeout=PROG_S, mem_bytes=4 << 30) if code else None
+                out = ((r.stdout if r and r.status == "ok" else "") or "").strip()
+                a = out.splitlines()[-1] if out else ""
+                cuts[b] = {"out_tokens": o["out_tokens"], "think_tokens": o["think_tokens"], "cut": o["cut"], "finish": o["finish"],
+                           "status": (r.status if r else "no_code"), "answer": a, "correct": bool(a) and norm(a) == norm(p["answer"]), "code": code}
+            top = cuts[max(cuts)]
+            return {"id": p["id"], "mode": mode, "out_tokens": top["out_tokens"], "finish": top["finish"], "gold": p["answer"],
+                    "difficulty": p.get("difficulty"), "answer": top["answer"], "status": top["status"], "correct": top["correct"],
+                    "cuts": {str(b): c for b, c in cuts.items()}}
         o = chat(q, think=th, max_tokens=mt, temperature=0.6 if th else 0.7, seed=sd)
         text = o["text"] or ""
         row = {"id": p["id"], "mode": mode, "out_tokens": o.get("out_tokens"), "finish": o.get("finish")}
