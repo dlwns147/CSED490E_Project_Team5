@@ -1141,7 +1141,9 @@ def rule3g_main():
 def grl_main():
     """PREREG_GRL: the quick translation trained by plain RL, cross-fitted (fold f's adapter on fold f's test puzzles, tags q8bgrl0 / q8bgrl1),
     as the ladder's first step, against base gtr and against thinking; seeds 4-9 (--seeds to override). usage: python poc/gp_eval.py --grl
-    Ladder and scoring as rule3g_main; first step "grl" = the trained gtr, then base gtrt -> think, every step paid."""
+    Ladder and scoring as rule3g_main; first step "grl" = the trained gtr, then base gtrt -> think, every step paid.
+    --extra name=tag[+tag...][,...] (PREREG_GRLLF): more trained quick steps, each compared with gtr, grl and think, e.g.
+    --extra lf=q8bgrllf0+q8bgrllf1,tt=q8bgrltt"""
     from grid_score import score
     SD = [int(x) for x in sys.argv[sys.argv.index("--seeds") + 1].split(",")] if "--seeds" in sys.argv else [4, 5, 6, 7, 8, 9]
     data = os.environ.get("POC_DATA", os.path.join(RES, "..", "..", "nlp_data"))
@@ -1149,13 +1151,15 @@ def grl_main():
     for s, src in [("gp", "gridpuzzle"), ("lgp", "lgp")]:
         PZ = {r["id"]: r for r in map(json.loads, open(os.path.join(data, src, "grid.jsonl")))}
         R = {}
-        for arm, tags in [("gtr", ["q8b"]), ("gtrt", ["q8b"]), ("think", ["q8b"]), ("grl", ["q8bgrl0", "q8bgrl1"])]:
+        EX = [(kv.split("=")[0], kv.split("=")[1].split("+")) for kv in sys.argv[sys.argv.index("--extra") + 1].split(",")] if "--extra" in sys.argv else []
+        Q = ["grl"] + [n for n, _ in EX]   # trained quick steps, read from their gtr rows
+        for arm, tags in [("gtr", ["q8b"]), ("gtrt", ["q8b"]), ("think", ["q8b"]), ("grl", ["q8bgrl0", "q8bgrl1"])] + EX:
             for tag in tags:
                 for sd in SD:
-                    f = os.path.join(RES, f"{s}_{tag}_{'gtr' if arm == 'grl' else arm}_s{sd}.jsonl")
+                    f = os.path.join(RES, f"{s}_{tag}_{'gtr' if arm in Q else arm}_s{sd}.jsonl")
                     for x in map(json.loads, open(f)) if os.path.exists(f) else []:
                         R[(arm, x["id"], sd)] = {**x, "exact": score(x.get("grid"), PZ[x["id"]])[0]}
-        A = ["gtr", "grl", "gtrt", "think"]
+        A = ["gtr", "gtrt", "think"] + Q
         keys = sorted({(i, sd) for (_, i, sd) in R if all((a, i, sd) in R for a in A)})
         print(f"== {s}: {len(keys)} puzzle-seeds, seeds {SD}")
         if not keys:
@@ -1172,7 +1176,7 @@ def grl_main():
                     return r["exact"], tok
             r = R[("think", i, sd)]
             return r["exact"], tok + r["tokens"]
-        for a in ["gtr", "grl", "think"]:
+        for a in ["gtr"] + Q + ["think"]:
             L = [lad(a, i, sd) for i, sd in keys]
             line = f"  {'ladder with ' + a if a != 'think' else 'think alone':16s}: {100 * mean([e for e, _ in L]):5.1f}% at {mean([t for _, t in L]) / 1000:5.2f} ktok, utility {mean([U(e, t) for e, t in L]):.1f}"
             if a != "think":
@@ -1182,7 +1186,8 @@ def grl_main():
                          f"precision {100 * sum(x['exact'] for x in c1) / max(len(c1), 1):.1f}%, quick {mean([x['tokens'] for x in q]) / 1000:.2f} ktok")
             print(line)
         for a, b, rule in [("grl", "gtr", "GRL-P2: interval above 0 on GridPuzzle; GRL-P3: lower bound above -2.0 on Mitra-Baral"),
-                           ("grl", "think", "GRL-P4: reported"), ("gtr", "think", "reported")]:
+                           ("grl", "think", "GRL-P4: reported"), ("gtr", "think", "reported")] + \
+                [(n, b, "GRLLF") for n, _ in EX for b in ("gtr", "grl", "think")]:
             per = {}
             for i, sd in keys:
                 (ea, ta), (eb, tb) = lad(a, i, sd), lad(b, i, sd)

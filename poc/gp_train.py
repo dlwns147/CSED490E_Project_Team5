@@ -7,7 +7,9 @@ run_zebra.GP_SOLVE in the sandbox, as gtr does (30 s, 4 GB). Programs are sample
 Folds (`folds`): test puzzles of both sets, joined with any puzzle whose value set overlaps theirs by Jaccard >= 0.9 (Mitra-Baral has 25
 dev-test and 3 test-test copies; Schrader et al. 2512.17093 found the same), fold = crc32 of the component's smallest test id mod 2.
 Fold f trains on every puzzle (dev and test, both sets) outside fold f's components and is evaluated on fold f's test puzzles.
-usage: /opt/conda/bin/python gp_train.py <out dir> <fold 0|1> [--epochs 4] [--batch 16] [--group 8] [--lr 2e-5] [--smoke N]
+PREREG_GRLLF: --reward count1 rewards the free check alone (solver count 1, no label); fold "all" trains on every puzzle, test included
+(transductive, label-free only), and is evaluated on all test puzzles.
+usage: /opt/conda/bin/python gp_train.py <out dir> <fold 0|1|all> [--reward gold|count1] [--epochs 4] [--batch 16] [--group 8] [--lr 2e-5] [--smoke N]
        python gp_train.py --folds <dir>   (writes <dir>/fold{0,1}_ids.txt: the test puzzles each fold's model is evaluated on)
 (POC_PYTHON: the sandbox python with OR-Tools; POC_BASE_URL: vLLM with --enable-lora and VLLM_ALLOW_RUNTIME_LORA_UPDATING=True)"""
 import ast, itertools, json, os, random, sys, time, zlib
@@ -101,20 +103,22 @@ def main():
         print({f: sum(g == f for g in fold.values()) for f in (0, 1)}, "test puzzles per fold ->", d)
         return
     from cv_train import Policy, arg, post, sample
-    out, F = sys.argv[1], int(sys.argv[2])
+    out, F = sys.argv[1], (None if sys.argv[2] == "all" else int(sys.argv[2]))
     ep, B, G, lr, smoke = arg("--epochs", 4), arg("--batch", 16), arg("--group", 8), arg("--lr", 2e-5), arg("--smoke", 0)
+    rw = arg("--reward", "gold")
+    assert rw in ("gold", "count1") and (F is not None or rw == "count1"), "fold all only with the label-free reward"
     base = arg("--base", "/SSD/huggingface/Qwen/Qwen3-8B")
     os.makedirs(out, exist_ok=True)
     P = puzzles()
     _, held = folds(P)
-    train = [r for r in P if F not in held[r["id"]]]
-    rng = random.Random(F)
+    train = [r for r in P if F is None or F not in held[r["id"]]]
+    rng = random.Random(2 if F is None else F)
     items = []
     for _ in range(ep):
         e = list(train); rng.shuffle(e); items += e
     items = items[:smoke or len(items)]
     print(f"grl fold {F}: {len(train)} training puzzles ({sum(r['set'] == 'gridpuzzle' for r in train)} GridPuzzle), {ep} epochs, "
-          f"batch {B}, group {G}, lr {lr}, cap {CAP}", flush=True)
+          f"batch {B}, group {G}, lr {lr}, cap {CAP}, reward {rw}", flush=True)
     pol = Policy(base, lr)
     log = open(f"{out}/log.jsonl", "a")
     model_name = "local"   # round 0: the adapter is zero, the base model samples
@@ -128,12 +132,12 @@ def main():
         t1 = time.time()
         jobs = [(qi, d) for qi, ds in enumerate(drafts) for d in ds]
         res = list(ex.map(lambda x: grade(x[1], batch[x[0]]), jobs))
-        R = [[float(res[qi * G + j][1]) for j in range(G)] for qi in range(len(batch))]
+        R = [[float(res[qi * G + j][1] if rw == "gold" else res[qi * G + j][0] == 1) for j in range(G)] for qi in range(len(batch))]
         t2 = time.time()
-        st = {"right": 0.0, "n": 0, "mixed": 0, "count1": sum(c == 1 for c, _ in res), "fail": sum(c == -1 for c, _ in res)}
+        st = {"right": sum(ok for _, ok in res), "n": 0, "mixed": 0, "count1": sum(c == 1 for c, _ in res), "fail": sum(c == -1 for c, _ in res)}
         for qi in range(len(batch)):
             ds, W = drafts[qi], R[qi]
-            st["right"] += sum(W); st["n"] += G
+            st["n"] += G
             mu = sum(W) / G
             A = [x - mu for x in W]
             if any(abs(x) > 1e-9 for x in A):
