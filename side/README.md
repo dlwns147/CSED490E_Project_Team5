@@ -120,7 +120,8 @@ counted rows, each certified, at no more CPU than HAGeo's setting (64 cores, 60 
 - **HAGeo's own heuristic inside our closure.** Our candidates are random one-step constructions ranked by measured rank gain
   (`geo_translate.aux_candidates`); HAGeo keeps a point only if it lies non-trivially on a line or circle of the figure, and that alone takes
   them from random 218 to 287. Our closure tests a whole pool at once (monotone: every subset's proofs are in it), so better candidates cost
-  nothing extra in search. Their code is public (github.com/boduan1/HAGeo; `nlp_data/geo/HAGeo`).
+  nothing extra in search. **Their code is not public** (checked 11-13: github.com/boduan1/HAGeo holds the README and figures only, "full
+  code is under review by Microsoft"; the benchmark is public), so the rule is re-implemented from the paper's description.
 - **A faster closure, so larger pools fit the same CPU** (incremental span updates, cheaper numeric fact enumeration).
 - **The algebraic fallback** (lever 1 above) for rows whose missing facts are non-linear relations: Wu's method alone solves problems deduction
   cannot (15 of IMO-AG-30, some unsolved by AlphaGeometry, Sinha et al.), and nobody reports it on HAGeo-409.
@@ -130,6 +131,28 @@ counted rows, each certified, at no more CPU than HAGeo's setting (64 cores, 60 
 Checkpoints, each through the task-2 kit and pre-registered: (0) reproduce 263, then the same engine at HAGeo's CPU budget; (1) HAGeo's heuristic as the candidate source; (2) the faster
 closure at matched CPU; (3) the algebraic fallback on what is left; (4) certificates and Lean export of every new row. Each step reports rows
 proved, CPU time, and rows lost or gained by difficulty band (HAGeo reports 40.8% on its hardest [4, 5) band at K = 2,048).
+
+**Measured room, lever by lever (11-13, from stored runs; the task-2 kit judges every new number).** No result on HAGeo-409 after HAGeo's
+has been published (searched 11-13), so 287 is the bar.
+
+| Where | Rows | What it takes | Measured |
+|---|---|---|---|
+| Our gap to HAGeo by band | −9 [1, 3), −9 [3, 4), −8 [4, 5), 0 [5, 6), 0 [6, 7] | the gap is all below difficulty 5: rows HAGeo reaches and we time out on | per band, SIDE-GT-H409 |
+| Statements that do not build | 6 (difficulty 1.0–3.3) | `eq_trapezoid` (4) and two `IndexError` in our language | a language fix, then the same engine |
+| Greedy and random points as a portfolio | +8 at 2 × 1,800 s | run both searches; the random arm proves 8 rows the greedy misses | **271** counted (union of the two stored runs) |
+| More CPU, same engine | 146 rows at 16 × 1,800 s | nothing new | running (SIDE-GT-H409-CPU, predicted 288) |
+| HAGeo's candidate rule | unknown | re-implement from the paper | checkpoint (1) |
+| Algebraic fallback | the 146 left: median difficulty 4.5, 11 points; 65 collinearity goals; **63 use an incenter** (vs 22% of solved rows) | an incenter or excenter is one of four algebraic branches, so the proof must pick the component the figure shows | checkpoint (3) |
+
+**Suggested split for the teammate (11-13, fourth pass), in order, each a coding task with a number to beat:**
+1. **Warm-up inside task 2 (days):** the missing constructions (`eq_trapezoid`) and the two build errors, then the greedy + random portfolio.
+   Expected 271–277 counted; this alone passes HAGeo at K = 2,048 (263).
+2. **HAGeo's heuristic, re-implemented from the paper** (points that lie non-trivially on a line or circle of the figure) as our candidate
+   source, at matched CPU against the 16× curve. Their random → heuristic step was +69 rows in their engine.
+3. **The algebraic fallback with component choice** on the rows still left: Wu's method or Gröbner bases, the branch (incenter vs excenters,
+   which intersection) fixed by the numeric figure, non-degeneracy conditions written out, the identity checked in Lean by
+   `linear_combination`. This is where certified proofs go beyond what HAGeo reports.
+We keep: translation and faithfulness, the kits, any model call, and reading each result with the teammate.
 
 **Out of scope:** telling a faithful translation from an unfaithful one without a human, translation and prompting, and new benchmarks.
 They stay as future work in the report.
