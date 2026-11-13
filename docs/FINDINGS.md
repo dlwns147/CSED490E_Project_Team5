@@ -7122,7 +7122,7 @@ Job 1382299 (one GPU, queued).
 - Proofs (task 2 kit for the teammate): `side/kit_h409.py` reproduces 263 of HAGeo-409 exactly and counts 0 of 737 tampered certificates;
   measured room: greedy + random portfolio 271, 6 statements that do not build, gap to HAGeo (287) all below difficulty 5.
 
-## 2026-11-13 17:0x UTC — Trips: where the method still loses is the fallback, and the reason is the translation's plan generator, not its constraints (exploratory)
+## 2026-11-13 16:5x UTC — Trips: where the method still loses is the fallback, and the reason is the translation's plan generator, not its constraints (exploratory)
 
 - Qwen3-32B ladder with the gpt-oss-120b quick step, seeds 4–6: 84 wrong of 300. 69 are trips where no translation reaches one plan, so
   thinking answers and is wrong 86% of the time there (80 trips). Accepted plans are right 205 of 220 (the check is not the loss).
