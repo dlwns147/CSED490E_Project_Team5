@@ -7059,3 +7059,16 @@ Job 1382299 (one GPU, queued).
 - **Reading:** every computation verdict checked holds on audited labels, and absolute accuracies on MAMO and OptiBench were understated by about
   15 points. Report both. The leak that limited the word-problem cascade (passing programs both the cheap path and thinking get wrong) falls
   from 17.0% to 9.4% of passing programs on OptiBench once bad labels go. IndustryOR (42 of 100 kept) and NL4Opt are audited too; not yet applied.
+
+## 2026-11-13 06:1x UTC — PREREG_PEERT holds: a gpt-oss-20b quick translation as step ② adds +4.7 (GridPuzzle) and +4.0 (Mitra-Baral) on held-out seeds; the full grid method beats thinking by +31.3
+
+- Ladder (Qwen3-8B, seeds 7–9, never used before): RL-trained quick translation → gpt-oss-20b quick translation (reasoning effort low) →
+  thinking translation → thinking, the distinctness closure on every step with several solutions. GridPuzzle 87.8% at 9.0k → **91.0% at
+  6.0k** tokens, +4.7 [+2.8, +7.0]; Mitra-Baral 93.6% at 5.9k → **95.7% at 2.1k**, +4.0 [+1.7, +6.9]; the peer's accepted grids right
+  91/95 and 51/52. Against thinking only (62.5% at 11.6k; 87.6% at 6.2k): +31.3 [+26.1, +36.8] and +10.2 [+4.2, +16.4].
+- Why: the two Qwen3-8B translators share readings (PREREG_CONJ); another family reads differently and costs a few hundred tokens, so it
+  settles most puzzles the trained translator leaves open before the 15–17k-token thinking translation. The same held on word problems (XPEER).
+- Other pairs (exploratory, stored rows): positive for every main / peer pair, largest for a weak main with a peer at least as strong
+  (Qwen3-8B ← gpt-oss-20b +9.2; gpt-oss-20b ← Qwen3-32B +5.5), near 0 for a strong main with a weaker peer.
+- Puzzles are reported as computation (text → constraints → exact solver → free check), next to the optimization word problems (user,
+  05:4x UTC: "can puzzle be computation part").

@@ -20,3 +20,19 @@ on every step with two or more solutions, all tokens of every step paid (the pee
   bound above −2.0. Predicted +4 and +3.
 - **PEERT-P2:** precision of the peer's accepted grids at least 95% (GridPuzzle; seen 91 of 95).
 - **Decision:** P1 holds → the peer step joins the course method; else it stays out.
+
+## Result (2026-11-13 06:1x UTC; `python poc/gp_conj.py peert`, jobs 1424668–1424669, closure job 1425009): P1 and P2 hold. The peer step joins the method
+
+| Seeds 7–9 (held out) | GridPuzzle (645 puzzle-seeds) | Mitra-Baral (282) |
+|---|---|---|
+| `lf` → `gtrt` → `think` (closure on) | 87.8% at 8.99 ktok, U 83.3 | 93.6% at 5.87 ktok, U 90.7 |
+| `lf` → gpt-oss-20b quick → `gtrt` → `think` | **91.0% at 6.00 ktok, U 88.0** | **95.7% at 2.12 ktok, U 94.7** |
+| **PEERT-P1:** with − without | **+4.7 [+2.8, +7.0]** (predicted +4) | **+4.0 [+1.7, +6.9]** (predicted +3) |
+| PEERT-P2: the peer's accepted grids right | 91/95 (95.8%) | 51/52 |
+| Thinking only | 62.5% at 11.55 ktok | 87.6% at 6.22 ktok |
+| Full method − thinking | +31.3 [+26.1, +36.8] | +10.2 [+4.2, +16.4] |
+
+- **Decision as registered:** the cross-family quick translation joins the course method as step ②; the thinking translation moves to ③.
+- **Other model pairs (exploratory, stored seeds 1–6 or 1–3, closure on):** main ← peer, GridPuzzle: Qwen3-8B ← gpt-oss-20b +9.2 [+6.6, +12.0],
+  gpt-oss-20b ← Qwen3-32B +5.5 [+3.9, +7.4], Qwen3-32B ← gpt-oss-20b +1.4 [+0.4, +2.4], gpt-oss-20b ← Qwen3-8B +0.6 [−0.9, +2.1]; Mitra-Baral
+  +0.2 to +4.7. The step never loses and always saves tokens; it pays most when the main model is weak and the peer at least as strong.
