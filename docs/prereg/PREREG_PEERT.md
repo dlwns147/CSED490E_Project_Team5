@@ -72,3 +72,9 @@ precision of the peer's accepted grids, because each accepted grid replaces a 15
 (reasoning effort low). gs15 GPUs 6 and 7. No closure (it is a grid rule).
 **Prediction.** **PEERT-B1:** Qwen3-32B ladder with gpt-oss-120b's quick translation as step ② − without, interval above 0 → the peer step is
 part of the method on trips as well; otherwise grids only. Predicted +5.
+
+## Addendum B2 (registered 2026-11-13 07:1x UTC, before any gpt-oss-20b trip run of seeds 4–6 exists): a second main model on trips
+
+Stored seeds 1–3 (exploratory): gpt-oss-20b ladder with gpt-oss-120b's quick translation as step ②: 79.0% at 31.5k → 79.3% at 24.4k,
++3.8 [+1.3, +6.7]. **Run:** gpt-oss-20b `trc` (effort low), `trct` and `think` (effort high), seeds 4–6, Slurm (2 × RTX 3090 per seed);
+the peer rows are addendum B's gpt-oss-120b `trc`. **PEERT-B2:** with − without, interval above 0 (predicted +3), reported beside B1.
