@@ -200,5 +200,89 @@ print(json.dumps(out))
     print("why rows", len(X), "with a reference", sum(x["id"] in ref for x in X), flush=True)
 
 
+def distinct_closure(code, values):
+    """The implicature the mechanism run found both translators drop: entities a disjunctive or negative clue names, and that no reading of the
+    clue equates, are different entities ("X is either A or B" -> A != B; "of A and B, one is C and the other D" -> A != B, C != D; "neither A nor
+    B is C" -> A != B). Applied to expressions that are an `or`, an `in`, an exclusive or, or an `and` of `!=`; entities are p['...'] keys and
+    numbers of the first category. Returns the extra expressions (pure text transformation, nothing is executed)."""
+    import ast
+    import itertools
+    m = None
+    for n in ast.parse(code).body:
+        if isinstance(n, ast.Assign) and any(isinstance(a, ast.Name) and a.id == "clues" for a in n.targets) and isinstance(n.value, ast.List):
+            m = n.value
+    if m is None:
+        return []
+    ent = lambda t: ("k", t.slice.value) if isinstance(t, ast.Subscript) and isinstance(t.slice, ast.Constant) and isinstance(t.slice.value, str) else \
+        ("n", t.value) if isinstance(t, ast.Constant) and isinstance(t.value, (int, float)) and t.value in values else None
+    out = []
+    for e in m.elts:
+        if not (isinstance(e, ast.Constant) and isinstance(e.value, str)):
+            continue
+        try:
+            t = ast.parse(e.value, mode="eval").body
+        except SyntaxError:
+            continue
+        cmp = [c for c in ast.walk(t) if isinstance(c, ast.Compare)]
+        xor = any(isinstance(c.ops[0], ast.NotEq) and all(isinstance(x, ast.Compare) for x in [c.left] + c.comparators) for c in cmp) or \
+            any(isinstance(b, ast.BinOp) and isinstance(b.op, ast.BitXor) for b in ast.walk(t))
+        neg = isinstance(t, ast.BoolOp) and isinstance(t.op, ast.And) and all(isinstance(v, ast.Compare) and isinstance(v.ops[0], ast.NotEq) for v in t.values)
+        if not (xor or neg or (isinstance(t, ast.BoolOp) and isinstance(t.op, ast.Or)) or (isinstance(t, ast.Compare) and isinstance(t.ops[0], ast.In))):
+            continue
+        E, eq = set(), set()
+        for c in cmp:
+            for x in [c.left] + c.comparators:
+                for y in ([x] + (list(x.elts) if isinstance(x, (ast.Tuple, ast.List, ast.Set)) else [])):
+                    if ent(y):
+                        E.add(ent(y))
+            if isinstance(c.ops[0], (ast.Eq, ast.In)):
+                L = [ent(c.left)]
+                R = [ent(y) for y in (c.comparators[0].elts if isinstance(c.comparators[0], (ast.Tuple, ast.List, ast.Set)) else [c.comparators[0]])]
+                eq |= {frozenset((a, b)) for a in L for b in R if a and b}
+        for a, b in itertools.combinations(sorted(E, key=str), 2):
+            if frozenset((a, b)) in eq or (a[0] == "n" and b[0] == "n") or (a[0] == b[0] == "k" and a[1].split(":")[0] == b[1].split(":")[0]):
+                continue
+            s = lambda z: f"p[{z[1]!r}]" if z[0] == "k" else repr(z[1])
+            out.append(f"{s(a)} != {s(b)}")
+    return sorted(set(out))
+
+
+def close_main():
+    """Exploratory (PREREG_CONJ, mechanism): every lf and gtrt program of seeds 4-9, re-counted with distinct_closure's expressions added
+    (sandboxed, GP_SOLVE unchanged). Writes results/{gp,lgp}_conj_close.jsonl: arm, id, seed, count and exactness before and after."""
+    from concurrent.futures import ThreadPoolExecutor
+    from sandbox import run_python
+    from run_zebra import GP_SOLVE, gp_score
+    for s, src in [("gp", "gridpuzzle"), ("lgp", "lgp")]:
+        PZ, R, keys = rows(s, src)
+        todo = [(a, i, sd) for i, sd in keys for a in ["lf", "gtrt"]]
+
+        def one(k):
+            a, i, sd = k
+            x, r = R[k], PZ[i]
+            (first, fv) = r["cats"][0]
+            row = {"arm": a, "id": i, "seed": sd, "count0": x["count"], "exact0": x["exact"]}
+            vm = re.search(r"^VALUES\s*=\s*(\[[^\]]*\])", x.get("code") or "", re.M)
+            try:
+                values = set(json.loads(vm.group(1))) if vm else set()
+                extra = distinct_closure(x["code"], values)
+            except Exception:
+                extra = None
+            if not extra:
+                return {**row, "n_extra": 0 if extra == [] else -1, "count": x["count"], "exact": x["exact"]}
+            solve = GP_SOLVE.replace("__FIRST__", json.dumps(fv)).replace("__FNAME__", json.dumps(first))
+            res = run_python(x["code"] + "\nclues = list(clues) + " + json.dumps(extra) + "\n" + solve, "", timeout=60, mem_bytes=4 << 30)
+            try:
+                out = json.loads(res.stdout.strip().splitlines()[-1])
+            except (AttributeError, IndexError, ValueError):
+                out = {"count": -1, "grid": {}}
+            return {**row, "n_extra": len(extra), "extra": extra, "count": out["count"], "exact": out["count"] == 1 and gp_score(out["grid"], r)[0]}
+
+        with ThreadPoolExecutor(int(os.environ.get("NW", "4"))) as ex, open(f"{RES}/{s}_conj_close.jsonl", "w") as f:
+            for row in ex.map(one, todo):
+                f.write(json.dumps(row) + "\n")
+        print(s, "closure rows", len(todo), flush=True)
+
+
 if __name__ == "__main__":
-    run_main() if sys.argv[1] == "run" else why_main() if sys.argv[1] == "why" else eval_main()
+    {"run": run_main, "why": why_main, "close": close_main}.get(sys.argv[1], eval_main)()

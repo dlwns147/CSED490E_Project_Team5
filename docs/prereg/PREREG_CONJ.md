@@ -58,3 +58,23 @@ Mitra-Baral has only 19 such puzzle-seeds (of 564), so about +0.5.
   to help either.
 - **Not a property of the puzzles:** 47 of the 52 puzzles involved have a right one-solution translation in some stored run, so the puzzles are
   unique under a right reading; both translators drop the same constraint. Which one is read next (mechanism run, `python poc/gp_conj.py why`).
+
+### Mechanism (exploratory, 2026-11-13 04:5x UTC; written after the result above, before the closure run below)
+
+`python poc/gp_conj.py why` (job 1420067): for 108 bucket puzzle-seeds with gold in both sets and a right one-solution translation of the same
+puzzle in some stored run, each wrongly shared grid was tested against that right translation, expression by expression. 329 of 372 such grids
+break exactly one expression. The commonest by form: an exclusive either-or (99 grids, 36 puzzle-seeds), a two-way pair or other `or`
+(81, 19), a single `!=` that a right translation adds for a "neither … nor" or list clue (66, 23). Read by hand, these are one convention of
+these puzzles that both translators drop: **entities a disjunctive or negative clue names are different entities** ("the 24 megapixel camera is
+either the $575 model or the Tela G5" also says the $575 model is not the Tela G5; "of A and B, one is C and the other D" says A ≠ B and C ≠ D).
+Both models write `x in (A, B)` or `A or B` and lose that implication. Idea 35 found the same gap in base translations (24–33% of weak clues);
+RL on the count did not remove it.
+
+**Closure diagnostic (exploratory, no model call):** `python poc/gp_conj.py close` adds, to every `lf` and `gtrt` program of seeds 4–9, the
+expression `A != B` for each pair of entities that an `or`, `in`, exclusive-or or `and`-of-`!=` expression names and never equates (text
+transformation of the program, `distinct_closure`), and re-counts. This measures how much of the remaining loss that one convention explains;
+it is a hand-stated rule, so it is not a method candidate as it stands (hand-written facts were removed before, RULE3). Predictions:
+- of the 177 GridPuzzle bucket puzzle-seeds, the closed `lf` or `gtrt` program has exactly one right solution on about 40%;
+- right count-1 programs broken by the closure (count 0 or another grid): under 2%;
+- if both hold, the residual loss is mostly one convention, and the question becomes how the translator learns it without labels (the count
+  reward gives no gradient on puzzles where no sample reaches one solution).
