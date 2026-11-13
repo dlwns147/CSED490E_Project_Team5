@@ -48,3 +48,17 @@ precision of the peer's accepted grids, because each accepted grid replaces a 15
 - **PEERT-A1 (decides which peer the method names):** ladder with gpt-oss-120b as peer − ladder with gpt-oss-20b as peer, GridPuzzle: interval
   above 0 → gpt-oss-120b; otherwise gpt-oss-20b stays (it fits 3090-class hardware). Predicted about +3.5.
 - **PEERT-A2:** the gpt-oss-120b ladder − the ladder without a peer, GridPuzzle interval above 0 and Mitra-Baral lower bound above −2.0.
+
+### Addendum A result (2026-11-13 06:4x UTC; `python poc/gp_conj.py peert --peer oss120`, gs15 lanes pt120_*, closure job ptcl120): A1 and A2 hold
+
+| Seeds 7–9 | GridPuzzle | Mitra-Baral |
+|---|---|---|
+| No peer | 87.8% at 8.99 ktok, U 83.3 | 93.6% at 5.87 ktok, U 90.7 |
+| gpt-oss-20b peer | 91.0% at 6.00, U 88.0 | 95.7% at 2.12, U 94.7 |
+| **gpt-oss-120b peer** | **92.9% at 4.55, U 90.6** (peer's grids 121/125 right) | **95.7% at 0.97, U 95.3** (61/62) |
+| **A1:** 120b peer − 20b peer | **+2.6 [+0.5, +4.7]** (predicted +3.5) | +0.6 [−0.3, +1.6] |
+| **A2:** 120b peer − no peer | +7.3 [+4.8, +10.1] | +4.6 [+2.1, +7.6] |
+| 120b-peer method − thinking only | +33.9 [+28.5, +39.3] | +10.8 [+4.8, +17.1] |
+
+- **Decision as registered:** the method names gpt-oss-120b as the peer. With 3090-class GPUs only, gpt-oss-20b is the peer (+4.7 / +4.0, the
+  main result above).

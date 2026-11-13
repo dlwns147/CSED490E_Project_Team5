@@ -1,6 +1,6 @@
 # Progress 11-03 → 11-12 — *Facts First, Think on Failure*
 
-*Updated 2026-11-13 06:1x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
+*Updated 2026-11-13 06:4x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
 
 ## At a glance
 
@@ -9,7 +9,7 @@
 - **Wins:** on ZebraLogic, human-written grids and trip planning, more accurate than thinking alone and usually cheaper, on two model families (Qwen3, gpt-oss).
 - **Trained quick step:** using the same free check **as the reward to train the translator with RL** works as well as a gold-label reward, with no labels at all (GridPuzzle +8.4; also +8.8 on gpt-oss-20b); this trained translator is the method's step ①.
 - **New this round, the largest gain since RL:** every model drops the same implication, "either A or B" also means A ≠ B. When a translation leaves several solutions, the solver adds that implication and re-counts, with no extra tokens (§3). Held out on four ladders it adds +6 to +15 on GridPuzzle; with it, the grid method beats thinking for every model, including gpt-oss-120b, where it used to tie.
-- **Second family as a cheap step (new, held out):** a quick translation by gpt-oss-20b, placed before the expensive thinking translation, settles most puzzles the trained translator leaves open: GridPuzzle 87.8% → **91.0%** at 6.0k tokens, +4.7; Mitra-Baral +4.0 (PREREG_PEERT). Puzzles are computation here: text → constraints → exact solver → free check, like the optimization word problems.
+- **Second family as a cheap step (new, held out):** a quick translation by gpt-oss-20b, placed before the expensive thinking translation, settles most puzzles the trained translator leaves open: GridPuzzle 87.8% → **91.0%** at 6.0k tokens, +4.7; Mitra-Baral +4.0 (PREREG_PEERT). With gpt-oss-120b as that step: **92.9% at 4.6k**, +2.6 over gpt-oss-20b (addendum A). Puzzles are computation here: text → constraints → exact solver → free check, like the optimization word problems.
 - **Remaining weakness:** a misreading that still leaves exactly one solution passes the check.
 - **Running:** proofs task 1 for the teammate (fresh-figure solver, registered run). Closed this round: the clue check on top of the trained translator (PREREG_GCLF), keeping only the grids both translations allow (PREREG_CONJ), and harder computation (Project Euler, OEIS, MathConstruct).
 
@@ -199,7 +199,7 @@
 
 | Experiment | Result | Decision |
 |---|---|---|
-| PEERT | gpt-oss-20b quick translation as step ②, held-out seeds 7–9: GridPuzzle +4.7 [+2.8, +7.0], Mitra-Baral +4.0 [+1.7, +6.9]; peer's accepted grids 95.8% right | joins the method |
+| PEERT | gpt-oss-20b quick translation as step ②, held-out seeds 7–9: GridPuzzle +4.7 [+2.8, +7.0], Mitra-Baral +4.0 [+1.7, +6.9]; gpt-oss-120b instead: +2.6 [+0.5, +4.7] more (92.9% at 4.6k) | joins the method; gpt-oss-120b named, gpt-oss-20b on 3090s |
 | DCL | distinctness closure on ambiguous translations, held out: GridPuzzle +12.3 / +14.9 / +9.6 / +6.3 (four models), Mitra-Baral +0.2 to +3.3; 97.9% of settled programs right | joins the method (free step inside ① and ②) |
 | CONJ | keep the grids both paid translations allow: +0.0; 1 of 128 shares only gold, the sets are nested | out; led to DCL |
 | GCLF | clue check on the trained translator: GridPuzzle +0.2 [−0.4, +0.9], Mitra-Baral +1.9 [+0.2, +4.6]; catches 39% of its wrong grids vs 72% before RL | method = trained translator alone |

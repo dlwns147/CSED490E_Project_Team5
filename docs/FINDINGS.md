@@ -7080,3 +7080,11 @@ Job 1382299 (one GPU, queued).
   running on held-out seeds (gs15 GPUs 6–7).
 - **Audit extended:** NL4Opt 199 of our 245 problems are in the audited set (`OR_CLEAN=1` now drops the other 46); IndustryOR's audited file
   (42 problems) is another text version (3 of 42 match ours) and is not applied.
+
+## 2026-11-13 06:4x UTC — PREREG_PEERT addendum A: gpt-oss-120b as the peer beats gpt-oss-20b on held-out grids (+2.6 [+0.5, +4.7]); GridPuzzle 92.9% at 4.6k tokens, +33.9 over thinking
+
+- Seeds 7–9: GridPuzzle no peer 87.8% at 9.0k → 20b peer 91.0% at 6.0k → **120b peer 92.9% at 4.6k** (its accepted grids 121/125 right);
+  Mitra-Baral 93.6% → 95.7% → 95.7% at 1.0k. 120b − 20b +2.6 [+0.5, +4.7] (GridPuzzle), +0.6 [−0.3, +1.6] (Mitra-Baral). The method names
+  gpt-oss-120b; on 3090-class hardware alone gpt-oss-20b (+4.7 / +4.0).
+- Why: each grid the peer accepts replaces a 15–17k-token thinking translation, so the step's value grows with the precision and coverage of
+  the peer's one-solution grids (120b accepts 125 of 645 puzzle-seeds the trained translator left open, 20b 95).
