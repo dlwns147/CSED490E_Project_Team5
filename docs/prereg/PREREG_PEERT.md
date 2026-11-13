@@ -37,7 +37,7 @@ on every step with two or more solutions, all tokens of every step paid (the pee
   gpt-oss-20b ← Qwen3-32B +5.5 [+3.9, +7.4], Qwen3-32B ← gpt-oss-20b +1.4 [+0.4, +2.4], gpt-oss-20b ← Qwen3-8B +0.6 [−0.9, +2.1]; Mitra-Baral
   +0.2 to +4.7. The step never loses and always saves tokens; it pays most when the main model is weak and the peer at least as strong.
 
-## Addendum A (registered 2026-11-13 06:3x UTC, before any gpt-oss-120b translation of seeds 7–9 exists): the stronger peer
+## Addendum A (registered 2026-11-13 06:1x UTC, before any gpt-oss-120b translation of seeds 7–9 exists): the stronger peer
 
 **Why.** Across stored model pairs the peer step pays most when the peer is strong (grids above; on trip planning a weak peer even loses:
 Qwen3-32B ← gpt-oss-20b −5.2, ← gpt-oss-120b +6.8, exploratory). On seeds 4–6 (stored, exploratory) gpt-oss-120b as the peer gives GridPuzzle

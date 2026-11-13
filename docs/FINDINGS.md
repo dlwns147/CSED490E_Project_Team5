@@ -7072,3 +7072,11 @@ Job 1382299 (one GPU, queued).
   (Qwen3-8B ← gpt-oss-20b +9.2; gpt-oss-20b ← Qwen3-32B +5.5), near 0 for a strong main with a weaker peer.
 - Puzzles are reported as computation (text → constraints → exact solver → free check), next to the optimization word problems (user,
   05:4x UTC: "can puzzle be computation part").
+- **Exploratory follow-ups (stored rows, decide nothing):** step order hardly matters (gpt-oss-20b first then the trained translator: GridPuzzle
+  U 87.3 vs 87.1). A peer-agreement gate on the trained translator's one-solution grids loses on GridPuzzle (−0.5 [−1.6, +0.6]; +2.3k tokens
+  for +0.6 points) and pays on Mitra-Baral (+3.4), so it stays out. On trip planning the peer step depends on the peer's precision:
+  Qwen3-32B ← gpt-oss-120b +6.8 [+2.7, +11.0], ← gpt-oss-20b −5.2 [−8.5, −2.1] (trip one-solution precision is 80–95%). On grids
+  gpt-oss-120b as the peer beats gpt-oss-20b on seeds 4–6 (GridPuzzle 92.2% at 4.05k vs 89.3% at 6.08k) → PREREG_PEERT addendum A,
+  running on held-out seeds (gs15 GPUs 6–7).
+- **Audit extended:** NL4Opt 199 of our 245 problems are in the audited set (`OR_CLEAN=1` now drops the other 46); IndustryOR's audited file
+  (42 problems) is another text version (3 of 42 match ours) and is not applied.
