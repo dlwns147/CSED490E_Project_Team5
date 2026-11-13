@@ -84,6 +84,35 @@ reading results together.
   command, the 263 baseline, the soundness controls) the same way as task 1.
 - What the report needs from the proof part: the frozen results above, plus whatever tasks 1 and 2 add, written and presented by the teammate.
 
+**Boundary (2026-11-13, second pass; the teammate codes with Codex and runs jobs on the Slurm cluster).**
+- **The line is the frozen formal statement.** Everything before it involves a model and stays with us: natural language → statement,
+  faithfulness, any LLM call, the translations themselves (frozen in `nlp_data/geo/`). Everything after it is the teammate's: building
+  figures, proving, certificates, Lean export and checking, CPU cost. The teammate needs no GPU and no model; if a task seems to need a model
+  call, it comes to us.
+- **The judge is a kit, not the code.** Each task has frozen inputs, one scoring command, a baseline and a soundness control (planted false
+  steps that must stay rejected). Code written with Codex is accepted when the kit says so; work lives under `side/` (or a branch), never in
+  `poc/`; a predicted number and a decision rule go into `PREREG_SIDE.md` before each decisive run.
+- **Cluster:** CPU partitions only (`sbatch -p cpu-max16,cpu-max10,cpu-max24 -q nogpu --gres=none poc/slurm/job.sh '...'`, the project
+  image has Python and Lean); proofs and Lean compiles are CPU jobs.
+
+**Where the room is (11-13), after checking what exists.** General geometry provers are crowded: AlphaGeometry 1/2, Newclid, TongGeometry
+(30/30 on IMO-AG-30), HAGeo (28/30, CPU), Wu's method + deduction (21/30 on a laptop; with AlphaGeometry 27/30, Sinha et al. 2404.06405).
+A new general prover would not beat them. Figure sampling (task 1) is a solved area too (homotopy continuation, Bertini, certified points).
+What our pipeline has and theirs do not is a **Lean-checked theorem for every counted proof**. So the room is certified proofs where our
+linear engine stops:
+1. **Main: a certified algebraic fallback.** Every HAGeo-409 goal is a polynomial equality (coll 144, cyclic 82, cong 59, perp 50,
+   eqangle 27, para 25, midp 9, eqratio 7, simtri 5, contri 1), so Wu's method or Gröbner bases apply to all 146 rows our engine leaves.
+   The proof is an identity goal = Σ cᵢ·hᵢ, which Lean checks by `linear_combination` (Mathlib's `polyrith` already gets such coefficients
+   from SageMath; Pottier and Théry certified Gröbner geometry proofs in Coq in 2008–2011). So the new part is not the idea but making it work
+   on a modern benchmark with honest side conditions. Two algorithmic problems: (a) non-degeneracy conditions must become explicit, readable
+   hypotheses, not hidden generic-case assumptions; (b) reducibility: an incenter or a "second intersection" has several algebraic solutions
+   and the goal may hold on only one, so the component must be chosen, and our numeric figure says which one. Score: extra HAGeo-409 /
+   IMO-AG-30 problems with a kernel-checked theorem, CPU time, and the side conditions each theorem assumes.
+2. **Lean checking cost.** Some exported theorems need far beyond the 1,200 s limit (8 needed up to 7,457 s): shrinking certificates or the
+   proof terms is a measurable systems task.
+3. **Task 1 (fresh figures)**, a few days with existing tools, or we finish it with the reference walk.
+Out of scope for the teammate: point-order facts (inequalities need real algebraic geometry, e.g. CAD), translation and faithfulness.
+
 **Out of scope:** telling a faithful translation from an unfaithful one without a human, translation and prompting, and new benchmarks.
 They stay as future work in the report.
 
