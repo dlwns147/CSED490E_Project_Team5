@@ -13,7 +13,7 @@ the report that no choice has seen needs fresh seeds. Seeds 14–16 have never b
 translation (reasoning effort low) → ③ Qwen3-8B thinking translation (`gtrt`) → ④ Qwen3-8B thinking (`think`, 32,000 tokens). A step is
 accepted at exactly one solution; the distinctness closure (PREREG_DCL) is applied to any step with two or more. Every step is paid.
 **Baseline:** Qwen3-8B thinking only (step ④ alone, same runs). GridPuzzle (215) and Mitra-Baral (94), seeds 14, 15, 16, scoring v2.
-Runs: ① and ③/④ on gs15 GPU 6 and the Slurm RTX 3090s, ② on gs15 GPU 7. Evaluation: `python poc/gp_conj.py gpf`.
+Runs: ① and ③/④ on one GPU of the second server and the Slurm RTX 3090s, ② on another GPU of that server. Evaluation: `python poc/gp_conj.py gpf`.
 
 **Predictions (from seeds 7–9).**
 - **GPF-P1 (decides):** method − thinking, utility, paired over puzzles (each puzzle's mean over seeds): interval above 0 on both sets.

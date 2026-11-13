@@ -83,3 +83,7 @@ the method on trips too, with a peer whose one-solution plans are precise (gpt-o
 Stored seeds 1–3 (exploratory): gpt-oss-20b ladder with gpt-oss-120b's quick translation as step ②: 79.0% at 31.5k → 79.3% at 24.4k,
 +3.8 [+1.3, +6.7]. **Run:** gpt-oss-20b `trc` (effort low), `trct` and `think` (effort high), seeds 4–6, Slurm (2 × RTX 3090 per seed);
 the peer rows are addendum B's gpt-oss-120b `trc`. **PEERT-B2:** with − without, interval above 0 (predicted +3), reported beside B1.
+
+**Result (2026-11-13 10:3x UTC; `peertrip --main oss20 --peer oss120`, seeds 4–6): PEERT-B2 holds.** gpt-oss-20b ladder → with
+gpt-oss-120b's quick translation as step ②: 82.3% at 26.60k tokens, +3.3 [+1.1, +5.6] (predicted +3). Against gpt-oss-20b thinking only
+(73.0% at 14.16k): +3.1 [−2.2, +8.6], a tie: on trips the gpt-oss-20b ladder buys accuracy with tokens, and at this price the two are even.
