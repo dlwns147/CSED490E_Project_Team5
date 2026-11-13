@@ -289,7 +289,9 @@ DCL = {"H1": (["gp", "lgp"], [1, 2, 3], ("q8b", None), ("q8b", None), ("q8b", No
        "H2": (["gp", "lgp"], [1, 2, 3, 4, 5, 6], ("q32a", None), ("q32a", None), ("q32a", None)),
        "H3": (["gp", "lgp"], [1, 2, 3, 4, 5, 6], ("oss20", None), ("oss20", None), ("oss20", None)),
        "H4": (["gp", "lgp"], [1, 2, 3, 4, 5, 6], ("oss120", None), ("oss120", None), ("oss120", None)),
-       "H5": (["gp"], [1, 2, 3], ("q8bh_dev", None), ("q8bh_dev", 1), ("q8b_dev", 1))}
+       "H5": (["gp"], [1, 2, 3], ("q8bh_dev", None), ("q8bh_dev", 1), ("q8b_dev", 1)),
+       # PREREG_PEERT: closure rows for gpt-oss-20b's quick translations of seeds 7-9 (only its gtr rows are used)
+       "P79": (["gp", "lgp"], [7, 8, 9], ("oss20", None), ("q8b", None), ("q8b", None))}
 
 
 def dcl_rows(s, src, h):
@@ -318,6 +320,8 @@ def dcl_main():
     from sandbox import run_python
     from run_zebra import GP_SOLVE, gp_score
     for h, (sets, *_) in DCL.items():
+        if len(sys.argv) > 2 and h not in sys.argv[2].split(","):
+            continue
         for s in sets:
             PZ, R, F, keys = dcl_rows(s, "gridpuzzle" if s == "gp" else s, h)
             todo = sorted({(a,) + F[(a,) + k] + (k[0],) for k in keys for a in ["gtr", "gtrt"] if R[(a,) + k]["count"] >= 2})
@@ -391,5 +395,61 @@ def dcleval_main():
                 print(f"   {name}: {sum(d) / len(d):+.1f} [{bs[250]:+.1f}, {bs[9749]:+.1f}]")
 
 
+def peert_main():
+    """PREREG_PEERT: ladder lf -> gpt-oss-20b quick translation -> gtrt -> think, minus lf -> gtrt -> think; closure on every step with two or
+    more solutions (lf / gtrt: results/<s>_conj_close.jsonl, the peer: results/<s>_dcl_P79.jsonl); seeds 7-9 (decides) or --seeds 4,5,6."""
+    from grid_score import score
+    sds = [int(x) for x in (sys.argv[sys.argv.index("--seeds") + 1] if "--seeds" in sys.argv else "7,8,9").split(",")]
+    for s, src in [("gp", "gridpuzzle"), ("lgp", "lgp")]:
+        PZ, R, keys = rows(s, src)
+        C = {(x["arm"], x["id"], x["seed"]): x for x in map(json.loads, open(f"{RES}/{s}_conj_close.jsonl"))}
+        p2 = f"{RES}/{s}_oss20_score2.json"
+        S2 = json.load(open(p2)) if os.path.exists(p2) else {}
+        P = {}
+        for sd in sds:
+            f = f"{RES}/{s}_oss20_gtr_s{sd}.jsonl"
+            for x in map(json.loads, open(f)) if os.path.exists(f) else []:
+                if "grid" in x or f"gtr|{x['id']}|{sd}" in S2:
+                    P[(x["id"], sd)] = {**x, "exact": score(x["grid"], PZ[x["id"]])[0] if "grid" in x else S2[f"gtr|{x['id']}|{sd}"][0]}
+        D = {}
+        for h in ["P79", "H3"]:
+            f = f"{RES}/{s}_dcl_{h}.jsonl"
+            for x in map(json.loads, open(f)) if os.path.exists(f) else []:
+                if x["arm"] == "gtr" and x["tag"] == "oss20":
+                    D[(x["id"], x["file_seed"])] = x
+        ks = [k for k in keys if k[1] in sds and k in P]
+
+        def step(r, c):
+            return (c["count"], c["exact"]) if r["count"] >= 2 and c else (r["count"], r["exact"])
+
+        def lad(i, sd, peer):
+            tok = 0
+            for a in ["lf", "peer", "gtrt"]:
+                if a == "peer" and not peer:
+                    continue
+                r = P[(i, sd)] if a == "peer" else R[(a, i, sd)]
+                tok += r["tokens"]
+                cnt, ex = step(r, D.get((i, sd)) if a == "peer" else C.get((a, i, sd)))
+                if cnt == 1:
+                    return ex, tok, a
+            r = R[("think", i, sd)]
+            return r["exact"], tok + r["tokens"], "think"
+
+        ids = sorted({i for i, _ in ks})
+        for peer in (False, True):
+            L = [lad(*k, peer) for k in ks]
+            acc = [e for e, _, a in L if a == "peer"]
+            print(f"{s} {'with the peer step' if peer else 'lf -> gtrt -> think'} ({len(ks)} puzzle-seeds, seeds {sds}): "
+                  f"{100 * sum(e for e, _, _ in L) / len(L):.1f}% at {sum(t for _, t, _ in L) / len(L) / 1000:.2f} ktok, U {sum(U(e, t) for e, t, _ in L) / len(L):.1f}"
+                  + (f"; PEERT-P2 peer accepted {sum(acc)}/{len(acc)} right" if peer else ""))
+        rng = random.Random(0)
+        d = []
+        for i in ids:
+            kk = [k for k in ks if k[0] == i]
+            d.append(sum(U(*lad(*k, True)[:2]) - U(*lad(*k, False)[:2]) for k in kk) / len(kk))
+        bs = sorted(sum(d[rng.randrange(len(d))] for _ in d) / len(d) for _ in range(10000))
+        print(f"   PEERT-P1 with - without: {sum(d) / len(d):+.1f} [{bs[250]:+.1f}, {bs[9749]:+.1f}] over {len(ids)} puzzles")
+
+
 if __name__ == "__main__":
-    {"run": run_main, "why": why_main, "close": close_main, "dcl": dcl_main, "dcleval": dcleval_main}.get(sys.argv[1], eval_main)()
+    {"run": run_main, "why": why_main, "close": close_main, "dcl": dcl_main, "dcleval": dcleval_main, "peert": peert_main}.get(sys.argv[1], eval_main)()
