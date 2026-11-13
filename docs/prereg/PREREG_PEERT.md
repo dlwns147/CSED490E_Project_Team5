@@ -62,3 +62,13 @@ precision of the peer's accepted grids, because each accepted grid replaces a 15
 
 - **Decision as registered:** the method names gpt-oss-120b as the peer. With 3090-class GPUs only, gpt-oss-20b is the peer (+4.7 / +4.0, the
   main result above).
+
+## Addendum B (registered 2026-11-13 06:4x UTC, before any seed 4–6 trip run exists): the peer step on trip planning
+
+**Why.** The grid result should carry to the second computation domain only when the peer's one-solution answers are precise. Stored trip runs
+(seeds 1–3, exploratory): Qwen3-32B ladder (`trc` → `trct` → `think`) with gpt-oss-120b's quick translation inserted after `trc`:
+68.3% at 18.9k → 74.0% at 16.5k, +6.8 [+2.7, +11.0]; with gpt-oss-20b as the peer −5.2 [−8.5, −2.1] (its one-solution plans are less precise).
+**Run.** NaturalPlan trip planning (100), seeds 4, 5, 6: Qwen3-32B-AWQ `trc`, `trct`, `think` (as its stored seeds), gpt-oss-120b `trc`
+(reasoning effort low). gs15 GPUs 6 and 7. No closure (it is a grid rule).
+**Prediction.** **PEERT-B1:** Qwen3-32B ladder with gpt-oss-120b's quick translation as step ② − without, interval above 0 → the peer step is
+part of the method on trips as well; otherwise grids only. Predicted +5.
