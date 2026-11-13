@@ -11,6 +11,7 @@ Offline:  python poc/gp_check.py eval <tag> <think tag> [--dev] [--arms a,b]   l
 --per-clue: one call per clue (idea 31); --nothink: enumt's checks without thinking.
 --label L writes <L> in place of the arm in the output name (idea 30: the same check from another model family).
 --salt N: another sample of the same check, seeds shifted by N (idea 32: repeated whole-grid checks at the per-clue cost).
+--seeds 4,5 / --trs gtrt: only those seeds / steps (PREREG_GCLF: base gtrt at seeds 4-9 beside the trained gtr).
 Idea 29, arm enumt: for each program whose final count is 2, the solver lists up to 16 solutions and each grid gets the thinking check; if exactly one grid
 passes, the step is settled with it. Read by `eval` (with the checkt rows) at K = the next step's mean dev ktok over the mean check ktok.
 """
@@ -47,6 +48,9 @@ def run_main():
         if not m:   # e.g. *.crashed_tgrest.jsonl, partial files kept for the record
             continue
         tr, sd = m.groups()
+        if ("--seeds" in sys.argv and sd not in sys.argv[sys.argv.index("--seeds") + 1].split(",")) or \
+                ("--trs" in sys.argv and tr not in sys.argv[sys.argv.index("--trs") + 1].split(",")):   # PREREG_GCLF: only the steps its ladder reads
+            continue
         todo += [(tr, int(sd), x) for x in map(json.loads, open(f)) if x["count"] == (2 if arm == "enumt" else 1)]
 
     def run(a):

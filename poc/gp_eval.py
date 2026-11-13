@@ -1199,6 +1199,74 @@ def grl_main():
             print(f"  ladder({a}) - {'ladder(' + b + ')' if b != 'think' else 'think'}: utility {pt:+.1f} [{lo:+.1f}, {hi:+.1f}], accuracy {da:+.1f} points, ktok {dk:+.2f}{be}   ({rule})")
 
 
+def gclf_main():
+    """PREREG_GCLF: the full grid method, the check-trained quick translation (lf, cross-fitted tags q8bgrllf0 / q8bgrllf1) with PREREG_GC's clue check
+    on every count-1 step, then base gtrt (checked too), then think; seeds 4-9, every step and every check paid, scoring v2.
+    usage: python poc/gp_eval.py --gclf. Check rows: results/<s>_q8bgrllf{0,1}_checkt.jsonl and results/<s>_q8b_checkt_s49.jsonl (poc/gp_check.py
+    run ... checkt --seeds 4,...,9 [--trs gtrt --label checkt_s49]). A flag (any violated clue) sends the step on; an unparsed check is no flag."""
+    from grid_score import score
+    SD = [4, 5, 6, 7, 8, 9]
+    data = os.environ.get("POC_DATA", os.path.join(RES, "..", "..", "nlp_data"))
+    U = lambda e, t: 100 * e - 0.5 * t / 1000
+    for s, src in [("gp", "gridpuzzle"), ("lgp", "lgp")]:
+        PZ = {r["id"]: r for r in map(json.loads, open(os.path.join(data, src, "grid.jsonl")))}
+        R, C = {}, {}
+        for arm, tags in [("gtrt", ["q8b"]), ("think", ["q8b"]), ("lf", ["q8bgrllf0", "q8bgrllf1"])]:
+            for tag in tags:
+                for sd in SD:
+                    f = os.path.join(RES, f"{s}_{tag}_{'gtr' if arm == 'lf' else arm}_s{sd}.jsonl")
+                    for x in map(json.loads, open(f)) if os.path.exists(f) else []:
+                        R[(arm, x["id"], sd)] = {**x, "exact": score(x.get("grid"), PZ[x["id"]])[0]}
+        for f, arm in [(f"{s}_q8bgrllf0_checkt", "lf"), (f"{s}_q8bgrllf1_checkt", "lf"), (f"{s}_q8b_checkt_s49", "gtrt")]:
+            p = os.path.join(RES, f + ".jsonl")
+            for x in map(json.loads, open(p)) if os.path.exists(p) else []:
+                C[(arm, x["id"], x["seed"])] = x
+        keys = sorted({(i, sd) for (_, i, sd) in R if all((a, i, sd) in R for a in ["lf", "gtrt", "think"])})
+        # a puzzle-seed counts once every count-1 step it reaches has its check row
+        def lad(i, sd, chk, think=False):
+            if think:
+                r = R[("think", i, sd)]
+                return r["exact"], r["tokens"], "think"
+            tok = 0
+            for arm in ["lf", "gtrt"]:
+                r = R[(arm, i, sd)]; tok += r["tokens"]
+                if r["count"] == 1:
+                    c = C.get((arm, i, sd)) if chk else None
+                    if chk and c is None:
+                        return None
+                    tok += c["tokens"] if c else 0
+                    if not (c and c["violated"]):
+                        return r["exact"], tok, arm
+            r = R[("think", i, sd)]
+            return r["exact"], tok + r["tokens"], "think"
+        keys = [k for k in keys if lad(*k, True) is not None]
+        print(f"== {s}: {len(keys)} puzzle-seeds with every check row, seeds {SD}")
+        if not keys:
+            continue
+        for arm in ["lf", "gtrt"]:
+            rs = [(R[(arm, i, sd)], C[(arm, i, sd)]) for i, sd in keys if R[(arm, i, sd)]["count"] == 1 and (arm, i, sd) in C]
+            w, ok = [c for r, c in rs if not r["exact"]], [c for r, c in rs if r["exact"]]
+            print(f"  {arm:5s} count-1 {len(rs)}: wrong flagged {sum(bool(c['violated']) for c in w)}/{len(w)} (GCLF-P2), right flagged "
+                  f"{sum(bool(c['violated']) for c in ok)}/{len(ok)}, unparsed {sum(c['violated'] is None for _, c in rs)}, check ktok {mean([c['tokens'] for _, c in rs]) / 1000:.2f}")
+        L = {(k, m): lad(*k, m == "check", m == "think") for k in keys for m in ["plain", "check", "think"]}
+        for m in ["plain", "check", "think"]:
+            v = [L[(k, m)] for k in keys]
+            line = f"  {m:5s}: {100 * mean([e for e, _, _ in v]):5.1f}% at {mean([t for _, t, _ in v]) / 1000:5.2f} ktok, utility {mean([U(e, t) for e, t, _ in v]):.1f}"
+            if m != "think":
+                acc = [e for e, _, st in v if st != "think"]
+                line += f"; accepted before thinking {len(acc)}/{len(v)}, precision {100 * mean(acc):.1f}% (GCLF-P3)"
+            print(line)
+        for a, b, rule in [("check", "plain", "GCLF-P1: interval above 0 on GridPuzzle, lower bound above -2.0 on Mitra-Baral"),
+                           ("check", "think", "GCLF-P4: reported"), ("plain", "think", "reported (PREREG_GRLLF)")]:
+            per = {}
+            for k in keys:
+                (ea, ta, _), (eb, tb, _) = L[(k, a)], L[(k, b)]
+                per.setdefault(k[0], []).append((U(ea, ta) - U(eb, tb), ea - eb, (ta - tb) / 1000))
+            f = lambda j: (lambda v: mean([mean([z[j] for z in x]) for x in v]))
+            pt, lo, hi = boot(per, f(0))
+            print(f"  ladder {a} - {b}: utility {pt:+.1f} [{lo:+.1f}, {hi:+.1f}], accuracy {100 * f(1)(list(per.values())):+.1f} points, ktok {f(2)(list(per.values())):+.2f}   ({rule})")
+
+
 def quick_main():
     """PREREG_GRLX: the quick step alone (gtr, 3 rounds) for a model without a stored ladder, base against trained arms, per puzzle-seed with a
     95% bootstrap over puzzles. usage: python poc/gp_eval.py --quick <base tag> <name>=<tag>[+<tag>...] ... [--seeds 4,5,6]
@@ -1235,4 +1303,4 @@ def quick_main():
                 print(f"  {a} - {b}: {nm} {pt:+.1f} [{lo:+.1f}, {hi:+.1f}] points")
 
 if __name__ == "__main__":
-    quick_main() if "--quick" in sys.argv else grl_main() if "--grl" in sys.argv else rule3g_main() if "--rule3g" in sys.argv else esc3_main() if "--esc3" in sys.argv else esc2_main() if "--esc2" in sys.argv else esc_main() if "--esc" in sys.argv else min_main() if "--zlmin" in sys.argv else conv_main() if "--conv" in sys.argv else free_main() if "--free" in sys.argv else bud_main() if "--bud" in sys.argv else mot_main() if "--mot" in sys.argv else zl_main() if "--zl" in sys.argv else np_main() if "--np" in sys.argv else thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()
+    gclf_main() if "--gclf" in sys.argv else quick_main() if "--quick" in sys.argv else grl_main() if "--grl" in sys.argv else rule3g_main() if "--rule3g" in sys.argv else esc3_main() if "--esc3" in sys.argv else esc2_main() if "--esc2" in sys.argv else esc_main() if "--esc" in sys.argv else min_main() if "--zlmin" in sys.argv else conv_main() if "--conv" in sys.argv else free_main() if "--free" in sys.argv else bud_main() if "--bud" in sys.argv else mot_main() if "--mot" in sys.argv else zl_main() if "--zl" in sys.argv else np_main() if "--np" in sys.argv else thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()

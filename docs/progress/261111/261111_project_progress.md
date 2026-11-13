@@ -1,6 +1,6 @@
 # Progress 11-03 → 11-12 — *Facts First, Think on Failure*
 
-*Updated 2026-11-13 00:0x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
+*Updated 2026-11-13 02:1x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
 
 ## At a glance
 
@@ -9,7 +9,7 @@
 - **Wins:** on ZebraLogic, human-written grids and trip planning, more accurate than thinking alone and usually cheaper, on two model families (Qwen3, gpt-oss).
 - **Trained quick step:** using the same free check **as the reward to train the translator with RL** works as well as a gold-label reward, with no labels at all (GridPuzzle +8.4; also +8.8 on gpt-oss-20b); this trained translator is the method's step ①.
 - **Remaining weakness:** a misreading that still leaves exactly one solution passes the check. With the strongest thinking model (gpt-oss-120b) the grid gain disappears.
-- **Running:** proofs task 1 for the teammate (fresh-figure solver, registered run); a pilot on harder computation (Project Euler, OEIS, MathConstruct) with a budget-forced thinking baseline.
+- **Running:** proofs task 1 for the teammate (fresh-figure solver, registered run); the full grid method measured as one (trained translator + clue check, PREREG_GCLF). Harder computation (Project Euler, OEIS, MathConstruct) is closed: no edge over thinking.
 
 ![Results at a glance](fig/frontier.png)
 
@@ -165,16 +165,16 @@
 - **Agents (BFCL):** running three candidates per turn and letting a trained verifier pick beats thinking by +7.1, but loses to the public EnvScaler-8B checkpoint (54.2%). Adding selection on top of it gives nothing → closed.
 - **Computation track (40 ideas):** each idea went to its cheapest killing test. Lessons: free checks often accept only puzzles thinking already solves; telling the model about the check makes it satisfy the check instead of re-reading the clue. Two scoring bugs were found in raw outputs and fixed before any verdict.
 - **Proofs (teammate guide):** geometry problems → formal language → engine proof → Lean kernel check (all 263 HAGeo proofs pass). Teammate task kit `side/kit_fresh.py`: a solver that finds fresh figures satisfying the hypotheses. Task 1 diagnosed (11-12): the default solver loses 15 problems because random starts rarely land on the solution set (1–8 of 240); walking along the set from the proof's figure gave 8 passing figures on all 41 lost statements in a probe (whole problems 13 → about 20). Those figures sit nearer the proof's own figure, but they still expose planted false steps. The kit now has this as a soundness control (`--control`, 267 plants): the walk counts 0 of them whole and tests every one on 8 figures. Through the kit the walk counts **20 (NL) and 21 (LEAN) whole problems, none lost**, against 13 and 13 for the default solver (reference run; the registered task-1 run is the teammate's).
-- **Harder computation (idea 44, pilot, seed 1; decides nothing yet):** the recipe needs a check built from the problem's own data, and of the three sets tried only Project Euler has one (its statements give small cases with answers, *"you are given S(16) = 19"*). OEIS and MathConstruct are dropped: there the check is written by the same model and shares its misreading (OEIS, 250 easy sequences: thinking 131 right, the checked ladder 120; MathConstruct's own verify() passed 15 constructions, 2 right). On 120 Euler problems Qwen3-8B's quick programs solve 10, nearly all in the easiest band; elsewhere they time out or run out of memory. The stated cases catch misreadings but not errors at full scale (accepted answers of 0, overflow). Matched budget, 40 easiest problems: thinking-then-program 13 right at 4k thinking, the checked ladder 14 — a one-problem edge; in the middle band thinking scales (2→5 of 24 from 2k to 14k) and quick programs get 1. Example, pe720: the program reproduces S(4) = 3 and S(8) = 2295 from the statement, then prints 0 for the real input (answer 688081048). Letting checks test helper functions (progc2) made it worse (accepted wrong programs 4–6 per seed against 2–3). Now: does a stronger cheap model widen the window? Qwen3.5-9B so far: quick programs 20 of 66 against the 8B's 8, but at 5.6k tokens — about the cost of 8B thinking.
+- **Harder computation (idea 44, closed):** the recipe needs a check built from the problem's own data. Of the three sets tried only Project Euler has one (its statements give small cases with answers, *"you are given S(16) = 19"*). OEIS and MathConstruct were dropped because there the check is written by the same model and shares its misreading (OEIS, 250 easy sequences: thinking 131 right, the checked ladder 120; MathConstruct's own verify() passed 15 constructions, 2 right). On 120 Euler problems the checked ladder ties thinking-then-program at every thinking budget (+2/+1/0/0 problems at 2k/4k/8k/14k). The quick step is either not right or not cheap: Qwen3-8B's quick programs solve 10, nearly all in the easiest band (elsewhere they time out or run out of memory), and Qwen3.5-9B's solve 21 but cost 6.6k tokens, as much as thinking. The stated cases catch misreadings but not errors at scale. Example, pe720: the program reproduces S(4) = 3 and S(8) = 2295 from the statement, then prints 0 for the real input (answer 688081048). Puzzles pay because the solver does the search; on Euler the search is the algorithm the model must invent.
 
 ## Next
 
 | Experiment | Question | Depending on the verdict |
 |---|---|---|
-| **Harder computation** (Project Euler, easiest band) | does a checked quick program beat thinking-then-program at matched budget? (8B: a one-problem edge of 40; Qwen3.5-9B running) | if not, harder computation stays out of the method |
+| **Full grid method** (PREREG_GCLF) | does the clue check still pay on top of the check-trained translator? (predicted: no, about +0.5 utility) | yes → the method is translator + check; no → translator alone |
 | **Proofs task 1** (registered run, teammate) | does the teammate's solver reach the reference (20 / 21 whole problems) and pass the soundness control (0 of 267 plants counted)? | if yes, task 1 is done; task 2 (HAGeo-409 coverage, 263 now vs HAGeo 287) next |
 
-<details><summary><b>Closed verdicts (14)</b></summary>
+<details><summary><b>Closed verdicts (15)</b></summary>
 
 | Experiment | Result | Decision |
 |---|---|---|
@@ -189,6 +189,7 @@
 | MOT · BUD | consensus cascade and cut thinking both lose to the ladder | §4 |
 | GP-120 | gpt-oss-120b GridPuzzle tie | reported as a trend with thinking strength |
 | ESC2 | one cell −0.9 | fixed ladder kept |
+| Harder computation (Euler, pilot) | checked ladder − thinking +2/+1/0/0 of 120 at 2k–14k (Qwen3-8B); Qwen3.5-9B quick step costs as much as thinking | stays out of the method |
 
 </details>
 
