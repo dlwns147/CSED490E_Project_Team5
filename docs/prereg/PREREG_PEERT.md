@@ -36,3 +36,15 @@ on every step with two or more solutions, all tokens of every step paid (the pee
 - **Other model pairs (exploratory, stored seeds 1–6 or 1–3, closure on):** main ← peer, GridPuzzle: Qwen3-8B ← gpt-oss-20b +9.2 [+6.6, +12.0],
   gpt-oss-20b ← Qwen3-32B +5.5 [+3.9, +7.4], Qwen3-32B ← gpt-oss-20b +1.4 [+0.4, +2.4], gpt-oss-20b ← Qwen3-8B +0.6 [−0.9, +2.1]; Mitra-Baral
   +0.2 to +4.7. The step never loses and always saves tokens; it pays most when the main model is weak and the peer at least as strong.
+
+## Addendum A (registered 2026-11-13 06:3x UTC, before any gpt-oss-120b translation of seeds 7–9 exists): the stronger peer
+
+**Why.** Across stored model pairs the peer step pays most when the peer is strong (grids above; on trip planning a weak peer even loses:
+Qwen3-32B ← gpt-oss-20b −5.2, ← gpt-oss-120b +6.8, exploratory). On seeds 4–6 (stored, exploratory) gpt-oss-120b as the peer gives GridPuzzle
+92.2% at 4.05k (U 90.2) against gpt-oss-20b's 89.3% at 6.08k (U 86.3); Mitra-Baral U 94.6 vs 93.2. The step's value should rise with the
+precision of the peer's accepted grids, because each accepted grid replaces a 15–17k-token thinking translation.
+**Run.** gpt-oss-120b `gtr`, seeds 7–9, both sets, reasoning effort low (as its stored seeds 1–6), one RTX PRO 6000 per set.
+**Predictions.**
+- **PEERT-A1 (decides which peer the method names):** ladder with gpt-oss-120b as peer − ladder with gpt-oss-20b as peer, GridPuzzle: interval
+  above 0 → gpt-oss-120b; otherwise gpt-oss-20b stays (it fits 3090-class hardware). Predicted about +3.5.
+- **PEERT-A2:** the gpt-oss-120b ladder − the ladder without a peer, GridPuzzle interval above 0 and Mitra-Baral lower bound above −2.0.
