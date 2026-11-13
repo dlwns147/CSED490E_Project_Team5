@@ -1498,3 +1498,6 @@ about 0 (the same search, cut at the same time).
 ### SIDE-GT-H409-CPU, CPU-P3 (2026-11-13 14:4x UTC): holds
 The task-2 kit reproduces the reference count exactly (263; the same 3 proved rows lost at the fresh-figure rule) and its control counts
 0 of 737 tampered certificates. CPU-P1/P2 wait for the 37 shards (28,800 s per row).
+- **Scope cut (2026-11-13 15:4x UTC, before any shard finished):** the 12 shards still waiting (25–36) were cancelled to stop a second
+  8-hour wave on the CPU partitions; CPU-P1/P2 are read on the 109 rows of shards 0–24 (rows sorted by difficulty and dealt round-robin,
+  so every band is in). The 37 rows left are for the teammate's run through the kit, at a smaller budget if the curve is flat.
