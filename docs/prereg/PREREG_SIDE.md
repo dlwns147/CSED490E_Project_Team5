@@ -1464,3 +1464,33 @@ Closure and certificates finished for both arms (jobs 1354571, 1354572). Countin
 - **Where problems are lost (both arms):** 15 have no guarded statement, 5 to 6 no faithful one, 3 lose at the prover, and **8 lose only at the fresh-figure rule**. Every faithful proved and certified statement held on every fresh figure that was built; the solver just built fewer than 8 (9 statements per arm got none). Without that rule the count is NL 20, LEAN 21. This is a sensitivity row, not the registered count.
 - **Two LEAN rows have no closure result** (2000 P6 lean:1, 24 points; 2023 P2 lean:3): the child process exited with no output and no error text, so the runner recorded an IndexError. Both are read as half or wrong, so no count changes. Cause not yet known.
 - **Decision (P3 fails):** at IMO level the audited hypotheses don't change what is proved, so the translator's reading is not the limit. The limit is what one statement can express (15 problems) and the figure solver (8). The next method goes there. NL reaches 13, below 29, so against MechGeo only cost is claimed: one open 27B model on one GPU, 79k output tokens and about 8 CPU minutes of closure per problem, against MechGeo's two hours per problem with two frontier models. MechGeo reports no token counts, and its proofs are kernel-checked on the full statement while ours pass our checker, so the counts are not equal claims.
+
+## SIDE-GT-H409-CPU: the same engine at a larger CPU budget on HAGeo-409 (task 2, checkpoint 0; written 2026-11-13 10:2x UTC, before any row)
+
+**Why.** Task 2's target (`side/README.md`) is more than HAGeo's 287 of 409, each row certified, at no more CPU than HAGeo's setting. Our 263
+used 1,800 s on one core per row, and 136 rows timed out; HAGeo's 287 used up to 8,192 attempts of up to 60 s each, on 64 cores. Before
+any new idea is credited, the curve of rows counted against CPU for the unchanged engine must be known: a lever is worth only what it adds
+over that curve at the same CPU. This is the reference run for the teammate's checkpoint (0); the teammate's own runs go through the same kit.
+
+**Design.** The 146 rows not counted by SIDE-GT-H409 (`nlp_data/geo/h409cpu/`, 37 shards), the frozen engine and settings of that run
+(K = −300, GT_SOUND, GT_STRICT, GT_SQ, GT_SECOND, GT_LUBY), one core per row, **28,800 s per row (16 times the reference budget)**. The
+search is deterministic (restart seeds are fixed), so one run gives the count at 2, 4, 8 and 16 times the budget from each row's time to
+proof. Counting through the task-2 kit (`side/kit_h409.py score`): the certificate is bound to the frozen statement, passes
+`geo_check.py`, and every step and the goal hold on 8 of 8 fresh figures. CPU jobs on the Slurm CPU partitions.
+
+**Derivation of the prediction.** In the reference run, proofs per doubling of time were 9, 13, 8 and 8 over [128, 256), [256, 512),
+[512, 1,024) and [1,024, 1,800) s, about 10 per doubling with no clear decline. Four more doublings at that rate give +40; the rows left are
+the hardest, so I expect the rate to fall by about half: **+25** (range +10 to +45), 288 in all. At 1 times the budget it should give back
+about 0 (the same search, cut at the same time).
+
+**Predictions.**
+- **CPU-P1 (decision):** rows counted at 28,800 s, added to the 263: 288, range 273–308.
+- **CPU-P2 (reported):** counted at 2, 4 and 8 times the budget; rows counted by band.
+- **CPU-P3:** the kit's soundness control (tampered certificates) counts 0, and the kit reproduces the reference 263.
+
+**Decision.**
+- More than 287 counted: the unchanged engine passes HAGeo with about 6% of HAGeo's maximal CPU per row (28,800 against 491,520 core-s).
+  Compute is then not the teammate's contribution: every lever is scored at matched CPU against this curve, and the target moves to the
+  rows still left and the CPU to reach 287.
+- 287 or fewer: the remaining gap is the room for levers 1–3 (HAGeo's candidate rule, a faster closure, the algebraic fallback), each
+  measured at matched CPU against this curve.

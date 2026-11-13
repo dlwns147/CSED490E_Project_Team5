@@ -73,6 +73,11 @@ precision of the peer's accepted grids, because each accepted grid replaces a 15
 **Prediction.** **PEERT-B1:** Qwen3-32B ladder with gpt-oss-120b's quick translation as step ② − without, interval above 0 → the peer step is
 part of the method on trips as well; otherwise grids only. Predicted +5.
 
+**Result (2026-11-13 10:3x UTC; `python poc/gp_conj.py peertrip`, seeds 4–6, 300 problem-seeds): PEERT-B1 holds.** Qwen3-32B ladder
+69.0% at 19.08k tokens → with gpt-oss-120b's quick translation as step ② **72.0% at 18.22k**, +3.4 [+0.7, +6.2] (predicted +5); thinking
+only 47.0% at 7.23k, so the ladder with the peer − thinking is +19.5 [+13.4, +25.7]. **Decision as registered:** the peer step is part of
+the method on trips too, with a peer whose one-solution plans are precise (gpt-oss-120b; gpt-oss-20b lost −5.2 on seeds 1–3).
+
 ## Addendum B2 (registered 2026-11-13 07:1x UTC, before any gpt-oss-20b trip run of seeds 4–6 exists): a second main model on trips
 
 Stored seeds 1–3 (exploratory): gpt-oss-20b ladder with gpt-oss-120b's quick translation as step ②: 79.0% at 31.5k → 79.3% at 24.4k,
