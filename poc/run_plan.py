@@ -181,6 +181,58 @@ def check(tag, dev):
           f"truncated {sum(x['finish'] == 'length' for x in rows)}, ktok {sum(x['tokens'] for x in rows) / max(1, len(rows)) / 1000:.2f}", flush=True)
 
 
+def modulo_critics(path):
+    """LLM-Modulo (Gundawar et al. 2411.14484) on our trips: critics built from each task's structured constraints (Amonkar et al.'s file, parsed
+    from the task text, not from the gold plan): {trip id: f(plan) -> list of the requirements the plan breaks, in words}."""
+    import ast, collections
+    out = {}
+    for k, v in json.load(open(path)).items():
+        C = ast.literal_eval(v["constraints"]) if isinstance(v["constraints"], str) else v["constraints"]
+        L = {d["city"].lower(): (d["city"], d["days"]) for d in C["city_length"]}
+        E = set()
+        fl = v["prompt_0shot"].split("direct flights:")[1].split("\n\n")[0].strip().rstrip(".")
+        for part in fl.split(", "):
+            part = part.strip()
+            if part.startswith("from "):
+                x, y = part[5:].split(" to "); E.add((x.strip().lower(), y.strip().lower()))
+            else:
+                x, y = part.split(" and "); E.add((x.strip().lower(), y.strip().lower())); E.add((y.strip().lower(), x.strip().lower()))
+        R = collections.defaultdict(list)
+        for r in C["city_day_ranges"]:
+            R[r["city"].lower()].append((r["start"], r["end"]))
+
+        def f(plan, L=L, E=E, R=R, T=C["trip_length"]):
+            if not plan:
+                return ["no plan was given as a JSON list on the last line"]
+            P, bad = list(plan), []
+            got = [c for c, _, _ in P]
+            for c in sorted(set(L) - set(got)):
+                bad.append(f"{L[c][0]} is not visited")
+            for c in got:
+                if c not in L:
+                    bad.append(f"{c} is not one of the cities to visit")
+                elif got.count(c) > 1:
+                    bad.append(f"{L[c][0]} is visited more than once")
+            if P[0][1] != 1:
+                bad.append("the trip must start on day 1")
+            if P[-1][2] != T:
+                bad.append(f"the trip must end on day {T}")
+            for i in range(len(P) - 1):
+                if P[i + 1][1] != P[i][2]:
+                    bad.append(f"the stay in {P[i + 1][0]} must start on day {P[i][2]}, the day of the flight from {P[i][0]}")
+                if (P[i][0], P[i + 1][0]) not in E:
+                    bad.append(f"there is no direct flight from {P[i][0]} to {P[i + 1][0]}")
+            for c, a0, e0 in P:
+                if c in L and e0 - a0 + 1 != L[c][1]:
+                    bad.append(f"the stay in {L[c][0]} must be {L[c][1]} days (day {a0} to day {e0} is {e0 - a0 + 1})")
+                for a1, b1 in R.get(c, []):
+                    if not (a0 <= a1 and b1 <= e0):
+                        bad.append(f"the stay in {L[c][0]} must cover day {a1} to day {b1}")
+            return bad
+        out[k] = f
+    return out
+
+
 def main():
     if "--rescore" in sys.argv:
         return rescore([x for x in sys.argv[1:] if not x.startswith("--")])
@@ -190,7 +242,9 @@ def main():
     a = [x for x in sys.argv[1:] if not x.startswith("--")]
     opt = lambda k, d: int(sys.argv[sys.argv.index(k) + 1]) if k in sys.argv else d
     tag, arm, seed = a[0], a[1], int(a[2])
-    mt, nr, dev = opt("--max_tokens", 32000 if arm == "think" else 16000 if arm in ("trt", "trct") else 4096), opt("--rounds", 3), opt("--dev", 0)
+    mt, nr, dev = opt("--max_tokens", 32000 if arm in ("think", "modulo") else 16000 if arm in ("trt", "trct") else 4096), opt("--rounds", 10 if arm == "modulo" else 3), opt("--dev", 0)
+    global CRIT
+    CRIT = modulo_critics(os.path.join(os.environ["POC_DATA"], "naturalplan_dl", "a_trip_planning_100_constraints.json")) if arm == "modulo" else {}
     BUD = [int(x) for x in sys.argv[sys.argv.index("--budgets") + 1].split(",")] if "--budgets" in sys.argv else [1000, 2000, 4000, 8000]
     R = [json.loads(l) for l in open(os.path.join(os.environ["POC_DATA"], "naturalplan", "trip.jsonl"))]
     P = [r for r in R if not r["amonkar"]][::max(1, 1500 // dev)][:dev] if dev else [r for r in R if r["amonkar"]]
@@ -211,6 +265,24 @@ def main():
             o = chat_msgs([{"role": "user", "content": NP_FMT.format(p=p)}], think=arm == "think", max_tokens=mt, temperature=0.7, seed=sd)
             pl = np_norm(np_extract(o["text"]) or [])
             return {**row, "exact": pl == gold, "plan": pl, "tokens": o["out_tokens"], "finish": o["finish"], "text": (o["text"] or "")[-1500:]}
+        if arm == "modulo":   # LLM-Modulo: think, then the critics' list of broken requirements goes back, up to --rounds (their setting: 10)
+            msgs, tok, hist = [{"role": "user", "content": NP_FMT.format(p=p)}], 0, []
+            for rnd in range(nr):
+                try:
+                    o = chat_msgs(msgs, think=True, max_tokens=mt, temperature=0.7, seed=sd + rnd)
+                except Exception as e:
+                    hist.append({"exact": False, "tokens": 0, "err": repr(e)[:300]}); break
+                tok += o["out_tokens"]
+                raw = np_extract(o["text"]) or []
+                pl = np_norm(raw)
+                bad = CRIT[r["id"]](pl)
+                hist.append({"exact": pl == gold, "tokens": o["out_tokens"], "finish": o["finish"], "plan": pl, "broken": bad[:8]})
+                if not bad:
+                    break
+                msgs += [{"role": "assistant", "content": json.dumps(raw)},
+                         {"role": "user", "content": "A checker found that this plan breaks the task: " + "; ".join(bad[:8]) + ". Give a corrected plan; on the last "
+                          "line give it as JSON: a list of {\"city\": name, \"start\": first day, \"end\": last day} in visiting order."}]
+            return {**row, "exact": pl == gold, "plan": pl, "tokens": tok, "rounds": len(hist), "passed": not bad, "hist": hist}
         dc = arm in ("trc", "trct")
         msgs = [{"role": "user", "content": (NP_TRC if dc else NP_TR).format(p=p)}]
         tok, hist = 0, []
