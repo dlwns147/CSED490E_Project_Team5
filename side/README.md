@@ -113,6 +113,21 @@ linear engine stops:
 3. **Task 1 (fresh figures)**, a few days with existing tools, or we finish it with the reference walk.
 Out of scope for the teammate: point-order facts (inequalities need real algebraic geometry, e.g. CAD), translation and faithfulness.
 
+**Target that beats related work (11-13, third pass).** HAGeo-409 is the one benchmark where the best published number is beatable on CPU:
+HAGeo (2512.00097, ACL 2026) proves 287 of 409 at K = 8,192 candidate sets (263 at K = 2,048; random points 218; AG1 177), with no proof
+certificate; no other system reports on it. We prove 263 with a certificate for each, most also as Lean theorems. **Goal: more than 287
+counted rows, each certified, at no more CPU than HAGeo's setting (64 cores, 60 s per DDAR run).** Why it is within reach, lever by lever:
+- **HAGeo's own heuristic inside our closure.** Our candidates are random one-step constructions ranked by measured rank gain
+  (`geo_translate.aux_candidates`); HAGeo keeps a point only if it lies non-trivially on a line or circle of the figure, and that alone takes
+  them from random 218 to 287. Our closure tests a whole pool at once (monotone: every subset's proofs are in it), so better candidates cost
+  nothing extra in search. Their code is public (github.com/boduan1/HAGeo; `nlp_data/geo/HAGeo`).
+- **A faster closure, so larger pools fit the same CPU** (incremental span updates, cheaper numeric fact enumeration).
+- **The algebraic fallback** (lever 1 above) for rows whose missing facts are non-linear relations: Wu's method alone solves problems deduction
+  cannot (15 of IMO-AG-30, some unsolved by AlphaGeometry, Sinha et al.), and nobody reports it on HAGeo-409.
+Checkpoints, each through the task-2 kit and pre-registered: (0) reproduce 263; (1) HAGeo's heuristic as the candidate source; (2) the faster
+closure at matched CPU; (3) the algebraic fallback on what is left; (4) certificates and Lean export of every new row. Each step reports rows
+proved, CPU time, and rows lost or gained by difficulty band (HAGeo reports 40.8% on its hardest [4, 5) band at K = 2,048).
+
 **Out of scope:** telling a faithful translation from an unfaithful one without a human, translation and prompting, and new benchmarks.
 They stay as future work in the report.
 
