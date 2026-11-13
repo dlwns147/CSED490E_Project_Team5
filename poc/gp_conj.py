@@ -135,5 +135,70 @@ def eval_main():
         print(f"  CONJ-P1 with - without: {sum(d) / len(d):+.1f} [{bs[250]:+.1f}, {bs[9749]:+.1f}] over {len(ids)} puzzles")
 
 
+def why_main():
+    """Mechanism of CONJ-P1's failure (read after the result): for each bucket puzzle-seed with gold in both sets, a right count-1 program of the
+    same puzzle from any stored test run is the reference; each non-gold shared grid is tested against each reference expression (sandboxed), and
+    the expressions it breaks are the constraint both translators dropped. Writes results/gp_conj_why.jsonl."""
+    import glob
+    from concurrent.futures import ThreadPoolExecutor
+    from sandbox import run_python
+    from run_zebra import GP_SOLVE
+    PZ, R, keys = rows("gp", "gridpuzzle")
+    X = [x for x in map(json.loads, open(f"{RES}/gp_conj_s49.jsonl")) if x["gold_both"] and x["n_both"] >= 2]
+    need = {x["id"] for x in X}
+    ref = {}
+    for f in sorted(glob.glob(f"{RES}/gp_*_gtr*_s*.jsonl")):
+        if "_dev" in f or not re.search(r"_gtrt?_s\d+\.jsonl$", f):
+            continue
+        for ln in open(f):
+            try:
+                y = json.loads(ln)
+            except ValueError:
+                continue
+            if y.get("id") in need and y.get("count") == 1 and y.get("exact") and y["id"] not in ref:
+                ref[y["id"]] = y["code"]
+    # GP_SOLVE up to the solver call, with each clue's allowed tuples kept instead of added; then each grid is tested clue by clue
+    body = GP_SOLVE[:GP_SOLVE.index("s = cp_model.CpSolver()")].replace("    m.AddAllowedAssignments([v[_res(k)] for k in keys], ok)",
+                                                                           "    _CL.append(([_res(k) for k in keys], set(ok)))")
+    body = body.replace("for c in clues:", "_CL = []\nfor c in clues:")
+    test = """
+import sys
+_nk = lambda x, vals: re.search(r"\\d[\\d:.]*", str(x).replace(",", "")).group() if all(re.search(r"\\d", str(y)) for y in vals) else re.sub(r"[^a-z0-9]", "", str(x).lower())
+_ck = lambda a: re.sub(r"[^a-z0-9]", "", str(a).lower()).rstrip("s")
+out = []
+for G in GRIDS:   # G: {canonical category: [canonical values by position]}
+    pos = {}
+    for a, vals in groups.items():
+        row = G.get(_ck(a))
+        for x in vals:
+            pos[a + ":" + x] = row.index(_nk(x, vals)) + 1 if row and _nk(x, vals) in row else None
+    for k, x in enumerate(FIRST, 1):
+        pos.setdefault(FNAME + ":" + str(x), k)
+    out.append([i for i, (ks, ok) in enumerate(_CL) if tuple(pos.get(k) for k in ks) not in ok])
+print(json.dumps(out))
+"""
+    def one(x):
+        r = PZ[x["id"]]
+        if x["id"] not in ref:
+            return {**x, "ref": None}
+        (first, fv), cats = r["cats"][0], sorted(r["cats"][1:], key=lambda t: t[0])
+        ck = lambda a: re.sub(r"[^a-z0-9]", "", str(a).lower()).rstrip("s")
+        cs = sorted((ck(a) for a, _ in r["cats"][1:]))
+        gold = canon(r["gold"], r)
+        sib = [g for g in x["both"] if tuple(map(tuple, g)) != gold]
+        grids = [{c: list(g[k]) for k, c in enumerate(cs)} for g in sib]
+        solve = body.replace("__FIRST__", json.dumps(fv)).replace("__FNAME__", json.dumps(first))
+        res = run_python(ref[x["id"]] + "\n" + solve + "\nGRIDS = " + json.dumps(grids) + "\n" + test, "", timeout=120, mem_bytes=4 << 30)
+        try:
+            v = json.loads(res.stdout.strip().splitlines()[-1])
+        except (AttributeError, IndexError, ValueError):
+            return {**x, "ref": "fail", "err": (res.stderr or "")[-300:]}
+        return {**x, "ref": ref[x["id"]], "broken": v}
+    with ThreadPoolExecutor(int(os.environ.get("NW", "4"))) as ex, open(f"{RES}/gp_conj_why.jsonl", "w") as f:
+        for row in ex.map(one, X):
+            f.write(json.dumps(row) + "\n")
+    print("why rows", len(X), "with a reference", sum(x["id"] in ref for x in X), flush=True)
+
+
 if __name__ == "__main__":
-    run_main() if sys.argv[1] == "run" else eval_main()
+    run_main() if sys.argv[1] == "run" else why_main() if sys.argv[1] == "why" else eval_main()

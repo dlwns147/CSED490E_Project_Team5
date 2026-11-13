@@ -41,3 +41,20 @@ Mitra-Baral has only 19 such puzzle-seeds (of 564), so about +0.5.
 - P1 fails → the step stays out. If gold is in both sets but more than one grid is shared, the two translators weaken the same clues and a
   third reading is the next question; if gold is often missing from a set, the bucket is misreading, not weakness, and idea 35 does not carry
   over to the trained translator.
+
+## Result (2026-11-13 04:2x UTC; `python poc/gp_conj.py eval`, job 1419495): P1 fails. The two translations drop the same constraint
+
+| Seeds 4–9 | GridPuzzle (177 of 1,290 puzzle-seeds with both at count 2) | Mitra-Baral (19 of 564) |
+|---|---|---|
+| Gold in the `lf` set / the `gtrt` set / both | 133 / 168 / **128** | 14 / 16 / 14 |
+| Shared grids: none / exactly one / two or more | 13 / **1** / 163 | 2 / 0 / 17 |
+| **CONJ-P1:** with − without | **+0.0 [+0.0, +0.0]** (fails) | +0.0 |
+| CONJ-P2: precision of accepted grids | 1/1 (thinking also right there) | none accepted |
+
+- **Decision as registered:** the step stays out of the method.
+- **What the derivation got right and wrong:** gold is in both sets as predicted (128 of 177 = 72%, predicted 75%), but the chance that only gold is
+  shared was 1 of 128, not 0.35. The sets are nested: in 126 of the 128 the shared set equals the smaller set, and the two sets are often equal.
+  The trained quick translator and the base thinking translator leave the same freedom, so a third reading from the same model family is unlikely
+  to help either.
+- **Not a property of the puzzles:** 47 of the 52 puzzles involved have a right one-solution translation in some stored run, so the puzzles are
+  unique under a right reading; both translators drop the same constraint. Which one is read next (mechanism run, `python poc/gp_conj.py why`).
