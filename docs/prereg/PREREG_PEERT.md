@@ -87,3 +87,7 @@ the peer rows are addendum B's gpt-oss-120b `trc`. **PEERT-B2:** with − withou
 **Result (2026-11-13 10:3x UTC; `peertrip --main oss20 --peer oss120`, seeds 4–6): PEERT-B2 holds.** gpt-oss-20b ladder → with
 gpt-oss-120b's quick translation as step ②: 82.3% at 26.60k tokens, +3.3 [+1.1, +5.6] (predicted +3). Against gpt-oss-20b thinking only
 (73.0% at 14.16k): +3.1 [−2.2, +8.6], a tie: on trips the gpt-oss-20b ladder buys accuracy with tokens, and at this price the two are even.
+
+**Correction, 2026-11-13 23:1x UTC (answer reading, FINDINGS 23:1x).** Bracket-less thinking plans are now read. Addendum B, Qwen3-32B: with
+the peer 73.0% at 18.2k (was 72.0%), without 70.0%; B1 unchanged at +3.4 [+0.7, +6.2]; against thinking only (55.0%, was 47.0%) **+12.5
+[+6.6, +18.6]** utility. B2 (gpt-oss-20b): thinking only 74.0% (was 73.0%), the ladders unchanged.

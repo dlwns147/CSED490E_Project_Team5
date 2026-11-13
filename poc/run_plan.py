@@ -130,20 +130,47 @@ def np_norm(plan):
 
 
 def np_extract(text):
-    """the last JSON list in an answer"""
-    dec, i, g = json.JSONDecoder(), 0, None
-    while i < len(text or ""):
-        if text[i] == "[":
+    """the last JSON list in an answer that reads as a plan; with none, the last run of {city, start, end} objects separated only by commas and whitespace
+    (11-13 23:xx: Qwen3-32B thinking often ends with the objects and no brackets, 56 of 300 rows on seeds 4-6, scored as no plan before)"""
+    dec, i, g, runs, end = json.JSONDecoder(), 0, None, [], None
+    t = text or ""
+    while i < len(t):
+        if t[i] in "[{":
             try:
-                x, n = dec.raw_decode(text, i)
+                x, n = dec.raw_decode(t, i)
                 if isinstance(x, list):
-                    g = x
+                    g = x if g is None or np_norm(x) or not np_norm(g) else g
+                elif isinstance(x, dict) and {"city", "start", "end"} <= set(x):
+                    if runs and re.fullmatch(r"[\s,]*", t[end:i]):
+                        runs[-1].append(x)
+                    else:
+                        runs.append([x])
+                    end = n
                 i = n
                 continue
             except ValueError:
                 pass
         i += 1
-    return g
+    return g if np_norm(g or []) or not runs else runs[-1]
+
+
+def reextract(paths):
+    """run_plan.py --reextract <results/np_*_{think,direct}_s*.jsonl ...>: re-read the plan of rows without one from their stored answer tail
+    under the current np_extract (no model call); rewrites the files in place, keeping the old values as plan_strict / exact_strict."""
+    G = {r["id"]: r for r in map(json.loads, open(os.path.join(os.environ["POC_DATA"], "naturalplan", "trip.jsonl")))}
+    for path in paths:
+        R, k = [json.loads(x) for x in open(path)], 0
+        for r in R:
+            if not r.get("plan") and "plan_strict" not in r and r.get("text"):
+                pl = np_norm(np_extract(r["text"]) or [])
+                if pl:
+                    gold = np_norm({"city": c, "start": s, "end": e} for c, s, e in G[r["id"]]["gold"])
+                    r.update(plan_strict=r.get("plan"), exact_strict=r["exact"], plan=pl, exact=pl == gold)
+                    k += 1
+        with open(path + ".tmp", "w") as f:
+            f.writelines(json.dumps(r) + "\n" for r in R)
+        os.replace(path + ".tmp", path)
+        print(path, "re-read", k, "right now", sum(r["exact"] for r in R), "of", len(R))
 
 
 def rescore(paths):
@@ -257,6 +284,8 @@ def modulo_critics(path):
 
 
 def main():
+    if "--reextract" in sys.argv:
+        return reextract([x for x in sys.argv[1:] if not x.startswith("--")])
     if "--rescore" in sys.argv:
         return rescore([x for x in sys.argv[1:] if not x.startswith("--")])
     if "--check" in sys.argv:

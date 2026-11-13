@@ -36,3 +36,11 @@ Seeds 4–6, gpt-oss-120b `trc` as the peer program. Exploratory: the any2 rule 
   domain-free critic set narrows the gap to LLM-Modulo.
 - Interval including or below 0: closed; the report states that model-written critics are precise when they accept (95%) but too weak to steer
   re-planning toward the plan, and that LLM-Modulo's advantage on trips is its complete, hand-written critics.
+
+**Note before any result (2026-11-13 23:1x UTC).** (1) Scoring fix (FINDINGS 23:1x): thinking answers that end with the plan's objects and no
+brackets are now read; on seeds 4–6 Qwen3-32B thinking is 55.0% (was 47.0%) and the current ladder 73.0% (was 72.0%); on the 80 fall-through
+trip-seeds thinking is right 14 times (was 11). The running `mcrit` rows started from the old reading (18 fall-through trips with no plan,
+which the arm re-prompts). Both ladders are scored with the corrected thinking rows: where `mcrit` accepts no plan the answer is the
+corrected thinking plan. (2) The zero-token repair test (IDEAS 52) found that the programs' constraints accept out-of-order plans, since
+they keep a plan's shape in `candidates()`. Expect MCRIT-P2 (≥ 75% of accepted re-plans right) to be at risk when a re-plan breaks the
+shape; the prediction is not changed.

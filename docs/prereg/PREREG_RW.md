@@ -48,7 +48,7 @@ our 82.3% at 26.6k, about +2 for LLM-Modulo.
 
 | Arm (gpt-oss-20b, seeds 4–6) | Accuracy | Tokens |
 |---|---|---|
-| Thinking only | 73.0% | 14.2k |
+| Thinking only | 74.0% (73.0% before the 23:1x answer-reading fix) | 14.2k |
 | Ours (`trc` → gpt-oss-120b `trc` → `trct` → `think`) | 82.3% | 26.6k |
 | LLM-Modulo (hand-written critics, up to 10 rounds) | **96.0%** | 29.3k |
 

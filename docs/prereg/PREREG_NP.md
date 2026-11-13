@@ -98,3 +98,10 @@ Reported rows (addendum NP-DP), ladder − D&P-3 / ladder − SC-3 utility: Qwen
 **Decision, by the registered rule.** For the deciding model P1 fails (90.7% < 95%), so the rule reads: the count gate does not carry to trip planning as a validity check, and the domain is reported as a negative result for the gate. P2 and P3 hold by wide margins, and P4 fails in the direction opposite to Amonkar et al.: with count feedback, Qwen3-32B's thinking translation alone beats its thinking by 13.7 points. So the ladder's utility gain on trips is real, but by the rule it is not credited to a valid gate.
 
 **Why P1 fails, read in the programs.** All 11 of Qwen3-32B's wrong `trct` passes enumerate two or more candidates, and none is a plan that meets the annotated constraints. In 7 of them each stay starts the day after the previous one ends, against the stated convention, so the whole schedule shifts and stays unique. The misreading turns the task into a different problem that still has exactly one answer, which a count cannot see. The quick translation's wrong passes are mostly single-candidate programs (5 of its 8 wrong passes enumerate one candidate).
+
+## Correction, 2026-11-13 23:1x UTC: answer reading (FINDINGS 23:1x)
+
+Thinking answers that end with the plan's objects and no brackets were scored "no plan" (Qwen3-32B: 49 of 300 here). Re-read with the fixed
+`np_extract` (`poc/run_plan.py --reextract`; old values kept). Corrected reading, same command: Qwen3-32B ladder 69.7% at 18.9k vs thinking
+55.0% at 6.9k, **+8.7 [+2.3, +15.5]** utility (was +15.4); Qwen3-8B +6.5 [+0.6, +12.4]; gpt-oss-20b −1.7 [−7.5, +4.3]; gpt-oss-120b +5.8
+[+1.0, +10.9] (unchanged). The verdicts stand: utility wins for 3 of 4 models; NP-P1 (count-1 precision) fails as before.

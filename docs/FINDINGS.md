@@ -7145,3 +7145,30 @@ Job 1382299 (one GPU, queued).
 - Offline (`results/tmp_tripcritic.py`, Qwen3-32B seeds 4–6): the three paid programs' own constraints, "2 of 3 pass", accept thinking's
   plans at 95% precision (122 of 128), and accept the gold plan on 232 of 300 trip-seeds but only 38 of the 80 fall-through ones.
   PREREG_MCRIT tests them as LLM-Modulo critics on the fallback (running).
+
+## 2026-11-13 23:1x UTC — Scoring fix on trips: Qwen3-32B thinking was under-read by 8 points; the trip method still wins, by less
+
+- **Bug.** `np_extract` read only a bracketed JSON list. Qwen3-32B thinking often ends with the plan's objects and no brackets
+  (`{"city": "Vienna", "start": 1, "end": 4}, {"city": ...}`), so 105 of its 600 trip answers (seeds 1–6) were scored "no plan"; 101 of them hold a plan. Found while
+  reading the fall-through trips for the repair test below. Fixed: with no plan-shaped list, the last run of `{city, start, end}` objects is the
+  plan (`poc/run_plan.py`, `--reextract` re-reads stored rows, old values kept as `plan_strict` / `exact_strict`). Other models: gpt-oss-20b
+  +1 per seed, Qwen3-8B +0–2, gpt-oss-120b and every direct arm about 0.
+- **Corrected trip numbers (thinking only for Qwen3-32B: 47.0 → 55.0% on seeds 1–3 and 4–6).**
+
+| Run | Ladder | Thinking | Ladder − thinking utility (was) |
+|---|---|---|---|
+| PREREG_NP, seeds 1–3, Qwen3-32B | 69.7% at 18.9k | 55.0% at 6.9k | **+8.7 [+2.3, +15.5]** (+15.4) |
+| PREREG_NP, Qwen3-8B / gpt-oss-20b / gpt-oss-120b | 49.3 / 79.0 / 86.0% | 34.0 / 72.0 / 76.7% | +6.5 / −1.7 / +5.8 (+6.8 / −1.1 / +5.8) |
+| PEERT-B, seeds 4–6, Qwen3-32B with the gpt-oss-120b quick step | 73.0% at 18.2k | 55.0% at 7.2k | **+12.5 [+6.6, +18.6]** (+19.5) |
+
+  The peer step's gain is unchanged (+3.4 [+0.7, +6.2]); utility still wins for 3 of 4 models. gpt-oss-20b against LLM-Modulo is unchanged
+  (ours 82.3%, thinking 74.0%). Budget-forced trip rows (PREREG_BUD) store no answer text and cannot be re-read; they may be under-read too.
+  LLM-Modulo and MCRIT re-prompt when no plan is read, which gave them a format retry the ladder's fallback did not have.
+- **Repair without the model (exploratory, `results/tmp_triprepair.py`, 0 tokens): closed.** On the 62 fall-through trip-seeds with a
+  thinking plan, beam search from thinking's plan for a plan that 2 of the 3 paid programs' constraints accept. Generic list moves: 11 plans
+  found beyond the start, 2 right; the wrong ones list stays out of day order (Hamburg 10–11 before Riga 7–10), because the programs put a
+  plan's shape in `candidates()`, not in their constraints. Trip-shaped moves (cities permuted over the day slots, shared days shifted): 2
+  found, both right, +0.7 points. Thinking's plans are far from gold there: of 80 fall-through trip-seeds, 18 had no plan (now re-read),
+  7 a different city set, and the rest differ from the gold order in 6 positions at the median. Local repair cannot reach them; the model's
+  critics are incomplete exactly where a search would exploit them (the shape), which also predicts MCRIT's accepted re-plans will be less
+  precise than 95%.
