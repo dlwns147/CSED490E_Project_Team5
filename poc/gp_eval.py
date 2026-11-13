@@ -29,6 +29,7 @@ python poc/gp_eval.py --zlmin: PREREG_FREE addendum FREE-MIN, the clue-necessity
 import json
 import os
 import random
+import re
 import sys
 
 RES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "results")
@@ -1267,6 +1268,94 @@ def gclf_main():
             print(f"  ladder {a} - {b}: utility {pt:+.1f} [{lo:+.1f}, {hi:+.1f}], accuracy {100 * f(1)(list(per.values())):+.1f} points, ktok {f(2)(list(per.values())):+.2f}   ({rule})")
 
 
+def n_exprs(code):
+    """number of entries of the program's `clues = [...]` list (the interface asks for one expression per clue); None if not a literal list"""
+    import ast
+    try:
+        tree = ast.parse(code or "")
+    except SyntaxError:
+        return None
+    n = None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == "clues" for t in node.targets) and isinstance(node.value, ast.List):
+            n = len(node.value.elts)
+    return n
+
+
+def n_clues(puzzle):
+    t = puzzle.split("Clues:")[1].split("While answering")[0] if "Clues:" in puzzle else ""
+    return len(re.findall(r"^\s*\d+\.", t, re.M))
+
+
+def ifc_main():
+    """PREREG_IFC: the interface check. The translation prompt asks for one expression per clue, so a count-1 program whose `clues` list has another
+    length than the puzzle's numbered clues is not accepted (the step goes on, as a flag does); no tokens. Unparsed lists are not flagged.
+    usage: python poc/gp_eval.py --ifc quick=<tag>[+<tag>] [mid=<tag>] [think=<tag>] [seeds=4,5,6] [check=1]
+    quick rows: <s>_<tag>_gtr_s<sd>; mid rows: <s>_<mid>_gtrt_s<sd>; think rows: <s>_<think>_think_s<sd>. Without mid and think only the quick step is read.
+    check=1 also applies PREREG_GC's clue check (rows of PREREG_GCLF, Qwen3-8B lf only) in both arms."""
+    from grid_score import score
+    A = dict(a.split("=", 1) for a in sys.argv[sys.argv.index("--ifc") + 1:] if "=" in a)
+    SD = [int(x) for x in A.get("seeds", "4,5,6").split(",")]
+    data = os.environ.get("POC_DATA", os.path.join(RES, "..", "..", "nlp_data"))
+    U = lambda e, t: 100 * e - 0.5 * t / 1000
+    for s, src in [("gp", "gridpuzzle"), ("lgp", "lgp")]:
+        PZ = {r["id"]: r for r in map(json.loads, open(os.path.join(data, src, "grid.jsonl")))}
+        NC = {i: n_clues(r["puzzle"]) for i, r in PZ.items()}
+        R, C = {}, {}
+        steps = [("quick", A["quick"].split("+"), "gtr")] + ([("mid", [A["mid"]], "gtrt")] if "mid" in A else []) + ([("think", [A["think"]], "think")] if "think" in A else [])
+        for st, tags, arm in steps:
+            for tag in tags:
+                for sd in SD:
+                    f = os.path.join(RES, f"{s}_{tag}_{arm}_s{sd}.jsonl")
+                    for x in map(json.loads, open(f)) if os.path.exists(f) else []:
+                        n = n_exprs(x.get("code")) if st != "think" else None
+                        R[(st, x["id"], sd)] = {**x, "exact": score(x.get("grid"), PZ[x["id"]])[0], "ifc": n is not None and n != NC[x["id"]]}
+        if A.get("check"):
+            for f, st in [(f"{s}_q8bgrllf0_checkt", "quick"), (f"{s}_q8bgrllf1_checkt", "quick"), (f"{s}_q8b_checkt_s49", "mid")]:
+                for x in map(json.loads, open(os.path.join(RES, f + ".jsonl"))):
+                    C[(st, x["id"], x["seed"])] = x
+        S = [st for st, _, _ in steps]
+        keys = sorted({(i, sd) for (_, i, sd) in R if all((st, i, sd) in R for st in S)})
+        print(f"== {s}: {len(keys)} puzzle-seeds, seeds {SD}, steps {S}")
+        for st in [x for x in S if x != "think"]:
+            q = [R[(st, i, sd)] for i, sd in keys if R[(st, i, sd)]["count"] == 1]
+            w, ok = [x for x in q if not x["exact"]], [x for x in q if x["exact"]]
+            fw, fr = sum(x["ifc"] for x in w), sum(x["ifc"] for x in ok)
+            line = f"  {st:5s} count-1 {len(q)}: interface flags wrong {fw}/{len(w)}, right {fr}/{len(ok)}"
+            if w and ok and fw + fr:
+                from scipy.stats import fisher_exact
+                line += f" (Fisher p {fisher_exact([[fw, len(w) - fw], [fr, len(ok) - fr]])[1]:.2g}); precision {100 * len(ok) / len(q):.1f}% -> {100 * (len(ok) - fr) / max(1, len(q) - fw - fr):.1f}%"
+            print(line)
+        if "think" not in S:
+            continue
+
+        def lad(i, sd, ifc, chk):
+            tok = 0
+            for st in [x for x in S if x != "think"]:
+                r = R[(st, i, sd)]; tok += r["tokens"]
+                if r["count"] == 1 and not (ifc and r["ifc"]):
+                    c = C.get((st, i, sd)) if chk else None
+                    tok += c["tokens"] if c else 0
+                    if not (c and c["violated"]):
+                        return r["exact"], tok
+            r = R[("think", i, sd)]
+            return r["exact"], tok + r["tokens"]
+        chk = bool(A.get("check"))
+        L = {(k, m): lad(*k, m, chk) for k in keys for m in (False, True)}
+        for m in (False, True):
+            v = [L[(k, m)] for k in keys]
+            print(f"  ladder {'with' if m else 'without'} interface check{' (clue check on)' if chk else ''}: {100 * mean([e for e, _ in v]):5.1f}% at {mean([t for _, t in v]) / 1000:5.2f} ktok, utility {mean([U(e, t) for e, t in v]):.1f}")
+        tv = [R[("think", i, sd)] for i, sd in keys]
+        print(f"  think alone: {100 * mean([r['exact'] for r in tv]):5.1f}% at {mean([r['tokens'] for r in tv]) / 1000:5.2f} ktok")
+        per = {}
+        for k in keys:
+            (ea, ta), (eb, tb) = L[(k, True)], L[(k, False)]
+            per.setdefault(k[0], []).append((U(ea, ta) - U(eb, tb), ea - eb, (ta - tb) / 1000))
+        f = lambda j: (lambda v: mean([mean([z[j] for z in x]) for x in v]))
+        pt, lo, hi = boot(per, f(0))
+        print(f"  with - without: utility {pt:+.1f} [{lo:+.1f}, {hi:+.1f}], accuracy {100 * f(1)(list(per.values())):+.1f} points, ktok {f(2)(list(per.values())):+.2f}")
+
+
 def quick_main():
     """PREREG_GRLX: the quick step alone (gtr, 3 rounds) for a model without a stored ladder, base against trained arms, per puzzle-seed with a
     95% bootstrap over puzzles. usage: python poc/gp_eval.py --quick <base tag> <name>=<tag>[+<tag>...] ... [--seeds 4,5,6]
@@ -1303,4 +1392,4 @@ def quick_main():
                 print(f"  {a} - {b}: {nm} {pt:+.1f} [{lo:+.1f}, {hi:+.1f}] points")
 
 if __name__ == "__main__":
-    gclf_main() if "--gclf" in sys.argv else quick_main() if "--quick" in sys.argv else grl_main() if "--grl" in sys.argv else rule3g_main() if "--rule3g" in sys.argv else esc3_main() if "--esc3" in sys.argv else esc2_main() if "--esc2" in sys.argv else esc_main() if "--esc" in sys.argv else min_main() if "--zlmin" in sys.argv else conv_main() if "--conv" in sys.argv else free_main() if "--free" in sys.argv else bud_main() if "--bud" in sys.argv else mot_main() if "--mot" in sys.argv else zl_main() if "--zl" in sys.argv else np_main() if "--np" in sys.argv else thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()
+    ifc_main() if "--ifc" in sys.argv else gclf_main() if "--gclf" in sys.argv else quick_main() if "--quick" in sys.argv else grl_main() if "--grl" in sys.argv else rule3g_main() if "--rule3g" in sys.argv else esc3_main() if "--esc3" in sys.argv else esc2_main() if "--esc2" in sys.argv else esc_main() if "--esc" in sys.argv else min_main() if "--zlmin" in sys.argv else conv_main() if "--conv" in sys.argv else free_main() if "--free" in sys.argv else bud_main() if "--bud" in sys.argv else mot_main() if "--mot" in sys.argv else zl_main() if "--zl" in sys.argv else np_main() if "--np" in sys.argv else thinkf() if "--thinkf" in sys.argv else zl_am() if "--zlam" in sys.argv else loc_main() if "--loc" in sys.argv or "--gts" in sys.argv else main()

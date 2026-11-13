@@ -25,3 +25,20 @@ Written 2026-11-13 02:1x UTC. No check has been run on these programs. The plain
 **Decision.**
 - P1 holds → the course method is the trained translator with the clue check; that number replaces the GridPuzzle row of the report.
 - P1 fails → the method is the trained translator alone and the check stays an option for untrained translators (PREREG_GC). If P2 also holds, the reason is that RL on the count leaves errors the same model's check shares.
+
+## Result (2026-11-13 03:1x UTC; `python poc/gp_eval.py --gclf`, jobs 1415914–1415915, 2,447 checks): P1 fails as predicted, P2 holds. The method is the trained translator alone
+
+| Seeds 4–9 | GridPuzzle (1,290 puzzle-seeds) | Mitra-Baral (564) |
+|---|---|---|
+| Ladder with `lf` | 75.8% at 14.00 ktok, utility 68.8 | 90.2% at 6.85, 86.8 |
+| Same ladder with the clue check | 76.7% at 15.46, 69.0 | 92.7% at 7.92, 88.8 |
+| Thinking | 63.4% at 11.53, 57.6 | 87.1% at 6.31, 83.9 |
+| **GCLF-P1:** checked − plain | **+0.2 [−0.4, +0.9]** (fails) | +1.9 [+0.2, +4.6] |
+| **GCLF-P2:** wrong `lf` count-1 flagged | **22/56 = 39% [26, 53]** vs base `gtr` 28/39 = 72%, Fisher p = 0.003 (holds) | 12/24 = 50% [29, 71] vs 12/14, p = 0.04 |
+| Right `lf` count-1 flagged | 6/746 | 0/399 |
+| GCLF-P3: precision accepted before thinking | 92.1% → 94.9% (just under 95%) | 94.0% → 96.7% |
+| GCLF-P4: checked ladder − thinking | +11.4 [+7.6, +15.4] | +4.9 [+1.0, +9.2] (plain: +2.9 [−1.8, +7.8]) |
+
+- **Decision as registered:** P1 fails on GridPuzzle, so the course method is the trained translator alone; the clue check stays an option for untrained translators (PREREG_GC). On Mitra-Baral the check still pays and turns a tie with thinking into a win; this is reported, not used to change the decision.
+- **Why (P2):** after RL on the count, the check catches 39% of wrong one-solution translations against 72% before training. RL removes the errors the same model can see when re-reading; the ones left are readings it shares.
+- **What the remaining errors are (exploratory, read after the result):** half of `lf`'s wrong one-solution programs have more expressions than the puzzle has clues (28/56 GridPuzzle, 14/24 Mitra-Baral), against 18/746 and 8/399 of right ones. The extra expression is a constraint no clue states, which pins the count to 1 (gp-12703: `p['pieces:coffee table'] == p['woods:mahogany']`; gp-3720: `p['years:1921'] == p['paintings:Orange Sky']`, which clue 6 forbids). The base translator does this too, in 29/88 wrong and 24/412 right. Rejecting such programs at the gate does not pay (ladder −0.9 [−2.1, +0.2] and −1.0 [−3.0, +0.7]; with the clue check −1.2 and −1.5): of 46 flagged GridPuzzle programs, 10 wrong ones become right further down but 12 right ones become wrong, because an extra expression is as often a correct deduction as an invented one, and the later steps fail on these puzzles. The fix belongs in training: a reward that also requires one expression per clue (free, label-free) would stop the count reward from paying for invented constraints. Related: FormaRL (check-only autoformalization rewards are hacked unless a consistency check is added).

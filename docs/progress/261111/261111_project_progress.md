@@ -1,6 +1,6 @@
 # Progress 11-03 → 11-12 — *Facts First, Think on Failure*
 
-*Updated 2026-11-13 02:1x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
+*Updated 2026-11-13 03:1x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
 
 ## At a glance
 
@@ -9,7 +9,7 @@
 - **Wins:** on ZebraLogic, human-written grids and trip planning, more accurate than thinking alone and usually cheaper, on two model families (Qwen3, gpt-oss).
 - **Trained quick step:** using the same free check **as the reward to train the translator with RL** works as well as a gold-label reward, with no labels at all (GridPuzzle +8.4; also +8.8 on gpt-oss-20b); this trained translator is the method's step ①.
 - **Remaining weakness:** a misreading that still leaves exactly one solution passes the check. With the strongest thinking model (gpt-oss-120b) the grid gain disappears.
-- **Running:** proofs task 1 for the teammate (fresh-figure solver, registered run); the full grid method measured as one (trained translator + clue check, PREREG_GCLF). Harder computation (Project Euler, OEIS, MathConstruct) is closed: no edge over thinking.
+- **Running:** proofs task 1 for the teammate (fresh-figure solver, registered run). Closed this round: the clue check adds nothing on top of the trained translator on GridPuzzle (PREREG_GCLF), and harder computation (Project Euler, OEIS, MathConstruct) gives no edge over thinking.
 
 ![Results at a glance](fig/frontier.png)
 
@@ -95,6 +95,7 @@
 
 - **No labels needed:** check-only − gold = +1.3 [−0.6, +3.3]. The gate and the training signal are the same free check. It also trains a second family, gpt-oss-20b (mixture-of-experts): quick step right on GridPuzzle 60.5% → 69.3% (+8.8 [+5.0, +12.6]), Mitra-Baral +6.4 [+2.8, +9.9], precision 96.3% → 98.0%.
 - **No reward hacking:** the share of "one solution but wrong" falls (6.8% → 4.3%). Hypothesis: right readings are rules shared across puzzles, so they rise together; wrong readings that happen to have one solution are puzzle-specific accidents. Rare exception: lgp-2011, where flipping the sign of "2 days **before**" still leaves one solution and passes.
+- **What RL leaves, and the clue check on top (PREREG_GCLF):** the same model's clue check catches only 39% of the trained translator's wrong grids (72% before RL), so it adds nothing on GridPuzzle (+0.2 [−0.4, +0.9]; Mitra-Baral +1.9 [+0.2, +4.6]). Half of those wrong grids come from a constraint no clue states (e.g. `p['years:1921'] == p['paintings:Orange Sky']`, which a clue forbids); rejecting them at the gate loses, because the later steps fail on the same puzzles, so the fix belongs in the reward (one expression per clue).
 - **Not just sharpening:** even with 128 samples per puzzle the base does not catch up (pass@128 45.1% → 62.8%, +17.7). RL solves 41 of the 118 puzzles the base misses in all 128 samples — the opposite of the math/code finding that the base catches up at large k (2504.13837).
 - **Training on the test puzzles themselves** (still no labels) reaches 79.7%, beating thinking on both accuracy and tokens, but the training cost (13–17k tokens per puzzle) cancels the gain → only for answering the same questions repeatedly.
 - **Related work:** label-free RL (TTRL majority vote, Co-rewarding, JURY-RL, …) rewards *agreement* among answers. Ours is a *structural* check built into the task: no vote or prover, and its false-pass rate can be measured before training.
@@ -171,13 +172,13 @@
 
 | Experiment | Question | Depending on the verdict |
 |---|---|---|
-| **Full grid method** (PREREG_GCLF) | does the clue check still pay on top of the check-trained translator? (predicted: no, about +0.5 utility) | yes → the method is translator + check; no → translator alone |
 | **Proofs task 1** (registered run, teammate) | does the teammate's solver reach the reference (20 / 21 whole problems) and pass the soundness control (0 of 267 plants counted)? | if yes, task 1 is done; task 2 (HAGeo-409 coverage, 263 now vs HAGeo 287) next |
 
-<details><summary><b>Closed verdicts (15)</b></summary>
+<details><summary><b>Closed verdicts (16)</b></summary>
 
 | Experiment | Result | Decision |
 |---|---|---|
+| GCLF | clue check on the trained translator: GridPuzzle +0.2 [−0.4, +0.9], Mitra-Baral +1.9 [+0.2, +4.6]; catches 39% of its wrong grids vs 72% before RL | method = trained translator alone |
 | GRLLF | check-only reward +8.4 [+5.4, +11.5], vs gold +1.3, precision 93.0% | label-free RL translator is the method; holds on gpt-oss-20b (GRLO +8.8 [+5.0, +12.6]) |
 | GRL | gold reward +7.0 [+4.0, +10.2] / +3.8 [+0.3, +7.4] | trained translator as the quick step |
 | GRLK | pass@128 +17.7 [+12.6, +23.3], curves never cross | RL teaches new readings |
