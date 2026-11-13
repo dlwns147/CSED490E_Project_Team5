@@ -77,3 +77,17 @@ are reported as exploratory.
   programs (H2 7 of 7, H4 4 of 4), which cost only the next step's tokens.
 - **Size:** a small free gain, far below DCL's (+6 to +15); it is the convention's second use, not a new lever. As registered it joins
   steps ① and ②; the method's numbers on seeds 14–16 are read with and without it (part 1).
+
+## Part 1 result (2026-11-13 16:2x UTC; `python poc/gp_conj.py gpf`, seeds 14–16, all runs fresh): GPF-P1 and P2 hold. These are the report's headline grid numbers
+
+| Set | Thinking only | Method (as registered) | Method + check (DCLC) | Method − thinking | Check − no check |
+|---|---|---|---|---|---|
+| GridPuzzle (215 × 3) | 60.9% at 11.49k | 91.5% at 4.35k | **93.3% at 4.56k** | **+34.1 [+28.9, +39.6]** (predicted +33.9) | +1.8 [+0.6, +3.2] |
+| Mitra-Baral (94 × 3) | 87.9% at 6.47k | 95.0% at 1.09k | **96.5% at 1.23k** | **+9.8 [+4.2, +15.5]** (predicted +10.8) | +1.4 [+0.0, +3.1] |
+
+- **GPF-P1 holds** on both sets. **GPF-P2 holds:** the method's accuracy is within 3 points of seeds 7–9 (GridPuzzle 91.5% vs 92.9%,
+  Mitra-Baral 95.0% vs 95.7%), so the choices made on seeds 4–9 did not inflate the development numbers.
+- **DCLC-P4:** on fresh seeds the check adds +1.8 and +1.4 (larger than on H1–H4, as on the discovery data: the trained translator's wrong
+  one-solution grids have the shape the check catches more often than base models' do).
+- **Decision as registered:** the report's grid numbers are these: with the check (part 2 held), GridPuzzle 93.3% at 4.6k tokens against
+  60.9% at 11.5k for thinking (2.5× fewer tokens), Mitra-Baral 96.5% at 1.2k against 87.9% at 6.5k (5.3× fewer).

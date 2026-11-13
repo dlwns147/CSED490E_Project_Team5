@@ -7110,3 +7110,14 @@ Job 1382299 (one GPU, queued).
   wrong), 14 on Mitra-Baral (12 wrong), utility +0.7 [+0.2, +1.4] and +1.6 [+0.2, +3.5]. Held out on H1–H4 (CPU job running).
 - **Fresh-seed test of the composed method (PREREG_GPF part 1):** every step was chosen on seeds 4–9, so the composed method runs once on
   seeds 14–16 (never run for any model) against thinking only; predicted +33.9 (GridPuzzle) and +10.8 (Mitra-Baral) from seeds 7–9.
+
+## 2026-11-13 16:2x UTC — PREREG_GPF holds: the composed grid method, run once on fresh seeds 14–16, beats thinking by +34.1 (GridPuzzle) and +9.8 (Mitra-Baral); the closure check adds +1.8 / +1.4
+
+- Method (trained quick translation → gpt-oss-120b quick translation → thinking translation → thinking; closure on several-solution steps;
+  closure check on one-solution quick steps): **GridPuzzle 93.3% at 4.56k tokens vs thinking 60.9% at 11.49k; Mitra-Baral 96.5% at 1.23k vs
+  87.9% at 6.47k.** Without the check 91.5% / 95.0%; method − thinking +34.1 [+28.9, +39.6] and +9.8 [+4.2, +15.5], as predicted from seeds
+  7–9 (+33.9, +10.8). Accuracy within 1.4 points of the development seeds, so selection on seeds 4–9 did not inflate them.
+- DCLC held out on H1–H4 (base models' quick steps): GridPuzzle +0.45 [+0.20, +0.75], Mitra-Baral +0.22 [−0.10, +0.80] (no harm); 47 of 98
+  flags wrong. Joins steps ① and ②.
+- Proofs (task 2 kit for the teammate): `side/kit_h409.py` reproduces 263 of HAGeo-409 exactly and counts 0 of 737 tampered certificates;
+  measured room: greedy + random portfolio 271, 6 statements that do not build, gap to HAGeo (287) all below difficulty 5.
