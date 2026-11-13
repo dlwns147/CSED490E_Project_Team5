@@ -284,5 +284,104 @@ def close_main():
         print(s, "closure rows", len(todo), flush=True)
 
 
+# PREREG_DCL held-out ladders: quick gtr -> gtrt -> think; (tag, seed) per step, None = the puzzle-seed's own seed
+DCL = {"H1": (["gp", "lgp"], [1, 2, 3], ("q8b", None), ("q8b", None), ("q8b", None)),
+       "H2": (["gp", "lgp"], [1, 2, 3, 4, 5, 6], ("q32a", None), ("q32a", None), ("q32a", None)),
+       "H3": (["gp", "lgp"], [1, 2, 3, 4, 5, 6], ("oss20", None), ("oss20", None), ("oss20", None)),
+       "H4": (["gp", "lgp"], [1, 2, 3, 4, 5, 6], ("oss120", None), ("oss120", None), ("oss120", None)),
+       "H5": (["gp"], [1, 2, 3], ("q8bh_dev", None), ("q8bh_dev", 1), ("q8b_dev", 1))}
+
+
+def dcl_rows(s, src, h):
+    from grid_score import score
+    data = os.environ.get("POC_DATA", os.path.join(RES, "..", "..", "nlp_data"))
+    PZ = {r["id"]: r for r in map(json.loads, open(os.path.join(data, src, "grid.jsonl")))}
+    _, seeds, *steps = DCL[h]
+    R, F = {}, {}
+    for arm, (tag, fix) in zip(["gtr", "gtrt", "think"], steps):
+        for sd in seeds:
+            f = os.path.join(RES, f"{s}_{tag}_{arm}_s{fix or sd}.jsonl")
+            for x in map(json.loads, open(f)) if os.path.exists(f) else []:
+                R[(arm, x["id"], sd)] = {**x, "exact": score(x.get("grid"), PZ[x["id"]])[0]}
+                F[(arm, x["id"], sd)] = (tag, fix or sd)
+    keys = sorted({(i, sd) for (_, i, sd) in R if all((a, i, sd) in R for a in ["gtr", "gtrt", "think"])})
+    return PZ, R, F, keys
+
+
+def dcl_main():
+    from concurrent.futures import ThreadPoolExecutor
+    from sandbox import run_python
+    from run_zebra import GP_SOLVE, gp_score
+    for h, (sets, *_) in DCL.items():
+        for s in sets:
+            PZ, R, F, keys = dcl_rows(s, "gridpuzzle" if s == "gp" else s, h)
+            todo = sorted({(a,) + F[(a,) + k] + (k[0],) for k in keys for a in ["gtr", "gtrt"] if R[(a,) + k]["count"] >= 2})
+
+            def one(t):
+                a, tag, sd, i = t
+                x = next(R[(a, i, s2)] for s2 in DCL[h][1] if F.get((a, i, s2)) == (tag, sd))
+                r = PZ[i]
+                (first, fv) = r["cats"][0]
+                vm = re.search(r"^VALUES\s*=\s*(\[[^\]]*\])", x.get("code") or "", re.M)
+                try:
+                    extra = distinct_closure(x["code"], set(json.loads(vm.group(1))) if vm else set())
+                except Exception:
+                    extra = None
+                row = {"arm": a, "tag": tag, "file_seed": sd, "id": i, "n_extra": -1 if extra is None else len(extra)}
+                if not extra:
+                    return {**row, "count": x["count"], "exact": False}
+                solve = GP_SOLVE.replace("__FIRST__", json.dumps(fv)).replace("__FNAME__", json.dumps(first))
+                res = run_python(x["code"] + "\nclues = list(clues) + " + json.dumps(extra) + "\n" + solve, "", timeout=60, mem_bytes=4 << 30)
+                try:
+                    out = json.loads(res.stdout.strip().splitlines()[-1])
+                except (AttributeError, IndexError, ValueError):
+                    out = {"count": -1, "grid": {}}
+                return {**row, "count": out["count"], "exact": out["count"] == 1 and gp_score(out["grid"], r)[0]}
+
+            with ThreadPoolExecutor(int(os.environ.get("NW", "4"))) as ex, open(f"{RES}/{s}_dcl_{h}.jsonl", "w") as f:
+                for row in ex.map(one, todo):
+                    f.write(json.dumps(row) + "\n")
+            print(h, s, "closure rows", len(todo), flush=True)
+
+
+def dcleval_main():
+    for h, (sets, *_) in DCL.items():
+        for s in sets:
+            PZ, R, F, keys = dcl_rows(s, "gridpuzzle" if s == "gp" else s, h)
+            C = {(x["arm"], x["tag"], x["file_seed"], x["id"]): x for x in map(json.loads, open(f"{RES}/{s}_dcl_{h}.jsonl"))}
+
+            def lad(i, sd, cl):
+                tok = 0
+                for a in ["gtr", "gtrt"]:
+                    r = R[(a, i, sd)]; tok += r["tokens"]
+                    cnt, ex = r["count"], r["exact"]
+                    if cl and cnt >= 2:
+                        c = C[(a,) + F[(a, i, sd)] + (i,)]
+                        cnt, ex = c["count"], c["exact"]
+                    if cnt == 1:
+                        return ex, tok
+                r = R[("think", i, sd)]
+                return r["exact"], tok + r["tokens"]
+
+            ids = sorted({i for i, _ in keys})
+            out = []
+            for name, f in [("plain ladder", lambda k: lad(*k, False)), ("closure ladder", lambda k: lad(*k, True)),
+                            ("thinking", lambda k: (R[("think",) + k]["exact"], R[("think",) + k]["tokens"]))]:
+                L = [f(k) for k in keys]
+                out.append(f"{name} {100 * sum(e for e, _ in L) / len(L):.1f}% at {sum(t for _, t in L) / len(L) / 1000:.2f} ktok, U {sum(U(*x) for x in L) / len(L):.1f}")
+            X = [c for c in C.values() if c["count"] == 1]
+            print(f"{h} {s} ({len(keys)} puzzle-seeds, {len(ids)} puzzles): " + "; ".join(out))
+            print(f"   DCL-P3 count-2 programs settled by the closure: {sum(c['exact'] for c in X)}/{len(X)} right (of {len(C)} count-2 programs)")
+            rng = random.Random(0)
+            for name, b in [("closure - plain", False), ("closure - thinking", True)]:
+                d = []
+                for i in ids:
+                    ks = [k for k in keys if k[0] == i]
+                    base = [(R[("think",) + k]["exact"], R[("think",) + k]["tokens"]) if b else lad(*k, False) for k in ks]
+                    d.append(sum(U(*lad(*k, True)) - U(*y) for k, y in zip(ks, base)) / len(ks))
+                bs = sorted(sum(d[rng.randrange(len(d))] for _ in d) / len(d) for _ in range(10000))
+                print(f"   {name}: {sum(d) / len(d):+.1f} [{bs[250]:+.1f}, {bs[9749]:+.1f}]")
+
+
 if __name__ == "__main__":
-    {"run": run_main, "why": why_main, "close": close_main}.get(sys.argv[1], eval_main)()
+    {"run": run_main, "why": why_main, "close": close_main, "dcl": dcl_main, "dcleval": dcleval_main}.get(sys.argv[1], eval_main)()
