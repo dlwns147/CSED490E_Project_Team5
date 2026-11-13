@@ -153,7 +153,7 @@ certificates, the reference count and times).
 - Soundness control: `python side/kit_h409.py control <kit dir>`: 737 tampered certificates (a false goal; the false goal also assumed as a
   fact; one coefficient doubled). A sound judge counts none. If you add a new kind of proof step, extend `geo_check.py` and this kit together
   and the control must still count 0.
-- Kit checked (2026-11-13 15:0x UTC, jobs 1436350 and the control rerun): it reproduces the reference count exactly, **263**, losing the same
+- Kit checked (2026-11-13 14:4x UTC, jobs 1436350 and the control rerun): it reproduces the reference count exactly, **263**, losing the same
   3 proved rows to fresh figures (2016 IranGOA P1, 2017 CTST P14, 2020 AQGO P3); the control counts **0 of 737**. Two kit faults were found
   and fixed on the way: Newclid lists a different subset of each circle's facts from build to build (binding now reads merged circles), and
   a plant with a repeated point is degenerate, not false. `geo_check.py` alone rejects all 266 false goals; the kit's binding is still needed
