@@ -1,6 +1,6 @@
 # Pre-registration: a cross-family quick translation as the second step of the grid ladder (PEERT)
 
-Written 2026-11-13 05:3x UTC, before any gpt-oss-20b translation of seeds 7–9 exists.
+Written 2026-11-13 05:4x UTC, before any gpt-oss-20b translation of seeds 7–9 exists.
 
 **Why.** With the distinctness closure (PREREG_DCL) the course grid ladder is trained quick translation (`lf`, Qwen3-8B) → thinking
 translation (`gtrt`, 15–17k tokens) → thinking. Its cost is mostly the thinking translation, and both Qwen3-8B translators drop the same
