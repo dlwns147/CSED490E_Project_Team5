@@ -1,6 +1,6 @@
 # Progress 11-03 → 11-12 — *Facts First, Think on Failure*
 
-*Updated 2026-11-13 03:1x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
+*Updated 2026-11-13 05:0x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
 
 ## At a glance
 
@@ -8,21 +8,22 @@
 
 - **Wins:** on ZebraLogic, human-written grids and trip planning, more accurate than thinking alone and usually cheaper, on two model families (Qwen3, gpt-oss).
 - **Trained quick step:** using the same free check **as the reward to train the translator with RL** works as well as a gold-label reward, with no labels at all (GridPuzzle +8.4; also +8.8 on gpt-oss-20b); this trained translator is the method's step ①.
-- **Remaining weakness:** a misreading that still leaves exactly one solution passes the check. With the strongest thinking model (gpt-oss-120b) the grid gain disappears.
-- **Running:** proofs task 1 for the teammate (fresh-figure solver, registered run). Closed this round: the clue check adds nothing on top of the trained translator on GridPuzzle (PREREG_GCLF), and harder computation (Project Euler, OEIS, MathConstruct) gives no edge over thinking.
+- **New this round, the largest gain since RL:** every model drops the same implication, "either A or B" also means A ≠ B. When a translation leaves several solutions, the solver adds that implication and re-counts, with no extra tokens (§3). Held out on four ladders it adds +6 to +15 on GridPuzzle; with it, the grid method beats thinking for every model, including gpt-oss-120b, where it used to tie.
+- **Remaining weakness:** a misreading that still leaves exactly one solution passes the check.
+- **Running:** proofs task 1 for the teammate (fresh-figure solver, registered run). Closed this round: the clue check on top of the trained translator (PREREG_GCLF), keeping only the grids both translations allow (PREREG_CONJ), and harder computation (Project Euler, OEIS, MathConstruct).
 
 ![Results at a glance](fig/frontier.png)
 
-*Figure 1. Arrow = thinking only (○) → our method (●). Up is more accurate, left is cheaper. ZebraLogic gets both; grids and trips are more accurate but spend more tokens.*
+*Figure 1. Arrow = thinking only (○) → our method (●). Up is more accurate, left is cheaper. ZebraLogic and grids get both; trips are more accurate but spend more tokens.*
 
 | Data | Thinking only → ours | Verdict |
 |---|---|---|
 | ZebraLogic (750 unseen puzzles) | Qwen3-8B 83.8% → **95.6%**, gpt-oss-20b 76.6% → **99.2%** | Win (+14.0, +26.2) |
 | ZebraLogic, the closest paper's 100 puzzles | Qwen3-32B 90.0% → **96.7%** (paper: translation loses) | Win (+9.1) |
-| GridPuzzle (human-written grids) | Qwen3-8B 63.4% → **75.8%** (translator trained on the check) | Win |
-| Mitra-Baral (small grids) | Qwen3-8B 87.1% → 90.2% | Tie (interval includes 0) |
+| GridPuzzle (human-written grids) | Qwen3-8B 63.4% → **87.3%** (trained translator + distinctness closure) | Win (+25.1) |
+| Mitra-Baral (small grids) | Qwen3-8B 87.1% → **92.7%** (same) | Win (+6.1 [+0.5, +11.8]) |
 | Trip planning (NaturalPlan) | Qwen3-32B 47.0% → **68.3%** | Utility win; check precision below the registered bar |
-| GridPuzzle, gpt-oss-120b | 92.4% → 92.9% | Tie |
+| GridPuzzle, gpt-oss-120b | 92.3% → **96.9%**, 9.1k → 5.2k tokens (with the closure; 93.1% without) | Win (+6.5) |
 | AR-LSAT · BFCL agents | ≈ 0 · loses to a public checkpoint (EnvScaler-8B) | Tie · loss |
 
 ---
@@ -40,7 +41,7 @@
 | Quick translation | the model writes the clues as Python constraints, without thinking (a few hundred tokens) | `p['Bob'] == p['Ann'] + 1` for "Bob lives directly right of Ann" |
 | Solution count (the free check) | a solver tries every grid and counts those meeting all constraints; no label needed | 1 → accept; 0 (contradiction) or 2+ (clue lost) → next step |
 | Ladder | ① quick translation → ② translate while thinking → ③ think only; stop at the first step that passes | most puzzles stop at ① |
-| Utility | 100 × correct − 0.5 × output tokens (thousands); rewards accuracy, charges for tokens | GridPuzzle: ladder 75.8% at 14.0k → 68.8; thinking 63.4% at 11.5k → 57.7 |
+| Utility | 100 × correct − 0.5 × output tokens (thousands); rewards accuracy, charges for tokens | GridPuzzle: ladder 87.3% at 9.1k → 82.8; thinking 63.4% at 11.5k → 57.7 |
 | Precision, right : wrong | among answers that pass, the share that is right, and the ratio of right to wrong | GridPuzzle, Qwen3-8B quick answers: 86% right = 6.0 : 1 |
 | GRPO | RL that samples a group per question and pushes up samples scoring above the group mean (LoRA r 16, group 8) | Figure P(b) |
 | Gold / check reward | reward = right (needs labels) / passes the free check (no labels) | §2 |
@@ -63,8 +64,8 @@
 
 | Step | What it does | Accept if |
 |---|---|---|
-| ① Quick translation | clues → Python constraints, no thinking (a few hundred tokens) | exactly one solution |
-| ② Translate while thinking | thinking on, translate again | exactly one solution |
+| ① Quick translation | clues → Python constraints, no thinking (a few hundred tokens) | exactly one solution (if several: add the distinctness the either-or clues imply, re-count; §3) |
+| ② Translate while thinking | thinking on, translate again | the same |
 | ③ Think only | the usual approach | always |
 
 - **Why it wins:** thinking alone collapses on large grids (23% on 4×6) while the ladder keeps 58%. Thinking fails at *search*, not at *reading*.
@@ -101,13 +102,31 @@
 - **Related work:** label-free RL (TTRL majority vote, Co-rewarding, JURY-RL, …) rewards *agreement* among answers. Ours is a *structural* check built into the task: no vote or prover, and its false-pass rate can be measured before training.
 - **Further tests** (second family, 32B, majority-vote reward, other domains) belong to the paper report.
 
-## 3. Remaining weakness: misreadings that still leave one solution
+## 3. What the free check misses: one dropped convention, and misreadings that still leave one solution
 
-**→ The remaining errors are systematic misreadings of one phrase. Prompt rules fixed them on ZebraLogic only; for human-written grids we moved to RL (§2).**
+**→ Most of what RL leaves on grids is one convention every model drops, "either A or B" also means A ≠ B. The count already flags it (several solutions), so the solver adds it and re-counts for free: +6 to +15 on GridPuzzle across four models, held out.**
+
+![Distinctness closure](fig/u_dcl.png)
+
+*Figure 4. GridPuzzle accuracy and tokens for thinking (○), the ladder (◆) and the ladder with the closure (●). The top row is where the rule was found; the four rows below were never used to find it (PREREG_DCL).*
+
+> **Example — gp-6671, Qwen3-8B.** Clue 2: *"The camera with a resolution of 24 megapixels is either the $575 model or the Tela G5."*
+>
+> ```python
+> "p['resolutions:24 megapixels'] in (p['prices:575'], p['cameras:Tela G5'])"   # both translators: allows the $575 model to BE the Tela G5 → 2+ solutions
+> "p['cameras:Tela G5'] != p['prices:575']"                                      # added by the closure (the two named things are different) → 1 solution, right
+> ```
+
+- **How it was found:** where both translations leave several solutions (13.7% of GridPuzzle puzzle-seeds; thinking right on only 31% of them), keeping the grids both allow fails (PREREG_CONJ, +0.0): one set contains the other in 126 of 128 cases, so both translators drop the same thing. Checking the wrongly shared grids against a right translation shows it is one constraint, the distinctness a disjunctive or "neither … nor" clue implies.
+- **The rule:** in an `or`, `in`, exclusive-or or "neither" expression, any two named things the expression never equates are different. It is applied **only when the program has several solutions**: the puzzle's one-solution guarantee says the literal reading is too weak exactly then, and a one-solution program is never changed (applying it everywhere breaks 1–8% of right programs).
+- **Held out (PREREG_DCL):** GridPuzzle +12.3 / +14.9 / +9.6 / +6.3 (Qwen3-8B, Qwen3-32B, gpt-oss-20b, gpt-oss-120b), Mitra-Baral +0.2 to +3.3, all intervals above 0; 97.9% of the programs it settles are right. The gain did not shrink with model size as I predicted: Qwen3-32B leaves as many ambiguous translations as the 8B model.
+- **Limits and prior work:** the rule is a stated convention of this puzzle family, written from reading failures, then confirmed on held-out data. LOGICPO (2506.18383) notes models render the exclusive "either … or" as logical OR; none of the prior work uses the uniqueness guarantee to decide when to strengthen. Open: can the translator learn it without labels? The count reward gives no signal on puzzles where no sample reaches one solution.
+
+**Misreadings that still leave one solution** are the other remaining error. Prompt rules fixed them on ZebraLogic only; for human-written grids we moved to RL (§2).
 
 ![Remaining error](fig/u_reading.png)
 
-*Figure 4. Most wrong one-solution programs misread a single phrase ("N houses between") by one position.*
+*Figure 5. Most wrong one-solution programs misread a single phrase ("N houses between") by one position.*
 
 > **Example — ZebraLogic lgp-test-4x4-13.** Clue: *"There are two houses between the one who only drinks water and Peter."*
 >
@@ -123,15 +142,15 @@
 | Model writes a one-sentence rule, kept only if checked (RULE3) | **8% misread, equal to the hand-written fact (+0.9 [−0.9, +3.0])** | hand-written fact removed on ZebraLogic |
 | Same method on human-written grids (RULE3G, RULE4) | Mitra-Baral −0.9, −0.3 (fails the no-harm bar) | prompt direction closed → RL |
 
-- The same shape appears in all three domains: "either A or B" in grids, "N houses between" in ZebraLogic, day counting in trips. **A convention every reader shares is invisible to any free check.**
+- The same shape appears in all three domains: "either A or B" in grids, "N houses between" in ZebraLogic, day counting in trips. **A convention every reader shares is invisible to the checks that re-read the answer**; the solution count sees it only when the misreading weakens the clue (several solutions), which is the case the closure fixes.
 
 ## 4. Answers to objections
 
-**→ The result survives cheaper consensus, cut-short thinking and other token prices. Only the strongest thinking model ties.**
+**→ The result survives cheaper consensus, cut-short thinking, other token prices and, with the closure, the strongest thinking model.**
 
 ![Baseline comparison](fig/u_baselines.png)
 
-*Figure 5. Against the consensus cascade (MoT). Right: three samples "agree" on the same misreading.*
+*Figure 6. Against the consensus cascade (MoT). Right: three samples "agree" on the same misreading.*
 
 > **Example — gp-0687, Qwen3-8B.** All three quick translations misread "the four are all different" the same way.
 > - Consensus cascade: three identical answers → accept → **wrong**
@@ -141,8 +160,8 @@
 |---|---|---|
 | "Accept when several cheap samples agree" (MoT cascade) | same model, threshold most favourable to the cascade | ladder wins GridPuzzle +8.1 / +8.9, trips +9.9 to +16.5 |
 | "Just cut thinking short" (thinking budget 1k–8k) | Qwen3's official method | accuracy falls faster than tokens are saved; the best baseline is uncut thinking, and the ladder beats it too |
-| "It depends on the token price (0.5)" | recomputed for prices 0–2 | ZebraLogic wins at every price (more accurate and cheaper). Grids and trips are more accurate but costlier, so the utility win holds below 0.4–1.8 points per 1k tokens |
-| "Use a stronger thinking model" (gpt-oss-120b) | same grids | GridPuzzle **tie** (−0.0), Mitra-Baral +1.2. Step ② costs more than the strong model's thinking |
+| "It depends on the token price (0.5)" | recomputed for prices 0–2 | ZebraLogic wins at every price (more accurate and cheaper). With the closure, GridPuzzle is also cheaper than thinking for the trained 8B, 32B and both gpt-oss models; trips are more accurate but costlier, so their utility win holds below 0.4–1.8 points per 1k tokens |
+| "Use a stronger thinking model" (gpt-oss-120b) | same grids | without the closure GridPuzzle **tie** (−0.0), Mitra-Baral +1.2; **with it +6.5 [+4.3, +9.0] and +1.8**, at 5.2k tokens against thinking's 9.1k |
 | "Learn when to skip step ②" (ESC2) | rule fixed on seeds 1–3, tested on 4–6 | gpt-oss +2.7 / +2.1 but one cell −0.9 → fails. ~200 puzzles cannot guarantee rare rescues |
 
 ## 5. Second domain: trip planning
@@ -151,7 +170,7 @@
 
 ![Trip planning](fig/u_trips.png)
 
-*Figure 6. Trip planning (NaturalPlan). The ladder wins on utility for 3 of 4 models (Qwen3-32B +15.4).*
+*Figure 7. Trip planning (NaturalPlan). The ladder wins on utility for 3 of 4 models (Qwen3-32B +15.4).*
 
 > **Example — trip 1066 (8 cities, 21 days), a correct plan.** Rule: a travel day counts for both cities.
 > - Qwen3-32B as checker (same model as the translator): *"the plan sums to 22 days instead of 21"* ✗ — the same rule misread again
@@ -174,10 +193,12 @@
 |---|---|---|
 | **Proofs task 1** (registered run, teammate) | does the teammate's solver reach the reference (20 / 21 whole problems) and pass the soundness control (0 of 267 plants counted)? | if yes, task 1 is done; task 2 (HAGeo-409 coverage, 263 now vs HAGeo 287) next |
 
-<details><summary><b>Closed verdicts (16)</b></summary>
+<details><summary><b>Closed verdicts (18)</b></summary>
 
 | Experiment | Result | Decision |
 |---|---|---|
+| DCL | distinctness closure on ambiguous translations, held out: GridPuzzle +12.3 / +14.9 / +9.6 / +6.3 (four models), Mitra-Baral +0.2 to +3.3; 97.9% of settled programs right | joins the method (free step inside ① and ②) |
+| CONJ | keep the grids both paid translations allow: +0.0; 1 of 128 shares only gold, the sets are nested | out; led to DCL |
 | GCLF | clue check on the trained translator: GridPuzzle +0.2 [−0.4, +0.9], Mitra-Baral +1.9 [+0.2, +4.6]; catches 39% of its wrong grids vs 72% before RL | method = trained translator alone |
 | GRLLF | check-only reward +8.4 [+5.4, +11.5], vs gold +1.3, precision 93.0% | label-free RL translator is the method; holds on gpt-oss-20b (GRLO +8.8 [+5.0, +12.6]) |
 | GRL | gold reward +7.0 [+4.0, +10.2] / +3.8 [+0.3, +7.4] | trained translator as the quick step |
