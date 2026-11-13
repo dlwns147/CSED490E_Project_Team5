@@ -52,3 +52,26 @@ shrinks with model strength: H1 about +12 (base ladder, more count-2 programs th
   uniqueness guarantee, and lists the clue forms it covers.
 - P1 holds only on H1 → it is a fix for the 8B model's reading, reported as such, still in the 8B method.
 - P1 fails on H1 → it is not used; the discovery numbers are reported as exploratory only.
+
+## Result (2026-11-13 04:5x UTC; `python poc/gp_conj.py dcleval`, job 1422156): P1, P2 and P3 hold on every held-out ladder. The closure joins the method
+
+| Ladder (held out) | GridPuzzle plain → with closure | closure − plain | closure − thinking | Mitra-Baral closure − plain |
+|---|---|---|---|---|
+| H1 Qwen3-8B, seeds 1–3 | 72.4% at 18.34 ktok → **82.8% at 14.60** | **+12.3 [+8.7, +16.0]** | +15.7 [+10.8, +20.8] | +3.3 [+0.9, +6.3] |
+| H2 Qwen3-32B, seeds 1–6 | 82.1% at 9.84 → **94.7% at 5.33** | **+14.9 [+10.9, +19.1]** | +25.6 [+21.2, +30.0] | +3.0 [+0.8, +5.8] |
+| H3 gpt-oss-20b, seeds 1–6 | 84.7% at 19.04 → **91.0% at 12.56** | **+9.6 [+6.7, +12.7]** | +13.5 [+10.2, +17.0] | +2.0 [+0.6, +3.7] |
+| H4 gpt-oss-120b, seeds 1–6 | 93.1% at 10.21 → **96.9% at 5.19** | **+6.3 [+4.0, +9.0]** | +6.5 [+4.3, +9.0] | +0.2 [+0.1, +0.4] |
+
+- **DCL-P1 holds** (H1 and all of H2–H4 above 0). **DCL-P2 holds** (every Mitra-Baral lower bound above 0, not only above −2).
+  **DCL-P3 holds:** count-2 programs the closure settles are right 996 of 1,017 times (97.9%), pooled over H1–H4 and both sets.
+- **Predictions vs outcome:** H1 +12.3 (predicted +12), H2 +14.9 (predicted +5), H3 +9.6 (+6), H4 +6.3 (+2). The gain does not shrink with model
+  strength as I derived: Qwen3-32B leaves as many several-solution translations as the 8B model (523 of 2,580 programs), all models drop the
+  same implication, and settling a step also saves the next step's tokens, which are large for every model.
+- **Thinking (P4):** the closure ladder beats thinking on GridPuzzle for every model, by +6.5 (gpt-oss-120b) to +25.6 (Qwen3-32B); on
+  Mitra-Baral by +1.6 to +5.1 (intervals include 0 for Qwen3-8B and gpt-oss-20b).
+- **Scoring note:** rows written before grids were kept are scored from the stored scoring-v2 tables (`<set>_<tag>_score2.json`), as every earlier
+  verdict on these runs; the first run of this evaluation missed that and scored those rows wrong (plain ladders and thinking at 0.0% for Qwen3-8B seeds 1–3); the loader was fixed and the decision reads the fixed numbers. The grid a
+  closed program gives is scored with `gp_score` (the closed program names values as the puzzle lists them).
+- **Decision as registered:** the closure joins the course method as a free step inside each translation step. With the trained translator
+  (discovery data, seeds 4–9): GridPuzzle 87.3% at 9.07 ktok (utility 82.8) against thinking 63.4% at 11.53 (57.6); Mitra-Baral 92.7% at 5.52.
+- H5 (dev, reported only): pending a rescoring of the dev rows (job 1423108).

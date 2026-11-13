@@ -299,10 +299,15 @@ def dcl_rows(s, src, h):
     _, seeds, *steps = DCL[h]
     R, F = {}, {}
     for arm, (tag, fix) in zip(["gtr", "gtrt", "think"], steps):
+        p2 = os.path.join(RES, f"{s}_{tag}_score2.json")   # rows written before grids were kept: scoring v2 from poc/gp_rescore.py
+        S2 = json.load(open(p2)) if os.path.exists(p2) else {}
         for sd in seeds:
             f = os.path.join(RES, f"{s}_{tag}_{arm}_s{fix or sd}.jsonl")
             for x in map(json.loads, open(f)) if os.path.exists(f) else []:
-                R[(arm, x["id"], sd)] = {**x, "exact": score(x.get("grid"), PZ[x["id"]])[0]}
+                k2 = f"{arm}|{x['id']}|{fix or sd}"
+                if "grid" not in x and k2 not in S2:
+                    continue
+                R[(arm, x["id"], sd)] = {**x, "exact": S2[k2][0] if "grid" not in x else score(x.get("grid"), PZ[x["id"]])[0]}
                 F[(arm, x["id"], sd)] = (tag, fix or sd)
     keys = sorted({(i, sd) for (_, i, sd) in R if all((a, i, sd) in R for a in ["gtr", "gtrt", "think"])})
     return PZ, R, F, keys
@@ -348,6 +353,9 @@ def dcleval_main():
     for h, (sets, *_) in DCL.items():
         for s in sets:
             PZ, R, F, keys = dcl_rows(s, "gridpuzzle" if s == "gp" else s, h)
+            if not keys:
+                print(h, s, "no scored puzzle-seeds (rows without grids need poc/gp_rescore.py)")
+                continue
             C = {(x["arm"], x["tag"], x["file_seed"], x["id"]): x for x in map(json.loads, open(f"{RES}/{s}_dcl_{h}.jsonl"))}
 
             def lad(i, sd, cl):

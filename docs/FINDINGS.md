@@ -7006,3 +7006,31 @@ Job 1382299 (one GPU, queued).
 - **Remaining errors** (exploratory): half of the wrong one-solution translations add a constraint no clue states (28/56, 14/24; right ones 18/746, 8/399). Rejecting them at the gate loses (−0.9, −1.0): an extra expression is as often a correct deduction, and the later steps fail on these puzzles. A training reward that also requires one expression per clue is the place to fix it (suggested for the RL study; not run here).
 - **Where the ladder still loses** (GridPuzzle, seeds 4–9): accepted wrong 5.7%; escalated to thinking and wrong 18.7%, mostly after both translations leave several solutions (9.5% with both at count 2), concentrated on 4×5 and 4×6 grids.
 - **Harder computation (idea 44) closed:** on 120 Project Euler problems the checked ladder ties thinking-then-program at every thinking budget (Qwen3-8B +2/+1/0/0 problems at 2k–14k); Qwen3.5-9B's quick programs are right more often (21 vs 8) but cost as much as its thinking. Details in IDEAS_COMPUTATION row 44.
+
+## 2026-11-13 04:5x UTC — PREREG_CONJ fails, its mechanism leads to PREREG_DCL: the distinctness a disjunctive clue implies, added only when a translation leaves several solutions, gains +6 to +15 on GridPuzzle for four models (held out)
+
+- **CONJ (registered, no model call):** where both the trained quick translation and the thinking translation leave several solutions
+  (177 of 1,290 GridPuzzle puzzle-seeds, thinking right on 31% of them), keep the grids both allow. Gold is in both sets on 128, but only 1
+  shares exactly one grid: one set contains the other in 126 of 128. +0.0, fails. The puzzles are not ambiguous (47 of 52 have a right
+  one-solution translation in some stored run).
+- **Mechanism (exploratory):** tested against a right translation of the same puzzle, 329 of 372 wrongly shared grids break exactly one
+  expression, and read by hand they are one convention: entities a disjunctive or negative clue names are different entities ("the 24 megapixel
+  camera is either the $575 model or the Tela G5" also says the $575 model is not the Tela G5; "of A and B, one is C and the other D" says
+  A ≠ B, C ≠ D). Models write `x in (A, B)` and lose it. Idea 35 had found the gap in base translations; RL on the count does not remove it,
+  because a puzzle where no sample reaches one solution gives the count reward no gradient.
+- **Rule (`distinct_closure` in `poc/gp_conj.py`):** for an `or`, `in`, exclusive-or or `and`-of-`!=` expression, add `A != B` for every pair of
+  named entities no comparison in it equates; apply only to programs with two or more solutions (the uniqueness guarantee says the literal
+  reading is too weak exactly then); a count-1 program is never changed. No tokens.
+- **Discovery data (Qwen3-8B, trained ladder, seeds 4–9):** GridPuzzle 75.8% → 87.3% at 14.00 → 9.07 ktok, +13.9 [+10.0, +18.1]; Mitra-Baral
+  +3.1 [+0.8, +6.1]. Applying it to every program breaks 0.7–7.8% of right one-solution programs, so the rule is limited to ambiguous ones.
+- **Held out (PREREG_DCL, four stored ladders the rule never saw):** GridPuzzle closure − plain: Qwen3-8B s1–3 +12.3 [+8.7, +16.0], Qwen3-32B
+  +14.9 [+10.9, +19.1], gpt-oss-20b +9.6 [+6.7, +12.7], gpt-oss-120b +6.3 [+4.0, +9.0]; Mitra-Baral +0.2 to +3.3, every lower bound above 0.
+  Settled programs right 996 of 1,017 (97.9%). The ladder beats thinking on GridPuzzle for every model (+6.5 to +25.6); gpt-oss-120b reaches
+  96.9% at 5.2 ktok (thinking 92.3% at 9.1).
+- **Why the gain did not shrink with model strength (predicted it would):** Qwen3-32B leaves as many several-solution translations as the 8B
+  model; all four models drop the same implication; settling a step also saves the next step's tokens.
+- **Related:** LOGICPO (2506.18383) notes models render the pragmatic exclusive "either … or" as logical OR; 2601.02902 maps "either A or B" to
+  inclusive OR unless "but not both" is stated; CLOVER (2410.08047) compares candidate formulas with a SAT solver. None uses the problem's
+  uniqueness guarantee to decide when to strengthen.
+- **Limits:** a convention of the Puzzle Baron family (GridPuzzle, Mitra-Baral), stated by hand from reading failures and confirmed held out;
+  whether a translator can learn it without labels (the count reward gives no gradient where no sample reaches one solution) is open.
