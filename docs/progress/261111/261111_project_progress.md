@@ -1,6 +1,6 @@
 # Progress 11-03 → 11-12 — *Facts First, Think on Failure*
 
-*Updated 2026-11-13 16:2x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
+*Updated 2026-11-13 19:5x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
 
 ## At a glance
 
@@ -168,6 +168,19 @@
 | "Use a stronger thinking model" (gpt-oss-120b) | same grids | without the closure GridPuzzle **tie** (−0.0), Mitra-Baral +1.2; **with it +6.5 [+4.3, +9.0] and +1.8**, at 5.2k tokens against thinking's 9.1k |
 | "Learn when to skip step ②" (ESC2) | rule fixed on seeds 1–3, tested on 4–6 | gpt-oss +2.7 / +2.1 but one cell −0.9 → fails. ~200 puzzles cannot guarantee rare rescues |
 
+**Prior methods, re-run on our models and data (PREREG_RW).** Matched rows use the same model, puzzles and seeds; published numbers use other models or subsets, so they are cited, not compared.
+
+| Method | Data | Matched result | Published (other models) |
+|---|---|---|---|
+| Logic-LM (translate, refine on errors, answer the first solution; Pan et al. 2023) | GridPuzzle · Mitra-Baral, Qwen3-8B, seeds 7–9 | 54.3% · 80.1% (quick translation); 61.9% · 87.6% (thinking translation) against **ours 92.9% · 95.7%** | GridPuzzle paper: GPT-4 5.1% (chain of thought) |
+| LINC-style majority of 3 translations | same | 51.2% · 79.8% | — |
+| Amonkar et al. formalizer setting, ZebraLogic (their 100) | Qwen3-32B | thinking 90.0% → ours 96.7% (they report translation losing) | — |
+| Mixture-of-Thought consensus cascade | GridPuzzle, trips | ladder +8.1 / +8.9, trips +9.9 to +16.5 | — |
+| Budget-forced thinking (Qwen3 thinking budget) | all sets | the best baseline is uncut thinking; the ladder beats it | — |
+| LLM-Modulo (critics from each trip's structured constraints, up to 10 replans; Gundawar et al. 2024) | trips, Qwen3-32B and gpt-oss-20b, seeds 4–6 | **running** | GPT-4o 40.0%, Claude-3.5-Sonnet 47.0%; LLMPC GPT-4o 44.6%; Gemini 1.5 Pro 34.8% (NaturalPlan paper) |
+
+Reading: answering the solver's first solution without counting stays below thinking; the count and the ladder are what make translation pay. LLM-Modulo uses a hand-written domain verifier, a stronger check than our generic count; that row decides whether the generic check matches it on trips.
+
 ## 5. Second domain: trip planning
 
 **→ Utility wins, but a model checking its own plans is inaccurate. A different model as checker fixes it, and the checker can be chosen without labels.**
@@ -199,6 +212,8 @@
 | **Proofs task 1** (registered run, teammate) | does the teammate's solver reach the reference (20 / 21 whole problems) and pass the soundness control (0 of 267 plants counted)? | if yes, task 1 is done; task 2 (HAGeo-409 coverage, 263 now vs HAGeo 287) next |
 | **Proofs task 2** (teammate, kit ready) | portfolio + missing constructions, then HAGeo's rule from the paper, then an algebraic fallback with component choice: more than 287 certified rows at matched CPU? | the course report's proof result |
 | **Same engine, 16× CPU** (SIDE-GT-H409-CPU, running) | how much of the gap to 287 is compute? | sets the curve every task-2 lever is scored against |
+| **LLM-Modulo on trips** (PREREG_RW B, running) | does our generic count match a hand-written domain verifier? | the report's trip comparison with prior work |
+| **Solver-owned search on trips** (PREREG_NPSAT, queued) | the fallback fails in the model's plan generator; does the CP-SAT interface (the solver searches city orders and days) settle those trips? | if a ladder gains with the interval above 0, fresh seeds 17–19; else the trip residual is stated as the model's reading of a plan's shape |
 
 <details><summary><b>Closed verdicts (22)</b></summary>
 

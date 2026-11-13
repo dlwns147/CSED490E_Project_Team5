@@ -32,6 +32,8 @@ what make translation pay.
 day, shared flight day, stay lengths, direct flights, dated events); the list goes back and the model replans, up to 10 rounds (their setting).
 This is a stronger check than ours: hand-written for the domain from the task's structure, where our check is the generic solution count.
 Qwen3-32B-AWQ (one GPU of the second server) and gpt-oss-20b (reasoning effort high, Slurm 2 × RTX 3090), seeds 4, 5, 6.
+*(2026-11-13 19:5x UTC, before any gpt-oss-20b row: the Slurm job had not started after 2 h, so gpt-oss-20b runs on the second server's other GPU
+instead; same model, effort, prompts and seeds.)*
 
 **Prediction.** LLM-Modulo raises thinking a lot (published: GPT-4o 3.4% → 40.0%), at several thinking rounds' tokens. Qwen3-32B: about 70% at
 about 25k tokens against our 72.0% at 18.2k, so ours − LLM-Modulo about +4 utility, interval including 0. gpt-oss-20b: about 85% at 25k against
