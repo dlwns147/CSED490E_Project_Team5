@@ -295,6 +295,87 @@ def dclc_main():
     print(f"DCLC-P1 (GridPuzzle lower bound > 0): {out['gp'][1] > 0}; DCLC-P2 (Mitra-Baral lower bound > -1.0): {out['lgp'][1] > -1.0}")
 
 
+def gpf_main():
+    """PREREG_GPF: the composed method on seeds 14-16. Ladder: lf (q8bgrllf0/1 gtr) -> gpt-oss-120b gtr -> q8b gtrt -> q8b think, the closure on
+    every step with two or more solutions; part 2 (DCLC) also flags a one-solution lf / peer program whose closure leaves none. Closures are
+    computed once (sandboxed) and kept in results/<s>_gpf_close.jsonl. Baseline: q8b think alone."""
+    from concurrent.futures import ThreadPoolExecutor
+    from grid_score import score
+    from sandbox import run_python
+    from run_zebra import GP_SOLVE, gp_score
+    sds = [14, 15, 16]
+    data = os.environ.get("POC_DATA", os.path.join(RES, "..", "..", "nlp_data"))
+    for s, src in [("gp", "gridpuzzle"), ("lgp", "lgp")]:
+        PZ = {r["id"]: r for r in map(json.loads, open(os.path.join(data, src, "grid.jsonl")))}
+        R = {}
+        for a, tags, arm in [("lf", ["q8bgrllf0", "q8bgrllf1"], "gtr"), ("peer", ["oss120"], "gtr"), ("gtrt", ["q8b"], "gtrt"), ("think", ["q8b"], "think")]:
+            for tag in tags:
+                for sd in sds:
+                    f = os.path.join(RES, f"{s}_{tag}_{arm}_s{sd}.jsonl")
+                    for x in map(json.loads, open(f)) if os.path.exists(f) else []:
+                        R[(a, x["id"], sd)] = {**x, "exact": score(x.get("grid"), PZ[x["id"]])[0]}
+        keys = sorted({(i, sd) for (_, i, sd) in R if all((a, i, sd) in R for a in ["lf", "peer", "gtrt", "think"])})
+        cf = f"{RES}/{s}_gpf_close.jsonl"
+        C = {(x["arm"], x["id"], x["seed"]): x for x in map(json.loads, open(cf))} if os.path.exists(cf) else {}
+        todo = [(a, i, sd) for i, sd in keys for a in ["lf", "peer", "gtrt"] if (a, i, sd) not in C
+                and (R[(a, i, sd)]["count"] >= 2 or (a != "gtrt" and R[(a, i, sd)]["count"] == 1))]
+
+        def one(k):
+            a, i, sd = k
+            x, r = R[k], PZ[i]
+            (first, fv) = r["cats"][0]
+            row = {"arm": a, "id": i, "seed": sd, "count0": x["count"]}
+            vm = re.search(r"^VALUES\s*=\s*(\[[^\]]*\])", x.get("code") or "", re.M)
+            try:
+                extra = distinct_closure(x["code"], set(json.loads(vm.group(1))) if vm else set())
+            except Exception:
+                extra = None
+            if not extra:
+                return {**row, "count": x["count"], "exact": x["exact"]}
+            solve = GP_SOLVE.replace("__FIRST__", json.dumps(fv)).replace("__FNAME__", json.dumps(first))
+            res = run_python(x["code"] + "\nclues = list(clues) + " + json.dumps(extra) + "\n" + solve, "", timeout=60, mem_bytes=4 << 30)
+            try:
+                out = json.loads(res.stdout.strip().splitlines()[-1])
+            except (AttributeError, IndexError, ValueError):
+                out = {"count": -1, "grid": {}}
+            return {**row, "count": out["count"], "exact": out["count"] == 1 and gp_score(out["grid"], r)[0]}
+        with ThreadPoolExecutor(int(os.environ.get("NW", "4"))) as ex, open(cf, "a") as f:
+            for row in ex.map(one, todo):
+                C[(row["arm"], row["id"], row["seed"])] = row
+                f.write(json.dumps(row) + "\n")
+
+        def lad(i, sd, chk):
+            tok = 0
+            for a in ["lf", "peer", "gtrt"]:
+                r, c = R[(a, i, sd)], C.get((a, i, sd))
+                tok += r["tokens"]
+                cnt, ex = r["count"], r["exact"]
+                if cnt >= 2 and c:
+                    cnt, ex = c["count"], c["exact"]
+                elif chk and cnt == 1 and a != "gtrt" and c and c["count"] == 0:
+                    cnt = 0
+                if cnt == 1:
+                    return ex, tok
+            r = R[("think", i, sd)]
+            return r["exact"], tok + r["tokens"]
+        ids = sorted({i for i, _ in keys})
+        arms = {"method": lambda k: lad(*k, False), "method + check": lambda k: lad(*k, True),
+                "thinking": lambda k: (R[("think",) + k]["exact"], R[("think",) + k]["tokens"])}
+        for name, f in arms.items():
+            L = [f(k) for k in keys]
+            print(f"{s} {name} ({len(keys)} puzzle-seeds, {len(ids)} puzzles): {100 * sum(e for e, _ in L) / len(L):.1f}% at "
+                  f"{sum(t for _, t in L) / len(L) / 1000:.2f} ktok, U {sum(U(*x) for x in L) / len(L):.1f}")
+        rng = random.Random(0)
+        for name, a, b in [("GPF-P1 method - thinking", "method", "thinking"), ("method + check - thinking", "method + check", "thinking"),
+                           ("DCLC-P4 check - no check", "method + check", "method")]:
+            d = []
+            for i in ids:
+                ks = [k for k in keys if k[0] == i]
+                d.append(sum(U(*arms[a](k)) - U(*arms[b](k)) for k in ks) / len(ks))
+            bs = sorted(sum(d[rng.randrange(len(d))] for _ in d) / len(d) for _ in range(10000))
+            print(f"   {name}: {sum(d) / len(d):+.1f} [{bs[250]:+.1f}, {bs[9749]:+.1f}]")
+
+
 def close_main():
     """Exploratory (PREREG_CONJ, mechanism): every lf and gtrt program of seeds 4-9, re-counted with distinct_closure's expressions added
     (sandboxed, GP_SOLVE unchanged). Writes results/{gp,lgp}_conj_close.jsonl: arm, id, seed, count and exactness before and after."""
@@ -538,4 +619,4 @@ def peertrip_main():
 
 
 if __name__ == "__main__":
-    {"run": run_main, "why": why_main, "close": close_main, "dcl": dcl_main, "dcleval": dcleval_main, "peert": peert_main, "peertrip": peertrip_main, "dcl1": dcl_main, "dclc": dclc_main}.get(sys.argv[1], eval_main)()
+    {"run": run_main, "why": why_main, "close": close_main, "dcl": dcl_main, "dcleval": dcleval_main, "peert": peert_main, "peertrip": peertrip_main, "dcl1": dcl_main, "dclc": dclc_main, "gpf": gpf_main}.get(sys.argv[1], eval_main)()

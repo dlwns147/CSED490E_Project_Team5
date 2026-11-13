@@ -61,3 +61,19 @@ wrong ones, so the gain is smaller than on the trained translator: about +0.5 on
 
 **Decision.** P1 and P2 hold → the check joins steps ① and ② (a free step, no tokens). P1 fails → it stays out, and the discovery numbers
 are reported as exploratory.
+
+## Part 2 result (2026-11-13 10:4x UTC; `python poc/gp_conj.py dcl1 H1,H2,H3,H4` then `dclc`, job 1430871): DCLC-P1 and P2 hold, P3 misses by one point. The check joins steps ① and ②
+
+| Held-out ladder | GridPuzzle flags (wrong) | GridPuzzle check − no check | Mitra-Baral flags (wrong) | Mitra-Baral check − no check |
+|---|---|---|---|---|
+| H1 Qwen3-8B | 14 (8) | +0.58 [−0.11, +1.50] | 6 (4) | +0.90 [−0.24, +3.03] |
+| H2 Qwen3-32B | 16 (8) | +0.56 [+0.20, +0.97] | 7 (0) | −0.07 [−0.16, −0.00] |
+| H3 gpt-oss-20b | 28 (17) | +0.48 [+0.01, +1.05] | 6 (2) | +0.08 [−0.19, +0.47] |
+| H4 gpt-oss-120b | 17 (8) | +0.19 [−0.01, +0.44] | 4 (0) | −0.01 [−0.03, +0.00] |
+| **Pooled** | 75 (41) | **+0.45 [+0.20, +0.75]** | 23 (6) | **+0.22 [−0.10, +0.80]** |
+
+- **DCLC-P1 holds** (GridPuzzle pooled lower bound +0.20; predicted about +0.5). **DCLC-P2 holds** (Mitra-Baral lower bound −0.10 > −1.0).
+- **DCLC-P3 misses:** 47 of 98 flagged one-solution programs are wrong (48%, bar 50%). On Mitra-Baral the strong models' flags are right
+  programs (H2 7 of 7, H4 4 of 4), which cost only the next step's tokens.
+- **Size:** a small free gain, far below DCL's (+6 to +15); it is the convention's second use, not a new lever. As registered it joins
+  steps ① and ②; the method's numbers on seeds 14–16 are read with and without it (part 1).
