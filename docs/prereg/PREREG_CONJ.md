@@ -1,6 +1,6 @@
 # Pre-registration: conjoin the two translations the ladder already paid for (CONJ)
 
-Written 2026-11-13 04:4x UTC. No solution set has been listed and no shared grid computed. The bucket sizes and thinking's accuracy in it
+Written 2026-11-13 04:2x UTC. No solution set has been listed and no shared grid computed. The bucket sizes and thinking's accuracy in it
 (below) were counted from the stored rows before writing this.
 
 **Why.** The course method is the ladder trained quick translation (`lf`) → thinking translation (`gtrt`) → thinking (PREREG_GCLF). Its largest
