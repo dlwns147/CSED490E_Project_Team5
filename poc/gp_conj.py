@@ -247,6 +247,54 @@ def distinct_closure(code, values):
     return sorted(set(out))
 
 
+def dclc_main():
+    """PREREG_GPF part 2 (DCLC): on the held-out ladders H1-H4 (quick gtr -> gtrt -> think, closure on any step with two or more solutions), a
+    one-solution quick program whose closure leaves no solution is treated as a failed step (results/<s>_dcl1_<H>.jsonl from `dcl1`)."""
+    out = {}
+    for s in ["gp", "lgp"]:
+        per, flags = {}, []
+        for h in ["H1", "H2", "H3", "H4"]:
+            PZ, R, F, keys = dcl_rows(s, "gridpuzzle" if s == "gp" else s, h)
+            C = {(x["arm"], x["tag"], x["file_seed"], x["id"]): x for x in map(json.loads, open(f"{RES}/{s}_dcl_{h}.jsonl"))}
+            C1 = {(x["arm"], x["tag"], x["file_seed"], x["id"]): x for x in map(json.loads, open(f"{RES}/{s}_dcl1_{h}.jsonl"))}
+
+            def lad(i, sd, chk):
+                tok = 0
+                for a in ["gtr", "gtrt"]:
+                    r = R[(a, i, sd)]; tok += r["tokens"]
+                    cnt, ex = r["count"], r["exact"]
+                    if cnt >= 2:
+                        c = C[(a,) + F[(a, i, sd)] + (i,)]
+                        cnt, ex = c["count"], c["exact"]
+                    elif chk and cnt == 1 and a == "gtr" and C1.get((a,) + F[(a, i, sd)] + (i,), {}).get("count") == 0:
+                        cnt = 0
+                    if cnt == 1:
+                        return ex, tok
+                r = R[("think", i, sd)]
+                return r["exact"], tok + r["tokens"]
+            L0, L1 = [lad(*k, False) for k in keys], [lad(*k, True) for k in keys]
+            fl = [R[("gtr",) + k]["exact"] for k in keys if R[("gtr",) + k]["count"] == 1 and C1.get(("gtr",) + F[("gtr",) + k] + (k[0],), {}).get("count") == 0]
+            flags += fl
+            d = {}
+            for k, a, b in zip(keys, L0, L1):
+                d.setdefault(k[0], []).append(U(*b) - U(*a))
+            for i, v in d.items():
+                per.setdefault(i, []).append(sum(v) / len(v))
+            rng = random.Random(0)
+            dv = [sum(v) / len(v) for v in d.values()]
+            bs = sorted(sum(dv[rng.randrange(len(dv))] for _ in dv) / len(dv) for _ in range(10000))
+            print(f"{h} {s}: no check {100 * sum(e for e, _ in L0) / len(L0):.1f}% at {sum(t for _, t in L0) / len(L0) / 1000:.2f}k, "
+                  f"check {100 * sum(e for e, _ in L1) / len(L1):.1f}% at {sum(t for _, t in L1) / len(L1) / 1000:.2f}k; flags {len(fl)} "
+                  f"({len(fl) - sum(fl)} wrong); check - no check {sum(dv) / len(dv):+.2f} [{bs[250]:+.2f}, {bs[9749]:+.2f}]")
+        dv = [sum(v) / len(v) for v in per.values()]   # each puzzle's mean over the model-seeds that ran it
+        rng = random.Random(0)
+        bs = sorted(sum(dv[rng.randrange(len(dv))] for _ in dv) / len(dv) for _ in range(10000))
+        out[s] = (sum(dv) / len(dv), bs[250], bs[9749])
+        print(f"   {s} pooled H1-H4 ({len(dv)} puzzles): check - no check {out[s][0]:+.2f} [{out[s][1]:+.2f}, {out[s][2]:+.2f}]; "
+              f"flags {len(flags)}, wrong {len(flags) - sum(flags)}")
+    print(f"DCLC-P1 (GridPuzzle lower bound > 0): {out['gp'][1] > 0}; DCLC-P2 (Mitra-Baral lower bound > -1.0): {out['lgp'][1] > -1.0}")
+
+
 def close_main():
     """Exploratory (PREREG_CONJ, mechanism): every lf and gtrt program of seeds 4-9, re-counted with distinct_closure's expressions added
     (sandboxed, GP_SOLVE unchanged). Writes results/{gp,lgp}_conj_close.jsonl: arm, id, seed, count and exactness before and after."""
@@ -325,7 +373,9 @@ def dcl_main():
             continue
         for s in sets:
             PZ, R, F, keys = dcl_rows(s, "gridpuzzle" if s == "gp" else s, h)
-            todo = sorted({(a,) + F[(a,) + k] + (k[0],) for k in keys for a in ["gtr", "gtrt"] if R[(a,) + k]["count"] >= 2})
+            c1 = sys.argv[1] == "dcl1"   # PREREG_GPF part 2 (DCLC): the one-solution quick programs instead
+            todo = sorted({(a,) + F[(a,) + k] + (k[0],) for k in keys for a in ["gtr", "gtrt"]
+                           if (a == "gtr" and R[(a,) + k]["count"] == 1 if c1 else R[(a,) + k]["count"] >= 2)})
 
             def one(t):
                 a, tag, sd, i = t
@@ -348,7 +398,7 @@ def dcl_main():
                     out = {"count": -1, "grid": {}}
                 return {**row, "count": out["count"], "exact": out["count"] == 1 and gp_score(out["grid"], r)[0]}
 
-            with ThreadPoolExecutor(int(os.environ.get("NW", "4"))) as ex, open(f"{RES}/{s}_dcl_{h}.jsonl", "w") as f:
+            with ThreadPoolExecutor(int(os.environ.get("NW", "4"))) as ex, open(f"{RES}/{s}_dcl{'1' if c1 else ''}_{h}.jsonl", "w") as f:
                 for row in ex.map(one, todo):
                     f.write(json.dumps(row) + "\n")
             print(h, s, "closure rows", len(todo), flush=True)
@@ -488,4 +538,4 @@ def peertrip_main():
 
 
 if __name__ == "__main__":
-    {"run": run_main, "why": why_main, "close": close_main, "dcl": dcl_main, "dcleval": dcleval_main, "peert": peert_main, "peertrip": peertrip_main}.get(sys.argv[1], eval_main)()
+    {"run": run_main, "why": why_main, "close": close_main, "dcl": dcl_main, "dcleval": dcleval_main, "peert": peert_main, "peertrip": peertrip_main, "dcl1": dcl_main, "dclc": dclc_main}.get(sys.argv[1], eval_main)()

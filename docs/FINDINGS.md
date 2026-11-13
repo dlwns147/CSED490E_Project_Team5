@@ -7088,3 +7088,25 @@ Job 1382299 (one GPU, queued).
   gpt-oss-120b; on 3090-class hardware alone gpt-oss-20b (+4.7 / +4.0).
 - Why: each grid the peer accepts replaces a 15–17k-token thinking translation, so the step's value grows with the precision and coverage of
   the peer's one-solution grids (120b accepts 125 of 645 puzzle-seeds the trained translator left open, 20b 95).
+
+## 2026-11-13 10:3x UTC — Trips: the cross-family peer step holds on fresh seeds for two main models (PEERT addenda B, B2). Grids: where the method still loses, and why (GPF registered)
+
+- **Trips, seeds 4–6 (registered):** Qwen3-32B ladder 69.0% at 19.1k → with gpt-oss-120b's quick translation as step ② **72.0% at 18.2k**,
+  +3.4 [+0.7, +6.2] (predicted +5); against thinking only (47.0%) +19.5 [+13.4, +25.7]. gpt-oss-20b ladder 81.3% → 82.3% at 26.6k (from 31.1k),
+  +3.3 [+1.1, +5.6] (predicted +3); against gpt-oss-20b thinking (73.0% at 14.2k) +3.1 [−2.2, +8.6], a tie at this token price. The peer
+  step is part of the method on trips with a precise peer (gpt-oss-120b); with gpt-oss-20b as the peer it lost on seeds 1–3 (−5.2).
+- **Where the grid method still loses (seeds 7–9, analysis of stored runs):** GridPuzzle 46 wrong of 645 puzzle-seeds: 23 are the trained
+  quick translation accepting one wrong grid, 19 are thinking only on the 31 puzzle-seeds that reach it (61% wrong at 48k tokens each), 4 the
+  peer. Mitra-Baral: 11 of 12 are the quick translation's one wrong grid. The wrong one-solution grids cluster: over seeds 4–9, 23 puzzles,
+  13 of them wrong on two or more seeds, 10 with the identical wrong grid each time.
+- **Why (gold grid tested against each wrong program, `results/gp_goldbreak.json`, 34 puzzles):** the commonest shape is an inclusive
+  "either A or B" (A and B the same entity in the wrong grid) plus one constraint no clue states ("Max Fusion != 2009", "$11 million != Nan
+  Norman", "port == $28.99", "Indio != Greg", "wedding == 125", "Jorge != 1985"), which removes the other solutions so the count says one. 6 of
+  the 8 puzzles where thinking returns the same wrong grid have this shape. Wrong one-solution programs have more clue expressions than the
+  puzzle has numbered clues in 50% of cases (trained translator) and 33% (base), right ones in 2.4% and 5.8%. Two puzzles (gp-0718, gp-9390,
+  12 puzzle-seeds) are a misspelled name ("Vuria Mari", "Raluc") in an otherwise right program.
+- **Consequence, registered before any held-out number (PREREG_GPF part 2, DCLC):** the closure applied to a one-solution quick program
+  leaves no solution exactly when its grid breaks the convention, so that is a free check. Discovery (seeds 4–9): 27 flags on GridPuzzle (22
+  wrong), 14 on Mitra-Baral (12 wrong), utility +0.7 [+0.2, +1.4] and +1.6 [+0.2, +3.5]. Held out on H1–H4 (CPU job running).
+- **Fresh-seed test of the composed method (PREREG_GPF part 1):** every step was chosen on seeds 4–9, so the composed method runs once on
+  seeds 14–16 (never run for any model) against thinking only; predicted +33.9 (GridPuzzle) and +10.8 (Mitra-Baral) from seeds 7–9.
