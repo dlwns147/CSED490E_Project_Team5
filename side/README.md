@@ -66,6 +66,24 @@ the verdicts, and the checker's results, 73 of 78 and 78 of 82 accepted as regis
 **Task 2, only after task 1:** HAGeo-409 coverage (263 of 409 now; HAGeo reports 287, random points 218), a public benchmark with
 published numbers, so any gain compares directly.
 
+**Plan (2026-11-13): the teammate codes both tasks (Plan A).** The teammate is a computer scientist in computational algorithms who codes;
+both tasks are algorithm problems with no model in them, so they are the teammate's to own, with us running anything that needs a model and
+reading results together.
+- **Task 1 is the warm-up (about a week).** A reference walk solver already exists outside the repository (it starts from the proof's figure
+  and moves along the solution set): 20 and 21 whole problems, 0 of 267 plants counted, through the kit. The teammate writes their own solver
+  without seeing it; the bar is that count with no plant counted, at lower CPU time. The open algorithmic part is the tolerance: on IMO 2019 P6
+  a true angle fact has numerical error 6e-7 against the kit's 1e-6, so a certified check (interval arithmetic or high-precision Newton
+  refinement of each figure) instead of a fixed tolerance would make the rule exact.
+  Checkpoints: (1) the default solver through the kit reproduces 13 / 13; (2) the new solver, count and CPU s per statement; (3) `--control`
+  counts 0 plants.
+- **Task 2 is the main contribution.** `python side/geo_closure.py run <rows> <out> --k K` proves HAGeo-409 rows on CPU; 263 now, HAGeo 287,
+  AG1 177, random points 226 on our engine. Two algorithm problems, both scored by rows proved and CPU time on a public benchmark:
+  (a) choosing auxiliary points (our greedy beats random by +37; HAGeo's larger budget reaches 287), a search problem over candidate
+  constructions; (b) the 146 rows left: 178 of the readings left need facts the engine never derives (order of points on a line or circle,
+  side-side-side pairs), i.e. new inference rules or a decision procedure for them. We prepare a task-2 kit (frozen rows, one scoring
+  command, the 263 baseline, the soundness controls) the same way as task 1.
+- What the report needs from the proof part: the frozen results above, plus whatever tasks 1 and 2 add, written and presented by the teammate.
+
 **Out of scope:** telling a faithful translation from an unfaithful one without a human, translation and prompting, and new benchmarks.
 They stay as future work in the report.
 
