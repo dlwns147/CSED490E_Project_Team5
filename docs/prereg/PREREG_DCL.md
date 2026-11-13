@@ -74,4 +74,4 @@ shrinks with model strength: H1 about +12 (base ladder, more count-2 programs th
   closed program gives is scored with `gp_score` (the closed program names values as the puzzle lists them).
 - **Decision as registered:** the closure joins the course method as a free step inside each translation step. With the trained translator
   (discovery data, seeds 4–9): GridPuzzle 87.3% at 9.07 ktok (utility 82.8) against thinking 63.4% at 11.53 (57.6); Mitra-Baral 92.7% at 5.52.
-- H5 (dev, reported only): pending a rescoring of the dev rows (job 1423108).
+- H5 (GridPuzzle dev split, 40 puzzles, reported only; dev rows rescored to v2 by job 1423108): plain 73.3% at 19.01 ktok → closure 80.8% at 16.93, +8.5 [+0.4, +18.9]; settled programs 9 of 9 right.
