@@ -453,5 +453,39 @@ def peert_main():
         print(f"   PEERT-P1 with - without: {sum(d) / len(d):+.1f} [{bs[250]:+.1f}, {bs[9749]:+.1f}] over {len(ids)} puzzles")
 
 
+def peertrip_main():
+    """PREREG_PEERT addendum B: trip planning, ladder main trc -> peer trc -> main trct -> main think minus main trc -> trct -> think
+    (results/np_<tag>_<arm>_s<seed>.jsonl; no closure). usage: peertrip [--main q32] [--peer oss120] [--seeds 4,5,6]"""
+    arg = lambda k, d: sys.argv[sys.argv.index(k) + 1] if k in sys.argv else d
+    main, peer, sds = arg("--main", "q32"), arg("--peer", "oss120"), [int(x) for x in arg("--seeds", "4,5,6").split(",")]
+    L = lambda tag, arm, sd: {x["id"]: x for x in map(json.loads, open(f"{RES}/np_{tag}_{arm}_s{sd}.jsonl"))} if os.path.exists(f"{RES}/np_{tag}_{arm}_s{sd}.jsonl") else {}
+    res = []
+    for sd in sds:
+        M = {a: L(main, a, sd) for a in ["trc", "trct", "think"]}
+        P = L(peer, "trc", sd)
+        for i in M["think"]:
+            if not all(i in M[a] for a in M) or i not in P:
+                continue
+
+            def lad(pe):
+                tok = 0
+                for a in (["trc", "peer", "trct"] if pe else ["trc", "trct"]):
+                    r = P[i] if a == "peer" else M[a][i]
+                    tok += r["tokens"]
+                    if r["count"] == 1:
+                        return r["exact"], tok
+                r = M["think"][i]
+                return r["exact"], tok + r["tokens"]
+            res.append((i, lad(False), lad(True), (M["think"][i]["exact"], M["think"][i]["tokens"])))
+    ids = sorted({i for i, *_ in res})
+    for k, name in [(1, "without the peer"), (2, "with the peer"), (3, "thinking only")]:
+        print(f"trips {main} <- {peer}, seeds {sds}, {name}: {100 * sum(r[k][0] for r in res) / len(res):.1f}% at {sum(r[k][1] for r in res) / len(res) / 1000:.2f} ktok ({len(res)} problem-seeds)")
+    rng = random.Random(0)
+    for a, b, name in [(2, 1, "PEERT-B1 with - without"), (2, 3, "with the peer - thinking")]:
+        d = [sum(U(*r[a]) - U(*r[b]) for r in res if r[0] == i) / sum(r[0] == i for r in res) for i in ids]
+        bs = sorted(sum(d[rng.randrange(len(d))] for _ in d) / len(d) for _ in range(10000))
+        print(f"   {name}: {sum(d) / len(d):+.1f} [{bs[250]:+.1f}, {bs[9749]:+.1f}] over {len(ids)} problems")
+
+
 if __name__ == "__main__":
-    {"run": run_main, "why": why_main, "close": close_main, "dcl": dcl_main, "dcleval": dcleval_main, "peert": peert_main}.get(sys.argv[1], eval_main)()
+    {"run": run_main, "why": why_main, "close": close_main, "dcl": dcl_main, "dcleval": dcleval_main, "peert": peert_main, "peertrip": peertrip_main}.get(sys.argv[1], eval_main)()
