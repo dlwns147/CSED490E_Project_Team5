@@ -124,7 +124,10 @@ counted rows, each certified, at no more CPU than HAGeo's setting (64 cores, 60 
 - **A faster closure, so larger pools fit the same CPU** (incremental span updates, cheaper numeric fact enumeration).
 - **The algebraic fallback** (lever 1 above) for rows whose missing facts are non-linear relations: Wu's method alone solves problems deduction
   cannot (15 of IMO-AG-30, some unsolved by AlphaGeometry, Sinha et al.), and nobody reports it on HAGeo-409.
-Checkpoints, each through the task-2 kit and pre-registered: (0) reproduce 263; (1) HAGeo's heuristic as the candidate source; (2) the faster
+- **Compute headroom.** Our 263 used 1,800 s on one core per row (136 rows timed out; median 1.8 s on proved rows); HAGeo's 287 used up to
+  8,192 attempts of 60 s on 64 cores. Matching HAGeo's CPU gives the engine one to two orders of magnitude more time per row, so the first
+  measurement is simply our engine with more restarts and cores (Slurm CPU partitions), before any new idea.
+Checkpoints, each through the task-2 kit and pre-registered: (0) reproduce 263, then the same engine at HAGeo's CPU budget; (1) HAGeo's heuristic as the candidate source; (2) the faster
 closure at matched CPU; (3) the algebraic fallback on what is left; (4) certificates and Lean export of every new row. Each step reports rows
 proved, CPU time, and rows lost or gained by difficulty band (HAGeo reports 40.8% on its hardest [4, 5) band at K = 2,048).
 
