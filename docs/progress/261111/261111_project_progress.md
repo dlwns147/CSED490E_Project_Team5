@@ -1,6 +1,6 @@
 # Progress 11-03 → 11-12 — *Facts First, Think on Failure*
 
-*Updated 2026-11-13 06:4x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
+*Updated 2026-11-13 16:2x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
 
 ## At a glance
 
@@ -10,7 +10,9 @@
 - **Trained quick step:** using the same free check **as the reward to train the translator with RL** works as well as a gold-label reward, with no labels at all (GridPuzzle +8.4; also +8.8 on gpt-oss-20b); this trained translator is the method's step ①.
 - **New this round, the largest gain since RL:** every model drops the same implication, "either A or B" also means A ≠ B. When a translation leaves several solutions, the solver adds that implication and re-counts, with no extra tokens (§3). Held out on four ladders it adds +6 to +15 on GridPuzzle; with it, the grid method beats thinking for every model, including gpt-oss-120b, where it used to tie.
 - **Second family as a cheap step (new, held out):** a quick translation by gpt-oss-20b, placed before the expensive thinking translation, settles most puzzles the trained translator leaves open: GridPuzzle 87.8% → **91.0%** at 6.0k tokens, +4.7; Mitra-Baral +4.0 (PREREG_PEERT). With gpt-oss-120b as that step: **92.9% at 4.6k**, +2.6 over gpt-oss-20b (addendum A). Puzzles are computation here: text → constraints → exact solver → free check, like the optimization word problems.
-- **Remaining weakness:** a misreading that still leaves exactly one solution passes the check.
+- **Final test on fresh seeds (new):** every step was chosen on seeds 4–9, so the composed method ran once on seeds 14–16, never run before: **GridPuzzle 93.3% at 4.6k tokens vs thinking 60.9% at 11.5k (+35.9); Mitra-Baral 96.5% at 1.2k vs 87.9% at 6.5k (+11.1)** (PREREG_GPF). These are the headline numbers.
+- **Remaining weakness, partly closed:** a misreading that still leaves one solution passes the check. Its commonest form is an inclusive "either A or B" plus one constraint no clue states; the closure then leaves no solution, a second free check (+1.8 / +1.4 on fresh seeds, +0.45 held out on four models).
+- **Trips:** the gpt-oss-120b quick step holds on fresh seeds for two main models (+3.4, +3.3).
 - **Running:** proofs task 1 for the teammate (fresh-figure solver, registered run). Closed this round: the clue check on top of the trained translator (PREREG_GCLF), keeping only the grids both translations allow (PREREG_CONJ), and harder computation (Project Euler, OEIS, MathConstruct).
 
 ![Results at a glance](fig/frontier.png)
@@ -21,9 +23,9 @@
 |---|---|---|
 | ZebraLogic (750 unseen puzzles) | Qwen3-8B 83.8% → **95.6%**, gpt-oss-20b 76.6% → **99.2%** | Win (+14.0, +26.2) |
 | ZebraLogic, the closest paper's 100 puzzles | Qwen3-32B 90.0% → **96.7%** (paper: translation loses) | Win (+9.1) |
-| GridPuzzle (human-written grids) | Qwen3-8B 62.5% → **91.0%**, 11.6k → 6.0k tokens (trained translator + gpt-oss-20b quick translation + closure; held-out seeds) | Win (+31.3) |
-| Mitra-Baral (small grids) | Qwen3-8B 87.6% → **95.7%**, 6.2k → 2.1k tokens (same) | Win (+10.2 [+4.2, +16.4]) |
-| Trip planning (NaturalPlan) | Qwen3-32B 47.0% → **68.3%** | Utility win; check precision below the registered bar |
+| GridPuzzle (human-written grids) | Qwen3-8B 60.9% → **93.3%**, 11.5k → 4.6k tokens (trained translator + gpt-oss-120b quick translation + closure + check; fresh seeds 14–16) | Win (+35.9) |
+| Mitra-Baral (small grids) | Qwen3-8B 87.9% → **96.5%**, 6.5k → 1.2k tokens (same) | Win (+11.1 [+5.1, +17.3]) |
+| Trip planning (NaturalPlan) | Qwen3-32B 47.0% → **72.0%** (with gpt-oss-120b quick step, fresh seeds) | Utility win (+19.5); check precision below the registered bar |
 | GridPuzzle, gpt-oss-120b | 92.3% → **96.9%**, 9.1k → 5.2k tokens (with the closure; 93.1% without) | Win (+6.5) |
 | AR-LSAT · BFCL agents | ≈ 0 · loses to a public checkpoint (EnvScaler-8B) | Tie · loss |
 
@@ -178,6 +180,7 @@
 > - Qwen3-32B as checker (same model as the translator): *"the plan sums to 22 days instead of 21"* ✗ — the same rule misread again
 > - gpt-oss-120b as checker: *"Days 4‑6 (inclusive) = 3 days (day 4 counts as travel day)"* ✓
 
+- **The cross-family quick step (PEERT addenda B, B2, fresh seeds 4–6):** gpt-oss-120b's quick translation as step ② adds +3.4 [+0.7, +6.2] to the Qwen3-32B ladder (72.0% vs thinking 47.0%) and +3.3 [+1.1, +5.6] to gpt-oss-20b's; with gpt-oss-20b as the peer it lost (−5.2), so the peer must be precise.
 - Precision of one-solution plans is 80–95%, below the registered 95%: misreading the day rule shifts the whole schedule, but the plan stays unique.
 - With gpt-oss-120b as checker, 17/18 wrong plans are caught and only 6/196 right ones rejected → **+17.9 [+11.9, +24.1]** over thinking.
 - From the verdicts of several checkers alone (no labels), each checker's false-reject rate is estimated within 1.5 points and the best checker is picked.
@@ -186,7 +189,7 @@
 
 - **Agents (BFCL):** running three candidates per turn and letting a trained verifier pick beats thinking by +7.1, but loses to the public EnvScaler-8B checkpoint (54.2%). Adding selection on top of it gives nothing → closed.
 - **Computation track (40 ideas):** each idea went to its cheapest killing test. Lessons: free checks often accept only puzzles thinking already solves; telling the model about the check makes it satisfy the check instead of re-reading the clue. Two scoring bugs were found in raw outputs and fixed before any verdict.
-- **Proofs (teammate guide):** geometry problems → formal language → engine proof → Lean kernel check (all 263 HAGeo proofs pass). Teammate task kit `side/kit_fresh.py`: a solver that finds fresh figures satisfying the hypotheses. Task 1 diagnosed (11-12): the default solver loses 15 problems because random starts rarely land on the solution set (1–8 of 240); walking along the set from the proof's figure gave 8 passing figures on all 41 lost statements in a probe (whole problems 13 → about 20). Those figures sit nearer the proof's own figure, but they still expose planted false steps. The kit now has this as a soundness control (`--control`, 267 plants): the walk counts 0 of them whole and tests every one on 8 figures. Through the kit the walk counts **20 (NL) and 21 (LEAN) whole problems, none lost**, against 13 and 13 for the default solver (reference run; the registered task-1 run is the teammate's).
+- **Proofs (teammate guide):** geometry problems → formal language → engine proof → Lean kernel check (all 263 HAGeo proofs pass). Teammate task kit `side/kit_fresh.py`: a solver that finds fresh figures satisfying the hypotheses. Task 1 diagnosed (11-12): the default solver loses 15 problems because random starts rarely land on the solution set (1–8 of 240); walking along the set from the proof's figure gave 8 passing figures on all 41 lost statements in a probe (whole problems 13 → about 20). Those figures sit nearer the proof's own figure, but they still expose planted false steps. The kit now has this as a soundness control (`--control`, 267 plants): the walk counts 0 of them whole and tests every one on 8 figures. Through the kit the walk counts **20 (NL) and 21 (LEAN) whole problems, none lost**, against 13 and 13 for the default solver (reference run; the registered task-1 run is the teammate's). Task 2 kit (`side/kit_h409.py`, 11-13): HAGeo-409 scored from certificates alone (bound to the frozen statement, `geo_check`, 8 fresh figures); reproduces 263 and counts 0 of 737 tampered certificates. Bar: HAGeo 287 (no later result; its code is not public). Measured room: greedy + random portfolio 271; 6 statements do not build; the gap to HAGeo is all below difficulty 5; a longer-CPU run of the same engine is measuring how much is compute.
 - **Harder computation (idea 44, closed):** the recipe needs a check built from the problem's own data. Of the three sets tried only Project Euler has one (its statements give small cases with answers, *"you are given S(16) = 19"*). OEIS and MathConstruct were dropped because there the check is written by the same model and shares its misreading (OEIS, 250 easy sequences: thinking 131 right, the checked ladder 120; MathConstruct's own verify() passed 15 constructions, 2 right). On 120 Euler problems the checked ladder ties thinking-then-program at every thinking budget (+2/+1/0/0 problems at 2k/4k/8k/14k). The quick step is either not right or not cheap: Qwen3-8B's quick programs solve 10, nearly all in the easiest band (elsewhere they time out or run out of memory), and Qwen3.5-9B's solve 21 but cost 6.6k tokens, as much as thinking. The stated cases catch misreadings but not errors at scale. Example, pe720: the program reproduces S(4) = 3 and S(8) = 2295 from the statement, then prints 0 for the real input (answer 688081048). Puzzles pay because the solver does the search; on Euler the search is the algorithm the model must invent.
 
 ## Next
@@ -194,11 +197,16 @@
 | Experiment | Question | Depending on the verdict |
 |---|---|---|
 | **Proofs task 1** (registered run, teammate) | does the teammate's solver reach the reference (20 / 21 whole problems) and pass the soundness control (0 of 267 plants counted)? | if yes, task 1 is done; task 2 (HAGeo-409 coverage, 263 now vs HAGeo 287) next |
+| **Proofs task 2** (teammate, kit ready) | portfolio + missing constructions, then HAGeo's rule from the paper, then an algebraic fallback with component choice: more than 287 certified rows at matched CPU? | the course report's proof result |
+| **Same engine, 16× CPU** (SIDE-GT-H409-CPU, running) | how much of the gap to 287 is compute? | sets the curve every task-2 lever is scored against |
 
-<details><summary><b>Closed verdicts (19)</b></summary>
+<details><summary><b>Closed verdicts (22)</b></summary>
 
 | Experiment | Result | Decision |
 |---|---|---|
+| GPF | composed method once on fresh seeds 14–16: GridPuzzle 93.3% vs 60.9% (+35.9), Mitra-Baral 96.5% vs 87.9% (+11.1) | headline numbers |
+| DCLC | closure as a check on one-solution quick programs: +0.45 [+0.20, +0.75] held out (four models), +1.8 / +1.4 on fresh seeds | joins steps ① and ② |
+| PEERT-B, B2 | gpt-oss-120b quick step on trips, fresh seeds: +3.4 (Qwen3-32B), +3.3 (gpt-oss-20b) | in the trip method |
 | PEERT | gpt-oss-20b quick translation as step ②, held-out seeds 7–9: GridPuzzle +4.7 [+2.8, +7.0], Mitra-Baral +4.0 [+1.7, +6.9]; gpt-oss-120b instead: +2.6 [+0.5, +4.7] more (92.9% at 4.6k) | joins the method; gpt-oss-120b named, gpt-oss-20b on 3090s |
 | DCL | distinctness closure on ambiguous translations, held out: GridPuzzle +12.3 / +14.9 / +9.6 / +6.3 (four models), Mitra-Baral +0.2 to +3.3; 97.9% of settled programs right | joins the method (free step inside ① and ②) |
 | CONJ | keep the grids both paid translations allow: +0.0; 1 of 128 shares only gold, the sets are nested | out; led to DCL |
