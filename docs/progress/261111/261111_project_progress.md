@@ -1,6 +1,6 @@
 # Progress 11-03 → 11-12 — *Facts First, Think on Failure*
 
-*Updated 2026-11-13 05:0x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
+*Updated 2026-11-13 06:1x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
 
 ## At a glance
 
@@ -9,6 +9,7 @@
 - **Wins:** on ZebraLogic, human-written grids and trip planning, more accurate than thinking alone and usually cheaper, on two model families (Qwen3, gpt-oss).
 - **Trained quick step:** using the same free check **as the reward to train the translator with RL** works as well as a gold-label reward, with no labels at all (GridPuzzle +8.4; also +8.8 on gpt-oss-20b); this trained translator is the method's step ①.
 - **New this round, the largest gain since RL:** every model drops the same implication, "either A or B" also means A ≠ B. When a translation leaves several solutions, the solver adds that implication and re-counts, with no extra tokens (§3). Held out on four ladders it adds +6 to +15 on GridPuzzle; with it, the grid method beats thinking for every model, including gpt-oss-120b, where it used to tie.
+- **Second family as a cheap step (new, held out):** a quick translation by gpt-oss-20b, placed before the expensive thinking translation, settles most puzzles the trained translator leaves open: GridPuzzle 87.8% → **91.0%** at 6.0k tokens, +4.7; Mitra-Baral +4.0 (PREREG_PEERT). Puzzles are computation here: text → constraints → exact solver → free check, like the optimization word problems.
 - **Remaining weakness:** a misreading that still leaves exactly one solution passes the check.
 - **Running:** proofs task 1 for the teammate (fresh-figure solver, registered run). Closed this round: the clue check on top of the trained translator (PREREG_GCLF), keeping only the grids both translations allow (PREREG_CONJ), and harder computation (Project Euler, OEIS, MathConstruct).
 
@@ -20,8 +21,8 @@
 |---|---|---|
 | ZebraLogic (750 unseen puzzles) | Qwen3-8B 83.8% → **95.6%**, gpt-oss-20b 76.6% → **99.2%** | Win (+14.0, +26.2) |
 | ZebraLogic, the closest paper's 100 puzzles | Qwen3-32B 90.0% → **96.7%** (paper: translation loses) | Win (+9.1) |
-| GridPuzzle (human-written grids) | Qwen3-8B 63.4% → **87.3%** (trained translator + distinctness closure) | Win (+25.1) |
-| Mitra-Baral (small grids) | Qwen3-8B 87.1% → **92.7%** (same) | Win (+6.1 [+0.5, +11.8]) |
+| GridPuzzle (human-written grids) | Qwen3-8B 62.5% → **91.0%**, 11.6k → 6.0k tokens (trained translator + gpt-oss-20b quick translation + closure; held-out seeds) | Win (+31.3) |
+| Mitra-Baral (small grids) | Qwen3-8B 87.6% → **95.7%**, 6.2k → 2.1k tokens (same) | Win (+10.2 [+4.2, +16.4]) |
 | Trip planning (NaturalPlan) | Qwen3-32B 47.0% → **68.3%** | Utility win; check precision below the registered bar |
 | GridPuzzle, gpt-oss-120b | 92.3% → **96.9%**, 9.1k → 5.2k tokens (with the closure; 93.1% without) | Win (+6.5) |
 | AR-LSAT · BFCL agents | ≈ 0 · loses to a public checkpoint (EnvScaler-8B) | Tie · loss |
@@ -65,8 +66,9 @@
 | Step | What it does | Accept if |
 |---|---|---|
 | ① Quick translation | clues → Python constraints, no thinking (a few hundred tokens) | exactly one solution (if several: add the distinctness the either-or clues imply, re-count; §3) |
-| ② Translate while thinking | thinking on, translate again | the same |
-| ③ Think only | the usual approach | always |
+| ② Another family's quick translation (grids, since 11-13) | gpt-oss-20b translates the same clues, no thinking | the same |
+| ③ Translate while thinking | thinking on, translate again | the same |
+| ④ Think only | the usual approach | always |
 
 - **Why it wins:** thinking alone collapses on large grids (23% on 4×6) while the ladder keeps 58%. Thinking fails at *search*, not at *reading*.
 - **When it wins:** only when the check's precision on the puzzles it accepts beats thinking's accuracy on those same puzzles (derived beforehand, matches measurements). AR-LSAT is the reverse, hence a tie.
@@ -193,10 +195,11 @@
 |---|---|---|
 | **Proofs task 1** (registered run, teammate) | does the teammate's solver reach the reference (20 / 21 whole problems) and pass the soundness control (0 of 267 plants counted)? | if yes, task 1 is done; task 2 (HAGeo-409 coverage, 263 now vs HAGeo 287) next |
 
-<details><summary><b>Closed verdicts (18)</b></summary>
+<details><summary><b>Closed verdicts (19)</b></summary>
 
 | Experiment | Result | Decision |
 |---|---|---|
+| PEERT | gpt-oss-20b quick translation as step ②, held-out seeds 7–9: GridPuzzle +4.7 [+2.8, +7.0], Mitra-Baral +4.0 [+1.7, +6.9]; peer's accepted grids 95.8% right | joins the method |
 | DCL | distinctness closure on ambiguous translations, held out: GridPuzzle +12.3 / +14.9 / +9.6 / +6.3 (four models), Mitra-Baral +0.2 to +3.3; 97.9% of settled programs right | joins the method (free step inside ① and ②) |
 | CONJ | keep the grids both paid translations allow: +0.0; 1 of 128 shares only gold, the sets are nested | out; led to DCL |
 | GCLF | clue check on the trained translator: GridPuzzle +0.2 [−0.4, +0.9], Mitra-Baral +1.9 [+0.2, +4.6]; catches 39% of its wrong grids vs 72% before RL | method = trained translator alone |
