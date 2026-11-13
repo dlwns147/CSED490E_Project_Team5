@@ -618,5 +618,38 @@ def peertrip_main():
         print(f"   {name}: {sum(d) / len(d):+.1f} [{bs[250]:+.1f}, {bs[9749]:+.1f}] over {len(ids)} problems")
 
 
+def rwtrip_main():
+    """PREREG_RW part B (RW-P1): ours (main trc -> peer trc -> main trct -> main think) minus LLM-Modulo (main modulo), paired over trips,
+    utility and accuracy. usage: rwtrip [--main q32] [--peer oss120] [--seeds 4,5,6]"""
+    arg = lambda k, d: sys.argv[sys.argv.index(k) + 1] if k in sys.argv else d
+    main, peer, sds = arg("--main", "q32"), arg("--peer", "oss120"), [int(x) for x in arg("--seeds", "4,5,6").split(",")]
+    L = lambda tag, arm, sd: {x["id"]: x for x in map(json.loads, open(f"{RES}/np_{tag}_{arm}_s{sd}.jsonl"))} if os.path.exists(f"{RES}/np_{tag}_{arm}_s{sd}.jsonl") else {}
+    res = []
+    for sd in sds:
+        M = {a: L(main, a, sd) for a in ["trc", "trct", "think", "modulo"]}
+        P = L(peer, "trc", sd)
+        for i in M["modulo"]:
+            if not all(i in M[a] for a in M) or i not in P:
+                continue
+            tok = 0
+            for r in (M["trc"][i], P[i], M["trct"][i], M["think"][i]):
+                tok += r["tokens"]
+                if r is M["think"][i] or r["count"] == 1:
+                    ours = (r["exact"], tok)
+                    break
+            m = M["modulo"][i]
+            res.append((i, ours, (m["exact"], m["tokens"]), (M["think"][i]["exact"], M["think"][i]["tokens"]), m["rounds"], m["passed"]))
+    ids = sorted({r[0] for r in res})
+    for k, name in [(1, "ours"), (2, "LLM-Modulo"), (3, "thinking only")]:
+        print(f"trips {main}, seeds {sds}, {name}: {100 * sum(r[k][0] for r in res) / len(res):.1f}% at {sum(r[k][1] for r in res) / len(res) / 1000:.2f} ktok ({len(res)} trip-seeds)")
+    mo = [r for r in res]
+    print(f"   LLM-Modulo: critics passed {sum(r[5] for r in mo)} of {len(mo)}, right when passed {sum(r[2][0] for r in mo if r[5])}, mean rounds {sum(r[4] for r in mo) / len(mo):.2f}")
+    rng = random.Random(0)
+    for f, unit in [(lambda r: U(*r[1]) - U(*r[2]), "utility"), (lambda r: 100 * (r[1][0] - r[2][0]), "accuracy")]:
+        d = [sum(f(r) for r in res if r[0] == i) / sum(r[0] == i for r in res) for i in ids]
+        bs = sorted(sum(d[rng.randrange(len(d))] for _ in d) / len(d) for _ in range(10000))
+        print(f"   RW-P1 ours - LLM-Modulo, {unit}: {sum(d) / len(d):+.1f} [{bs[250]:+.1f}, {bs[9749]:+.1f}] over {len(ids)} trips")
+
+
 if __name__ == "__main__":
-    {"run": run_main, "why": why_main, "close": close_main, "dcl": dcl_main, "dcleval": dcleval_main, "peert": peert_main, "peertrip": peertrip_main, "dcl1": dcl_main, "dclc": dclc_main, "gpf": gpf_main}.get(sys.argv[1], eval_main)()
+    {"run": run_main, "why": why_main, "close": close_main, "dcl": dcl_main, "dcleval": dcleval_main, "peert": peert_main, "peertrip": peertrip_main, "rwtrip": rwtrip_main, "dcl1": dcl_main, "dclc": dclc_main, "gpf": gpf_main}.get(sys.argv[1], eval_main)()

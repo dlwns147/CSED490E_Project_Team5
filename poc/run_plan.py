@@ -7,6 +7,8 @@ The interface is not specific to trips: the model writes an OR-Tools CP-SAT mode
 ANSWER until a second, different plan appears or none is left).
 
 usage: run_plan.py <tag> <arm tr|trt|trc|trct|think|direct> <seed> [--resume (keep the rows already written, run the rest)]
+       (arm mcrit, PREREG_MCRIT: on the trips no paid translation settles, thinking's stored plan is checked by the paid programs' own constraints
+        and re-planned with the broken checks, up to --rounds 5; needs results/np_<tag>_{think,trc,trct}_s<seed> and np_$MCRIT_PEER_trc_s<seed>)
        (arm direct, PREREG_MOT addendum MOT-T: the think prompt without thinking; every round keeps its plan)
        (arm thinkb, PREREG_BUD: the think prompt under budget forcing at each of --budgets, default 1000,2000,4000,8000, cut from one think; row["cuts"][B])
        run_plan.py --check <tag> [--dev] [--label L (another model serving: writes np_<tag>_<L>.jsonl)] (PREREG_NPC: the model checks each count-1 plan against the task, see check())
@@ -94,6 +96,27 @@ NP_TRC = ("{p}\n\nDo not solve the task. Translate it. Give one ```python block 
           "Do not solve the task and do not fix the answer by hand: a harness keeps the answers that pass every constraint and counts them.")
 # PREREG_NP addendum NP-DAY: the day convention, shown only by NaturalPlan's examples, stated in the task for every arm (thinking included). In the dev pilot
 # 5 of 5 zero-plan declarations had right constraints and a candidate generator that started the next city the day after the last one ended.
+MC_PROBE = """
+import json, inspect
+if callable(constraints):
+    try:
+        constraints = constraints()
+    except TypeError:
+        constraints = [constraints]
+def _ok(f, a):
+    try:
+        v = f(a)
+        return all((g(a) if callable(g) else bool(g)) for g in v) if isinstance(v, (list, tuple)) else bool(v)
+    except Exception:
+        return False
+def _src(f):
+    try:
+        return inspect.getsource(f).strip()[:400] if callable(f) else None
+    except Exception:
+        return None
+bad = [j for j, f in enumerate(constraints) if not _ok(f, PLAN)]
+print(json.dumps({"bad": bad, "src": [_src(constraints[j]) for j in bad]}))
+"""
 NP_DAY = " A day on which you fly from one city to another counts as a day in both cities, so the next city's stay starts on the day the previous stay ends."
 NP_FMT = "{p}\n\nSolve the task. On the last line give the plan as JSON: a list of {{\"city\": name, \"start\": first day, \"end\": last day}} in visiting order."
 
@@ -245,9 +268,17 @@ def main():
     mt, nr, dev = opt("--max_tokens", 32000 if arm in ("think", "modulo") else 16000 if arm in ("trt", "trct") else 4096), opt("--rounds", 10 if arm == "modulo" else 3), opt("--dev", 0)
     global CRIT
     CRIT = modulo_critics(os.path.join(os.environ["POC_DATA"], "naturalplan_dl", "a_trip_planning_100_constraints.json")) if arm == "modulo" else {}
+    if arm == "mcrit":   # PREREG_MCRIT: the paid programs (main trc, peer trc, main trct) and the stored thinking plan of each fall-through trip
+        Ls = lambda t, a_: {x["id"]: x for x in map(json.loads, open(f"{RES}/np_{t}_{a_}_s{seed}.jsonl"))}
+        global MC
+        MC = {"think": Ls(tag, "think"), "progs": [Ls(tag, "trc"), Ls(os.environ.get("MCRIT_PEER", "oss120"), "trc"), Ls(tag, "trct")]}
+        nr = opt("--rounds", 5)
+        mt = opt("--max_tokens", 16000)
     BUD = [int(x) for x in sys.argv[sys.argv.index("--budgets") + 1].split(",")] if "--budgets" in sys.argv else [1000, 2000, 4000, 8000]
     R = [json.loads(l) for l in open(os.path.join(os.environ["POC_DATA"], "naturalplan", "trip.jsonl"))]
     P = [r for r in R if not r["amonkar"]][::max(1, 1500 // dev)][:dev] if dev else [r for r in R if r["amonkar"]]
+    if arm == "mcrit":
+        P = [r for r in P if r["id"] in MC["think"] and all(r["id"] in g for g in MC["progs"]) and not any(g[r["id"]]["count"] == 1 for g in MC["progs"])]
 
     def run(r):
         p = re.sub(r"\s*SOLUTION:\s*$", "", r["prompt"])
@@ -265,6 +296,56 @@ def main():
             o = chat_msgs([{"role": "user", "content": NP_FMT.format(p=p)}], think=arm == "think", max_tokens=mt, temperature=0.7, seed=sd)
             pl = np_norm(np_extract(o["text"]) or [])
             return {**row, "exact": pl == gold, "plan": pl, "tokens": o["out_tokens"], "finish": o["finish"], "text": (o["text"] or "")[-1500:]}
+        if arm == "mcrit":   # PREREG_MCRIT: critics = the paid programs' own constraints; accept when at least 2 of the 3 programs pass the plan
+            def crit(pl):
+                plan = [{"city": c.title(), "start": a_, "end": b_} for c, a_, b_ in (pl or [])]
+                outs = []
+                for g in MC["progs"]:
+                    code = g[r["id"]].get("code")
+                    res = run_python(code + "\nPLAN = " + json.dumps(plan) + "\n" + MC_PROBE, "", timeout=60, mem_bytes=2 << 30) if code and plan else None
+                    try:
+                        outs.append((code, json.loads(res.stdout.strip().splitlines()[-1])))
+                    except (AttributeError, IndexError, ValueError):
+                        outs.append((code, None))
+                return outs
+            def passes(outs):
+                return sum(o is not None and not o["bad"] for _, o in outs) >= 2
+            t0 = MC["think"][r["id"]]
+            first = tuple(tuple(x) for x in t0["plan"]) if t0["plan"] else None
+            pl, tok, hist = first, 0, []
+            outs = crit(pl)
+            hist.append({"exact": pl == gold, "tokens": 0, "plan": pl, "pass": passes(outs), "bad": [o["bad"] if o else None for _, o in outs]})
+            msgs = [{"role": "user", "content": NP_FMT.format(p=p)}]
+            raw = [{"city": c.title(), "start": a_, "end": b_} for c, a_, b_ in (pl or [])]
+            ans = pl
+            for rnd in range(nr):
+                if hist[-1]["pass"]:
+                    ans = pl; break
+                fb = []
+                for k, (code, o) in enumerate(outs):
+                    if o is None:
+                        continue
+                    if o["bad"]:
+                        fb.append(f"Check set {k + 1} fails on checks " + ", ".join(str(j) for j in o["bad"][:6]) + ":\n" +
+                                  ("\n".join(o["src"][:6]) if all(o["src"][:6]) else "```python\n" + code[-2500:] + "\n```"))
+                if not raw:
+                    fb.append("No plan could be read from your answer.")
+                msgs += [{"role": "assistant", "content": json.dumps(raw)},
+                         {"role": "user", "content": ("Checks written from the task by other solvers test your plan (a check can itself misread the task). " + "\n\n".join(fb))[:6000] +
+                          "\n\nRe-read the task. If a failing check states a real requirement, correct the plan; on the last line give it as JSON: a list of "
+                          "{\"city\": name, \"start\": first day, \"end\": last day} in visiting order."}]
+                try:
+                    o = chat_msgs(msgs, think=True, max_tokens=mt, temperature=0.7, seed=sd + 100 + rnd)
+                except Exception as e:
+                    hist.append({"exact": False, "tokens": 0, "err": repr(e)[:300], "pass": False}); break
+                tok += o["out_tokens"]
+                raw = np_extract(o["text"]) or []
+                pl = np_norm(raw)
+                outs = crit(pl)
+                hist.append({"exact": pl == gold, "tokens": o["out_tokens"], "finish": o["finish"], "plan": pl, "pass": passes(outs), "bad": [o_["bad"] if o_ else None for _, o_ in outs]})
+            if hist[-1]["pass"]:
+                ans = pl
+            return {**row, "exact": ans == gold, "plan": ans, "tokens": tok, "rounds": len(hist) - 1, "passed": hist[-1]["pass"], "first_exact": first == gold, "hist": hist}
         if arm == "modulo":   # LLM-Modulo: think, then the critics' list of broken requirements goes back, up to --rounds (their setting: 10)
             msgs, tok, hist = [{"role": "user", "content": NP_FMT.format(p=p)}], 0, []
             for rnd in range(nr):
