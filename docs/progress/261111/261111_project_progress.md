@@ -214,7 +214,7 @@ Reading: answering the solver's first solution without counting stays below thin
 | **Same engine, 16× CPU** (SIDE-GT-H409-CPU, running) | how much of the gap to 287 is compute? | sets the curve every task-2 lever is scored against |
 | **LLM-Modulo on trips** (PREREG_RW B; gpt-oss-20b done: LLM-Modulo ahead by 12.3) | does our generic count match a hand-written domain verifier on Qwen3-32B too? | the report's trip comparison with prior work |
 | **Model-written critics** (PREREG_MCRIT, running) | the three paid programs' constraints accept thinking's plans at 95% precision; used as LLM-Modulo critics on the fallback, do they raise the ladder? | if the interval is above 0, fresh seeds 17–19; else LLM-Modulo's edge is stated as its complete hand-written critics |
-| **Solver-owned search on trips** (PREREG_NPSAT, queued) | the fallback fails in the model's plan generator; does the CP-SAT interface (the solver searches city orders and days) settle those trips? | if a ladder gains with the interval above 0, fresh seeds 17–19; else the trip residual is stated as the model's reading of a plan's shape |
+| **Solver-owned search on trips** (PREREG_NPSAT, running) | the fallback fails in the model's plan generator; does the CP-SAT interface (the solver searches city orders and days) settle those trips? | if a ladder gains with the interval above 0, fresh seeds 17–19; else the trip residual is stated as the model's reading of a plan's shape |
 
 <details><summary><b>Closed verdicts (22)</b></summary>
 
