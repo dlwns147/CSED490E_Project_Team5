@@ -93,14 +93,26 @@ P_TEXT = "{q}\n\nSolve the problem. Put the optimal objective value in \\boxed{{
 
 
 def _rows(path):
-    """rows of a results file; skips a torn line (a NUL-filled line from an interrupted write on the NAS, 2026-10-18)"""
+    """rows of a results file; skips a torn line (a NUL-filled line from an interrupted write on the NAS, 2026-10-18).
+    OR_CLEAN=1 (2026-11-13): drops MAMO / OptiBench rows outside the expert-audited subsets (poc/or_clean.py, Xiao et al. 2025)."""
     out = []
     for l in (open(path, errors="replace") if os.path.exists(path) else []):
         try:
             out.append(json.loads(l))
         except ValueError:
             pass
+    if os.environ.get("OR_CLEAN") == "1":
+        C = _clean()
+        out = [r for r in out if not (isinstance(r, dict) and str(r.get("id", "")).rsplit("-", 1)[0] in C["sets"]) or r["id"] in C["keep"]]
     return out
+
+
+def _clean(_c={}):
+    if not _c:
+        d = json.load(open(os.path.join(os.environ.get("POC_DATA", os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "nlp_data")),
+                                        "clean_or", "clean_ids.json")))
+        _c.update(sets=set(d["sets"]), keep=set(d["keep"]))
+    return _c
 
 # Slurm server (2026-10-22): external data under $POC_DATA (container path of /home1/leesangjun/SJ/POSTECH/nlp_data; old server: /SSD/...)
 DATA = os.environ.get("POC_DATA", "/NAS/SJ/POSTECH/nlp_data")

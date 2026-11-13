@@ -7034,3 +7034,28 @@ Job 1382299 (one GPU, queued).
   uniqueness guarantee to decide when to strengthen.
 - **Limits:** a convention of the Puzzle Baron family (GridPuzzle, Mitra-Baral), stated by hand from reading failures and confirmed held out;
   whether a translator can learn it without labels (the count reward gives no gradient where no sample reaches one solution) is open.
+
+## 2026-11-13 05:4x UTC — computation track: about a third of the wrong answers that many models share are bad labels; on the expert-audited subsets every word-problem accuracy rises about 15 points and the verdicts hold
+
+- **Why (user, 05:1x UTC: "why are you focusing puzzles?"):** the loop drifted to grids; back to computation. Start from its open loss:
+  programs that run and print a wrong value. Wrong values printed identically by ≥3 models (seed 1): OptiBench 188, MAMO 68, OptMATH 59,
+  BWOR 42, LogiOR 19 — the shape of PREREG_DCL (one reading all models share).
+- **40 of them read by hand (OptiBench, BWOR):** 12 bad labels or ill-posed problems (5 golds break a stated constraint, e.g. OptiBench's
+  10,560 spends $8,640 of a $5,000 budget while 21 models print 5,940; 3 are our loader taking the last listed OptiBench result, which is
+  sometimes a decision variable, as the objective; 4 missing or ambiguous data), 19 shared reading conventions, 8 other modelling errors,
+  1 unclear. Largest conventions: a ratio objective solved as a total (5; no free signal), integrality not stated but the gold is integer
+  (5; signal: a fractional LP optimum, fix: re-solve as integer, but the direction is a dataset habit, wrong for continuous quantities), the
+  printed value rounded or truncated (2; `int(round(112.5))` = 112). Only 2 of 40 have both a free signal and a free fix, so the DCL route is
+  small here. Known before (10-19): MAMO label errors, `int()` truncation, units, ambiguous readings, over-strict infeasible programs.
+- **Audited subsets:** Xiao et al. 2025 (arXiv 2508.10047, github.com/LLM4OR/LLM4OR) had 11 experts remove problems with a wrong label, missing
+  data or an ill-posed statement, labels unchanged: OptiBench 403 of 605, MAMO EasyLP 545 of 652, ComplexLP 111 of 211 (our known bad ones,
+  easy-68 / 71 / 273, are among the removed). `poc/or_clean.py` writes the kept ids; `OR_CLEAN=1` makes `run_nlopt._rows` drop the others, so
+  every stored analysis re-runs on them.
+- **Verdicts re-run (Qwen3-8B; all problems → audited):**
+  - MAMO peer cascade (XPEER, gpt-oss-20b peer): default 76.1% → **91.0%**, thinking 76.9% → 91.6%, cascade 80.2% → **94.8% at 2.0k
+    tokens**; cascade − default +4.39 → +4.31 [+3.11, +5.63], cascade − thinking +5.53 → +5.49 [+4.38, +6.65].
+  - OptiBench fresh problems (127 of 202 audited): default 68.5% → 84.3%, cascade − thinking +3.24 → +4.14 [+2.05, +6.60]; with the Qwen3.5
+    peer still a tie.
+- **Reading:** every computation verdict checked holds on audited labels, and absolute accuracies on MAMO and OptiBench were understated by about
+  15 points. Report both. The leak that limited the word-problem cascade (passing programs both the cheap path and thinking get wrong) falls
+  from 17.0% to 9.4% of passing programs on OptiBench once bad labels go. IndustryOR (42 of 100 kept) and NL4Opt are audited too; not yet applied.
