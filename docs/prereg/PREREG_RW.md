@@ -43,3 +43,16 @@ our 82.3% at 26.6k, about +2 for LLM-Modulo.
   hand-written domain verifier on trips. LLM-Modulo ahead (interval below 0): the report states that a hand-written verifier beats the generic
   count on trips, and that our check's advantage is that it needs no domain code; the grids, where no such verifier exists in prior work, carry
   the claim.
+
+## Part B result, gpt-oss-20b (written 2026-11-13 22:0x UTC; `python3 poc/gp_conj.py rwtrip --main oss20`, all 300 rows)
+
+| Arm (gpt-oss-20b, seeds 4–6) | Accuracy | Tokens |
+|---|---|---|
+| Thinking only | 73.0% | 14.2k |
+| Ours (`trc` → gpt-oss-120b `trc` → `trct` → `think`) | 82.3% | 26.6k |
+| LLM-Modulo (hand-written critics, up to 10 rounds) | **96.0%** | 29.3k |
+
+**RW-P1 (gpt-oss-20b): ours − LLM-Modulo −12.3 [−18.1, −6.6] utility, −13.7 [−18.3, −9.3] accuracy.** LLM-Modulo is ahead; I predicted about
++2 for it. Its critics passed 294 of 300 plans and 288 of those were right; 1.64 rounds on average, 7 runs used all 10. The mechanism: a plan
+that passes critics written from every requirement is the trip's one plan, so LLM-Modulo turns thinking into a verified search, while our
+count check verifies the model's own reading. Qwen3-32B's rows are still running; the decision waits for both models.

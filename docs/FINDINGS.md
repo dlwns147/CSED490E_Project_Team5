@@ -7135,3 +7135,13 @@ Job 1382299 (one GPU, queued).
   enumeration cap. Too small to register; recorded as idea 49.
 - Reading: on grids the solver owns the search and the model writes constraints; on trips the model must also write the search space, and
   that is where it fails. A generator the harness owns would be trip-specific (idea 20 was killed on AR-LSAT for the same reason).
+
+## 2026-11-13 22:0x UTC — LLM-Modulo beats the trip method on gpt-oss-20b (PREREG_RW B, one of two models)
+
+- gpt-oss-20b, trips, seeds 4–6: LLM-Modulo 96.0% at 29.3k against ours 82.3% at 26.6k and thinking 73.0% at 14.2k; ours − LLM-Modulo
+  −12.3 [−18.1, −6.6] utility. Predicted about +2 for LLM-Modulo: wrong in size.
+- Its critics are complete (every requirement of the structured constraints), so passing them nearly identifies the plan (288 of 294
+  passes right). Our check is domain-free and verifies only the model's own reading.
+- Offline (`results/tmp_tripcritic.py`, Qwen3-32B seeds 4–6): the three paid programs' own constraints, "2 of 3 pass", accept thinking's
+  plans at 95% precision (122 of 128), and accept the gold plan on 232 of 300 trip-seeds but only 38 of the 80 fall-through ones.
+  PREREG_MCRIT tests them as LLM-Modulo critics on the fallback (running).

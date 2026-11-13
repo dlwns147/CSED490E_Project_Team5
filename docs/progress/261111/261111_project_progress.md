@@ -1,6 +1,6 @@
 # Progress 11-03 → 11-12 — *Facts First, Think on Failure*
 
-*Updated 2026-11-13 19:5x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
+*Updated 2026-11-13 22:0x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
 
 ## At a glance
 
@@ -177,9 +177,9 @@
 | Amonkar et al. formalizer setting, ZebraLogic (their 100) | Qwen3-32B | thinking 90.0% → ours 96.7% (they report translation losing) | — |
 | Mixture-of-Thought consensus cascade | GridPuzzle, trips | ladder +8.1 / +8.9, trips +9.9 to +16.5 | — |
 | Budget-forced thinking (Qwen3 thinking budget) | all sets | the best baseline is uncut thinking; the ladder beats it | — |
-| LLM-Modulo (critics from each trip's structured constraints, up to 10 replans; Gundawar et al. 2024) | trips, Qwen3-32B and gpt-oss-20b, seeds 4–6 | **running** | GPT-4o 40.0%, Claude-3.5-Sonnet 47.0%; LLMPC GPT-4o 44.6%; Gemini 1.5 Pro 34.8% (NaturalPlan paper) |
+| LLM-Modulo (critics from each trip's structured constraints, up to 10 replans; Gundawar et al. 2024) | trips, Qwen3-32B and gpt-oss-20b, seeds 4–6 | gpt-oss-20b: **LLM-Modulo 96.0% at 29.3k vs ours 82.3% at 26.6k** (ours −12.3 [−18.1, −6.6] utility); Qwen3-32B running | GPT-4o 40.0%, Claude-3.5-Sonnet 47.0%; LLMPC GPT-4o 44.6%; Gemini 1.5 Pro 34.8% (NaturalPlan paper) |
 
-Reading: answering the solver's first solution without counting stays below thinking; the count and the ladder are what make translation pay. LLM-Modulo uses a hand-written domain verifier, a stronger check than our generic count; that row decides whether the generic check matches it on trips.
+Reading: answering the solver's first solution without counting stays below thinking; the count and the ladder are what make translation pay. On trips LLM-Modulo wins (so far on gpt-oss-20b): its critics are written by hand from every requirement, so a plan that passes them is the trip's plan (288 of 294 passes right); our check is domain-free and only verifies the model's own reading. Being tested now: the same loop with critics the translations already wrote (PREREG_MCRIT).
 
 ## 5. Second domain: trip planning
 
@@ -212,7 +212,8 @@ Reading: answering the solver's first solution without counting stays below thin
 | **Proofs task 1** (registered run, teammate) | does the teammate's solver reach the reference (20 / 21 whole problems) and pass the soundness control (0 of 267 plants counted)? | if yes, task 1 is done; task 2 (HAGeo-409 coverage, 263 now vs HAGeo 287) next |
 | **Proofs task 2** (teammate, kit ready) | portfolio + missing constructions, then HAGeo's rule from the paper, then an algebraic fallback with component choice: more than 287 certified rows at matched CPU? | the course report's proof result |
 | **Same engine, 16× CPU** (SIDE-GT-H409-CPU, running) | how much of the gap to 287 is compute? | sets the curve every task-2 lever is scored against |
-| **LLM-Modulo on trips** (PREREG_RW B, running) | does our generic count match a hand-written domain verifier? | the report's trip comparison with prior work |
+| **LLM-Modulo on trips** (PREREG_RW B; gpt-oss-20b done: LLM-Modulo ahead by 12.3) | does our generic count match a hand-written domain verifier on Qwen3-32B too? | the report's trip comparison with prior work |
+| **Model-written critics** (PREREG_MCRIT, running) | the three paid programs' constraints accept thinking's plans at 95% precision; used as LLM-Modulo critics on the fallback, do they raise the ladder? | if the interval is above 0, fresh seeds 17–19; else LLM-Modulo's edge is stated as its complete hand-written critics |
 | **Solver-owned search on trips** (PREREG_NPSAT, queued) | the fallback fails in the model's plan generator; does the CP-SAT interface (the solver searches city orders and days) settle those trips? | if a ladder gains with the interval above 0, fresh seeds 17–19; else the trip residual is stated as the model's reading of a plan's shape |
 
 <details><summary><b>Closed verdicts (22)</b></summary>
