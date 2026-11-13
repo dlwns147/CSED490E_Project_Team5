@@ -291,7 +291,8 @@ DCL = {"H1": (["gp", "lgp"], [1, 2, 3], ("q8b", None), ("q8b", None), ("q8b", No
        "H4": (["gp", "lgp"], [1, 2, 3, 4, 5, 6], ("oss120", None), ("oss120", None), ("oss120", None)),
        "H5": (["gp"], [1, 2, 3], ("q8bh_dev", None), ("q8bh_dev", 1), ("q8b_dev", 1)),
        # PREREG_PEERT: closure rows for gpt-oss-20b's quick translations of seeds 7-9 (only its gtr rows are used)
-       "P79": (["gp", "lgp"], [7, 8, 9], ("oss20", None), ("q8b", None), ("q8b", None))}
+       "P79": (["gp", "lgp"], [7, 8, 9], ("oss20", None), ("q8b", None), ("q8b", None)),
+       "Q79": (["gp", "lgp"], [7, 8, 9], ("oss120", None), ("q8b", None), ("q8b", None))}   # PREREG_PEERT addendum A
 
 
 def dcl_rows(s, src, h):
@@ -403,19 +404,20 @@ def peert_main():
     for s, src in [("gp", "gridpuzzle"), ("lgp", "lgp")]:
         PZ, R, keys = rows(s, src)
         C = {(x["arm"], x["id"], x["seed"]): x for x in map(json.loads, open(f"{RES}/{s}_conj_close.jsonl"))}
-        p2 = f"{RES}/{s}_oss20_score2.json"
+        tag = sys.argv[sys.argv.index("--peer") + 1] if "--peer" in sys.argv else "oss20"   # addendum A: --peer oss120
+        p2 = f"{RES}/{s}_{tag}_score2.json"
         S2 = json.load(open(p2)) if os.path.exists(p2) else {}
         P = {}
         for sd in sds:
-            f = f"{RES}/{s}_oss20_gtr_s{sd}.jsonl"
+            f = f"{RES}/{s}_{tag}_gtr_s{sd}.jsonl"
             for x in map(json.loads, open(f)) if os.path.exists(f) else []:
                 if "grid" in x or f"gtr|{x['id']}|{sd}" in S2:
                     P[(x["id"], sd)] = {**x, "exact": score(x["grid"], PZ[x["id"]])[0] if "grid" in x else S2[f"gtr|{x['id']}|{sd}"][0]}
         D = {}
-        for h in ["P79", "H3"]:
+        for h in ["P79", "H3", "Q79", "H4"]:
             f = f"{RES}/{s}_dcl_{h}.jsonl"
             for x in map(json.loads, open(f)) if os.path.exists(f) else []:
-                if x["arm"] == "gtr" and x["tag"] == "oss20":
+                if x["arm"] == "gtr" and x["tag"] == tag:
                     D[(x["id"], x["file_seed"])] = x
         ks = [k for k in keys if k[1] in sds and k in P]
 
