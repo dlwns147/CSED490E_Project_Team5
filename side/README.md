@@ -144,6 +144,21 @@ has been published (searched 11-13), so 287 is the bar.
 | HAGeo's candidate rule | unknown | re-implement from the paper | checkpoint (1) |
 | Algebraic fallback | the 146 left: median difficulty 4.5, 11 points; 65 collinearity goals; **63 use an incenter** (vs 22% of solved rows) | an incenter or excenter is one of four algebraic branches, so the proof must pick the component the figure shows | checkpoint (3) |
 
+**Task 2 kit** (`side/kit_h409.py`; frozen inputs in `nlp_data/geo/kit_h409/`, not in the repository: the 409 rows, the 266 reference
+certificates, the reference count and times).
+- Score: `python side/kit_h409.py score <kit dir> <your cert dir> [--times <your run rows .jsonl>]... [--cores C] [--workers W]`. A row counts
+  only from its certificate: bound to the frozen statement (same statement, same goal, every fact about the statement's points given by the
+  construction, read up to point order and merged lines and circles), accepted by `geo_check.py`, and every step and the goal true on 8 of 8
+  fresh figures. It prints the count by band, rows gained and lost against the reference with a sign test, and CPU from your run rows.
+- Soundness control: `python side/kit_h409.py control <kit dir>`: 737 tampered certificates (a false goal; the false goal also assumed as a
+  fact; one coefficient doubled). A sound judge counts none. If you add a new kind of proof step, extend `geo_check.py` and this kit together
+  and the control must still count 0.
+- Kit checked (2026-11-13 15:0x UTC, jobs 1436350 and the control rerun): it reproduces the reference count exactly, **263**, losing the same
+  3 proved rows to fresh figures (2016 IranGOA P1, 2017 CTST P14, 2020 AQGO P3); the control counts **0 of 737**. Two kit faults were found
+  and fixed on the way: Newclid lists a different subset of each circle's facts from build to build (binding now reads merged circles), and
+  a plant with a repeated point is degenerate, not false. `geo_check.py` alone rejects all 266 false goals; the kit's binding is still needed
+  because the checker takes the certificate's statement facts as given.
+
 **Suggested split for the teammate (11-13, fourth pass), in order, each a coding task with a number to beat:**
 1. **Warm-up inside task 2 (days):** the missing constructions (`eq_trapezoid`) and the two build errors, then the greedy + random portfolio.
    Expected 271–277 counted; this alone passes HAGeo at K = 2,048 (263).

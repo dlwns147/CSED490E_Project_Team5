@@ -1494,3 +1494,7 @@ about 0 (the same search, cut at the same time).
   rows still left and the CPU to reach 287.
 - 287 or fewer: the remaining gap is the room for levers 1–3 (HAGeo's candidate rule, a faster closure, the algebraic fallback), each
   measured at matched CPU against this curve.
+
+### SIDE-GT-H409-CPU, CPU-P3 (2026-11-13 15:0x UTC): holds
+The task-2 kit reproduces the reference count exactly (263; the same 3 proved rows lost at the fresh-figure rule) and its control counts
+0 of 737 tampered certificates. CPU-P1/P2 wait for the 37 shards (28,800 s per row).

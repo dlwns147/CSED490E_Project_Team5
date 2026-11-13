@@ -18,9 +18,9 @@ usage:
   python side/kit_h409.py control <kit dir> [--workers W]
   python side/kit_h409.py build <kit dir> <reference run dir>      (once, by us: freezes rows, reference certificates and counts)
 
---control scores planted false certificates made from the reference certificates, three per certificate: (a) the statement's goal
-replaced by a false relation of the same kind (false on two figures by at least 1e-3), the proof unchanged; (b) the same false goal
-assumed as a fact of the statement (a prover that assumes what it proves); (c) one coefficient of the goal's combination doubled (goals other than cyclic and midp, which geo_check reads from
+--control scores planted false certificates made from the reference certificates, three per certificate: (a) the goal replaced by a
+false relation of the same kind (false on two figures by at least 1e-3), the proof unchanged (reported also for geo_check alone); (b) the
+same false goal assumed as a fact of the statement (a prover that assumes what it proves); (c) one coefficient of the goal's combination doubled (goals other than cyclic and midp, which geo_check reads from
 groups or from any one of several combinations). A sound
 judge counts none of them. The kit dir holds rows.jsonl (the 409 frozen statements), certs/ (reference certificates), ref.json (the
 reference count and times); frozen copies, not in the repository."""
@@ -35,26 +35,70 @@ SKIP = ("given_", "const", "tdiff", "cyclic_group")
 KNOWN = {"coll", "para", "perp", "cong", "half", "eqangle", "eqratio", "cyclic", "circle", "sqperp", "sqcong", "sqmid", "sqmedian", "simtri",
          "simtri2"}   # the kinds geo_closure.num_fact checks; it passes any other kind, so the kit checks midp itself and rejects the rest
 BANDS = [(1, 3), (3, 4), (4, 5), (5, 6), (6, 7.01)]
+LIMIT = int(os.environ.get("KIT_LIMIT", "900"))   # seconds per certificate
 CERT = re.compile(r"h409_(.+)_(\d+)_sat\.txt\.json$")
 
 
+def key(F):
+    """a fact up to the symmetries of its statement (point order on a line or circle, the order of pairs), so that the same fact written
+    in another order compares equal; kinds without a known symmetry compare as written"""
+    k, *a = F
+    S, P = frozenset, lambda i: frozenset(a[i:i + 2])
+    if k in ("coll", "cyclic", "collx"):
+        return k, S(a)
+    if k in ("para", "perp", "cong", "sqcong", "sqperp"):
+        return k, S([P(0), P(2)])
+    if k == "midp":
+        return k, a[0], S(a[1:])
+    if k == "circle":
+        return k, a[0], S(a[1:])
+    if k in ("eqangle", "eqratio") and len(a) == 8:
+        l = [P(0), P(2), P(4), P(6)]
+        forms = [(0, 1, 2, 3), (2, 3, 0, 1), (1, 0, 3, 2), (3, 2, 1, 0), (0, 2, 1, 3), (1, 3, 0, 2), (2, 0, 3, 1), (3, 1, 2, 0)]
+        return k, min(tuple(tuple(sorted(l[i])) for i in f) for f in forms)
+    return (k, *a)
+
+
+def groups(F, kind, share):
+    """the construction's lines (kind coll, share 2) or circles (kind cyclic, share 3): its facts of that kind merged while two share that
+    many points. Newclid lists a different subset of each circle's 4-point facts from build to build, so a certificate's fact is checked
+    against the merged circle, not against the list"""
+    G = [set(q[1:]) for q in F if q[0] == kind]
+    merged = True
+    while merged:
+        merged = False
+        for i in range(len(G)):
+            for j in range(i + 1, len(G)):
+                if len(G[i] & G[j]) >= share:
+                    G[i] |= G.pop(j)
+                    merged = True
+                    break
+            if merged:
+                break
+    return G
+
+
 def stmt(dsl):
-    """the statement's figure facts and goal as geo_closure.cert_file reads them"""
+    """the statement's figure facts (up to symmetry), its lines and circles, and its goal, as geo_closure.cert_file reads them"""
     n, x, f, g = GC.figure(dsl)
-    return n, x, {tuple(q[:-1] if q[-1] == "_" else q) for q in f}, tuple(g[0])
+    f = [tuple(q[:-1] if q[-1] == "_" else q) for q in f]
+    return n, x, ({key(q) for q in f}, {"coll": groups(f, "coll", 2), "cyclic": groups(f, "cyclic", 3)}), tuple(g[0])
 
 
 def bound(cert, dsl):
     """None if the certificate proves the frozen statement, else the reason"""
     if cert.get("dsl") != dsl:
         return "another statement"
-    n, _, F, g = stmt(dsl)
+    n, _, (F, L), g = stmt(dsl)
     if tuple(cert["goal"]) != g:
         return "another goal"
     aux = {nm for nm, _ in cert["defs"]}
     for f in cert["facts"]:
-        if not aux & set(f[1:]) and tuple(f) not in F:
-            return f"fact {f} is not given by the construction"
+        if aux & set(f[1:]) or key(tuple(f)) in F:
+            continue
+        if f[0] in L and any(set(f[1:]) <= G for G in L[f[0]]):
+            continue
+        return f"fact {f} is not given by the construction"
     return None
 
 
@@ -122,20 +166,46 @@ def band(d):
     return next(k for k, (a, b) in enumerate(BANDS) if a <= d < b)
 
 
+class _Late(Exception):
+    pass
+
+
+def _alarm(sec):
+    """a per-item time limit in the worker (a statement whose figure never builds must not stall the kit)"""
+    import signal
+
+    def late(*_):
+        raise _Late()
+    signal.signal(signal.SIGALRM, late)
+    signal.alarm(int(sec))
+
+
 def _job(a):
     rid, dsl, path = a
     try:
         cert = json.load(open(path))
     except Exception as e:
         return rid, False, f"unreadable: {type(e).__name__}", 0.0
-    return (rid, *judge(cert, dsl))
+    t0 = time.time()
+    _alarm(LIMIT)
+    try:
+        return (rid, *judge(cert, dsl))
+    except _Late:
+        return rid, False, f"judge took over {LIMIT} s", time.time() - t0
+    finally:
+        _alarm(0)
 
 
 def pmap(f, xs, workers):
+    out = []
     if workers > 1:
         from multiprocessing import get_context
         with get_context("fork").Pool(workers) as pool:
-            return list(pool.imap_unordered(f, xs))
+            for k, r in enumerate(pool.imap_unordered(f, xs), 1):
+                out.append(r)
+                if k % 25 == 0:
+                    print(f"  ... {k} of {len(xs)}", file=sys.stderr, flush=True)
+        return out
     return list(map(f, xs))
 
 
@@ -182,23 +252,17 @@ def score(kit, cdir, times, cores, workers):
 
 
 def false_goal(dsl, g, rng):
-    """a relation of the goal's kind on the statement's points, false on figures 0 and 1 by at least 1e-3 -> (new dsl, goal) or None"""
+    """a relation of the goal's kind on the statement's points, false on figures 0 and 1 by at least 1e-3, or None"""
     figs = [GC.figure(dsl, seed=s) for s in (0, 1)]
     names = figs[0][0]
     for _ in range(200):
         a = list(g[1:])
         a[rng.randrange(len(a))] = rng.choice(names)
         cand = (g[0], *a)
-        if cand == tuple(g):
-            continue
-        if all(not fact_ok_tol(cand, dict(zip(f[0], f[1]))) for f in figs):
-            body = dsl.split(" ? ")[0]
-            new = f"{body} ? {' '.join(cand)}"
-            try:
-                if tuple(GC.figure(new)[3][0]) == cand:
-                    return new, cand
-            except Exception:
-                continue
+        if g[0] in ("coll", "cyclic", "midp") and len(set(a)) < len(a) or any(a[i] == a[i + 1] for i in range(0, len(a) - 1, 2)):
+            continue   # a repeated point makes the relation degenerate (true on every figure), not false
+        if cand != tuple(g) and all(not fact_ok_tol(cand, dict(zip(f[0], f[1]))) for f in figs):
+            return cand
     return None
 
 
@@ -212,6 +276,16 @@ def fact_ok_tol(F, C, tol=1e-3):
 
 
 def _plants(a):
+    _alarm(4 * LIMIT)
+    try:
+        return _plants1(a)
+    except _Late:
+        return [(a[0], "time limit", (False, f"plants took over {4 * LIMIT} s"))]
+    finally:
+        _alarm(0)
+
+
+def _plants1(a):
     rid, dsl, path, seed = a
     cert = json.load(open(path))
     rng = random.Random(seed)
@@ -223,9 +297,15 @@ def _plants(a):
         except Exception:
             fg = None
     if fg:
-        new, cand = fg
-        out.append((rid, "a false goal", judge(dict(cert, dsl=new, goal=list(cand)), new)[:2]))
-        out.append((rid, "the false goal assumed", judge(dict(cert, dsl=new, goal=list(cand), facts=cert["facts"] + [list(cand)]), new)[:2]))
+        bad = dict(cert, goal=list(fg))
+        out.append((rid, "a false goal", judge(bad, dsl)[:2]))
+        try:
+            CK.check(bad)
+            alone = (True, "")
+        except Exception as e:
+            alone = (False, f"geo_check: {str(e)[:60]}")
+        out.append((rid, "a false goal, geo_check alone", alone))
+        out.append((rid, "the false goal assumed", judge(dict(bad, facts=cert["facts"] + [list(fg)]), dsl)[:2]))
     ch = [c for c in cert["chases"] if c["ctx"] == -1]
     if ch and ch[0]["rows"] and cert["goal"][0] not in ("cyclic", "midp"):   # these goals are checked by groups or by any one of several combinations
         k = sorted(ch[0]["rows"])[0]
@@ -249,7 +329,9 @@ def control(kit, workers):
                 w = w.split(":")[0] if w.startswith(("geo_check", "fact")) else w.split(",")[0]
                 why[w] = why.get(w, 0) + 1
         print(f"control, {kind}: {len(xs)} plants; counted {len(bad)} (must be 0) {bad}; rejected by {why}")
-    print(f"control: {len(res)} plants from {len(C)} reference certificates; counted {sum(ok for _, _, (ok, _) in res)} (must be 0)")
+    J = [ok for _, kind, (ok, _) in res if "alone" not in kind]
+    print(f"control: {len(J)} plants from {len(C)} reference certificates; counted {sum(J)} (must be 0); the 'geo_check alone' line is "
+          "the checker without the kit's binding, for reference")
 
 
 def build(kit, run):
@@ -268,7 +350,7 @@ def build(kit, run):
         for l in open(f):
             x = json.loads(l)
             T[x["id"]] = {"sec": x.get("sec"), "proved": x.get("proved"), "timeout": x.get("timeout"), "err": x.get("err")}
-    res = pmap(_job, [(r["id"], r["dsl"], os.path.join(kit, "certs", os.path.basename(C[r["id"]]))) for r in rows if r["id"] in C], 8)
+    res = pmap(_job, [(r["id"], r["dsl"], os.path.join(kit, "certs", os.path.basename(C[r["id"]]))) for r in rows if r["id"] in C], WORKERS)
     counted = sorted(i for i, ok, _, _ in res if ok)
     json.dump({"counted": counted, "times": T, "note": "SIDE-GT-H409 (jobs 1341669-70, certificates 1344459, fix 1344462): 1,800 s on one "
                "core per row, k = -300, GT_SOUND GT_STRICT GT_SQ GT_SECOND GT_LUBY"}, open(os.path.join(kit, "ref.json"), "w"))
@@ -278,9 +360,13 @@ def build(kit, run):
             print(f"  not counted {i}: {why}")
 
 
+WORKERS = 8
+
+
 def main():
+    global WORKERS
     opt = lambda k, d: sys.argv[sys.argv.index(k) + 1] if k in sys.argv else d
-    workers = int(opt("--workers", 1))
+    workers = WORKERS = int(opt("--workers", 8 if sys.argv[1] == "build" else 1))
     if sys.argv[1] == "build":
         return build(sys.argv[2], sys.argv[3])
     if sys.argv[1] == "control":
