@@ -59,7 +59,7 @@ Mitra-Baral has only 19 such puzzle-seeds (of 564), so about +0.5.
 - **Not a property of the puzzles:** 47 of the 52 puzzles involved have a right one-solution translation in some stored run, so the puzzles are
   unique under a right reading; both translators drop the same constraint. Which one is read next (mechanism run, `python poc/gp_conj.py why`).
 
-### Mechanism (exploratory, 2026-11-13 04:5x UTC; written after the result above, before the closure run below)
+### Mechanism (exploratory, 2026-11-13 04:3x UTC; written after the result above, before the closure run below)
 
 `python poc/gp_conj.py why` (job 1420067): for 108 bucket puzzle-seeds with gold in both sets and a right one-solution translation of the same
 puzzle in some stored run, each wrongly shared grid was tested against that right translation, expression by expression. 329 of 372 such grids
@@ -78,3 +78,14 @@ it is a hand-stated rule, so it is not a method candidate as it stands (hand-wri
 - right count-1 programs broken by the closure (count 0 or another grid): under 2%;
 - if both hold, the residual loss is mostly one convention, and the question becomes how the translator learns it without labels (the count
   reward gives no gradient on puzzles where no sample reaches one solution).
+
+**Closure diagnostic result (2026-11-13 04:3x UTC, job 1420619):** both predictions were too low on the gain and the harm prediction failed for
+`gtrt`.
+- GridPuzzle bucket: the closed `lf` or `gtrt` program has one right solution on **150 of 177** (85%; predicted 40%). Count-2 programs settled:
+  `lf` 127 right, 2 wrong of 228; `gtrt` 204 right, 0 wrong of 374.
+- Right count-1 programs broken (all to no solution): `lf` 5/746 (0.7%), `gtrt` 26/734 (3.5%, above the predicted 2%); Mitra-Baral 2/399 and
+  34/437. Wrong count-1 programs sent on: `lf` 22/56.
+- Ladder, closure on every program: GridPuzzle 88.3% at 9.70 ktok, +14.6 [+10.7, +18.9]; Mitra-Baral +4.7 [+1.7, +8.4]. Closure only on
+  programs with several solutions (never changes a count-1 program): 87.3% at 9.07 ktok, +13.9 [+10.0, +18.1]; Mitra-Baral +3.1 [+0.8, +6.1].
+- So one dropped convention explains most of the remaining loss. These numbers were read on the data the rule came from; the held-out test is
+  PREREG_DCL.
