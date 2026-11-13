@@ -61,7 +61,7 @@ New types are welcome after a related-work check.
 - voting over more quick samples;
 - computational checks of natural-language proofs (SIDE-PG, SIDE-PF).
 
-OptMATH is partly broken: its statements omit what its gold answers need. MAMO and OptiBench have many bad labels too: on the expert-audited subsets (Xiao et al. 2025; `OR_CLEAN=1`, `poc/or_clean.py`) accuracies rise about 15 points and every re-run verdict holds (FINDINGS 2026-11-13 05:4x).
+OptMATH is partly broken: its statements omit what its gold answers need. MAMO and OptiBench have many bad labels too: on the expert-audited subsets (Xiao et al. 2025; `OR_CLEAN=1`, `poc/or_clean.py`) accuracies rise about 15 points and every re-run verdict holds (FINDINGS 2026-11-13 05:2x).
 
 ## 3. Scope
 

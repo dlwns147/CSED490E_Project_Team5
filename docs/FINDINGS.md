@@ -7035,7 +7035,7 @@ Job 1382299 (one GPU, queued).
 - **Limits:** a convention of the Puzzle Baron family (GridPuzzle, Mitra-Baral), stated by hand from reading failures and confirmed held out;
   whether a translator can learn it without labels (the count reward gives no gradient where no sample reaches one solution) is open.
 
-## 2026-11-13 05:4x UTC — computation track: about a third of the wrong answers that many models share are bad labels; on the expert-audited subsets every word-problem accuracy rises about 15 points and the verdicts hold
+## 2026-11-13 05:2x UTC — computation track: about a third of the wrong answers that many models share are bad labels; on the expert-audited subsets every word-problem accuracy rises about 15 points and the verdicts hold
 
 - **Why (user, 05:1x UTC: "why are you focusing puzzles?"):** the loop drifted to grids; back to computation. Start from its open loss:
   programs that run and print a wrong value. Wrong values printed identically by ≥3 models (seed 1): OptiBench 188, MAMO 68, OptMATH 59,
