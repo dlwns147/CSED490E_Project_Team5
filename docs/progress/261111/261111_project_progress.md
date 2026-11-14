@@ -1,6 +1,6 @@
 # Progress 11-03 → 11-12 — *Facts First, Think on Failure*
 
-*Updated 2026-11-14 00:3x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
+*Updated 2026-11-14 06:0x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
 
 ## At a glance
 
@@ -177,7 +177,7 @@
 | Amonkar et al. formalizer setting, ZebraLogic (their 100) | Qwen3-32B | thinking 90.0% → ours 96.7% (they report translation losing) | — |
 | Mixture-of-Thought consensus cascade | GridPuzzle, trips | ladder +8.1 / +8.9, trips +9.6 to +11.1 (gpt-oss-20b +1.0) | — |
 | Budget-forced thinking (Qwen3 thinking budget) | all sets | the best baseline is uncut thinking; the ladder beats it | — |
-| LLM-Modulo (critics from each trip's structured constraints, up to 10 replans; Gundawar et al. 2024) | trips, Qwen3-32B and gpt-oss-20b, seeds 4–6 | gpt-oss-20b: **LLM-Modulo 96.0% at 29.3k vs ours 82.3% at 26.6k** (ours −12.3 [−18.1, −6.6] utility); Qwen3-32B rerunning (its first run read bracket-less re-plans as no plan) | GPT-4o 40.0%, Claude-3.5-Sonnet 47.0%; LLMPC GPT-4o 44.6%; Gemini 1.5 Pro 34.8% (NaturalPlan paper) |
+| LLM-Modulo (critics from each trip's structured constraints, up to 10 replans; Gundawar et al. 2024) | trips, Qwen3-32B and gpt-oss-20b, seeds 4–6 | gpt-oss-20b: **LLM-Modulo 96.0% at 29.3k vs ours 82.3% at 26.6k** (ours −12.3 [−18.1, −6.6] utility); Qwen3-32B: **ours 73.0% at 18.2k vs LLM-Modulo about 66.7% at 34.5k** (+14.5 [+6.2, +22.9], replay with the fixed reader; a clean rerun decides) | GPT-4o 40.0%, Claude-3.5-Sonnet 47.0%; LLMPC GPT-4o 44.6%; Gemini 1.5 Pro 34.8% (NaturalPlan paper) |
 
 Reading: answering the solver's first solution without counting stays below thinking; the count and the ladder are what make translation pay. On trips LLM-Modulo wins (so far on gpt-oss-20b): its critics are written by hand from every requirement, so a plan that passes them is the trip's plan (288 of 294 passes right); our check is domain-free and only verifies the model's own reading. The same loop with critics the translations already wrote (PREREG_MCRIT) loses 3.1 utility points: those critics rejected 17 of the 23 re-plans that were the gold plan and accept out-of-order plans, so the hand-written critics' completeness is what LLM-Modulo adds.
 
@@ -212,16 +212,16 @@ Reading: answering the solver's first solution without counting stays below thin
 | **Proofs task 1** (registered run, teammate) | does the teammate's solver reach the reference (20 / 21 whole problems) and pass the soundness control (0 of 267 plants counted)? | if yes, task 1 is done; task 2 (HAGeo-409 coverage, 263 now vs HAGeo 287) next |
 | **Proofs task 2** (teammate, kit ready) | portfolio + missing constructions, then HAGeo's rule from the paper, then an algebraic fallback with component choice: more than 287 certified rows at matched CPU? | the course report's proof result |
 | **Same engine, 16× CPU** (SIDE-GT-H409-CPU, running) | how much of the gap to 287 is compute? | sets the curve every task-2 lever is scored against |
-| **LLM-Modulo on trips** (PREREG_RW B; gpt-oss-20b done: LLM-Modulo ahead by 12.3; Qwen3-32B rerun with the fixed answer reader, started 11-14 00:2x) | does our generic count match a hand-written domain verifier on Qwen3-32B too? | the report's trip comparison with prior work |
-| **Solver-owned search on trips** (PREREG_NPSAT, running) | the fallback fails in the model's plan generator; does the CP-SAT interface (the solver searches city orders and days) settle those trips? | if a ladder gains with the interval above 0, fresh seeds 17–19; else the trip residual is stated as the model's reading of a plan's shape |
+| **LLM-Modulo on trips, Qwen3-32B** (PREREG_RW B; rerun with both answer-reader fixes, started 11-14 05:59) | is our ladder still ahead (replay estimate +14.5) when LLM-Modulo's answers are all read? | the report's trip comparison: Qwen3-32B ahead, gpt-oss-20b behind |
 
-<details><summary><b>Closed verdicts (24)</b></summary>
+<details><summary><b>Closed verdicts (25)</b></summary>
 
 | Experiment | Result | Decision |
 |---|---|---|
 | GPF | composed method once on fresh seeds 14–16: GridPuzzle 93.3% vs 60.9% (+35.9), Mitra-Baral 96.5% vs 87.9% (+11.1) | headline numbers |
 | DCLC | closure as a check on one-solution quick programs: +0.45 [+0.20, +0.75] held out (four models), +1.8 / +1.4 on fresh seeds | joins steps ① and ② |
 | PEERT-B, B2 | gpt-oss-120b quick step on trips, fresh seeds: +3.4 (Qwen3-32B), +3.3 (gpt-oss-20b) | in the trip method |
+| NPSAT | CP-SAT interface for the trip fallback (the solver searches orders and days): every ladder loses (add −2.9 [−3.6, −2.1], replace −8.9, quick first −0.8); 199 of 300 CP-SAT programs never run after 3 rounds; 2 of 80 fall-through trips settled | closed; the trip residual is the model's reading of a plan's shape, not search |
 | MCRIT | the three paid programs' constraints as LLM-Modulo critics on the trip fallback: −3.1 [−5.1, −1.0] utility (+1.7 accuracy at 9.5k more tokens); accepted re-plans right 6 of 10; the critics rejected 17 of 23 re-plans that were the gold plan | closed; LLM-Modulo's edge is its complete hand-written critics |
 | Trip repair (IDEAS 52, exploratory) | search near thinking's fallback plan for one the paid programs' constraints accept, 0 tokens: generic moves find 11, 2 right (the constraints accept out-of-order plans; the shape lives in `candidates()`); trip-shaped moves +0.7 points | closed; thinking's fallback plans are far from gold (6 positions at the median) |
 | PEERT | gpt-oss-20b quick translation as step ②, held-out seeds 7–9: GridPuzzle +4.7 [+2.8, +7.0], Mitra-Baral +4.0 [+1.7, +6.9]; gpt-oss-120b instead: +2.6 [+0.5, +4.7] more (92.9% at 4.6k) | joins the method; gpt-oss-120b named, gpt-oss-20b on 3090s |

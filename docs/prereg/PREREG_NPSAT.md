@@ -37,3 +37,19 @@ than +1 (quick translations of trips fail the generator in both interfaces).
   the model's reading of a plan's shape, with the measured counts.
 - Either way, report how many of the 80 fall-through trips `trt` settles, and how often its plans keep a wrong city order with every
   stated requirement met (the 16:5x reading, in this interface).
+
+## Result (written 2026-11-14 06:0x UTC; `python3 poc/gp_conj.py npsat`, Qwen3-32B seeds 4–6, 300 trip-seeds, corrected thinking rows)
+
+| Ladder | Accuracy | Tokens per trip-seed | − current, utility |
+|---|---|---|---|
+| Current (`trc` → gpt-oss-120b `trc` → `trct` → `think`) | 73.0% | 18.2k | — |
+| (a) `trt` in place of `trct` | 66.0% | 22.0k | **−8.9 [−13.2, −5.2]** |
+| (b) `trt` added after `trct` | 73.0% | 24.0k | **−2.9 [−3.6, −2.1]** (NPSAT-P1) |
+| (c) `tr` before `trct` | 73.0% | 19.9k | **−0.8 [−1.0, −0.7]** (NPSAT-P3) |
+
+NPSAT-P1 (about +2, interval including 0) is wrong: −2.9 with the interval below 0. NPSAT-P2 (within ±3) is wrong: −8.9. NPSAT-P3 (less
+than +1) holds. **Decision: closed** (no ladder above current). On the 80 fall-through trip-seeds `trt` settles 2 (1 right), `tr` 0. The
+CP-SAT interface fails before any search: `trt` reaches one plan on 55 of 300 (52 right) against `trct`'s 197 (190 right); 199 of its 300
+programs never run after 3 rounds (KeyError 41, NameError 32, AttributeError 31, TypeError 21, IndentationError 19, other API misuse), and 27
+overflow the 32,768-token window during feedback rounds. `tr` (quick) runs on 2 of 300. So the measured residual is not the solver's search: the
+model cannot write a working CP-SAT model of a trip in 3 rounds, and in the declarations interface, where it can, it misreads the plan's shape.

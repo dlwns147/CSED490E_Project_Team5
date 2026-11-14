@@ -691,5 +691,41 @@ def mcrit_main():
         print(f"   MCRIT-P1 new - current, {unit}: {sum(d) / len(d):+.1f} [{bs[250]:+.1f}, {bs[9749]:+.1f}] over {len(ids)} trips")
 
 
+def npsat_main():
+    """PREREG_NPSAT (NPSAT-P1..P3): current trip ladder (trc -> peer trc -> trct -> think) against (a) trt in place of trct, (b) trt added after
+    trct, (c) tr before trct; every step's tokens counted, paired over trips. usage: npsat [--main q32] [--peer oss120] [--seeds 4,5,6]"""
+    arg = lambda k, d: sys.argv[sys.argv.index(k) + 1] if k in sys.argv else d
+    main, peer, sds = arg("--main", "q32"), arg("--peer", "oss120"), [int(x) for x in arg("--seeds", "4,5,6").split(",")]
+    L = lambda tag, arm, sd: {x["id"]: x for x in map(json.loads, open(f"{RES}/np_{tag}_{arm}_s{sd}.jsonl"))}
+    LAD = {"current": ["trc", "peer", "trct"], "a": ["trc", "peer", "trt"], "b": ["trc", "peer", "trct", "trt"], "c": ["trc", "peer", "tr", "trct"]}
+    res, fall = [], []
+    for sd in sds:
+        M = {a: L(main, a, sd) for a in ["trc", "trct", "tr", "trt", "think"]}
+        M["peer"] = L(peer, "trc", sd)
+        for i in M["think"]:
+            out = {}
+            for k, steps in LAD.items():
+                tok = 0
+                for a in steps:
+                    tok += M[a][i]["tokens"]
+                    if M[a][i]["count"] == 1:
+                        out[k] = (M[a][i]["exact"], tok)
+                        break
+                else:
+                    out[k] = (M["think"][i]["exact"], tok + M["think"][i]["tokens"])
+            res.append((i, out))
+            if all(M[a][i]["count"] != 1 for a in LAD["current"]):
+                fall.append((M["trt"][i]["count"] == 1, M["trt"][i]["exact"], M["tr"][i]["count"] == 1, M["tr"][i]["exact"]))
+    ids = sorted({r[0] for r in res})
+    for k in LAD:
+        print(f"trips {main}, seeds {sds}, ladder {k}: {100 * sum(r[1][k][0] for r in res) / len(res):.1f}% at {sum(r[1][k][1] for r in res) / len(res) / 1000:.2f} ktok")
+    print(f"   fall-through {len(fall)}: trt settles {sum(f[0] for f in fall)} (right {sum(f[0] and f[1] for f in fall)}), tr settles {sum(f[2] for f in fall)} (right {sum(f[2] and f[3] for f in fall)})")
+    rng = random.Random(0)
+    for k, name in [("b", "NPSAT-P1 (b) add"), ("a", "NPSAT-P2 (a) replace"), ("c", "NPSAT-P3 (c) quick first")]:
+        d = [sum(U(*r[1][k]) - U(*r[1]["current"]) for r in res if r[0] == i) / sum(r[0] == i for r in res) for i in ids]
+        bs = sorted(sum(d[rng.randrange(len(d))] for _ in d) / len(d) for _ in range(10000))
+        print(f"   {name} - current, utility: {sum(d) / len(d):+.1f} [{bs[250]:+.1f}, {bs[9749]:+.1f}] over {len(ids)} trips")
+
+
 if __name__ == "__main__":
-    {"run": run_main, "why": why_main, "close": close_main, "dcl": dcl_main, "dcleval": dcleval_main, "peert": peert_main, "peertrip": peertrip_main, "rwtrip": rwtrip_main, "mcrit": mcrit_main, "dcl1": dcl_main, "dclc": dclc_main, "gpf": gpf_main}.get(sys.argv[1], eval_main)()
+    {"run": run_main, "why": why_main, "close": close_main, "dcl": dcl_main, "dcleval": dcleval_main, "peert": peert_main, "peertrip": peertrip_main, "rwtrip": rwtrip_main, "mcrit": mcrit_main, "npsat": npsat_main, "dcl1": dcl_main, "dclc": dclc_main, "gpf": gpf_main}.get(sys.argv[1], eval_main)()

@@ -65,3 +65,12 @@ and 51 of those 102 never passed the critics (of 84 that never passed). The part
 with the fixed reader as tag `q32fx` (same prompts, critics, seeds, 10 rounds, 32,000 tokens; second server, GPU 7 for seeds 4–5 and GPU 6 for seed 6 after the old lane was stopped at 282 rows), and **RW-P1 for
 Qwen3-32B is decided on the rerun** (`python3 poc/gp_conj.py rwtrip --main q32 --modulo-tag q32fx`). The old rows are reported only as the
 under-read version. gpt-oss-20b is not rerun: 28 of its 491 rounds stopped with no plan read, and it already passed 294 of 300.
+
+**Second reader bug, before the rerun's verdict (written 2026-11-14 06:0x UTC).** The `q32fx` rerun ended at 05:xx (all 300): ours 73.0% vs
+LLM-Modulo 62.7%, +20.7 [+12.3, +29.5] utility. Its stored round texts show a second form the reader missed: the plan wrapped in a dict,
+`{"plan": [...]}`, in 215 rounds (152 of them first rounds); every such round went back as "no plan was given". Fixed in `np_extract` (a
+plan-shaped list inside a dict is read). A replay of the stored rounds with the fix (`results/tmp_modreplay.py`: stop at the first re-read round
+the critics pass; approximate, since later rounds followed a "no plan" message) gives LLM-Modulo 66.7% at 34.5k and ours − LLM-Modulo +14.5
+[+6.2, +22.9] utility, +6.3 [+0.0, +13.0] accuracy. **RW-P1 for Qwen3-32B is decided on a second rerun with both fixes** (tag `q32fx2`, second
+server GPUs 6–7, started 05:59); the replay is reported as the estimate until then. The thinking and direct arms have no dict-wrapped answers
+(1 of all stored rows).

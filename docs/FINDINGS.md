@@ -7195,3 +7195,19 @@ Job 1382299 (one GPU, queued).
   in 102 rows; 51 of those never passed the critics (of 84 that never passed). The partial read (ours 76.8% vs LLM-Modulo 70.0%, +16.3
   [+7.2, +25.8]) is therefore not the verdict. The rows keep no text, so all 300 rerun with the fixed reader as `q32fx` (PREREG_RW note,
   second server GPUs 6–7, started 00:2x; the old lane was stopped at 282 rows); RW-P1 for Qwen3-32B is decided on the rerun. The `modulo` arm now stores each round's text tail.
+
+## 2026-11-14 06:0x UTC — NPSAT closed (the model cannot write a working CP-SAT trip model); LLM-Modulo on Qwen3-32B: a second reader bug, ours ahead in every reading
+
+- **NPSAT (PREREG_NPSAT, `python3 poc/gp_conj.py npsat`).** Against the current trip ladder (73.0% at 18.2k): `trt` added after `trct`
+  −2.9 [−3.6, −2.1] utility, `trt` in place of `trct` −8.9 [−13.2, −5.2], quick `tr` first −0.8 [−1.0, −0.7]; closed. `trt` reaches one plan
+  on 55 of 300 (52 right; `trct` 197, 190 right) and settles 2 of the 80 fall-through trips. 199 of its 300 programs never run after 3
+  feedback rounds (KeyError, NameError, AttributeError, TypeError, IndentationError: API misuse), 27 overflow the 32k window. Handing the search
+  to the solver does not reach the fallback's trips because the model cannot state them in CP-SAT; in the declarations interface it can, and
+  misreads the plan's shape there (IDEAS 52, MCRIT). The course report states the trip residual as that, with these counts.
+- **LLM-Modulo, Qwen3-32B (PREREG_RW B).** The `q32fx` rerun (bracket-less plans read) finished: LLM-Modulo 62.7% at 39.0k against ours
+  73.0% at 18.2k (+20.7 [+12.3, +29.5]). Its stored texts showed a second missed form, `{"plan": [...]}`, in 215 of 1,550 rounds (152 first
+  rounds), each sent back as "no plan". Reader fixed; a replay of the stored rounds with the fix gives LLM-Modulo 66.7% at 34.5k and ours
+  +14.5 [+6.2, +22.9] (approximate: later rounds followed a "no plan" message). A second rerun with both fixes (`q32fx2`) decides RW-P1. In
+  every reading Qwen3-32B is ahead with our ladder, while gpt-oss-20b is behind LLM-Modulo (−12.3): with Qwen3-32B the critics pass only
+  about 2 in 3 trips within 10 rounds (116 of 300 use all 10), with gpt-oss-20b 294 of 300 in 1.6 rounds. LLM-Modulo's gain depends on the
+  model acting on the critics' list; our ladder's does not.

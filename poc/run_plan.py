@@ -131,7 +131,8 @@ def np_norm(plan):
 
 def np_extract(text):
     """the last JSON list in an answer that reads as a plan; with none, the last run of {city, start, end} objects separated only by commas and whitespace
-    (11-13 23:xx: Qwen3-32B thinking often ends with the objects and no brackets, 56 of 300 rows on seeds 4-6, scored as no plan before)"""
+    (11-13 23:xx: Qwen3-32B thinking often ends with the objects and no brackets, 56 of 300 rows on seeds 4-6, scored as no plan before);
+    a plan inside a dict ({"plan": [...]}) is read too (11-14 06:0x)"""
     dec, i, g, runs, end = json.JSONDecoder(), 0, None, [], None
     t = text or ""
     while i < len(t):
@@ -140,7 +141,11 @@ def np_extract(text):
                 x, n = dec.raw_decode(t, i)
                 if isinstance(x, list):
                     g = x if g is None or np_norm(x) or not np_norm(g) else g
-                elif isinstance(x, dict) and {"city", "start", "end"} <= set(x):
+                elif isinstance(x, dict) and not {"city", "start", "end"} <= set(x):   # {"plan": [...]} (11-14: 152 of 300 first LLM-Modulo rounds)
+                    for v in x.values():
+                        if isinstance(v, list) and np_norm(v):
+                            g = v
+                elif isinstance(x, dict):
                     if runs and re.fullmatch(r"[\s,]*", t[end:i]):
                         runs[-1].append(x)
                     else:
