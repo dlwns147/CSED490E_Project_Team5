@@ -69,3 +69,8 @@ Ladder − budget-forced think, utility, three seeds, scoring v2 (`gp_eval.py --
 - **BUD-P1 holds.** GridPuzzle, ladder − best baseline: Qwen3-8B +3.5 [−0.7, +7.7], Qwen3-32B-AWQ +11.0 [+7.1, +14.9], gpt-oss-20b +3.9 [+0.5, +7.5]. All three points are above 0, and two intervals are above 0.
 - **BUD-P3 holds.** Mitra-Baral: +0.4 [−5.6, +6.7], +0.8 [−2.5, +4.0], +1.8 [−0.5, +4.1]; all at or above −2.
 - **Decision (as registered):** BUD-P1 and BUD-P2 hold. The paper states that the ladder beats thinking at every budget we tried, with the budget chosen on test. On grids the strongest budget-forced baseline is simply full thinking. The overthinking check finds no cut that beats full thinking in accuracy in any grid cell.
+
+**Rerun of Qwen3-32B trip budgets with the fixed answer reader (written 2026-11-14 06:0x UTC, before any row).** The stored trip `thinkb`
+rows keep no answer text, and at the 8,000-token cut 13 of 100 seed-1 rows stopped with no plan read (the 11-13 / 11-14 reader bugs). Seeds 1–3
+rerun as tag `q32x` (same prompts, budgets and seeds; each cut's text tail is now stored); the BUD trip comparison for Qwen3-32B is re-read on
+these rows. Expected: higher cut accuracy, the ladder still above every cut (69.7% against uncut thinking 55.0%).

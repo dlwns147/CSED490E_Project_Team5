@@ -323,7 +323,7 @@ def main():
         row = {"id": r["id"], "ncity": r["ncity"], "arm": arm, "seed": seed}
         if arm == "thinkb":   # PREREG_BUD: budget-forced thinking at every budget of --budgets, cut from one think (llm.think_cuts)
             C = think_cuts(NP_FMT.format(p=p), BUD, seed=sd)
-            cuts = {str(b): {"exact": pl == gold, "tokens": o["out_tokens"], "cut": o["cut"], "finish": o["finish"], "plan": pl}
+            cuts = {str(b): {"exact": pl == gold, "tokens": o["out_tokens"], "cut": o["cut"], "finish": o["finish"], "plan": pl, "text": (o["text"] or "")[-800:]}
                     for b, o in C.items() for pl in [np_norm(np_extract(o["text"]) or [])]}
             return {**row, "exact": cuts[str(max(BUD))]["exact"], "tokens": cuts[str(max(BUD))]["tokens"], "cuts": cuts}
         if arm in ("think", "direct"):
