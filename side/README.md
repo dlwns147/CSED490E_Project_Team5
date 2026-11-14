@@ -140,7 +140,7 @@ has been published (searched 11-13), so 287 is the bar.
 | Our gap to HAGeo by band | −9 [1, 3), −9 [3, 4), −8 [4, 5), 0 [5, 6), 0 [6, 7] | the gap is all below difficulty 5: rows HAGeo reaches and we time out on | per band, SIDE-GT-H409 |
 | Statements that do not build | 6 (difficulty 1.0–3.3) | `eq_trapezoid` (4) and two `IndexError` in our language | a language fix, then the same engine |
 | Greedy and random points as a portfolio | +8 at 2 × 1,800 s | run both searches; the random arm proves 8 rows the greedy misses | **271** counted (union of the two stored runs) |
-| More CPU, same engine | 146 rows at 16 × 1,800 s | nothing new | running (SIDE-GT-H409-CPU, predicted 288) |
+| More CPU, same engine | 100 of the 146 rows at 16 × 1,800 s | nothing new | **+16 counted → 279** (predicted 288); 2 × / 4 × / 8 × / 16 ×: +9 / +10 / +14 / +16, flattening; 7 of 23 certificates refused by the kit (SIDE-GT-H409-CPU) |
 | HAGeo's candidate rule | unknown | re-implement from the paper | checkpoint (1) |
 | Algebraic fallback | the 146 left: median difficulty 4.5, 11 points; 65 collinearity goals; **63 use an incenter** (vs 22% of solved rows) | an incenter or excenter is one of four algebraic branches, so the proof must pick the component the figure shows | checkpoint (3) |
 

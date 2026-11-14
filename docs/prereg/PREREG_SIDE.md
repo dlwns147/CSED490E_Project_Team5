@@ -1501,3 +1501,16 @@ The task-2 kit reproduces the reference count exactly (263; the same 3 proved ro
 - **Scope cut (2026-11-13 15:4x UTC, before any shard finished):** the 12 shards still waiting (25–36) were cancelled to stop a second
   8-hour wave on the CPU partitions; CPU-P1/P2 are read on the 109 rows of shards 0–24 (rows sorted by difficulty and dealt round-robin,
   so every band is in). The 37 rows left are for the teammate's run through the kit, at a smaller budget if the curve is flat.
+
+### SIDE-GT-H409-CPU, CPU-P1 / CPU-P2 (2026-11-14 08:4x UTC): 279, below HAGeo
+Read through the task-2 kit on the 100 rows the 25 shards ran (4 rows each; the "109" above counted rows dealt, not rows run). The first
+scoring read 0, because the jobs ran the certificate step before the staged proof folders were moved back; certificates were rebuilt from the
+24 stored proofs (job 1444938) and scored. **CPU-P1: +16 counted → 279** (predicted 288, range 273–308; inside the range, below 287).
+Of the 24 proofs, 23 gave certificates; 4 fail `geo_check` (a premise whose linear relation has a nonzero constant: the engine used a fact that
+does not hold as written) and 3 fail the fresh-figure rule (3–5 of 8 hold). **CPU-P2:** counted within 2 / 4 / 8 / 16 times the budget: 9 /
+10 / 14 / 16 (3 within 1 ×: rows the reference run lost to the per-run time accounting). By band: 4 [1, 3), 3 [3, 4), 7 [4, 5), 2 [5, 6), 0
+[6, 7). The curve flattens: +7 from 2 × to 16 ×, +2 over the last doubling.
+**Decision (registered rule, 287 or fewer):** compute is not the gap. Sixteen times the CPU closes 16 of the 24 rows to HAGeo; the remaining
+8, and every row beyond, is the room for the teammate's levers (HAGeo's candidate rule, the portfolio, the algebraic fallback), each scored at
+matched CPU against this curve. The 7 rejected proofs are a second job for the kit: the engine still makes steps the checker refuses, and the
+portfolio (271) must be re-read through the kit for the same reason.

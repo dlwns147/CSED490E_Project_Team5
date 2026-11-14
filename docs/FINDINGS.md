@@ -7218,3 +7218,11 @@ Job 1382299 (one GPU, queued).
   budget (8k: 47.7 → 51.0%). Ladder − cut, utility: +31.9 / +25.3 / +16.0 / +11.9 at 1k / 2k / 4k / 8k (all intervals above 0), uncut thinking
   +8.7 [+2.3, +15.5]; the best baseline is still uncut thinking. Figure `u_budget` updated. Qwen3-8B (10–15 unread per seed at 8k) reruns;
   its first submission failed (34k context did not fit a 24 GB card) and was resubmitted at 16k at 08:0x.
+
+## 2026-11-14 08:4x UTC — Proofs: 16 × the CPU gives 279 of 409, below HAGeo's 287; compute is not the gap
+
+- SIDE-GT-H409-CPU, read through the task-2 kit on 100 uncounted HAGeo-409 rows (28,800 s per row, one core): +16 → 279 (predicted 288,
+  range 273–308). Counted within 2 / 4 / 8 / 16 × the reference budget: 9 / 10 / 14 / 16, flattening. 24 rows proved, 23 certificates, 16
+  counted: 4 refused by `geo_check` (a used premise does not hold as written), 3 by the fresh-figure rule. First scoring read 0: the jobs built
+  certificates before the staged proof folders came back; rebuilt afterwards. The teammate's task 2 now has its baseline curve, and the
+  refused certificates show the kit is needed to count any engine change.
