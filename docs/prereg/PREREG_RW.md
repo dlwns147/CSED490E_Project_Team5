@@ -122,7 +122,7 @@ needs many rounds or ours wins, the mechanism statement is withdrawn and the spl
 **Part C, gpt-oss-20b read (2026-11-14 23:0x UTC; `rwtrip --main oss20 --seeds 17,18,19`).** Ours 79.0% at 24.9k, LLM-Modulo 97.0% at 28.7k,
 thinking 76.3% (critics passed 295 of 300, 291 right, 1.60 rounds). **Ours − LLM-Modulo −16.1 [−21.8, −10.4] utility, −18.0 [−22.7, −13.7]
 accuracy** (predicted about −12, below 0): replicates. The ladder against thinking for gpt-oss-20b: −3.0 [−8.6, +2.8] (seeds 1–3 gave −1.7);
-the gpt-oss-120b quick step +0.4 [−2.0, +2.7] (seeds 4–6 gave +3.3 [+0.2, +6.6]): that step does not replicate for gpt-oss-20b.
+the gpt-oss-120b quick step +0.4 [−2.0, +2.7] (seeds 4–6 gave +3.3 [+1.1, +5.6]): that step does not replicate for gpt-oss-20b.
 **Third extension, written before any row: Qwen3-8B.** By the same mechanism, a model that acts poorly on the critics' list should lose with
 LLM-Modulo. Run: Qwen3-8B `modulo`, seeds 1–3 (its stored ladder, 49.3%), second server GPU 6. Prediction: critics passed on fewer than 200 of
 300 with more than 4 rounds on average; ours − LLM-Modulo above 0. Read with `rwtrip --main q8b --peer none --seeds 1,2,3`.
