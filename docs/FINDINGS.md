@@ -7194,4 +7194,4 @@ Job 1382299 (one GPU, queued).
 - **LLM-Modulo on Qwen3-32B was under-read the same way.** In the 280 rows written by 00:20, 145 rounds stopped normally with no plan read,
   in 102 rows; 51 of those never passed the critics (of 84 that never passed). The partial read (ours 76.8% vs LLM-Modulo 70.0%, +16.3
   [+7.2, +25.8]) is therefore not the verdict. The rows keep no text, so all 300 rerun with the fixed reader as `q32fx` (PREREG_RW note,
-  second server GPU 7, started 00:2x); RW-P1 for Qwen3-32B is decided on the rerun. The `modulo` arm now stores each round's text tail.
+  second server GPUs 6–7, started 00:2x; the old lane was stopped at 282 rows); RW-P1 for Qwen3-32B is decided on the rerun. The `modulo` arm now stores each round's text tail.
