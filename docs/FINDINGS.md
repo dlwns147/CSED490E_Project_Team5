@@ -7226,3 +7226,12 @@ Job 1382299 (one GPU, queued).
   counted: 4 refused by `geo_check` (a used premise does not hold as written), 3 by the fresh-figure rule. First scoring read 0: the jobs built
   certificates before the staged proof folders came back; rebuilt afterwards. The teammate's task 2 now has its baseline curve, and the
   refused certificates show the kit is needed to count any engine change.
+
+## 2026-11-14 11:0x UTC — LLM-Modulo on Qwen3-32B, clean rerun: ours ahead by +14.5; split verdict across models
+
+- PREREG_RW B, Qwen3-32B, both reader fixes (`q32fx2`, 300 trip-seeds): ours 73.0% at 18.2k, LLM-Modulo 66.7% at 34.7k, thinking 55.0%.
+  **Ours − LLM-Modulo +14.5 [+6.7, +22.7] utility, +6.3 [+0.3, +12.3] accuracy.** Critics passed 200 of 300 (all right), 4.47 rounds.
+  With gpt-oss-20b LLM-Modulo is ahead (−12.3). Mechanism: LLM-Modulo's gain is the model's ability to act on the critics' list; gpt-oss-20b
+  fixes plans in 1.6 rounds, Qwen3-32B often never does in 10. Our ladder does not depend on that.
+- Qwen3-8B budget-forced trips re-read: no change (unread rows held no plan). Calendar Scheduling pilot (IDEAS 53): Qwen3-8B thinking 87 of
+  100 at 4.4k tokens, direct 38 at 1.1k; Qwen3-32B and gpt-oss-20b running.

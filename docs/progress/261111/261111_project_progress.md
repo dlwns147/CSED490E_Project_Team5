@@ -1,6 +1,6 @@
 # Progress 11-03 → 11-12 — *Facts First, Think on Failure*
 
-*Updated 2026-11-14 08:4x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
+*Updated 2026-11-14 11:0x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
 
 ## At a glance
 
@@ -25,7 +25,7 @@
 | ZebraLogic, the closest paper's 100 puzzles | Qwen3-32B 90.0% → **96.7%** (paper: translation loses) | Win (+9.1) |
 | GridPuzzle (human-written grids) | Qwen3-8B 60.9% → **93.3%**, 11.5k → 4.6k tokens (trained translator + gpt-oss-120b quick translation + closure + check; fresh seeds 14–16) | Win (+35.9) |
 | Mitra-Baral (small grids) | Qwen3-8B 87.9% → **96.5%**, 6.5k → 1.2k tokens (same) | Win (+11.1 [+5.1, +17.3]) |
-| Trip planning (NaturalPlan) | Qwen3-32B 55.0% → **73.0%** (with gpt-oss-120b quick step, fresh seeds) | Utility win (+12.5 [+6.6, +18.6]); check precision below the registered bar; LLM-Modulo's hand-written critics do better (§4) |
+| Trip planning (NaturalPlan) | Qwen3-32B 55.0% → **73.0%** (with gpt-oss-120b quick step, fresh seeds) | Utility win (+12.5 [+6.6, +18.6]); check precision below the registered bar; vs LLM-Modulo (hand-written critics): ours ahead on Qwen3-32B (+14.5), behind on gpt-oss-20b (−12.3) (§4) |
 | GridPuzzle, gpt-oss-120b | 92.3% → **96.9%**, 9.1k → 5.2k tokens (with the closure; 93.1% without) | Win (+6.5) |
 | AR-LSAT · BFCL agents | ≈ 0 · loses to a public checkpoint (EnvScaler-8B) | Tie · loss |
 
@@ -177,9 +177,9 @@
 | Amonkar et al. formalizer setting, ZebraLogic (their 100) | Qwen3-32B | thinking 90.0% → ours 96.7% (they report translation losing) | — |
 | Mixture-of-Thought consensus cascade | GridPuzzle, trips | ladder +8.1 / +8.9, trips +9.6 to +11.1 (gpt-oss-20b +1.0) | — |
 | Budget-forced thinking (Qwen3 thinking budget) | all sets | the best baseline is uncut thinking; the ladder beats it | — |
-| LLM-Modulo (critics from each trip's structured constraints, up to 10 replans; Gundawar et al. 2024) | trips, Qwen3-32B and gpt-oss-20b, seeds 4–6 | gpt-oss-20b: **LLM-Modulo 96.0% at 29.3k vs ours 82.3% at 26.6k** (ours −12.3 [−18.1, −6.6] utility); Qwen3-32B: **ours 73.0% at 18.2k vs LLM-Modulo about 66.7% at 34.5k** (+14.5 [+6.2, +22.9], replay with the fixed reader; a clean rerun decides) | GPT-4o 40.0%, Claude-3.5-Sonnet 47.0%; LLMPC GPT-4o 44.6%; Gemini 1.5 Pro 34.8% (NaturalPlan paper) |
+| LLM-Modulo (critics from each trip's structured constraints, up to 10 replans; Gundawar et al. 2024) | trips, Qwen3-32B and gpt-oss-20b, seeds 4–6 | gpt-oss-20b: **LLM-Modulo 96.0% at 29.3k vs ours 82.3% at 26.6k** (ours −12.3 [−18.1, −6.6] utility); Qwen3-32B: **ours 73.0% at 18.2k vs LLM-Modulo 66.7% at 34.7k** (ours +14.5 [+6.7, +22.7] utility) | GPT-4o 40.0%, Claude-3.5-Sonnet 47.0%; LLMPC GPT-4o 44.6%; Gemini 1.5 Pro 34.8% (NaturalPlan paper) |
 
-Reading: answering the solver's first solution without counting stays below thinking; the count and the ladder are what make translation pay. On trips LLM-Modulo wins (so far on gpt-oss-20b): its critics are written by hand from every requirement, so a plan that passes them is the trip's plan (288 of 294 passes right); our check is domain-free and only verifies the model's own reading. The same loop with critics the translations already wrote (PREREG_MCRIT) loses 3.1 utility points: those critics rejected 17 of the 23 re-plans that were the gold plan and accept out-of-order plans, so the hand-written critics' completeness is what LLM-Modulo adds.
+Reading: answering the solver's first solution without counting stays below thinking; the count and the ladder are what make translation pay. On trips the verdict splits by model. LLM-Modulo wins with gpt-oss-20b, which fixes a plan from the critics' list in 1.6 rounds; with Qwen3-32B, which often never does in 10 rounds (200 of 300 pass), our ladder wins at half the tokens. Its critics are written by hand from every requirement, so a plan that passes them is the trip's plan (288 of 294 passes right); our check is domain-free and only verifies the model's own reading. The same loop with critics the translations already wrote (PREREG_MCRIT) loses 3.1 utility points: those critics rejected 17 of the 23 re-plans that were the gold plan and accept out-of-order plans, so the hand-written critics' completeness is what LLM-Modulo adds.
 
 ## 5. Second domain: trip planning
 
@@ -210,16 +210,17 @@ Reading: answering the solver's first solution without counting stays below thin
 | Experiment | Question | Depending on the verdict |
 |---|---|---|
 | **Proofs task 1** (registered run, teammate) | does the teammate's solver reach the reference (20 / 21 whole problems) and pass the soundness control (0 of 267 plants counted)? | if yes, task 1 is done; task 2 (HAGeo-409 coverage, 263 now vs HAGeo 287) next |
+| **Calendar Scheduling** (IDEAS 53, pilot running) | NaturalPlan's other task: does thinking leave room (Qwen3-8B 87% at 4.4k) for a cheap count-gated program? | if yes, pre-register the translation arm on Qwen3-32B and gpt-oss-20b, with LLM-Modulo's calendar critics as the prior-work row |
 | **Proofs task 2** (teammate, kit ready) | portfolio + missing constructions, then HAGeo's rule from the paper, then an algebraic fallback with component choice: more than 287 certified rows at matched CPU? | the course report's proof result |
-| **LLM-Modulo on trips, Qwen3-32B** (PREREG_RW B; rerun with both answer-reader fixes, started 11-14 05:59) | is our ladder still ahead (replay estimate +14.5) when LLM-Modulo's answers are all read? | the report's trip comparison: Qwen3-32B ahead, gpt-oss-20b behind |
 
-<details><summary><b>Closed verdicts (26)</b></summary>
+<details><summary><b>Closed verdicts (27)</b></summary>
 
 | Experiment | Result | Decision |
 |---|---|---|
 | GPF | composed method once on fresh seeds 14–16: GridPuzzle 93.3% vs 60.9% (+35.9), Mitra-Baral 96.5% vs 87.9% (+11.1) | headline numbers |
 | DCLC | closure as a check on one-solution quick programs: +0.45 [+0.20, +0.75] held out (four models), +1.8 / +1.4 on fresh seeds | joins steps ① and ② |
 | PEERT-B, B2 | gpt-oss-120b quick step on trips, fresh seeds: +3.4 (Qwen3-32B), +3.3 (gpt-oss-20b) | in the trip method |
+| RW-B (LLM-Modulo on trips) | ours − LLM-Modulo: Qwen3-32B +14.5 [+6.7, +22.7], gpt-oss-20b −12.3 [−18.1, −6.6] (utility) | split: the hand-written verifier wins when the model can act on its critiques |
 | SIDE-GT-H409-CPU | the unchanged proof engine at 16 × the CPU on 100 uncounted HAGeo-409 rows: +16 counted through the kit → 279 (HAGeo 287); +9 / +10 / +14 / +16 at 2 / 4 / 8 / 16 ×; 7 of 23 certificates refused | compute is not the gap; the teammate's levers are scored at matched CPU against this curve |
 | NPSAT | CP-SAT interface for the trip fallback (the solver searches orders and days): every ladder loses (add −2.9 [−3.6, −2.1], replace −8.9, quick first −0.8); 199 of 300 CP-SAT programs never run after 3 rounds; 2 of 80 fall-through trips settled | closed; the trip residual is the model's reading of a plan's shape, not search |
 | MCRIT | the three paid programs' constraints as LLM-Modulo critics on the trip fallback: −3.1 [−5.1, −1.0] utility (+1.7 accuracy at 9.5k more tokens); accepted re-plans right 6 of 10; the critics rejected 17 of 23 re-plans that were the gold plan | closed; LLM-Modulo's edge is its complete hand-written critics |

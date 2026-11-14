@@ -74,3 +74,19 @@ the critics pass; approximate, since later rounds followed a "no plan" message) 
 [+6.2, +22.9] utility, +6.3 [+0.0, +13.0] accuracy. **RW-P1 for Qwen3-32B is decided on a second rerun with both fixes** (tag `q32fx2`, second
 server GPUs 6–7, started 05:59); the replay is reported as the estimate until then. The thinking and direct arms have no dict-wrapped answers
 (1 of all stored rows).
+
+## Part B result, Qwen3-32B (written 2026-11-14 11:0x UTC; `python3 poc/gp_conj.py rwtrip --main q32 --modulo-tag q32fx2`, all 300 rows, both reader fixes)
+
+| Arm (Qwen3-32B, seeds 4–6) | Accuracy | Tokens |
+|---|---|---|
+| Thinking only | 55.0% | 7.2k |
+| Ours (`trc` → gpt-oss-120b `trc` → `trct` → `think`) | **73.0%** | 18.2k |
+| LLM-Modulo (hand-written critics, up to 10 rounds) | 66.7% | 34.7k |
+
+**RW-P1 (Qwen3-32B): ours − LLM-Modulo +14.5 [+6.7, +22.7] utility, +6.3 [+0.3, +12.3] accuracy** (predicted about +4 utility, interval
+including 0). The critics passed 200 of 300 plans (all 200 right), 4.47 rounds on average; 3 of 1,550 rounds had no plan read, each an answer
+saying no plan exists. The replay estimate (+14.5 [+6.2, +22.9]) matched.
+**Decision, both models.** Qwen3-32B: ours ahead; gpt-oss-20b: LLM-Modulo ahead (−12.3 [−18.1, −6.6]). The report states both: a
+hand-written domain verifier wins when the model can act on its critiques (gpt-oss-20b passes the critics on 294 of 300 in 1.6 rounds), and
+our domain-free ladder wins when it cannot (Qwen3-32B passes on 200 of 300 in 4.5 rounds, at twice our tokens). Our check needs no domain code
+either way; the grids, where prior work has no such verifier, carry the general claim.
