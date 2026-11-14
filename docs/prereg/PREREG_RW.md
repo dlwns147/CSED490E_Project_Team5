@@ -100,3 +100,11 @@ seeds no analysis has touched, with the final code. **Run:** seeds 17, 18, 19, Q
 about +12 utility, interval above 0; ours − LLM-Modulo about +14, interval above 0. **Rule:** the report quotes seeds 17–19 as the trip
 result for Qwen3-32B and seeds 4–6 as the development read; if either interval includes 0 on 17–19, the report says the trip result does
 not replicate for that comparison.
+
+**Part C, ladder half read (2026-11-14 16:0x UTC; `python3 poc/gp_conj.py peertrip --main q32 --seeds 17,18,19`).** Qwen3-32B: ladder 74.3% at
+17.8k, thinking 52.7% at 7.2k (3 thinking rows with no plan read, 0 with the old reader's misses): **ladder − thinking +16.4 [+9.5, +23.7]
+utility** (predicted about +12, above 0): replicates. The gpt-oss-120b quick step adds +5.2 [+0.9, +9.8]. LLM-Modulo on seeds 17–19 is still
+running.
+**Extension, written before any gpt-oss-20b seed-17–19 row:** the other half of the split verdict on the same fresh seeds. gpt-oss-20b `trc`
+(low effort), `trct`, `think`, `modulo` (high effort), seeds 17–19, second server GPU 6; the gpt-oss-120b `trc` rows are shared. Prediction from
+seeds 4–6: ours − LLM-Modulo about −12 utility, interval below 0. Same rule: an interval including 0 is reported as not replicated.
