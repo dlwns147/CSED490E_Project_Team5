@@ -74,3 +74,5 @@ Ladder − budget-forced think, utility, three seeds, scoring v2 (`gp_eval.py --
 rows keep no answer text, and at the 8,000-token cut 13 of 100 seed-1 rows stopped with no plan read (the 11-13 / 11-14 reader bugs). Seeds 1–3
 rerun as tag `q32x` (same prompts, budgets and seeds; each cut's text tail is now stored); the BUD trip comparison for Qwen3-32B is re-read on
 these rows. Expected: higher cut accuracy, the ladder still above every cut (69.7% against uncut thinking 55.0%).
+*(07:0x UTC, before any Qwen3-8B rerun row: Qwen3-8B's trip rows at the 8,000-token cut also have 10–15 of 100 per seed with no plan read; seeds
+1–3 rerun as `q8bx` the same way. gpt-oss-20b and gpt-oss-120b have at most 1–8 per cell and are not rerun.)*

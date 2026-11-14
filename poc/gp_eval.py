@@ -596,7 +596,7 @@ def bud_main():
     for s, src in ([("np", None)] if "--np" in sys.argv else [("gp", "gridpuzzle"), ("lgp", "lgp")]):
         Bk = {}
         for k in [1, 2, 3]:
-            f = os.path.join(RES, f"{s}_{tag}_thinkb_s{k}.jsonl")
+            f = os.path.join(RES, f"{s}_{sys.argv[sys.argv.index('--bud-tag') + 1] if '--bud-tag' in sys.argv else tag}_thinkb_s{k}.jsonl")   # --bud-tag q32x: the 11-14 rerun
             for x in map(json.loads, open(f)) if os.path.exists(f) else []:
                 Bk[(x["id"], k)] = x
         if s == "np":
