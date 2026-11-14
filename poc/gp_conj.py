@@ -620,13 +620,14 @@ def peertrip_main():
 
 def rwtrip_main():
     """PREREG_RW part B (RW-P1): ours (main trc -> peer trc -> main trct -> main think) minus LLM-Modulo (main modulo), paired over trips,
-    utility and accuracy. usage: rwtrip [--main q32] [--peer oss120] [--seeds 4,5,6]"""
+    utility and accuracy. usage: rwtrip [--main q32] [--peer oss120] [--seeds 4,5,6] [--modulo-tag q32fx]"""
     arg = lambda k, d: sys.argv[sys.argv.index(k) + 1] if k in sys.argv else d
     main, peer, sds = arg("--main", "q32"), arg("--peer", "oss120"), [int(x) for x in arg("--seeds", "4,5,6").split(",")]
     L = lambda tag, arm, sd: {x["id"]: x for x in map(json.loads, open(f"{RES}/np_{tag}_{arm}_s{sd}.jsonl"))} if os.path.exists(f"{RES}/np_{tag}_{arm}_s{sd}.jsonl") else {}
     res = []
     for sd in sds:
-        M = {a: L(main, a, sd) for a in ["trc", "trct", "think", "modulo"]}
+        M = {a: L(main, a, sd) for a in ["trc", "trct", "think"]}
+        M["modulo"] = L(arg("--modulo-tag", main), "modulo", sd)   # q32fx: the rerun with the 23:1x answer reader
         P = L(peer, "trc", sd)
         for i in M["modulo"]:
             if not all(i in M[a] for a in M) or i not in P:
@@ -651,5 +652,44 @@ def rwtrip_main():
         print(f"   RW-P1 ours - LLM-Modulo, {unit}: {sum(d) / len(d):+.1f} [{bs[250]:+.1f}, {bs[9749]:+.1f}] over {len(ids)} trips")
 
 
+def mcrit_main():
+    """PREREG_MCRIT (MCRIT-P1/P2): current trip ladder (main trc -> peer trc -> main trct -> main think) against the same ladder with think's
+    plan passed through mcrit (answer = mcrit's plan when any2 passed it, else think's plan; mcrit tokens added), paired over trips.
+    usage: mcrit [--main q32] [--peer oss120] [--seeds 4,5,6]"""
+    arg = lambda k, d: sys.argv[sys.argv.index(k) + 1] if k in sys.argv else d
+    main, peer, sds = arg("--main", "q32"), arg("--peer", "oss120"), [int(x) for x in arg("--seeds", "4,5,6").split(",")]
+    L = lambda tag, arm, sd: {x["id"]: x for x in map(json.loads, open(f"{RES}/np_{tag}_{arm}_s{sd}.jsonl"))} if os.path.exists(f"{RES}/np_{tag}_{arm}_s{sd}.jsonl") else {}
+    res, acc = [], []
+    for sd in sds:
+        M = {a: L(main, a, sd) for a in ["trc", "trct", "think", "mcrit"]}
+        P = L(peer, "trc", sd)
+        for i in M["think"]:
+            tok, cur = 0, None
+            for r in (M["trc"][i], P[i], M["trct"][i]):
+                tok += r["tokens"]
+                if r["count"] == 1:
+                    cur = (r["exact"], tok)
+                    break
+            if cur:
+                res.append((i, cur, cur))
+                continue
+            th, m = M["think"][i], M["mcrit"].get(i)
+            new = (m["exact"] if m and m["passed"] else th["exact"], tok + th["tokens"] + (m["tokens"] if m else 0))
+            res.append((i, (th["exact"], tok + th["tokens"]), new))
+            if m:
+                acc.append((m["passed"], m["rounds"] > 0, m["exact"], th["exact"]))
+    ids = sorted({r[0] for r in res})
+    for k, name in [(1, "current"), (2, "with mcrit")]:
+        print(f"trips {main}, seeds {sds}, {name}: {100 * sum(r[k][0] for r in res) / len(res):.1f}% at {sum(r[k][1] for r in res) / len(res) / 1000:.2f} ktok ({len(res)} trip-seeds)")
+    rp = [a for a in acc if a[0] and a[1]]
+    print(f"   fall-through {len(acc)}: thinking right {sum(a[3] for a in acc)}, with mcrit right {sum(a[2] if a[0] else a[3] for a in acc)}; "
+          f"MCRIT-P2 accepted re-plans right {sum(a[2] for a in rp)} of {len(rp)}; accepted at once {sum(a[0] and not a[1] for a in acc)}")
+    rng = random.Random(0)
+    for f, unit in [(lambda r: U(*r[2]) - U(*r[1]), "utility"), (lambda r: 100 * (r[2][0] - r[1][0]), "accuracy")]:
+        d = [sum(f(r) for r in res if r[0] == i) / sum(r[0] == i for r in res) for i in ids]
+        bs = sorted(sum(d[rng.randrange(len(d))] for _ in d) / len(d) for _ in range(10000))
+        print(f"   MCRIT-P1 new - current, {unit}: {sum(d) / len(d):+.1f} [{bs[250]:+.1f}, {bs[9749]:+.1f}] over {len(ids)} trips")
+
+
 if __name__ == "__main__":
-    {"run": run_main, "why": why_main, "close": close_main, "dcl": dcl_main, "dcleval": dcleval_main, "peert": peert_main, "peertrip": peertrip_main, "rwtrip": rwtrip_main, "dcl1": dcl_main, "dclc": dclc_main, "gpf": gpf_main}.get(sys.argv[1], eval_main)()
+    {"run": run_main, "why": why_main, "close": close_main, "dcl": dcl_main, "dcleval": dcleval_main, "peert": peert_main, "peertrip": peertrip_main, "rwtrip": rwtrip_main, "mcrit": mcrit_main, "dcl1": dcl_main, "dclc": dclc_main, "gpf": gpf_main}.get(sys.argv[1], eval_main)()

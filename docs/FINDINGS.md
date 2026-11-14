@@ -7172,3 +7172,26 @@ Job 1382299 (one GPU, queued).
   7 a different city set, and the rest differ from the gold order in 6 positions at the median. Local repair cannot reach them; the model's
   critics are incomplete exactly where a search would exploit them (the shape), which also predicts MCRIT's accepted re-plans will be less
   precise than 95%.
+
+## 2026-11-14 00:3x UTC — MCRIT closed: the paid programs' constraints are too weak to steer re-planning; LLM-Modulo on Qwen3-32B was under-read and reruns
+
+- **MCRIT (PREREG_MCRIT, `python3 poc/gp_conj.py mcrit`, Qwen3-32B seeds 4–6, 300 trip-seeds; corrected thinking rows).**
+
+| Ladder | Accuracy | Tokens per trip-seed |
+|---|---|---|
+| Current (`trc` → gpt-oss-120b `trc` → `trct` → `think`) | 73.0% | 18.2k |
+| With thinking's plan passed through `mcrit` | 74.7% | 27.7k |
+
+  **MCRIT-P1: new − current −3.1 [−5.1, −1.0] utility** (accuracy +1.7 [+0.3, +3.3]); predicted about +1.5 with the interval including 0.
+  **MCRIT-P2 fails:** re-plans that 2 of 3 programs accepted were right 6 of 10 (60%, bar 75%); thinking's plans accepted at once were right
+  6 of 7. On the 80 fall-through trip-seeds right goes 14 → 19, at 35.5k extra tokens each (predicted 18k). **Closed** by the decision rule.
+- **Why.** The critics are incomplete in both directions. Re-plans hit the gold plan 23 times (on 20 trips), and any2 rejected 17 of those
+  23: the gold plan breaks a misread constraint in 2 of the 3 programs on half the fall-through trips (38 of 80 pass offline). And they accept
+  out-of-order plans, since the programs keep a plan's shape in `candidates()` (IDEAS 52). So re-planning wanders: 4.1 re-plans per trip on
+  average, most ending at the round limit. LLM-Modulo's edge on trips is that its critics are complete, written from each trip's structured
+  data. Reading caveat: the lane started before the 23:1x reader fix; 24 of 330 re-plans stopped normally with no plan read. Even if all 24
+  were read and right at the re-plans' 7% gold rate, about 2 more right answers would not offset 3.1 utility points (about 9 answers).
+- **LLM-Modulo on Qwen3-32B was under-read the same way.** In the 280 rows written by 00:20, 145 rounds stopped normally with no plan read,
+  in 102 rows; 51 of those never passed the critics (of 84 that never passed). The partial read (ours 76.8% vs LLM-Modulo 70.0%, +16.3
+  [+7.2, +25.8]) is therefore not the verdict. The rows keep no text, so all 300 rerun with the fixed reader as `q32fx` (PREREG_RW note,
+  second server GPU 7, started 00:2x); RW-P1 for Qwen3-32B is decided on the rerun. The `modulo` arm now stores each round's text tail.

@@ -56,3 +56,12 @@ our 82.3% at 26.6k, about +2 for LLM-Modulo.
 +2 for it. Its critics passed 294 of 300 plans and 288 of those were right; 1.64 rounds on average, 7 runs used all 10. The mechanism: a plan
 that passes critics written from every requirement is the trip's one plan, so LLM-Modulo turns thinking into a verified search, while our
 count check verifies the model's own reading. Qwen3-32B's rows are still running; the decision waits for both models.
+
+**Rerun of LLM-Modulo on Qwen3-32B with the fixed answer reader (written 2026-11-14 00:3x UTC, before any rerun row).** The Qwen3-32B
+`modulo` lane started at 17:52, before the 23:1x reader fix, so a re-plan that ends with the plan's objects and no brackets was read as no
+plan and sent back as "no plan was given". In the 280 rows written by 00:20, 145 rounds stopped normally with no plan read, in 102 rows,
+and 51 of those 102 never passed the critics (of 84 that never passed). The partial read at 00:2x (ours 76.8% vs LLM-Modulo 70.0%, +16.3
+[+7.2, +25.8] utility) therefore under-reads LLM-Modulo. The rows store no answer text, so they cannot be re-read: all 300 trip-seeds rerun
+with the fixed reader as tag `q32fx` (same prompts, critics, seeds, 10 rounds, 32,000 tokens; second server, GPU 7), and **RW-P1 for
+Qwen3-32B is decided on the rerun** (`python3 poc/gp_conj.py rwtrip --main q32 --modulo-tag q32fx`). The old rows are reported only as the
+under-read version. gpt-oss-20b is not rerun: 28 of its 491 rounds stopped with no plan read, and it already passed 294 of 300.

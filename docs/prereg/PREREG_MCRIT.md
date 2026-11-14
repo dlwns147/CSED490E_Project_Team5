@@ -44,3 +44,13 @@ which the arm re-prompts). Both ladders are scored with the corrected thinking r
 corrected thinking plan. (2) The zero-token repair test (IDEAS 52) found that the programs' constraints accept out-of-order plans, since
 they keep a plan's shape in `candidates()`. Expect MCRIT-P2 (≥ 75% of accepted re-plans right) to be at risk when a re-plan breaks the
 shape; the prediction is not changed.
+
+## Result (written 2026-11-14 00:3x UTC; `python3 poc/gp_conj.py mcrit`, all 80 fall-through trip-seeds, corrected thinking rows)
+
+Current ladder 73.0% at 18.2k tokens per trip-seed; with `mcrit` 74.7% at 27.7k. **MCRIT-P1: −3.1 [−5.1, −1.0] utility** (accuracy +1.7
+[+0.3, +3.3]): wrong sign against the predicted +1.5; re-planning cost 35.5k tokens per fall-through trip, about twice the predicted 18k.
+**MCRIT-P2 fails:** accepted re-plans right 6 of 10 (bar 75%); thinking's plans accepted at once right 6 of 7. Fall-through right 14 → 19.
+**Decision: closed.** The report states that the model-written critics are precise when they accept thinking's first plan but too weak to steer
+re-planning: they rejected 17 of the 23 re-plans that were the gold plan, and accept out-of-order plans. LLM-Modulo's advantage on trips is its
+complete, hand-written critics. (24 of 330 re-plans stopped with no plan read under the old reader; reading all of them right would add about 2
+answers, not the 9 needed to reach 0.)

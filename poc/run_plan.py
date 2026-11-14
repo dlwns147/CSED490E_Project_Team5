@@ -386,7 +386,8 @@ def main():
                 raw = np_extract(o["text"]) or []
                 pl = np_norm(raw)
                 bad = CRIT[r["id"]](pl)
-                hist.append({"exact": pl == gold, "tokens": o["out_tokens"], "finish": o["finish"], "plan": pl, "broken": bad[:8]})
+                hist.append({"exact": pl == gold, "tokens": o["out_tokens"], "finish": o["finish"], "plan": pl, "broken": bad[:8],
+                             "text": (o["text"] or "")[-800:]})   # kept so a later reader fix can re-read the round
                 if not bad:
                     break
                 msgs += [{"role": "assistant", "content": json.dumps(raw)},
