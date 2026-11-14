@@ -1514,3 +1514,8 @@ does not hold as written) and 3 fail the fresh-figure rule (3–5 of 8 hold). **
 8, and every row beyond, is the room for the teammate's levers (HAGeo's candidate rule, the portfolio, the algebraic fallback), each scored at
 matched CPU against this curve. The 7 rejected proofs are a second job for the kit: the engine still makes steps the checker refuses, and the
 portfolio (271) must be re-read through the kit for the same reason.
+
+**Portfolio re-read through the kit (2026-11-14 13:0x UTC, job 1448318).** The random-points run (`results/proof/h409r`, 1,800 s per row)
+counts 226 of 409 through the kit (228 certificates, 2 refused on fresh figures), of them 8 the reference run does not count: the greedy +
+random portfolio is **271** through the kit, as stated. With the 16 × CPU run (+16, 3 shared with the random arm's 8), the union of all three
+stored runs is **284** counted, still below HAGeo's 287; 3 short at matched or lower CPU per row is the teammate's first target.
