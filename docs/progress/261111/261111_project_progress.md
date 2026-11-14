@@ -1,6 +1,6 @@
 # Progress 11-03 → 11-12 — *Facts First, Think on Failure*
 
-*Updated 2026-11-14 11:0x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
+*Updated 2026-11-14 12:0x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
 
 ## At a glance
 
@@ -210,16 +210,17 @@ Reading: answering the solver's first solution without counting stays below thin
 | Experiment | Question | Depending on the verdict |
 |---|---|---|
 | **Proofs task 1** (registered run, teammate) | does the teammate's solver reach the reference (20 / 21 whole problems) and pass the soundness control (0 of 267 plants counted)? | if yes, task 1 is done; task 2 (HAGeo-409 coverage, 263 now vs HAGeo 287) next |
-| **Calendar Scheduling** (IDEAS 53, pilot running) | NaturalPlan's other task: does thinking leave room (Qwen3-8B 87% at 4.4k) for a cheap count-gated program? | if yes, pre-register the translation arm on Qwen3-32B and gpt-oss-20b, with LLM-Modulo's calendar critics as the prior-work row |
+| **Trips on fresh seeds 17–19** (PREREG_RW C, running) | do the corrected Qwen3-32B trip verdicts (ladder − thinking +12.5, ours − LLM-Modulo +14.5) replicate on untouched seeds with the final code? | the report quotes seeds 17–19; an interval including 0 is reported as not replicated |
 | **Proofs task 2** (teammate, kit ready) | portfolio + missing constructions, then HAGeo's rule from the paper, then an algebraic fallback with component choice: more than 287 certified rows at matched CPU? | the course report's proof result |
 
-<details><summary><b>Closed verdicts (27)</b></summary>
+<details><summary><b>Closed verdicts (28)</b></summary>
 
 | Experiment | Result | Decision |
 |---|---|---|
 | GPF | composed method once on fresh seeds 14–16: GridPuzzle 93.3% vs 60.9% (+35.9), Mitra-Baral 96.5% vs 87.9% (+11.1) | headline numbers |
 | DCLC | closure as a check on one-solution quick programs: +0.45 [+0.20, +0.75] held out (four models), +1.8 / +1.4 on fresh seeds | joins steps ① and ② |
 | PEERT-B, B2 | gpt-oss-120b quick step on trips, fresh seeds: +3.4 (Qwen3-32B), +3.3 (gpt-oss-20b) | in the trip method |
+| Calendar Scheduling (IDEAS 53, pilot) | thinking 83–88% at 2.5–4.4k tokens; 44 of 100 tasks have several valid slots, and most of thinking's 'wrong' answers meet every stated constraint | closed: uniqueness fails, no count gate |
 | RW-B (LLM-Modulo on trips) | ours − LLM-Modulo: Qwen3-32B +14.5 [+6.7, +22.7], gpt-oss-20b −12.3 [−18.1, −6.6] (utility) | split: the hand-written verifier wins when the model can act on its critiques |
 | SIDE-GT-H409-CPU | the unchanged proof engine at 16 × the CPU on 100 uncounted HAGeo-409 rows: +16 counted through the kit → 279 (HAGeo 287); +9 / +10 / +14 / +16 at 2 / 4 / 8 / 16 ×; 7 of 23 certificates refused | compute is not the gap; the teammate's levers are scored at matched CPU against this curve |
 | NPSAT | CP-SAT interface for the trip fallback (the solver searches orders and days): every ladder loses (add −2.9 [−3.6, −2.1], replace −8.9, quick first −0.8); 199 of 300 CP-SAT programs never run after 3 rounds; 2 of 80 fall-through trips settled | closed; the trip residual is the model's reading of a plan's shape, not search |
