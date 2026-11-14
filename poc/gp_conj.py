@@ -628,12 +628,12 @@ def rwtrip_main():
     for sd in sds:
         M = {a: L(main, a, sd) for a in ["trc", "trct", "think"]}
         M["modulo"] = L(arg("--modulo-tag", main), "modulo", sd)   # q32fx: the rerun with the 23:1x answer reader
-        P = L(peer, "trc", sd)
+        P = L(peer, "trc", sd) if peer != "none" else None   # --peer none: the plain ladder trc -> trct -> think (gpt-oss-120b, PREREG_RW C)
         for i in M["modulo"]:
-            if not all(i in M[a] for a in M) or i not in P:
+            if not all(i in M[a] for a in M) or (P is not None and i not in P):
                 continue
             tok = 0
-            for r in (M["trc"][i], P[i], M["trct"][i], M["think"][i]):
+            for r in [M["trc"][i]] + ([P[i]] if P is not None else []) + [M["trct"][i], M["think"][i]]:
                 tok += r["tokens"]
                 if r is M["think"][i] or r["count"] == 1:
                     ours = (r["exact"], tok)

@@ -108,3 +108,13 @@ running.
 **Extension, written before any gpt-oss-20b seed-17–19 row:** the other half of the split verdict on the same fresh seeds. gpt-oss-20b `trc`
 (low effort), `trct`, `think`, `modulo` (high effort), seeds 17–19, second server GPU 6; the gpt-oss-120b `trc` rows are shared. Prediction from
 seeds 4–6: ours − LLM-Modulo about −12 utility, interval below 0. Same rule: an interval including 0 is reported as not replicated.
+
+**Part C, Qwen3-32B LLM-Modulo read (2026-11-14 21:0x UTC; `rwtrip --main q32 --seeds 17,18,19`).** Ours 74.3% at 17.8k, LLM-Modulo 66.3% at
+35.0k (critics passed 199 of 300, all right, 4.41 rounds; 8 of 1,322 rounds with no plan read). **Ours − LLM-Modulo +16.6 [+8.0, +25.6]
+utility, +8.0 [+1.7, +14.7] accuracy** (predicted about +14, above 0): replicates. gpt-oss-20b half still running.
+**Second extension, written before any row: a third model tests the stated mechanism.** If LLM-Modulo's edge is the model's ability to act on
+the critics' list, gpt-oss-120b (stronger than gpt-oss-20b) should also pass the critics in few rounds and beat our plain ladder (`trc` →
+`trct` → `think`, 86.0% at seeds 1–3). Run: gpt-oss-120b `modulo`, high effort, seeds 1–3 (the seeds of its stored ladder), second server GPU
+7. Prediction: critics passed on at least 280 of 300 in under 2.5 rounds on average; ours − LLM-Modulo below 0. If gpt-oss-120b instead
+needs many rounds or ours wins, the mechanism statement is withdrawn and the split is reported per model only. Read with
+`rwtrip --main oss120 --peer none --seeds 1,2,3`.
