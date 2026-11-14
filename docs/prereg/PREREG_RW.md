@@ -90,3 +90,13 @@ saying no plan exists. The replay estimate (+14.5 [+6.2, +22.9]) matched.
 hand-written domain verifier wins when the model can act on its critiques (gpt-oss-20b passes the critics on 294 of 300 in 1.6 rounds), and
 our domain-free ladder wins when it cannot (Qwen3-32B passes on 200 of 300 in 4.5 rounds, at twice our tokens). Our check needs no domain code
 either way; the grids, where prior work has no such verifier, carry the general claim.
+
+## Part C: fresh-seed replication on trips, Qwen3-32B (written 2026-11-14 12:0x UTC, before any seed-17–19 row)
+
+**Why.** Both trip verdicts for Qwen3-32B moved under the 11-13 / 11-14 answer-reader fixes (ladder − thinking +19.5 → +12.5; ours −
+LLM-Modulo partial +16.3 → +14.5), and seeds 4–6 were read many times while the bugs were found. The report's trip numbers should come from
+seeds no analysis has touched, with the final code. **Run:** seeds 17, 18, 19, Qwen3-32B `trc`, `trct`, `think`, `modulo`, gpt-oss-120b
+`trc` (low effort), the same prompts and settings as seeds 4–6; second server GPUs 6–7. **Predictions (from seeds 4–6):** ladder − thinking
+about +12 utility, interval above 0; ours − LLM-Modulo about +14, interval above 0. **Rule:** the report quotes seeds 17–19 as the trip
+result for Qwen3-32B and seeds 4–6 as the development read; if either interval includes 0 on 17–19, the report says the trip result does
+not replicate for that comparison.

@@ -7235,3 +7235,12 @@ Job 1382299 (one GPU, queued).
   fixes plans in 1.6 rounds, Qwen3-32B often never does in 10. Our ladder does not depend on that.
 - Qwen3-8B budget-forced trips re-read: no change (unread rows held no plan). Calendar Scheduling pilot (IDEAS 53): Qwen3-8B thinking 87 of
   100 at 4.4k tokens, direct 38 at 1.1k; Qwen3-32B and gpt-oss-20b running.
+
+## 2026-11-14 12:0x UTC — Calendar Scheduling closed (under-determined set); fresh-seed trip replication registered
+
+- Pilot (IDEAS 53, seed 1, Amonkar et al.'s 100 calendar items): thinking 87 / 83 / 88% for Qwen3-8B / Qwen3-32B / gpt-oss-20b at 4.4k /
+  2.5k / 2.5k tokens; direct 38 / 42 / 84%. A parser of every busy interval and stated preference (`results/tmp_calvalid.py`; the gold fits
+  all 100) finds 2 or more valid slots in 44 tasks; the gold is the earliest valid slot in 84. Of thinking's wrong answers, 12 of 13, 14 of 17
+  and 11 of 12 meet every stated constraint. Thinking is near ceiling on validity, exact match counts valid alternatives wrong, and a count
+  gate cannot apply where uniqueness fails. Closed; no translation arm.
+- PREREG_RW part C registered: seeds 17–19 for the Qwen3-32B trip ladder, thinking and LLM-Modulo, with the final code.
