@@ -82,6 +82,6 @@ trip-seeds).** Cut accuracy rises at every budget (1k 25.3 → 29.0%, 2k 28.3 �
 plan read. Ladder − cut, utility: +31.9 [+23.4, +40.6], +25.3 [+17.3, +33.5], +16.0 [+8.4, +23.9], +11.9 [+4.5, +19.6]; full thinking +8.7
 [+2.3, +15.5]. The verdict stands: the ladder beats every cut, and the best baseline is uncut thinking.
 
-**Qwen3-8B trip budgets re-read (written 2026-11-14 10:1x UTC; `--bud q8b --np --bud-tag q8bx`).** No change: every cut is read now (0 rows
+**Qwen3-8B trip budgets re-read (written 2026-11-14 10:0x UTC; `--bud q8b --np --bud-tag q8bx`).** No change: every cut is read now (0 rows
 with no plan), and accuracy stays (8k: 28.3 → 27.0%); the old unread rows were answers with no plan. Ladder − cut: +20.7 / +23.6 / +22.2 /
 +12.3 at 1k / 2k / 4k / 8k, uncut thinking +6.5 [+0.6, +12.4]. The verdict stands for both Qwen3 models.
