@@ -7211,3 +7211,10 @@ Job 1382299 (one GPU, queued).
   every reading Qwen3-32B is ahead with our ladder, while gpt-oss-20b is behind LLM-Modulo (−12.3): with Qwen3-32B the critics pass only
   about 2 in 3 trips within 10 rounds (116 of 300 use all 10), with gpt-oss-20b 294 of 300 in 1.6 rounds. LLM-Modulo's gain depends on the
   model acting on the critics' list; our ladder's does not.
+
+## 2026-11-14 08:0x UTC — Budget-forced thinking on trips re-read: the ladder still beats every cut
+
+- Qwen3-32B trip `thinkb` rerun with the fixed reader (`q32x`, seeds 1–3; the old rows kept no text): cut accuracy +3 to +8 points at every
+  budget (8k: 47.7 → 51.0%). Ladder − cut, utility: +31.9 / +25.3 / +16.0 / +11.9 at 1k / 2k / 4k / 8k (all intervals above 0), uncut thinking
+  +8.7 [+2.3, +15.5]; the best baseline is still uncut thinking. Figure `u_budget` updated. Qwen3-8B (10–15 unread per seed at 8k) reruns;
+  its first submission failed (34k context did not fit a 24 GB card) and was resubmitted at 16k at 08:0x.

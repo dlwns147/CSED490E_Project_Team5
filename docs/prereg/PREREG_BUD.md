@@ -76,3 +76,8 @@ rerun as tag `q32x` (same prompts, budgets and seeds; each cut's text tail is no
 these rows. Expected: higher cut accuracy, the ladder still above every cut (69.7% against uncut thinking 55.0%).
 *(07:0x UTC, before any Qwen3-8B rerun row: Qwen3-8B's trip rows at the 8,000-token cut also have 10–15 of 100 per seed with no plan read; seeds
 1–3 rerun as `q8bx` the same way. gpt-oss-20b and gpt-oss-120b have at most 1–8 per cell and are not rerun.)*
+
+**Qwen3-32B trip budgets re-read (written 2026-11-14 08:0x UTC; `python3 poc/gp_eval.py --bud q32 --np --bud-tag q32x`, seeds 1–3, 300
+trip-seeds).** Cut accuracy rises at every budget (1k 25.3 → 29.0%, 2k 28.3 → 36.0%, 4k 42.7 → 46.0%, 8k 47.7 → 51.0%); 1 of 1,200 cuts has no
+plan read. Ladder − cut, utility: +31.9 [+23.4, +40.6], +25.3 [+17.3, +33.5], +16.0 [+8.4, +23.9], +11.9 [+4.5, +19.6]; full thinking +8.7
+[+2.3, +15.5]. The verdict stands: the ladder beats every cut, and the best baseline is uncut thinking.
