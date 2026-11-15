@@ -107,3 +107,6 @@ saved: −3.4 to +2.1; not pursued.)
 interval above 0. **PEERT-C3 (reported):** peer-first − thinking for gpt-oss-20b (the current ladder ties thinking: −3.0 on 17–19).
 **Decision.** C1 or C2 above 0: the trip method becomes gpt-oss-120b `trc` → main `trct` → main `think` for that model (and the report says the
 main model's own quick translation is dropped on trips); both above 0: for every model. Interval including 0: the current ladder stays.
+*(07:0x UTC, before any seed-20–22 ladder row was read: seeds 21 and 22 already had `trc` and `direct` trip rows from 11-11 (another study's
+runs; not used to choose this ladder order). The new runs overwrite them on the second server; the 11-11 rows are kept in
+`results/np_s2122_1111/`. The test stands as registered; the report notes that seeds 21–22 were not new seeds for the trip prompts.)*
