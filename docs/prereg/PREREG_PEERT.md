@@ -121,3 +121,8 @@ first 90.0% at 24.5k, thinking only 79.7% at 13.8k. **PEERT-C1: peer first − c
 holds. **PEERT-C3:** peer first − thinking +5.0 [−0.2, +10.4] (the current ladder: −3.0 on seeds 17–19). **Decision (both C1 and C2 above 0):
 the trip method for every model is gpt-oss-120b `trc` → main `trct` → main `think`;** the main model's own quick translation is dropped on
 trips. The report states the reason measured on seeds 17–19: the main model's quick one-plan programs are the ladder's least precise accepts.
+
+**Addendum C2, Qwen3-8B (written 2026-11-15 11:1x UTC, before any Qwen3-8B seed-20–22 row).** The stored-row replay on seeds 1–3 gave peer first
+− current +4.3 [+2.5, +6.3]. Run: Qwen3-8B `trc`, `trct`, `think`, seeds 20–22 (the gpt-oss-120b `trc` rows are shared), second server GPU 6.
+Prediction: about +4, interval above 0; if not, the report says the trip order is tested on Qwen3-32B and gpt-oss-20b only. (A replay on the
+grid sets without closures found no clear gain for peer first: −0.0 to +4.3, every interval including 0; grids keep their order.)
