@@ -141,3 +141,17 @@ tie). Reading: where the model needs many rounds, LLM-Modulo's accuracy gain is 
 The mechanism statement is kept only in a weaker form: the two models that pass the critics in about 1.5 rounds lose to LLM-Modulo, the two
 that need 4–5 rounds win or tie. Rounds do not order the gaps within either pair (Qwen3-8B, slowest, ties; Qwen3-32B wins by 16.6), so this
 is a split by group, not a law. (A partial read at 202 rows had shown −10.3; rows are written in input order, so partial reads are biased.)
+
+**Fourth extension read, gpt-oss-120b on seeds 17–19 (2026-11-15 05:0x UTC; `rwtrip --main oss120 --peer none --seeds 17,18,19`; its `trc`
+rows are the low-effort peer rows).** Ours 83.0% at 17.4k, LLM-Modulo 96.0% at 16.2k, thinking 78.7%; critics passed 297 of 300 (288 right) in
+1.48 rounds. **Ours − LLM-Modulo −13.6 [−19.1, −8.3] utility** (predicted below 0): replicates. (Seed 19's `modulo` rows ran on GPU 6 under the
+tag `oss120x` and were copied to `np_oss120_modulo_s19.jsonl`; the duplicate run on GPU 7 was stopped at 56 rows.)
+
+**Summary of part B and C (ours − LLM-Modulo, utility, 95% interval).**
+
+| Model | Seeds | Critics passed, rounds | Ours − LLM-Modulo |
+|---|---|---|---|
+| Qwen3-32B | 4–6 / 17–19 | 200 / 199 of 300, 4.5 / 4.4 | +14.5 [+6.7, +22.7] / **+16.6 [+8.0, +25.6]** |
+| Qwen3-8B | 1–3 | 176 of 300, 5.3 | +0.8 [−7.8, +9.3] |
+| gpt-oss-20b | 4–6 / 17–19 | 294 / 295 of 300, 1.6 / 1.6 | −12.3 [−18.1, −6.6] / **−16.1 [−21.8, −10.4]** |
+| gpt-oss-120b | 1–3 / 17–19 | 298 / 297 of 300, 1.5 / 1.5 | −10.0 [−14.6, −5.6] / **−13.6 [−19.1, −8.3]** |
