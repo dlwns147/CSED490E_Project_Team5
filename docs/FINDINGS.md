@@ -7244,3 +7244,18 @@ Job 1382299 (one GPU, queued).
   and 11 of 12 meet every stated constraint. Thinking is near ceiling on validity, exact match counts valid alternatives wrong, and a count
   gate cannot apply where uniqueness fails. Closed; no translation arm.
 - PREREG_RW part C registered: seeds 17–19 for the Qwen3-32B trip ladder, thinking and LLM-Modulo, with the final code.
+
+## 2026-11-15 05:0x UTC — LLM-Modulo comparison complete on four models; replay of combinations (exploratory)
+
+- PREREG_RW B/C summary, ours − LLM-Modulo (utility): Qwen3-32B +14.5 (seeds 4–6), **+16.6 [+8.0, +25.6]** (17–19); Qwen3-8B +0.8 [−7.8,
+  +9.3] (1–3); gpt-oss-20b −12.3, **−16.1 [−21.8, −10.4]**; gpt-oss-120b −10.0 (1–3), **−13.6 [−19.1, −8.3]** (17–19). Both gpt-oss models
+  pass the hand-written critics in about 1.5 rounds; the Qwen3 models need 4–5 rounds and often never pass in 10. Partial reads mislead here:
+  rows are written in input order (Qwen3-8B read −10.3 at 202 rows, +0.8 at 300).
+- Replay on stored rows, no new tokens (exploratory; uses the hand-written critics, so not label-free):
+  - Ladder with LLM-Modulo as its fallback (instead of thinking): never beats the better pure arm (Qwen3-32B −4.3 against ours; gpt-oss-20b
+    −12.3 against LLM-Modulo), because the gpt-oss ladders accept wrong one-plan programs (gpt-oss-20b 87.0% against LLM-Modulo's 97.0%).
+  - The ladder's one-plan answers checked by the critics, else LLM-Modulo: the highest accuracy for the Qwen3 models (Qwen3-32B 81.7% against
+    74.3 / 66.3%, Qwen3-8B 68.0% against 49.3 / 58.3%) but at 33k / 57k tokens; utility ties our ladder for Qwen3-32B (65.2 vs 65.4) and
+    trails LLM-Modulo by 3–4 for the gpt-oss models.
+  - Reading for the report: where a hand-written verifier exists, use it; the domain-free count is what carries to domains without one, and on
+    trips it is the cheaper choice only for the Qwen3 models.
