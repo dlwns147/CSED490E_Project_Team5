@@ -1,6 +1,6 @@
 # Progress 11-03 → 11-12 — *Facts First, Think on Failure*
 
-*Updated 2026-11-15 11:0x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
+*Updated 2026-11-15 14:0x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
 
 ## At a glance
 
@@ -218,7 +218,7 @@ Reading: answering the solver's first solution without counting stays below thin
 |---|---|---|
 | GPF | composed method once on fresh seeds 14–16: GridPuzzle 93.3% vs 60.9% (+35.9), Mitra-Baral 96.5% vs 87.9% (+11.1) | headline numbers |
 | DCLC | closure as a check on one-solution quick programs: +0.45 [+0.20, +0.75] held out (four models), +1.8 / +1.4 on fresh seeds | joins steps ① and ② |
-| PEERT-C | trips start with gpt-oss-120b's quick translation and drop the main model's own (its one-plan programs were the least precise accepts): fresh seeds 20–22 +4.2 [+2.6, +6.0] (Qwen3-32B), +4.4 [+2.0, +7.0] (gpt-oss-20b) | the trip method |
+| PEERT-C | trips start with gpt-oss-120b's quick translation and drop the main model's own (its one-plan programs were the least precise accepts): fresh seeds 20–22 +4.2 [+2.6, +6.0] (Qwen3-32B), +4.4 [+2.0, +7.0] (gpt-oss-20b), +5.2 [+3.0, +7.5] (Qwen3-8B) | the trip method |
 | PEERT-B, B2 | gpt-oss-120b quick step on trips, fresh seeds: +3.4 (Qwen3-32B), +3.3 (gpt-oss-20b) | in the trip method (now first, PEERT-C) |
 | Calendar Scheduling (IDEAS 53, pilot) | thinking 83–88% at 2.5–4.4k tokens; 44 of 100 tasks have several valid slots, and most of thinking's 'wrong' answers meet every stated constraint | closed: uniqueness fails, no count gate |
 | RW-B / RW-C (LLM-Modulo on trips) | ours − LLM-Modulo, utility: Qwen3-32B +14.5 (seeds 4–6), +16.6 [+8.0, +25.6] (seeds 17–19); gpt-oss-20b −12.3, −16.1 [−21.8, −10.4]; gpt-oss-120b −10.0, −13.6 [−19.1, −8.3]; Qwen3-8B +0.8 [−7.8, +9.3]. Models that fix a plan in ~1.5 rounds lose to LLM-Modulo; those needing 4–5 rounds win or tie | split: the hand-written verifier wins when the model can act on its critiques |

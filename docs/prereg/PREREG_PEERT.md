@@ -126,3 +126,8 @@ trips. The report states the reason measured on seeds 17–19: the main model's 
 − current +4.3 [+2.5, +6.3]. Run: Qwen3-8B `trc`, `trct`, `think`, seeds 20–22 (the gpt-oss-120b `trc` rows are shared), second server GPU 6.
 Prediction: about +4, interval above 0; if not, the report says the trip order is tested on Qwen3-32B and gpt-oss-20b only. (A replay on the
 grid sets without closures found no clear gain for peer first: −0.0 to +4.3, every interval including 0; grids keep their order.)
+
+**Addendum C2 read, Qwen3-8B (2026-11-15 14:0x UTC; `peerfirst --main q8b --seeds 20,21,22`; seed 22 ran on GPU 7 as `q8bp` and was copied to
+the `q8b` names; the duplicate on GPU 6 was stopped at its first row).** Current 63.7% at 21.1k, peer first 67.3% at 18.1k, thinking only
+34.0% at 10.4k. **Peer first − current +5.2 [+3.0, +7.5] utility** (predicted about +4, above 0): holds. Peer first − thinking +29.5 [+22.1,
++37.0]. The trip order holds for three models.

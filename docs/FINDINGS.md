@@ -7275,3 +7275,5 @@ Job 1382299 (one GPU, queued).
   (56.3%) +19.7 [+12.8, +27.0]. gpt-oss-20b: current 86.0% at 25.4k → peer first **90.0% at 24.5k, +4.4 [+2.0, +7.0]**; against thinking
   (79.7%) +5.0 [−0.2, +10.4], so gpt-oss-20b moves from a loss to a near-win against thinking. Both predictions above 0 held; the trip
   method drops the main model's own quick step for every model. (Seeds 21–22 had earlier quick and direct rows from 11-11, kept aside.)
+- (14:0x UTC) Qwen3-8B on seeds 20–22: peer first 67.3% at 18.1k against the current ladder's 63.7% at 21.1k, **+5.2 [+3.0, +7.5]**; against
+  thinking (34.0%) +29.5 [+22.1, +37.0]. Peer first holds for all three main models.
