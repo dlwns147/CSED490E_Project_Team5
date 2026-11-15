@@ -138,5 +138,6 @@ exist), second server GPU 7, so the three-model picture has a held-out read for 
 +9.3] utility, −9.0 [−15.3, −2.7] accuracy.** Predictions: fewer than 200 passed (holds), more than 4 rounds (holds), ours above 0 (fails: a
 tie). Reading: where the model needs many rounds, LLM-Modulo's accuracy gain is paid for in tokens; the utility edge goes to ours for Qwen3-32B
 (+16.6) and to a tie for Qwen3-8B; where the model fixes a plan in about 1.5 rounds (gpt-oss-20b, gpt-oss-120b), LLM-Modulo wins by 10–16.
-The mechanism statement is kept in this weaker form (rounds to pass the critics orders the four models' utility gaps), not as "ours wins
-when the model acts poorly". (A partial read at 202 rows had shown −10.3; rows are written in input order, so partial reads are biased.)
+The mechanism statement is kept only in a weaker form: the two models that pass the critics in about 1.5 rounds lose to LLM-Modulo, the two
+that need 4–5 rounds win or tie. Rounds do not order the gaps within either pair (Qwen3-8B, slowest, ties; Qwen3-32B wins by 16.6), so this
+is a split by group, not a law. (A partial read at 202 rows had shown −10.3; rows are written in input order, so partial reads are biased.)
