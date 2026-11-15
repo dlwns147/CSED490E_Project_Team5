@@ -7259,3 +7259,12 @@ Job 1382299 (one GPU, queued).
     trails LLM-Modulo by 3–4 for the gpt-oss models.
   - Reading for the report: where a hand-written verifier exists, use it; the domain-free count is what carries to domains without one, and on
     trips it is the cheaper choice only for the Qwen3 models.
+
+## 2026-11-15 06:0x UTC — Where the trip ladder's wrong answers come from: the main model's own quick translation (exploratory)
+
+- Precision of accepted one-plan programs, seeds 17–19: main `trc` 11/13 (Qwen3-32B), 67/89 (gpt-oss-20b); gpt-oss-120b `trc` 145/158; main
+  `trct` 177/183, 220/222, 237/241 (gpt-oss-120b); Qwen3-8B `trc` 9/25, `trct` 114/128. Two one-plan programs that agree were right 376 of 376
+  (3 models); when they disagree the first is right 9 of 62.
+- Replays: an agreement gate costs more than it saves (−6.9 to +2.1). Dropping the main model's own quick step (gpt-oss-120b `trc` → main
+  `trct` → `think`): gpt-oss-20b +5.7 [+3.3, +8.2] (4–6), +6.4 [+3.8, +9.1] (17–19); Qwen3-32B +1.6 [+0.3, +2.9] (17–19). Chosen on these seeds,
+  so PREREG_PEERT addendum C tests it on fresh seeds 20–22 (running).
