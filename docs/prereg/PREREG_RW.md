@@ -132,3 +132,11 @@ LLM-Modulo. Run: Qwen3-8B `modulo`, seeds 1–3 (its stored ladder, 49.3%), seco
 −5.6] utility.** Every prediction holds (≥ 280 passed, < 2.5 rounds, ours below 0): the mechanism statement stands for a third model.
 **Fourth extension, written before any row:** gpt-oss-120b on the fresh seeds 17–19 (`trct`, `think`, `modulo`, high effort; its `trc` rows
 exist), second server GPU 7, so the three-model picture has a held-out read for each model. Prediction: ours − LLM-Modulo below 0.
+
+**Third extension read, Qwen3-8B (2026-11-15 03:5x UTC; `rwtrip --main q8b --peer none --seeds 1,2,3`).** Ours 49.3% at 27.9k, LLM-Modulo
+58.3% at 47.5k, thinking 34.0%. Critics passed 176 of 300 (175 right) in 5.29 rounds; 123 runs used all 10. **Ours − LLM-Modulo +0.8 [−7.8,
++9.3] utility, −9.0 [−15.3, −2.7] accuracy.** Predictions: fewer than 200 passed (holds), more than 4 rounds (holds), ours above 0 (fails: a
+tie). Reading: where the model needs many rounds, LLM-Modulo's accuracy gain is paid for in tokens; the utility edge goes to ours for Qwen3-32B
+(+16.6) and to a tie for Qwen3-8B; where the model fixes a plan in about 1.5 rounds (gpt-oss-20b, gpt-oss-120b), LLM-Modulo wins by 10–16.
+The mechanism statement is kept in this weaker form (rounds to pass the critics orders the four models' utility gaps), not as "ours wins
+when the model acts poorly". (A partial read at 202 rows had shown −10.3; rows are written in input order, so partial reads are biased.)
