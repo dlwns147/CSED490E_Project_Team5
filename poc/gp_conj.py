@@ -727,5 +727,34 @@ def npsat_main():
         print(f"   {name} - current, utility: {sum(d) / len(d):+.1f} [{bs[250]:+.1f}, {bs[9749]:+.1f}] over {len(ids)} trips")
 
 
+def peerfirst_main():
+    """PREREG_PEERT addendum C (PEERT-C1..C3): current trip ladder (main trc -> peer trc -> main trct -> main think) against peer first
+    (peer trc -> main trct -> main think), and peer first against thinking only, paired over trips. usage: peerfirst --main oss20 [--peer oss120] [--seeds 20,21,22]"""
+    arg = lambda k, d: sys.argv[sys.argv.index(k) + 1] if k in sys.argv else d
+    main, peer, sds = arg("--main", "q32"), arg("--peer", "oss120"), [int(x) for x in arg("--seeds", "20,21,22").split(",")]
+    L = lambda tag, arm, sd: {x["id"]: x for x in map(json.loads, open(f"{RES}/np_{tag}_{arm}_s{sd}.jsonl"))}
+    res = []
+    for sd in sds:
+        M = {a: L(main, a, sd) for a in ["trc", "trct", "think"]}
+        P = L(peer, "trc", sd)
+        for i in M["think"]:
+            def lad(steps):
+                tok = 0
+                for r in steps:
+                    tok += r["tokens"]
+                    if r["count"] == 1:
+                        return (r["exact"], tok)
+                return (M["think"][i]["exact"], tok + M["think"][i]["tokens"])
+            res.append((i, lad([M["trc"][i], P[i], M["trct"][i]]), lad([P[i], M["trct"][i]]), (M["think"][i]["exact"], M["think"][i]["tokens"])))
+    ids = sorted({r[0] for r in res})
+    for k, name in [(1, "current"), (2, "peer first"), (3, "thinking only")]:
+        print(f"trips {main} <- {peer}, seeds {sds}, {name}: {100 * sum(r[k][0] for r in res) / len(res):.1f}% at {sum(r[k][1] for r in res) / len(res) / 1000:.2f} ktok")
+    rng = random.Random(0)
+    for a, b, name in [(2, 1, "peer first - current"), (2, 3, "peer first - thinking")]:
+        d = [sum(U(*r[a]) - U(*r[b]) for r in res if r[0] == i) / sum(r[0] == i for r in res) for i in ids]
+        bs = sorted(sum(d[rng.randrange(len(d))] for _ in d) / len(d) for _ in range(10000))
+        print(f"   {name}, utility: {sum(d) / len(d):+.1f} [{bs[250]:+.1f}, {bs[9749]:+.1f}] over {len(ids)} trips")
+
+
 if __name__ == "__main__":
-    {"run": run_main, "why": why_main, "close": close_main, "dcl": dcl_main, "dcleval": dcleval_main, "peert": peert_main, "peertrip": peertrip_main, "rwtrip": rwtrip_main, "mcrit": mcrit_main, "npsat": npsat_main, "dcl1": dcl_main, "dclc": dclc_main, "gpf": gpf_main}.get(sys.argv[1], eval_main)()
+    {"run": run_main, "why": why_main, "close": close_main, "dcl": dcl_main, "dcleval": dcleval_main, "peert": peert_main, "peertrip": peertrip_main, "rwtrip": rwtrip_main, "mcrit": mcrit_main, "npsat": npsat_main, "peerfirst": peerfirst_main, "dcl1": dcl_main, "dclc": dclc_main, "gpf": gpf_main}.get(sys.argv[1], eval_main)()

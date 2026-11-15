@@ -110,3 +110,8 @@ main model's own quick translation is dropped on trips); both above 0: for every
 *(07:0x UTC, before any seed-20–22 ladder row was read: seeds 21 and 22 already had `trc` and `direct` trip rows from 11-11 (another study's
 runs; not used to choose this ladder order). The new runs overwrite them on the second server; the 11-11 rows are kept in
 `results/np_s2122_1111/`. The test stands as registered; the report notes that seeds 21–22 were not new seeds for the trip prompts.)*
+
+**Addendum C, Qwen3-32B read (2026-11-15 10:0x UTC; `python3 poc/gp_conj.py peerfirst --main q32 --seeds 20,21,22`).** Current 77.0% at 17.1k,
+peer first 79.7% at 14.1k, thinking only 56.3% at 6.8k. **PEERT-C2: peer first − current +4.2 [+2.6, +6.0] utility** (predicted +1.5, above
+0): holds. Peer first − thinking +19.7 [+12.8, +27.0]. gpt-oss-20b (C1) still running. (Replay, not registered: Qwen3-8B on seeds 1–3 with the
+gpt-oss-120b step, peer first − current +4.3 [+2.5, +6.3].)
