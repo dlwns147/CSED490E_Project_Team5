@@ -91,3 +91,19 @@ gpt-oss-120b's quick translation as step ②: 82.3% at 26.60k tokens, +3.3 [+1.1
 **Correction, 2026-11-13 23:1x UTC (answer reading, FINDINGS 23:1x).** Bracket-less thinking plans are now read. Addendum B, Qwen3-32B: with
 the peer 73.0% at 18.2k (was 72.0%), without 70.0%; B1 unchanged at +3.4 [+0.7, +6.2]; against thinking only (55.0%, was 47.0%) **+12.5
 [+6.6, +18.6]** utility. B2 (gpt-oss-20b): thinking only 74.0% (was 73.0%), the ladders unchanged.
+
+## Addendum C: peer first, without the main model's own quick translation (written 2026-11-15 06:0x UTC, before any seed-20–22 row)
+
+**Why (exploratory read of stored rows, `results/tmp_agree.py` and FINDINGS 06:0x).** The trip ladder's wrong answers are mostly quick
+one-plan programs it accepts: on seeds 17–19 the main model's own `trc` is right on 67 of 89 accepted programs for gpt-oss-20b and 11 of 13 for
+Qwen3-32B, against the gpt-oss-120b `trc` 145 of 158 and the thinking translation `trct` 220 of 222 / 177 of 183. Dropping the main model's own
+quick step (ladder: gpt-oss-120b `trc` → main `trct` → main `think`) on the stored rows: gpt-oss-20b +5.7 [+3.3, +8.2] (seeds 4–6) and +6.4
+[+3.8, +9.1] (17–19) utility over the current ladder; Qwen3-32B +1.6 [+0.3, +2.9] (17–19). The order was chosen on these seeds, so it needs
+fresh ones. (An agreement gate, accepting a quick plan only when two quick translations agree, was right 376 of 376 times but cost more than it
+saved: −3.4 to +2.1; not pursued.)
+**Run.** Fresh seeds 20, 21, 22: gpt-oss-120b `trc` (low effort), Qwen3-32B `trc`, `trct`, `think`, gpt-oss-20b `trc` (low), `trct`,
+`think` (high), the settings of seeds 17–19; second server GPUs 6–7.
+**Predictions.** **PEERT-C1:** peer-first − current, gpt-oss-20b, about +6 utility, interval above 0. **PEERT-C2:** Qwen3-32B about +1.5,
+interval above 0. **PEERT-C3 (reported):** peer-first − thinking for gpt-oss-20b (the current ladder ties thinking: −3.0 on 17–19).
+**Decision.** C1 or C2 above 0: the trip method becomes gpt-oss-120b `trc` → main `trct` → main `think` for that model (and the report says the
+main model's own quick translation is dropped on trips); both above 0: for every model. Interval including 0: the current ladder stays.
