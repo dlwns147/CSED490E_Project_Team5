@@ -1,6 +1,6 @@
 # Progress 11-03 → 11-12 — *Facts First, Think on Failure*
 
-*Updated 2026-11-15 05:0x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
+*Updated 2026-11-15 11:0x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
 
 ## At a glance
 
@@ -25,7 +25,7 @@
 | ZebraLogic, the closest paper's 100 puzzles | Qwen3-32B 90.0% → **96.7%** (paper: translation loses) | Win (+9.1) |
 | GridPuzzle (human-written grids) | Qwen3-8B 60.9% → **93.3%**, 11.5k → 4.6k tokens (trained translator + gpt-oss-120b quick translation + closure + check; fresh seeds 14–16) | Win (+35.9) |
 | Mitra-Baral (small grids) | Qwen3-8B 87.9% → **96.5%**, 6.5k → 1.2k tokens (same) | Win (+11.1 [+5.1, +17.3]) |
-| Trip planning (NaturalPlan) | Qwen3-32B 52.7% → **74.3%** (with gpt-oss-120b quick step, untouched seeds 17–19) | Utility win (+16.4 [+9.5, +23.7]; seeds 4–6: +12.5); check precision below the registered bar; vs LLM-Modulo (hand-written critics): ours ahead on Qwen3-32B (+16.6), tie on Qwen3-8B (+0.8), behind on gpt-oss-20b (−16.1) and gpt-oss-120b (−13.6) (§4) |
+| Trip planning (NaturalPlan) | Qwen3-32B 56.3% → **79.7%** at 14.1k (gpt-oss-120b quick step first, seeds 20–22); gpt-oss-20b 79.7% → 90.0% | Utility win (Qwen3-32B +19.7 [+12.8, +27.0]; earlier ladder +16.4 on 17–19, +12.5 on 4–6; gpt-oss-20b +5.0 [−0.2, +10.4]); check precision below the registered bar; vs LLM-Modulo (hand-written critics): ours ahead on Qwen3-32B (+16.6), tie on Qwen3-8B (+0.8), behind on gpt-oss-20b (−16.1) and gpt-oss-120b (−13.6) (§4) |
 | GridPuzzle, gpt-oss-120b | 92.3% → **96.9%**, 9.1k → 5.2k tokens (with the closure; 93.1% without) | Win (+6.5) |
 | AR-LSAT · BFCL agents | ≈ 0 · loses to a public checkpoint (EnvScaler-8B) | Tie · loss |
 
@@ -212,13 +212,14 @@ Reading: answering the solver's first solution without counting stays below thin
 | **Proofs task 1** (registered run, teammate) | does the teammate's solver reach the reference (20 / 21 whole problems) and pass the soundness control (0 of 267 plants counted)? | if yes, task 1 is done; task 2 (HAGeo-409 coverage, 263 now vs HAGeo 287) next |
 | **Proofs task 2** (teammate, kit ready) | portfolio + missing constructions, then HAGeo's rule from the paper, then an algebraic fallback with component choice: more than 287 certified rows at matched CPU? | the course report's proof result |
 
-<details><summary><b>Closed verdicts (28)</b></summary>
+<details><summary><b>Closed verdicts (29)</b></summary>
 
 | Experiment | Result | Decision |
 |---|---|---|
 | GPF | composed method once on fresh seeds 14–16: GridPuzzle 93.3% vs 60.9% (+35.9), Mitra-Baral 96.5% vs 87.9% (+11.1) | headline numbers |
 | DCLC | closure as a check on one-solution quick programs: +0.45 [+0.20, +0.75] held out (four models), +1.8 / +1.4 on fresh seeds | joins steps ① and ② |
-| PEERT-B, B2 | gpt-oss-120b quick step on trips, fresh seeds: +3.4 (Qwen3-32B), +3.3 (gpt-oss-20b) | in the trip method |
+| PEERT-C | trips start with gpt-oss-120b's quick translation and drop the main model's own (its one-plan programs were the least precise accepts): fresh seeds 20–22 +4.2 [+2.6, +6.0] (Qwen3-32B), +4.4 [+2.0, +7.0] (gpt-oss-20b) | the trip method |
+| PEERT-B, B2 | gpt-oss-120b quick step on trips, fresh seeds: +3.4 (Qwen3-32B), +3.3 (gpt-oss-20b) | in the trip method (now first, PEERT-C) |
 | Calendar Scheduling (IDEAS 53, pilot) | thinking 83–88% at 2.5–4.4k tokens; 44 of 100 tasks have several valid slots, and most of thinking's 'wrong' answers meet every stated constraint | closed: uniqueness fails, no count gate |
 | RW-B / RW-C (LLM-Modulo on trips) | ours − LLM-Modulo, utility: Qwen3-32B +14.5 (seeds 4–6), +16.6 [+8.0, +25.6] (seeds 17–19); gpt-oss-20b −12.3, −16.1 [−21.8, −10.4]; gpt-oss-120b −10.0, −13.6 [−19.1, −8.3]; Qwen3-8B +0.8 [−7.8, +9.3]. Models that fix a plan in ~1.5 rounds lose to LLM-Modulo; those needing 4–5 rounds win or tie | split: the hand-written verifier wins when the model can act on its critiques |
 | SIDE-GT-H409-CPU | the unchanged proof engine at 16 × the CPU on 100 uncounted HAGeo-409 rows: +16 counted through the kit → 279 (HAGeo 287); +9 / +10 / +14 / +16 at 2 / 4 / 8 / 16 ×; 7 of 23 certificates refused | compute is not the gap; the teammate's levers are scored at matched CPU against this curve |

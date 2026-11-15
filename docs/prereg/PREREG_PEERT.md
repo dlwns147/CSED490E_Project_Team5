@@ -115,3 +115,9 @@ runs; not used to choose this ladder order). The new runs overwrite them on the 
 peer first 79.7% at 14.1k, thinking only 56.3% at 6.8k. **PEERT-C2: peer first − current +4.2 [+2.6, +6.0] utility** (predicted +1.5, above
 0): holds. Peer first − thinking +19.7 [+12.8, +27.0]. gpt-oss-20b (C1) still running. (Replay, not registered: Qwen3-8B on seeds 1–3 with the
 gpt-oss-120b step, peer first − current +4.3 [+2.5, +6.3].)
+
+**Addendum C, gpt-oss-20b read and decision (2026-11-15 11:0x UTC; `peerfirst --main oss20 --seeds 20,21,22`).** Current 86.0% at 25.4k, peer
+first 90.0% at 24.5k, thinking only 79.7% at 13.8k. **PEERT-C1: peer first − current +4.4 [+2.0, +7.0] utility** (predicted +6, above 0):
+holds. **PEERT-C3:** peer first − thinking +5.0 [−0.2, +10.4] (the current ladder: −3.0 on seeds 17–19). **Decision (both C1 and C2 above 0):
+the trip method for every model is gpt-oss-120b `trc` → main `trct` → main `think`;** the main model's own quick translation is dropped on
+trips. The report states the reason measured on seeds 17–19: the main model's quick one-plan programs are the ladder's least precise accepts.

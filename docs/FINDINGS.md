@@ -7268,3 +7268,10 @@ Job 1382299 (one GPU, queued).
 - Replays: an agreement gate costs more than it saves (−6.9 to +2.1). Dropping the main model's own quick step (gpt-oss-120b `trc` → main
   `trct` → `think`): gpt-oss-20b +5.7 [+3.3, +8.2] (4–6), +6.4 [+3.8, +9.1] (17–19); Qwen3-32B +1.6 [+0.3, +2.9] (17–19). Chosen on these seeds,
   so PREREG_PEERT addendum C tests it on fresh seeds 20–22 (running).
+
+## 2026-11-15 11:0x UTC — PEERT-C holds on fresh seeds: the trip ladder starts with gpt-oss-120b's quick translation
+
+- Seeds 20–22 (300 trip-seeds each). Qwen3-32B: current 77.0% at 17.1k → peer first **79.7% at 14.1k, +4.2 [+2.6, +6.0]**; against thinking
+  (56.3%) +19.7 [+12.8, +27.0]. gpt-oss-20b: current 86.0% at 25.4k → peer first **90.0% at 24.5k, +4.4 [+2.0, +7.0]**; against thinking
+  (79.7%) +5.0 [−0.2, +10.4], so gpt-oss-20b moves from a loss to a near-win against thinking. Both predictions above 0 held; the trip
+  method drops the main model's own quick step for every model. (Seeds 21–22 had earlier quick and direct rows from 11-11, kept aside.)
