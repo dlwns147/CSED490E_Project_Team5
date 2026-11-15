@@ -169,3 +169,14 @@ gpt-oss-20b about −10, interval below 0.
 LLM-Modulo on utility (the old ladder on the same seeds: −7.4 [−12.7, −1.7]; on seeds 17–19: −16.1). LLM-Modulo stays 5 points more accurate.
 **Extension, written before any Qwen3-8B seed-20–22 `modulo` row:** Qwen3-8B `modulo`, seeds 20–22, GPU 6. Prediction from seeds 1–3 and
 PEERT-C (peer first 67.3% at 18.1k; LLM-Modulo 58.3% at 47.5k on 1–3): ours − LLM-Modulo about +20, interval above 0.
+
+**Part D reads (2026-11-15 20:5x UTC; `rwtrip --main <m> --seeds 20,21,22 --ladder peerfirst`).**
+- **Qwen3-8B:** ours (peer first) 67.3% at 18.1k, LLM-Modulo 59.3% at 46.8k, thinking 34.0%; critics passed 179 of 300 in 5.13 rounds.
+  **Ours − LLM-Modulo +22.3 [+13.4, +31.6] utility, +8.0 [+1.3, +15.0] accuracy** (predicted about +20, above 0): holds. With the old ladder on
+  seeds 1–3 this was a tie (+0.8).
+- **Qwen3-32B, 289 of 300 rows:** the second server's shared memory disk filled (another session's data) and the last 11 `modulo` rows were not
+  written (2 truncated lines dropped). On the 289: ours 81.0% at 13.5k, LLM-Modulo 70.6% at 30.8k; critics passed 204 of 289 in 4.04 rounds.
+  **Ours − LLM-Modulo +20.0 [+11.6, +29.1]** (predicted about +20, above 0). The missing rows are the slowest ones (most re-planning rounds),
+  so they would add LLM-Modulo tokens; the 11 rows are rerun with `--resume` when the disk has room, and the read is final then.
+- With the final method, ours − LLM-Modulo: Qwen3-8B +22.3, Qwen3-32B +20.0, gpt-oss-20b −3.0 (tie). LLM-Modulo keeps its accuracy lead only
+  for gpt-oss-20b (95.3 vs 90.0%).
