@@ -126,3 +126,9 @@ the gpt-oss-120b quick step +0.4 [−2.0, +2.7] (seeds 4–6 gave +3.3 [+1.1, +5
 **Third extension, written before any row: Qwen3-8B.** By the same mechanism, a model that acts poorly on the critics' list should lose with
 LLM-Modulo. Run: Qwen3-8B `modulo`, seeds 1–3 (its stored ladder, 49.3%), second server GPU 6. Prediction: critics passed on fewer than 200 of
 300 with more than 4 rounds on average; ours − LLM-Modulo above 0. Read with `rwtrip --main q8b --peer none --seeds 1,2,3`.
+
+**Second extension read, gpt-oss-120b (2026-11-15 00:0x UTC; `rwtrip --main oss120 --peer none --seeds 1,2,3`).** Ours (plain ladder) 86.0% at
+16.1k, LLM-Modulo 96.3% at 16.8k, thinking 76.7%. Critics passed 298 of 300 (289 right) in 1.51 rounds. **Ours − LLM-Modulo −10.0 [−14.6,
+−5.6] utility.** Every prediction holds (≥ 280 passed, < 2.5 rounds, ours below 0): the mechanism statement stands for a third model.
+**Fourth extension, written before any row:** gpt-oss-120b on the fresh seeds 17–19 (`trct`, `think`, `modulo`, high effort; its `trc` rows
+exist), second server GPU 7, so the three-model picture has a held-out read for each model. Prediction: ours − LLM-Modulo below 0.
