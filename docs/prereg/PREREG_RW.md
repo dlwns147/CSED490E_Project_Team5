@@ -180,3 +180,7 @@ PEERT-C (peer first 67.3% at 18.1k; LLM-Modulo 58.3% at 47.5k on 1–3): ours �
   so they would add LLM-Modulo tokens; the 11 rows are rerun with `--resume` when the disk has room, and the read is final then.
 - With the final method, ours − LLM-Modulo: Qwen3-8B +22.3, Qwen3-32B +20.0, gpt-oss-20b −3.0 (tie). LLM-Modulo keeps its accuracy lead only
   for gpt-oss-20b (95.3 vs 90.0%).
+
+*(21:5x UTC: the disk has room again; the 11 missing Qwen3-32B rows rerun with `--resume`. Extension, written before any row: gpt-oss-120b
+`trct`, `think`, `modulo` on seeds 20–22 (its `trc` rows exist), so the final-method table has all four models on the same seeds; its ladder
+is unchanged by PEERT-C (it is its own peer). Prediction from seeds 17–19: ours − LLM-Modulo below 0.)*
