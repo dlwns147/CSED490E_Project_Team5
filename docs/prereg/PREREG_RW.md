@@ -162,3 +162,10 @@ The trip method is now peer first (PREREG_PEERT C). The report's prior-work row 
 for Qwen3-32B and gpt-oss-20b (high effort), seeds 20–22, second server GPUs 7 and 6. Read with a peer-first ours (`rwtrip` gains
 `--ladder peerfirst`). Predictions from seeds 17–19 and PEERT-C: Qwen3-32B ours − LLM-Modulo about +20 utility, interval above 0;
 gpt-oss-20b about −10, interval below 0.
+
+**Part D, gpt-oss-20b read (2026-11-15 16:0x UTC; `rwtrip --main oss20 --seeds 20,21,22 --ladder peerfirst`).** Ours (peer first) 90.0% at
+24.5k, LLM-Modulo 95.3% at 29.3k, thinking 79.7%; critics passed 294 of 300 (286 right) in 1.64 rounds. **Ours − LLM-Modulo −3.0 [−7.8,
++2.3] utility, −5.3 [−8.7, −2.3] accuracy.** The prediction (about −10, interval below 0) fails: with the final method gpt-oss-20b ties
+LLM-Modulo on utility (the old ladder on the same seeds: −7.4 [−12.7, −1.7]; on seeds 17–19: −16.1). LLM-Modulo stays 5 points more accurate.
+**Extension, written before any Qwen3-8B seed-20–22 `modulo` row:** Qwen3-8B `modulo`, seeds 20–22, GPU 6. Prediction from seeds 1–3 and
+PEERT-C (peer first 67.3% at 18.1k; LLM-Modulo 58.3% at 47.5k on 1–3): ours − LLM-Modulo about +20, interval above 0.
