@@ -620,7 +620,7 @@ def peertrip_main():
 
 def rwtrip_main():
     """PREREG_RW part B (RW-P1): ours (main trc -> peer trc -> main trct -> main think) minus LLM-Modulo (main modulo), paired over trips,
-    utility and accuracy. usage: rwtrip [--main q32] [--peer oss120] [--seeds 4,5,6] [--modulo-tag q32fx]"""
+    utility and accuracy. usage: rwtrip [--main q32] [--peer oss120] [--seeds 4,5,6] [--modulo-tag q32fx] [--ladder peerfirst]"""
     arg = lambda k, d: sys.argv[sys.argv.index(k) + 1] if k in sys.argv else d
     main, peer, sds = arg("--main", "q32"), arg("--peer", "oss120"), [int(x) for x in arg("--seeds", "4,5,6").split(",")]
     L = lambda tag, arm, sd: {x["id"]: x for x in map(json.loads, open(f"{RES}/np_{tag}_{arm}_s{sd}.jsonl"))} if os.path.exists(f"{RES}/np_{tag}_{arm}_s{sd}.jsonl") else {}
@@ -633,7 +633,8 @@ def rwtrip_main():
             if not all(i in M[a] for a in M) or (P is not None and i not in P):
                 continue
             tok = 0
-            for r in [M["trc"][i]] + ([P[i]] if P is not None else []) + [M["trct"][i], M["think"][i]]:
+            first = [] if "--ladder" in sys.argv and arg("--ladder", "") == "peerfirst" else [M["trc"][i]]   # PREREG_RW D: peer first (PEERT C)
+            for r in first + ([P[i]] if P is not None else []) + [M["trct"][i], M["think"][i]]:
                 tok += r["tokens"]
                 if r is M["think"][i] or r["count"] == 1:
                     ours = (r["exact"], tok)

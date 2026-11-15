@@ -155,3 +155,10 @@ tag `oss120x` and were copied to `np_oss120_modulo_s19.jsonl`; the duplicate run
 | Qwen3-8B | 1–3 | 176 of 300, 5.3 | +0.8 [−7.8, +9.3] |
 | gpt-oss-20b | 4–6 / 17–19 | 294 / 295 of 300, 1.6 / 1.6 | −12.3 [−18.1, −6.6] / **−16.1 [−21.8, −10.4]** |
 | gpt-oss-120b | 1–3 / 17–19 | 298 / 297 of 300, 1.5 / 1.5 | −10.0 [−14.6, −5.6] / **−13.6 [−19.1, −8.3]** |
+
+## Part D: the final trip method against LLM-Modulo (written 2026-11-15 14:0x UTC, before any seed-20–22 `modulo` row)
+
+The trip method is now peer first (PREREG_PEERT C). The report's prior-work row should compare that method, on the same seeds. Run: `modulo`
+for Qwen3-32B and gpt-oss-20b (high effort), seeds 20–22, second server GPUs 7 and 6. Read with a peer-first ours (`rwtrip` gains
+`--ladder peerfirst`). Predictions from seeds 17–19 and PEERT-C: Qwen3-32B ours − LLM-Modulo about +20 utility, interval above 0;
+gpt-oss-20b about −10, interval below 0.
