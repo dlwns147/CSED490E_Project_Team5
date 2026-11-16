@@ -187,3 +187,9 @@ is unchanged by PEERT-C (it is its own peer). Prediction from seeds 17–19: our
 - **Qwen3-32B, final (2026-11-15 22:4x UTC, all 300 rows after `--resume`):** ours 79.7% at 14.1k, LLM-Modulo 68.0% at 32.7k; critics
   passed 204 of 300 in 4.26 rounds (all 11 resumed rows failed the critics). **Ours − LLM-Modulo +21.0 [+12.5, +30.1] utility, +11.7 [+5.3,
   +18.7] accuracy** (the 289-row read was +20.0): holds.
+
+**Part E: is gpt-oss-20b a tie or a loss against LLM-Modulo with the final method? (written 2026-11-16 00:4x UTC, before any seed-24–26 row)**
+On seeds 20–22 ours − LLM-Modulo was −3.0 [−7.8, +2.3] utility, so the report's sentence ("ties" or "loses") is not settled. Run: gpt-oss-120b
+`trc` (low effort), gpt-oss-20b `trct`, `think`, `modulo` (high), seeds 24–26 (unused for trips; seed 23 has 11-11 rows), second server GPU 6
+through the queue. Read pooled over seeds 20–22 and 24–26 (600 trip-seeds, paired over trips). Prediction: about −3, interval including 0.
+Rule: interval including 0 → the report says "ties on utility, behind on accuracy"; below 0 → "loses on utility".
