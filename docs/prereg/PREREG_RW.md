@@ -208,3 +208,6 @@ of 600 in 1.69 rounds.
 *(2026-11-16 05:1x UTC, idle-GPU fill, not a new decision: Qwen3-32B `trct`, `think`, `modulo` on seeds 24–26 (gpt-oss-120b `trc` rows exist),
 so the Qwen3-32B final-method comparisons (PEERT-C and RW-D) are also read over 6 seeds. Expected: peer first − thinking about +20,
 ours − LLM-Modulo about +20; reported pooled beside the seed-20–22 verdicts, which stand as registered.)*
+- **Fill read, Qwen3-32B seeds 24–26 (2026-11-16 11:5x UTC):** ours (peer first) 76.3% at 15.2k, LLM-Modulo 67.3% at 33.6k, thinking 55.0%;
+  ours − LLM-Modulo +18.2 [+9.4, +27.4]. **Pooled over seeds 20–22 and 24–26 (600 trip-seeds): +19.6 [+11.8, +28.0] utility, +10.3 [+4.7,
+  +16.7] accuracy.** The seed-20–22 verdict (+21.0) holds on new seeds.
