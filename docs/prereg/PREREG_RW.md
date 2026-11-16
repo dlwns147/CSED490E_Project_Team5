@@ -204,3 +204,7 @@ Rule: interval including 0 → the report says "ties on utility, behind on accur
 31.8k, −5.4 [−11.4, +1.1]. **Pooled: ours − LLM-Modulo −4.2 [−8.9, +1.3] utility, −7.3 [−10.5, −4.3] accuracy** (predicted about −3,
 interval including 0): by the rule, the report says gpt-oss-20b **ties LLM-Modulo on utility and is behind on accuracy.** Critics passed 591
 of 600 in 1.69 rounds.
+
+*(2026-11-16 05:1x UTC, idle-GPU fill, not a new decision: Qwen3-32B `trct`, `think`, `modulo` on seeds 24–26 (gpt-oss-120b `trc` rows exist),
+so the Qwen3-32B final-method comparisons (PEERT-C and RW-D) are also read over 6 seeds. Expected: peer first − thinking about +20,
+ours − LLM-Modulo about +20; reported pooled beside the seed-20–22 verdicts, which stand as registered.)*
