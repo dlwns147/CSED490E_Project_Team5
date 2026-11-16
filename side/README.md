@@ -162,6 +162,11 @@ certificates, the reference count and times).
 **Suggested split for the teammate (11-13, fourth pass), in order, each a coding task with a number to beat:**
 1. **Warm-up inside task 2 (days):** the missing constructions (`eq_trapezoid`) and the two build errors, then the greedy + random portfolio.
    Expected 271–277 counted; this alone passes HAGeo at K = 2,048 (263).
+   **Update 11-16:** the three stored runs already give 284 counted through the kit (reference 263, random points +8, 16 × CPU +13),
+   3 short of HAGeo's 287. Eight statements never build in any run (an `IndexError` while building the figure), so no run can count them:
+   with `eq_trapezoid` 1999USAMOp6, 2014ARMOg9p6, 2017ARMOg9p2, 2019RMMp2; other constructions 2007USATSTp5, 2015USATSTp6, 2019KoMaLA736,
+   2020POGCHAMPp2 (rows in `results/proof/h409*/gt_h409*.jsonl`, field `dsl`). Making these build and running the frozen engine on them
+   through the kit is the shortest path past 287: 3 of 8 is enough.
 2. **HAGeo's heuristic, re-implemented from the paper** (points that lie non-trivially on a line or circle of the figure) as our candidate
    source, at matched CPU against the 16× curve. Their random → heuristic step was +69 rows in their engine.
 3. **The algebraic fallback with component choice** on the rows still left: Wu's method or Gröbner bases, the branch (incenter vs excenters,
