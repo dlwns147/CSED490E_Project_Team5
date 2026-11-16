@@ -630,10 +630,11 @@ def rwtrip_main():
         M["modulo"] = L(arg("--modulo-tag", main), "modulo", sd)   # q32fx: the rerun with the 23:1x answer reader
         P = L(peer, "trc", sd) if peer != "none" else None   # --peer none: the plain ladder trc -> trct -> think (gpt-oss-120b, PREREG_RW C)
         for i in M["modulo"]:
-            if not all(i in M[a] for a in M) or (P is not None and i not in P):
+            pf = "--ladder" in sys.argv and arg("--ladder", "") == "peerfirst"
+            if not all(i in M[a] for a in M if not (pf and a == "trc")) or (P is not None and i not in P):
                 continue
             tok = 0
-            first = [] if "--ladder" in sys.argv and arg("--ladder", "") == "peerfirst" else [M["trc"][i]]   # PREREG_RW D: peer first (PEERT C)
+            first = [] if pf else [M["trc"][i]]   # PREREG_RW D: peer first (PEERT C); the main trc rows are then not needed
             for r in first + ([P[i]] if P is not None else []) + [M["trct"][i], M["think"][i]]:
                 tok += r["tokens"]
                 if r is M["think"][i] or r["count"] == 1:

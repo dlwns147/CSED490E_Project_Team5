@@ -198,3 +198,9 @@ Rule: interval including 0 → the report says "ties on utility, behind on accur
   right) in 1.49 rounds. **Ours − LLM-Modulo −9.6 [−15.7, −3.7] utility** (predicted below 0): holds.
 - **Final-method table, seeds 20–22 (ours − LLM-Modulo, utility):** Qwen3-32B +21.0, Qwen3-8B +22.3, gpt-oss-20b −3.0 (tie, part E running),
   gpt-oss-120b −9.6.
+
+**Part E read (2026-11-16 04:1x UTC; `rwtrip --main oss20 --seeds 20,21,22,24,25,26 --ladder peerfirst`, 600 trip-seeds; seeds 24–26
+`modulo` ran as `oss20m` on GPU 7 and were copied to the `oss20` names).** Seeds 24–26 alone: ours 87.0% at 24.1k, LLM-Modulo 96.3% at
+31.8k, −5.4 [−11.4, +1.1]. **Pooled: ours − LLM-Modulo −4.2 [−8.9, +1.3] utility, −7.3 [−10.5, −4.3] accuracy** (predicted about −3,
+interval including 0): by the rule, the report says gpt-oss-20b **ties LLM-Modulo on utility and is behind on accuracy.** Critics passed 591
+of 600 in 1.69 rounds.
