@@ -193,3 +193,8 @@ On seeds 20–22 ours − LLM-Modulo was −3.0 [−7.8, +2.3] utility, so the r
 `trc` (low effort), gpt-oss-20b `trct`, `think`, `modulo` (high), seeds 24–26 (unused for trips; seed 23 has 11-11 rows), second server GPU 6
 through the queue. Read pooled over seeds 20–22 and 24–26 (600 trip-seeds, paired over trips). Prediction: about −3, interval including 0.
 Rule: interval including 0 → the report says "ties on utility, behind on accuracy"; below 0 → "loses on utility".
+- **gpt-oss-120b, seeds 20–22 (2026-11-16 02:0x UTC; `rwtrip --main oss120 --peer none --seeds 20,21,22`; `modulo` ran as `oss120m` on GPU 7
+  and was copied to the `oss120` names):** ours 87.0% at 18.3k, LLM-Modulo 96.7% at 18.4k, thinking 77.3%; critics passed 295 of 300 (290
+  right) in 1.49 rounds. **Ours − LLM-Modulo −9.6 [−15.7, −3.7] utility** (predicted below 0): holds.
+- **Final-method table, seeds 20–22 (ours − LLM-Modulo, utility):** Qwen3-32B +21.0, Qwen3-8B +22.3, gpt-oss-20b −3.0 (tie, part E running),
+  gpt-oss-120b −9.6.
