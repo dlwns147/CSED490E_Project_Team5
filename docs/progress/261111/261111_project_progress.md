@@ -1,6 +1,6 @@
 # Progress 11-03 → 11-12 — *Facts First, Think on Failure*
 
-*Updated 2026-11-17 20:4x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
+*Updated 2026-11-17 21:4x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
 
 ## At a glance
 
@@ -222,7 +222,7 @@ Reading: answering the solver's first solution without counting stays below thin
 
 ![Decomposition](fig/u_decomp.png)
 
-*Figure 8. ΔU = 100·a·(p − q) − 0.5·Δktok, exact when the ladder falls back to the same thinking run. a = share the check accepts, p = accuracy of those answers, q = thinking's accuracy on the same items. (a) q against thinking's accuracy on all items: on the line, the check is blind to difficulty; above it, it picks easy items. (b) The two terms per cell.*
+*Figure 8. ΔU = 100·a·(p − q) − 0.5·Δktok, exact when the ladder falls back to the same thinking run. a = share the check accepts, p = accuracy of those answers, q = thinking's accuracy on the same items. (a) q against thinking's accuracy on all items: on the line, the check is blind to difficulty; above it, it picks easy items. (b) The two terms per cell; ◇ = the accuracy term predicted without labels (PREREG_LF hybrid). OEIS cells are seed 2.*
 
 | Cell | a | p | q (accepted) | thinking, all | ΔU |
 |---|---|---|---|---|---|
@@ -237,7 +237,7 @@ Reading: answering the solver's first solution without counting stays below thin
 - **Grids and trips:** the solver does the search, so the formal route succeeds on hard items as often as on easy ones (q ≈ thinking's overall accuracy). The gain is large wherever thinking is weak, and grids also save tokens.
 - **OEIS:** a quick program succeeds mostly where the sequence is easy, which is where thinking is also right (q 0.82 against 0.61 overall). The precision condition holds, but the room above thinking on accepted items is small, and less than half the items are accepted at all.
 - **gpt-oss on trips:** thinking is already right on 85% of what the check accepts and the ladder costs ~10k more tokens per trip, so the gain is small; LLM-Modulo's hand-written critics go further (§4).
-- **Rule for a new domain, without labels (PREREG_LF):** run both routes and one more model's quick translation on a few hundred items. a and the token term are measured directly. For the accuracy term, on each accepted item use the third model's answer as the label where it gives one ([accepted = third] − [thinking = third]) and otherwise trust the accepted answer ([thinking ≠ accepted]). Registered on the four grid cells before computing, it predicted +33.2 / +16.3 / +8.9 / +1.1 against measured +32.4 / +16.4 / +8.5 / +1.4; over all 17 cells (OEIS, trips, grids) its mean error is 1.0 point, against 3.8 for trusting accepted answers alone. The third answer alone fails (GridPuzzle +14.0 vs +32.4) because the third model mostly answers the easy items.
+- **Rule for a new domain, without labels (PREREG_LF):** run both routes and one more model's quick translation on a few hundred items. a and the token term are measured directly. For the accuracy term, on each accepted item use the third model's answer as the label where it gives one ([accepted = third] − [thinking = third]) and otherwise trust the accepted answer ([thinking ≠ accepted]). Registered on the four grid cells before computing, it predicted +33.2 / +16.3 / +8.9 / +1.1 against measured +32.4 / +16.4 / +8.5 / +1.4; over all 17 cells (OEIS, trips, grids) its mean error is 1.0 point, against 3.8 for trusting accepted answers alone. The third answer alone fails (GridPuzzle +14.0 vs +32.4) because the third model mostly answers the easy items. Which third model is used hardly matters (42 pairs: mean error 1.3, at most 3.2); a third that answers few items falls back to trusting the check, safe only when the check is precise, and that coverage is visible without labels.
 
 ## Next
 

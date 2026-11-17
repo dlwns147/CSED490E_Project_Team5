@@ -39,3 +39,11 @@ The hybrid is within 0.8 points in every grid cell; over all 17 cells (OEIS 9, t
 progress note states the hybrid as the label-free rule. Limits: the hybrid was shaped on OEIS and trips (seen), grids are its only held-out
 test; it needs a third model's quick translation on the sample, and all domains here have a check; it estimates the accuracy term, the token
 term is measured directly.
+
+**Exploratory addendum (2026-11-17 21:4x UTC; `results/tmp_lf_limits.py`, no new run): does the choice of third model matter?** Every
+available third for the OEIS and trip cells (other families' brute forces and quick programs; other models' quick trip translations), 42
+cell × third pairs: mean absolute error 1.3 points, largest 3.2 (OEIS seed 1, Qwen3-8B own check, gpt-oss-20b brute force as third). A weak
+third that answers few accepted items (under 20%, Qwen translations on trips) reduces the hybrid to rule A (error 2.2 on average there), which
+is fine where the check is precise (trips, p ≥ 0.95). **Predicted limit, not observed:** an imprecise check (OEIS Qwen3-8B own check,
+p 0.72–0.82, rule A error 6–9) together with a third that answers few items; every third available for that cell answered over 90%.
+The third's coverage is label-free, so the rule can report when it is in that regime.

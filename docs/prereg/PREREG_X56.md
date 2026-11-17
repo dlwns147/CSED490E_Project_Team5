@@ -70,3 +70,4 @@ medium 153 (16 at the cap, 230 parsed). Pooled = each sequence's mean over seeds
   conditional win** (the check pays where its precision beats thinking on what it accepts).
 - **Rule B (label-free accuracy term):** predicted vs measured, L1 −2.0 vs −0.8, L2 +1.6 vs +0.4, L3 +1.6 vs +1.6: within 2.0 in all three
   cells and closer than rule A (+6.0, +4.4, +3.2) in each, as predicted. Over the nine OEIS cells of seeds 1–3, mean absolute error 0.9 (rule A 4.2).
+- Hard sequences, seed 3 (reported, no verdict): L1 +0.05, L2 −0.48, L3 −0.21 utility; 7–8 of 250 right for every arm (seed 2: +0.1).

@@ -7338,3 +7338,10 @@ Job 1382299 (one GPU, queued).
   items, where thinking also agrees, so the gain on hard items is missed.
 - Consequence for the report: deciding whether the method pays on a new domain needs both routes plus one more model's quick translation on
   a few hundred items, and no labels.
+
+## 2026-11-17 21:4x UTC — The label-free estimate does not depend on which third model is used (stored data)
+
+- 42 cell × third pairs on OEIS and trips: mean absolute error 1.3 points, largest 3.2. A third that answers few accepted items reduces the
+  estimate to trusting the accepted answers, which is safe when the check is precise; the predicted failure (imprecise check and a sparse
+  third) did not occur in our data, and the third's coverage is visible without labels. The §7 figure is redrawn with seed-2 OEIS cells and
+  the label-free predictions beside the measured accuracy terms (`results/tmp_fig_decomp.py`).
