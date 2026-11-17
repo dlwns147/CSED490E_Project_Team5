@@ -27,3 +27,9 @@ thinking's accuracy on the accepted sequences; I predict both hold.
 **Decision.** L3 above 0 → the computation track is reported as a conditional win: the check pays when its precision beats thinking on what it
 accepts (gpt-oss-20b), not when the model's own check shares its misreading (Qwen3-8B). L2 above 0 → a cross-family checker repairs the weaker
 model's ladder. Both including or below 0 → the computation track stays closed and the report says why.
+
+**Amendment (written 2026-11-17 15:3x UTC, before any seed-2 thinking row is read).** At seed 1, gpt-oss-20b thinking at high effort hit the
+30,000-token cap on 195 of 250 easy sequences and wrote no program (47 right at 26.9k tokens); Qwen3-8B hit it on 10, gpt-oss-120b on 87. A
+baseline that mostly runs out of tokens is not the strongest thinking baseline, so L3 is also read against gpt-oss-20b thinking at **medium
+effort** (same cap; seeds 1 and 2), and **the verdict uses whichever thinking setting has the higher utility** (the rule PREREG_BUD used for
+budget-forced thinking). The high-effort numbers are reported beside it.

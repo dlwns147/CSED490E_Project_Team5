@@ -297,7 +297,8 @@ def dclc_main():
 
 def gpf_main():
     """PREREG_GPF: the composed method on seeds 14-16. Ladder: lf (q8bgrllf0/1 gtr) -> gpt-oss-120b gtr -> q8b gtrt -> q8b think, the closure on
-    every step with two or more solutions; part 2 (DCLC) also flags a one-solution lf / peer program whose closure leaves none. Closures are
+    every step with two or more solutions; part 2 (DCLC) also flags a one-solution lf / peer program whose closure leaves none (part 3: --main oss20 uses that
+    model's own quick translation, thinking translation and thinking). Closures are
     computed once (sandboxed) and kept in results/<s>_gpf_close.jsonl. Baseline: q8b think alone."""
     from concurrent.futures import ThreadPoolExecutor
     from grid_score import score
@@ -308,14 +309,16 @@ def gpf_main():
     for s, src in [("gp", "gridpuzzle"), ("lgp", "lgp")]:
         PZ = {r["id"]: r for r in map(json.loads, open(os.path.join(data, src, "grid.jsonl")))}
         R = {}
-        for a, tags, arm in [("lf", ["q8bgrllf0", "q8bgrllf1"], "gtr"), ("peer", ["oss120"], "gtr"), ("gtrt", ["q8b"], "gtrt"), ("think", ["q8b"], "think")]:
+        main = sys.argv[sys.argv.index("--main") + 1] if "--main" in sys.argv else None   # GPF part 3: the main model's own quick translation as step 1
+        steps = [("lf", [main] if main else ["q8bgrllf0", "q8bgrllf1"], "gtr"), ("peer", ["oss120"], "gtr"), ("gtrt", [main or "q8b"], "gtrt"), ("think", [main or "q8b"], "think")]
+        for a, tags, arm in steps:
             for tag in tags:
                 for sd in sds:
                     f = os.path.join(RES, f"{s}_{tag}_{arm}_s{sd}.jsonl")
                     for x in map(json.loads, open(f)) if os.path.exists(f) else []:
                         R[(a, x["id"], sd)] = {**x, "exact": score(x.get("grid"), PZ[x["id"]])[0]}
         keys = sorted({(i, sd) for (_, i, sd) in R if all((a, i, sd) in R for a in ["lf", "peer", "gtrt", "think"])})
-        cf = f"{RES}/{s}_gpf_close.jsonl"
+        cf = f"{RES}/{s}_gpf_close.jsonl" if not main else f"{RES}/{s}_gpf_close_{main}.jsonl"
         C = {(x["arm"], x["id"], x["seed"]): x for x in map(json.loads, open(cf))} if os.path.exists(cf) else {}
         todo = [(a, i, sd) for i, sd in keys for a in ["lf", "peer", "gtrt"] if (a, i, sd) not in C
                 and (R[(a, i, sd)]["count"] >= 2 or (a != "gtrt" and R[(a, i, sd)]["count"] == 1))]
