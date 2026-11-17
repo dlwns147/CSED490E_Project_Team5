@@ -242,7 +242,7 @@ Reading: answering the solver's first solution without counting stays below thin
 
 | Experiment | Question | Depending on the verdict |
 |---|---|---|
-| **Proofs task 1** (registered run, teammate) | does the teammate's solver reach the reference (20 / 21 whole problems) and pass the soundness control (0 of 267 plants counted)? | if yes, task 1 is done; task 2 (HAGeo-409 coverage, 263 now vs HAGeo 287) next |
+| **Proofs: HAGeo-409** (teammate) | do the 8 statements that never build, once fixed, add at least 4 counted rows (284 → 288, past HAGeo's 287)? | if yes, HAGeo's candidate rule next; if not, that rule first |
 | **Proofs task 2** (teammate, kit ready) | portfolio + missing constructions, then HAGeo's rule from the paper, then an algebraic fallback with component choice: more than 287 certified rows at matched CPU? | the course report's proof result |
 
 <details><summary><b>Closed verdicts (29)</b></summary>
