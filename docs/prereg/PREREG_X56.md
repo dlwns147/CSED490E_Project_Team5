@@ -40,3 +40,23 @@ ladder falls back to it. **X56-L3: 159 right at 5.99k vs 153 at 6.83k, +2.8 [−
 right on 85 of those 104 (82%), so the precision condition holds, but by little. The interval includes 0: by the rule, **not a win**. Hard
 sequences: +0.1 [−0.4, +1.1]. (Seed-1 pilot, same reading: +1.9 [−0.6, +4.5].) The high-effort seed-2 run is still finishing and is reported
 beside this; it cannot raise the baseline. L1 and L2 wait for Qwen3-8B thinking at seed 2.
+
+**L1 and L2 read (2026-11-17 19:3x UTC; seed 2, 250 easy sequences; Qwen3-8B thinking 12 of 500 at the cap, 488 parsed).** Qwen3-8B thinking:
+148 right at 10.26k tokens.
+- **X56-L1 (own check): 147 right at 8.66k, +0.4 [−1.9, +2.8].** Accepted 82, right 64 (78%); thinking right on 65 of them. Prediction
+  (below or including 0) holds.
+- **X56-L2 (gpt-oss-120b check): 152 right at 9.05k, +2.2 [+0.8, +4.0].** Accepted 78, right 69 (88%); thinking right on 65. The interval is
+  above 0, so by the decision **a cross-family checker repairs the weaker model's ladder**; the prediction (about +1, interval including 0)
+  was too cautious. The gain is small: +1.6 from accuracy, +0.6 from tokens (gpt-oss-120b's brute-force tokens are counted).
+- The two seed-2 thinking runs not used here were stopped as redundant (a Slurm copy of the same Qwen3-8B run, and gpt-oss-20b high effort,
+  which the amendment already ruled out as the baseline).
+
+**Addendum S3 (written 2026-11-17 19:3x UTC, before any seed-3 thinking row exists; programs and brute forces at seed 3 are stored).** Seed 3
+replicates L1–L3 with the same rules: Qwen3-8B thinking and gpt-oss-20b thinking at medium effort, 30,000 tokens.
+- Predictions: L2 at seed 3 above 0 in its point estimate, and seeds 2 and 3 pooled (paired bootstrap over sequence × seed) above 0; L1 pooled
+  including 0; L3 pooled above 0 (seed 2 alone was +2.8 [−0.1, +5.9]).
+- Decision: L2 stays a win only if the pooled interval is above 0; L3 becomes a conditional win only if the pooled interval is above 0 and the
+  seed-3 point is above 0; otherwise the seed-2 readings stand as written.
+- Label-free test (LOOP open problem 2): rule B, the third check's answer as the label (strongest family not in the ladder: L1 gpt-oss-120b,
+  L2 gpt-oss-20b, L3 gpt-oss-120b; `results/tmp_lf3.py`), predicts each seed-3 accuracy term within 2.0 points, and closer than rule A (the
+  11-17 rule, which assumes accepted answers are right) in each of the three cells. On seeds 1–2 rule B's mean absolute error was 1.0 (rule A 4.3).

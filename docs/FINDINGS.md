@@ -7308,3 +7308,14 @@ Job 1382299 (one GPU, queued).
   OEIS gpt-oss-20b +5.6 vs +2.4. The error is the accepted-but-wrong share a·(1 − p): small where p ≥ 0.95, large where p is low (OEIS Qwen3-8B,
   own check: predicted +6.0, measured −2.8, p = 0.72). So deciding whether to use the method on a new domain needs only running both routes on a
   few hundred items plus a small labeled sample (or a second independent check) to estimate p.
+
+## 2026-11-17 19:3x UTC — X56-L1/L2: a check written by another family turns the weaker model's ladder into a small win; a third check predicts the accuracy term without labels
+
+- Qwen3-8B, seed 2, 250 easy OEIS sequences, against its own thinking (148 right at 10.3k; 12 of 500 at the cap): own check (L1) **+0.4
+  [−1.9, +2.8]**, accepted programs 78% right; gpt-oss-120b's brute force as the check (L2) **+2.2 [+0.8, +4.0]**, 88% right. By PREREG_X56
+  the cross-family check repairs the ladder (seed 1: −2.0 own, +1.0 cross). The gain is small (+1.6 accuracy, +0.6 tokens). Seed 3 is
+  pre-registered as a replication of L1–L3 (addendum S3).
+- **Label-free accuracy term, second rule** (`results/tmp_lf3.py`): take a third, independent check (the strongest family not in the ladder) as
+  the label for both the accepted answer and thinking's answer. On the six OEIS cells of seeds 1–2 it predicts the measured accuracy term with
+  mean absolute error 1.0 point (rule A, which assumes accepted answers are right: 4.3), and gets the losing cell right (L1 seed 1: −0.4
+  predicted, −2.8 measured; rule A +6.0). Seed 3 tests it before its thinking runs exist.
