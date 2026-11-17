@@ -7296,7 +7296,7 @@ Job 1382299 (one GPU, queued).
   amendment was needed; with medium effort the margin is small. Reading: on OEIS the free check only buys tokens, because a well-budgeted thinker
   is already right on most sequences the check accepts. L1/L2 (Qwen3-8B) pending.
 
-## 2026-11-17 18:3x UTC — One decomposition explains every ladder gain (`results/tmp_decomp.py`, `results/decomp.json`)
+## 2026-11-17 18:2x UTC — One decomposition explains every ladder gain (`results/tmp_decomp.py`, `results/decomp.json`)
 
 - With the fallback equal to the baseline's thinking run, ΔU = 100·a·(p − q) − 0.5·Δktok exactly (a accepted share, p their accuracy, q thinking's
   accuracy on them). Across 11 cells p is 0.88–1.00 except Qwen3-8B's own OEIS check (0.72). The gain is set by q and a: grids and trips accept

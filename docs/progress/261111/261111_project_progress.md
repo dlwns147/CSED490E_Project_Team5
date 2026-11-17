@@ -1,6 +1,6 @@
 # Progress 11-03 → 11-12 — *Facts First, Think on Failure*
 
-*Updated 2026-11-17 18:3x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
+*Updated 2026-11-17 18:2x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
 
 ## At a glance
 
