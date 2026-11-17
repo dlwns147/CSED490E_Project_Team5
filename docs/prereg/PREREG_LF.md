@@ -23,3 +23,19 @@ gpt-oss-20b ladder; its answer counts only when its own count is 1. Answers comp
 - **Decision:** holds → the progress note states the hybrid as the label-free rule for a new domain (two quick translations from different
   families + both routes on a few hundred items, no labels). Fails in any grid cell → the rule stays "rule A plus a small labeled sample",
   and the note says where the hybrid broke.
+
+**Result (2026-11-17 20:4x UTC; `results/tmp_lf3_grids.py`).** The recomputed closures reproduce the stored ones row for row (counts and
+exactness equal in all 3,492 rows) and now keep each closure's grid.
+
+| Cell | Measured | Rule A | Rule B | Hybrid |
+|---|---|---|---|---|
+| GridPuzzle, Qwen3-8B (RL) ladder | +32.4 | +36.3 | +14.0 | **+33.2** |
+| GridPuzzle, gpt-oss-20b ladder | +16.4 | +20.2 | +4.3 | **+16.3** |
+| Mitra-Baral, Qwen3-8B (RL) ladder | +8.5 | +15.2 | +2.8 | **+8.9** |
+| Mitra-Baral, gpt-oss-20b ladder | +1.4 | +2.1 | −0.4 | **+1.1** |
+
+The hybrid is within 0.8 points in every grid cell; over all 17 cells (OEIS 9, trips 4, grids 4) its mean absolute error is 1.0 point
+(rule A 3.8). **Prediction holds.** Rule B fails on grids as on trips: the third model answers a selected, easier subset. By the decision the
+progress note states the hybrid as the label-free rule. Limits: the hybrid was shaped on OEIS and trips (seen), grids are its only held-out
+test; it needs a third model's quick translation on the sample, and all domains here have a check; it estimates the accuracy term, the token
+term is measured directly.

@@ -7327,3 +7327,14 @@ Job 1382299 (one GPU, queued).
   conditional win by PREREG_X56 S3. The wins are small: on OEIS the check accepts mostly sequences thinking already solves (q ≈ 0.8).
 - Rule B (a third family's brute force as the label) predicted the seed-3 accuracy terms before the thinking runs existed: −2.0 / +1.6 / +1.6
   vs measured −0.8 / +0.4 / +1.6. Over nine cells its mean absolute error is 0.9 points (rule A, which trusts accepted answers: 4.2).
+
+## 2026-11-17 20:4x UTC — PREREG_LF: the method's accuracy gain on a domain can be predicted without labels (held-out grid test passes)
+
+- Hybrid estimator: on items the check accepts, a third model's quick translation serves as the label where it gives one answer
+  ([accepted = third] − [thinking = third]); elsewhere the accepted answer is trusted ([thinking ≠ accepted]). Pre-registered on the four
+  grid cells before computing: within 2.0 points of the measured accuracy term in each. Result: +33.2 / +16.3 / +8.9 / +1.1 vs measured
+  +32.4 / +16.4 / +8.5 / +1.4. Over 17 cells (OEIS, trips, grids) mean absolute error 1.0 point; trusting accepted answers alone 3.8.
+- Using the third answer only (rule B) fails on trips and grids (e.g. GridPuzzle +14.0 vs +32.4): the third model answers mostly the easy
+  items, where thinking also agrees, so the gain on hard items is missed.
+- Consequence for the report: deciding whether the method pays on a new domain needs both routes plus one more model's quick translation on
+  a few hundred items, and no labels.
