@@ -29,3 +29,10 @@ gpt-oss-120b's ladder starts with its own quick translation (it is the peer).
   check; the count check stays the method for domains without one). Otherwise the count check stays.
 - P2 holds → the report states that putting our cheap candidate first makes LLM-Modulo cheaper and no worse for every model, and
   better for Qwen3. Otherwise the gpt-oss loss to LLM-Modulo stands as written.
+
+**Mechanism on the seen seeds (written 2026-11-17 22:4x UTC, after the predictions; seeds 20–22, no new run).** Plans that the count check
+accepts but the critics reject are **0 of 41 right** across the five plan sources (gpt-oss-120b quick translation 0/4; thinking translations
+of gpt-oss-20b 0/0, gpt-oss-120b 0/6, Qwen3-32B 0/8, Qwen3-8B 0/23): a misreading that leaves exactly one solution. Plans the critics accept
+but the count check does not are 27 of 32 right (the program printed several plans or none, but its first plan meets every constraint).
+Precision: count = 1 81–100%, critics 98.9–100%. So the critics fix the weakness the report already names (a misreading that still leaves
+one solution) and add coverage; Qwen3-8B, whose count check is least precise (81%), should gain most (P1 predicted +5.7).
