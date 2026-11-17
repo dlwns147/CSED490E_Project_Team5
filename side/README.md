@@ -58,8 +58,10 @@ hypotheses, the identity checked in Lean by `linear_combination`. No published H
   image has Python and Lean).
 
 **What we hand you before step 1.** The kit's inputs are outside the repository and our home directory is not readable by other accounts, so
-we send one archive: the kit directory (409 rows, 266 reference certificates, reference times; 9.5 MB) plus the 284 counted certificates as
-one directory, so your score is "284 + your new rows" from one command.
+we send one archive, `hageo409_kit.tar.gz` (2 MB): `kit_h409/` (409 rows, 266 reference certificates, reference count) and
+`kit_h409_union/certs/`, the 287 certificates that count **284** (checked 2026-11-17 20:5x UTC: `python side/kit_h409.py score kit_h409
+kit_h409_union/certs` prints "counted 284 of 409"). Your score is "284 + your new rows": add your certificates to a copy of that directory and
+run the same command.
 
 **Who does what.** Yours: everything after the frozen formal statement (figures, proof search, certificates, Lean export and checking, CPU
 cost), in a branch or fork, files under `side/`. Ours: translations and faithfulness, any model call, the kits, scoring each push within a
