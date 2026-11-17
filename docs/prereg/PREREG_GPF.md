@@ -105,3 +105,9 @@ grids). **Decision:** above 0 on GridPuzzle → the report's grid result names b
 grid headline to Qwen3-8B.
 *(Idle-GPU fill, same rules: the same composed method with Qwen3-32B as main model (① Qwen3-32B `gtr`, ③ `gtrt`, ④ `think`), seeds 14–16, on the
 second server's two GPUs; reported beside part 3.)*
+
+**Part 3 result (2026-11-17 15:2x UTC; `poc/gp_conj.py gpf --main oss20`, seeds 14–16).** gpt-oss-20b as main model, with the closure and the
+one-solution check: **GridPuzzle 95.3% at 6.74k tokens vs thinking 78.9% at 14.98k, +20.5 [+16.3, +24.9] utility** (without the check 94.0%,
++19.4 [+15.1, +23.8]); **Mitra-Baral 99.6% at 1.76k vs 98.2% at 5.20k, +3.1 [+1.3, +5.4]**. The check adds +1.2 [+0.2, +2.5] on GridPuzzle.
+Prediction (GridPuzzle above 0; Mitra-Baral above or including 0) holds on both. **Decision: the report's fresh-seed grid result names both
+families** (Qwen3-8B with the RL-trained quick step; gpt-oss-20b with no training).

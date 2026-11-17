@@ -7277,3 +7277,13 @@ Job 1382299 (one GPU, queued).
   method drops the main model's own quick step for every model. (Seeds 21–22 had earlier quick and direct rows from 11-11, kept aside.)
 - (14:0x UTC) Qwen3-8B on seeds 20–22: peer first 67.3% at 18.1k against the current ladder's 63.7% at 21.1k, **+5.2 [+3.0, +7.5]**; against
   thinking (34.0%) +29.5 [+22.1, +37.0]. Peer first holds for all three main models.
+
+## 2026-11-17 15:2x UTC — The grid method on fresh seeds for the second family (GPF part 3)
+
+- gpt-oss-20b as main model, no RL (its own quick translation → gpt-oss-120b quick translation → its thinking translation → its thinking,
+  closure and one-solution check), seeds 14–16: **GridPuzzle 95.3% at 6.7k vs thinking 78.9% at 15.0k, +20.5 [+16.3, +24.9]; Mitra-Baral
+  99.6% at 1.8k vs 98.2% at 5.2k, +3.1 [+1.3, +5.4].** Both families now win on human-written grids on seeds no choice has seen.
+- Computation track (IDEAS 56, seed-1 pilot, exploratory): a check written by another family raises the accepted programs' precision (Qwen3-8B
+  quick programs: own check 72%, gpt-oss-120b's 87%); gpt-oss models' own checks are already about 90% precise. Thinking baselines on OEIS hit the
+  30,000-token cap often for gpt-oss (gpt-oss-20b high effort: 195 of 250), so PREREG_X56 was amended to also compare against medium effort and
+  use the better baseline. Decisive seed-2 runs are running.

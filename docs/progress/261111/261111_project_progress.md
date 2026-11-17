@@ -1,6 +1,6 @@
 # Progress 11-03 → 11-12 — *Facts First, Think on Failure*
 
-*Updated 2026-11-16 18:4x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
+*Updated 2026-11-17 15:2x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
 
 ## At a glance
 
@@ -26,6 +26,7 @@
 | GridPuzzle (human-written grids) | Qwen3-8B 60.9% → **93.3%**, 11.5k → 4.6k tokens (trained translator + gpt-oss-120b quick translation + closure + check; fresh seeds 14–16) | Win (+35.9) |
 | Mitra-Baral (small grids) | Qwen3-8B 87.9% → **96.5%**, 6.5k → 1.2k tokens (same) | Win (+11.1 [+5.1, +17.3]) |
 | Trip planning (NaturalPlan) | Qwen3-32B 56.3% → **79.7%** at 14.1k (gpt-oss-120b quick step first, seeds 20–22); gpt-oss-20b 79.7% → 90.0% | Utility win (Qwen3-32B +19.7 [+12.8, +27.0]; earlier ladder +16.4 on 17–19, +12.5 on 4–6; gpt-oss-20b +5.0 [−0.2, +10.4]); check precision below the registered bar; vs LLM-Modulo (hand-written critics), final method, seeds 20–22: ours ahead on Qwen3-32B (+21.0) and Qwen3-8B (+22.3), tie on gpt-oss-20b on utility (−4.2 [−8.9, +1.3] over 6 seeds; −7.3 accuracy), behind on gpt-oss-120b (−9.6) (§4) |
+| GridPuzzle · Mitra-Baral, gpt-oss-20b (no training, fresh seeds 14–16) | 78.9% → **95.3%**, 15.0k → 6.7k tokens · 98.2% → **99.6%** | Win (+20.5 [+16.3, +24.9] · +3.1 [+1.3, +5.4]) |
 | GridPuzzle, gpt-oss-120b | 92.3% → **96.9%**, 9.1k → 5.2k tokens (with the closure; 93.1% without) | Win (+6.5) |
 | AR-LSAT · BFCL agents | ≈ 0 · loses to a public checkpoint (EnvScaler-8B) | Tie · loss |
 
