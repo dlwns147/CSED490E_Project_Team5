@@ -7319,3 +7319,11 @@ Job 1382299 (one GPU, queued).
   the label for both the accepted answer and thinking's answer. On the six OEIS cells of seeds 1–2 it predicts the measured accuracy term with
   mean absolute error 1.0 point (rule A, which assumes accepted answers are right: 4.3), and gets the losing cell right (L1 seed 1: −0.4
   predicted, −2.8 measured; rule A +6.0). Seed 3 tests it before its thinking runs exist.
+
+## 2026-11-17 20:4x UTC — X56 seed 3 (pre-registered replication): both registered computation wins hold; the third-check rule predicts the accuracy term within 2 points on held-out cells
+
+- Pooled over seeds 2 and 3 (250 easy OEIS sequences, bootstrap over sequences): Qwen3-8B with gpt-oss-120b's brute force as the check
+  **+1.7 [+0.4, +3.2]** (win kept); Qwen3-8B with its own check +0.2 [−1.9, +2.2]; gpt-oss-20b with its own check **+2.3 [+0.3, +4.5]**, now a
+  conditional win by PREREG_X56 S3. The wins are small: on OEIS the check accepts mostly sequences thinking already solves (q ≈ 0.8).
+- Rule B (a third family's brute force as the label) predicted the seed-3 accuracy terms before the thinking runs existed: −2.0 / +1.6 / +1.6
+  vs measured −0.8 / +0.4 / +1.6. Over nine cells its mean absolute error is 0.9 points (rule A, which trusts accepted answers: 4.2).

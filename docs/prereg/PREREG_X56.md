@@ -60,3 +60,13 @@ replicates L1–L3 with the same rules: Qwen3-8B thinking and gpt-oss-20b thinki
 - Label-free test (LOOP open problem 2): rule B, the third check's answer as the label (strongest family not in the ladder: L1 gpt-oss-120b,
   L2 gpt-oss-20b, L3 gpt-oss-120b; `results/tmp_lf3.py`), predicts each seed-3 accuracy term within 2.0 points, and closer than rule A (the
   11-17 rule, which assumes accepted answers are right) in each of the three cells. On seeds 1–2 rule B's mean absolute error was 1.0 (rule A 4.3).
+
+**S3 read (2026-11-17 20:4x UTC; seed 3, 250 easy sequences; every easy row of both thinking runs is written, the Qwen3-8B run is still
+finishing hard sequences, which do not enter the verdict).** Baselines: Qwen3-8B thinking 139 right (7 at the cap, 243 parsed), gpt-oss-20b
+medium 153 (16 at the cap, 230 parsed). Pooled = each sequence's mean over seeds 2 and 3, bootstrap over the 250 sequences.
+- **L2 (gpt-oss-120b check):** seed 3 +1.1 [−0.7, +2.9]; **pooled +1.7 [+0.4, +3.2]** → by the decision, L2 stays a win.
+- **L1 (own check):** seed 3 −0.0 [−2.8, +2.7]; pooled +0.2 [−1.9, +2.2], including 0 as predicted.
+- **L3 (gpt-oss-20b, own check):** seed 3 +1.8 [−0.7, +4.5]; **pooled +2.3 [+0.3, +4.5]**, seed-3 point above 0 → by the decision, **L3 becomes a
+  conditional win** (the check pays where its precision beats thinking on what it accepts).
+- **Rule B (label-free accuracy term):** predicted vs measured, L1 −2.0 vs −0.8, L2 +1.6 vs +0.4, L3 +1.6 vs +1.6: within 2.0 in all three
+  cells and closer than rule A (+6.0, +4.4, +3.2) in each, as predicted. Over the nine OEIS cells of seeds 1–3, mean absolute error 0.9 (rule A 4.2).
