@@ -318,7 +318,8 @@ def gpf_main():
                     for x in map(json.loads, open(f)) if os.path.exists(f) else []:
                         R[(a, x["id"], sd)] = {**x, "exact": score(x.get("grid"), PZ[x["id"]])[0]}
         keys = sorted({(i, sd) for (_, i, sd) in R if all((a, i, sd) in R for a in ["lf", "peer", "gtrt", "think"])})
-        cf = f"{RES}/{s}_gpf_close.jsonl" if not main else f"{RES}/{s}_gpf_close_{main}.jsonl"
+        ct = os.environ.get("GPF_CLOSE_TAG", "")   # PREREG_LF: a fresh closure file that keeps each closure's grid
+        cf = f"{RES}/{s}_gpf_close{ct}.jsonl" if not main else f"{RES}/{s}_gpf_close{ct}_{main}.jsonl"
         C = {(x["arm"], x["id"], x["seed"]): x for x in map(json.loads, open(cf))} if os.path.exists(cf) else {}
         todo = [(a, i, sd) for i, sd in keys for a in ["lf", "peer", "gtrt"] if (a, i, sd) not in C
                 and (R[(a, i, sd)]["count"] >= 2 or (a != "gtrt" and R[(a, i, sd)]["count"] == 1))]
@@ -341,7 +342,7 @@ def gpf_main():
                 out = json.loads(res.stdout.strip().splitlines()[-1])
             except (AttributeError, IndexError, ValueError):
                 out = {"count": -1, "grid": {}}
-            return {**row, "count": out["count"], "exact": out["count"] == 1 and gp_score(out["grid"], r)[0]}
+            return {**row, "count": out["count"], "exact": out["count"] == 1 and gp_score(out["grid"], r)[0], "grid": out["grid"] if out["count"] == 1 else None}
         with ThreadPoolExecutor(int(os.environ.get("NW", "4"))) as ex, open(cf, "a") as f:
             for row in ex.map(one, todo):
                 C[(row["arm"], row["id"], row["seed"])] = row
