@@ -25,7 +25,86 @@ Side work may use the Slurm server's GPUs: a model server and client commands ru
 
 **Running now (geometry):** nothing; SIDE-GT-MG finished 2026-11-08 11:5x UTC.
 
-## Goal for the teammate (set 2026-11-11)
+## Start here: the teammate's brief (2026-11-17 18:3x UTC; replaces the plan passes kept under "Plan history")
+
+**One goal.** On HAGeo-409 (409 olympiad geometry problems, a public benchmark), prove more rows than HAGeo's 287 (2512.00097; no
+certificates; code not public), each with a certificate the kit accepts, at no more CPU per row than HAGeo used (8,192 × 60 s on 64 cores).
+We stand at **284**: the union of our three stored runs, each scored through the kit (reference 263, random points +8, 16 × CPU +16, 3 shared).
+**288 beats HAGeo, so 4 more rows are needed** (287 is a tie). It is pure algorithm work: CPU and code, no GPU, no model.
+
+**Step 1, about three days: the 8 statements that never build.** Their figure build stops with an `IndexError`, so no run can count them.
+- 4 use `eq_trapezoid`, a construction our language lacks: 1999USAMOp6, 2014ARMOg9p6, 2017ARMOg9p2, 2019RMMp2.
+- 4 fail elsewhere: 2007USATSTp5, 2015USATSTp6, 2019KoMaLA736, 2020POGCHAMPp2. Find the failing construction by building each `dsl` with
+  `side/geo_decl.py` (the `dsl` field of the rows in the kit).
+- Fix the language in `side/geo_decl.py` (constructions only, not proof rules), prove the 8 with the frozen engine, score them through the kit.
+- Before the proving run, write in `docs/prereg/PREREG_SIDE.md` how many of the 8 you expect to count and what you do next either way.
+  **4 of 8 beats HAGeo.**
+
+**Step 2, the main contribution: HAGeo's candidate rule.** HAGeo keeps an auxiliary point only if it lies non-trivially on a line or circle of
+the figure; that step alone took them from 218 (random points) to 287. Re-implement it from the paper as the candidate source
+(`geo_translate.aux_candidates`) and run at the CPU of our 16 × run. Report rows gained and lost against 284, by difficulty band.
+
+**Step 3, stretch: a certified algebraic fallback** for the rows still left (146 after the reference; 63 use an incenter). Wu's method or
+Gröbner bases, the branch (incenter vs excenters, which intersection) fixed by the numeric figure, non-degeneracy conditions written as
+hypotheses, the identity checked in Lean by `linear_combination`. No published HAGeo-409 result has certificates, so every row here is new.
+
+**How a number counts: only through the kit.**
+- Prove: `python side/geo_closure.py run <rows.jsonl> <out dir> --k K`.
+- Score: `python side/kit_h409.py score <kit dir> <cert dir> [--times <run rows .jsonl>]... [--cores C] [--workers W]`. A row counts only when
+  its certificate is bound to the frozen statement, accepted by `geo_check.py`, and every step and the goal hold on 8 of 8 fresh figures. It
+  prints the count by band, rows gained and lost against the reference (sign test) and CPU.
+- Soundness: `python side/kit_h409.py control <kit dir>` must count **0 of 737** tampered certificates after any change to `geo_check.py`.
+- Cluster: CPU partitions only, `sbatch -p cpu-max16,cpu-max10,cpu-max24 -q nogpu --gres=none poc/slurm/job.sh '<command>'` (the project
+  image has Python and Lean).
+
+**What we hand you before step 1.** The kit's inputs are outside the repository and our home directory is not readable by other accounts, so
+we send one archive: the kit directory (409 rows, 266 reference certificates, reference times; 9.5 MB) plus the 284 counted certificates as
+one directory, so your score is "284 + your new rows" from one command.
+
+**Who does what.** Yours: everything after the frozen formal statement (figures, proof search, certificates, Lean export and checking, CPU
+cost), in a branch or fork, files under `side/`. Ours: translations and faithfulness, any model call, the kits, scoring each push within a
+day with one line in the Log below, and reading each result with you. The proof section of the report is the frozen results in "Where it
+stands" plus what steps 1–3 add, written and presented by you.
+
+**Not on your list.** Task 1 (fresh figures on MechGeo) is dropped: our reference walk already counts 20 and 21 whole problems through its kit
+with no planted false step counted, and we apply it ourselves if the report needs it. Out of scope as before: faithfulness without a human,
+translation and prompting, new benchmarks.
+
+## Background for the teammate
+
+Our side of the proof work was testing and analysis only from 2026-11-07; since 2026-11-11 we also prepare the task kits above and review the results with you. Numbers marked *pending* come from runs still going and are filled in here when they end.
+
+**What exists.** A model translates a geometry problem into a declarative statement (`geo_decl.py`). A least-squares solver builds figures of it, and a CPU engine proves it by linear algebra over directions, log lengths and squared lengths (`geo_closure.py`). An exact Python checker tests the proof (`geo_check.py`). `geo_lean.py` writes each proof as a Lean theorem over the rule library in `side/lean/` (Lean 4.15.0 with the matching Mathlib; no `sorry`, standard axioms only).
+
+**Export default:** `--lift` since 2026-11-07.
+
+**To reproduce one theorem.** From a certificate directory: `python side/geo_lean.py all <certs> <out> --lift`, then compile each file with `LEAN_PATH` holding Mathlib and the compiled `side/lean/` modules, built in the order GeoBase, GeoRules, GeoSim, GeoCircle, GeoCert, GeoLift. A theorem takes a median of 22 s; a few need far longer than the 1,200 s limit. `python side/geo_decl.py rread <certs> <out.jsonl>` tests each reading on the statement's figures.
+
+**What the tests say.**
+
+| Question | Answer so far |
+|---|---|
+| Can the kernel accept the engine's proofs? | Yes: 348 of 350, and no step rejected. The other 2 rest on a figure constant. 8 of them needed a 4-hour limit, up to 7,457 s |
+| IMO-AG-30 | All 27 problems we solve have a kernel-checked theorem (69 theorems), 7 of them with no reading before lifting; lifting wasn't run on this set. AlphaGeometry2 and TongGeometry reach 30 |
+| Can a reading be proved? | Often. With directions modulo 2π, **126 of 263 counted HAGeo rows** have a kernel-checked theorem with no reading (from 48). Held out, 46 of 82 theorems (from 15), on 11 faithful problems (from 2). Lifting fails on 11 of 344 by Lean's limits or the exporter, never by a rejected step, and the unlifted theorem stands |
+| Do readings ever fail? | Unknown for most. The search reaches 4 or more of 40 starts on only 48 of 246 readings, so "no figure" is weak; among those 48 the only flips are the removed ISL 2016 family. With order conditions dropped, 16 of 185 flip and the goal fails on all 16, so order conditions carry real weight |
+| Can the engine do without the rules that need readings? | Mostly: 69 of 84 held-out statements are proved without them (15 time out), covering 20 of 25 problem ids. Not certified or compiled; the HAGeo half was withdrawn |
+| Does "no reading" mean nothing was read from the figure? | **Not always.** A statement with an unsigned angle (`uangle`) becomes a directed `EqA` with the sign taken from the figure, and that is a hypothesis of the theorem. 26 of 82 held-out theorems have one, 10 of the 46 with no `Read`, so the faithful problems with neither number 8. HAGeo-409's statements have none |
+| Is the translation faithful? | Still read by hand on our side: 22 of 65 held out. On MechGeo's 44 audited IMO statements, giving the model the audited Lean statement doesn't help: 13 whole problems either way (SIDE-GT-MG). MechGeo without a human: 29 of 43 |
+
+**Where to work, hardest first.**
+1. **Faithfulness without a human.** This is the real limit. Agreement between translations helps, but a wrong statement can still be proved. MechGeo (2608.02295) refuted 22 statements experts had accepted, and our figure solver can't see such errors.
+2. **The readings left, and unsigned angles.** On HAGeo, 178 of the 273 left aren't in the row space at all, so the relation they need was never derived: they need the order of points on a line or a circle, or belong to side-side-side pairs with no angle relation. The other 95 are in the row space modulo π but not modulo 2π, and the rows that block them are mostly givens (collinearity 84, equal angles 56, perpendicular 42) and isosceles rows (60). Order facts could enter as hypotheses of the statement.
+3. **Coverage.** On one engine, random points prove 226 of 409 and our greedy choice 263 (+37, 95% interval [+23, +51]); random finds only 8 rows the greedy misses. The greedy earns its place, but 146 rows remain, and HAGeo reaches 287 at its largest budget.
+
+**Don't retry without a new idea:** model-proposed auxiliary points (they prove nothing random misses), computational checks of natural-language proofs, or the proof list in place of the triple search (circle tangency can't be written yet).
+
+**Where things are.** Status and dated log below; predictions and verdicts in `docs/prereg/PREREG_SIDE.md`; prior work in `docs/notes/RELATED_WORK.md`.
+
+## Plan history (2026-11-11 to 11-16 UTC; superseded by "Start here")
+
+Kept for the reasoning behind the brief: related work, measured room per lever, kit details. Where it disagrees with "Start here", the brief holds.
+
 
 The proof part is a bounded deliverable, not an open research track. The results above are frozen as the proof section of the report; the
 work left is one or two well-specified algorithm tasks, each with frozen inputs, one scoring command and a baseline number. We prepare these
@@ -166,7 +245,7 @@ certificates, the reference count and times).
    3 short of HAGeo's 287. Eight statements never build in any run (an `IndexError` while building the figure), so no run can count them:
    with `eq_trapezoid` 1999USAMOp6, 2014ARMOg9p6, 2017ARMOg9p2, 2019RMMp2; other constructions 2007USATSTp5, 2015USATSTp6, 2019KoMaLA736,
    2020POGCHAMPp2 (rows in `results/proof/h409*/gt_h409*.jsonl`, field `dsl`). Making these build and running the frozen engine on them
-   through the kit is the shortest path past 287: 3 of 8 is enough.
+   through the kit is the shortest path past 287: 4 of 8 beats it (3 ties; corrected 11-17).
 2. **HAGeo's heuristic, re-implemented from the paper** (points that lie non-trivially on a line or circle of the figure) as our candidate
    source, at matched CPU against the 16× curve. Their random → heuristic step was +69 rows in their engine.
 3. **The algebraic fallback with component choice** on the rows still left: Wu's method or Gröbner bases, the branch (incenter vs excenters,
@@ -176,37 +255,6 @@ We keep: translation and faithfulness, the kits, any model call, and reading eac
 
 **Out of scope:** telling a faithful translation from an unfaithful one without a human, translation and prompting, and new benchmarks.
 They stay as future work in the report.
-
-## Background for the teammate
-
-Our side of the proof work was testing and analysis only from 2026-11-07; since 2026-11-11 we also prepare the task kits above and review the results with you. Numbers marked *pending* come from runs still going and are filled in here when they end.
-
-**What exists.** A model translates a geometry problem into a declarative statement (`geo_decl.py`). A least-squares solver builds figures of it, and a CPU engine proves it by linear algebra over directions, log lengths and squared lengths (`geo_closure.py`). An exact Python checker tests the proof (`geo_check.py`). `geo_lean.py` writes each proof as a Lean theorem over the rule library in `side/lean/` (Lean 4.15.0 with the matching Mathlib; no `sorry`, standard axioms only).
-
-**Export default:** `--lift` since 2026-11-07.
-
-**To reproduce one theorem.** From a certificate directory: `python side/geo_lean.py all <certs> <out> --lift`, then compile each file with `LEAN_PATH` holding Mathlib and the compiled `side/lean/` modules, built in the order GeoBase, GeoRules, GeoSim, GeoCircle, GeoCert, GeoLift. A theorem takes a median of 22 s; a few need far longer than the 1,200 s limit. `python side/geo_decl.py rread <certs> <out.jsonl>` tests each reading on the statement's figures.
-
-**What the tests say.**
-
-| Question | Answer so far |
-|---|---|
-| Can the kernel accept the engine's proofs? | Yes: 348 of 350, and no step rejected. The other 2 rest on a figure constant. 8 of them needed a 4-hour limit, up to 7,457 s |
-| IMO-AG-30 | All 27 problems we solve have a kernel-checked theorem (69 theorems), 7 of them with no reading before lifting; lifting wasn't run on this set. AlphaGeometry2 and TongGeometry reach 30 |
-| Can a reading be proved? | Often. With directions modulo 2π, **126 of 263 counted HAGeo rows** have a kernel-checked theorem with no reading (from 48). Held out, 46 of 82 theorems (from 15), on 11 faithful problems (from 2). Lifting fails on 11 of 344 by Lean's limits or the exporter, never by a rejected step, and the unlifted theorem stands |
-| Do readings ever fail? | Unknown for most. The search reaches 4 or more of 40 starts on only 48 of 246 readings, so "no figure" is weak; among those 48 the only flips are the removed ISL 2016 family. With order conditions dropped, 16 of 185 flip and the goal fails on all 16, so order conditions carry real weight |
-| Can the engine do without the rules that need readings? | Mostly: 69 of 84 held-out statements are proved without them (15 time out), covering 20 of 25 problem ids. Not certified or compiled; the HAGeo half was withdrawn |
-| Does "no reading" mean nothing was read from the figure? | **Not always.** A statement with an unsigned angle (`uangle`) becomes a directed `EqA` with the sign taken from the figure, and that is a hypothesis of the theorem. 26 of 82 held-out theorems have one, 10 of the 46 with no `Read`, so the faithful problems with neither number 8. HAGeo-409's statements have none |
-| Is the translation faithful? | Still read by hand on our side: 22 of 65 held out. On MechGeo's 44 audited IMO statements, giving the model the audited Lean statement doesn't help: 13 whole problems either way (SIDE-GT-MG). MechGeo without a human: 29 of 43 |
-
-**Where to work, hardest first.**
-1. **Faithfulness without a human.** This is the real limit. Agreement between translations helps, but a wrong statement can still be proved. MechGeo (2608.02295) refuted 22 statements experts had accepted, and our figure solver can't see such errors.
-2. **The readings left, and unsigned angles.** On HAGeo, 178 of the 273 left aren't in the row space at all, so the relation they need was never derived: they need the order of points on a line or a circle, or belong to side-side-side pairs with no angle relation. The other 95 are in the row space modulo π but not modulo 2π, and the rows that block them are mostly givens (collinearity 84, equal angles 56, perpendicular 42) and isosceles rows (60). Order facts could enter as hypotheses of the statement.
-3. **Coverage.** On one engine, random points prove 226 of 409 and our greedy choice 263 (+37, 95% interval [+23, +51]); random finds only 8 rows the greedy misses. The greedy earns its place, but 146 rows remain, and HAGeo reaches 287 at its largest budget.
-
-**Don't retry without a new idea:** model-proposed auxiliary points (they prove nothing random misses), computational checks of natural-language proofs, or the proof list in place of the triple search (circle tangency can't be written yet).
-
-**Where things are.** Status and dated log below; predictions and verdicts in `docs/prereg/PREREG_SIDE.md`; prior work in `docs/notes/RELATED_WORK.md`.
 
 ## Log
 
