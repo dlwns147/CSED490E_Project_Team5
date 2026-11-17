@@ -91,3 +91,17 @@ are reported as exploratory.
   one-solution grids have the shape the check catches more often than base models' do).
 - **Decision as registered:** the report's grid numbers are these: with the check (part 2 held), GridPuzzle 93.3% at 4.6k tokens against
   60.9% at 11.5k for thinking (2.5× fewer tokens), Mitra-Baral 96.5% at 1.2k against 87.9% at 6.5k (5.3× fewer).
+
+## Part 3: the composed grid method with the second family as main model (written 2026-11-17 08:3x UTC, before any gpt-oss-20b row of seeds 14–16)
+
+**Why.** The grid headline (GPF, fresh seeds 14–16) is Qwen3-8B only; the report claims the method for two families, but on human-written
+grids the gpt-oss evidence is gpt-oss-120b on development seeds and gpt-oss-20b inside DCL/PEERT tests, never the composed method on fresh
+seeds. **Method (frozen, label-free, no RL: the RL-trained gpt-oss translator belongs to another study and is not used).** ① gpt-oss-20b quick
+translation (`gtr`, low effort) → ② gpt-oss-120b quick translation (the stored seed-14–16 rows) → ③ gpt-oss-20b thinking translation (`gtrt`,
+high, 16,000) → ④ gpt-oss-20b thinking (`think`, high, 32,000); closure on two-plus-solution steps and DCLC on ①/②, as in parts 1–2.
+**Baseline:** gpt-oss-20b thinking only (same runs). GridPuzzle and Mitra-Baral, seeds 14–16 (never run for gpt-oss-20b). Slurm RTX 3090s.
+**Prediction:** method − thinking, utility, interval above 0 on GridPuzzle; Mitra-Baral above or including 0 (gpt-oss-20b thinks well on small
+grids). **Decision:** above 0 on GridPuzzle → the report's grid result names both families on fresh seeds; otherwise the report limits the fresh-seed
+grid headline to Qwen3-8B.
+*(Idle-GPU fill, same rules: the same composed method with Qwen3-32B as main model (① Qwen3-32B `gtr`, ③ `gtrt`, ④ `think`), seeds 14–16, on the
+second server's two GPUs; reported beside part 3.)*
