@@ -33,3 +33,10 @@ model's ladder. Both including or below 0 → the computation track stays closed
 baseline that mostly runs out of tokens is not the strongest thinking baseline, so L3 is also read against gpt-oss-20b thinking at **medium
 effort** (same cap; seeds 1 and 2), and **the verdict uses whichever thinking setting has the higher utility** (the rule PREREG_BUD used for
 budget-forced thinking). The high-effort numbers are reported beside it.
+
+**L3 read (2026-11-17 17:2x UTC; seed 2, 250 easy sequences).** gpt-oss-20b thinking at medium effort: 153 right at 6.83k tokens (14 hit the
+cap); at high effort it hit the cap on most sequences at seed 1 (47 right at 26.9k), so medium is the better baseline by any reading and the
+ladder falls back to it. **X56-L3: 159 right at 5.99k vs 153 at 6.83k, +2.8 [−0.1, +5.9] utility.** Accepted 104, right 91 (87.5%); thinking is
+right on 85 of those 104 (82%), so the precision condition holds, but by little. The interval includes 0: by the rule, **not a win**. Hard
+sequences: +0.1 [−0.4, +1.1]. (Seed-1 pilot, same reading: +1.9 [−0.6, +4.5].) The high-effort seed-2 run is still finishing and is reported
+beside this; it cannot raise the baseline. L1 and L2 wait for Qwen3-8B thinking at seed 2.

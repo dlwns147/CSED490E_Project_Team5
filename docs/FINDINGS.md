@@ -7287,3 +7287,11 @@ Job 1382299 (one GPU, queued).
   quick programs: own check 72%, gpt-oss-120b's 87%); gpt-oss models' own checks are already about 90% precise. Thinking baselines on OEIS hit the
   30,000-token cap often for gpt-oss (gpt-oss-20b high effort: 195 of 250), so PREREG_X56 was amended to also compare against medium effort and
   use the better baseline. Decisive seed-2 runs are running.
+
+## 2026-11-17 17:2x UTC — X56-L3: with a fairly budgeted thinking baseline, the self-checked program does not clearly win on OEIS
+
+- gpt-oss-20b, seed 2, 250 easy OEIS sequences: quick program accepted when its own brute force agrees on 8 terms, else thinking at medium
+  effort: 159 right at 6.0k vs thinking 153 at 6.8k, **+2.8 [−0.1, +5.9]** (seed 1: +1.9 [−0.6, +4.5]). Accepted programs 87.5% right vs
+  thinking's 82% on the same sequences. High-effort thinking looked like a large loss for thinking (cap hit on 195 of 250), which is why the
+  amendment was needed; with medium effort the margin is small. Reading: on OEIS the free check only buys tokens, because a well-budgeted thinker
+  is already right on most sequences the check accepts. L1/L2 (Qwen3-8B) pending.
