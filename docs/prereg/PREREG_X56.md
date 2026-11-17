@@ -61,7 +61,7 @@ replicates L1–L3 with the same rules: Qwen3-8B thinking and gpt-oss-20b thinki
   L2 gpt-oss-20b, L3 gpt-oss-120b; `results/tmp_lf3.py`), predicts each seed-3 accuracy term within 2.0 points, and closer than rule A (the
   11-17 rule, which assumes accepted answers are right) in each of the three cells. On seeds 1–2 rule B's mean absolute error was 1.0 (rule A 4.3).
 
-**S3 read (2026-11-17 20:4x UTC; seed 3, 250 easy sequences; every easy row of both thinking runs is written, the Qwen3-8B run is still
+**S3 read (2026-11-17 20:3x UTC; seed 3, 250 easy sequences; every easy row of both thinking runs is written, the Qwen3-8B run is still
 finishing hard sequences, which do not enter the verdict).** Baselines: Qwen3-8B thinking 139 right (7 at the cap, 243 parsed), gpt-oss-20b
 medium 153 (16 at the cap, 230 parsed). Pooled = each sequence's mean over seeds 2 and 3, bootstrap over the 250 sequences.
 - **L2 (gpt-oss-120b check):** seed 3 +1.1 [−0.7, +2.9]; **pooled +1.7 [+0.4, +3.2]** → by the decision, L2 stays a win.

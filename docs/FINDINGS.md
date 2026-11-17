@@ -7320,7 +7320,7 @@ Job 1382299 (one GPU, queued).
   mean absolute error 1.0 point (rule A, which assumes accepted answers are right: 4.3), and gets the losing cell right (L1 seed 1: −0.4
   predicted, −2.8 measured; rule A +6.0). Seed 3 tests it before its thinking runs exist.
 
-## 2026-11-17 20:4x UTC — X56 seed 3 (pre-registered replication): both registered computation wins hold; the third-check rule predicts the accuracy term within 2 points on held-out cells
+## 2026-11-17 20:3x UTC — X56 seed 3 (pre-registered replication): both registered computation wins hold; the third-check rule predicts the accuracy term within 2 points on held-out cells
 
 - Pooled over seeds 2 and 3 (250 easy OEIS sequences, bootstrap over sequences): Qwen3-8B with gpt-oss-120b's brute force as the check
   **+1.7 [+0.4, +3.2]** (win kept); Qwen3-8B with its own check +0.2 [−1.9, +2.2]; gpt-oss-20b with its own check **+2.3 [+0.3, +4.5]**, now a
