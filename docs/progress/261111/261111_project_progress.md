@@ -1,6 +1,6 @@
 # Progress 11-03 → 11-12 — *Facts First, Think on Failure*
 
-*Updated 2026-11-17 15:2x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
+*Updated 2026-11-17 18:3x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
 
 ## At a glance
 
@@ -213,6 +213,29 @@ Reading: answering the solver's first solution without counting stays below thin
 - **Computation track (40 ideas):** each idea went to its cheapest killing test. Lessons: free checks often accept only puzzles thinking already solves; telling the model about the check makes it satisfy the check instead of re-reading the clue. Two scoring bugs were found in raw outputs and fixed before any verdict.
 - **Proofs (teammate guide):** geometry problems → formal language → engine proof → Lean kernel check (all 263 HAGeo proofs pass). Teammate task kit `side/kit_fresh.py`: a solver that finds fresh figures satisfying the hypotheses. Task 1 diagnosed (11-12): the default solver loses 15 problems because random starts rarely land on the solution set (1–8 of 240); walking along the set from the proof's figure gave 8 passing figures on all 41 lost statements in a probe (whole problems 13 → about 20). Those figures sit nearer the proof's own figure, but they still expose planted false steps. The kit now has this as a soundness control (`--control`, 267 plants): the walk counts 0 of them whole and tests every one on 8 figures. Through the kit the walk counts **20 (NL) and 21 (LEAN) whole problems, none lost**, against 13 and 13 for the default solver (reference run; the registered task-1 run is the teammate's). Task 2 kit (`side/kit_h409.py`, 11-13): HAGeo-409 scored from certificates alone (bound to the frozen statement, `geo_check`, 8 fresh figures); reproduces 263 and counts 0 of 737 tampered certificates. Bar: HAGeo 287 (no later result; its code is not public). Measured room: greedy + random portfolio 271; 6 statements do not build; the gap to HAGeo is all below difficulty 5; a longer-CPU run of the same engine is measuring how much is compute.
 - **Harder computation (idea 44, closed):** the recipe needs a check built from the problem's own data. Of the three sets tried only Project Euler has one (its statements give small cases with answers, *"you are given S(16) = 19"*). OEIS and MathConstruct were dropped because there the check is written by the same model and shares its misreading (OEIS, 250 easy sequences: thinking 131 right, the checked ladder 120; MathConstruct's own verify() passed 15 constructions, 2 right). On 120 Euler problems the checked ladder ties thinking-then-program at every thinking budget (+2/+1/0/0 problems at 2k/4k/8k/14k). The quick step is either not right or not cheap: Qwen3-8B's quick programs solve 10, nearly all in the easiest band (elsewhere they time out or run out of memory), and Qwen3.5-9B's solve 21 but cost 6.6k tokens, as much as thinking. The stated cases catch misreadings but not errors at scale. Example, pe720: the program reproduces S(4) = 3 and S(8) = 2295 from the statement, then prints 0 for the real input (answer 688081048). Puzzles pay because the solver does the search; on Euler the search is the algorithm the model must invent.
+
+## 7. When the method wins: one decomposition for every result
+
+**→ Every gain splits exactly into an accuracy term and a token term. The check is almost always precise (p ≈ 0.9–1.0); what decides the gain is whether thinking fails on the items the check accepts. On grids and trips the check accepts items regardless of how hard they are for thinking; on OEIS it accepts mostly the items thinking already solves, so there is little left to win.**
+
+![Decomposition](fig/u_decomp.png)
+
+*Figure 8. ΔU = 100·a·(p − q) − 0.5·Δktok, exact when the ladder falls back to the same thinking run. a = share the check accepts, p = accuracy of those answers, q = thinking's accuracy on the same items. (a) q against thinking's accuracy on all items: on the line, the check is blind to difficulty; above it, it picks easy items. (b) The two terms per cell.*
+
+| Cell | a | p | q (accepted) | thinking, all | ΔU |
+|---|---|---|---|---|---|
+| GridPuzzle, Qwen3-8B (fresh seeds) | 0.96 | 0.96 | 0.62 | 0.61 | +35.9 |
+| GridPuzzle, gpt-oss-20b | 0.94 | 0.98 | 0.80 | 0.79 | +20.5 |
+| Trips, Qwen3-8B (peer first) | 0.64 | 0.95 | 0.43 | 0.34 | +29.5 |
+| Trips, Qwen3-32B | 0.75 | 0.96 | 0.65 | 0.56 | +19.7 |
+| Trips, gpt-oss-20b / 120b | 0.77 / 0.81 | 0.98 / 0.97 | 0.85 / 0.85 | 0.80 / 0.77 | +5.0 / +4.9 |
+| OEIS, gpt-oss-20b, own check | 0.42 | 0.88 | 0.82 | 0.61 | +2.8 |
+| OEIS, Qwen3-8B, own / gpt-oss-120b check | 0.31 | 0.72 / 0.87 | 0.81 / 0.86 | 0.54 | −2.0 / +1.0 |
+
+- **Grids and trips:** the solver does the search, so the formal route succeeds on hard items as often as on easy ones (q ≈ thinking's overall accuracy). The gain is large wherever thinking is weak, and grids also save tokens.
+- **OEIS:** a quick program succeeds mostly where the sequence is easy, which is where thinking is also right (q 0.82 against 0.61 overall). The precision condition holds, but the room above thinking on accepted items is small, and less than half the items are accepted at all.
+- **gpt-oss on trips:** thinking is already right on 85% of what the check accepts and the ladder costs ~10k more tokens per trip, so the gain is small; LLM-Modulo's hand-written critics go further (§4).
+- **Rule for a new domain:** the method pays when (1) a structural check exists, (2) the formal route's success does not depend on what makes the item hard for thinking, and (3) thinking is weak on the items it accepts. All three can be estimated on a few hundred items without labels except q, which needs a small labeled sample.
 
 ## Next
 
