@@ -1,6 +1,6 @@
 # Pre-registration X56: a quick program accepted when a brute-force program agrees (OEIS), by checker family and model precision
 
-Written 2026-11-17 12:1x UTC, before any seed-2 row. Known before writing: the seed-1 pilot (IDEAS 56), every arm listed below at seed 1
+Written 2026-11-17 12:0x UTC, before any seed-2 row. Known before writing: the seed-1 pilot (IDEAS 56), every arm listed below at seed 1
 except gpt-oss-20b and gpt-oss-120b thinking (running).
 
 **Why.** The computation track was closed as a loss: Qwen3-8B's quick program checked by its own brute-force program (agreement on the first 8
