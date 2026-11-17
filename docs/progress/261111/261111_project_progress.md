@@ -235,7 +235,7 @@ Reading: answering the solver's first solution without counting stays below thin
 - **Grids and trips:** the solver does the search, so the formal route succeeds on hard items as often as on easy ones (q ≈ thinking's overall accuracy). The gain is large wherever thinking is weak, and grids also save tokens.
 - **OEIS:** a quick program succeeds mostly where the sequence is easy, which is where thinking is also right (q 0.82 against 0.61 overall). The precision condition holds, but the room above thinking on accepted items is small, and less than half the items are accepted at all.
 - **gpt-oss on trips:** thinking is already right on 85% of what the check accepts and the ladder costs ~10k more tokens per trip, so the gain is small; LLM-Modulo's hand-written critics go further (§4).
-- **Rule for a new domain:** the method pays when (1) a structural check exists, (2) the formal route's success does not depend on what makes the item hard for thinking, and (3) thinking is weak on the items it accepts. All three can be estimated on a few hundred items without labels except q, which needs a small labeled sample.
+- **Rule for a new domain, estimable before committing:** run both routes on a few hundred items. a is the accepted share; q is (almost) the share of accepted items where thinking gives the same answer, so 100·a·(share where thinking disagrees) predicts the accuracy term without labels: trips predicted +26.3 / +37.3 / +12.3 / +12.7 vs measured +23.3 / +33.3 / +10.3 / +9.7. The prediction over-states by the accepted-but-wrong share a·(1 − p), which is small when p ≥ 0.95 and large otherwise (OEIS Qwen3-8B own check: +6.0 predicted, −2.8 measured), so a small labeled sample or a second independent check is needed for p.
 
 ## Next
 

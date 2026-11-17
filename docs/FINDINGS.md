@@ -7302,3 +7302,9 @@ Job 1382299 (one GPU, queued).
   accuracy on them). Across 11 cells p is 0.88–1.00 except Qwen3-8B's own OEIS check (0.72). The gain is set by q and a: grids and trips accept
   items independent of thinking's difficulty (q ≈ thinking's overall accuracy: 0.62 vs 0.61, 0.65 vs 0.56), OEIS accepts mostly items thinking
   already solves (0.82 vs 0.61). Grids save tokens (−3 to −8k), trips cost +7 to +11k. Figure `u_decomp`, progress note §7.
+- (18:3x) **The accuracy term can be predicted without labels** (`results/tmp_lfpred.py`): with p near 1, q equals the share of accepted items
+  where thinking gives the same answer, so 100·a·(share where thinking disagrees with the accepted answer) predicts the measured 100·a·(p − q).
+  Trips: predicted +26.3 / +37.3 / +12.3 / +12.7 vs measured +23.3 / +33.3 / +10.3 / +9.7 (Qwen3-32B, Qwen3-8B, gpt-oss-20b, gpt-oss-120b);
+  OEIS gpt-oss-20b +5.6 vs +2.4. The error is the accepted-but-wrong share a·(1 − p): small where p ≥ 0.95, large where p is low (OEIS Qwen3-8B,
+  own check: predicted +6.0, measured −2.8, p = 0.72). So deciding whether to use the method on a new domain needs only running both routes on a
+  few hundred items plus a small labeled sample (or a second independent check) to estimate p.
