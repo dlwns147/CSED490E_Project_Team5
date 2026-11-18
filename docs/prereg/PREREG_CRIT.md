@@ -36,3 +36,9 @@ of gpt-oss-20b 0/0, gpt-oss-120b 0/6, Qwen3-32B 0/8, Qwen3-8B 0/23): a misreadin
 but the count check does not are 27 of 32 right (the program printed several plans or none, but its first plan meets every constraint).
 Precision: count = 1 81–100%, critics 98.9–100%. So the critics fix the weakness the report already names (a misreading that still leaves
 one solution) and add coverage; Qwen3-8B, whose count check is least precise (81%), should gain most (P1 predicted +5.7).
+
+**gpt-oss-120b cell (2026-11-18 02:4x UTC; seeds 34–36, all four runs 100 rows each; `SEEDS=34,35,36 MAINS=oss120 python3 results/tmp_pcm.py`).**
+LLM-Modulo 96.0% at 17.9k; our current ladder 84.3% at 17.7k (−11.6 [−16.1, −7.3], the stored loss replicates).
+- **P1:** CC→T − current ladder **+4.0 [+1.8, +6.5]** (predicted +3.1): holds for this model.
+- **P2:** C→M − LLM-Modulo **+1.2 [+0.1, +2.6]**, 96.7% at 16.9k (predicted +1.1): holds (above 0, lower bound above −2).
+The other three models are still running; the verdict is read when all four are in.
