@@ -42,3 +42,6 @@ LLM-Modulo 96.0% at 17.9k; our current ladder 84.3% at 17.7k (−11.6 [−16.1, 
 - **P1:** CC→T − current ladder **+4.0 [+1.8, +6.5]** (predicted +3.1): holds for this model.
 - **P2:** C→M − LLM-Modulo **+1.2 [+0.1, +2.6]**, 96.7% at 16.9k (predicted +1.1): holds (above 0, lower bound above −2).
 The other three models are still running; the verdict is read when all four are in.
+
+**Qwen3-32B, P1 (2026-11-18 05:4x UTC; its `trct` and `think` runs and the gpt-oss-120b `trc` runs are complete; `modulo` still running).**
+Current ladder 75.7% at 14.1k; CC→T 80.7% at 13.2k: **+5.4 [+3.0, +8.2]** (predicted +3.9). P1 holds for this model. P2 waits for its LLM-Modulo runs.
