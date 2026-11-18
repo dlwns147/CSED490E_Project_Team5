@@ -28,3 +28,11 @@ Qwen3-32B, Qwen3-32B trc for gpt-oss-120b).
 - KK-3a: each ladder's utility − its own thinking ≥ 0 (interval lower bound above −2). Stronger thinkers leave less room, so the gain may be
   mostly tokens.
 - KK-3b (decisive, as KK-2): blind hybrid prediction of each accuracy term, logged with the time before scoring; holds if within 2.0 points.
+
+**KK-3b blind predictions (logged 2026-11-18 12:3x UTC, before any K&K score was read; `python3 results/tmp_kk_pred.py q32 oss120`,
+which reads only count, ans and tokens).** Baselines: Qwen3-32B thinking 0 of 700 at the cap, 700 parsed, 2.5k tokens; gpt-oss-120b thinking
+11 at the cap, 692 parsed, 3.6k tokens. Quick translations reach one solution on 645 (Qwen3-32B) and 699 (gpt-oss-120b) of 700.
+- L-Q32: accepted 100%, third (gpt-oss-120b quick) answers 100% of them. **Predicted accuracy term −7.9** (rule A would say +11.1); token
+  term +0.72; predicted ΔU −7.1.
+- L-O120: accepted 100%, third (Qwen3-32B quick) answers 92%. **Predicted accuracy term +1.4** (rule A +2.4); token term +1.48;
+  predicted ΔU +2.9.
