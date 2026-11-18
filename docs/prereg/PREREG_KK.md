@@ -59,3 +59,14 @@ Baselines: Qwen3-8B thinking 0 at the cap, 700 parsed, 2.8k tokens; gpt-oss-20b 
 translations reach one solution on 471 (Qwen3-8B) and 678 (gpt-oss-20b) of 700; with the thinking translation the ladders accept 100%.
 - L-Q: third (gpt-oss-20b quick) answers 97% of accepted. **Predicted accuracy term −9.1** (rule A +13.0); token term +0.42; ΔU −8.7.
 - L-O: third (Qwen3-8B quick) answers 67%. **Predicted accuracy term +0.1** (rule A +3.6); token term +1.67; ΔU +1.8.
+
+**KK-1 / KK-2 result (2026-11-18 13:3x UTC; `python3 results/tmp_kk_score.py q8b oss20`, after the predictions above were committed).**
+- Qwen3-8B: thinking 99.3% at 2.77k; ladder 87.6% at 1.92k; **measured accuracy term −11.7 (predicted −9.1); ΔU −11.3 [−13.9, −8.9].**
+- gpt-oss-20b: thinking 99.7% at 4.17k; ladder 96.6% at 0.82k; **measured −3.1 (predicted +0.1); ΔU −1.5 [−2.9, −0.1].**
+- **KK-1 fails for both models:** thinking is at the ceiling on these puzzles even for 8B models (96–100% at every size up to 8), so the
+  ladder can only lose accuracy; it saves tokens but not enough. **KK-2 fails in both cells** (errors 2.6 and 3.2 > 2.0), although the sign
+  is right for Qwen3-8B and both are far closer than rule A (+13.0, +3.6).
+- Where the estimate errs (post hoc, all four K&K cells): it is optimistic everywhere (+1.1, +1.0, +2.6, +3.2). Two sources: on items the
+  third model answers, about +1 point (the third shares a few wrong accepted answers); on items it does not answer, the hybrid trusts the
+  accepted answer, which overstates by up to 2.2 points (gpt-oss-20b: 229 such items). So the bias grows as the third's coverage falls
+  (Qwen3-8B quick translation answered only 67% of gpt-oss-20b's accepted items).

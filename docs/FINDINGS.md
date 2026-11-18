@@ -7370,3 +7370,12 @@ Job 1382299 (one GPU, queued).
   (99.0% vs 98.6% at 0.6k instead of 3.6k tokens, ΔU +1.9 [+0.7, +3.2]). Trusting the check (rule A) would have predicted +11.1 for
   Qwen3-32B. The ladder itself loses where thinking is at the ceiling and the quick translation misreads the knave rule (72 of 645 one-solution
   programs wrong). Qwen3-8B and gpt-oss-20b (KK-1/KK-2) pending.
+
+## 2026-11-18 13:3x UTC — Knights and Knaves KK-1/KK-2: thinking is at the ceiling, the ladder loses, and the label-free estimate is optimistic
+
+- Qwen3-8B: ladder 87.6% vs thinking 99.3%, ΔU −11.3 [−13.9, −8.9]; gpt-oss-20b: 96.6% vs 99.7% at 0.8k vs 4.2k tokens, ΔU −1.5
+  [−2.9, −0.1]. With Qwen3-32B (−8.3) and gpt-oss-120b (+1.9), the method pays on K&K (≤ 8 inhabitants) only where the quick translation is
+  as precise as near-perfect thinking. The decomposition's condition (p > q on accepted items) predicted this: q ≈ 0.99.
+- Blind estimates: −9.1 vs −11.7 and +0.1 vs −3.1 (both outside the registered 2.0); over the four K&K cells the hybrid is optimistic by
+  +1.0 to +3.2, most where the third model answers few items (trusting the accepted answer there). It still beat rule A by 6–24 points and
+  got the sign of every clear result. Harder puzzles (10/12 inhabitants, KK-4) are running.
