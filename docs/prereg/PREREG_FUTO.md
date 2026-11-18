@@ -35,3 +35,9 @@ the third (gpt-oss-120b quick translation) answers 18% of those.
 - vs thinking at medium effort: **predicted accuracy term +46.3** (rule A +47.0), token term −8.87.
 - vs thinking at high effort: **predicted accuracy term +47.7** (rule A +48.7), token term −7.35.
 gpt-oss-120b's prediction waits for its thinking runs.
+
+**gpt-oss-20b result (2026-11-18 21:4x UTC; `python3 results/tmp_futo_score.py oss20`, after the prediction above was committed).**
+Thinking: medium 23.0% at 24.1k (utility 11.0), high 20.7% at 28.2k (6.5); baseline = medium. **Ladder 67.0% at 41.8k: ΔU +35.1
+[+28.1, +42.0]** (F-1 holds, above +20). **Measured accuracy term +44.0 vs predicted +46.3** (error 2.3, within max(3.0, 4.4): F-2 holds
+for this cell). By size, ladder vs thinking: 5×5 90 vs 52, 7×7 72 vs 16, 9×9 39 vs 1 (F-3: the gain is largest at 7×7, holds). The
+ladder costs more tokens (the 9×9 thinking translation alone averages 47.6k over its rounds) and still gains 35 utility points.
