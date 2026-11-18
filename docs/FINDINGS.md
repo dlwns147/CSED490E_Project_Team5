@@ -7379,3 +7379,13 @@ Job 1382299 (one GPU, queued).
 - Blind estimates: −9.1 vs −11.7 and +0.1 vs −3.1 (both outside the registered 2.0); over the four K&K cells the hybrid is optimistic by
   +1.0 to +3.2, most where the third model answers few items (trusting the accepted answer there). It still beat rule A by 6–24 points and
   got the sign of every clear result. Harder puzzles (10/12 inhabitants, KK-4) are running.
+
+## 2026-11-18 13:3x UTC — Knights and Knaves closed (PREREG_KK): no room above thinking; the label-free estimate warns in advance
+
+- Six blind cells (four models at ≤ 8 inhabitants, two at 10/12): thinking 95–100% everywhere, ladders 84–99%; the ladder wins only for
+  gpt-oss-120b at ≤ 8 (+1.9 [+0.7, +3.2]) and loses for Qwen3-8B (−11.3), Qwen3-32B (−8.3, −9.6) and gpt-oss-20b (−1.5).
+- The label-free estimate, logged before scoring each time: mean error 1.8 (1.1 / 1.0 / 2.6 / 3.2 / 0.0 / 3.0), optimistic in 5 of 6,
+  right sign wherever the result is clear. Trusting the check alone would have predicted a gain in all six (+2 to +20). A calibrated variant
+  fixed K&K but failed on trips (selective coverage), so the registered hybrid stays.
+- Reading: a new domain with a perfect structural check still gives no gain when thinking already solves it; the estimate tells this from
+  unlabeled runs, which is what the rule is for.

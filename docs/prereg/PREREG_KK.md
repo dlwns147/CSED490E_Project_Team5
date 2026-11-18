@@ -82,3 +82,14 @@ right sign on every result whose interval excludes 0. KK-4 is predicted with the
 Baselines: thinking 0 at the cap, 200 parsed for both (5.2k and 5.5k tokens).
 - Qwen3-32B, 10/12 inhabitants: third answers 98% of accepted. **Predicted accuracy term −11.0** (rule A +20.0); token term +1.38; ΔU −9.6.
 - gpt-oss-120b, 10/12: third answers 75%. **Predicted accuracy term +1.5** (rule A +1.5); token term +2.20; ΔU +3.7.
+
+**KK-4 result (2026-11-18 13:3x UTC; `python3 results/tmp_kk_score.py q32h oss120h`, after the predictions above were committed).**
+- Qwen3-32B: thinking 95.5% at 5.16k (94 / 97 at 10 / 12 inhabitants); ladder 84.5% at 2.40k. **Measured −11.0 (predicted −11.0);
+  ΔU −9.6 [−15.7, −3.5].**
+- gpt-oss-120b: thinking 100.0% at 5.50k; ladder 98.5% at 1.10k. **Measured −1.5 (predicted +1.5); ΔU +0.7 [−1.3, +2.2].**
+- KK-4a: thinking barely falls (Qwen3-32B 97 → 95.5%, gpt-oss-120b stays at 100%); gpt-oss-120b's ladder does not beat thinking (interval
+  includes 0); Qwen3-32B's still loses. Fails as stated. KK-4b: holds for Qwen3-32B (error 0.0), fails for gpt-oss-120b (3.0).
+- **K&K summary (6 blind cells):** the method does not pay on Knights and Knaves for any model (best: gpt-oss-120b +1.9 at ≤ 8, +0.7 at
+  10/12) because thinking stays at 95–100% while quick translations are 85–99% precise, exactly the case the decomposition marks as no room
+  (q ≈ 1). The label-free estimate's errors: 1.1, 1.0, 2.6, 3.2, 0.0, 3.0 (mean 1.8), optimistic in 5 of 6, with the right sign on every
+  cell whose interval excludes 0; trusting the check would have predicted gains of +2 to +20 in all six.
