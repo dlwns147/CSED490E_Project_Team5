@@ -23,7 +23,7 @@ TR = ("{q}\n\nDo not solve the puzzle. Translate it. Give one ```python block th
       "(row, col) to the given value, and `LESS`, a list of pairs ((r1, c1), (r2, c2)) meaning the value at (r1, c1) is smaller than the value "
       "at (r2, c2). Rows and columns count from 0, top-left first. Write every inequality sign of the picture as one pair, oriented by the "
       "sign: `a < b` and `a > b` between horizontal neighbours, `∧` (the upper cell is smaller) and `∨` (the upper cell is larger) between "
-      "vertical neighbours.")
+      "vertical neighbours. You may also copy the picture into a string and write code that builds GIVEN and LESS from it.")
 SOLVE = """
 import json as _js
 from ortools.sat.python import cp_model as _cp
@@ -57,7 +57,7 @@ def grid(text, n):
 def main():
     tag, arm, seed, fname = sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4]
     rounds = int(sys.argv[sys.argv.index("--rounds") + 1]) if "--rounds" in sys.argv else 3
-    mt = 30000 if arm == "think" else 16000 if arm == "trct" else 4096
+    mt = 30000 if arm in ("think", "trct") else 4096   # trct: 16k ran out on every gpt-oss-20b pilot round (11-18)
     P = [json.loads(l) for l in open(os.path.join(os.environ["POC_DATA"], "futo", fname))]
 
     def run(r):
@@ -76,13 +76,13 @@ def main():
                     raise
                 hist.append({"count": None, "tokens": 0, "err": repr(e)[:300]}); break
             tok += o["out_tokens"]
-            code = last_block(o["text"], ("python", "py", "python3"))
+            code = last_block(o["text"], ("python", "py", "python3", ""))
             res = run_python(code + "\n" + SOLVE, "", timeout=120, mem_bytes=2 << 30) if code else None
             try:
                 out = json.loads(res.stdout.strip().splitlines()[-1])
             except (AttributeError, IndexError, ValueError):
                 out = {"count": -1, "grid": None}
-            hist.append({"count": out["count"], "tokens": o["out_tokens"], "finish": o["finish"], "err": (res.stderr[-300:] if res else "no code")})
+            hist.append({"count": out["count"], "tokens": o["out_tokens"], "finish": o["finish"], "err": (res.stderr[-300:] if res else "no code"), "text": (o["text"] or "")[-600:]})
             if out["count"] == 1:
                 break
             fb = {-1: f"it failed to run or gave cells outside the board: {(res.stderr[-600:] if res else 'no python block')}",
