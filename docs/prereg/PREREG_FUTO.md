@@ -41,3 +41,8 @@ Thinking: medium 23.0% at 24.1k (utility 11.0), high 20.7% at 28.2k (6.5); basel
 [+28.1, +42.0]** (F-1 holds, above +20). **Measured accuracy term +44.0 vs predicted +46.3** (error 2.3, within max(3.0, 4.4): F-2 holds
 for this cell). By size, ladder vs thinking: 5×5 90 vs 52, 7×7 72 vs 16, 9×9 39 vs 1 (F-3: the gain is largest at 7×7, holds). The
 ladder costs more tokens (the 9×9 thinking translation alone averages 47.6k over its rounds) and still gains 35 utility points.
+
+**Addendum F-4, second family (written 2026-11-18 21:4x UTC, before any Qwen3-32B Futoshiki output exists).** Qwen3-32B (AWQ) on the same
+300 test puzzles, seed 1: trc, trct (30k), think (30k). Ladder trc → trct → think. Third for the blind estimate: gpt-oss-20b's quick
+translation. Pilot evidence is only Qwen3-8B, whose translations almost never reached one solution, so: F-4a: Qwen3-32B's ladder − its
+thinking ≥ 0 (lower bound above −2); F-4b: the blind estimate, logged before scoring, within max(3.0, 10% of the measured term).
