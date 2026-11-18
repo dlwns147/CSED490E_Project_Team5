@@ -36,3 +36,12 @@ which reads only count, ans and tokens).** Baselines: Qwen3-32B thinking 0 of 70
   term +0.72; predicted ΔU −7.1.
 - L-O120: accepted 100%, third (Qwen3-32B quick) answers 92%. **Predicted accuracy term +1.4** (rule A +2.4); token term +1.48;
   predicted ΔU +2.9.
+
+**KK-3 result (2026-11-18 12:4x UTC; `python3 results/tmp_kk_score.py q32 oss120`, run after the predictions above were committed).**
+- Qwen3-32B: thinking 98.6% at 2.49k; ladder 89.6% at 1.04k. **Measured accuracy term −9.0 (predicted −7.9); ΔU −8.3 [−10.7, −6.0].**
+- gpt-oss-120b: thinking 98.6% at 3.58k; ladder 99.0% at 0.62k. **Measured accuracy term +0.4 (predicted +1.4); ΔU +1.9 [+0.7, +3.2].**
+- **KK-3b holds in both cells** (errors 1.1 and 1.0). Rule A, which trusts the check, would have predicted +11.1 for Qwen3-32B: the hybrid
+  saw a losing ladder before any label was read. **KK-3a holds for gpt-oss-120b and fails for Qwen3-32B.**
+- Why Qwen3-32B loses: its quick translations reach one solution on 645 of 700 but 72 of those are wrong (precision 88.8%), against thinking
+  that is near the ceiling (98.6%; 95–100% at every size). Typical error: the knave rule written as `k[s] != (stmt == k[s])`, which drops the
+  speaker's truthfulness, and still leaves one assignment.

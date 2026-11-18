@@ -7362,3 +7362,11 @@ Job 1382299 (one GPU, queued).
   +24.2 [+18.5, +30.4] (Qwen3-8B), at equal or higher accuracy and fewer tokens. P1 (critics replace the count check in our ladder) held 4/4.
 - The best fallback depends on the family: Qwen3 thinking (critic-checked ladder vs LLM-Modulo +22.1 / +29.1), gpt-oss LLM-Modulo (the ladder
   alone −0.9 / −7.6). The critic pass rate picks the same fallback without labels on seeds 20–22 (not registered).
+
+## 2026-11-18 12:4x UTC — Knights and Knaves (new domain, PREREG_KK KK-3): the label-free estimate predicted a losing ladder before scoring
+
+- 700 puzzles, seed 1, blind: the runner hides accuracy and the prediction reads only counts, answers and tokens. Qwen3-32B: predicted
+  accuracy term −7.9, measured −9.0 (ladder 89.6% vs thinking 98.6%, ΔU −8.3 [−10.7, −6.0]); gpt-oss-120b: predicted +1.4, measured +0.4
+  (99.0% vs 98.6% at 0.6k instead of 3.6k tokens, ΔU +1.9 [+0.7, +3.2]). Trusting the check (rule A) would have predicted +11.1 for
+  Qwen3-32B. The ladder itself loses where thinking is at the ceiling and the quick translation misreads the knave rule (72 of 645 one-solution
+  programs wrong). Qwen3-8B and gpt-oss-20b (KK-1/KK-2) pending.
