@@ -20,3 +20,11 @@ Predictions:
 Decision: KK-2 holds -> the label-free rule stands on a domain it never saw. Fails -> state where it breaks (coverage, precision).
 
 (Copied 2026-11-18 10:3x UTC from host/exp_log.txt, where it was written at 10:3x before any job started; text unchanged.)
+
+**Addendum KK-3 (written 2026-11-18 11:4x UTC, before any Qwen3-32B or gpt-oss-120b K&K output exists; no KK score has been read).**
+Same 700 puzzles, seed 1, same runner and settings: Qwen3-32B (AWQ) trc, trct, think; gpt-oss-120b trc (low effort), trct and think (high).
+Ladders L-Q32 and L-O120 as KK-1. Third model for the label-free prediction: the other family's quick translation (gpt-oss-120b trc for
+Qwen3-32B, Qwen3-32B trc for gpt-oss-120b).
+- KK-3a: each ladder's utility − its own thinking ≥ 0 (interval lower bound above −2). Stronger thinkers leave less room, so the gain may be
+  mostly tokens.
+- KK-3b (decisive, as KK-2): blind hybrid prediction of each accuracy term, logged with the time before scoring; holds if within 2.0 points.
