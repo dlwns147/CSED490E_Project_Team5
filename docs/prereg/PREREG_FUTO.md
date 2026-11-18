@@ -27,3 +27,11 @@ setting), accept at the first program with exactly one solution. Baseline = the 
 
 **Decision.** F-1 and F-2 hold → the method and the label-free rule are shown on an untouched domain with large room. F-1 holds, F-2
 fails → the method stands, the estimate does not transfer to low-coverage thirds. F-1 fails → reported as a loss with the cause.
+
+**F-2 blind prediction, gpt-oss-20b (logged 2026-11-18 21:4x UTC, before any test score was read; `python3 results/tmp_futo_pred.py oss20`,
+which reads only count, ans and tokens).** Baselines: thinking at the 30k cap on 24 / 71 / 81 (medium) and 40 / 94 / 100 (high) of 100
+puzzles at 5 / 7 / 9; quick translations reach one solution on 14 / 1 / 0, thinking translations on 89 / 68 / 38. The ladder accepts 66%;
+the third (gpt-oss-120b quick translation) answers 18% of those.
+- vs thinking at medium effort: **predicted accuracy term +46.3** (rule A +47.0), token term −8.87.
+- vs thinking at high effort: **predicted accuracy term +47.7** (rule A +48.7), token term −7.35.
+gpt-oss-120b's prediction waits for its thinking runs.
