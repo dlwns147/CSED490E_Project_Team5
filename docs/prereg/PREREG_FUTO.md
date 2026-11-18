@@ -46,3 +46,9 @@ ladder costs more tokens (the 9×9 thinking translation alone averages 47.6k ove
 300 test puzzles, seed 1: trc, trct (30k), think (30k). Ladder trc → trct → think. Third for the blind estimate: gpt-oss-20b's quick
 translation. Pilot evidence is only Qwen3-8B, whose translations almost never reached one solution, so: F-4a: Qwen3-32B's ladder − its
 thinking ≥ 0 (lower bound above −2); F-4b: the blind estimate, logged before scoring, within max(3.0, 10% of the measured term).
+
+**F-2 blind prediction, gpt-oss-120b (logged 2026-11-18 22:4x UTC, before any of its scores was read).** Baselines: thinking at the 30k
+cap on 0 / 6 / 27 (medium) and 10 / 68 / 99 (high) of 100 at 5 / 7 / 9. Quick translations reach one solution on 36 / 3 / 1, thinking
+translations on 78 / 64 / 63; the ladder accepts 71%, the third (gpt-oss-20b quick) answers 6% of those.
+- vs thinking at medium effort: **predicted accuracy term +41.7** (rule A +43.3), token term −1.73.
+- vs thinking at high effort: **predicted accuracy term +39.7** (rule A +41.0), token term +0.90.
