@@ -54,3 +54,4 @@ Current ladder 75.7% at 14.1k; CC→T 80.7% at 13.2k: **+5.4 [+3.0, +8.2]** (pre
 **P1 verdict: holds for all four models** (+4.7 / +4.0 / +5.4 / +6.4; predicted +4.0 / +3.1 / +3.9 / +5.7). By the decision the trip method's
 check becomes LLM-Modulo's critics (a hand-written, domain-specific check; the count check stays the method where no such check exists).
 P2 holds for both gpt-oss models (+3.3, +1.2); the Qwen3 cells wait for their LLM-Modulo runs.
+- **Qwen3-32B P2 (2026-11-18 08:4x UTC):** LLM-Modulo 68.3% at 32.8k; C→M 80.3% at 23.0k, **+16.9 [+11.7, +22.4]** (predicted +13.7): holds.
