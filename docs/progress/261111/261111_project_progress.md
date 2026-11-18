@@ -1,24 +1,24 @@
-# Progress 11-03 → 11-12 — *Facts First, Think on Failure*
+# Progress 11-03 → 11-18 — *Facts First, Think on Failure*
 
-*Updated 2026-11-18 09:2x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
+*Updated 2026-11-18 10:2x UTC. Every number is a pre-registered verdict with a 95% interval. Utility = 100 × correct − 0.5 × output tokens (thousands). The RL study across domains (when a free check can replace labels) is now a separate paper report: `paper/docs/progress/261113/261113_paper_progress.md` (private).*
 
 ## At a glance
 
-**In one line:** the model does not solve the puzzle; it only **translates it into code**. A solver counts the solutions. **Exactly one → accept**; otherwise move to a more expensive step (translate while thinking → think only). "Exactly one solution" is a **free check** that needs no labels.
+**What we do.** Small open models (Qwen3, gpt-oss) solve logic puzzles and trip plans by *translating* the problem into a program; a solver finds the answer, and a **free check** decides whether to trust it: the program has exactly one solution, or, on trips, the plan passes the trip's stated rules. If the check fails, the model moves to a more expensive step, ending with ordinary thinking. Score: utility = 100 × correct − 0.5 × output tokens (thousands).
 
-- **Wins:** on ZebraLogic, human-written grids and trip planning, more accurate than thinking alone and usually cheaper, on two model families (Qwen3, gpt-oss).
-- **Trained quick step:** using the same free check **as the reward to train the translator with RL** works as well as a gold-label reward, with no labels at all (GridPuzzle +8.4; also +8.8 on gpt-oss-20b); this trained translator is the method's step ①.
-- **New this round, the largest gain since RL:** every model drops the same implication, "either A or B" also means A ≠ B. When a translation leaves several solutions, the solver adds that implication and re-counts, with no extra tokens (§3). Held out on four ladders it adds +6 to +15 on GridPuzzle; with it, the grid method beats thinking for every model, including gpt-oss-120b, where it used to tie.
-- **Second family as a cheap step (new, held out):** a quick translation by gpt-oss-20b, placed before the expensive thinking translation, settles most puzzles the trained translator leaves open: GridPuzzle 87.8% → **91.0%** at 6.0k tokens, +4.7; Mitra-Baral +4.0 (PREREG_PEERT). With gpt-oss-120b as that step: **92.9% at 4.6k**, +2.6 over gpt-oss-20b (addendum A). Puzzles are computation here: text → constraints → exact solver → free check, like the optimization word problems.
-- **Final test on fresh seeds (new):** every step was chosen on seeds 4–9, so the composed method ran once on seeds 14–16, never run before: **GridPuzzle 93.3% at 4.6k tokens vs thinking 60.9% at 11.5k (+35.9); Mitra-Baral 96.5% at 1.2k vs 87.9% at 6.5k (+11.1)** (PREREG_GPF). These are the headline numbers.
-- **Remaining weakness, partly closed:** a misreading that still leaves one solution passes the check. Its commonest form is an inclusive "either A or B" plus one constraint no clue states; the closure then leaves no solution, a second free check (+1.8 / +1.4 on fresh seeds, +0.45 held out on four models).
-- **Trips (new, PREREG_CRIT, fresh seeds 34–36):** accepting a plan when LLM-Modulo's hand-written critics pass it, instead of when the program finds exactly one plan, beats our earlier trip method for all four models (+4.0 to +6.4), and putting that critic-checked quick plan before LLM-Modulo beats LLM-Modulo for all four (+1.2 to +24.2). The one loss to related work is closed. Against thinking: Qwen3-32B 56.3% → 80.7%, Qwen3-8B 34.0% → 72.3%.
-- **Computation (new):** on OEIS a quick program checked by a brute-force program now wins on seeds 2–3 for gpt-oss-20b (+2.3) and for Qwen3-8B when gpt-oss-120b writes the check (+1.7); small, because the check accepts mostly sequences thinking already solves.
-- **Running:** nothing decisive on GPUs. Proofs: the teammate's one goal is HAGeo-409 above 287 certified (we stand at 284; the kit and certificates are packed for handover). Closed this round: the clue check on top of the trained translator (PREREG_GCLF), keeping only the grids both translations allow (PREREG_CONJ), and harder computation (Project Euler, OEIS, MathConstruct).
+**What we found** (every number pre-registered, final numbers on seeds never used for choices):
+1. **It beats thinking wherever such a check exists, usually at fewer tokens**, on both model families: ZebraLogic (Qwen3-8B 84% → 96%), human-written grids (GridPuzzle 61% → 93% at 4.6k instead of 11.5k tokens), trips (Qwen3-32B 56% → 81%).
+2. **Three additions make it work on hard data:** the quick translator trained with RL on the check alone, no labels (+8.4, §2); a free fix for the one convention every model drops, "either A or B" also means A ≠ B (+6 to +15, §3); another model family's quick translation as a cheap middle step (+3 to +5).
+3. **It wins against every prior method we re-ran:** the closest translation paper (which reported that translation loses), Logic-LM, consensus cascades, cut-short thinking, and LLM-Modulo on trips for all four models (§4, §5).
+4. **When it wins is predictable, without labels:** the gain is how often the check accepts answers thinking gets wrong. That is large on grids and trips, small on OEIS and AR-LSAT, and can be estimated from a few hundred unlabeled items within about 1 point (§7).
+
+**Limits.** Without a structural check it does not help (AR-LSAT tie, OEIS small wins, agents lose to a trained public model). On trips the best check is LLM-Modulo's hand-written per-task rules, not the solution count.
+
+**Now.** No experiments are running; the results above are final. Open: the proof part (teammate: HAGeo-409, 284 proved vs HAGeo's 287; kit and certificates handed over, §6).
 
 ![Results at a glance](fig/frontier.png)
 
-*Figure 1. Arrow = thinking only (○) → our method (●). Up is more accurate, left is cheaper. ZebraLogic and grids get both; trips are more accurate but spend more tokens.*
+*Figure 1. Arrow = thinking only (○) → our method (●). Up is more accurate, left is cheaper. ZebraLogic and grids get both; trips are more accurate but spend more tokens; AR-LSAT ties; on agents a trained public model (★) stays ahead.*
 
 | Data | Thinking only → ours | Verdict |
 |---|---|---|
@@ -26,7 +26,7 @@
 | ZebraLogic, the closest paper's 100 puzzles | Qwen3-32B 90.0% → **96.7%** (paper: translation loses) | Win (+9.1) |
 | GridPuzzle (human-written grids) | Qwen3-8B 60.9% → **93.3%**, 11.5k → 4.6k tokens (trained translator + gpt-oss-120b quick translation + closure + check; fresh seeds 14–16) | Win (+35.9) |
 | Mitra-Baral (small grids) | Qwen3-8B 87.9% → **96.5%**, 6.5k → 1.2k tokens (same) | Win (+11.1 [+5.1, +17.3]) |
-| Trip planning (NaturalPlan) | Qwen3-32B 56.3% → **80.7%** at 13.2k, Qwen3-8B 34.0% → **72.3%** (critic-checked ladder, fresh seeds 34–36); gpt-oss-20b / 120b **96.0% / 96.7%** with LLM-Modulo as the fallback | Wins over LLM-Modulo for all four models (+16.9, +24.2, +3.3, +1.2) and over our earlier ladder (+4.0 to +6.4) |
+| Trip planning (NaturalPlan) | Qwen3-32B 56.3% → **80.7%** at 13.2k, Qwen3-8B 37.0% → **72.3%** (critic-checked ladder, fresh seeds 34–36); gpt-oss-20b / 120b **96.0% / 96.7%** with LLM-Modulo as the fallback | Wins over LLM-Modulo for all four models (+16.9, +24.2, +3.3, +1.2) and over our earlier ladder (+4.0 to +6.4) |
 | GridPuzzle · Mitra-Baral, gpt-oss-20b (no training, fresh seeds 14–16) | 78.9% → **95.3%**, 15.0k → 6.7k tokens · 98.2% → **99.6%** | Win (+20.5 [+16.3, +24.9] · +3.1 [+1.3, +5.4]) |
 | GridPuzzle, gpt-oss-120b | 92.3% → **96.9%**, 9.1k → 5.2k tokens (with the closure; 93.1% without) | Win (+6.5) |
 | OEIS (computation; quick program checked by a brute-force program, seeds 2–3) | Qwen3-8B 148 → **152** of 250 at seed 2, 10.3k → 9.0k tokens with gpt-oss-120b's check; gpt-oss-20b (medium) 153 → **159** / **157** | Small wins: Qwen3-8B with the cross-family check +1.7 [+0.4, +3.2], gpt-oss-20b with its own check +2.3 [+0.3, +4.5]; Qwen3-8B's own check +0.2 [−1.9, +2.2] |
@@ -194,12 +194,12 @@ Reading: answering the solver's first solution without counting stays below thin
 
 | Fresh seeds 34–36 (300 trip-seeds) | Thinking only | Count-checked ladder (before) | **Critic-checked ladder** | LLM-Modulo | **Critic-checked quick plan → LLM-Modulo** |
 |---|---|---|---|---|---|
-| Qwen3-32B | 56.3%* | 75.7% at 14.1k | **80.7% at 13.2k** (+5.4 [+3.0, +8.2]) | 68.3% at 32.8k | 80.3% at 23.0k (+16.9 [+11.7, +22.4] vs LLM-Modulo) |
-| Qwen3-8B | 34.0%* | 66.3% at 17.8k | **72.3% at 17.0k** (+6.4 [+3.7, +9.6]) | 59.0% at 48.5k | 74.7% at 31.5k (+24.2 [+18.5, +30.4]) |
+| Qwen3-32B | 56.3% at 7.5k | 75.7% at 14.1k | **80.7% at 13.2k** (+5.4 [+3.0, +8.2]) | 68.3% at 32.8k | 80.3% at 23.0k (+16.9 [+11.7, +22.4] vs LLM-Modulo) |
+| Qwen3-8B | 37.0% at 10.5k | 66.3% at 17.8k | **72.3% at 17.0k** (+6.4 [+3.7, +9.6]) | 59.0% at 48.5k | 74.7% at 31.5k (+24.2 [+18.5, +30.4]) |
 | gpt-oss-20b | 74.0% at 13.7k | 86.3% at 22.2k | 90.3% at 20.9k (+4.7 [+2.2, +7.5]) | 96.0% at 30.4k | **96.0% at 23.8k (+3.3 [+1.6, +5.3])** |
-| gpt-oss-120b (its own ladder) | 77.3%* | 84.3% at 17.7k | 88.0% at 17.1k (+4.0 [+1.8, +6.5]) | 96.0% at 17.9k | **96.7% at 16.9k (+1.2 [+0.1, +2.6])** |
+| gpt-oss-120b (its own ladder) | 74.3% at 9.0k | 84.3% at 17.7k | 88.0% at 17.1k (+4.0 [+1.8, +6.5]) | 96.0% at 17.9k | **96.7% at 16.9k (+1.2 [+0.1, +2.6])** |
 
-*Seeds 20–22. Parentheses: utility difference against the column it improves on (critic-checked ladder vs count-checked; critic-checked quick plan → LLM-Modulo vs LLM-Modulo). Best per model in bold: Qwen3 with thinking as the fallback (vs LLM-Modulo +22.1 / +29.1), gpt-oss with LLM-Modulo as the fallback.*
+*Parentheses: utility difference against the column it improves on (critic-checked ladder vs count-checked; critic-checked quick plan → LLM-Modulo vs LLM-Modulo). Best per model in bold: Qwen3 with thinking as the fallback (vs LLM-Modulo +22.1 / +29.1), gpt-oss with LLM-Modulo as the fallback.*
 
 > **Example — trip 1066 (8 cities, 21 days), a correct plan.** Rule: a travel day counts for both cities.
 > - Qwen3-32B as checker (same model as the translator): *"the plan sums to 22 days instead of 21"* ✗ — the same rule misread again
