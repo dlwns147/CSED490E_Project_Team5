@@ -7389,3 +7389,13 @@ Job 1382299 (one GPU, queued).
   fixed K&K but failed on trips (selective coverage), so the registered hybrid stays.
 - Reading: a new domain with a perfect structural check still gives no gain when thinking already solves it; the estimate tells this from
   unlabeled runs, which is what the rule is for.
+
+## 2026-11-18 22:4x UTC — Futoshiki (PREREG_FUTO): on an untouched domain where thinking fails, the ladder gains +35 / +40 and the blind estimate is within 2.3 / 0.4
+
+- 300 new puzzles (5×5, 7×7, 9×9), seed 1. gpt-oss-20b: ladder 67.0% vs thinking 23.0%, ΔU +35.1 [+28.1, +42.0]; gpt-oss-120b: 77.0% vs
+  35.7%, +39.6 [+33.4, +45.8]. Gains grow with size where thinking collapses (9×9: 39 vs 1, 68 vs 15). The thinking translation does the
+  work (one solution on 38–89% of puzzles, nearly always right); quick translations misread the picture.
+- Label-free estimate, logged before scoring: +46.3 vs measured +44.0, +41.7 vs +41.3. With Knights and Knaves (thinking at the ceiling,
+  estimate predicting losses), the rule now holds on two untouched domains, one on each side.
+- Caveat: thinking hits the 30k-token cap on many puzzles (medium effort 6–81% by size); the cap was fixed in the pre-registration and the
+  better of two effort settings was used.

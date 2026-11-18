@@ -52,3 +52,11 @@ cap on 0 / 6 / 27 (medium) and 10 / 68 / 99 (high) of 100 at 5 / 7 / 9. Quick tr
 translations on 78 / 64 / 63; the ladder accepts 71%, the third (gpt-oss-20b quick) answers 6% of those.
 - vs thinking at medium effort: **predicted accuracy term +41.7** (rule A +43.3), token term −1.73.
 - vs thinking at high effort: **predicted accuracy term +39.7** (rule A +41.0), token term +0.90.
+
+**gpt-oss-120b result and verdict (2026-11-18 22:4x UTC; `python3 results/tmp_futo_score.py oss120`, after the prediction was committed).**
+Thinking: medium 35.7% at 17.7k (utility 26.8), high 38.0% at 25.7k (25.1); baseline = medium. **Ladder 77.0% at 21.2k: ΔU +39.6
+[+33.4, +45.8]. Measured accuracy term +41.3 vs predicted +41.7** (error 0.4). By size: 5×5 92 vs 57, 7×7 71 vs 35, 9×9 68 vs 15.
+- **F-1 holds for both models** (+35.1, +39.6). **F-2 holds in both cells** (errors 2.3 and 0.4). F-3 holds for gpt-oss-20b (largest gain at
+  7×7) and fails for gpt-oss-120b (largest at 9×9, where its thinking falls to 15% but its translation stays at 68%).
+- **Decision: the method and the label-free rule are shown on an untouched domain with large room.** With PREREG_KK (no room, the
+  estimate predicting the loss), both sides of the rule now hold on domains no choice touched. Qwen3-32B (F-4) is running.
