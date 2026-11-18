@@ -45,3 +45,12 @@ The other three models are still running; the verdict is read when all four are 
 
 **Qwen3-32B, P1 (2026-11-18 05:4x UTC; its `trct` and `think` runs and the gpt-oss-120b `trc` runs are complete; `modulo` still running).**
 Current ladder 75.7% at 14.1k; CC→T 80.7% at 13.2k: **+5.4 [+3.0, +8.2]** (predicted +3.9). P1 holds for this model. P2 waits for its LLM-Modulo runs.
+
+**gpt-oss-20b cell and Qwen3-8B P1 (2026-11-18 07:4x UTC; all runs of these cells 100 rows each).**
+- gpt-oss-20b: current ladder 86.3% at 22.2k, LLM-Modulo 96.0% at 30.4k. **P1: CC→T +4.7 [+2.2, +7.5]**; **P2: C→M − LLM-Modulo +3.3
+  [+1.6, +5.3]** (96.0% at 23.8k): both hold.
+- Qwen3-8B: current ladder 66.3% at 17.8k; **P1: CC→T 72.3% at 17.0k, +6.4 [+3.7, +9.6]**: holds.
+
+**P1 verdict: holds for all four models** (+4.7 / +4.0 / +5.4 / +6.4; predicted +4.0 / +3.1 / +3.9 / +5.7). By the decision the trip method's
+check becomes LLM-Modulo's critics (a hand-written, domain-specific check; the count check stays the method where no such check exists).
+P2 holds for both gpt-oss models (+3.3, +1.2); the Qwen3 cells wait for their LLM-Modulo runs.

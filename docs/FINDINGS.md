@@ -7345,3 +7345,12 @@ Job 1382299 (one GPU, queued).
   estimate to trusting the accepted answers, which is safe when the check is precise; the predicted failure (imprecise check and a sparse
   third) did not occur in our data, and the third's coverage is visible without labels. The §7 figure is redrawn with seed-2 OEIS cells and
   the label-free predictions beside the measured accuracy terms (`results/tmp_fig_decomp.py`).
+
+## 2026-11-18 07:4x UTC — PREREG_CRIT P1: with LLM-Modulo's critics as the check, the trip ladder beats our count-checked ladder for all four models (fresh seeds 34–36)
+
+- Same steps (gpt-oss-120b quick translation → main model's thinking translation → thinking), accepting a plan when the critics find no
+  violation instead of when the program finds exactly one plan: +4.7 [+2.2, +7.5] (gpt-oss-20b), +4.0 [+1.8, +6.5] (gpt-oss-120b), +5.4
+  [+3.0, +8.2] (Qwen3-32B), +6.4 [+3.7, +9.6] (Qwen3-8B); more accurate and cheaper for every model. Mechanism (seen seeds): plans the count
+  check accepts and the critics reject were 0 of 41 right, a misreading that leaves exactly one solution.
+- P2 so far: our cheap critic-checked candidate before LLM-Modulo beats LLM-Modulo alone for gpt-oss-20b (+3.3 [+1.6, +5.3]) and gpt-oss-120b
+  (+1.2 [+0.1, +2.6]), the two models LLM-Modulo used to beat us on. Qwen3 cells pending.
