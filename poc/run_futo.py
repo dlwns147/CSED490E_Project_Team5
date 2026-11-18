@@ -5,7 +5,7 @@ usage: run_futo.py <tag> <arm think|trc|trct> <seed> <file under nlp_data/futo> 
 writes results/futo_<tag>_<arm>_s<seed>_<file stem>.jsonl; prints no accuracy (blind until the prediction is logged).
 - think: the puzzle as given (Reasoning Gym's own prompt); the answer grid is read from the last n lines that hold n digits.
 - trc / trct: translate into `N`, `GIVEN` {(row, col): value} and `LESS` [((r1, c1), (r2, c2)), ...] meaning cell 1 < cell 2 (0-based);
-  a backtracking solver counts solutions (up to 2); label-free feedback on 0 / 2+ / crash.
+  CP-SAT counts solutions (up to 2; replaced the 11-18 backtracking harness, which timed out on wrong 7x7/9x9 translations); label-free feedback on 0 / 2+ / crash.
 """
 import json
 import os
@@ -26,28 +26,24 @@ TR = ("{q}\n\nDo not solve the puzzle. Translate it. Give one ```python block th
       "vertical neighbours.")
 SOLVE = """
 import json as _js
-_g = [[GIVEN.get((r, c), 0) for c in range(N)] for r in range(N)]
-_rel = {}
-for (_a, _b) in LESS:
-    _rel.setdefault(tuple(_a), []).append((tuple(_b), '<')); _rel.setdefault(tuple(_b), []).append((tuple(_a), '>'))
-_cells = [(r, c) for r in range(N) for c in range(N) if _g[r][c] == 0]
-_out = []
-def _ok(r, c, v):
-    if v in _g[r] or any(_g[i][c] == v for i in range(N)): return False
-    for (p, q), s in _rel.get((r, c), []):
-        w = _g[p][q]
-        if w and not (v < w if s == '<' else v > w): return False
-    return True
-def _go(k):
-    if len(_out) >= 2: return
-    if k == len(_cells): _out.append([row[:] for row in _g]); return
-    r, c = _cells[k]
-    for v in range(1, N + 1):
-        if _ok(r, c, v):
-            _g[r][c] = v; _go(k + 1); _g[r][c] = 0
-_bad = [(r, c) for (r, c), v in GIVEN.items() if not (0 <= r < N and 0 <= c < N and 1 <= v <= N)]
-if not _bad: _go(0)
-print(_js.dumps({"count": len(_out) if not _bad else -1, "grid": _out[0] if _out else None}))
+from ortools.sat.python import cp_model as _cp
+_m = _cp.CpModel()
+_x = {(r, c): _m.NewIntVar(1, N, f"x{r}_{c}") for r in range(N) for c in range(N)}
+_bad = [k for k, v in GIVEN.items() if tuple(k) not in _x or not (1 <= v <= N)] + [p for p in LESS if tuple(p[0]) not in _x or tuple(p[1]) not in _x]
+if not _bad:
+    for r in range(N): _m.AddAllDifferent([_x[(r, c)] for c in range(N)])
+    for c in range(N): _m.AddAllDifferent([_x[(r, c)] for r in range(N)])
+    for k, v in GIVEN.items(): _m.Add(_x[tuple(k)] == v)
+    for a, b in LESS: _m.Add(_x[tuple(a)] < _x[tuple(b)])
+    class _C(_cp.CpSolverSolutionCallback):
+        def __init__(s): super().__init__(); s.sols = []
+        def on_solution_callback(s):
+            s.sols.append([[s.Value(_x[(r, c)]) for c in range(N)] for r in range(N)])
+            if len(s.sols) >= 2: s.StopSearch()
+    _s = _cp.CpSolver(); _s.parameters.enumerate_all_solutions = True; _s.parameters.max_time_in_seconds = 60; _cb = _C(); _s.Solve(_m, _cb)
+    print(_js.dumps({"count": len(_cb.sols), "grid": _cb.sols[0] if _cb.sols else None}))
+else:
+    print(_js.dumps({"count": -1, "grid": None}))
 """
 
 
