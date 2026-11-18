@@ -53,3 +53,9 @@ gen_hard.py`, problem seed 5678; every puzzle checked to have exactly one soluti
 - KK-4a: thinking accuracy falls below its 8-inhabitant level for both models; gpt-oss-120b's ladder beats its thinking (interval above 0);
   Qwen3-32B's ladder still loses unless its thinking falls below its quick-translation precision (~89%).
 - KK-4b (decisive): the blind hybrid prediction, logged before scoring, is within 2.0 points of the measured accuracy term in each cell.
+
+**KK-2 blind predictions (logged 2026-11-18 13:3x UTC, before any Qwen3-8B or gpt-oss-20b K&K score was read; `python3 results/tmp_kk_pred.py q8b oss20`).**
+Baselines: Qwen3-8B thinking 0 at the cap, 700 parsed, 2.8k tokens; gpt-oss-20b thinking 1 at the cap, 699 parsed, 4.2k tokens. Quick
+translations reach one solution on 471 (Qwen3-8B) and 678 (gpt-oss-20b) of 700; with the thinking translation the ladders accept 100%.
+- L-Q: third (gpt-oss-20b quick) answers 97% of accepted. **Predicted accuracy term −9.1** (rule A +13.0); token term +0.42; ΔU −8.7.
+- L-O: third (Qwen3-8B quick) answers 67%. **Predicted accuracy term +0.1** (rule A +3.6); token term +1.67; ΔU +1.8.
