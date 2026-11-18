@@ -7354,3 +7354,11 @@ Job 1382299 (one GPU, queued).
   check accepts and the critics reject were 0 of 41 right, a misreading that leaves exactly one solution.
 - P2 so far: our cheap critic-checked candidate before LLM-Modulo beats LLM-Modulo alone for gpt-oss-20b (+3.3 [+1.6, +5.3]) and gpt-oss-120b
   (+1.2 [+0.1, +2.6]), the two models LLM-Modulo used to beat us on. Qwen3 cells pending.
+
+## 2026-11-18 09:2x UTC — PREREG_CRIT verdict: the trip loss to LLM-Modulo is closed for every model
+
+- P2, fresh seeds 34–36: gpt-oss-120b's quick plan accepted when LLM-Modulo's critics pass it, else the main model's LLM-Modulo run, beats
+  LLM-Modulo alone for all four models: +3.3 [+1.6, +5.3] (gpt-oss-20b), +1.2 [+0.1, +2.6] (gpt-oss-120b), +16.9 [+11.7, +22.4] (Qwen3-32B),
+  +24.2 [+18.5, +30.4] (Qwen3-8B), at equal or higher accuracy and fewer tokens. P1 (critics replace the count check in our ladder) held 4/4.
+- The best fallback depends on the family: Qwen3 thinking (critic-checked ladder vs LLM-Modulo +22.1 / +29.1), gpt-oss LLM-Modulo (the ladder
+  alone −0.9 / −7.6). The critic pass rate picks the same fallback without labels on seeds 20–22 (not registered).

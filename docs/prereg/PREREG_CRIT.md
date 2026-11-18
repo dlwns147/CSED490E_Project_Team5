@@ -55,3 +55,9 @@ Current ladder 75.7% at 14.1k; CC→T 80.7% at 13.2k: **+5.4 [+3.0, +8.2]** (pre
 check becomes LLM-Modulo's critics (a hand-written, domain-specific check; the count check stays the method where no such check exists).
 P2 holds for both gpt-oss models (+3.3, +1.2); the Qwen3 cells wait for their LLM-Modulo runs.
 - **Qwen3-32B P2 (2026-11-18 08:4x UTC):** LLM-Modulo 68.3% at 32.8k; C→M 80.3% at 23.0k, **+16.9 [+11.7, +22.4]** (predicted +13.7): holds.
+- **Qwen3-8B P2 (2026-11-18 09:2x UTC):** LLM-Modulo 59.0% at 48.5k; C→M 74.7% at 31.5k, **+24.2 [+18.5, +30.4]** (predicted +22.3): holds.
+
+**Verdict (2026-11-18 09:2x UTC). P1 holds for all four models; P2 holds for all four** (+3.3 / +1.2 / +16.9 / +24.2). Decisions: the trip
+method's check becomes LLM-Modulo's critics; the report states that our critic-checked cheap candidate before LLM-Modulo beats LLM-Modulo for
+every model. Not registered, reported as such: per model the better fallback differs (thinking for Qwen3: CC→T vs LLM-Modulo +22.1 / +29.1;
+LLM-Modulo for gpt-oss: CC→T −0.9 / −7.6), matching the label-free choice by critic pass rate on seeds 20–22.
