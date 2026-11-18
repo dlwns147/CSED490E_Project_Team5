@@ -77,3 +77,8 @@ third. It helps on K&K (errors 1.7 / 2.1 / 1.1 / 0.7 instead of 2.6 / 3.3 / 1.1 
 answers only 37–44% of accepted trips, mostly easy ones, so p̂ − q̂ measured on them misses the gain on hard trips, the same selection
 that sank rule B. The registered hybrid stays: over the 17 OEIS, trip and K&K cells it errs by 1.3 on average, at most 3.3, always with the
 right sign on every result whose interval excludes 0. KK-4 is predicted with the registered hybrid.
+
+**KK-4b blind predictions (logged 2026-11-18 13:3x UTC, before any KK-4 score; `python3 results/tmp_kk_pred.py q32h oss120h`).**
+Baselines: thinking 0 at the cap, 200 parsed for both (5.2k and 5.5k tokens).
+- Qwen3-32B, 10/12 inhabitants: third answers 98% of accepted. **Predicted accuracy term −11.0** (rule A +20.0); token term +1.38; ΔU −9.6.
+- gpt-oss-120b, 10/12: third answers 75%. **Predicted accuracy term +1.5** (rule A +1.5); token term +2.20; ΔU +3.7.
