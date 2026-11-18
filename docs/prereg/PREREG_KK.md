@@ -71,7 +71,7 @@ translations reach one solution on 471 (Qwen3-8B) and 678 (gpt-oss-20b) of 700; 
   accepted answer, which overstates by up to 2.2 points (gpt-oss-20b: 229 such items). So the bias grows as the third's coverage falls
   (Qwen3-8B quick translation answered only 67% of gpt-oss-20b's accepted items).
 
-**Post hoc, not registered (2026-11-18 13:4x UTC; `results/tmp_lf_pq.py`): can the optimism be removed?** A calibrated variant replaces
+**Post hoc, not registered (2026-11-18 13:3x UTC; `results/tmp_lf_pq.py`): can the optimism be removed?** A calibrated variant replaces
 "trust the accepted answer" (and items where the third agrees with neither) by p̂ − q̂, the accepted and thinking answers' agreement with the
 third. It helps on K&K (errors 1.7 / 2.1 / 1.1 / 0.7 instead of 2.6 / 3.3 / 1.1 / 1.0) but fails badly on trips (−7 to −17): there the third
 answers only 37–44% of accepted trips, mostly easy ones, so p̂ − q̂ measured on them misses the gain on hard trips, the same selection
