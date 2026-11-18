@@ -45,3 +45,11 @@ which reads only count, ans and tokens).** Baselines: Qwen3-32B thinking 0 of 70
 - Why Qwen3-32B loses: its quick translations reach one solution on 645 of 700 but 72 of those are wrong (precision 88.8%), against thinking
   that is near the ceiling (98.6%; 95–100% at every size). Typical error: the knave rule written as `k[s] != (stmt == k[s])`, which drops the
   speaker's truthfulness, and still leaves one assignment.
+
+**Addendum KK-4, harder puzzles (written 2026-11-18 12:4x UTC; only KK-3 has been scored).** Thinking was at the ceiling for Qwen3-32B and
+gpt-oss-120b (95–100% at every size up to 8). 200 new puzzles with 10 and 12 inhabitants from the authors' generator (`nlp_data/kk_gen/
+gen_hard.py`, problem seed 5678; every puzzle checked to have exactly one solution equal to the stored one). Same runner, seed 1, tags
+`q32h`, `oss120h` (later `q8bh`, `oss20h` on Slurm).
+- KK-4a: thinking accuracy falls below its 8-inhabitant level for both models; gpt-oss-120b's ladder beats its thinking (interval above 0);
+  Qwen3-32B's ladder still loses unless its thinking falls below its quick-translation precision (~89%).
+- KK-4b (decisive): the blind hybrid prediction, logged before scoring, is within 2.0 points of the measured accuracy term in each cell.
