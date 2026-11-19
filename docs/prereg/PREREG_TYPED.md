@@ -118,3 +118,24 @@ read 0 on every TSP; rescored from the stored output, `orbase_sirl3_*`).
   coefficient), and our baseline prompts lacked the pywraplp API card our own stored program arms always had. All five baselines are rerun
   for both models with the same card (`ORB_CARD=1`, tags `q8bc`, `oss20c`); the card-free rows stay as recorded above but the card rows
   decide B-1/B-2.
+
+**B-1 / B-2 final (2026-11-19 17:1x UTC; same API card in every baseline prompt, `orbase_{q8bc,oss20c}_*`; failure categories read
+first: the remaining crashes are the models' own coding errors, e.g. `Objective.SetMinimization`, `!=` in a linear constraint, a missing
+key). Scored on SIRL's corrected labels; typed − baseline paired by problem-seed, 95% bootstrap CI.**
+
+| Method (3 seeds) | Qwen3-8B max flow | Qwen3-8B TSP | gpt-oss-20b max flow | gpt-oss-20b TSP |
+|---|---|---|---|---|
+| **Typed translation (ours)** | **91.4%** (0.5k tok) | **95.0%** | **92.5%** (0.6k tok) | **96.7%** |
+| Few-shot template | 28.0% (+63.4 [+53.8, +73.1]) | 35.0% | 79.6% (+12.9 [+5.4, +20.4]) | 89.2% (+7.5) |
+| Self-Debug | 19.4% (+72.0) | 8.3% | 75.3% (+17.2 [+9.7, +24.7]) | 32.5% |
+| Chain-of-Experts | 19.4% (+72.0) | 13.3% | 53.8% (+38.7) | 55.0% |
+| OptiMUS-style staged | 18.3% (+73.1) | 12.5% | 55.9% (+36.6) | 49.2% |
+| LLMOPT five elements | 4.3% (+87.1) | 11.7% | 53.8% (+38.7) | 24.2% |
+| SIRL-Qwen2.5-7B-Gurobi (published RL model) | 48.4% | 4.2% | | |
+| gpt-oss-120b / Qwen3-32B plain program | 59.1% / 34.4% | 77.5% / 47.5% | | |
+
+- **B-1 holds for both models**: on max flow typed translation beats every related-work baseline, every CI above 0 (closest: gpt-oss-20b
+  few-shot, +12.9 [+5.4, +20.4]). It also beats SIRL-7B (+43.0 [+32.3, +53.8] for Qwen3-8B) and the larger models' programs.
+- **B-2 holds for both models**: the few-shot template is the strongest baseline. The API card did not change the ranking (gpt-oss-20b
+  baselines moved −11 to +1 points; Qwen3-8B few-shot +8).
+- Typed translation is also the cheapest arm (0.5–0.6k tokens vs 0.8–3.9k).

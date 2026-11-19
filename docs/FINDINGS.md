@@ -7430,3 +7430,12 @@ Job 1382299 (one GPU, queued).
 - Same 29 max-flow problems × 3 seeds against the exact answer: gpt-oss-20b thinking with the API fact 74.7%, Qwen3.6 thinking 72.4% at
   41.7k tokens, the models' thinking programs 49–53%, quick programs 34–59%. Typed translation uses 0.5–0.6k tokens. TSP has no independent
   reference (labels are cycle covers); table in PREREG_TYPED.
+
+## 2026-11-19 17:1x UTC — Typed translation vs related-work baselines (PREREG_TYPED addenda B, C)
+On MAMO ComplexLP's two graph templates (31 max flow, 40 TSP; 3 seeds), scored on SIRL's independently corrected labels, typed
+translation (model writes {type, edges, source, sink}; a fixed solver does the modelling) beats Self-Debug, OptiMUS-style staging,
+Chain-of-Experts, LLMOPT's five elements and a few-shot worked program, for both Qwen3-8B and gpt-oss-20b, every paired CI above 0 on max
+flow (closest: gpt-oss-20b few-shot +12.9 [+5.4, +20.4]), at the lowest token cost. The published SIRL-7B (RL with solver feedback) gets
+48.4% on max flow and 4.2% on TSP: its programs omit subtour elimination, reproducing the MAMO label bug. Baseline prompts carry the same
+OR-Tools API card our arms had (without it, Qwen3-8B baselines crashed on API misuse). Limits: two templates, one dataset; template
+recognition is by the model's own type field, and "other" falls back to the cascade.
