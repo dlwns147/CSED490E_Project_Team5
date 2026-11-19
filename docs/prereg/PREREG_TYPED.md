@@ -59,7 +59,7 @@ On max flow typed translation beats every baseline, including the published spec
 the comparison is against our own reference (no independent labels exist); gpt-oss-20b's quick program with a stated-example prompt
 already reaches 95.5% there. Not run: multi-stage agent pipelines such as OptiMUS and Chain-of-Experts.
 
-**Addendum B, related-work baselines run in our harness (written 2026-11-19 16:4x UTC, before any of these rows exists; user: "why don't we
+**Addendum B, related-work baselines run in our harness (written 2026-11-19 16:3x UTC, before any of these rows exists; user: "why don't we
 have related research as baselines?").** Same 71 problems × seeds 1–3; `poc/run_orbase.py`:
 - Self-Debug (Chen et al. 2304.05128): program + execution feedback, up to 3 rounds.
 - OptiMUS-style staged prompting (2402.10172), single model: parameters as JSON → formulation in math → code → one debugging round.
