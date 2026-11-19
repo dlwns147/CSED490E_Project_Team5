@@ -33,3 +33,8 @@ Qwen3-8B thinking 0 of 200 at the cap, 200 parsed; gpt-oss-20b thinking 2 at the
 - K&K 10/12, Qwen3-8B: estimated ΔU −4.1 → **thinking**.
 - K&K 10/12, gpt-oss-20b: estimated ΔU +7.9 → **ladder**.
 Futoshiki Qwen3-8B still running.
+
+**K&K cells scored (2026-11-19 08:0x UTC, on the other 140 ids each).** Qwen3-8B: ladder − thinking −17.3; the rule chose thinking (0):
+**right**. gpt-oss-20b: ladder − thinking −2.6; the rule chose the ladder: **wrong by 2.6** (M0-1 fails in this cell; its estimate +7.9
+from 60 items was optimistic, as it was for gpt-oss-20b on K&K at ≤ 8 inhabitants: +1.8 vs −1.5). So far the rule −2.6 vs always-ladder
+−19.9 summed over the two cells. Futoshiki Qwen3-8B pending.
