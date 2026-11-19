@@ -72,7 +72,7 @@ Models for the prompted methods: Qwen3-8B and gpt-oss-20b (low effort), as for t
 - B-1: on max flow (exact answers) typed translation beats every one of these baselines for the same model.
 - B-2: the few-shot template is the strongest prompted baseline (it states the convention the others miss); report its gap to typed.
 
-**Addendum C, recent related work (written 2026-11-19 16:5x UTC, user: "don't we have recent related research?").** Checked 2025–2026:
+**Addendum C, recent related work (written 2026-11-19 16:4x UTC, user: "don't we have recent related research?").** Checked 2025–2026:
 SIRL (2505.11792; RL with solver feedback, released 7B/32B weights, reported state of the art among open models), Step-Opt (2506.17637),
 OptiTree (2510.22192; tree search over modelling sub-problems), an error-localising modeller (2602.11164), StarOR (2606.15197; tree search
 + test-time RL), OptiSkill (2609.22987; skill bank). **The TSP label error is already known:** the SIRL team corrected MAMO ComplexLP in
