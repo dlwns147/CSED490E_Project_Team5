@@ -182,3 +182,17 @@ gap 0; rescoring the stored readings changes 8 of 219). Facility numbers below u
   (worst: gpt-oss-20b facility vs Self-Debug, −1.1 [−5.7, +2.3]), at the lowest cost. So it stays the first step for recognised types; the
   size of the gain is what varies: large where the model's own modelling of the template is wrong (graphs for both models, facility for
   Qwen3-8B), small where it is right. Next: grow coverage only where a stored-data closure diagnosis shows modelling errors.
+
+**Addendum E, the type field as the router on the whole benchmark (written 2026-11-19 17:4x UTC, before any run).** Addenda A–D ran only
+on problems my wording selector picked. Deployed, the model's own type field decides: a recognised type goes to its fixed solver, "other"
+falls back to the model's own program (`formx`, stored, same seeds). The selector also misses templates: 9 ComplexLP max-flow problems
+with other wording (ids 102–137) were never run. `run_typed.py --v3 --all`: all 863 MAMO problems (ComplexLP 211, EasyLP 652), Qwen3-8B
+and gpt-oss-20b, seeds 1–3. ComplexLP scored on SIRL's corrected labels, EasyLP on its own labels; tolerance 1e-3 (project scorer).
+- E-1 (false typing is harmless): on ComplexLP problems outside the three selected templates and on EasyLP, pipeline − own program ≥ −2
+  points for both models.
+- E-2 (the router finds what the selector missed): on the 9 unselected max-flow problems, pipeline − own program ≥ +20 for both models.
+- E-3 (whole benchmark): ComplexLP, pipeline − own program ≥ +15 points for both models, CI above 0; reported next to every stored and
+  related-work baseline that covers all problems (thinking, ORLM, STORM, SIRL-7B where run).
+**Decision.** E-1 and E-3 hold → the pipeline (typed menu → fixed solver, else own program) is the word-problem method's first step and the
+reported MAMO numbers. E-1 fails → typing needs a check before it is trusted (the type's data must also satisfy its solver: feasible,
+complete); report.
