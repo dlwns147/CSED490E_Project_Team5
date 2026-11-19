@@ -7446,3 +7446,10 @@ Qwen3-8B (holds) but +6.9 for gpt-oss-20b (fails the registered +10), and gpt-os
 the model already models the template right. A larger type menu (3 types) costs nothing on the graph templates. Scoring note: the project
 tolerance is 1e-3 relative; SCIP's default MIP gap misses 1e-6 on large objectives (facility own-program accuracy 64% at 1e-6 vs 82% at
 1e-3); graph results are identical under both.
+
+## 2026-11-19 18:5x UTC — Typed menu as the router on all of MAMO (PREREG_TYPED addendum E)
+The model's own type field routes each problem: max flow / TSP / facility location to a fixed solver, anything else to the model's own
+program. ComplexLP (corrected labels): Qwen3-8B 56.6% → 76.5% (+19.9 [+16.1, +23.7]), gpt-oss-20b 64.5% → 82.8% (+18.2); EasyLP
+unchanged (gpt-oss-20b types no EasyLP problem). Qwen3-8B mis-types the supply-redistribution template as max flow (−5.8 on ComplexLP's
+other problems); a label-free validity check of the typed data removes that loss (post hoc; prospective test next). Against our strongest
+earlier arm for gpt-oss-20b (retrieved own programs, 79.1%), the pipeline adds +5.1 [+3.0, +7.5].

@@ -196,3 +196,33 @@ and gpt-oss-20b, seeds 1–3. ComplexLP scored on SIRL's corrected labels, EasyL
 **Decision.** E-1 and E-3 hold → the pipeline (typed menu → fixed solver, else own program) is the word-problem method's first step and the
 reported MAMO numbers. E-1 fails → typing needs a check before it is trusted (the type's data must also satisfy its solver: feasible,
 complete); report.
+
+**Addendum E result (2026-11-19 18:5x UTC; `results/tmp_typed_e.py`; failure categories read first; a Qwen3-8B lane hung on a max-flow
+reading with source = sink, solver guarded and rerun).** All 863 MAMO problems × 3 seeds; ComplexLP on SIRL's corrected labels (203
+problems), EasyLP on its own; project tolerance.
+- **E-3 holds for both models.** ComplexLP, pipeline − own program: Qwen3-8B 76.5% vs 56.6%, **+19.9 [+16.1, +23.7]**; gpt-oss-20b
+  82.8% vs 64.5%, **+18.2 [+14.9, +21.6]**.
+- **E-1 holds as registered** (pooled ComplexLP-other + EasyLP: Qwen3-8B −1.0 [−1.5, −0.6], gpt-oss-20b 0.0; gpt-oss-20b types no EasyLP
+  problem). **But Qwen3-8B loses −5.8 [−8.7, −3.3] on ComplexLP's non-template problems:** it types 70 of 276 of those rows as max flow or
+  facility location, mostly the supply-redistribution template (e.g. node capacities as edges, source "source" not in the graph, value 0).
+- **E-2 split:** unselected max-flow problems, Qwen3-8B +22.2 [+0.0, +44.4] (holds), gpt-oss-20b +14.8 [−3.7, +33.3] (fails): its misses are
+  the largest graphs (9 nodes, ~72 edges) read incompletely (8 edges in some runs) or with a wrong capacity.
+- **Post hoc, needs a prospective test:** the remedy named in the decision rule, a label-free validity check (max flow: source and sink are
+  graph nodes, distinct, value > 0; facility: every customer and facility has shipping costs), keeps the gains and removes the loss:
+  Qwen3-8B ComplexLP-other −5.8 → −0.4 [−1.1, 0.0], whole ComplexLP +22.4 [+18.9, +25.7]; gpt-oss-20b unchanged.
+- **Against our strongest earlier method** (`forms`: retrieved programs of similar problems, the model's own; gpt-oss-20b 79.1% on
+  ComplexLP), the pipeline with `forms` as its fallback reaches 84.2%, +5.1 [+3.0, +7.5]. For Qwen3-8B `forms` is weak (24.5%) and `formx`
+  stays the fallback.
+
+| ComplexLP, 203 problems × 3 seeds (corrected labels) | Qwen3-8B | gpt-oss-20b |
+|---|---|---|
+| **Typed menu → fixed solver, else fallback (with validity check)** | **78.9%** | **84.2%** (fallback `forms`) |
+| Same, as registered (no check, fallback `formx`) | 76.5% | 82.8% |
+| Own program, retrieved example from any model (`formx`) | 56.6% | 64.5% |
+| Own program, retrieved example from itself (`forms`) | 24.5% | 79.1% |
+| Thinking (`thinks` / `thinkf`) | 43.9% / 39.3% | 67.8% / 67.5% |
+| ORLM-8B (published) | 34.2% | |
+| Qwen3-32B best arm (`mips`) / Qwen3-14B best (`formo`) | 50.2% / 56.7% | |
+
+**Decision:** E-1 and E-3 hold → the typed menu with fallback is the word-problem method's first step and our MAMO number. The validity
+check is adopted only after a prospective test on a second source (next registration).
