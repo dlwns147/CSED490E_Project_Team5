@@ -54,7 +54,7 @@ def facility(d):
     for f in oc:
         S.Add(sum(x[e] for e in x if e[0] == f) <= cap.get(f, 0.0) * y[f])
     S.Minimize(sum(oc[f] * y[f] for f in oc) + sum(sc[e] * x[e] for e in x))
-    prm = pywraplp.MPSolverParameters(); prm.SetDoubleParam(pywraplp.MPSolverParameters.RELATIVE_MIP_GAP, 0.0)   # 11-19: SCIP's default
+    S.SetTimeLimit(60000); prm = pywraplp.MPSolverParameters(); prm.SetDoubleParam(pywraplp.MPSolverParameters.RELATIVE_MIP_GAP, 0.0)   # 11-19: SCIP's default
     return S.Objective().Value() if S.Solve(prm) == pywraplp.Solver.OPTIMAL else None                            # gap stopped 6e-5 short
 
 
@@ -79,7 +79,9 @@ def maxflow(edges, s, t):
     for a, b, c in edges:
         cap[ix[str(a)]][ix[str(b)]] += float(c)
     s, t, flow = ix[str(s)], ix[str(t)], 0.0
-    while True:
+    if s == t:   # 11-19: source == sink made the augmenting loop add an infinite path forever (a run hung 1 h at 95% CPU)
+        return None
+    for _ in range(100000):
         par = {s: None}; q = [s]
         while q:
             u = q.pop(0)
@@ -91,10 +93,13 @@ def maxflow(edges, s, t):
         v = t; f = float("inf")
         while par[v] is not None:
             f = min(f, cap[par[v]][v]); v = par[v]
+        if f == float("inf"):
+            return None
         v = t
         while par[v] is not None:
             u = par[v]; cap[u][v] -= f; cap[v][u] += f; v = u
         flow += f
+    return None
 
 
 def tsp(edges):
