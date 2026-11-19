@@ -71,3 +71,13 @@ Already stored: ORLM-LLaMA-3-8B and STORM (published OR models), thinking at sev
 Models for the prompted methods: Qwen3-8B and gpt-oss-20b (low effort), as for typed translation.
 - B-1: on max flow (exact answers) typed translation beats every one of these baselines for the same model.
 - B-2: the few-shot template is the strongest prompted baseline (it states the convention the others miss); report its gap to typed.
+
+**Addendum C, recent related work (written 2026-11-19 16:5x UTC, user: "don't we have recent related research?").** Checked 2025–2026:
+SIRL (2505.11792; RL with solver feedback, released 7B/32B weights, reported state of the art among open models), Step-Opt (2506.17637),
+OptiTree (2510.22192; tree search over modelling sub-problems), an error-localising modeller (2602.11164), StarOR (2606.15197; tree search
++ test-time RL), OptiSkill (2609.22987; skill bank). **The TSP label error is already known:** the SIRL team corrected MAMO ComplexLP in
+2025-09 (35 TSP answers recomputed by enumeration on LLM-extracted, expert-checked cost matrices; CFLP problems removed or revised), so our
+TSP finding is a rediscovery, and their fix uses the same idea as typed translation for labels. Max-flow answers were not changed there.
+Added baseline: **SIRL-Qwen2.5-7B-Gurobi** with its own prompt (arm `sirl`, gurobipy in the sandbox), same 71 problems, seeds 1–3.
+- C-1: typed translation (Qwen3-8B, gpt-oss-20b) beats SIRL-7B on max flow (exact answers).
+Not run (no released code or weights we can use in time, or 32B+ only): OptiTree, StarOR, the error-localising modeller, Step-Opt, SIRL-32B.

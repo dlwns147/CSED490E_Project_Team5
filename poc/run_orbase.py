@@ -10,6 +10,8 @@ arms (all write a pywraplp program whose last printed line is the optimal value;
              math (variables, objective, constraints), (3) the code from (1)+(2), (4) one debugging round on an error.
   coe        Chain-of-Experts (Xiao et al., ICLR 2024), single model playing its experts in order: terminology interpreter -> modeling
              expert -> programming expert -> evaluator (runs the code; on an error or no value, a reflection pass rewrites the code once).
+  sirl       SIRL-Qwen2.5-7B-Gurobi (Chen et al. 2505.11792, released weights; RL with solver feedback, 2025): its own system and user prompt
+             (rule_prompt_utils.gurobi_prompt_temp), its <python> block run with gurobipy (size-limited licence; these models are small).
   fiveel     LLMOPT's five-element formulation as a prompt (Jiang et al. 2410.13213; prompt only, no fine-tuning): sets, parameters,
              variables, objective, constraints, then the code.
 """
@@ -61,6 +63,13 @@ print(S.Objective().Value())'''
 FIVE = ("{q}\n\nFirst write the problem's formulation in five parts: (1) sets, (2) parameters with their values, (3) decision variables, "
         "(4) objective, (5) constraints. Then write a complete Python 3 program with Google OR-Tools pywraplp (solver 'SCIP') that implements "
         "exactly that formulation and prints the optimal objective value on the last line (\"No Best Solution\" if none). Give one ```python block.")
+SIRL_SYS = ("You are a helpful Assistant with expertise in mathmetical modeling and the Gurobi solver. When the User provides an OR question, you "
+            "will analyze it, build a detailed mathematical model, and provide the Gurobi code to solve it.\n\nYour response should follow these steps:\n"
+            "1.  <think> \nCarefully analyze the problem to identify decision variables, objective, and constraints.\n</think>\n"
+            "2.  <model>Develop a complete mathematical model, explicitly defining:\n    * Sets\n    * Parameters\n    * Decision Variables (and their "
+            "types)\n    * Objective Function\n    * Constraints</model>\n3.  <python>Provide the corresponding Gurobi Python code to implement the model."
+            "</python>\n\nThe output must be in Markdown format, with each step enclosed in the specified tags.")
+SIRL_USER = "Solve the following mathmetical modeling problem\n{q}\nthink step by step.\n"
 COE = [("terminology interpreter", "Explain the domain terms of this problem and what each given number means. Do not formulate or solve."),
        ("modeling expert", "Using the problem and the notes above, write the mathematical optimization model: decision variables, objective, every "
         "constraint. Check that every requirement of the problem is modelled. Do not write code.")]
@@ -107,6 +116,18 @@ def main():
                       "It reports no feasible / bounded solution, but the problem has an optimum.")
                 msgs += [{"role": "assistant", "content": o["text"] or "(empty)"},
                          {"role": "user", "content": f"{fb} Fix the program and give the complete corrected ```python block."}]
+        elif arm == "sirl":
+            o = chat_msgs([{"role": "system", "content": SIRL_SYS}, {"role": "user", "content": SIRL_USER.format(q=p["q"])}], think=False,
+                          max_tokens=8192, temperature=0.7, seed=sd)
+            tok += o["out_tokens"]; t = o["text"] or ""
+            m = re.findall(r"<python>(.*?)</python>", t, re.S)
+            code = last_block(m[-1], ("python", "py", "python3", "")) or m[-1] if m else last_block(t, ("python", "py", "python3"))
+            r = run_python(code, "", timeout=60, mem_bytes=4 << 30) if code else None
+            out = (r.stdout if r and r.status == "ok" else "") or ""
+            lines = [l for l in out.strip().splitlines() if l.strip()]
+            objl = [l for l in lines if "obj" in l.lower()]
+            pred = RN.value_of((objl or lines)[-1]) if lines else None
+            rounds.append({"pred": pred, "status": r.status if r else "no_code", "err": (r.stderr or "")[-300:] if r else ""})
         elif arm == "coe":
             notes = ""
             for k, (role, task) in enumerate(COE):
