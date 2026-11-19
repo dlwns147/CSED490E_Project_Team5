@@ -139,3 +139,17 @@ key). Scored on SIRL's corrected labels; typed − baseline paired by problem-se
 - **B-2 holds for both models**: the few-shot template is the strongest baseline. The API card did not change the ranking (gpt-oss-20b
   baselines moved −11 to +1 points; Qwen3-8B few-shot +8).
 - Typed translation is also the cheapest arm (0.5–0.6k tokens vs 0.8–3.9k).
+
+**Addendum D, a third template registered before any run (written 2026-11-19 17:2x UTC).** Why: the method's claim is general (the model
+writes type + data, a fixed verified model does the modelling), but both tested templates are graph problems. Capacitated facility location
+is the next-largest ComplexLP template (39 problems; 29 keep a label in SIRL's corrected set, the rest were removed as incomplete), and the
+models' own programs already reach 64–68% there (thinking 82% for gpt-oss-20b), so the room is smaller and the errors may be reading, not
+modelling. `run_typed.py --v3`: one prompt with a three-type menu (max_flow, tsp, facility_location: open_cost, capacity, demand,
+ship_cost); a fixed MILP (binary open, continuous shipments, demand met, shipments ≤ capacity × open), checked on problem 139 (446011).
+Same models, seeds 1–3, scored on SIRL's corrected labels. Baselines on the same facility problems: the five related-work arms with the API
+card (`run_orbase.py --v3`, tags `q8bf`, `oss20f`), plus every stored arm (own program, thinking, ORLM, STORM).
+- T-3: facility location: typed − own program (`formx`) ≥ +10 points for both models (paired by problem-seed, CI reported).
+- T-4: graph templates under the three-type menu: typed v3 within 5 points of typed v2 on max flow and TSP (a larger menu does not hurt).
+**Decision.** T-3 holds → the method generalises beyond graph templates; the typed menu becomes the first step of the word-problem method.
+T-3 fails → report where the facility errors are (reading vs modelling, from the stored JSON) and keep typed translation to templates where
+the closure diagnostic shows modelling errors.

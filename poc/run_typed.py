@@ -2,8 +2,10 @@
 the data; a fixed, verified solver does the modelling. Stored rows (11-19) showed the models read max-flow data right and model it wrong
 (results/tmp_flow_closure.py: a fixed solver on the model's own table doubles accuracy).
 
-usage: run_typed.py <tag> <seed> [--think]   -> results/x3/typed_<tag>_s<seed>.jsonl
+usage: run_typed.py <tag> <seed> [--think] [--v3]   -> results/x3/typed_<tag>_s<seed>.jsonl
 Problems: MAMO ComplexLP max-flow and TSP problems (the two graph templates of PREREG_TYPED), from run_nlopt.problems("mamo").
+--v3 (PREREG_TYPED addendum D, 11-19): a third type, capacitated facility location, in the same JSON menu; runs the graph problems and the
+facility-location problems with the three-type prompt.
 """
 import itertools
 import json
@@ -26,13 +28,46 @@ PROMPT = ("{q}\n\nDo not solve the problem. Identify its type and write its data
           "Use the names or numbers the problem uses for the nodes.")
 
 
+PROMPT3 = ("{q}\n\nDo not solve the problem. Identify its type and write its data. On the last line give one JSON object:\n"
+           '{{"type": "max_flow" | "tsp" | "facility_location" | "other", ...data fields of that type...}}\n'
+           '- max_flow: "edges": [[from, to, capacity], ...] (a connection listed in both directions is two edges), "source", "sink".\n'
+           '- tsp: "edges": [[from, to, cost], ...] (the cost from A to B and from B to A are two edges); a tour visits every place exactly '
+           "once and returns to its start.\n"
+           '- facility_location: facilities that may be opened at a fixed cost, each with a supply capacity, serving customers with demands at '
+           'a per-unit shipping cost: "open_cost": {{facility: cost}}, "capacity": {{facility: units}}, "demand": {{customer: units}}, '
+           '"ship_cost": [[facility, customer, cost per unit], ...].\n'
+           "- other: anything else; no data fields.\n"
+           "Use the names or numbers the problem uses for the nodes, facilities and customers; write every number exactly as given.")
+
+
+def facility(d):
+    """capacitated facility location: open y_f (binary), ship x_fc >= 0 (continuous); min open + shipping s.t. demand met, x_fc <= cap_f y_f"""
+    from ortools.linear_solver import pywraplp
+    oc = {str(k): float(v) for k, v in d["open_cost"].items()}; cap = {str(k): float(v) for k, v in d["capacity"].items()}
+    dem = {str(k): float(v) for k, v in d["demand"].items()}; sc = {(str(a), str(b)): float(c) for a, b, c in d["ship_cost"]}
+    S = pywraplp.Solver.CreateSolver("SCIP")
+    y = {f: S.BoolVar(f"y{f}") for f in oc}
+    x = {e: S.NumVar(0, S.infinity(), f"x{e}") for e in sc if e[0] in oc and e[1] in dem}
+    for c in dem:
+        S.Add(sum(x[e] for e in x if e[1] == c) == dem[c])
+    for f in oc:
+        S.Add(sum(x[e] for e in x if e[0] == f) <= cap.get(f, 0.0) * y[f])
+    S.Minimize(sum(oc[f] * y[f] for f in oc) + sum(sc[e] * x[e] for e in x))
+    return S.Objective().Value() if S.Solve() == pywraplp.Solver.OPTIMAL else None
+
+
 def kind(q):
     ql = q.lower()
     if "exactly once" in ql:
         return "tsp"
     if "capacit" in ql and re.search(r"From (?:\w+ )?0\b", q):
         return "max_flow"
+    if V3 and re.search(r"(open|opening)[^.]*(facilit|warehouse|center|store|plant)|fixed cost", ql, re.S):
+        return "facility_location"
     return None
+
+
+V3 = "--v3" in sys.argv
 
 
 def maxflow(edges, s, t):
@@ -92,7 +127,7 @@ def main():
 
     def run(p):
         sd = seed * 10007 + int(p["id"].rsplit("-", 1)[1])
-        o = chat_msgs([{"role": "user", "content": PROMPT.format(q=p["q"])}], think=think, max_tokens=16000 if think else 4096,
+        o = chat_msgs([{"role": "user", "content": (PROMPT3 if V3 else PROMPT).format(q=p["q"])}], think=think, max_tokens=16000 if think else 4096,
                       temperature=0.7, seed=sd)
         d = parse(o["text"]); val = None; err = None
         try:
@@ -100,11 +135,13 @@ def main():
                 val = maxflow(d["edges"], d["source"], d["sink"])
             elif d and d.get("type") == "tsp" and d.get("edges"):
                 val = tsp(d["edges"])
+            elif V3 and d and d.get("type") == "facility_location" and d.get("ship_cost"):
+                val = facility(d)
         except Exception as e:  # noqa: BLE001
             err = repr(e)[:200]
         return {"id": p["id"], "kind": kind(p["q"]), "type": d.get("type") if d else None, "pred": val, "gold": p["gold"],
                 "correct": val is not None and abs(val - float(p["gold"])) < 1e-6 * max(1, abs(float(p["gold"]))),
-                "data": d, "err": err, "tokens": o["out_tokens"], "finish": o["finish"], "text": (o["text"] or "")[-600:]}
+                "data": d, "err": err, "tokens": o["out_tokens"], "finish": o["finish"], "text": (o["text"] or "")[-600:] if not V3 else (o["text"] or "")[-4000:]}
 
     path = os.path.join(RN.RES, f"typed_{tag}_s{seed}.jsonl")
     with ThreadPoolExecutor(32) as ex, open(path, "w") as f:
