@@ -95,7 +95,10 @@ def main():
 
     path = f"{RES}/futo_{tag}_{arm}_s{seed}_{fname.rsplit('.', 1)[0]}.jsonl"
     rows = []
-    with ThreadPoolExecutor(32) as ex, open(path, "w") as f:
+    if "--resume" in sys.argv and os.path.exists(path):   # keep the rows already written (a run moved to another GPU), run the rest
+        rows = [json.loads(l) for l in open(path)]
+        P = [r for r in P if r["id"] not in {x["id"] for x in rows}]
+    with ThreadPoolExecutor(32) as ex, open(path, "a" if rows else "w") as f:
         for x in ex.map(run, P):
             rows.append(x); f.write(json.dumps(x) + "\n"); f.flush()
     extra = f" count=1 {sum(x.get('count') == 1 for x in rows)}" if arm != "think" else f" parsed {sum(x['ans'] is not None for x in rows)} capped {sum(x['finish'] == 'length' for x in rows)}"
