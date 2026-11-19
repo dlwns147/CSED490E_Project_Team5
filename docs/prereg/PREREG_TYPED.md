@@ -197,7 +197,7 @@ and gpt-oss-20b, seeds 1–3. ComplexLP scored on SIRL's corrected labels, EasyL
 reported MAMO numbers. E-1 fails → typing needs a check before it is trusted (the type's data must also satisfy its solver: feasible,
 complete); report.
 
-**Addendum E result (2026-11-19 18:5x UTC; `results/tmp_typed_e.py`; failure categories read first; a Qwen3-8B lane hung on a max-flow
+**Addendum E result (2026-11-19 19:00 UTC; `results/tmp_typed_e.py`; failure categories read first; a Qwen3-8B lane hung on a max-flow
 reading with source = sink, solver guarded and rerun).** All 863 MAMO problems × 3 seeds; ComplexLP on SIRL's corrected labels (203
 problems), EasyLP on its own; project tolerance.
 - **E-3 holds for both models.** ComplexLP, pipeline − own program: Qwen3-8B 76.5% vs 56.6%, **+19.9 [+16.1, +23.7]**; gpt-oss-20b
