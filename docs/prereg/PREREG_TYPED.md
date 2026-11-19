@@ -177,7 +177,8 @@ gap 0; rescoring the stored readings changes 8 of 219). Facility numbers below u
 - Typed misses are 3 problems in all 6 runs: one reading error (154, the cost table read differently each run), one problem the models call
   "other" (207), one solver-gap miss (165, fixed).
 - **T-4 holds:** the three-type menu costs nothing on the graphs (v3 − v2: −1.1, +2.5, 0.0, −0.8).
-- **Decision (as registered for a T-3 failure):** typed translation is not a universal first step. Its gain is large exactly where the
-  model's own modelling of the template is wrong (graphs for both models, facility for Qwen3-8B) and about zero where it is right. Which
-  case applies is a per-model, per-template question; the next step is to decide it without labels (typed vs program agreement as the
-  free check), not to add more templates blindly.
+- **Decision (as registered for a T-3 failure: report where the errors are).** The errors are above. Typed translation still beats the
+  model's own program in all six model × template cells (every CI above 0) and is not significantly worse than any baseline in any cell
+  (worst: gpt-oss-20b facility vs Self-Debug, −1.1 [−5.7, +2.3]), at the lowest cost. So it stays the first step for recognised types; the
+  size of the gain is what varies: large where the model's own modelling of the template is wrong (graphs for both models, facility for
+  Qwen3-8B), small where it is right. Next: grow coverage only where a stored-data closure diagnosis shows modelling errors.
