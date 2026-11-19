@@ -37,3 +37,24 @@ typed answer).**
   returns the optimal tour on that matrix (not an independent check for seed 1, whose readings define it).
 - **Decision:** typed translation joins the word-problem method for recognised templates. The report states that MAMO ComplexLP's TSP labels
   (and so every published accuracy on them) reward the missing subtour constraint; 11 of these TSP problems are in the audited subset.
+
+**Baselines on the same problems (added 2026-11-19 16:3x UTC, user: "why don't we have baselines to compare?"; `results/tmp_typed_baselines.py`,
+every stored MAMO arm, 3 seeds; max flow scored against the exact max flow from the text, TSP against the optimal tour on the matrix both
+typed readings agree on, which is not independent of typed translation).**
+
+| Method (stored arm) | Max flow (29) | TSP (37) | Tokens (max flow) |
+|---|---|---|---|
+| **Typed translation, gpt-oss-20b / Qwen3-8B (ours)** | **87.7% / 86.4%** | **100% / 100%** | 0.6k / 0.5k |
+| STORM (published OR reasoning model, full agent) | 75.9% | 40.5% | 13.9k |
+| gpt-oss-20b thinking + API fact (`thinkf`) | 74.7% | 42.3% | 2.9k |
+| Qwen3.6 thinking + API fact | 72.4% | 70.3% | 41.7k |
+| gpt-oss-20b quick program, best prompt (`forms`) | 58.6% | 95.5% | 0.7k |
+| Qwen3-14B thinking program (`formxt`) | 52.9% | 32.4% | 7.3k |
+| Qwen3-8B thinking program (`formxt`) | 49.4% | 31.5% | 8.6k |
+| Qwen3-32B thinking (`thinks`) | 34.5% | 47.7% | 8.6k |
+| Qwen3-8B quick program (`formx`, the cascade's first step) | 34.5% | 36.9% | 0.8k |
+| ORLM-LLaMA-3-8B (published, fine-tuned for OR) | 19.5% | 27.9% | 1.9k |
+
+On max flow typed translation beats every baseline, including the published specialist models and thinking at 15–70× the tokens. On TSP
+the comparison is against our own reference (no independent labels exist); gpt-oss-20b's quick program with a stated-example prompt
+already reaches 95.5% there. Not run: multi-stage agent pipelines such as OptiMUS and Chain-of-Experts.

@@ -7424,3 +7424,9 @@ Job 1382299 (one GPU, queued).
   and the models' own programs make the same omission (they match the label 46–65% of the time, the optimal tour 37–48%). Accuracies
   reported on these problems, ours included, reward the bug. A typed tour solver returns the optimal tour.
 - This is the puzzle finding again on computation: the shared errors come from the modelling step, which a verified solver removes.
+
+## 2026-11-19 16:3x UTC — PREREG_TYPED baselines: on max flow typed translation (86–88%) beats every stored method, including STORM (75.9% at 13.9k tokens) and ORLM (19.5%)
+
+- Same 29 max-flow problems × 3 seeds against the exact answer: gpt-oss-20b thinking with the API fact 74.7%, Qwen3.6 thinking 72.4% at
+  41.7k tokens, the models' thinking programs 49–53%, quick programs 34–59%. Typed translation uses 0.5–0.6k tokens. TSP has no independent
+  reference (labels are cycle covers); table in PREREG_TYPED.
