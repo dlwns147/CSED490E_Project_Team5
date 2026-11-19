@@ -7453,3 +7453,11 @@ program. ComplexLP (corrected labels): Qwen3-8B 56.6% → 76.5% (+19.9 [+16.1, +
 unchanged (gpt-oss-20b types no EasyLP problem). Qwen3-8B mis-types the supply-redistribution template as max flow (−5.8 on ComplexLP's
 other problems); a label-free validity check of the typed data removes that loss (post hoc; prospective test next). Against our strongest
 earlier arm for gpt-oss-20b (retrieved own programs, 79.1%), the pipeline adds +5.1 [+3.0, +7.5].
+
+## 2026-11-19 19:27 UTC — Typed translation with a grounding check, prospective (PREREG_TYPED addenda F, G)
+On five held-out sets (NL4OPT + IndustryOR, OptMATH, OptiBench, BWOR, LogiOR; 1,224 problems), Qwen3-8B invents graphs for non-graph
+problems (an investment knapsack as max flow), consistently across seeds, so a validity check and two-reading agreement do not stop it. A
+grounding check (every label and number of the typed data must be in the question) fixes it: on fresh readings (seeds 4–6) the pipeline
+never loses pooled (Qwen3-8B +0.6 [+0.2, +1.0], gpt-oss-20b +0.5 [+0.2, +0.8]), routed rows are right 37 vs 15 and 34 vs 15, and MAMO
+ComplexLP keeps +22.7 / +18.7. One set fails: Qwen3-8B OptiBench (15 routed, typed 1 vs own 4; 9 rows are a duplicated problem and a
+label-0 problem both arms miss; 3 are small integer programs read as max flow).

@@ -258,3 +258,15 @@ and the five held-out sets, both models; fallback = stored own program of seed s
 - G-3: MAMO ComplexLP (corrected labels) gain ≥ +15 for both models.
 **Decision.** All hold → the method is: typed menu → validity + grounding check → fixed solver, else the fallback. Any fails → report the
 failing set's rows and keep the method to the recognised-and-grounded cases only where it held.
+
+**Addendum G result (2026-11-19 19:27 UTC; `SEEDS=4,5,6 python3 results/tmp_typed_g.py`; fresh readings, fallback = own program s − 3).**
+- **G-1 holds for both models:** held-out pooled, grounded pipeline − own program: Qwen3-8B +0.6 [+0.2, +1.0], gpt-oss-20b +0.5 [+0.2, +0.8].
+- **G-3 holds for both:** MAMO ComplexLP (corrected labels) Qwen3-8B 56.6% → 79.3% (+22.7 [+19.2, +26.2]), gpt-oss-20b 64.5% → 83.3% (+18.7
+  [+15.4, +22.2]); EasyLP unchanged (Qwen3-8B −0.1, gpt-oss-20b 0.0).
+- **G-2 holds pooled and fails in one set.** Routed rows: Qwen3-8B typed right 37 vs own program 15 (101 rows), gpt-oss-20b 34 vs 15 (46 rows);
+  per set with ≥ 10 routed rows it holds in BWOR, LogiOR, OptMATH (18 vs 5) and NL4OPT + IndustryOR (9 vs 5 / 8 vs 8), and **fails for
+  Qwen3-8B on OptiBench (15 routed rows: typed 1 vs own 4).** Reading the 15 rows: 9 are one warehouse problem duplicated three times in
+  OptiBench (ids 78, 97, 321) and a set-covering problem whose label is 0 (both arms wrong on all of them); the 3 real losses are small
+  integer programs read as max flow (fish boats and canoes, a two-plant shipment), grounded because their names and numbers are in the text.
+- **Decision (as registered for a failure):** the method is typed menu → validity + grounding check → fixed solver, else the fallback. It
+  holds pooled and in four of five held-out sets; the residual failure is max flow invented for small trip-count integer programs.
