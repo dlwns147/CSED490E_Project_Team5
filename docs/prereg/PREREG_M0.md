@@ -27,3 +27,9 @@ are scored.
   thinking).
 - M0-2: summed over the three cells, the self-configuring choice beats always-ladder.
 Decision: both hold → the self-configuring ladder becomes the method's deployment rule. Otherwise report where the estimate misled it.
+
+**Choices logged (2026-11-19 08:0x UTC, before any score of these cells was read; `python3 results/tmp_m0_pro.py choose`).** Baselines:
+Qwen3-8B thinking 0 of 200 at the cap, 200 parsed; gpt-oss-20b thinking 2 at the cap, 197 parsed. From the first 60 ids of each cell:
+- K&K 10/12, Qwen3-8B: estimated ΔU −4.1 → **thinking**.
+- K&K 10/12, gpt-oss-20b: estimated ΔU +7.9 → **ladder**.
+Futoshiki Qwen3-8B still running.
