@@ -279,3 +279,11 @@ typed menu (`run_typed.py --v3 --set optnew`) and, as the fallback and compariso
 - H-2: on routed rows, typed right ≥ own program right, both models.
 **Decision.** Both hold → the grounding check is adopted as part of the method (first test on unseen problems). Either fails → it stays a
 MAMO-only result and the report says so.
+
+**Addendum H result (2026-11-19 19:38 UTC; `results/tmp_typed_h.py`, frozen before the run; failure categories read first: Qwen3-8B's own
+programs crash on 139 of 279 rows (its own code, with the API card), 85 of its typed replies are not valid JSON (54 hit the 4k cap on
+large "other" problems) and fall back; gpt-oss-20b clean).** 93 unseen OptMATH problems × 3 seeds:
+- **H-1 holds for both models:** grounded pipeline − own program: Qwen3-8B 14.0% vs 11.1%, +2.9 [+0.7, +5.4]; gpt-oss-20b 28.3% vs 25.1%,
+  +3.2 [+1.4, +5.4].
+- **H-2 holds for both:** routed rows, typed right 12 vs own program 4 (22 rows), and 12 vs 3 (12 rows; all TSP).
+- **Decision:** the grounding check is adopted. The method is: typed menu → validity + grounding check → fixed solver, else the fallback.

@@ -7461,3 +7461,8 @@ grounding check (every label and number of the typed data must be in the questio
 never loses pooled (Qwen3-8B +0.6 [+0.2, +1.0], gpt-oss-20b +0.5 [+0.2, +0.8]), routed rows are right 37 vs 15 and 34 vs 15, and MAMO
 ComplexLP keeps +22.7 / +18.7. One set fails: Qwen3-8B OptiBench (15 routed, typed 1 vs own 4; 9 rows are a duplicated problem and a
 label-0 problem both arms miss; 3 are small integer programs read as max flow).
+
+## 2026-11-19 19:38 UTC — Grounded typed translation on unseen problems (PREREG_TYPED addendum H)
+93 OptMATH problems never run before (SIRL's 193-problem release minus our 100), 3 seeds, check and scorer frozen before the run:
+pipeline − own program +2.9 [+0.7, +5.4] (Qwen3-8B) and +3.2 [+1.4, +5.4] (gpt-oss-20b); routed rows right 12 vs 4 and 12 vs 3. The
+grounding check is adopted; the word-problem method is typed menu → validity + grounding check → fixed solver, else the model's program.
