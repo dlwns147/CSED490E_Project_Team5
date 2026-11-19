@@ -19,6 +19,8 @@ from sandbox import run_python  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RES = f"{ROOT}/results"
+POT = ("{q}\n\nWrite one complete ```python program that solves this puzzle by search and prints the solved grid, one row per line, "
+       "numbers separated by spaces. Do not solve it by hand; the program's output is your answer.")   # program-of-thought baseline (PAL/PoT), 11-19
 TR = ("{q}\n\nDo not solve the puzzle. Translate it. Give one ```python block that defines `N` (the board size), `GIVEN`, a dict mapping "
       "(row, col) to the given value, and `LESS`, a list of pairs ((r1, c1), (r2, c2)) meaning the value at (r1, c1) is smaller than the value "
       "at (r2, c2). Rows and columns count from 0, top-left first. Write every inequality sign of the picture as one pair, oriented by the "
@@ -57,12 +59,19 @@ def grid(text, n):
 def main():
     tag, arm, seed, fname = sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4]
     rounds = int(sys.argv[sys.argv.index("--rounds") + 1]) if "--rounds" in sys.argv else 3
-    mt = 30000 if arm in ("think", "trct") else 4096   # trct: 16k ran out on every gpt-oss-20b pilot round (11-18)
+    mt = 30000 if arm in ("think", "trct", "pot") else 4096   # trct: 16k ran out on every gpt-oss-20b pilot round (11-18)
     P = [json.loads(l) for l in open(os.path.join(os.environ["POC_DATA"], "futo", fname))]
 
     def run(r):
         sd = seed * 10007 + int(r["id"].rsplit("-", 1)[1]) + 1000 * r["n"]
         row = {"id": r["id"], "n": r["n"], "arm": arm, "seed": seed}
+        if arm == "pot":   # PREREG_FUTO F-5: the model writes the whole solver; its printed grid is the answer, no check
+            o = chat_msgs([{"role": "user", "content": POT.format(q=r["question"])}], think=True, max_tokens=mt, temperature=0.7, seed=sd)
+            code = last_block(o["text"], ("python", "py", "python3", ""))
+            res = run_python(code, "", timeout=120, mem_bytes=2 << 30) if code else None
+            g = grid(res.stdout if res else "", r["n"])
+            return {**row, "ans": g, "exact": g == r["solution"], "tokens": o["out_tokens"], "finish": o["finish"], "ran": bool(res and res.stdout),
+                    "err": (res.stderr[-300:] if res else "no code"), "text": (o["text"] or "")[-600:]}
         if arm == "think":
             o = chat_msgs([{"role": "user", "content": r["question"]}], think=True, max_tokens=mt, temperature=0.7, seed=sd)
             g = grid(o["text"], r["n"])
@@ -101,7 +110,7 @@ def main():
     with ThreadPoolExecutor(32) as ex, open(path, "a" if rows else "w") as f:
         for x in ex.map(run, P):
             rows.append(x); f.write(json.dumps(x) + "\n"); f.flush()
-    extra = f" count=1 {sum(x.get('count') == 1 for x in rows)}" if arm != "think" else f" parsed {sum(x['ans'] is not None for x in rows)} capped {sum(x['finish'] == 'length' for x in rows)}"
+    extra = f" count=1 {sum(x.get('count') == 1 for x in rows)}" if arm not in ("think", "pot") else f" parsed {sum(x['ans'] is not None for x in rows)} capped {sum(x['finish'] == 'length' for x in rows)}"
     print(tag, arm, seed, fname, f"{len(rows)} rows, tokens {sum(x['tokens'] for x in rows) / len(rows):.0f}{extra}", flush=True)
 
 

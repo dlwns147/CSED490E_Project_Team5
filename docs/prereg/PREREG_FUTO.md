@@ -60,3 +60,11 @@ Thinking: medium 35.7% at 17.7k (utility 26.8), high 38.0% at 25.7k (25.1); base
   7×7) and fails for gpt-oss-120b (largest at 9×9, where its thinking falls to 15% but its translation stays at 68%).
 - **Decision: the method and the label-free rule are shown on an untouched domain with large room.** With PREREG_KK (no room, the
   estimate predicting the loss), both sides of the rule now hold on domains no choice touched. Qwen3-32B (F-4) is running.
+
+**Addendum F-5, program-of-thought baseline (written 2026-11-19 04:0x UTC, before any `pot` output exists).** The closest prior method
+for search puzzles is to have the model write the whole solver (PAL, Gao et al. 2211.10435; Program of Thoughts, Chen et al. 2211.12588):
+one ```python program that searches and prints the grid, with thinking at medium effort (30k); its printed grid is the answer, no check,
+no escalation. Same 300 test puzzles, seed 1; gpt-oss-20b first, gpt-oss-120b after (arm `pot`, tags `oss20M`, `oss120M`).
+- F-5: our ladder − program-of-thought > 0 (interval above 0) for each model. Reason: the solver is not the hard part; reading the
+  picture is, and the ladder's count check rejects misread translations and escalates, while a program-of-thought answer is accepted as
+  printed. If program-of-thought wins, the report says the gain comes from code execution itself, not from the count check.
