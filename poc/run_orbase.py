@@ -8,6 +8,8 @@ arms (all write a pywraplp program whose last printed line is the optimal value;
              the strongest "teach the convention" baseline for typed translation.
   optimus    OptiMUS-style staged prompting (AhmadiTeshnizi et al. 2402.10172), single model: (1) parameters as JSON, (2) the formulation in
              math (variables, objective, constraints), (3) the code from (1)+(2), (4) one debugging round on an error.
+  coe        Chain-of-Experts (Xiao et al., ICLR 2024), single model playing its experts in order: terminology interpreter -> modeling
+             expert -> programming expert -> evaluator (runs the code; on an error or no value, a reflection pass rewrites the code once).
   fiveel     LLMOPT's five-element formulation as a prompt (Jiang et al. 2410.13213; prompt only, no fine-tuning): sets, parameters,
              variables, objective, constraints, then the code.
 """
@@ -59,6 +61,9 @@ print(S.Objective().Value())'''
 FIVE = ("{q}\n\nFirst write the problem's formulation in five parts: (1) sets, (2) parameters with their values, (3) decision variables, "
         "(4) objective, (5) constraints. Then write a complete Python 3 program with Google OR-Tools pywraplp (solver 'SCIP') that implements "
         "exactly that formulation and prints the optimal objective value on the last line (\"No Best Solution\" if none). Give one ```python block.")
+COE = [("terminology interpreter", "Explain the domain terms of this problem and what each given number means. Do not formulate or solve."),
+       ("modeling expert", "Using the problem and the notes above, write the mathematical optimization model: decision variables, objective, every "
+        "constraint. Check that every requirement of the problem is modelled. Do not write code.")]
 OPT1 = "{q}\n\nList every parameter (given number) of this problem as one JSON object mapping a short name to its value (a number, list or table). Give only the JSON."
 OPT2 = ("{q}\n\nParameters:\n{params}\n\nWrite the mathematical formulation: decision variables, the objective, and every constraint, each "
         "referring to the parameters by name. Do not write code.")
@@ -102,6 +107,25 @@ def main():
                       "It reports no feasible / bounded solution, but the problem has an optimum.")
                 msgs += [{"role": "assistant", "content": o["text"] or "(empty)"},
                          {"role": "user", "content": f"{fb} Fix the program and give the complete corrected ```python block."}]
+        elif arm == "coe":
+            notes = ""
+            for k, (role, task) in enumerate(COE):
+                o = ask([{"role": "user", "content": f"You are the {role} in a team solving an operations research problem.\n\nProblem:\n{p['q']}\n\n"
+                          + (f"Notes from the team so far:\n{notes}\n\n" if notes else "") + task}], sd + k)
+                tok += o["out_tokens"]; notes += f"[{role}]\n{(o['text'] or '')[-4000:]}\n\n"
+            msgs = [{"role": "user", "content": f"You are the programming expert in a team solving an operations research problem.\n\nProblem:\n{p['q']}\n\n"
+                     f"Notes from the team:\n{notes}\nWrite a complete Python 3 program with Google OR-Tools pywraplp (solver 'SCIP') that implements the "
+                     "modeling expert's model and prints the optimal objective value on the last line (\"No Best Solution\" if none). Give one ```python block."}]
+            for rnd in range(2):
+                o = ask(msgs, sd + 10 + rnd, 8192); tok += o["out_tokens"]
+                code = last_block(o["text"] or "", ("python", "py", "python3"))
+                pred, status, err = execute(code); rounds.append({"pred": pred, "status": status})
+                if status == "ok" and pred not in (None, "NBS"):
+                    break
+                fb = f"Running it failed: {err}" if status != "ok" else "It printed no value or no feasible solution."
+                msgs += [{"role": "assistant", "content": o["text"] or "(empty)"},
+                         {"role": "user", "content": f"You are the evaluator: {fb} Reflect on which part of the model or code is wrong, then give the "
+                          "complete corrected ```python block."}]
         elif arm == "optimus":
             o1 = ask([{"role": "user", "content": OPT1.format(q=p["q"])}], sd); tok += o1["out_tokens"]
             params = (o1["text"] or "").strip()[-6000:]
