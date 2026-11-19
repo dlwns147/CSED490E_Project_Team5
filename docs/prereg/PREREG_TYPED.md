@@ -238,3 +238,23 @@ shipping costs; TSP: a tour exists); else the model's stored own program (`formx
 Also reported: the same pipeline without the check.
 **Decision.** F-1 holds → the check is part of the method. F-1 fails → the typed menu is restricted to problems whose data also pass a
 second reading (both seeds' JSON agree), tested next.
+
+**Addendum F result (2026-11-19 19:2x UTC; `results/tmp_typed_f.py`).** Five held-out sets, 1,224 problems × 3 seeds, fallback = own program.
+- gpt-oss-20b: **F-1 holds** (+0.5 [+0.3, +0.8]); **F-2 holds** (58 routed rows: typed right 39, own program 19; OptMATH TSP 18/18 vs 2/18).
+- Qwen3-8B: **F-1 holds** (−0.5 [−1.0, −0.1] ≥ −1); **F-2 fails** (231 routed rows: typed right 42, own program 62). Reading the rows: it
+  forces non-graph problems into an invented graph (an investment knapsack as max flow from node 0 to node 5; a ferry/rail trip count as
+  max flow from "source" to "sink"), consistently across seeds.
+- Registered next test for a failed check (two readings agree): post hoc on these rows it keeps the gains but still routes consistent
+  inventions (Qwen3-8B OptiBench: 33 routed, typed 0 vs own 10). Root cause is invention, not noise.
+
+**Addendum G, a grounding check, registered before its prospective run (written 2026-11-19 19:2x UTC).** Principle: a fixed solver can only
+be trusted on data copied from the text. A typed reading passes if (i) addendum E's validity check passes, (ii) every node / facility /
+customer label appears in the question (case-insensitive, `_` read as a space, a number label as a standalone number), and (iii) every
+numeric value appears among the question's numbers (commas removed), or is 0. Designed on seeds 1–3 (post hoc: Qwen3-8B held-out routed
+rows 114, typed 36 vs own 14, pooled +0.6 [+0.3, +1.0]; MAMO ComplexLP unchanged). Prospective run: fresh readings, seeds 4–6, all of MAMO
+and the five held-out sets, both models; fallback = stored own program of seed s − 3; `results/tmp_typed_g.py` fixed now.
+- G-1: held-out pooled, grounded pipeline − own program: point estimate ≥ 0 and CI lower bound ≥ −0.5, both models.
+- G-2: on rows the grounded pipeline routes, typed right ≥ own program right, both models, and in each set with ≥ 10 routed rows.
+- G-3: MAMO ComplexLP (corrected labels) gain ≥ +15 for both models.
+**Decision.** All hold → the method is: typed menu → validity + grounding check → fixed solver, else the fallback. Any fails → report the
+failing set's rows and keep the method to the recognised-and-grounded cases only where it held.
