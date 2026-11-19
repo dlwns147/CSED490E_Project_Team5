@@ -154,7 +154,7 @@ card (`run_orbase.py --v3`, tags `q8bf`, `oss20f`), plus every stored arm (own p
 T-3 fails → report where the facility errors are (reading vs modelling, from the stored JSON) and keep typed translation to templates where
 the closure diagnostic shows modelling errors.
 
-**Addendum D result (2026-11-19 17:5x UTC; `results/tmp_typed_d.py`; failure categories read first).** Scoring tolerance: the project's
+**Addendum D result (2026-11-19 17:43 UTC; `results/tmp_typed_d.py`; failure categories read first).** Scoring tolerance: the project's
 scorer (`run_nlopt.correct`) accepts a relative error ≤ 1e-3; my typed/baseline scripts used 1e-6. On the graph templates every number is
 identical under both (exact solvers, integer data), so addenda B/C stand. On facility location it matters: SCIP's default MIP gap (1e-4)
 stops short of the label on large objectives (e.g. 316301 vs 316282), in the baselines' programs and in my own facility solver (fixed:
