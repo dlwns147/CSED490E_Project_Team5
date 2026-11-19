@@ -1,4 +1,4 @@
-"""Typed translation for templated optimization word problems (PREREG_TYPED, 11-20): the model names the problem type and writes only
+"""Typed translation for templated optimization word problems (PREREG_TYPED, 11-19): the model names the problem type and writes only
 the data; a fixed, verified solver does the modelling. Stored rows (11-19) showed the models read max-flow data right and model it wrong
 (results/tmp_flow_closure.py: a fixed solver on the model's own table doubles accuracy).
 

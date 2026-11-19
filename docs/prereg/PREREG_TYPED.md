@@ -1,6 +1,6 @@
 # PREREG_TYPED — typed translation: the model writes the data, a verified solver does the modelling
 
-Written 2026-11-20 00:1x UTC, before any typed-translation output exists.
+Written 2026-11-19 15:1x UTC, before any typed-translation output exists.
 
 **Why.** On the computation track the cross-family cascade's remaining errors on audited MAMO ComplexLP are mostly programs every model
 writes the same wrong way (30 of 54 errors, 3 seeds). On max flow (stored rows, `results/tmp_flow_closure.py`) the models read the data
@@ -9,7 +9,7 @@ right and model it wrong: a fixed max-flow algorithm on the capacity table the m
 out of the source while return edges into it are free. This is the puzzle method's split (the model translates, the solver searches)
 applied to modelling.
 
-**Related work (checked 11-20).** OptiMUS (2402.10172) separates the data from the description but still has the LLM write the constraints
+**Related work (checked 11-19).** OptiMUS (2402.10172) separates the data from the description but still has the LLM write the constraints
 and code; LLMOPT (2410.13213) fine-tunes a five-element formulation; ORLM (2405.17743) trains models to write the model and notes frequent
 constraint errors. None hands a recognised template to a fixed solver and measures that modelling, not reading, causes the shared errors.
 
