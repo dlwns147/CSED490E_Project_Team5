@@ -67,7 +67,7 @@ have related research as baselines?").** Same 71 problems × seeds 1–3; `poc/r
 - Few-shot template: one correct program of the same template for another instance (our own, with the right max-flow objective and MTZ
   subtour elimination) — the "teach the convention" baseline.
 - Stronger models, plain program: gpt-oss-120b and Qwen3-32B.
-Already stored: ORLM-LLaMA-3-8B and STORM (published OR models), thinking at several settings. Not run: Chain-of-Experts (multi-agent).
+Already stored: ORLM-LLaMA-3-8B and STORM (published OR models), thinking at several settings. Chain-of-Experts (Xiao et al., ICLR 2024) added 16:3x as arm `coe` (single model playing its experts: terminology interpreter → modeling expert → programming expert → evaluator with one reflection round).
 Models for the prompted methods: Qwen3-8B and gpt-oss-20b (low effort), as for typed translation.
 - B-1: on max flow (exact answers) typed translation beats every one of these baselines for the same model.
 - B-2: the few-shot template is the strongest prompted baseline (it states the convention the others miss); report its gap to typed.
