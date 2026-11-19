@@ -109,7 +109,7 @@ def main():
             for rnd in range(3 if arm == "selfdebug" else 1):
                 o = ask(msgs, sd + rnd, 8192); tok += o["out_tokens"]
                 code = last_block(o["text"] or "", ("python", "py", "python3"))
-                pred, status, err = execute(code); rounds.append({"pred": pred, "status": status})
+                pred, status, err = execute(code); rounds.append({"pred": pred, "status": status, "err": err[-300:] if status != "ok" else "", "code": (code or "")[-1500:], "text": (o["text"] or "")[-400:]})   # 11-20: failures must be readable
                 if pred not in (None, "NBS"):
                     break
                 fb = (f"Running it failed: {err}" if status != "ok" else "It printed no objective value." if pred is None else
@@ -127,7 +127,7 @@ def main():
             lines = [l for l in out.strip().splitlines() if l.strip()]
             objl = [l for l in lines if "obj" in l.lower()]
             pred = RN.value_of((objl or lines)[-1]) if lines else None
-            rounds.append({"pred": pred, "status": r.status if r else "no_code", "err": (r.stderr or "")[-300:] if r else ""})
+            rounds.append({"pred": pred, "status": r.status if r else "no_code", "err": (r.stderr or "")[-300:] if r else "", "code": (code or "")[-1500:], "text": t[-400:]})
         elif arm == "coe":
             notes = ""
             for k, (role, task) in enumerate(COE):
@@ -140,7 +140,7 @@ def main():
             for rnd in range(2):
                 o = ask(msgs, sd + 10 + rnd, 8192); tok += o["out_tokens"]
                 code = last_block(o["text"] or "", ("python", "py", "python3"))
-                pred, status, err = execute(code); rounds.append({"pred": pred, "status": status})
+                pred, status, err = execute(code); rounds.append({"pred": pred, "status": status, "err": err[-300:] if status != "ok" else "", "code": (code or "")[-1500:], "text": (o["text"] or "")[-400:]})   # 11-20: failures must be readable
                 if status == "ok" and pred not in (None, "NBS"):
                     break
                 fb = f"Running it failed: {err}" if status != "ok" else "It printed no value or no feasible solution."
@@ -155,7 +155,7 @@ def main():
             for rnd in range(2):
                 o = ask(msgs, sd + 2 + rnd, 8192); tok += o["out_tokens"]
                 code = last_block(o["text"] or "", ("python", "py", "python3"))
-                pred, status, err = execute(code); rounds.append({"pred": pred, "status": status})
+                pred, status, err = execute(code); rounds.append({"pred": pred, "status": status, "err": err[-300:] if status != "ok" else "", "code": (code or "")[-1500:], "text": (o["text"] or "")[-400:]})   # 11-20: failures must be readable
                 if status == "ok" and pred is not None:
                     break
                 msgs += [{"role": "assistant", "content": o["text"] or "(empty)"},

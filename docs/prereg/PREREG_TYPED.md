@@ -81,3 +81,29 @@ TSP finding is a rediscovery, and their fix uses the same idea as typed translat
 Added baseline: **SIRL-Qwen2.5-7B-Gurobi** with its own prompt (arm `sirl`, gurobipy in the sandbox), same 71 problems, seeds 1–3.
 - C-1: typed translation (Qwen3-8B, gpt-oss-20b) beats SIRL-7B on max flow (exact answers).
 Not run (no released code or weights we can use in time, or 32B+ only): OptiTree, StarOR, the error-localising modeller, Step-Opt, SIRL-32B.
+
+**Addendum B/C results, partial (2026-11-19 16:47 UTC; `results/tmp_orbase_score.py`, `results/tmp_orbase_sirlref.py`).** Scored against
+**SIRL's corrected labels** (independent of our typed reading; all 31 max-flow and 40 TSP problems matched by question text; on max flow they
+equal the MAMO labels, and on one problem (mamo_complex-112) they overturn our text parser's reference, so they replace it here). Paired
+typed − baseline per problem-seed, 95% bootstrap CI.
+
+| gpt-oss-20b (low effort), 3 seeds | Max flow | TSP | Tokens (max flow) |
+|---|---|---|---|
+| **Typed translation (ours)** | **92.5%** | **96.7%** | 0.6k |
+| Few-shot template | 84.9% (+7.5 [+2.2, +14.0]) | 92.5% (+4.2 [+0.0, +8.3]) | 0.8k |
+| Self-Debug | 74.2% (+18.3 [+9.7, +28.0]) | 45.8% (+50.8) | 1.1k |
+| Chain-of-Experts | 66.7% (+25.8 [+16.1, +35.5]) | 61.7% (+35.0) | 2.7k |
+| OptiMUS-style staged | 62.4% (+30.1 [+20.4, +39.8]) | 43.3% (+53.3) | 1.9k |
+| LLMOPT five elements | 53.8% (+38.7 [+28.0, +49.5]) | 30.8% (+65.8) | 1.3k |
+| gpt-oss-120b plain program | 59.1% | 77.5% | 1.3k |
+| Qwen3-32B plain program | 34.4% | 47.5% | 1.0k |
+
+- **B-1 holds for gpt-oss-20b**: typed beats every related-work baseline on max flow, each CI above 0; the closest is the few-shot template
+  (+7.5 [+2.2, +14.0]). It also beats the 6× and 4× larger models' plain programs.
+- **B-2 holds for gpt-oss-20b**: the few-shot template is the strongest prompted baseline; it shows the convention (net outflow, MTZ) is most
+  of what the other methods miss. Typed translation still wins, at lower tokens, and needs no worked program per template.
+- **Qwen3-8B: not scored yet.** Its few-shot and five-element programs fail to run on 52 and 77 of 81 max-flow rows (runtime errors),
+  which may be OR-Tools API misuse under our prescribed library rather than modelling; rows did not store the error text. The runner now
+  stores error, code and output per round; a diagnostic rerun (seed 1, few-shot and five elements) is queued. Until its failure categories
+  are read, Qwen3-8B baseline rows are not used as evidence.
+- C-1 (SIRL-7B): running.
