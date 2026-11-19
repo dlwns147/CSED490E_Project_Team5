@@ -148,6 +148,12 @@ def problems(which=None):
         for r in map(json.loads, open(f"{DATA}/logior/logior.jsonl")):
             out.append({"id": f"logior-{r['prob_id']}", "src": f"logior_{r['problem_type']}", "q": r["description"].strip(),
                         "gold": str(r["ground_truth"]), "difficulty": r["problem_size"]})
+    if which == "optnew":   # PREREG_TYPED addendum H (2026-11-19): SIRL's OptMATH-Bench 193 minus the 100 in `optmath` (fresh problems)
+        seen = {re.sub(r"\s+", " ", p["q"]).strip() for p in problems("optmath")}
+        for k, l in enumerate(open(f"{DATA}/sirl_fixed/OptMATH_Bench_193.jsonl")):
+            r = json.loads(l)
+            if re.sub(r"\s+", " ", r["en_question"]).strip() not in seen:
+                out.append({"id": f"optnew-{k}", "src": "optnew", "q": r["en_question"].strip(), "gold": str(r["en_answer"]).strip(), "difficulty": "optnew"})
     if which == "unlabeled":   # DT3 (PREREG_DT.md, 2026-10-24): problem texts with no answer (poc/build_unlabeled.py); graded nowhere
         for r in map(json.loads, open(f"{DATA}/sft/unlabeled_4k.jsonl")):
             out.append({"id": r["id"], "src": r["src"], "q": r["q"], "gold": "nan", "difficulty": r["src"]})
