@@ -81,12 +81,16 @@ OPT3 = ("{q}\n\nParameters (JSON):\n{params}\n\nFormulation:\n{form}\n\nWrite a 
         "Solution\" if none). Give one ```python block.")
 
 
+CARD = RN.SNIP if os.environ.get("ORB_CARD") == "1" else ""   # 11-20: the exact pywraplp API card our stored program arms had (Qwen3-8B
+# misused pywraplp without it: solver.Constraint(expr, expr), SetCoefficient with a generator); same card for every model and arm
+
+
 def execute(code):
     r = run_python(code, "", timeout=60, mem_bytes=4 << 30) if code else None
     out = (r.stdout if r and r.status == "ok" else "") or ""
     lines = [l for l in out.strip().splitlines() if l.strip()]
     pred = RN.value_of(lines[-1]) if lines else None
-    return pred, (r.status if r else "no_code"), ((r.stderr or "")[-600:] if r else "no python block")
+    return pred, (r.status if r else "no_code"), ((r.stderr or "")[-600:] if r else "no python block"), out[-300:]
 
 
 def main():
@@ -100,16 +104,16 @@ def main():
         sd = seed * 10007 + int(p["id"].rsplit("-", 1)[1]); tok = 0; rounds = []
         if arm in ("selfdebug", "fewshot", "fiveel", "plain"):
             if arm == "fiveel":
-                prompt = FIVE.format(q=p["q"])
+                prompt = FIVE.format(q=p["q"]) + CARD
             else:
-                prompt = BASE.format(q=p["q"])
+                prompt = BASE.format(q=p["q"]) + CARD
                 if arm == "fewshot":
                     prompt += "\n\nA correct program for a different problem of the same kind:\n```python\n" + (EX_FLOW if kind(p["q"]) == "max_flow" else EX_TSP) + "\n```"
             msgs = [{"role": "user", "content": prompt}]
             for rnd in range(3 if arm == "selfdebug" else 1):
                 o = ask(msgs, sd + rnd, 8192); tok += o["out_tokens"]
                 code = last_block(o["text"] or "", ("python", "py", "python3"))
-                pred, status, err = execute(code); rounds.append({"pred": pred, "status": status, "err": err[-300:] if status != "ok" else "", "code": (code or "")[-1500:], "text": (o["text"] or "")[-400:]})   # 11-20: failures must be readable
+                pred, status, err, out = execute(code); rounds.append({"pred": pred, "status": status, "err": err[-300:] if status != "ok" else "", "code": (code or "")[-1500:], "text": (o["text"] or "")[-400:], "out": out})   # 11-20: failures must be readable
                 if pred not in (None, "NBS"):
                     break
                 fb = (f"Running it failed: {err}" if status != "ok" else "It printed no objective value." if pred is None else
@@ -126,8 +130,10 @@ def main():
             out = (r.stdout if r and r.status == "ok" else "") or ""
             lines = [l for l in out.strip().splitlines() if l.strip()]
             objl = [l for l in lines if "obj" in l.lower()]
-            pred = RN.value_of((objl or lines)[-1]) if lines else None
-            rounds.append({"pred": pred, "status": r.status if r else "no_code", "err": (r.stderr or "")[-300:] if r else "", "code": (code or "")[-1500:], "text": t[-400:]})
+            pred = RN.value_of(lines[-1]) if lines else None   # 11-20: the last line, as for every arm; an "obj" line first picked
+            if pred is None and objl:                           # Gurobi's log ("Best objective 2.13e+02, ..., gap 0.0000%") -> 0
+                pred = RN.value_of(objl[-1])
+            rounds.append({"pred": pred, "status": r.status if r else "no_code", "err": (r.stderr or "")[-300:] if r else "", "code": (code or "")[-1500:], "text": t[-400:], "out": out[-400:]})
         elif arm == "coe":
             notes = ""
             for k, (role, task) in enumerate(COE):
@@ -136,11 +142,11 @@ def main():
                 tok += o["out_tokens"]; notes += f"[{role}]\n{(o['text'] or '')[-4000:]}\n\n"
             msgs = [{"role": "user", "content": f"You are the programming expert in a team solving an operations research problem.\n\nProblem:\n{p['q']}\n\n"
                      f"Notes from the team:\n{notes}\nWrite a complete Python 3 program with Google OR-Tools pywraplp (solver 'SCIP') that implements the "
-                     "modeling expert's model and prints the optimal objective value on the last line (\"No Best Solution\" if none). Give one ```python block."}]
+                     "modeling expert's model and prints the optimal objective value on the last line (\"No Best Solution\" if none). Give one ```python block." + CARD}]
             for rnd in range(2):
                 o = ask(msgs, sd + 10 + rnd, 8192); tok += o["out_tokens"]
                 code = last_block(o["text"] or "", ("python", "py", "python3"))
-                pred, status, err = execute(code); rounds.append({"pred": pred, "status": status, "err": err[-300:] if status != "ok" else "", "code": (code or "")[-1500:], "text": (o["text"] or "")[-400:]})   # 11-20: failures must be readable
+                pred, status, err, out = execute(code); rounds.append({"pred": pred, "status": status, "err": err[-300:] if status != "ok" else "", "code": (code or "")[-1500:], "text": (o["text"] or "")[-400:], "out": out})   # 11-20: failures must be readable
                 if status == "ok" and pred not in (None, "NBS"):
                     break
                 fb = f"Running it failed: {err}" if status != "ok" else "It printed no value or no feasible solution."
@@ -151,11 +157,11 @@ def main():
             o1 = ask([{"role": "user", "content": OPT1.format(q=p["q"])}], sd); tok += o1["out_tokens"]
             params = (o1["text"] or "").strip()[-6000:]
             o2 = ask([{"role": "user", "content": OPT2.format(q=p["q"], params=params)}], sd + 1); tok += o2["out_tokens"]
-            msgs = [{"role": "user", "content": OPT3.format(q=p["q"], params=params, form=(o2["text"] or "")[-6000:])}]
+            msgs = [{"role": "user", "content": OPT3.format(q=p["q"], params=params, form=(o2["text"] or "")[-6000:]) + CARD}]
             for rnd in range(2):
                 o = ask(msgs, sd + 2 + rnd, 8192); tok += o["out_tokens"]
                 code = last_block(o["text"] or "", ("python", "py", "python3"))
-                pred, status, err = execute(code); rounds.append({"pred": pred, "status": status, "err": err[-300:] if status != "ok" else "", "code": (code or "")[-1500:], "text": (o["text"] or "")[-400:]})   # 11-20: failures must be readable
+                pred, status, err, out = execute(code); rounds.append({"pred": pred, "status": status, "err": err[-300:] if status != "ok" else "", "code": (code or "")[-1500:], "text": (o["text"] or "")[-400:], "out": out})   # 11-20: failures must be readable
                 if status == "ok" and pred is not None:
                     break
                 msgs += [{"role": "assistant", "content": o["text"] or "(empty)"},

@@ -107,3 +107,14 @@ typed − baseline per problem-seed, 95% bootstrap CI.
   stores error, code and output per round; a diagnostic rerun (seed 1, few-shot and five elements) is queued. Until its failure categories
   are read, Qwen3-8B baseline rows are not used as evidence.
 - C-1 (SIRL-7B): running.
+
+**C-1 result (2026-11-19 17:0x UTC).** SIRL-Qwen2.5-7B-Gurobi, its own system prompt, seeds 1–3, scored on SIRL's corrected labels; the
+answer is the program's last printed line, as for every arm (a first reader took Gurobi's log line "Best objective …, gap 0.0000%" and
+read 0 on every TSP; rescored from the stored output, `orbase_sirl3_*`).
+- **C-1 holds.** Max flow: SIRL-7B 48.4% vs typed translation 91.4% (Qwen3-8B) / 92.5% (gpt-oss-20b), same problem-seeds.
+- TSP: SIRL-7B 4.2%. Its programs keep the in/out-degree constraints and drop subtour elimination; 37 of 120 answers equal MAMO's original
+  cycle-cover label. The published RL-trained model reproduces the label's modelling error that its own team later corrected in the data.
+- Qwen3-8B's related-work baselines (addendum B): the crashes were OR-Tools API misuse (`solver.Constraint(expr, expr)`, a generator as a
+  coefficient), and our baseline prompts lacked the pywraplp API card our own stored program arms always had. All five baselines are rerun
+  for both models with the same card (`ORB_CARD=1`, tags `q8bc`, `oss20c`); the card-free rows stay as recorded above but the card rows
+  decide B-1/B-2.
