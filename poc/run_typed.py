@@ -118,6 +118,13 @@ def tsp(edges):
     return best
 
 
+def _ok(val, gold):
+    try:
+        return val is not None and RN.correct(val, gold)
+    except (TypeError, ValueError):
+        return False
+
+
 def parse(text):
     for m in reversed(re.findall(r"\{.*\}", text or "", re.S)):
         try:
@@ -152,7 +159,7 @@ def main():
         except Exception as e:  # noqa: BLE001
             err = repr(e)[:200]
         return {"id": p["id"], "kind": kind(p["q"]), "type": d.get("type") if d else None, "pred": val, "gold": p["gold"],
-                "correct": val is not None and abs(val - float(p["gold"])) < 1e-6 * max(1, abs(float(p["gold"]))),
+                "correct": _ok(val, p["gold"]),   # project scorer; a 'No Best Solution' gold crashed float() (11-19)
                 "data": d, "err": err, "tokens": o["out_tokens"], "finish": o["finish"], "text": (o["text"] or "")[-600:] if not V3 else (o["text"] or "")[-4000:]}
 
     path = os.path.join(RN.RES, f"typed_{tag}_s{seed}.jsonl")
