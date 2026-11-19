@@ -68,3 +68,8 @@ no escalation. Same 300 test puzzles, seed 1; gpt-oss-20b first, gpt-oss-120b af
 - F-5: our ladder − program-of-thought > 0 (interval above 0) for each model. Reason: the solver is not the hard part; reading the
   picture is, and the ladder's count check rejects misread translations and escalates, while a program-of-thought answer is accepted as
   printed. If program-of-thought wins, the report says the gain comes from code execution itself, not from the count check.
+
+**F-4b blind prediction, Qwen3-32B (logged 2026-11-19 04:0x UTC, before any Qwen3-32B score was read; the 9×9 thinking run was moved
+between GPUs with `--resume`, 100 unique ids per file checked).** Thinking at the cap on 9 / 26 / 39, parsed 94 / 90 / 83. Quick
+translations reach one solution on 4 / 0 / 0, thinking translations on 44 / 6 / 0; the ladder accepts 17%, the third answers 15% of those.
+**Predicted accuracy term +14.3** (rule A +15.3); token term −10.50 (the failed thinking translations cost tokens before thinking).
