@@ -80,3 +80,11 @@ Thinking 3.7% at 24.6k (74 of 300 at the cap); ladder 15.0% at 45.6k; **ΔU +0.8
 at 5×5 (41 vs 11; 7×7 4 vs 0, 9×9 0 vs 0), and pays for it with failed thinking translations (+21k tokens per puzzle). Qwen3-32B reads the
 Futoshiki picture into constraints far less often than gpt-oss (thinking translations one-solution on 44 / 6 / 0 vs gpt-oss-20b's 89 / 68 /
 38), so on this domain the method pays only for models whose translation succeeds; the label-free estimate saw that before scoring.
+
+**F-5 first run invalid (2026-11-19 05:1x UTC).** Read before deciding anything: program-of-thought scored 12.7% / 12.0%, but the harness
+was at fault, not only the method: the code extractor also took untagged blocks, so a final answer grid written in an untagged block was run
+as code (50 SyntaxErrors for gpt-oss-120b); 87 programs printed output the grid reader could not parse (output not stored, so it cannot be
+checked); 11 imported z3, which the sandbox lacks. Fixes: python-tagged blocks first, the program's output stored, a fallback reader (the
+last n² numbers), and the prompt names the allowed libraries (standard library or OR-Tools, the solver our harness itself uses). The same
+extractor change applies to future translation runs; the registered test's translation runs used the old one, which can only have hurt the
+ladder. Rerun of F-5 with the fixed harness; the prediction and decision rule are unchanged.

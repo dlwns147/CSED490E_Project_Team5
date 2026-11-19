@@ -20,7 +20,8 @@ from sandbox import run_python  # noqa: E402
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RES = f"{ROOT}/results"
 POT = ("{q}\n\nWrite one complete ```python program that solves this puzzle by search and prints the solved grid, one row per line, "
-       "numbers separated by spaces. Do not solve it by hand; the program's output is your answer.")   # program-of-thought baseline (PAL/PoT), 11-19
+       "numbers separated by spaces. Use only the Python standard library or OR-Tools (`ortools`). Do not solve it by hand; the program's "
+       "output is your answer.")   # program-of-thought baseline (PAL/PoT), 11-19
 TR = ("{q}\n\nDo not solve the puzzle. Translate it. Give one ```python block that defines `N` (the board size), `GIVEN`, a dict mapping "
       "(row, col) to the given value, and `LESS`, a list of pairs ((r1, c1), (r2, c2)) meaning the value at (r1, c1) is smaller than the value "
       "at (r2, c2). Rows and columns count from 0, top-left first. Write every inequality sign of the picture as one pair, oriented by the "
@@ -67,10 +68,15 @@ def main():
         row = {"id": r["id"], "n": r["n"], "arm": arm, "seed": seed}
         if arm == "pot":   # PREREG_FUTO F-5: the model writes the whole solver; its printed grid is the answer, no check
             o = chat_msgs([{"role": "user", "content": POT.format(q=r["question"])}], think=True, max_tokens=mt, temperature=0.7, seed=sd)
-            code = last_block(o["text"], ("python", "py", "python3", ""))
+            code = last_block(o["text"], ("python", "py", "python3")) or last_block(o["text"], ("",))   # tagged first: an untagged answer grid is not code (11-19)
             res = run_python(code, "", timeout=120, mem_bytes=2 << 30) if code else None
             g = grid(res.stdout if res else "", r["n"])
-            return {**row, "ans": g, "exact": g == r["solution"], "tokens": o["out_tokens"], "finish": o["finish"], "ran": bool(res and res.stdout),
+            if g is None and res:   # e.g. a printed list of lists on one line: take the last n*n numbers 1..n
+                v = [int(x) for x in re.findall(r"\d+", res.stdout)]
+                n = r["n"]
+                if len(v) >= n * n and all(1 <= x <= n for x in v[-n * n:]):
+                    g = [v[-n * n:][k * n:(k + 1) * n] for k in range(n)]
+            return {**row, "ans": g, "exact": g == r["solution"], "tokens": o["out_tokens"], "finish": o["finish"], "ran": bool(res and res.stdout), "stdout": (res.stdout[-400:] if res else ""),
                     "err": (res.stderr[-300:] if res else "no code"), "text": (o["text"] or "")[-600:]}
         if arm == "think":
             o = chat_msgs([{"role": "user", "content": r["question"]}], think=True, max_tokens=mt, temperature=0.7, seed=sd)
@@ -85,7 +91,7 @@ def main():
                     raise
                 hist.append({"count": None, "tokens": 0, "err": repr(e)[:300]}); break
             tok += o["out_tokens"]
-            code = last_block(o["text"], ("python", "py", "python3", ""))
+            code = last_block(o["text"], ("python", "py", "python3")) or last_block(o["text"], ("",))
             res = run_python(code + "\n" + SOLVE, "", timeout=120, mem_bytes=2 << 30) if code else None
             try:
                 out = json.loads(res.stdout.strip().splitlines()[-1])
