@@ -44,7 +44,23 @@ if not _bad:
             s.sols.append([[s.Value(_x[(r, c)]) for c in range(N)] for r in range(N)])
             if len(s.sols) >= 2: s.StopSearch()
     _s = _cp.CpSolver(); _s.parameters.enumerate_all_solutions = True; _s.parameters.max_time_in_seconds = 60; _cb = _C(); _s.Solve(_m, _cb)
-    print(_js.dumps({"count": len(_cb.sols), "grid": _cb.sols[0] if _cb.sols else None}))
+    _out = {"count": len(_cb.sols), "grid": _cb.sols[0] if _cb.sols else None}
+    if len(_cb.sols) == 0:   # 11-19 (core feedback): which givens / inequalities cannot hold together, via assumption literals
+        _m2 = _cp.CpModel(); _y = {(r, c): _m2.NewIntVar(1, N, f"y{r}_{c}") for r in range(N) for c in range(N)}
+        for r in range(N): _m2.AddAllDifferent([_y[(r, c)] for c in range(N)])
+        for c in range(N): _m2.AddAllDifferent([_y[(r, c)] for r in range(N)])
+        _lits, _names = [], []
+        for k, v in GIVEN.items():
+            _l = _m2.NewBoolVar(""); _m2.Add(_y[tuple(k)] == v).OnlyEnforceIf(_l); _lits.append(_l); _names.append(f"GIVEN[{tuple(k)}] = {v}")
+        for a, b in LESS:
+            _l = _m2.NewBoolVar(""); _m2.Add(_y[tuple(a)] < _y[tuple(b)]).OnlyEnforceIf(_l); _lits.append(_l); _names.append(f"{tuple(a)} < {tuple(b)}")
+        _m2.AddAssumptions(_lits); _s2 = _cp.CpSolver(); _s2.parameters.max_time_in_seconds = 30; _s2.parameters.num_workers = 1
+        if _s2.Solve(_m2) == _cp.INFEASIBLE:
+            _idx = {l.Index(): i for i, l in enumerate(_lits)}
+            _out["core"] = [_names[_idx[i]] for i in _s2.SufficientAssumptionsForInfeasibility() if i in _idx][:12]
+    if len(_cb.sols) == 2:
+        _out["differ"] = [(r, c) for r in range(N) for c in range(N) if _cb.sols[0][r][c] != _cb.sols[1][r][c]][:12]
+    print(_js.dumps(_out))
 else:
     print(_js.dumps({"count": -1, "grid": None}))
 """
@@ -60,7 +76,7 @@ def grid(text, n):
 def main():
     tag, arm, seed, fname = sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4]
     rounds = int(sys.argv[sys.argv.index("--rounds") + 1]) if "--rounds" in sys.argv else 3
-    mt = 30000 if arm in ("think", "trct", "pot") else 4096   # trct: 16k ran out on every gpt-oss-20b pilot round (11-18)
+    mt = 30000 if arm in ("think", "trct", "trctc", "pot") else 4096   # trct: 16k ran out on every gpt-oss-20b pilot round (11-18)
     P = [json.loads(l) for l in open(os.path.join(os.environ["POC_DATA"], "futo", fname))]
 
     def run(r):
@@ -85,7 +101,7 @@ def main():
         msgs, tok, hist, out, code = [{"role": "user", "content": TR.format(q=r["question"])}], 0, [], {"count": -1, "grid": None}, None
         for rnd in range(rounds):
             try:
-                o = chat_msgs(msgs, think=arm == "trct", max_tokens=mt, temperature=0.7, seed=sd + rnd)
+                o = chat_msgs(msgs, think=arm in ("trct", "trctc"), max_tokens=mt, temperature=0.7, seed=sd + rnd)
             except Exception as e:
                 if rnd == 0:
                     raise
@@ -97,12 +113,20 @@ def main():
                 out = json.loads(res.stdout.strip().splitlines()[-1])
             except (AttributeError, IndexError, ValueError):
                 out = {"count": -1, "grid": None}
-            hist.append({"count": out["count"], "tokens": o["out_tokens"], "finish": o["finish"], "err": (res.stderr[-300:] if res else "no code"), "text": (o["text"] or "")[-600:]})
+            hist.append({"count": out["count"], "tokens": o["out_tokens"], "finish": o["finish"], "err": (res.stderr[-300:] if res else "no code"), "text": (o["text"] or "")[-600:], "core": out.get("core"), "differ": out.get("differ")})
             if out["count"] == 1:
                 break
+            if arm == "trctc" and out.get("core"):   # core feedback: name the entries that cannot all hold together
+                fb0 = "these entries cannot all hold together, so at least one of them is misread from the picture: " + "; ".join(out["core"])
+            elif arm == "trctc" and out.get("differ"):
+                fb0 = "these cells are not pinned down, so a given value or an inequality next to them is missing: " + ", ".join(map(str, out["differ"]))
+            else:
+                fb0 = None
             fb = {-1: f"it failed to run or gave cells outside the board: {(res.stderr[-600:] if res else 'no python block')}",
                   0: "no filling of the board satisfies GIVEN and LESS as you wrote them, so one entry is wrong",
                   2: "more than one filling satisfies GIVEN and LESS as you wrote them, so a given value or an inequality is missing"}[min(out["count"], 2) if out["count"] >= 0 else -1]
+            if fb0:
+                fb = fb0
             msgs += [{"role": "assistant", "content": o["text"] or "(empty)"},
                      {"role": "user", "content": f"The puzzle has exactly one solution, but {fb}. Compare each entry with the picture and give the complete corrected ```python block."}]
         return {**row, "count": out["count"], "ans": out["grid"], "exact": out["count"] == 1 and out["grid"] == r["solution"], "tokens": tok,
