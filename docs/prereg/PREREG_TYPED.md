@@ -58,3 +58,16 @@ typed readings agree on, which is not independent of typed translation).**
 On max flow typed translation beats every baseline, including the published specialist models and thinking at 15–70× the tokens. On TSP
 the comparison is against our own reference (no independent labels exist); gpt-oss-20b's quick program with a stated-example prompt
 already reaches 95.5% there. Not run: multi-stage agent pipelines such as OptiMUS and Chain-of-Experts.
+
+**Addendum B, related-work baselines run in our harness (written 2026-11-19 16:4x UTC, before any of these rows exists; user: "why don't we
+have related research as baselines?").** Same 71 problems × seeds 1–3; `poc/run_orbase.py`:
+- Self-Debug (Chen et al. 2304.05128): program + execution feedback, up to 3 rounds.
+- OptiMUS-style staged prompting (2402.10172), single model: parameters as JSON → formulation in math → code → one debugging round.
+- LLMOPT's five-element formulation (2410.13213) as a prompt (no fine-tuning).
+- Few-shot template: one correct program of the same template for another instance (our own, with the right max-flow objective and MTZ
+  subtour elimination) — the "teach the convention" baseline.
+- Stronger models, plain program: gpt-oss-120b and Qwen3-32B.
+Already stored: ORLM-LLaMA-3-8B and STORM (published OR models), thinking at several settings. Not run: Chain-of-Experts (multi-agent).
+Models for the prompted methods: Qwen3-8B and gpt-oss-20b (low effort), as for typed translation.
+- B-1: on max flow (exact answers) typed translation beats every one of these baselines for the same model.
+- B-2: the few-shot template is the strongest prompted baseline (it states the convention the others miss); report its gap to typed.
