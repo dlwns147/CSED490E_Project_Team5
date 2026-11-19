@@ -226,3 +226,15 @@ problems), EasyLP on its own; project tolerance.
 
 **Decision:** E-1 and E-3 hold → the typed menu with fallback is the word-problem method's first step and our MAMO number. The validity
 check is adopted only after a prospective test on a second source (next registration).
+
+**Addendum F, prospective test of the validity check on five held-out sets (written 2026-11-19 19:0x UTC, before any run).** Sets: NL4OPT +
+IndustryOR (345), OptMATH (100), OptiBench (605), BWOR (82), LogiOR (92); 1,224 problems, Qwen3-8B and gpt-oss-20b, seeds 1–3, the same
+three-type menu (`run_typed.py --v3 --set ...`). Pipeline: a typed answer is used only if its type is one of the three and its data pass the
+check fixed in addendum E (max flow: source and sink are distinct graph nodes, value > 0; facility: every customer and facility has
+shipping costs; TSP: a tour exists); else the model's stored own program (`formx`, same seed). Each set's own labels, project tolerance.
+- F-1 (the check makes the router safe on new data): pooled over the five sets, pipeline − own program ≥ −1 point for both models.
+- F-2 (where it routes, it helps): on the rows routed to a solver, typed accuracy ≥ own program accuracy on the same rows, both models
+  (counts per set reported; few rows are expected, as these sets hold few graph or facility problems).
+Also reported: the same pipeline without the check.
+**Decision.** F-1 holds → the check is part of the method. F-1 fails → the typed menu is restricted to problems whose data also pass a
+second reading (both seeds' JSON agree), tested next.

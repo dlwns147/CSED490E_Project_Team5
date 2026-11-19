@@ -4,11 +4,12 @@ the data; a fixed, verified solver does the modelling. Stored rows (11-19) showe
 
 usage: run_typed.py <tag> <seed> [--think] [--v3]   -> results/x3/typed_<tag>_s<seed>.jsonl
 Problems: MAMO ComplexLP max-flow and TSP problems (the two graph templates of PREREG_TYPED), from run_nlopt.problems("mamo").
---all: every MAMO problem, not only the selected templates (addendum E).
+--all: every MAMO problem, not only the selected templates (addendum E). --set a,b: those run_nlopt sets instead (addendum F).
 --v3 (PREREG_TYPED addendum D, 11-19): a third type, capacitated facility location, in the same JSON menu; runs the graph problems and the
 facility-location problems with the three-type prompt.
 """
 import itertools
+import zlib
 import json
 import os
 import re
@@ -133,9 +134,11 @@ def main():
     P = [p for p in RN.problems("mamo") if p["id"].startswith("mamo_complex") and kind(p["q"])]
     if "--all" in sys.argv:   # addendum E: every MAMO problem (ComplexLP 211 + EasyLP 652); the model's type field is the router
         P = RN.problems("mamo")
+    if "--set" in sys.argv:   # addendum F: held-out sets, comma-separated names of run_nlopt.problems (x3 = NL4OPT + IndustryOR)
+        P = [p for w in sys.argv[sys.argv.index("--set") + 1].split(",") for p in RN.problems(w)]
 
     def run(p):
-        sd = seed * 10007 + int(p["id"].rsplit("-", 1)[1])
+        sd = seed * 10007 + (int(p["id"].rsplit("-", 1)[1]) if p["id"].rsplit("-", 1)[1].isdigit() else zlib.crc32(p["id"].encode()) % 100000)
         o = chat_msgs([{"role": "user", "content": (PROMPT3 if V3 else PROMPT).format(q=p["q"])}], think=think, max_tokens=16000 if think else 4096,
                       temperature=0.7, seed=sd)
         d = parse(o["text"]); val = None; err = None
