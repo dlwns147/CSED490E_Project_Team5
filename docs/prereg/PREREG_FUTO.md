@@ -88,3 +88,10 @@ checked); 11 imported z3, which the sandbox lacks. Fixes: python-tagged blocks f
 last n² numbers), and the prompt names the allowed libraries (standard library or OR-Tools, the solver our harness itself uses). The same
 extractor change applies to future translation runs; the registered test's translation runs used the old one, which can only have hurt the
 ladder. Rerun of F-5 with the fixed harness; the prediction and decision rule are unchanged.
+
+**F-5 result, rerun with the fixed harness (2026-11-19 06:1x UTC; `POT_SUFFIX=2 python3 results/tmp_futo_pot.py oss20 oss120`).**
+Failure categories read first: gpt-oss-20b's programs: 140 of 300 gave no code (reasoning ran to the 30k cap, 139), 146 ran, of which 70
+printed "No solution found"; gpt-oss-120b: 257 ran, 121 printed "No solution found" (the program encodes a misread picture and searches
+it, with nothing to send it back). Program-of-thought 19.0% at 22.6k / 33.7% at 8.9k. **Ladder − program-of-thought +38.4 [+30.4, +45.9]
+(gpt-oss-20b), +37.2 [+29.7, +44.3] (gpt-oss-120b): F-5 holds.** Reading the picture is the hard part for both; what the ladder adds is
+the count check that sends a contradictory reading back and, failing that, falls back to thinking.

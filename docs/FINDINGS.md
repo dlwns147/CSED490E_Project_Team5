@@ -7406,3 +7406,11 @@ Job 1382299 (one GPU, queued).
   of 100 at 5 / 7 / 9 (gpt-oss-20b 89 / 68 / 38), and the failed attempts cost +21k tokens per puzzle. Estimate +14.3 vs measured +11.3.
 - Across the three Futoshiki cells and six K&K cells, the blind estimate's errors are 2.3, 0.4, 3.0 and 1.1, 1.0, 2.6, 3.2, 0.0, 3.0
   (mean 1.8); it got the direction of every result whose interval excludes 0.
+
+## 2026-11-19 06:1x UTC — Futoshiki: the ladder beats program-of-thought by +38 / +37 (PREREG_FUTO F-5); self-configuring ladder registered (PREREG_M0)
+
+- Program-of-thought (the model writes the whole solver, PAL / PoT): 19.0% / 33.7% vs the ladder's 67.0% / 77.0% (gpt-oss-20b / 120b);
+  most of its failures are programs that search a misread picture and print "No solution found". A first run was invalid (harness:
+  untagged answer grids run as code, unstored output); the rerun counts failure types before reading the score.
+- PREREG_M0: deploy the ladder only when the label-free estimate from 30% unlabeled items is positive. Offline over 22 stored cells:
+  +6.50 utility vs always-ladder +5.28 (oracle +6.75); it avoids the Qwen3 K&K losses and keeps every large win. Prospective cells running.
