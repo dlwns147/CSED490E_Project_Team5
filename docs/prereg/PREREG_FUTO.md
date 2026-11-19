@@ -73,3 +73,10 @@ no escalation. Same 300 test puzzles, seed 1; gpt-oss-20b first, gpt-oss-120b af
 between GPUs with `--resume`, 100 unique ids per file checked).** Thinking at the cap on 9 / 26 / 39, parsed 94 / 90 / 83. Quick
 translations reach one solution on 4 / 0 / 0, thinking translations on 44 / 6 / 0; the ladder accepts 17%, the third answers 15% of those.
 **Predicted accuracy term +14.3** (rule A +15.3); token term −10.50 (the failed thinking translations cost tokens before thinking).
+
+**Qwen3-32B result (2026-11-19 04:0x UTC; `python3 results/tmp_futo_score.py q32`, after the prediction above was committed).**
+Thinking 3.7% at 24.6k (74 of 300 at the cap); ladder 15.0% at 45.6k; **ΔU +0.8 [−3.5, +5.4]; measured accuracy term +11.3 vs predicted
++14.3** (error 3.0, at the bar max(3.0, 1.1): F-4b holds). F-4a fails (lower bound below −2): the ladder gains 11 points of accuracy, all
+at 5×5 (41 vs 11; 7×7 4 vs 0, 9×9 0 vs 0), and pays for it with failed thinking translations (+21k tokens per puzzle). Qwen3-32B reads the
+Futoshiki picture into constraints far less often than gpt-oss (thinking translations one-solution on 44 / 6 / 0 vs gpt-oss-20b's 89 / 68 /
+38), so on this domain the method pays only for models whose translation succeeds; the label-free estimate saw that before scoring.

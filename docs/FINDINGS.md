@@ -7399,3 +7399,10 @@ Job 1382299 (one GPU, queued).
   estimate predicting losses), the rule now holds on two untouched domains, one on each side.
 - Caveat: thinking hits the 30k-token cap on many puzzles (medium effort 6–81% by size); the cap was fixed in the pre-registration and the
   better of two effort settings was used.
+
+## 2026-11-19 04:0x UTC — Futoshiki, Qwen3-32B (PREREG_FUTO F-4): small accuracy gain, no utility gain; the blind estimate within 3.0
+
+- Thinking 3.7%, ladder 15.0% (all of the gain at 5×5), ΔU +0.8 [−3.5, +5.4]: the thinking translation reaches one solution on only 44 / 6 / 0
+  of 100 at 5 / 7 / 9 (gpt-oss-20b 89 / 68 / 38), and the failed attempts cost +21k tokens per puzzle. Estimate +14.3 vs measured +11.3.
+- Across the three Futoshiki cells and six K&K cells, the blind estimate's errors are 2.3, 0.4, 3.0 and 1.1, 1.0, 2.6, 3.2, 0.0, 3.0
+  (mean 1.8); it got the direction of every result whose interval excludes 0.
