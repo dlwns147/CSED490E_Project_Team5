@@ -259,7 +259,7 @@ and the five held-out sets, both models; fallback = stored own program of seed s
 **Decision.** All hold → the method is: typed menu → validity + grounding check → fixed solver, else the fallback. Any fails → report the
 failing set's rows and keep the method to the recognised-and-grounded cases only where it held.
 
-**Addendum G result (2026-11-19 19:27 UTC; `SEEDS=4,5,6 python3 results/tmp_typed_g.py`; fresh readings, fallback = own program s − 3).**
+**Addendum G result (2026-11-19 19:28 UTC; `SEEDS=4,5,6 python3 results/tmp_typed_g.py`; fresh readings, fallback = own program s − 3).**
 - **G-1 holds for both models:** held-out pooled, grounded pipeline − own program: Qwen3-8B +0.6 [+0.2, +1.0], gpt-oss-20b +0.5 [+0.2, +0.8].
 - **G-3 holds for both:** MAMO ComplexLP (corrected labels) Qwen3-8B 56.6% → 79.3% (+22.7 [+19.2, +26.2]), gpt-oss-20b 64.5% → 83.3% (+18.7
   [+15.4, +22.2]); EasyLP unchanged (Qwen3-8B −0.1, gpt-oss-20b 0.0).

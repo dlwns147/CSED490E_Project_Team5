@@ -7454,7 +7454,7 @@ unchanged (gpt-oss-20b types no EasyLP problem). Qwen3-8B mis-types the supply-r
 other problems); a label-free validity check of the typed data removes that loss (post hoc; prospective test next). Against our strongest
 earlier arm for gpt-oss-20b (retrieved own programs, 79.1%), the pipeline adds +5.1 [+3.0, +7.5].
 
-## 2026-11-19 19:27 UTC — Typed translation with a grounding check, prospective (PREREG_TYPED addenda F, G)
+## 2026-11-19 19:28 UTC — Typed translation with a grounding check, prospective (PREREG_TYPED addenda F, G)
 On five held-out sets (NL4OPT + IndustryOR, OptMATH, OptiBench, BWOR, LogiOR; 1,224 problems), Qwen3-8B invents graphs for non-graph
 problems (an investment knapsack as max flow), consistently across seeds, so a validity check and two-reading agreement do not stop it. A
 grounding check (every label and number of the typed data must be in the question) fixes it: on fresh readings (seeds 4–6) the pipeline
