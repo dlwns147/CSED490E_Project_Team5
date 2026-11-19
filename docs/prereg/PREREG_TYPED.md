@@ -271,7 +271,7 @@ failing set's rows and keep the method to the recognised-and-grounded cases only
 - **Decision (as registered for a failure):** the method is typed menu → validity + grounding check → fixed solver, else the fallback. It
   holds pooled and in four of five held-out sets; the residual failure is max flow invented for small trip-count integer programs.
 
-**Addendum H, the grounded pipeline on problems it never saw (written 2026-11-19 19:31 UTC, before any run).** Source: SIRL's OptMATH-Bench
+**Addendum H, the grounded pipeline on problems it never saw (written 2026-11-19 19:29 UTC, before any run).** Source: SIRL's OptMATH-Bench
 193 minus the 100 OptMATH problems used above = 93 fresh problems (`NLOPT_SET=optnew`), its labels. Qwen3-8B and gpt-oss-20b, seeds 1–3:
 typed menu (`run_typed.py --v3 --set optnew`) and, as the fallback and comparison, the model's own program with the API card (`run_nlopt.py
 <m>_optnew mipf`; no retrieval pool exists for these problems). Check and scorer frozen: `valid` + `grounded` of `results/tmp_typed_g.py`.
