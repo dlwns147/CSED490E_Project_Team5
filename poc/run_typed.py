@@ -53,7 +53,8 @@ def facility(d):
     for f in oc:
         S.Add(sum(x[e] for e in x if e[0] == f) <= cap.get(f, 0.0) * y[f])
     S.Minimize(sum(oc[f] * y[f] for f in oc) + sum(sc[e] * x[e] for e in x))
-    return S.Objective().Value() if S.Solve() == pywraplp.Solver.OPTIMAL else None
+    prm = pywraplp.MPSolverParameters(); prm.SetDoubleParam(pywraplp.MPSolverParameters.RELATIVE_MIP_GAP, 0.0)   # 11-19: SCIP's default
+    return S.Objective().Value() if S.Solve(prm) == pywraplp.Solver.OPTIMAL else None                            # gap stopped 6e-5 short
 
 
 def kind(q):

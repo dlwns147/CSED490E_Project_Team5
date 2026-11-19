@@ -153,3 +153,31 @@ card (`run_orbase.py --v3`, tags `q8bf`, `oss20f`), plus every stored arm (own p
 **Decision.** T-3 holds → the method generalises beyond graph templates; the typed menu becomes the first step of the word-problem method.
 T-3 fails → report where the facility errors are (reading vs modelling, from the stored JSON) and keep typed translation to templates where
 the closure diagnostic shows modelling errors.
+
+**Addendum D result (2026-11-19 17:5x UTC; `results/tmp_typed_d.py`; failure categories read first).** Scoring tolerance: the project's
+scorer (`run_nlopt.correct`) accepts a relative error ≤ 1e-3; my typed/baseline scripts used 1e-6. On the graph templates every number is
+identical under both (exact solvers, integer data), so addenda B/C stand. On facility location it matters: SCIP's default MIP gap (1e-4)
+stops short of the label on large objectives (e.g. 316301 vs 316282), in the baselines' programs and in my own facility solver (fixed:
+gap 0; rescoring the stored readings changes 8 of 219). Facility numbers below use the project tolerance 1e-3 for every arm.
+
+| Facility location (29 problems × 3 seeds) | Qwen3-8B | gpt-oss-20b |
+|---|---|---|
+| **Typed translation v3 (ours)** | **93.1%** | 93.1% |
+| Own program (`formx`) | 81.6% (+11.5 [+5.7, +18.4]) | 86.2% (+6.9 [+1.1, +13.8]) |
+| Thinking + API card (`thinkf`) | 65.5% (+27.6) | 88.5% (+4.6 [−2.3, +11.5]) |
+| Self-Debug | 9.2% (+83.9) | **94.3%** (−1.1 [−5.7, +2.3]) |
+| Few-shot (its worked program is the TSP one: no facility example was written) | 8.0% | 90.8% (+2.3 [−3.4, +8.0]) |
+| Chain-of-Experts / OptiMUS-style / five elements | 1.1% / 1.1% / 10.3% | 88.5% / 83.9% / 78.2% |
+| ORLM-8B | 81.6% (+11.5) | |
+
+- **T-3 holds for Qwen3-8B (+11.5 [+5.7, +18.4]) and fails for gpt-oss-20b (+6.9 [+1.1, +13.8] < +10).** gpt-oss-20b already models
+  facility location right (Self-Debug 94.3%, thinking 88.5%), so a fixed solver has little to add; on the graph templates it did not.
+  Qwen3-8B's baseline programs run but drop the opening costs or the open/close link (read from the stored code), so their 1–10% is
+  modelling, not crashes.
+- Typed misses are 3 problems in all 6 runs: one reading error (154, the cost table read differently each run), one problem the models call
+  "other" (207), one solver-gap miss (165, fixed).
+- **T-4 holds:** the three-type menu costs nothing on the graphs (v3 − v2: −1.1, +2.5, 0.0, −0.8).
+- **Decision (as registered for a T-3 failure):** typed translation is not a universal first step. Its gain is large exactly where the
+  model's own modelling of the template is wrong (graphs for both models, facility for Qwen3-8B) and about zero where it is right. Which
+  case applies is a per-model, per-template question; the next step is to decide it without labels (typed vs program agreement as the
+  free check), not to add more templates blindly.

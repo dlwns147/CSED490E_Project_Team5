@@ -7439,3 +7439,10 @@ flow (closest: gpt-oss-20b few-shot +12.9 [+5.4, +20.4]), at the lowest token co
 48.4% on max flow and 4.2% on TSP: its programs omit subtour elimination, reproducing the MAMO label bug. Baseline prompts carry the same
 OR-Tools API card our arms had (without it, Qwen3-8B baselines crashed on API misuse). Limits: two templates, one dataset; template
 recognition is by the model's own type field, and "other" falls back to the cascade.
+
+## 2026-11-19 17:5x UTC — Typed translation on a third template (PREREG_TYPED addendum D)
+Facility location (29 labelled problems, 3 seeds): typed translation 93.1% for both models; vs own program +11.5 [+5.7, +18.4] for
+Qwen3-8B (holds) but +6.9 for gpt-oss-20b (fails the registered +10), and gpt-oss-20b's Self-Debug reaches 94.3%. The gain tracks whether
+the model already models the template right. A larger type menu (3 types) costs nothing on the graph templates. Scoring note: the project
+tolerance is 1e-3 relative; SCIP's default MIP gap misses 1e-6 on large objectives (facility own-program accuracy 64% at 1e-6 vs 82% at
+1e-3); graph results are identical under both.
