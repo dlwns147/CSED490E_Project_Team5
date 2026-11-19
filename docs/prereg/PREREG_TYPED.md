@@ -140,7 +140,7 @@ key). Scored on SIRL's corrected labels; typed − baseline paired by problem-se
   baselines moved −11 to +1 points; Qwen3-8B few-shot +8).
 - Typed translation is also the cheapest arm (0.5–0.6k tokens vs 0.8–3.9k).
 
-**Addendum D, a third template registered before any run (written 2026-11-19 17:2x UTC).** Why: the method's claim is general (the model
+**Addendum D, a third template registered before any run (written 2026-11-19 17:17 UTC).** Why: the method's claim is general (the model
 writes type + data, a fixed verified model does the modelling), but both tested templates are graph problems. Capacitated facility location
 is the next-largest ComplexLP template (39 problems; 29 keep a label in SIRL's corrected set, the rest were removed as incomplete), and the
 models' own programs already reach 64–68% there (thinking 82% for gpt-oss-20b), so the room is smaller and the errors may be reading, not
