@@ -7414,3 +7414,13 @@ Job 1382299 (one GPU, queued).
   untagged answer grids run as code, unstored output); the rerun counts failure types before reading the score.
 - PREREG_M0: deploy the ladder only when the label-free estimate from 30% unlabeled items is positive. Offline over 22 stored cells:
   +6.50 utility vs always-ladder +5.28 (oracle +6.75); it avoids the Qwen3 K&K losses and keeps every large win. Prospective cells running.
+
+## 2026-11-19 16:1x UTC — PREREG_TYPED: on templated optimization problems the model should write the data, not the model; MAMO's TSP labels are subtour solutions
+
+- Typed translation (the model names the template and writes the graph as JSON; a fixed solver solves) against the same model's own program,
+  MAMO ComplexLP, 3 seeds: max flow +49.4 [+38.3, +60.5] (Qwen3-8B, 86.4% vs 37.0% against the exact max flow) and +40.7 [+28.4, +53.1]
+  (gpt-oss-20b). The models read the capacities right; their LPs count flow cycling back through the source.
+- 38 of 39 MAMO ComplexLP TSP labels equal the minimum cycle cover, not the best tour: the labels were made without subtour elimination,
+  and the models' own programs make the same omission (they match the label 46–65% of the time, the optimal tour 37–48%). Accuracies
+  reported on these problems, ours included, reward the bug. A typed tour solver returns the optimal tour.
+- This is the puzzle finding again on computation: the shared errors come from the modelling step, which a verified solver removes.

@@ -24,3 +24,16 @@ program (`formx`) on the same problems.
 - T-2: TSP: typed ≥ own program − 5 points (no real loss), scored against the dataset label (two TSP labels are known wrong; reported).
 **Decision.** T-1 holds → typed translation joins the word-problem method for recognised templates (the type is the model's own call; an
 "other" falls back to the cascade). T-1 fails → modelling is not the bottleneck after all; report.
+
+**Result (2026-11-19 16:1x UTC; `results/tmp_typed_score.py`; failure categories read first: 69–71 of 71 rows per run returned a usable
+typed answer).**
+- **T-1 holds.** Max flow, against the exact max flow from the problem text: typed 86.4% vs own program 37.0% (Qwen3-8B), **+49.4
+  [+38.3, +60.5]**; gpt-oss-20b 87.7% vs 46.9%, **+40.7 [+28.4, +53.1]**. Against the dataset label: +48.4 and +40.9.
+- **T-2 fails as registered (against the dataset label: −52.5, −34.2), because the labels are wrong.** For 38 of the 39 TSP problems with a
+  complete matrix, the MAMO label equals the minimum-cost *cycle cover* (subtours allowed), not the best tour; the two are equal in only 5.
+  Independently of any model, a text parser recovers 10 matrices: their optimal tour equals the label once and gpt-oss-20b's typed answer 8
+  times. The models' own programs reproduce the label's bug (no subtour elimination): Qwen3-8B's programs match the label on 64.9% but the
+  optimal tour on 36.9% (gpt-oss-20b 45.9% / 47.7%), on the 37 problems where both models read the identical matrix. Typed translation
+  returns the optimal tour on that matrix (not an independent check for seed 1, whose readings define it).
+- **Decision:** typed translation joins the word-problem method for recognised templates. The report states that MAMO ComplexLP's TSP labels
+  (and so every published accuracy on them) reward the missing subtour constraint; 11 of these TSP problems are in the audited subset.
