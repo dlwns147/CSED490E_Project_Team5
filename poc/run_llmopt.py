@@ -7,8 +7,9 @@ self-correction prompt but not the loop): Q2F -> five-element model; F2C -> Pyom
 the self-correction prompt; a False regenerates that part (five-element False: both), up to MAX_ROUNDS generations; the objective is read
 from the run's output by objective_of (the last line naming an objective); the repository's id_gt prompt also runs and is stored as
 pred_idgt (11-20: on the first rows it often returned a decision variable, the first number printed). Every token of every call is counted.
-Sandbox: Pyomo with HiGHS; a solver the sandbox lacks (glpk, cbc, gurobi, ...) is served by HiGHS at MIP gap 0 (sitecustomize shim in
-the POC_PYTHON venv, see host notes), so a correct model is never lost to a missing binary.
+Sandbox (11-21): Pyomo with the conda-forge binaries scip, ipopt, glpsol and cbc on the sandbox PATH (sitecustomize in the POC_PYTHON
+venv), so code that names glpk / cbc / ipopt / scip runs with that solver; an unavailable one (gurobi, cplex, ...) is served by SCIP
+(LP, MILP and nonlinear). The 11-20 HiGHS-only shim crashed on nonlinear objectives and on infeasible models (first seed discarded).
 LLMOPT's release excludes MAMO EasyLP / ComplexLP from training; the other sets may overlap its training data (stated in the record).
 
 usage: POC_PYTHON=<pyomo venv python> run_llmopt.py <tag> <seed> <set,set,...>   -> results/x3/llmopt_<tag>_s<seed>.jsonl

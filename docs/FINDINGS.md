@@ -7516,3 +7516,8 @@ with the API card; template problems, 3 seeds, both models) classified from its 
   pywraplp, not LLMOPT's Pyomo pipeline; the official LLMOPT checkpoint with its own prompts (registration I) is the fair comparison.
 - M0 Futoshiki Qwen3-8B cell (Slurm 1504263) is lost: the job hit the 24 h limit before its cleanup and the staged rows were no longer
   on the node; puzzles are closed (user 11-19), so it is not rerun. M0 stays judged on two prospective cells (one right, one wrong).
+- **Addendum (16:36 UTC): LLMOPT's first run is discarded (our sandbox, not the method).** Seed 1 (2,013 rows) showed crashes from my
+  HiGHS-only solver shim: HiGHS rejects nonlinear objectives (98 OptiBench rows, `DegreeError`) and the appsi interface raises on
+  infeasible or unbounded models where glpk returns a status the code checks (15 NL4OPT, 14 IndustryOR rows). The sandbox now has the
+  real conda-forge binaries (scip, ipopt, glpsol, cbc), and SCIP serves any solver it lacks; all three seeds were restarted. The seed-1
+  rows are kept as `_highsshim` files and are not used.
