@@ -7466,3 +7466,22 @@ label-0 problem both arms miss; 3 are small integer programs read as max flow).
 93 OptMATH problems never run before (SIRL's 193-problem release minus our 100), 3 seeds, check and scorer frozen before the run:
 pipeline − own program +2.9 [+0.7, +5.4] (Qwen3-8B) and +3.2 [+1.4, +5.4] (gpt-oss-20b); routed rows right 12 vs 4 and 12 vs 3. The
 grounding check is adopted; the word-problem method is typed menu → validity + grounding check → fixed solver, else the model's program.
+
+## 2026-11-20 13:25 UTC — Course metric for the word-problem method: typed translation pays only on the templates; on held-out sets the gain is the existing peer cascade's (poc/analyze_frontier.py)
+Utility = 100·right − rate·ktok from stored rows, paired by (problem, seed), 3 seeds, at rates 0.25 / 0.5 / 1 / 2 and three cost views
+(output tokens; tokens × active parameters / 8B; output + 0.25 × estimated input). Full method = typed menu → valid + grounded reading
+to the fixed solver, else the peer cascade (own program kept when the other model's program prints the same value, else thinking).
+- **MAMO ComplexLP (labelled by SIRL's correction):** full method − cascade +21.0 [+17.6, +24.4] (Qwen3-8B), +16.2 [+13.0, +19.3]
+  (gpt-oss-20b) at rate 0.5; same sign at every rate and cost view.
+- **Held-out sets pooled (NL4OPT + IndustryOR, OptMATH, OptiBench, BWOR, LogIOR; 3,672 rows):** full method − cascade −0.3 [−0.6, +0.0]
+  (Qwen3-8B), +0.3 [+0.1, +0.6] (gpt-oss-20b). Only 114 / 50 rows reach a fixed solver; the typed call's tokens are paid on every row.
+  Full method − thinking +5.9 [+4.9, +6.8] / +2.1 [+1.3, +2.9], − own program +10.1 / +6.0: that gain is the cascade's (XPEER, 10-31),
+  not typed translation's. Per set, the typed step costs Qwen3-8B utility against the cascade on MAMO EasyLP (−0.3), x3 (−0.6),
+  OptiBench (−0.2), BWOR (−3.7 [−6.4, −1.7]).
+- **Unseen OptMATH (addendum H) in utility:** typed → own − own +2.3 [−0.2, +4.9] for Qwen3-8B (the +2.9-point accuracy gain does not
+  clear zero once the typed call's 1.1k extra tokens are paid; 54 of its 279 typed replies hit the 4k cap), +3.2 [+1.4, +5.3] gpt-oss-20b.
+- **Fragile verdicts** (sign flips across rates): Qwen3-8B OptMATH typed → own − own; gpt-oss-20b x3 and OptiBench full − cascade.
+- **Template problems vs related-work baselines** (300 problem × seed rows): full method 95.0% / 94.3% vs the best baseline (few-shot)
+  23.0% (Qwen3-8B) and 85.7% (gpt-oss-20b); every utility difference > 0 at every rate and view. **But Qwen3-8B's five baselines
+  (9–23%) score far below its own plain program on the same problems (50.7%)**: before this comparison is reported, the baselines'
+  failures must be audited (CRITIQUE PLAN P2); the plain-program baseline, not the published methods, is the meaningful bar there.
