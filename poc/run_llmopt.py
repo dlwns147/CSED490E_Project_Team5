@@ -10,6 +10,8 @@ pred_idgt (11-20: on the first rows it often returned a decision variable, the f
 Sandbox (11-21): Pyomo with the conda-forge binaries scip, ipopt, glpsol and cbc on the sandbox PATH (sitecustomize in the POC_PYTHON
 venv), so code that names glpk / cbc / ipopt / scip runs with that solver; an unavailable one (gurobi, cplex, ...) is served by SCIP
 (LP, MILP and nonlinear). The 11-20 HiGHS-only shim crashed on nonlinear objectives and on infeasible models (first seed discarded).
+11-21 18:4x, generous to the baseline: a nonlinear model sent to an LP/MILP solver is solved by SCIP instead of crashing; rows whose run
+hit that crash before the change are rerun with --ids <file> (tag + '_rerun') and replace the originals.
 LLMOPT's release excludes MAMO EasyLP / ComplexLP from training; the other sets may overlap its training data (stated in the record).
 
 usage: POC_PYTHON=<pyomo venv python> run_llmopt.py <tag> <seed> <set,set,...>   -> results/x3/llmopt_<tag>_s<seed>.jsonl
@@ -64,6 +66,9 @@ def objective_of(out):
 def main():
     tag, seed, sets = sys.argv[1], int(sys.argv[2]), sys.argv[3].split(",")
     P = [p for w in sets for p in RN.problems(w)]
+    if "--ids" in sys.argv:   # rerun only these problems (11-21: rows whose run hit the sandbox's nonlinear-to-LP-solver crash)
+        keep = set(open(sys.argv[sys.argv.index("--ids") + 1]).read().split()); P = [p for p in P if p["id"] in keep]
+        tag += "_rerun"
 
     def ask(content, sd, tok):
         o = chat_msgs([{"role": "user", "content": content}], max_tokens=8192, temperature=0.7, seed=sd)

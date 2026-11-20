@@ -32,6 +32,7 @@ def test(d):
 
 def llmopt():
     R = F.load(f"{F.X3}/llmopt_llm14_s{{s}}.jsonl")
+    R.update(F.load(f"{F.X3}/llmopt_llm14_rerun_s{{s}}.jsonl"))   # rows rerun after the 11-21 18:36 sandbox change replace the originals
     out = {}
     for k, r in R.items():
         g = F.gold_of(k[0], r["gold"])
