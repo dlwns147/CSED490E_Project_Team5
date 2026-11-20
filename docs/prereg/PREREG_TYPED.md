@@ -348,3 +348,13 @@ failure, one repair → peer agreement → thinking; repair tokens paid.
 - **J-2.** J − W3's full method ≥ 0 on the held-out pool, both models (the repair does not cost utility).
 Decision: J-1 holds → the report's word-problem method includes the repair and the OptiBench loss is closed; fails → it stays a loss.
 Scored with analyze_claims-style clustered bootstrap, Holm over J-1 and J-2 (both models).
+
+### Addendum J result (2026-11-22 23:58 UTC; python3 poc/analyze_claims.py, family J, Holm over 4)
+Repair rows: Qwen3-8B 1,808 visible failures repaired (596 now print a value, 445 right; 726 tokens each), gpt-oss-20b 764 (306, 196).
+- **J-1 Qwen3-8B, OptiBench: full method with repair − LLMOPT −2.1 [−4.5, +0.4] → holds as registered (the interval reaches 0); the W3
+  loss (−5.0) is no longer shown, and it is not a win (inconclusive).** gpt-oss-20b: +4.8 [+2.3, +7.4].
+- **J-2 holds for both models:** repair − no repair on the held-out pool +1.8 [+1.4, +2.4] (Qwen3-8B), +0.3 [+0.1, +0.5] (gpt-oss-20b).
+- Descriptive, every held-out set (full method with repair − LLMOPT): Qwen3-8B NL4OPT + IndustryOR +5.6, OptMATH +5.0 [−5.6, +15.1],
+  OptiBench −2.1, BWOR +11.2, LogIOR +17.7; gpt-oss-20b +9.5, +24.5, +4.8, +36.1, +33.1.
+Decision (registered): the report's word-problem method includes the repair turn; Qwen3-8B on OptiBench is reported as inconclusive
+against LLMOPT (−2.1 [−4.5, +0.4]), not as a win. The repair's remaining Qwen3-8B crashes are the same API misuse (122 rows).

@@ -7535,3 +7535,9 @@ predates it; template libraries (COMPASS, AlphaOpt) and tool induction (LATM, CR
 What stays ours: type choice from a menu with a validity + grounding check and a cascade fallback, on public benchmarks, and the
 observation that on small MAMO graphs the models bind right and model wrong (the reverse of BIND's large-instance binding limit). BIND
 is not runnable here (oracle instance data; binder not released). Details in PREREG_TYPED.
+
+## 2026-11-22 23:58 UTC — The full method with the recipe's repair turn (PREREG_TYPED addendum J): the OptiBench loss to LLMOPT closes to inconclusive
+W3 scored the word-problem method without HO7's one cheap repair turn. With it (registered before the run): Qwen3-8B on OptiBench −2.1
+[−4.5, +0.4] against LLMOPT-14B (was −5.0 [−7.5, −2.4]); the repair adds +1.8 [+1.4, +2.4] (Qwen3-8B) and +0.3 [+0.1, +0.5] (gpt-oss-20b)
+utility on the held-out pool. Every other held-out cell stays ahead of LLMOPT. The method in the report is typed menu (valid + grounded)
+→ own program → one repair on a visible failure → peer agreement → thinking.
