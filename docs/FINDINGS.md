@@ -7504,3 +7504,15 @@ resampled problem × seed rows as if the three seeds were independent, which nar
 - W3 (full − official LLMOPT-14B per held-out set) enters when its three seeds finish.
 - OptiMUS official code is not run: its main.py takes dataset-provided parameter values and RAG labels, writes gurobipy code and calls
   gpt-4o, so on our sets the parameter step would be ours; the OptiMUS-style arm stays labelled as a reimplementation.
+
+## 2026-11-21 15:34 UTC — Audit of the reimplemented word-problem baselines (CRITIQUE PLAN P2): their failures are the models'
+Every wrong row of the five reimplemented baselines (Self-Debug, OptiMUS-style, LLMOPT-style five elements, Chain-of-Experts, few-shot;
+with the API card; template problems, 3 seeds, both models) classified from its last round:
+- gpt-oss-20b: 79–98% of wrong rows ran and printed a wrong value (modelling); the rest crash on OR-Tools API misuse despite the card
+  (five elements: 42 of 134, e.g. `SetMinimisation`, `Objective.GetCoeffs`). One or two rows per arm print a number our reader missed.
+- Qwen3-8B: 46–98% ran with a wrong value; crashes are API misuse (`IntVar()` without a name, wrong `SetMinimization` call) and dict
+  key errors in its own data tables; 5–8% print nothing (programs that end without the print or time out).
+- No harness artefact found beyond those already fixed (card, tolerance, SIRL parsing). The five-element arm is a reimplementation in
+  pywraplp, not LLMOPT's Pyomo pipeline; the official LLMOPT checkpoint with its own prompts (registration I) is the fair comparison.
+- M0 Futoshiki Qwen3-8B cell (Slurm 1504263) is lost: the job hit the 24 h limit before its cleanup and the staged rows were no longer
+  on the node; puzzles are closed (user 11-19), so it is not rerun. M0 stays judged on two prospective cells (one right, one wrong).
