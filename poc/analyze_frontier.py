@@ -12,7 +12,7 @@ Cost views: "out" = output tokens; "size" = output tokens x active parameters / 
 baselines re-send their history, approximated by rounds x (question + 250 + 600)).
 Template block: the MAMO ComplexLP max-flow / TSP / facility problems, where the related-work baselines ran (results/x3/orbase_*).
 
-usage: python3 poc/analyze_frontier.py [--boot 2000]      (reads results/x3 and $POC_DATA, default ../nlp_data; prints tables)
+usage: python3 poc/analyze_frontier.py [--boot 2000] [--nopool]      (reads results/x3 and $POC_DATA, default ../nlp_data; prints tables)
 """
 import json
 import os
@@ -28,6 +28,9 @@ RATES = (0.25, 0.5, 1.0, 2.0)
 ACTIVE = {"q8b": 8.0, "oss20": 3.6, "oss120": 5.1, "q32": 32.0, "sirl": 7.0}
 PEER = {"q8b": "oss20", "oss20": "q8b"}
 SEEDS = (1, 2, 3)
+NOPOOL = "--nopool" in sys.argv   # 11-20: formx's prompt carries a program for the most similar OTHER problem of the same benchmark, from a
+# pool built by running five models twice over the whole benchmark (run_form.py); that pool's tokens are not in any arm's cost and the
+# related-work baselines did not get it. --nopool uses the own programs without the pool (mipf: API card; freef: library card).
 
 
 def correct(pred, gold):
@@ -139,6 +142,14 @@ SETS = ("mamo_complex", "mamo_easy", "x3", "optmath", "optibench", "bwor", "logi
 
 def files(m, st):
     """typed, own, think file patterns for model m on set st"""
+    if NOPOOL and st != "optnew":
+        own = {"mamo_complex": "mamo_mipf", "mamo_easy": "mamo_mipf", "x3": "mipf", "optmath": "optmath_mipf"}.get(st, f"{st}_freef")
+        t, _, k = files.__wrapped__(m, st)
+        return t, f"{X3}/opt_{m}_{own}_s{{s}}.jsonl", k
+    return files.__wrapped__(m, st)
+
+
+def _files(m, st):
     if st.startswith("mamo"):
         return f"{X3}/typed_{m}all_s{{s}}.jsonl", f"{X3}/opt_{m}_mamo_formx_s{{s}}.jsonl", f"{X3}/opt_{m}_mamo_thinkf_s{{s}}.jsonl"
     if st == "optnew":
@@ -148,6 +159,7 @@ def files(m, st):
     return f"{X3}/typed_{m}ho_s{{s}}.jsonl", f"{X3}/opt_{m}_{st}_formx_s{{s}}.jsonl", f"{X3}/opt_{m}_{st}_thinkfree_s{{s}}.jsonl"
 
 
+files.__wrapped__ = _files
 qtok = lambda i: len(Q[i]) / 4 + 250
 
 

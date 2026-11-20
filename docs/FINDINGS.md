@@ -7485,3 +7485,11 @@ to the fixed solver, else the peer cascade (own program kept when the other mode
   23.0% (Qwen3-8B) and 85.7% (gpt-oss-20b); every utility difference > 0 at every rate and view. **But Qwen3-8B's five baselines
   (9–23%) score far below its own plain program on the same problems (50.7%)**: before this comparison is reported, the baselines'
   failures must be audited (CRITIQUE PLAN P2); the plain-program baseline, not the published methods, is the meaningful bar there.
+- **Addendum (13:26 UTC): the own-program arm carries an uncounted aid.** formx (run_form.py) puts into each prompt a program for the most
+  similar other problem of the same benchmark, from a pool built by running five models twice over the whole benchmark; the pool's tokens
+  are in no arm's cost and the related-work baselines never had it. Without it (`--nopool`: mipf / freef programs), Qwen3-8B's own
+  program on the template problems falls from 50.7% to 9.3% — the same range as its five related-work baselines (9–23%), so those
+  baseline numbers are not a harness artefact; the gap to the plain program was the pool. Verdicts that survive without the pool:
+  full method − cascade on MAMO ComplexLP +29.2 [+25.3, +32.8] (Qwen3-8B) / +14.4 [+11.5, +17.4] (gpt-oss-20b); held-out pooled
+  full − cascade −0.4 [−0.7, −0.1] (Qwen3-8B), cascade − thinking still positive (full − thinking +3.6 [+2.8, +4.4]). Every earlier
+  word-problem table whose own program or cascade used formx (XPEER 79.8% on MAMO, HO) must state the pool or be re-read without it.
