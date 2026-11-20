@@ -95,3 +95,6 @@ printed "No solution found"; gpt-oss-120b: 257 ran, 121 printed "No solution fou
 it, with nothing to send it back). Program-of-thought 19.0% at 22.6k / 33.7% at 8.9k. **Ladder − program-of-thought +38.4 [+30.4, +45.9]
 (gpt-oss-20b), +37.2 [+29.7, +44.3] (gpt-oss-120b): F-5 holds.** Reading the picture is the hard part for both; what the ladder adds is
 the count check that sends a contradictory reading back and, failing that, falls back to thinking.
+
+*Scripts (2026-11-21 22:39 UTC):* the scorer, the blind predictor and the program-of-thought scorer are committed as poc/analyze_futo_score.py,
+poc/analyze_futo_pred.py and poc/analyze_futo_pot.py (identical to the results/tmp_futo_*.py copies named above).
