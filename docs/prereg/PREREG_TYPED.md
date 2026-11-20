@@ -319,3 +319,19 @@ templates. The registered rule makes Qwen3-8B on OptiBench a loss of the method.
 problems without a table, LLMOPT 81.9% vs full method 76.7% (Qwen3-8B's own program 47.3%, so the cascade's thinking does the work at
 6.3k tokens vs LLMOPT's 2.4k); on nonlinear problems the two tie (49.1 / 50.1; 16.7 / 18.0). With gpt-oss-20b the full method is ahead
 on every type.
+
+## Related work found after the results (2026-11-21 21:39 UTC) — what typed translation is new against
+- **BIND / Text2Opt-Bench** (Gao et al., "Models Can Model, But Can't Bind", COLM 2026, arXiv 2605.21751, code SprocketLab/Text2Opt-Bench):
+  splits text-to-optimization into modelling and binding (copying data); its two-phase template evaluation (a binder writes instance
+  JSON, a deterministic template solver for transportation / job-shop solves it) is the same mechanism as our typed translation and
+  predates it. What remains ours: the model chooses the type from a menu (or "other"), a validity + grounding check decides whether the
+  fixed solver is trusted, and anything else falls back to the cascade; tested on public natural-language benchmarks with corrected
+  labels. The failure is the opposite of BIND's headline: on MAMO's small graphs the models bound the data right and modelled it wrong
+  (BIND's binding limit grows with instance size; our graphs have ≤ 10 nodes). BIND is not runnable as a baseline here: its inference-
+  time method reads instance data serialized by the benchmark's own generator (an oracle our sets lack), and its trained binder is not
+  released.
+- **Template / experience libraries for optimization modelling** (COMPASS, arXiv 2611.12060: a DAG of templates with a learned retrieval
+  policy; AlphaOpt: a self-improving experience library) and **tool induction** (LATM, CRAFT, TroVE, ReGAL) cover the general route of
+  inducing types automatically. A general typed schema (the model writes the whole LP as records, a fixed compiler solves) is BIND's
+  phase-1 schema and LLMOPT's five-element pipeline. Decision: no further typed-translation method experiment; the report presents
+  typed translation as a template-specific instance of BIND's two-phase idea plus our routing check.

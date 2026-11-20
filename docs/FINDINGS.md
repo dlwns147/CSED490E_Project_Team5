@@ -7528,3 +7528,10 @@ Nine of ten held-out set × model cells hold for the full method after Holm (16 
 so the cascade relies on thinking). LLMOPT's OptiBench accuracy (66.1%) matches its model card (66.4%). On the 93 unseen OptMATH
 problems LLMOPT gets 15.4%; with 16 claims the typed-translation gain there (W4) no longer holds for either model (gpt-oss-20b Holm p
 0.06). Table and prediction check in PREREG_TYPED.
+
+## 2026-11-21 21:39 UTC — Related work narrows typed translation's novelty (BIND, COLM 2026); no further S4 experiment
+BIND's two-phase template evaluation (binder → instance JSON → deterministic template solver) is our typed translation's mechanism and
+predates it; template libraries (COMPASS, AlphaOpt) and tool induction (LATM, CRAFT, TroVE, ReGAL) cover inducing types automatically.
+What stays ours: type choice from a menu with a validity + grounding check and a cascade fallback, on public benchmarks, and the
+observation that on small MAMO graphs the models bind right and model wrong (the reverse of BIND's large-instance binding limit). BIND
+is not runnable here (oracle instance data; binder not released). Details in PREREG_TYPED.
