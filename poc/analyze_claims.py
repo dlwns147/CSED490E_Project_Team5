@@ -55,16 +55,25 @@ def main():
                 d = [(k[0], u(a["T>CASC"]) - u(L[k])) for k, _, a in F.items(m, st) if "T>CASC" in a and k in L]
                 if d:
                     claims.append((f"W3 {m} full - LLMOPT-14B, {st}", d))
+        for st in ("optibench",):   # addendum J-1: full method with the repair turn vs LLMOPT
+            d = [(k[0], u(a["T>CASCR"]) - u(L[k])) for k, _, a in F.items(m, st) if "T>CASCR" in a and k in L]
+            if d and L:
+                claims.append((f"J-1 {m} full+repair - LLMOPT-14B, {st}", d))
+        d = [(k[0], u(a["T>CASCR"]) - u(a["T>CASC"])) for k, _, a in pooled if "T>CASCR" in a]
+        if d:
+            claims.append((f"J-2 {m} full+repair - full, held-out pooled", d))
         rows = F.items(m, "optnew")
         claims.append((f"W4 {m} typed>own - own, unseen OptMATH", [(k[0], u(a["T>OWN"]) - u(a["OWN"])) for k, _, a in rows]))
-    res = [(name, len(d)) + test(d) for name, d in claims]
-    order = sorted(range(len(res)), key=lambda i: res[i][5]); n = len(res); adj = [0.0] * n; run = 0.0
-    for r, i in enumerate(order):   # Holm step-down
-        run = max(run, min(1.0, (n - r) * res[i][5])); adj[i] = run
-    print(f"{n} claims, Holm-adjusted one-sided p (utility at rate 0.5, pool-free own programs)")
-    for (name, k, mu, lo, hi, p), pa in zip(res, adj):
-        print(f"  {name:45s} n={k:5d} {mu:+6.1f} [{lo:+6.1f}, {hi:+6.1f}]  p={p:.4f}  Holm p={pa:.4f}  {'HOLDS' if pa < 0.05 else 'not shown'}")
-
+    for fam, sel in (("W (report claims)", lambda n: not n.startswith("J-")), ("J (PREREG_TYPED addendum J)", lambda n: n.startswith("J-"))):
+        res = [(name, len(d)) + test(d) for name, d in claims if sel(name)]
+        if not res:
+            continue
+        order = sorted(range(len(res)), key=lambda i: res[i][5]); n = len(res); adj = [0.0] * n; run = 0.0
+        for r, i in enumerate(order):   # Holm step-down within the family
+            run = max(run, min(1.0, (n - r) * res[i][5])); adj[i] = run
+        print(f"{fam}: {n} claims, Holm-adjusted one-sided p (utility at rate 0.5, pool-free own programs)")
+        for (name, k, mu, lo, hi, p), pa in zip(res, adj):
+            print(f"  {name:45s} n={k:5d} {mu:+6.1f} [{lo:+6.1f}, {hi:+6.1f}]  p={p:.4f}  Holm p={pa:.4f}  {'HOLDS' if pa < 0.05 else 'not shown'}")
 
 if __name__ == "__main__":
     main()

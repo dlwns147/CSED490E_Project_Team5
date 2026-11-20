@@ -169,6 +169,10 @@ def items(m, st):
     p = PEER[m]; fpo = files(p, st)[1]
     T, O, P = load(ft, {st}), load(fo, {st}), load(fpo, {st})
     K = load(fk, {st}) if fk else {}
+    RP = {}
+    if NOPOOL and not st.startswith("mamo"):   # PREREG_TYPED addendum J: the recipe's repair turn on the pool-free own program
+        arm = "freef" if st in ("optibench", "bwor", "logior") else "mipf"
+        RP = load(f"{X3}/repair_{m}_{st}_{arm}_s{{s}}.jsonl", {st})
     w, wp = ACTIVE[m] / 8, ACTIVE[p] / 8
     rows = []
     for k in sorted(set(T) & set(O)):
@@ -188,9 +192,17 @@ def items(m, st):
                 ok = correct(o["pred"], g) if acc else correct(K[k]["pred"], g)
                 tok = ot + pt + (0 if acc else th)
                 a["CASC"] = (ok, tok, ot * w + pt * wp + (0 if acc else th * w), qtok(i) * (2 if acc else 3))
+                if RP:   # CASCR: own program; on a visible failure one repair (its tokens paid); then peer agreement; else thinking
+                    vis = o.get("status") != "ok" or o["pred"] in (None, "NBS")
+                    r = RP.get(k) if vis else None
+                    q, rt = (r["pred"], r.get("out_tokens") or 0) if r else (o["pred"], 0)
+                    acc = q is not None and q != "NBS" and agree(q, P[k]["pred"])
+                    ok = correct(q, g) if acc else correct(K[k]["pred"], g)
+                    a["CASCR"] = (ok, ot + rt + pt + (0 if acc else th), (ot + rt) * w + pt * wp + (0 if acc else th * w),
+                                  qtok(i) * (2 + bool(r) + (0 if acc else 1)))
         routed = t["type"] in ("max_flow", "tsp", "facility_location") and valid(t) and grounded(t, Q[i])
         tt = t["tokens"]
-        for base, name in (("OWN", "T>OWN"), ("CASC", "T>CASC")):
+        for base, name in (("OWN", "T>OWN"), ("CASC", "T>CASC"), ("CASCR", "T>CASCR")):
             if base in a:
                 b = a[base]
                 a[name] = (correct(t["pred"], g), tt, tt * w, qtok(i)) if routed else (b[0], tt + b[1], tt * w + b[2], qtok(i) + b[3])
@@ -212,7 +224,7 @@ def ci(d):
 
 
 def table(m, rows, label):
-    arms = [x for x in ("T>CASC", "T>OWN", "CASC", "OWN", "THINK") if all(x in a for _, _, a in rows)]
+    arms = [x for x in ("T>CASCR", "T>CASC", "T>OWN", "CASCR", "CASC", "OWN", "THINK") if all(x in a for _, _, a in rows)]
     n = len(rows)
     print(f"\n== {m} {label}: n = {n} (problem x seed), routed to a fixed solver {sum(r for _, r, _ in rows)}")
     print(f"   {'arm':7s} {'acc':>6s} {'ktok':>6s} | U(0.5) | method - arm, U at rate 0.5 [95% CI] | sign at rates {RATES} (out / size / in+out)")
