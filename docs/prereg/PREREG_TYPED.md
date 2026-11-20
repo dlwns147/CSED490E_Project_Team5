@@ -335,3 +335,16 @@ on every type.
   inducing types automatically. A general typed schema (the model writes the whole LP as records, a fixed compiler solves) is BIND's
   phase-1 schema and LLMOPT's five-element pipeline. Decision: no further typed-translation method experiment; the report presents
   typed translation as a template-specific instance of BIND's two-phase idea plus our routing check.
+
+## Addendum J (registered 2026-11-21 23:40 UTC, before any row): the full method with the recipe's repair turn, against LLMOPT-14B
+Why: W3's full method (typed → cascade) left out the established recipe's cheap repair turn (HO7: one non-thinking turn shown a visible
+failure — crash, no value, 'No Best Solution' — before escalating). Qwen3-8B's pool-free own programs crash on 377 of 1,026 linear
+OptiBench rows, 280 of them on one API misuse (`solver.Constraint(expr, ub)`), so its cascade pays for thinking where a repair might do.
+Prior work: self-repair from execution feedback (Self-Debug, Chen et al. 2024; our HO7); not a new method, the method as defined.
+Run: poc/run_repair.py on the pool-free own programs (freef on OptiBench / BWOR / LogIOR, mipf on NL4OPT + IndustryOR, OptMATH (seed 1),
+unseen OptMATH), Qwen3-8B and gpt-oss-20b, seeds 1–3. Full method J = typed menu (valid + grounded) → own program → on a visible
+failure, one repair → peer agreement → thinking; repair tokens paid.
+- **J-1.** Qwen3-8B on OptiBench: full J − LLMOPT utility interval includes or exceeds 0 (closes the W3 loss).
+- **J-2.** J − W3's full method ≥ 0 on the held-out pool, both models (the repair does not cost utility).
+Decision: J-1 holds → the report's word-problem method includes the repair and the OptiBench loss is closed; fails → it stays a loss.
+Scored with analyze_claims-style clustered bootstrap, Holm over J-1 and J-2 (both models).
