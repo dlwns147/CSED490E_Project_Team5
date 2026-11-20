@@ -7521,3 +7521,10 @@ with the API card; template problems, 3 seeds, both models) classified from its 
   infeasible or unbounded models where glpk returns a status the code checks (15 NL4OPT, 14 IndustryOR rows). The sandbox now has the
   real conda-forge binaries (scip, ipopt, glpsol, cbc), and SCIP serves any solver it lacks; all three seeds were restarted. The seed-1
   rows are kept as `_highsshim` files and are not used.
+
+## 2026-11-21 21:00 UTC — The full word-problem method against the official LLMOPT-14B checkpoint (PREREG_TYPED baseline registration I)
+Nine of ten held-out set × model cells hold for the full method after Holm (16 claims); Qwen3-8B loses on OptiBench by −5.0
+[−7.5, −2.4] utility, on linear problems (LLMOPT 81.9% at 2.4k tokens vs 76.7% at 6.3k; the Qwen3-8B quick program alone is 47.3%,
+so the cascade relies on thinking). LLMOPT's OptiBench accuracy (66.1%) matches its model card (66.4%). On the 93 unseen OptMATH
+problems LLMOPT gets 15.4%; with 16 claims the typed-translation gain there (W4) no longer holds for either model (gpt-oss-20b Holm p
+0.06). Table and prediction check in PREREG_TYPED.

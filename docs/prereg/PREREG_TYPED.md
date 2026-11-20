@@ -301,3 +301,21 @@ ComplexLP labels, project tolerance), utility at rates 0.25–2.
 - **Decision rule.** Each set × model cell is reported as full − LLMOPT utility at rate 0.5 with its 95% CI and the sign at the other
   rates and cost views. A cell whose CI is below 0 is a loss of the method on that set and is stated as one; no cell is dropped. Sets
   that may be in LLMOPT's training data (all but MAMO, by its card) are marked.
+
+### Baseline registration I result (2026-11-21 21:00 UTC; poc/analyze_claims.py, 16 claims, Holm, problem-clustered)
+LLMOPT-14B, three seeds, sandbox with real solvers (rows that hit the earlier solver crash rerun in full: 199 / 78 / 63). Its accuracy:
+MAMO EasyLP 87.0%, ComplexLP 40.5% (SIRL-corrected labels), NL4OPT + IndustryOR 66.5%, OptMATH 18.7%, OptiBench 66.1% (its card:
+66.4%, so the harness reproduces it there), BWOR 24.4%, LogIOR 20.3%, unseen OptMATH 15.4%.
+Full method − LLMOPT, utility at rate 0.5:
+| set | Qwen3-8B | gpt-oss-20b |
+|---|---|---|
+| NL4OPT + IndustryOR | +5.1 [+1.9, +8.3] holds | +9.1 [+5.6, +12.7] holds |
+| OptMATH (100, seed 1 own program) | +5.7 [−4.9, +15.6] not shown | +24.7 [+14.2, +35.0] holds |
+| OptiBench | **−5.0 [−7.5, −2.4]: a loss** | +4.5 [+2.0, +7.1] holds |
+| BWOR | +9.4 [+3.3, +15.9] holds | +35.5 [+26.5, +45.2] holds |
+| LogIOR | +16.9 [+9.9, +24.1] holds | +33.3 [+25.7, +41.2] holds |
+Prediction check: wrong for Qwen3-8B on NL4OPT + IndustryOR and OptMATH (predicted LLMOPT ahead; it is behind or tied); right on the
+templates. The registered rule makes Qwen3-8B on OptiBench a loss of the method. Where it comes from (by OptiBench type): linear
+problems without a table, LLMOPT 81.9% vs full method 76.7% (Qwen3-8B's own program 47.3%, so the cascade's thinking does the work at
+6.3k tokens vs LLMOPT's 2.4k); on nonlinear problems the two tie (49.1 / 50.1; 16.7 / 18.0). With gpt-oss-20b the full method is ahead
+on every type.
