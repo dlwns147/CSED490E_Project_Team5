@@ -287,3 +287,17 @@ large "other" problems) and fall back; gpt-oss-20b clean).** 93 unseen OptMATH p
   +3.2 [+1.4, +5.4].
 - **H-2 holds for both:** routed rows, typed right 12 vs own program 4 (22 rows), and 12 vs 3 (12 rows; all TSP).
 - **Decision:** the grounding check is adopted. The method is: typed menu → validity + grounding check → fixed solver, else the fallback.
+
+## Baseline registration I (2026-11-20 13:32 UTC, CRITIQUE PLAN P2): the official LLMOPT checkpoint, before any row exists
+Runner poc/run_llmopt.py: ant-opt/LLMOPT-Qwen2.5-14B (ICLR 2025) with the official repository's prompts copied verbatim
+(poc/llmopt_prompts.py) and the paper's self-correction loop (≤ 12 generations; the repository ships the prompt, not the loop); Pyomo
+with HiGHS (a missing solver binary is served by HiGHS at gap 0). Sets: MAMO (863), NL4OPT + IndustryOR, OptMATH (100), OptiBench, BWOR,
+LogIOR, unseen OptMATH (93); seeds 1–3; every call's tokens counted. Scored with poc/analyze_frontier.py's scorer (SIRL-corrected
+ComplexLP labels, project tolerance), utility at rates 0.25–2.
+- **Prediction.** Its model card reports (original labels) MAMO ComplexLP 85.8%, OptiBench 66.4%, OptMATH 40.0%, IndustryOR 44.0%,
+  NL4OPT 97.3%. Our full method (typed → cascade, pool-free) has OptiBench 63.1 / 70.6%, OptMATH 20 / 36% (Qwen3-8B / gpt-oss-20b).
+  We predict LLMOPT beats the full method in accuracy on NL4OPT + IndustryOR and OptMATH for Qwen3-8B, and loses on the ComplexLP
+  templates (TSP labels that reward subtours no longer count).
+- **Decision rule.** Each set × model cell is reported as full − LLMOPT utility at rate 0.5 with its 95% CI and the sign at the other
+  rates and cost views. A cell whose CI is below 0 is a loss of the method on that set and is stated as one; no cell is dropped. Sets
+  that may be in LLMOPT's training data (all but MAMO, by its card) are marked.
