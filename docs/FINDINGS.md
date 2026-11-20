@@ -7493,3 +7493,14 @@ to the fixed solver, else the peer cascade (own program kept when the other mode
   full method − cascade on MAMO ComplexLP +29.2 [+25.3, +32.8] (Qwen3-8B) / +14.4 [+11.5, +17.4] (gpt-oss-20b); held-out pooled
   full − cascade −0.4 [−0.7, −0.1] (Qwen3-8B), cascade − thinking still positive (full − thinking +3.6 [+2.8, +4.4]). Every earlier
   word-problem table whose own program or cascade used formx (XPEER 79.8% on MAMO, HO) must state the pool or be re-read without it.
+
+## 2026-11-20 14:34 UTC — Word-problem claim list with one Holm correction and problem-clustered intervals (poc/analyze_claims.py)
+Utility at rate 0.5, pool-free own programs, one-sided, problems resampled with their three seeds (the earlier word-problem intervals
+resampled problem × seed rows as if the three seeds were independent, which narrows them; the clustered intervals are 1.2–1.5× wider).
+- W1 full − cascade on MAMO ComplexLP: +29.2 [+23.9, +34.5] (Qwen3-8B), +14.4 [+10.4, +18.5] (gpt-oss-20b): hold after Holm.
+- W2 full − thinking on the five held-out sets pooled: +3.6 [+2.7, +4.6], +0.8 [+0.2, +1.4]: hold (the gpt-oss-20b margin is small).
+- W4 typed → own − own on the 93 unseen OptMATH problems: Qwen3-8B +2.3 [−1.3, +6.7], **not shown** (Holm p 0.12); gpt-oss-20b
+  +3.2 [+0.3, +7.1], holds (Holm p 0.03). Addendum H's accuracy verdict for Qwen3-8B does not survive utility with clustered intervals.
+- W3 (full − official LLMOPT-14B per held-out set) enters when its three seeds finish.
+- OptiMUS official code is not run: its main.py takes dataset-provided parameter values and RAG labels, writes gurobipy code and calls
+  gpt-4o, so on our sets the parameter step would be ours; the OptiMUS-style arm stays labelled as a reimplementation.
