@@ -365,3 +365,7 @@ The OptiBench verdicts move against us once bad labels go: Qwen3-8B full method 
 [+0.7, +7.4], Holm p 0.053 (raw: holds). Unchanged in sign and still holding: W1 both models (+25.5 / +8.6), W2 both (+4.2 / +1.2), BWOR,
 LogIOR, gpt-oss-20b NL4OPT + IndustryOR and OptMATH, J-2 both. The report states both label sets; on audited OptiBench the method loses
 to LLMOPT-14B for Qwen3-8B and is inconclusive for gpt-oss-20b.
+*Cost-view check (2026-11-22 01:42 UTC):* on audited OptiBench the Qwen3-8B loss to LLMOPT holds at every rate (0.25–2) and in every cost
+view (output tokens; tokens × active parameters, LLMOPT at 14B; output + 0.25 × input): from −3.0 [−5.9, −0.1] (size, 0.25) to −7.4
+[−10.5, −4.3] (output, 2). gpt-oss-20b is inconclusive in most views and ahead only where LLMOPT's 14B tokens are priced by size at
+rate ≥ 1 (+3.8 [+0.8, +6.8]).
