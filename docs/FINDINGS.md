@@ -7563,3 +7563,10 @@ specialist alone is the better choice on OptiBench.
 On Spider test Arctic gets 86.7% at 0.54k tokens; keeping its query only when a general model's quick query agrees, else the general
 model's default, drops it to 79.3% / 78.6%; our Qwen3-8B cascade is 76.9%. Together with the word-problem half: the check helps a
 specialist only when the escalation model is stronger than the specialist on that distribution. Report: for SQL, use the specialist.
+
+## 2026-11-22 09:46 UTC — PREREG_ESCT: retrying a visibly failed think adds +7.3 (Qwen3-8B, hand-off to gpt-oss-20b) and +3.9 (gpt-oss-20b, own retry); the OptiBench loss to LLMOPT is gone
+Two thirds of Qwen3-8B's failed escalation thinks crashed or printed nothing, and the measured method answered them with nothing. With
+one retry — the other family's think for Qwen3-8B, its own for gpt-oss-20b — the held-out pool rises 62.4 → 70.1% and 69.0 → 73.2% at
++0.9k / +0.6k tokens; all four registered tests hold on raw and audited labels (hand-off beats self-retry for the weaker model by +4.2,
+self-retry beats hand-off for the stronger by +1.8). Against LLMOPT-14B the Qwen3-8B method is now ahead on raw OptiBench (+5.5) and
+inconclusive on audited (+2.4 [−0.3, +5.1]); gpt-oss-20b is ahead everywhere. The report's method gains this last step.

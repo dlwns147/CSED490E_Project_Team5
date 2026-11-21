@@ -181,6 +181,7 @@ def items(m, st):
         arm = "freef" if st in ("optibench", "bwor", "logior") else "mipf"
         RP = load(f"{X3}/repair_{m}_{st}_{arm}_s{{s}}.jsonl", {st})
     w, wp = ACTIVE[m] / 8, ACTIVE[p] / 8
+    RETRY = {"S": K, "X": load(files(p, st)[2], {st})} if (RP and fk) else None
     rows = []
     for k in sorted(set(T) & set(O)):
         i = k[0]; g = gold_of(i, O[k]["gold"])
@@ -207,9 +208,20 @@ def items(m, st):
                     ok = correct(q, g) if acc else correct(K[k]["pred"], g)
                     a["CASCR"] = (ok, ot + rt + pt + (0 if acc else th), (ot + rt) * w + pt * wp + (0 if acc else th * w),
                                   qtok(i) * (2 + bool(r) + (0 if acc else 1)))
+                    if RETRY:
+                        a["CASCR+RS"] = a["CASCR+RX"] = a["CASCR"]
+                    if not acc and RETRY:   # PREREG_ESCT: on a visibly failed think, retry with the same model (RS) or the other family (RX)
+                        tf = K[k].get("status") != "ok" or K[k]["pred"] in (None, "NBS")
+                        base = a["CASCR"]
+                        for nm, src, ww in (("CASCR+RS", RETRY["S"].get((k[0], k[1] % 3 + 1)), w), ("CASCR+RX", RETRY["X"].get(k), wp)):
+                            if tf and src is not None:
+                                st_ = src["out_tokens"]
+                                a[nm] = (correct(src["pred"], g), base[1] + st_, base[2] + st_ * ww, base[3] + qtok(i))
+                            else:
+                                a[nm] = base
         routed = t["type"] in ("max_flow", "tsp", "facility_location") and valid(t) and grounded(t, Q[i])
         tt = t["tokens"]
-        for base, name in (("OWN", "T>OWN"), ("CASC", "T>CASC"), ("CASCR", "T>CASCR")):
+        for base, name in (("OWN", "T>OWN"), ("CASC", "T>CASC"), ("CASCR", "T>CASCR"), ("CASCR+RS", "T>CASCR+RS"), ("CASCR+RX", "T>CASCR+RX")):
             if base in a:
                 b = a[base]
                 a[name] = (correct(t["pred"], g), tt, tt * w, qtok(i)) if routed else (b[0], tt + b[1], tt * w + b[2], qtok(i) + b[3])
