@@ -35,3 +35,15 @@ OptiBench (−5.7 raw, −8.1 audited): its thinking (10–12k tokens) is weaker
 as the specialist off its training distribution (gpt-oss-20b): +11 utility over LLMOPT on both label sets. It is not complementary with
 Qwen3-8B as checker. And the specialist is not a better first step than gpt-oss-20b's own program (S-2 ≈ 0): the gain over LLMOPT is the
 check and gpt-oss-20b's thinking, not LLMOPT's answer.
+
+## Addendum SQL (registered 2026-11-22 08:44 UTC, before any Arctic row): the same test on text-to-SQL with Arctic-Text2SQL-R1-7B
+Specialist: Snowflake/Arctic-Text2SQL-R1-7B (arXiv 2505.20315; reports BIRD dev 68.9%, Spider test 88.8%), greedy, its own evaluation
+inputs (OmniSQL's pre-processed prompts, seeklhy/OmniSQL-datasets data/dev_bird.json and data/test_spider.json), poc/run_spec_sql.py,
+graded by poc/grade_sql.py on our items and gold. Sets: Spider test (all 2,147; never used for a decision, as in FINAL) and BIRD dev
+(the 1,354 questions the 2025-11-06 correction left unchanged; the other 180 are skipped). Stored rows for the rest (FINAL tags).
+Arms per checker m ∈ {Qwen3-8B, gpt-oss-20b}: SPEC = Arctic alone; SPEC+C = Arctic's query kept if it passes the free check (runs, ≥ 1
+row) and m's quick query returns the same rows, else m's default (SB → T → T); FULL = m's FINAL cascade (quick query + peer, else default).
+- **SQ-1** SPEC+C − SPEC > 0 (utility at rate 0.5) on Spider test, for each checker. **SQ-2** (descriptive) the same on BIRD dev's 1,354.
+- **SQ-3** SPEC − FULL on Spider test (is the specialist ahead of our pipeline, as published numbers say?).
+Holm over SQ-1 (two checkers) and SQ-3; clustered by question. Decision: SQ-1 holds for a checker → the report says the method adds to
+the SQL specialist with that checker; fails → the specialist alone is the recommendation for SQL. Smoke: 20 questions, read failed rows.
