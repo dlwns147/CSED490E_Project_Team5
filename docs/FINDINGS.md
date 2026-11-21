@@ -7558,3 +7558,8 @@ LLMOPT's answer kept when gpt-oss-20b's quick program agrees, else gpt-oss-20b t
 so the specialist adds nothing as a first step. With Qwen3-8B as checker there is no gain (−0.2; OptiBench −5.7 / −8.1). Report: the
 method is complementary to a specialist when its checker / escalation model is at least as strong; for an 8B general model the
 specialist alone is the better choice on OptiBench.
+
+## 2026-11-22 08:58 UTC — PREREG_SPEC SQL: check-and-escalate hurts the SQL specialist (−7.7 / −8.2); Arctic-Text2SQL-R1-7B alone beats our pipeline by +9.8
+On Spider test Arctic gets 86.7% at 0.54k tokens; keeping its query only when a general model's quick query agrees, else the general
+model's default, drops it to 79.3% / 78.6%; our Qwen3-8B cascade is 76.9%. Together with the word-problem half: the check helps a
+specialist only when the escalation model is stronger than the specialist on that distribution. Report: for SQL, use the specialist.

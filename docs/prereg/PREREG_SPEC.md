@@ -47,3 +47,20 @@ row) and m's quick query returns the same rows, else m's default (SB → T → T
 - **SQ-3** SPEC − FULL on Spider test (is the specialist ahead of our pipeline, as published numbers say?).
 Holm over SQ-1 (two checkers) and SQ-3; clustered by question. Decision: SQ-1 holds for a checker → the report says the method adds to
 the SQL specialist with that checker; fails → the specialist alone is the recommendation for SQL. Smoke: 20 questions, read failed rows.
+
+### Addendum SQL result (2026-11-22 08:58 UTC; FINAL_SUFFIX=sp / "" python3 poc/analyze_spec_sql.py)
+Harness: Arctic's 2,147 Spider-test queries all extracted and finished; 85.9% right on all of them (card 88.8%); failures are wrong
+values (283 pass the check but are wrong) and empty results; BIRD dev unchanged questions 69.1%. Scored on the questions with FINAL rows
+(Spider 1,741, BIRD 1,351), utility at rate 0.5, Holm over three:
+| test | Spider test | BIRD dev (1,351, descriptive) |
+|---|---|---|
+| SQ-1 SPEC+C − SPEC, Qwen3-8B checks / escalates | **−7.70 [−9.31, −6.07] not shown** | −4.22 [−6.24, −2.21] |
+| SQ-1 SPEC+C − SPEC, gpt-oss-20b checks / escalates | **−8.21 [−9.86, −6.53] not shown** | −6.38 [−8.64, −4.15] |
+| SQ-3 SPEC − FULL (Qwen3-8B cascade) | **+9.84 [+8.03, +11.62] holds** | +5.85 [+3.59, +8.11] |
+Accuracy / tokens (Spider): Arctic 86.7% at 0.54k; Arctic + Qwen3-8B check 79.3% at 1.02k; our Qwen3-8B cascade 76.9% at 0.47k.
+**Verdict (registered rule): the method does not add to the SQL specialist; the specialist alone is the recommendation for SQL**, and it
+beats our pipeline by +9.8 utility on Spider test. Mechanism: a disagreement sends the question to the general model's default, which is
+weaker than Arctic on SQL (Arctic is kept on 71–75% of Spider questions; on the rest the escalation is right less often than Arctic was).
+With the word-problem half: the check pays on top of a specialist only where the escalation model is stronger than the specialist on
+that distribution (gpt-oss-20b off LLMOPT's training data: +11); where the specialist is stronger in-domain (SQL), escalating to a
+general model costs 7–8 points.
