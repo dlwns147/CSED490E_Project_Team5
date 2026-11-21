@@ -7546,3 +7546,8 @@ utility on the held-out pool. Every other held-out cell stays ahead of LLMOPT. T
 With OR_CLEAN=1 (the audited subsets of MAMO, OptiBench, NL4OPT): Qwen3-8B (full method with repair) − LLMOPT on OptiBench −3.9 [−6.8,
 −1.1], a loss; gpt-oss-20b +1.7 [−1.2, +4.7], inconclusive. The other claims keep their sign (Qwen3-8B NL4OPT + IndustryOR falls to Holm p
 0.053). The report gives both label sets. Details in PREREG_TYPED.
+
+## 2026-11-22 06:40 UTC — SQL specialists of 7B are ahead of the SQL pipeline (published numbers)
+Arctic-Text2SQL-R1-7B reports BIRD dev 68.9% and Spider test 88.8% with greedy decoding; our best Qwen3-8B pipeline is 62.2% / 81.2%.
+The report's SQL claim (cascade − default of the same model) stands; it adds that fine-tuned specialists lead by about 7 points, as
+LLMOPT-14B does on clean OptiBench. Not re-run (PREREG_FINAL note).
