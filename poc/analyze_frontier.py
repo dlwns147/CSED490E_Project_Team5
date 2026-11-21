@@ -12,7 +12,7 @@ Cost views: "out" = output tokens; "size" = output tokens x active parameters / 
 baselines re-send their history, approximated by rounds x (question + 250 + 600)).
 Template block: the MAMO ComplexLP max-flow / TSP / facility problems, where the related-work baselines ran (results/x3/orbase_*).
 
-usage: python3 poc/analyze_frontier.py [--boot 2000] [--nopool]      (reads results/x3 and $POC_DATA, default ../nlp_data; prints tables)
+usage: [OR_CLEAN=1] python3 poc/analyze_frontier.py [--boot 2000] [--nopool]   (OR_CLEAN=1: expert-audited problems only)      (reads results/x3 and $POC_DATA, default ../nlp_data; prints tables)
 """
 import json
 import os
@@ -126,12 +126,19 @@ def setof(i):
     return "x3" if h in ("nl4opt", "industryor") else h
 
 
+CLEAN = None
+if os.environ.get("OR_CLEAN") == "1":   # expert-audited subsets only (Xiao et al. 2025; poc/or_clean.py): MAMO, OptiBench, NL4OPT
+    _d = json.load(open(f"{D}/clean_or/clean_ids.json")); CLEAN = (set(_d["sets"]), set(_d["keep"]))
+
+
 def load(path, sets=None):
     out = {}
     for s in SEEDS:
         f = path.format(s=s)
         if os.path.exists(f):
             for r in map(json.loads, open(f)):
+                if CLEAN and r["id"].rsplit("-", 1)[0] in CLEAN[0] and r["id"] not in CLEAN[1]:
+                    continue
                 if sets is None or setof(r["id"]) in sets:
                     out[(r["id"], s)] = r
     return out

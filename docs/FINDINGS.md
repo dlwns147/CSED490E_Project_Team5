@@ -7541,3 +7541,8 @@ W3 scored the word-problem method without HO7's one cheap repair turn. With it (
 [−4.5, +0.4] against LLMOPT-14B (was −5.0 [−7.5, −2.4]); the repair adds +1.8 [+1.4, +2.4] (Qwen3-8B) and +0.3 [+0.1, +0.5] (gpt-oss-20b)
 utility on the held-out pool. Every other held-out cell stays ahead of LLMOPT. The method in the report is typed menu (valid + grounded)
 → own program → one repair on a visible failure → peer agreement → thinking.
+
+## 2026-11-22 00:42 UTC — On expert-audited labels the OptiBench comparison with LLMOPT turns against us
+With OR_CLEAN=1 (the audited subsets of MAMO, OptiBench, NL4OPT): Qwen3-8B (full method with repair) − LLMOPT on OptiBench −3.9 [−6.8,
+−1.1], a loss; gpt-oss-20b +1.7 [−1.2, +4.7], inconclusive. The other claims keep their sign (Qwen3-8B NL4OPT + IndustryOR falls to Holm p
+0.053). The report gives both label sets. Details in PREREG_TYPED.

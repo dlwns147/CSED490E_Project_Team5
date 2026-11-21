@@ -358,3 +358,10 @@ Repair rows: Qwen3-8B 1,808 visible failures repaired (596 now print a value, 44
   OptiBench −2.1, BWOR +11.2, LogIOR +17.7; gpt-oss-20b +9.5, +24.5, +4.8, +36.1, +33.1.
 Decision (registered): the report's word-problem method includes the repair turn; Qwen3-8B on OptiBench is reported as inconclusive
 against LLMOPT (−2.1 [−4.5, +0.4]), not as a win. The repair's remaining Qwen3-8B crashes are the same API misuse (122 rows).
+
+### Sensitivity on expert-audited labels (2026-11-22 00:42 UTC; OR_CLEAN=1 python3 poc/analyze_claims.py; Xiao et al. 2025 subsets of MAMO, OptiBench 403 / 605, NL4OPT)
+The OptiBench verdicts move against us once bad labels go: Qwen3-8B full method with repair − LLMOPT **−3.9 [−6.8, −1.1], a loss again**
+(J-1 holds only on the raw labels); gpt-oss-20b +1.7 [−1.2, +4.7], inconclusive (raw: +4.8). Qwen3-8B on NL4OPT + IndustryOR +4.0
+[+0.7, +7.4], Holm p 0.053 (raw: holds). Unchanged in sign and still holding: W1 both models (+25.5 / +8.6), W2 both (+4.2 / +1.2), BWOR,
+LogIOR, gpt-oss-20b NL4OPT + IndustryOR and OptMATH, J-2 both. The report states both label sets; on audited OptiBench the method loses
+to LLMOPT-14B for Qwen3-8B and is inconclusive for gpt-oss-20b.
