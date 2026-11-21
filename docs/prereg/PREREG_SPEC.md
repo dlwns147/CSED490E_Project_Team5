@@ -19,3 +19,19 @@ Held-out sets NL4OPT + IndustryOR, OptMATH (seed 1 own program), OptiBench, BWOR
 **Decision rule.** S-1 holds (Holm over S-1, S-2, S-1 for SPEC+C8; clustered bootstrap by problem; raw AND audited labels both) → the
 report states the method is complementary to the specialist and adds the SPEC+C row; S-1 fails on either label set → the report states
 the method's scope as general models. Cost views 0.25–2 and size-weighted reported as sensitivity.
+
+## Result (2026-11-22 07:41 UTC; python3 poc/analyze_spec.py, raw and OR_CLEAN=1)
+Held-out pool (3,472 problem × seed rows raw; 2,728 audited), utility at rate 0.5, clustered by problem, Holm over three:
+| test | raw labels | audited labels |
+|---|---|---|
+| S-1 SPEC+C − SPEC (gpt-oss-20b checks and escalates) | **+11.3 [+9.5, +13.1] holds** | **+11.0 [+8.9, +13.2] holds** |
+| S-2 SPEC+C − FULL (gpt-oss-20b's own method) | +0.0 [−0.7, +0.8] not shown | −0.2 [−1.0, +0.6] not shown |
+| S-1 SPEC+C8 − SPEC (Qwen3-8B checks and escalates) | −0.2 [−1.9, +1.5] not shown | −0.7 [−2.7, +1.2] not shown |
+Accuracy / tokens (raw): LLMOPT 58.2% at 4.0k; LLMOPT + gpt-oss-20b check 70.6% at 6.2k; gpt-oss-20b full method 69.0% at 3.2k;
+LLMOPT + Qwen3-8B check 61.3% at 10.6k. SPEC+C − SPEC is positive on every set with both label sets (audited OptiBench +4.0 [+1.6, +6.5])
+and at every rate and cost view (+7.6 to +12.1). With Qwen3-8B the check helps on NL4OPT + IndustryOR, BWOR, LogIOR and hurts on
+OptiBench (−5.7 raw, −8.1 audited): its thinking (10–12k tokens) is weaker than the specialist there.
+**Verdict (registered rule).** The method is complementary to the specialist when the checker / escalation model is at least as strong
+as the specialist off its training distribution (gpt-oss-20b): +11 utility over LLMOPT on both label sets. It is not complementary with
+Qwen3-8B as checker. And the specialist is not a better first step than gpt-oss-20b's own program (S-2 ≈ 0): the gain over LLMOPT is the
+check and gpt-oss-20b's thinking, not LLMOPT's answer.

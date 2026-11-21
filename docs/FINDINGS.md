@@ -7551,3 +7551,10 @@ With OR_CLEAN=1 (the audited subsets of MAMO, OptiBench, NL4OPT): Qwen3-8B (full
 Arctic-Text2SQL-R1-7B reports BIRD dev 68.9% and Spider test 88.8% with greedy decoding; our best Qwen3-8B pipeline is 62.2% / 81.2%.
 The report's SQL claim (cascade − default of the same model) stands; it adds that fine-tuned specialists lead by about 7 points, as
 LLMOPT-14B does on clean OptiBench. Not re-run (PREREG_FINAL note).
+
+## 2026-11-22 07:41 UTC — PREREG_SPEC: a cross-family check with escalation adds +11 utility on top of LLMOPT-14B (gpt-oss-20b as checker), on raw and audited labels
+LLMOPT's answer kept when gpt-oss-20b's quick program agrees, else gpt-oss-20b thinking: 70.6% at 6.2k tokens vs LLMOPT alone 58.2% at
+4.0k (+11.3 [+9.5, +13.1]; audited +11.0), positive on every held-out set and cost view. It ties gpt-oss-20b's own full method (+0.0),
+so the specialist adds nothing as a first step. With Qwen3-8B as checker there is no gain (−0.2; OptiBench −5.7 / −8.1). Report: the
+method is complementary to a specialist when its checker / escalation model is at least as strong; for an 8B general model the
+specialist alone is the better choice on OptiBench.
