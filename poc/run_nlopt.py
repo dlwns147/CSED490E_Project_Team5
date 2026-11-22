@@ -151,6 +151,9 @@ def problems(which=None):
         for r in map(json.loads, open(f"{DATA}/logior/logior.jsonl")):
             out.append({"id": f"logior-{r['prob_id']}", "src": f"logior_{r['problem_type']}", "q": r["description"].strip(),
                         "gold": str(r["ground_truth"]), "difficulty": r["problem_size"]})
+    if which == "omtf":   # C-0 (PREREG_FRESH, 2026-11-22): 300 OptMATH-Train problems after the 8,000 training items (poc/prep_wptrain.py --fresh)
+        for r in map(json.loads, open(f"{DATA}/optmath_train/omtf_items.jsonl")):
+            out.append({"id": r["id"], "src": "omtf", "q": r["q"], "gold": str(float(r["gold"])), "difficulty": "omtf"})
     if which == "optnew":   # PREREG_TYPED addendum H (2026-11-19): SIRL's OptMATH-Bench 193 minus the 100 in `optmath` (fresh problems)
         seen = {re.sub(r"\s+", " ", p["q"]).strip() for p in problems("optmath")}
         for k, l in enumerate(open(f"{DATA}/sirl_fixed/OptMATH_Bench_193.jsonl")):

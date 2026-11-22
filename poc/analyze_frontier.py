@@ -106,6 +106,9 @@ def questions():
         Q[f"logior-{r['prob_id']}"] = r["description"]
     for k, l in enumerate(open(f"{D}/sirl_fixed/OptMATH_Bench_193.jsonl")):
         Q[f"optnew-{k}"] = json.loads(l)["en_question"].strip()
+    if os.path.exists(f"{D}/optmath_train/omtf_items.jsonl"):   # C-0 (PREREG_FRESH, 2026-11-22): 300 fresh OptMATH-Train problems
+        for r in map(json.loads, open(f"{D}/optmath_train/omtf_items.jsonl")):
+            Q[r["id"]] = r["q"]
     return Q
 
 
@@ -161,6 +164,8 @@ def _files(m, st):
         return f"{X3}/typed_{m}all_s{{s}}.jsonl", f"{X3}/opt_{m}_mamo_formx_s{{s}}.jsonl", f"{X3}/opt_{m}_mamo_thinkf_s{{s}}.jsonl"
     if st == "optnew":
         return f"{X3}/typed_{m}new_s{{s}}.jsonl", f"{X3}/opt_{m}_optnew_mipf_s{{s}}.jsonl", None
+    if st == "omtf":
+        return f"{X3}/typed_{m}omtf_s{{s}}.jsonl", f"{X3}/opt_{m}_omtf_freef_s{{s}}.jsonl", f"{X3}/opt_{m}_omtf_thinkfree_s{{s}}.jsonl"
     if st == "x3":
         return f"{X3}/typed_{m}ho_s{{s}}.jsonl", f"{X3}/opt_{m}_formx_s{{s}}.jsonl", f"{X3}/opt_{m}_thinkf_s{{s}}.jsonl"
     return f"{X3}/typed_{m}ho_s{{s}}.jsonl", f"{X3}/opt_{m}_{st}_formx_s{{s}}.jsonl", f"{X3}/opt_{m}_{st}_thinkfree_s{{s}}.jsonl"
@@ -183,7 +188,7 @@ def items(m, st):
         K = {**K, **A}
     RP = {}
     if NOPOOL and not st.startswith("mamo"):   # PREREG_TYPED addendum J: the recipe's repair turn on the pool-free own program
-        arm = "freef" if st in ("optibench", "bwor", "logior") else "mipf"
+        arm = "freef" if st in ("optibench", "bwor", "logior", "omtf") else "mipf"
         RP = load(f"{X3}/repair_{m}_{st}_{arm}_s{{s}}.jsonl", {st})
     w, wp = ACTIVE[m] / 8, ACTIVE[p] / 8
     RETRY = {"S": K0, "X": load(files(p, st)[2], {st})} if (RP and fk) else None

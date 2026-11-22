@@ -4,7 +4,7 @@ note ("# Note:" on) and "# Question:" header; numeric answers only; texts of at 
 decontaminated: a problem sharing any lower-cased word 13-gram with any problem of the seven test sets (NL4OPT, IndustryOR, MAMO,
 OptMATH-Bench, OptiBench, BWOR, LogiOR: run_nlopt.problems) is dropped. A Random(0) sample of the rest, in that order.
 Writes $POC_DATA/optmath_train/wp_train_items.jsonl = {"id", "q", "gold"}.
-usage: python prep_wptrain.py [N 8000]"""
+usage: python prep_wptrain.py [N 8000] [--fresh K]   (--fresh: $POC_DATA/optmath_train/omtf_items.jsonl, the K problems after the N)"""
 import json, os, random, re, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -51,6 +51,13 @@ def main():
             st["contam"] += 1; continue
         rows.append({"id": f"omt-{k}", "q": q, "gold": repr(g)})
     random.Random(0).shuffle(rows)
+    if "--fresh" in sys.argv:   # C-0 (LOOP §2, 2026-11-22): the next K problems of the same shuffle, disjoint from the N training items
+        K = int(sys.argv[sys.argv.index("--fresh") + 1])
+        with open(f"{DATA}/optmath_train/omtf_items.jsonl", "w") as f:
+            for r in rows[N:N + K]:
+                f.write(json.dumps({**r, "id": r["id"].replace("omt-", "omtf-")}) + "\n")
+        print(st, "kept", len(rows), "fresh written", len(rows[N:N + K]))
+        return
     with open(f"{DATA}/optmath_train/wp_train_items.jsonl", "w") as f:
         for r in rows[:N]:
             f.write(json.dumps(r) + "\n")
