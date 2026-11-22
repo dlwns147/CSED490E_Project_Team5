@@ -176,12 +176,17 @@ def items(m, st):
     p = PEER[m]; fpo = files(p, st)[1]
     T, O, P = load(ft, {st}), load(fo, {st}), load(fpo, {st})
     K = load(fk, {st}) if fk else {}
+    K0 = K
+    if os.environ.get("SOL2_ADJ") and fk:   # PREREG_ADJ: escalated problem-seeds think with the two disagreeing programs as evidence
+        tg = {"x3": f"{m}_x3"}.get(st, f"{m}_{st}")
+        A = load(f"{X3}/opt_{tg}_thinkadj_s{{s}}.jsonl", {st})
+        K = {**K, **A}
     RP = {}
     if NOPOOL and not st.startswith("mamo"):   # PREREG_TYPED addendum J: the recipe's repair turn on the pool-free own program
         arm = "freef" if st in ("optibench", "bwor", "logior") else "mipf"
         RP = load(f"{X3}/repair_{m}_{st}_{arm}_s{{s}}.jsonl", {st})
     w, wp = ACTIVE[m] / 8, ACTIVE[p] / 8
-    RETRY = {"S": K, "X": load(files(p, st)[2], {st})} if (RP and fk) else None
+    RETRY = {"S": K0, "X": load(files(p, st)[2], {st})} if (RP and fk) else None
     rows = []
     for k in sorted(set(T) & set(O)):
         i = k[0]; g = gold_of(i, O[k]["gold"])

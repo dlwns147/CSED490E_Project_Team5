@@ -7,6 +7,9 @@ modes: mip   = Python program with OR-Tools pywraplp (SCIP), prints the optimal 
        think = mip with thinking on (Qwen) / the caller's higher reasoning effort (gpt-oss);
        thinkf = think + the snippet of mipf (X6: does the API fact make thinking pay?);
        mipa / thinka = mip / think + the library's public names by introspection (automatic fact, no human).
+       thinkadj = SOL-2 (docs/prereg/PREREG_ADJ.md, 2026-11-22): the escalation's thinking call with the two disagreeing programs (own
+                  after repair, cross-family peer) and their printed values as evidence; only the problem-seeds in $NLOPT_ADJ
+                  (poc/prep_sol2.py); base prompt = the stored think's (x3: mip + snippet as thinkf; other sets: free as thinkfree).
 usage: POC_BASE_URL=... python run_nlopt.py <tag> <mode> <seed> [--think] [--max_tokens N] -> results/x3/opt_<tag>_<mode>_s<seed>.jsonl
 DT6: --think_budget B writes the program after at most B thinking tokens (Qwen3 budget forcing) -> opt_<tag>_<mode>tb<B>_s<seed>.jsonl"""
 import json, os, re, sys, zlib
@@ -186,6 +189,18 @@ def correct(pred, gold):
     return abs(pred - g) <= max(1e-2, 1e-3 * abs(g))
 
 
+def adj_block(e, sd):
+    """SOL-2 evidence: the two disagreeing programs, in an order fixed by the seed (no position cue for which one is the model's own)"""
+    progs = [(e["a_code"], e["a_pred"]), (e["b_code"], e["b_pred"])]
+    if sd % 2:
+        progs.reverse()
+    show = lambda c, v: (f"printed: {v if v not in (None, 'None') else 'nothing (it crashed or printed no value)'}\n"
+                         + (f"```python\n{c.strip()[:6000]}\n```" if c else "(no program)"))
+    return ("\n\nTwo programs were written for this problem and they disagree.\nProgram 1 " + show(*progs[0]) + "\nProgram 2 " + show(*progs[1])
+            + "\nAt least one of them models the problem wrongly, possibly both. Compare each with the problem statement, find where they "
+            "differ and which reading of the problem is right, then write your own correct program as asked above.")
+
+
 def main():
     from llm import chat, last_block
     from sandbox import run_python
@@ -198,12 +213,22 @@ def main():
         os.environ["NLOPT_EX_SHORTEST"] = "1"
     EX = _verified_examples(os.environ.get("NLOPT_EX_TAG", tag)) if mode in ("mipv", "thinkv", "mips", "thinks") else None
 
+    ADJ = {}
+    if mode == "thinkadj":
+        for l in open(os.environ["NLOPT_ADJ"]):
+            e = json.loads(l)
+            if str(e["seed"]) == str(seed):
+                ADJ[e["id"]] = e
+
     def one(p):
         sd = seed * 1000 + zlib.crc32(p["id"].encode()) % 997
         tmpl = {"mip": P_MIP, "mipf": P_MIP + SNIP, "cpsat": P_CPSAT, "text": P_TEXT, "think": P_MIP, "thinkf": P_MIP + SNIP,
                 "mipa": P_MIP + AUTO.replace("{", "{{").replace("}", "}}"), "thinka": P_MIP + AUTO.replace("{", "{{").replace("}", "}}"),
-                "mipv": P_MIP, "thinkv": P_MIP, "mips": P_MIP, "thinks": P_MIP, "free": P_FREE, "thinkfree": P_FREE, "mipt": P_MIP + SNIP_TEXT, "freef": P_FREE + LIBCARD, "freev": P_FREEV}[mode]
+                "mipv": P_MIP, "thinkv": P_MIP, "mips": P_MIP, "thinks": P_MIP, "free": P_FREE, "thinkfree": P_FREE, "mipt": P_MIP + SNIP_TEXT, "freef": P_FREE + LIBCARD, "freev": P_FREEV,
+                "thinkadj": P_MIP + SNIP if os.environ.get("NLOPT_SET", "x3") == "x3" else P_FREE}[mode]
         q = tmpl.format(q=p["q"])
+        if mode == "thinkadj":
+            q += adj_block(ADJ[p["id"]], sd)
         if mode in ("mipv", "thinkv", "mips", "thinks"):   # automatic usage fact: a check-passing program of this model for a similar problem of the other benchmark
             ex = EX(p)
             if ex:
@@ -235,7 +260,9 @@ def main():
 
     path = f"{RES}/opt_{tag}_{mode}{f'tb{TB}' if TB else ''}_s{seed}.jsonl"   # rows are flushed as they finish; a re-run resumes (2026-10-17)
     done = {r["id"] for r in _rows(path)}
-    todo = problems()[:int(os.environ.get("NLOPT_LIMIT", 10**9))]   # NLOPT_LIMIT: the first N problems only (Slurm smoke test)
+    todo = problems()[:int(os.environ.get("NLOPT_LIMIT", 10**9))]
+    if mode == "thinkadj":
+        todo = [p for p in todo if p["id"] in ADJ]   # NLOPT_LIMIT: the first N problems only (Slurm smoke test)
     if os.environ.get("NLOPT_SHARD"):   # "i/k": problems i, i+k, ... in <path>.shard<i>of<k> (one job each; merge_shards.py after; 2026-10-23)
         i, k = map(int, os.environ["NLOPT_SHARD"].split("/"))
         todo = todo[i::k]; path = path[:-len(".jsonl")] + f".shard{i}of{k}.jsonl"; done |= {r["id"] for r in _rows(path)}
