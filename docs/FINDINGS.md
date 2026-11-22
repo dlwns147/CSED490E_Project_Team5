@@ -7505,7 +7505,7 @@ resampled problem × seed rows as if the three seeds were independent, which nar
 - OptiMUS official code is not run: its main.py takes dataset-provided parameter values and RAG labels, writes gurobipy code and calls
   gpt-4o, so on our sets the parameter step would be ours; the OptiMUS-style arm stays labelled as a reimplementation.
 
-## 2026-11-21 15:34 UTC — Audit of the reimplemented word-problem baselines (CRITIQUE PLAN P2): their failures are the models'
+## 2026-11-20 15:34 UTC — Audit of the reimplemented word-problem baselines (CRITIQUE PLAN P2): their failures are the models'
 Every wrong row of the five reimplemented baselines (Self-Debug, OptiMUS-style, LLMOPT-style five elements, Chain-of-Experts, few-shot;
 with the API card; template problems, 3 seeds, both models) classified from its last round:
 - gpt-oss-20b: 79–98% of wrong rows ran and printed a wrong value (modelling); the rest crash on OR-Tools API misuse despite the card
@@ -7522,51 +7522,66 @@ with the API card; template problems, 3 seeds, both models) classified from its 
   real conda-forge binaries (scip, ipopt, glpsol, cbc), and SCIP serves any solver it lacks; all three seeds were restarted. The seed-1
   rows are kept as `_highsshim` files and are not used.
 
-## 2026-11-21 21:00 UTC — The full word-problem method against the official LLMOPT-14B checkpoint (PREREG_TYPED baseline registration I)
+## 2026-11-20 21:00 UTC — The full word-problem method against the official LLMOPT-14B checkpoint (PREREG_TYPED baseline registration I)
 Nine of ten held-out set × model cells hold for the full method after Holm (16 claims); Qwen3-8B loses on OptiBench by −5.0
 [−7.5, −2.4] utility, on linear problems (LLMOPT 81.9% at 2.4k tokens vs 76.7% at 6.3k; the Qwen3-8B quick program alone is 47.3%,
 so the cascade relies on thinking). LLMOPT's OptiBench accuracy (66.1%) matches its model card (66.4%). On the 93 unseen OptMATH
 problems LLMOPT gets 15.4%; with 16 claims the typed-translation gain there (W4) no longer holds for either model (gpt-oss-20b Holm p
 0.06). Table and prediction check in PREREG_TYPED.
 
-## 2026-11-21 21:39 UTC — Related work narrows typed translation's novelty (BIND, COLM 2026); no further S4 experiment
+## 2026-11-20 21:39 UTC — Related work narrows typed translation's novelty (BIND, COLM 2026); no further S4 experiment
 BIND's two-phase template evaluation (binder → instance JSON → deterministic template solver) is our typed translation's mechanism and
 predates it; template libraries (COMPASS, AlphaOpt) and tool induction (LATM, CRAFT, TroVE, ReGAL) cover inducing types automatically.
 What stays ours: type choice from a menu with a validity + grounding check and a cascade fallback, on public benchmarks, and the
 observation that on small MAMO graphs the models bind right and model wrong (the reverse of BIND's large-instance binding limit). BIND
 is not runnable here (oracle instance data; binder not released). Details in PREREG_TYPED.
 
-## 2026-11-22 23:58 UTC — The full method with the recipe's repair turn (PREREG_TYPED addendum J): the OptiBench loss to LLMOPT closes to inconclusive
+## 2026-11-20 23:58 UTC — The full method with the recipe's repair turn (PREREG_TYPED addendum J): the OptiBench loss to LLMOPT closes to inconclusive
 W3 scored the word-problem method without HO7's one cheap repair turn. With it (registered before the run): Qwen3-8B on OptiBench −2.1
 [−4.5, +0.4] against LLMOPT-14B (was −5.0 [−7.5, −2.4]); the repair adds +1.8 [+1.4, +2.4] (Qwen3-8B) and +0.3 [+0.1, +0.5] (gpt-oss-20b)
 utility on the held-out pool. Every other held-out cell stays ahead of LLMOPT. The method in the report is typed menu (valid + grounded)
 → own program → one repair on a visible failure → peer agreement → thinking.
 
-## 2026-11-22 00:42 UTC — On expert-audited labels the OptiBench comparison with LLMOPT turns against us
+## 2026-11-21 00:42 UTC — On expert-audited labels the OptiBench comparison with LLMOPT turns against us
 With OR_CLEAN=1 (the audited subsets of MAMO, OptiBench, NL4OPT): Qwen3-8B (full method with repair) − LLMOPT on OptiBench −3.9 [−6.8,
 −1.1], a loss; gpt-oss-20b +1.7 [−1.2, +4.7], inconclusive. The other claims keep their sign (Qwen3-8B NL4OPT + IndustryOR falls to Holm p
 0.053). The report gives both label sets. Details in PREREG_TYPED.
 
-## 2026-11-22 06:40 UTC — SQL specialists of 7B are ahead of the SQL pipeline (published numbers)
+## 2026-11-21 06:40 UTC — SQL specialists of 7B are ahead of the SQL pipeline (published numbers)
 Arctic-Text2SQL-R1-7B reports BIRD dev 68.9% and Spider test 88.8% with greedy decoding; our best Qwen3-8B pipeline is 62.2% / 81.2%.
 The report's SQL claim (cascade − default of the same model) stands; it adds that fine-tuned specialists lead by about 7 points, as
 LLMOPT-14B does on clean OptiBench. Not re-run (PREREG_FINAL note).
 
-## 2026-11-22 07:41 UTC — PREREG_SPEC: a cross-family check with escalation adds +11 utility on top of LLMOPT-14B (gpt-oss-20b as checker), on raw and audited labels
+## 2026-11-21 07:41 UTC — PREREG_SPEC: a cross-family check with escalation adds +11 utility on top of LLMOPT-14B (gpt-oss-20b as checker), on raw and audited labels
 LLMOPT's answer kept when gpt-oss-20b's quick program agrees, else gpt-oss-20b thinking: 70.6% at 6.2k tokens vs LLMOPT alone 58.2% at
 4.0k (+11.3 [+9.5, +13.1]; audited +11.0), positive on every held-out set and cost view. It ties gpt-oss-20b's own full method (+0.0),
 so the specialist adds nothing as a first step. With Qwen3-8B as checker there is no gain (−0.2; OptiBench −5.7 / −8.1). Report: the
 method is complementary to a specialist when its checker / escalation model is at least as strong; for an 8B general model the
 specialist alone is the better choice on OptiBench.
 
-## 2026-11-22 08:58 UTC — PREREG_SPEC SQL: check-and-escalate hurts the SQL specialist (−7.7 / −8.2); Arctic-Text2SQL-R1-7B alone beats our pipeline by +9.8
+## 2026-11-21 08:58 UTC — PREREG_SPEC SQL: check-and-escalate hurts the SQL specialist (−7.7 / −8.2); Arctic-Text2SQL-R1-7B alone beats our pipeline by +9.8
 On Spider test Arctic gets 86.7% at 0.54k tokens; keeping its query only when a general model's quick query agrees, else the general
 model's default, drops it to 79.3% / 78.6%; our Qwen3-8B cascade is 76.9%. Together with the word-problem half: the check helps a
 specialist only when the escalation model is stronger than the specialist on that distribution. Report: for SQL, use the specialist.
 
-## 2026-11-22 09:46 UTC — PREREG_ESCT: retrying a visibly failed think adds +7.3 (Qwen3-8B, hand-off to gpt-oss-20b) and +3.9 (gpt-oss-20b, own retry); the OptiBench loss to LLMOPT is gone
+## 2026-11-21 09:46 UTC — PREREG_ESCT: retrying a visibly failed think adds +7.3 (Qwen3-8B, hand-off to gpt-oss-20b) and +3.9 (gpt-oss-20b, own retry); the OptiBench loss to LLMOPT is gone
 Two thirds of Qwen3-8B's failed escalation thinks crashed or printed nothing, and the measured method answered them with nothing. With
 one retry — the other family's think for Qwen3-8B, its own for gpt-oss-20b — the held-out pool rises 62.4 → 70.1% and 69.0 → 73.2% at
 +0.9k / +0.6k tokens; all four registered tests hold on raw and audited labels (hand-off beats self-retry for the weaker model by +4.2,
 self-retry beats hand-off for the stronger by +1.8). Against LLMOPT-14B the Qwen3-8B method is now ahead on raw OptiBench (+5.5) and
 inconclusive on audited (+2.4 [−0.3, +5.1]); gpt-oss-20b is ahead everywhere. The report's method gains this last step.
+
+## 2026-11-22 06:1x UTC — SOL-1 (exploratory headroom, no claim): small-case brute force + a fixed structure guesser solves 3 of 120 Project Euler problems, 1 that thinking misses; dropped
+- **Why.** The math-computation hard band fails because the model lacks the algorithm (Project Euler: Qwen3-8B thinking-with-code 19 of
+  120). Idea: the model writes only brute(n) for the main size parameter, a fixed guesser (polynomial, constant-coefficient linear
+  recurrence, P-recursive; ≥ 3 held-out values) fits the values and extrapolates to the asked size. Prior work: ALGO (NeurIPS 2023; brute
+  force only as a verifier), recurrence guessing (Kauers; 2202.07966), symbolic regression for sequences (2201.04600). Rule fixed before
+  scoring: ≥ 10 problems of headroom → register.
+- **Result** (poc/run_compute.py mode brutef, poc/analyze_sol1.py; 120 PECC problems, 3 seeds, no thinking): Qwen3-8B / gpt-oss-20b give
+  ≥ 8 integer values on 209 / 225 of 356 / 360 rows and a structure fits 77 / 64, but only 1 / 8 accepted rows are right (7% / 22%
+  precise); problems right in any seed 3 / 3 (pe97, pe120, pe27 / pe11), one of which thinking misses. Fits are mostly to wrong brute
+  forces (the statement's own small cases fail on 212 / 61 rows) or to the wrong parameter.
+- **OEIS ceiling** (offline, true terms): fitting the first 10–12 listed terms predicts the rest for 0 of 240 hard sequences thinking
+  fails (median 9 known terms; search-type sequences) and 6–7 of 86 easy ones.
+- **Decision:** SOL-1 dropped (headroom 1, bar 10). The hard band is not sequence-structured; it needs number-theoretic algorithms
+  (sums of arithmetic functions, sieves), which no fixed guesser supplies.

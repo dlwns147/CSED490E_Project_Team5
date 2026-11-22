@@ -1,4 +1,4 @@
-# Committed copy of results/tmp_futo_pot.py (CRITIQUE PLAN P5, 2026-11-21); run from the repo root: python3 poc/analyze_futo_pot.py <model tags>
+# Committed copy of results/tmp_futo_pot.py (CRITIQUE PLAN P5, 2026-11-20); run from the repo root: python3 poc/analyze_futo_pot.py <model tags>
 """PREREG_FUTO F-5: ladder (as tmp_futo_score) vs program-of-thought (`pot`, medium effort), paired over the 300 test puzzles."""
 import json, os, random, sys
 POT_SUFFIX = os.environ.get("POT_SUFFIX", "2")

@@ -95,7 +95,7 @@ verdict is unchanged, 4 of 5 after Holm: F1 +0.92 [+0.01, +1.84] (p 0.0225 again
 2,147: +0.86 / +1.35 / −0.26 / +1.25 / +3.11, 4 of 5. F5 is confirmed on a second untouched benchmark, Spider dev: +2.53 [+1.44, +3.69]
 (PREREG_LCM addendum TR-C1).*
 
-*Related-work check (2026-11-22 06:40 UTC, CRITIQUE PLAN S3 applied to SQL; published numbers, not re-run):* text-to-SQL specialists of
+*Related-work check (2026-11-21 06:40 UTC, CRITIQUE PLAN S3 applied to SQL; published numbers, not re-run):* text-to-SQL specialists of
 7B size beat this pipeline on both benchmarks. Arctic-Text2SQL-R1-7B (Snowflake, arXiv 2505.20315; RL from OmniSQL, greedy decoding):
 BIRD dev 68.9%, Spider test 88.8%; OmniSQL-7B (RUCKBReasoning, 2025): BIRD dev 63.9–66.1% depending on the report. Ours: BIRD dev 62.2%
 at 1.36k tokens, Spider test 81.2% at 0.44k (Qwen3-8B, trained quick query + verifier). Caveats: our BIRD dev is the 2025-11-06 corrected

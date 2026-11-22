@@ -1,4 +1,4 @@
-"""PREREG_ESCT (2026-11-22): retry after a visibly failed think — same model (RS: its next seed's think) or the other family (RX: its
+"""PREREG_ESCT (2026-11-21): retry after a visibly failed think — same model (RS: its next seed's think) or the other family (RX: its
 think, same seed) — on top of PREREG_TYPED J's full method. Held-out pool, utility at rate 0.5, clustered by problem, Holm over E-1, E-2,
 E-3 (both directions). usage: [OR_CLEAN=1] python3 poc/analyze_esct.py"""
 import os

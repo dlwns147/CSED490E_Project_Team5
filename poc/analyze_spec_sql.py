@@ -1,4 +1,4 @@
-"""PREREG_SPEC addendum SQL (2026-11-22): check-and-escalate on top of Arctic-Text2SQL-R1-7B. Per checker m (FINAL's generator with its
+"""PREREG_SPEC addendum SQL (2026-11-21): check-and-escalate on top of Arctic-Text2SQL-R1-7B. Per checker m (FINAL's generator with its
 pre-registered peer), on Spider test (FINAL_SUFFIX=sp, decisive) or BIRD dev's 1,354 unchanged questions (FINAL_SUFFIX=""):
   SPEC    Arctic's greedy query (graded by grade_sql, our gold and free check)
   SPEC+C  Arctic's query kept if it passes the check and m's quick query returns the same rows; else m's default D (SB -> T -> T);

@@ -1,4 +1,4 @@
-# Committed copy of results/tmp_futo_score.py (CRITIQUE PLAN P5, 2026-11-21); run from the repo root: python3 poc/analyze_futo_score.py <model tags>
+# Committed copy of results/tmp_futo_score.py (CRITIQUE PLAN P5, 2026-11-20); run from the repo root: python3 poc/analyze_futo_score.py <model tags>
 """PREREG_FUTO scoring (only after the F-2 prediction is logged): per model, both thinking settings, the ladder (trc -> trct -> the
 better thinking setting by utility), measured accuracy term, dU with paired bootstrap; by size."""
 import json, random, sys

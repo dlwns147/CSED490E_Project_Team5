@@ -1,4 +1,4 @@
-"""PREREG_SPEC (2026-11-22): check-and-escalate on top of a specialist (LLMOPT-14B), offline on stored rows.
+"""PREREG_SPEC (2026-11-21): check-and-escalate on top of a specialist (LLMOPT-14B), offline on stored rows.
 SPEC = LLMOPT alone; FULL = our method for gpt-oss-20b (T>CASCR); SPEC+C = LLMOPT's answer kept when gpt-oss-20b's quick program prints the
 same value, else gpt-oss-20b thinking; SPEC+C8 = the same with Qwen3-8B as check and escalation. Utility at rate 0.5 (and a sensitivity
 grid), clustered bootstrap by problem, Holm over S-1 (both checkers) and S-2.

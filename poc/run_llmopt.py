@@ -7,10 +7,10 @@ self-correction prompt but not the loop): Q2F -> five-element model; F2C -> Pyom
 the self-correction prompt; a False regenerates that part (five-element False: both), up to MAX_ROUNDS generations; the objective is read
 from the run's output by objective_of (the last line naming an objective); the repository's id_gt prompt also runs and is stored as
 pred_idgt (11-20: on the first rows it often returned a decision variable, the first number printed). Every token of every call is counted.
-Sandbox (11-21): Pyomo with the conda-forge binaries scip, ipopt, glpsol and cbc on the sandbox PATH (sitecustomize in the POC_PYTHON
+Sandbox (11-20): Pyomo with the conda-forge binaries scip, ipopt, glpsol and cbc on the sandbox PATH (sitecustomize in the POC_PYTHON
 venv), so code that names glpk / cbc / ipopt / scip runs with that solver; an unavailable one (gurobi, cplex, ...) is served by SCIP
 (LP, MILP and nonlinear). The 11-20 HiGHS-only shim crashed on nonlinear objectives and on infeasible models (first seed discarded).
-11-21 18:4x, generous to the baseline: a nonlinear model sent to an LP/MILP solver is solved by SCIP instead of crashing; rows whose run
+11-20 18:4x, generous to the baseline: a nonlinear model sent to an LP/MILP solver is solved by SCIP instead of crashing; rows whose run
 hit that crash before the change are rerun with --ids <file> (tag + '_rerun') and replace the originals.
 LLMOPT's release excludes MAMO EasyLP / ComplexLP from training; the other sets may overlap its training data (stated in the record).
 
@@ -66,7 +66,7 @@ def objective_of(out):
 def main():
     tag, seed, sets = sys.argv[1], int(sys.argv[2]), sys.argv[3].split(",")
     P = [p for w in sets for p in RN.problems(w)]
-    if "--ids" in sys.argv:   # rerun only these problems (11-21: rows whose run hit the sandbox's nonlinear-to-LP-solver crash)
+    if "--ids" in sys.argv:   # rerun only these problems (11-20: rows whose run hit the sandbox's nonlinear-to-LP-solver crash)
         keep = set(open(sys.argv[sys.argv.index("--ids") + 1]).read().split()); P = [p for p in P if p["id"] in keep]
         tag += "_rerun"
 

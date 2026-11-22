@@ -1,4 +1,4 @@
-"""PREREG_SPEC addendum SQL (2026-11-22): the text-to-SQL specialist Arctic-Text2SQL-R1-7B (Snowflake, arXiv 2505.20315) on our items, with
+"""PREREG_SPEC addendum SQL (2026-11-21): the text-to-SQL specialist Arctic-Text2SQL-R1-7B (Snowflake, arXiv 2505.20315) on our items, with
 its own evaluation inputs: OmniSQL's pre-processed prompts (`input_seq` of data/dev_bird.json and data/test_spider.json from
 huggingface.co/datasets/seeklhy/OmniSQL-datasets; schema with sampled and question-matched values), greedy decoding as in its paper.
 Items are matched to ours by position and question text (Spider test: all 2,147; BIRD dev: the 1,354 questions the 2025-11-06

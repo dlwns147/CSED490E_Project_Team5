@@ -1,6 +1,6 @@
-# PREREG_SPEC — does check-and-escalate add on top of a specialist? (registered 2026-11-22 07:40 UTC)
+# PREREG_SPEC — does check-and-escalate add on top of a specialist? (registered 2026-11-21 07:40 UTC)
 
-**Why (user 11-22: "are loop dealing testing suggesting important problems?").** On clean OptiBench a fine-tuned 14B specialist
+**Why (user 11-21: "are loop dealing testing suggesting important problems?").** On clean OptiBench a fine-tuned 14B specialist
 (LLMOPT-14B, official checkpoint and prompts, PREREG_TYPED registration I) beats Qwen3-8B's full method, and on SQL published 7B
 specialists lead by about 7 points. If the method only helps general models, its scope is narrow; if a free check plus escalation also
 improves a specialist, the method is complementary to specialists. Prior work: FrugalGPT / AutoMix (cascades by a learned or
@@ -20,7 +20,7 @@ Held-out sets NL4OPT + IndustryOR, OptMATH (seed 1 own program), OptiBench, BWOR
 report states the method is complementary to the specialist and adds the SPEC+C row; S-1 fails on either label set → the report states
 the method's scope as general models. Cost views 0.25–2 and size-weighted reported as sensitivity.
 
-## Result (2026-11-22 07:41 UTC; python3 poc/analyze_spec.py, raw and OR_CLEAN=1)
+## Result (2026-11-21 07:41 UTC; python3 poc/analyze_spec.py, raw and OR_CLEAN=1)
 Held-out pool (3,472 problem × seed rows raw; 2,728 audited), utility at rate 0.5, clustered by problem, Holm over three:
 | test | raw labels | audited labels |
 |---|---|---|
@@ -36,7 +36,7 @@ as the specialist off its training distribution (gpt-oss-20b): +11 utility over 
 Qwen3-8B as checker. And the specialist is not a better first step than gpt-oss-20b's own program (S-2 ≈ 0): the gain over LLMOPT is the
 check and gpt-oss-20b's thinking, not LLMOPT's answer.
 
-## Addendum SQL (registered 2026-11-22 08:44 UTC, before any Arctic row): the same test on text-to-SQL with Arctic-Text2SQL-R1-7B
+## Addendum SQL (registered 2026-11-21 08:44 UTC, before any Arctic row): the same test on text-to-SQL with Arctic-Text2SQL-R1-7B
 Specialist: Snowflake/Arctic-Text2SQL-R1-7B (arXiv 2505.20315; reports BIRD dev 68.9%, Spider test 88.8%), greedy, its own evaluation
 inputs (OmniSQL's pre-processed prompts, seeklhy/OmniSQL-datasets data/dev_bird.json and data/test_spider.json), poc/run_spec_sql.py,
 graded by poc/grade_sql.py on our items and gold. Sets: Spider test (all 2,147; never used for a decision, as in FINAL) and BIRD dev
@@ -48,7 +48,7 @@ row) and m's quick query returns the same rows, else m's default (SB → T → T
 Holm over SQ-1 (two checkers) and SQ-3; clustered by question. Decision: SQ-1 holds for a checker → the report says the method adds to
 the SQL specialist with that checker; fails → the specialist alone is the recommendation for SQL. Smoke: 20 questions, read failed rows.
 
-### Addendum SQL result (2026-11-22 08:58 UTC; FINAL_SUFFIX=sp / "" python3 poc/analyze_spec_sql.py)
+### Addendum SQL result (2026-11-21 08:58 UTC; FINAL_SUFFIX=sp / "" python3 poc/analyze_spec_sql.py)
 Harness: Arctic's 2,147 Spider-test queries all extracted and finished; 85.9% right on all of them (card 88.8%); failures are wrong
 values (283 pass the check but are wrong) and empty results; BIRD dev unchanged questions 69.1%. Scored on the questions with FINAL rows
 (Spider 1,741, BIRD 1,351), utility at rate 0.5, Holm over three:

@@ -21,6 +21,10 @@ Modes:
          the program written after each cut; row["cuts"] holds every budget, the row itself the largest (pilot: thinkp at 16k capped
          without a program on half the easy problems, so the plain cap undersells thinking)
   brute  OEIS only, no thinking: a deliberately slow program written straight from the definition, for comparing with `prog` on small n
+  brutef Euler, no thinking (SOL-1, 2026-11-21): only brute(n), the asked quantity at a small value n of the problem's main size parameter,
+         plus ASKED (that parameter's asked value), MOD (asked modulus / 10**k for last digits / None) and CHECKS [(n, value)] copied from
+         the statement; the harness evaluates brute(0..60) (5 s each, 45 s total) and the checks; poc/analyze_sol1.py fits a structure
+         (linear recurrence, P-recursive, polynomial) to the values, checks it on held-out values and extrapolates to ASKED
   mem    Euler only, no thinking, no work shown: the answer at once (memorization control: old answers are public)
 Grading: MathConstruct its own parse_and_check; Euler exact integer string; OEIS a(n) on the first 20 listed terms (4 s each, as the benchmark's most lenient limit), right only if all match.
 usage: POC_BASE_URL=... python run_compute.py <set> <tag> <mode> <seed> [--max_tokens N] [--n K] [--budgets B1,B2,..]
@@ -62,6 +66,55 @@ EULER_PROGC2 = ("{p}\n\nDo not solve this by hand. Write a complete, efficient P
                 "if it gives none; never a value you computed or remember);\n"
                 "3. under `if __name__ == \"__main__\":`, a call of `solve` with the parameters the problem asks about, printing ONLY that answer.\n"
                 "It must finish within one minute. Give the program in a single ```python code block.")
+EULER_BRUTEF = ("{p}\n\nDo not try to solve the problem at the size it asks about. Write a Python 3 program (standard library, sympy, numpy "
+                "allowed) that defines:\n"
+                "1. `brute(n)`: the exact quantity the problem asks for when its main size parameter (the one that is large in the question) "
+                "equals n, every other parameter as stated, computed by the simplest direct brute force from the definitions (it only needs to "
+                "work for small n). Return the exact value: no modulus, no last-digit truncation, no rounding;\n"
+                "2. `ASKED`: the value of that parameter in the question (an integer);\n"
+                "3. `MOD`: the modulus if the answer is asked modulo m, 10**k if its last k digits are asked, else None;\n"
+                "4. `CHECKS = [(n, value), ...]`: every small case whose value the statement itself gives for this quantity, copied exactly "
+                "(an empty list if it gives none).\n"
+                "No code may run on import. Give the program in a single ```python code block.")
+BRUTEF_DRIVER = """
+
+import json as _j, signal as _s, time as _t
+class _TO(Exception):
+    pass
+def _h(*_):
+    raise _TO()
+_s.signal(_s.SIGALRM, _h)
+def _ev(n, lim):
+    _s.setitimer(_s.ITIMER_REAL, lim)
+    try:
+        v = brute(n)
+        return repr(v)
+    except _TO:
+        return 'TIMEOUT'
+    except Exception as e:
+        return 'error ' + type(e).__name__
+    finally:
+        _s.setitimer(_s.ITIMER_REAL, 0)
+_t0 = _t.time(); _vals = []
+for _n in range(61):
+    if _t.time() - _t0 > 45:
+        break
+    _v = _ev(_n, 5.0)
+    _vals.append(_v)
+    if _v == 'TIMEOUT':
+        break
+_ck = []
+try:
+    for _a, _b in CHECKS:
+        _ck.append([repr(_a), repr(_b), _vals[_a] if isinstance(_a, int) and 0 <= _a < len(_vals) else _ev(_a, 10.0)])
+except Exception as e:
+    _ck = 'error ' + type(e).__name__
+try:
+    _meta = [repr(ASKED), repr(MOD)]
+except Exception as e:
+    _meta = ['error', 'error']
+print('__BRUTEF__' + _j.dumps({'vals': _vals, 'checks': _ck, 'asked': _meta[0], 'mod': _meta[1]}))
+"""
 EULER_MEM = "{p}\n\nGive only the final answer in \\boxed{{}}, with no working."
 OEIS = ("Write a python code that takes a number n as input from stdin, outputs a single element of a sequence as a string to stdout. Just output "
         "the n-th element in the sequence, not the whole sequence or anything other than the single sequence element. You will be graded by my "
@@ -212,7 +265,8 @@ def main():
         if mcon:
             q = {"think": "{p}", "prog": MC_PROG, "thinkp": MC_PROG, "progc": MC_PROGC}[mode].format(p=p["problem"])
         elif euler:
-            q = {"think": EULER_THINK, "prog": EULER_PROG, "thinkp": EULER_PROG, "thinkpb": EULER_PROG, "progc": EULER_PROGC, "progc2": EULER_PROGC2, "mem": EULER_MEM}[mode].format(p=p["problem"])
+            q = {"think": EULER_THINK, "prog": EULER_PROG, "thinkp": EULER_PROG, "thinkpb": EULER_PROG, "progc": EULER_PROGC, "progc2": EULER_PROGC2, "mem": EULER_MEM,
+                 "brutef": EULER_BRUTEF}[mode].format(p=p["problem"])
         else:
             q = OEIS.format(name=p["name"], comments=p["comments"])
             q = OEIS_BRUTE.format(q=q) if mode == "brute" else q
@@ -260,6 +314,11 @@ def main():
             row.update(gold=p["answer"], difficulty=p.get("difficulty"))
             if mode in ("think", "mem"):
                 row.update(answer=boxed(text), text=text[-2000:])
+            elif mode == "brutef":
+                code = last_block(text, ("python", "py", "python3"))
+                r = run_python("__name__ = '__brutef__'\n" + code + BRUTEF_DRIVER, "", timeout=PROG_S, mem_bytes=4 << 30) if code else None
+                m = re.search(r"__BRUTEF__(.*)", (r.stdout if r else "") or "")
+                row.update(code=code, status=(r.status if r else "no_code"), answer="", **(json.loads(m.group(1)) if m else {}))
             else:
                 code = last_block(text, ("python", "py", "python3"))
                 r = run_python(code, "", timeout=PROG_S, mem_bytes=4 << 30) if code else None

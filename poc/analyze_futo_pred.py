@@ -1,4 +1,4 @@
-# Committed copy of results/tmp_futo_pred.py (CRITIQUE PLAN P5, 2026-11-21); run from the repo root: python3 poc/analyze_futo_pred.py <model tags>
+# Committed copy of results/tmp_futo_pred.py (CRITIQUE PLAN P5, 2026-11-20); run from the repo root: python3 poc/analyze_futo_pred.py <model tags>
 """PREREG_FUTO F-2: blind hybrid estimate of each ladder's accuracy term, against both thinking settings (medium M, high H); reads only id,
 count, ans, tokens (`exact` dropped). Ladder: trc -> trct -> think, accept at count 1. Third: the other gpt-oss model's trc (count 1)."""
 import json, sys

@@ -1,4 +1,4 @@
-# PREREG_ESCT — what to do when the escalation's thinking program fails visibly (registered 2026-11-22 09:44 UTC)
+# PREREG_ESCT — what to do when the escalation's thinking program fails visibly (registered 2026-11-21 09:44 UTC)
 
 **Why (M-B).** On the held-out pool most remaining errors are escalated problems whose thinking is wrong (Qwen3-8B 32 points, gpt-oss-20b
 26). Reading the 754 / 590 such rows on audited labels (poc/analyze_esct.py --census): **66% of Qwen3-8B's and 47% of gpt-oss-20b's failed
@@ -16,7 +16,7 @@ Tokens of the retry are paid; utility at rate 0.5; held-out pool (x3, OptMATH se
   gpt-oss-20b (a weaker main model should hand off to the stronger family; a stronger one should retry itself).
 Holm over E-1, E-2 and the two E-3 directions; raw AND audited labels. Decision: the tests that hold on both label sets enter the method.
 
-## Result (2026-11-22 09:46 UTC; python3 poc/analyze_esct.py, raw and OR_CLEAN=1; held-out pool 3,472 / 2,728 rows)
+## Result (2026-11-21 09:46 UTC; python3 poc/analyze_esct.py, raw and OR_CLEAN=1; held-out pool 3,472 / 2,728 rows)
 | test | raw | audited |
 |---|---|---|
 | E-1 Qwen3-8B J+RX − J | **+7.25 [+6.22, +8.35] holds** | **+7.05 [+5.87, +8.30] holds** |

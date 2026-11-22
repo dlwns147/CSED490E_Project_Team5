@@ -302,7 +302,7 @@ ComplexLP labels, project tolerance), utility at rates 0.25–2.
   rates and cost views. A cell whose CI is below 0 is a loss of the method on that set and is stated as one; no cell is dropped. Sets
   that may be in LLMOPT's training data (all but MAMO, by its card) are marked.
 
-### Baseline registration I result (2026-11-21 21:00 UTC; poc/analyze_claims.py, 16 claims, Holm, problem-clustered)
+### Baseline registration I result (2026-11-20 21:00 UTC; poc/analyze_claims.py, 16 claims, Holm, problem-clustered)
 LLMOPT-14B, three seeds, sandbox with real solvers (rows that hit the earlier solver crash rerun in full: 199 / 78 / 63). Its accuracy:
 MAMO EasyLP 87.0%, ComplexLP 40.5% (SIRL-corrected labels), NL4OPT + IndustryOR 66.5%, OptMATH 18.7%, OptiBench 66.1% (its card:
 66.4%, so the harness reproduces it there), BWOR 24.4%, LogIOR 20.3%, unseen OptMATH 15.4%.
@@ -320,7 +320,7 @@ problems without a table, LLMOPT 81.9% vs full method 76.7% (Qwen3-8B's own prog
 6.3k tokens vs LLMOPT's 2.4k); on nonlinear problems the two tie (49.1 / 50.1; 16.7 / 18.0). With gpt-oss-20b the full method is ahead
 on every type.
 
-## Related work found after the results (2026-11-21 21:39 UTC) — what typed translation is new against
+## Related work found after the results (2026-11-20 21:39 UTC) — what typed translation is new against
 - **BIND / Text2Opt-Bench** (Gao et al., "Models Can Model, But Can't Bind", COLM 2026, arXiv 2605.21751, code SprocketLab/Text2Opt-Bench):
   splits text-to-optimization into modelling and binding (copying data); its two-phase template evaluation (a binder writes instance
   JSON, a deterministic template solver for transportation / job-shop solves it) is the same mechanism as our typed translation and
@@ -336,7 +336,7 @@ on every type.
   phase-1 schema and LLMOPT's five-element pipeline. Decision: no further typed-translation method experiment; the report presents
   typed translation as a template-specific instance of BIND's two-phase idea plus our routing check.
 
-## Addendum J (registered 2026-11-21 23:40 UTC, before any row): the full method with the recipe's repair turn, against LLMOPT-14B
+## Addendum J (registered 2026-11-20 23:40 UTC, before any row): the full method with the recipe's repair turn, against LLMOPT-14B
 Why: W3's full method (typed → cascade) left out the established recipe's cheap repair turn (HO7: one non-thinking turn shown a visible
 failure — crash, no value, 'No Best Solution' — before escalating). Qwen3-8B's pool-free own programs crash on 377 of 1,026 linear
 OptiBench rows, 280 of them on one API misuse (`solver.Constraint(expr, ub)`), so its cascade pays for thinking where a repair might do.
@@ -349,7 +349,7 @@ failure, one repair → peer agreement → thinking; repair tokens paid.
 Decision: J-1 holds → the report's word-problem method includes the repair and the OptiBench loss is closed; fails → it stays a loss.
 Scored with analyze_claims-style clustered bootstrap, Holm over J-1 and J-2 (both models).
 
-### Addendum J result (2026-11-22 23:58 UTC; python3 poc/analyze_claims.py, family J, Holm over 4)
+### Addendum J result (2026-11-20 23:58 UTC; python3 poc/analyze_claims.py, family J, Holm over 4)
 Repair rows: Qwen3-8B 1,808 visible failures repaired (596 now print a value, 445 right; 726 tokens each), gpt-oss-20b 764 (306, 196).
 - **J-1 Qwen3-8B, OptiBench: full method with repair − LLMOPT −2.1 [−4.5, +0.4] → holds as registered (the interval reaches 0); the W3
   loss (−5.0) is no longer shown, and it is not a win (inconclusive).** gpt-oss-20b: +4.8 [+2.3, +7.4].
@@ -359,13 +359,13 @@ Repair rows: Qwen3-8B 1,808 visible failures repaired (596 now print a value, 44
 Decision (registered): the report's word-problem method includes the repair turn; Qwen3-8B on OptiBench is reported as inconclusive
 against LLMOPT (−2.1 [−4.5, +0.4]), not as a win. The repair's remaining Qwen3-8B crashes are the same API misuse (122 rows).
 
-### Sensitivity on expert-audited labels (2026-11-22 00:42 UTC; OR_CLEAN=1 python3 poc/analyze_claims.py; Xiao et al. 2025 subsets of MAMO, OptiBench 403 / 605, NL4OPT)
+### Sensitivity on expert-audited labels (2026-11-21 00:42 UTC; OR_CLEAN=1 python3 poc/analyze_claims.py; Xiao et al. 2025 subsets of MAMO, OptiBench 403 / 605, NL4OPT)
 The OptiBench verdicts move against us once bad labels go: Qwen3-8B full method with repair − LLMOPT **−3.9 [−6.8, −1.1], a loss again**
 (J-1 holds only on the raw labels); gpt-oss-20b +1.7 [−1.2, +4.7], inconclusive (raw: +4.8). Qwen3-8B on NL4OPT + IndustryOR +4.0
 [+0.7, +7.4], Holm p 0.053 (raw: holds). Unchanged in sign and still holding: W1 both models (+25.5 / +8.6), W2 both (+4.2 / +1.2), BWOR,
 LogIOR, gpt-oss-20b NL4OPT + IndustryOR and OptMATH, J-2 both. The report states both label sets; on audited OptiBench the method loses
 to LLMOPT-14B for Qwen3-8B and is inconclusive for gpt-oss-20b.
-*Cost-view check (2026-11-22 01:42 UTC):* on audited OptiBench the Qwen3-8B loss to LLMOPT holds at every rate (0.25–2) and in every cost
+*Cost-view check (2026-11-21 01:42 UTC):* on audited OptiBench the Qwen3-8B loss to LLMOPT holds at every rate (0.25–2) and in every cost
 view (output tokens; tokens × active parameters, LLMOPT at 14B; output + 0.25 × input): from −3.0 [−5.9, −0.1] (size, 0.25) to −7.4
 [−10.5, −4.3] (output, 2). gpt-oss-20b is inconclusive in most views and ahead only where LLMOPT's 14B tokens are priced by size at
 rate ≥ 1 (+3.8 [+0.8, +6.8]).
