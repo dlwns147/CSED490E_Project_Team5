@@ -184,3 +184,9 @@ utility at 0.5, clustered bootstrap, Holm over three (poc/voi_transfer.py).
   VOI-transfer 16.0% @ 23.9k, U 4.1 vs the best single source 14.0% @ 10.4k, U 8.8: −4.76 [−7.85, −0.27]; it beats SC@3 (+5.3) and ties
   the transferred ladder (−2.3 [−7.1, +4.0]). The fresh problems are much harder than dev (best single 14% vs 38%), so dev's
   calibration over-states fresh accuracy as well. Not shown.
+
+## Amendment 8 (2026-11-22 20:4x UTC, before running): confirm the word-problem win on problems no decision has seen
+The one claim set VOI won (word problems, held-out pool) has been looked at by every earlier word-problem decision. PREREG_FRESH's 300
+fresh OptMATH-Train problems already have the same four sources stored (Qwen3-8B / gpt-oss-20b own program freef and thinkfree, 3 seeds),
+never used by VOI. Test: python3 poc/voi.py words --fresh (v2, frozen settings), VOI − {our cascade (gpt-oss-20b), SC@3 gpt-oss-20b
+think, label-fitted ladder}, utility at 0.5, clustered bootstrap, Holm over three. Prediction: VOI ≥ each (as on the held-out pool).

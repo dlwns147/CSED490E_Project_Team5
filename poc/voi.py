@@ -25,6 +25,7 @@ LAM = float(sys.argv[sys.argv.index("--lam") + 1]) if "--lam" in sys.argv else 0
 SEEDS = (1, 2, 3)
 DMAX = int(sys.argv[sys.argv.index("--dmax") + 1]) if "--dmax" in sys.argv else 6   # number of difficulty classes: chosen by BIC up to DMAX
 SS = [float(x) for x in sys.argv[sys.argv.index("--ss") + 1].split(",")] if "--ss" in sys.argv else []   # amendment 3
+FRESHW = "--fresh" in sys.argv   # amendment 8: the 300 fresh OptMATH-Train problems of PREREG_FRESH instead of the held-out sets
 OD = "--od" in sys.argv   # amendment 6: within-source overdispersion
 OEIS_BRUTE = "--brute" in sys.argv   # amendment 4
 V3 = "--v3" in sys.argv   # diagnostic after OEIS (see PREREG_VOI amendment 2): per-class concentration
@@ -127,7 +128,7 @@ def load_words():
         import analyze_frontier as F
     sys.argv = sys.argv_saved
     P = defaultdict(lambda: defaultdict(list)); srcs = []
-    for st in ("x3", "optmath", "optibench", "bwor", "logior"):
+    for st in (("omtf",) if FRESHW else ("x3", "optmath", "optibench", "bwor", "logior")):
         for m in ("q8b", "oss20"):
             ft, fo, fk = F.files(m, st)
             for nm, path in ((f"{m}_own", fo), (f"{m}_think", fk)):
@@ -530,7 +531,7 @@ def main():
         mu, lo, hi, p = boot({i: U(*vo[i]) - U(*res[arm][i]) for i in ids})
         print(f"  {arm:40s} {mu:+6.2f} [{lo:+6.2f}, {hi:+6.2f}]  p={p:.4f}")
     json.dump({arm: {i: list(v) for i, v in R.items() if v is not None} for arm, R in res.items()},
-              open(f"{RES}/voi_{which}_lam{LAM}{'_v3' if V3 else ''}{'_brute' if OEIS_BRUTE else ''}{'_od' if OD else ''}.json", "w"))
+              open(f"{RES}/voi_{which}_lam{LAM}{'_v3' if V3 else ''}{'_brute' if OEIS_BRUTE else ''}{'_od' if OD else ''}{'_fresh' if FRESHW else ''}.json", "w"))
 
 
 if __name__ == "__main__":
