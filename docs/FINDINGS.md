@@ -7654,5 +7654,5 @@ inconclusive on audited (+2.4 [−0.3, +5.1]); gpt-oss-20b is ahead everywhere. 
   verify()'s precision (27% / 67% / 81%).
 - **Fresh confirmation of the one win fails** (amendment 8, 300 fresh OptMATH-Train problems): VOI − our cascade −2.06 [−4.27, +0.12],
   − SC@3 −0.28, − label-fitted ladder −0.09. So across all fresh data VOI does not beat the strongest simple baseline; its robust
-  result is beating self-consistency at lower cost on every set.
+  result is beating self-consistency on four of five claim and development sets with stored seeds (ties it on fresh word problems).
 - Record: docs/prereg/PREREG_VOI.md (registration and eight amendments, each committed before the set it concerns was scored).
