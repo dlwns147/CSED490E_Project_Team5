@@ -129,3 +129,6 @@ registration.
   concentration κ_s fitted by EM (κ → ∞ recovers v2); the policy's predictive for the next sample of s uses s's earlier samples on
   that problem. Test: Project Euler dev (120, not yet scored by any VOI version), VOI-OD − {best single, SC@3, label-fitted ladder,
   VOI v2}, utility at 0.5, clustered bootstrap, Holm over the four. Every other set under OD is a diagnostic (already seen).
+- *Amendment 5 result (2026-11-22 17:4x UTC):* the reviewer score does not separate right from wrong OEIS programs: pairwise AUROC 0.53 over the
+  188 sequences that have both, top-scored class right on 27% (3,296 programs scored, Slurm 1551239). Not added to VOI. OEIS selection
+  has no label-free signal among agreement, own brute force and reviewer likelihood.
