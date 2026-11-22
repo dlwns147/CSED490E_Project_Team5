@@ -25,7 +25,7 @@ models (poc/analyze_adj.py). A model's test HOLDS if Holm p < 0.05 on raw labels
 **Prediction:** small: ceiling +3.4 (Qwen3-8B) / +3.3 (gpt-oss-20b) points if every recoverable row were recovered and none lost;
 expected +0.5 to +1.5. If neither holds, the escalation tier stays as in ESCT and the report states that adjudication does not pay.
 
-## Result (2026-11-22 11:0x UTC; python3 poc/analyze_adj.py, raw and OR_CLEAN=1; held-out pool 3,472 / 2,728 problem-seeds)
+## Result (2026-11-22 10:5x UTC; python3 poc/analyze_adj.py, raw and OR_CLEAN=1; held-out pool 3,472 / 2,728 problem-seeds)
 | model | labels | ESCT final | ADJ final | ADJ − ESCT (utility at 0.5) | Holm |
 |---|---|---|---|---|---|
 | Qwen3-8B | raw | 70.1% @ 7.50k | 71.3% @ 6.68k | +1.65 [+0.61, +2.62] | p = 0.003, holds |

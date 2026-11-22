@@ -26,7 +26,7 @@ Holm over the two models (poc/analyze_fresh.py). HOLDS if Holm p < 0.05. Also re
 **Reading fixed in advance:** if Qwen3-8B's test does not hold, the OptiBench "+2.4" is reported as a forking-path result and the report
 says the final method ties or trails LLMOPT on fresh problems for Qwen3-8B.
 
-## Result (2026-11-22 11:0x UTC; python3 poc/analyze_fresh.py; 300 fresh problems × 3 seeds)
+## Result (2026-11-22 10:5x UTC; python3 poc/analyze_fresh.py; 300 fresh problems × 3 seeds)
 | model | FULL | LLMOPT-14B | FULL − LLMOPT (utility at 0.5) | Holm |
 |---|---|---|---|---|
 | Qwen3-8B | 76.7% @ 6.86k (size-weighted 6.2k) | 51.2% @ 5.05k (8.8k) | +24.5 [+20.1, +28.9] | p = 0.0005, holds |
