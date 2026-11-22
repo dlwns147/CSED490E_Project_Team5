@@ -7620,7 +7620,7 @@ inconclusive on audited (+2.4 [−0.3, +5.1]); gpt-oss-20b is ahead everywhere. 
 | Word problems, fresh (PREREG_FRESH) | 76.7% / 82.6% | LLMOPT-14B 51.2% | +24.5 / +32.0, registered, holds |
 | SQL (PREREG_SPEC) | Qwen3-8B cascade | Arctic-Text2SQL-R1-7B alone | behind: −9.8 Spider test, −5.9 BIRD; recommend the specialist |
 | Tool calls, single-turn | TC2-AB 88.3% @ 0.48k | ToolACE-2-8B 85.0% | ahead by about 3 (unpaired) |
-| Tool calls, multi-turn | MT-SO | EnvScaler-8B | behind by 5.4 |
+| Tool calls, multi-turn | MT-SO | EnvScaler-8B | behind by 5.4; per-turn selection on top of EnvScaler also fails (MT-FCS, 11-07: its thinking turn is right on 180 of the 229 disagreeing sets, so the verifier's 77% pick rate loses) |
 | Futoshiki (large room) | ladder | thinking / program-of-thought | +35 / +38 (gpt-oss) |
 | Math computation (OEIS, Project Euler) | check + escalate | thinking | +1 to +2 on OEIS, tie on Project Euler: stated limitation |
 - Scripts: poc/analyze_final_wp.py (rows 1–2), analyze_fresh.py, analyze_spec_sql.py, PREREG_SPEC TC (grade_tc.py), PREREG_MT, analyze_futo_*.
