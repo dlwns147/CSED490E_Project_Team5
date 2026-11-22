@@ -7626,3 +7626,13 @@ inconclusive on audited (+2.4 [−0.3, +5.1]); gpt-oss-20b is ahead everywhere. 
 - Scripts: poc/analyze_final_wp.py (rows 1–2), analyze_fresh.py, analyze_spec_sql.py, PREREG_SPEC TC (grade_tc.py), PREREG_MT, analyze_futo_*.
 - Reading: the method wins where a free check exists and the escalation model is at least as strong as the specialist (word problems,
   single-turn calls, Futoshiki); it loses to trained specialists where they are stronger than the whole cascade (SQL, multi-turn calls).
+
+## 2026-11-22 14:3x UTC — Fresh-set ablation (PREREG_FRESH rows, exploratory): the retry and repair steps replicate; the typed menu hurts Qwen3-8B on fresh problems
+- Per recipe step on the 300 fresh problems × 3 seeds (utility at 0.5, clustered by problem):
+  - final − thinking: Qwen3-8B +19.3 [+15.8, +22.7] (76.7% vs 57.8%); gpt-oss-20b +4.7 [+2.9, +6.5] (82.6% vs 77.4%).
+  - retry after a failed think: +9.4 [+7.1, +11.7] / +2.3 [+1.3, +3.3]; repair turn (Qwen3-8B): +2.7 [+1.6, +4.0].
+  - **typed menu: Qwen3-8B −2.4 [−4.1, −0.8]**; gpt-oss-20b +0.2 [−0.9, +1.5]. Qwen3-8B routes 70 of 900 problem-seeds (39 as max
+    flow) and the fixed solver is right on 29 where the cascade would be right on 51: it still reads non-template problems as
+    templates. gpt-oss-20b routes 40, right on 34 vs 32.
+- Reading: the typed menu's gains came from MAMO's templates (where it was designed) and do not carry to fresh problems for the weaker
+  model; the report should present it as template-bound (as S4 already said) and Qwen3-8B's final method is better without it here.
