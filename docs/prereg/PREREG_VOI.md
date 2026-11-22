@@ -132,3 +132,21 @@ registration.
 - *Amendment 5 result (2026-11-22 17:4x UTC):* the reviewer score does not separate right from wrong OEIS programs: pairwise AUROC 0.53 over the
   188 sequences that have both, top-scored class right on 27% (3,296 programs scored, Slurm 1551239). Not added to VOI. OEIS selection
   has no label-free signal among agreement, own brute force and reviewer likelihood.
+
+## Amendment 6 diagnostics and the Project Euler dev test (2026-11-22 18:3x UTC; results/voi_<set>_od.txt, voi_euler.txt, voi_euler_od.txt)
+- OD fits strong within-source correlation (κ 1.6–12 for most sources) but barely changes the policy: fresh Euler 5.5 (v2 3.0; best
+  single 8.8), words 70.0 (v2 71.1), OEIS 28.2 (28.0), MATH 92.1 (91.8).
+- **Project Euler dev (120, 3 families, registered test of OD):** VOI-OD 44.2% @ 17.5k, utility 35.4; v2 35.7; best single (gpt-oss-120b
+  think-then-program) 38.3% @ 7.4k, 34.6. OD − best single +0.81 [−3.24, +5.44], − SC@3 +2.05 [−0.40, +4.53] (p 0.04), − label-fitted
+  ladder +2.56 [−1.69, +7.44], − v2 −0.3: **not shown** under Holm. v2 − SC@3 +2.33 [+1.49, +3.17] (p 0.0002).
+## Summary of the 24-hour test so far (claim sets only)
+| set | VOI (label-free) vs strongest baseline | verdict |
+|---|---|---|
+| word problems (1,224) | +2.1 over our cascade, +2.2 over SC@3, +2.2 over the label-fitted ladder | **wins** |
+| Project Euler dev (120) | +1.1 [−3.7, +6.0] over the best single sample; +2.3 over SC@3 | tie with the best single; beats SC@3 |
+| Project Euler 943–992 fresh (50) | −5.8 [−7.4, −4.5] vs the best single sample; +4.2 over SC@3 | **loses** to one strong sample |
+| development: MATH+AIME, OEIS | ties (saturated; selection-limited) | — |
+Reading: VOI beats self-consistency everywhere and beats every baseline where cheap sources are informative and complementary (word
+problems); where one expensive source dominates and the rest add little (hard Project Euler), it over-buys. Four model changes
+(token-aware, semi-supervised, brute checks, reviewer score, overdispersion) did not remove that; the cause left standing is that the
+policy's predicted value of an extra sample exceeds its realized value on hard sets.
