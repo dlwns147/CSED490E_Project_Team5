@@ -7586,7 +7586,7 @@ inconclusive on audited (+2.4 [−0.3, +5.1]); gpt-oss-20b is ahead everywhere. 
 - **Decision:** SOL-1 dropped (headroom 1, bar 10). The hard band is not sequence-structured; it needs number-theoretic algorithms
   (sums of arithmetic functions, sieves), which no fixed guesser supplies.
 
-## 2026-11-22 09:3x UTC — Project Euler: why Qwen3-8B's thinking-with-code fails (120 problems, seed 1, 14k budget; stored rows, no run)
+## 2026-11-22 09:2x UTC — Project Euler: why Qwen3-8B's thinking-with-code fails (120 problems, seed 1, 14k budget; stored rows, no run)
 - **Why.** SOL-1 failed at its first test; before proposing another method for the math-computation hard band, read what the failures are.
 - **Census of the 101 wrong rows** (results/x44/euler_q8bL_thinkpb_s1.jsonl, largest cut): a program that runs and prints a wrong value 36
   (5 within 1%, 15 within 10×, 16 far); no value printed 32; time or memory limit 23; crash 10. Right at any of the four budgets: 23 of
