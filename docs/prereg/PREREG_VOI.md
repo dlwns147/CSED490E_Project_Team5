@@ -174,3 +174,9 @@ Constructions cannot be compared for agreement, so VOI does not apply; the set's
 passing verify(): Qwen3-8B 27% (15 / 55), gpt-oss-20b 67% (60 / 89), gpt-oss-120b 81% (115 / 142). Own-verify ladder (construction
 accepted if verify() passes, else think-then-program) vs think alone, utility at 0.5: Qwen3-8B 8.4 vs 7.3 (14.7% vs 14.1%), gpt-oss-20b
 28.9 vs 21.1 (31.1% vs 23.4%), gpt-oss-120b 49.1 vs 45.3 (50.7% vs 46.8%). The check pays in proportion to its precision.
+
+## Amendment 7 (2026-11-22 19:4x UTC, before running): calibrate on labelled problems of the same kind, apply to fresh ones
+The calibration diagnostic says hard sets need labels; fresh Euler had only 25 per half. Test: fit the model (same D by BIC, all 120
+Project Euler dev problems, semi-supervised with 100% labels, then also label-free for comparison) and run the policy on the 50 fresh
+943–992 problems, whose labels are never used. VOI-transfer − {best single source, SC@3, label-fitted ladder transferred the same way},
+utility at 0.5, clustered bootstrap, Holm over three (poc/voi_transfer.py).
