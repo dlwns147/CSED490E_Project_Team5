@@ -101,3 +101,7 @@ registered claim on those sets is v2's; v3 is reported beside it.
   brute force of the same seed — with the brute force's tokens added to its cost and P(pass | right), P(pass | wrong) fitted (label-free).
   OEIS is now a development set for VOI (decided after three looks); the claim sets left are word problems (v2, scored) and Project Euler
   dev + fresh 943–992, whose statement checks were in the registered design from the start.
+- *Amendment 4 result (2026-11-22 16:5x UTC, OEIS development):* own brute-force checks do not separate right from wrong enough: VOI 27.8 vs best
+  single 28.7 (−0.9 [−3.6, +1.9]), label-fitted ladder 28.5; a vote over all samples with checks is right on 36.2% where some sample is
+  right on 44.0%. The brute force shares the program's misreading (X56: 68% precise). *MATH + AIME semi-supervised (development):*
+  every label fraction ties (92.1–92.2 vs best single 92.6); the set is saturated (some sample right on 98.9%).
