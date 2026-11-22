@@ -1,4 +1,4 @@
-# PREREG_FRESH — the final word-problem method vs LLMOPT-14B on problems never looked at (registered 2026-11-22 07:4x UTC, before any row)
+# PREREG_FRESH — the final word-problem method vs LLMOPT-14B on problems never looked at (registered 2026-11-22 07:2x UTC, before any row)
 
 **Why.** The one held-out cell where Qwen3-8B's method lost to the official LLMOPT-14B (OptiBench) moved −5.0 (W3) → −2.1 (J, repair
 turn) → −3.9 (audited labels) → +2.4 (ESCT, retry), each change chosen after reading that loss on the same problems (LOOP §1b S8). Every
