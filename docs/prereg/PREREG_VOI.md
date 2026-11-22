@@ -147,6 +147,6 @@ registration.
 | Project Euler 943–992 fresh (50) | −5.8 [−7.4, −4.5] vs the best single sample; +4.2 over SC@3 | **loses** to one strong sample |
 | development: MATH+AIME, OEIS | ties (saturated; selection-limited) | — |
 Reading: VOI beats self-consistency everywhere and beats every baseline where cheap sources are informative and complementary (word
-problems); where one expensive source dominates and the rest add little (hard Project Euler), it over-buys. Four model changes
+problems); where one expensive source dominates and the rest add little (hard Project Euler), it over-buys. Five model changes
 (token-aware, semi-supervised, brute checks, reviewer score, overdispersion) did not remove that; the cause left standing is that the
 policy's predicted value of an extra sample exceeds its realized value on hard sets.
