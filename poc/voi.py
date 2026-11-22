@@ -25,6 +25,7 @@ LAM = float(sys.argv[sys.argv.index("--lam") + 1]) if "--lam" in sys.argv else 0
 SEEDS = (1, 2, 3)
 DMAX = int(sys.argv[sys.argv.index("--dmax") + 1]) if "--dmax" in sys.argv else 6   # number of difficulty classes: chosen by BIC up to DMAX
 SS = [float(x) for x in sys.argv[sys.argv.index("--ss") + 1].split(",")] if "--ss" in sys.argv else []   # amendment 3
+OD = "--od" in sys.argv   # amendment 6: within-source overdispersion
 OEIS_BRUTE = "--brute" in sys.argv   # amendment 4
 V3 = "--v3" in sys.argv   # diagnostic after OEIS (see PREREG_VOI amendment 2): per-class concentration
 TOKLIK = "--v1" not in sys.argv   # v2 (default): token counts are observations of the difficulty class and set expected costs
@@ -197,25 +198,31 @@ class Model:
         self.cw = {s: 0.3 for s in srcs}
         self.mu = {s: [math.log(500.0)] * D for s in srcs}   # v2 (decided after MATH, see PREREG_VOI): log tokens ~ N(mu[s,z], sd[s,z])
         self.sd = {s: [1.0] * D for s in srcs}
+        self.kappa = {s: 1e6 for s in srcs}   # amendment 6 (OD): Dirichlet-multinomial concentration of a source's repeated samples
 
     def loglik(self, obs, y, d):
         """obs: list of (source, key, check); y: a class key or None (= U); d: difficulty class"""
         ll, wrong = 0.0, defaultdict(int)
+        cnt = defaultdict(lambda: [0, 0, 0])   # OD: per source (right, fail, wrong)
         for s, k, ck, t in obs:
             p, f = self.p[s][d], self.f[s][d]
+            cnt[s][0 if (k is not None and y is not None and k == y) else (1 if k is None else 2)] += 1
             if t is not None and TOKLIK:
                 z = (math.log(max(t, 1)) - self.mu[s][d]) / self.sd[s][d]
                 ll += -0.5 * z * z - math.log(self.sd[s][d])
             if k is None:
-                ll += math.log(f)
+                ll += 0 if OD else math.log(f)
             elif y is not None and k == y:
-                ll += math.log(p)
+                ll += 0 if OD else math.log(p)
                 if ck is not None:
                     ll += math.log(self.cr[s] if ck else 1 - self.cr[s])
             else:
-                ll += math.log(max(1e-12, 1 - p - f)); wrong[k] += 1
+                ll += (0 if OD else math.log(max(1e-12, 1 - p - f))); wrong[k] += 1
                 if ck is not None:
                     ll += math.log(self.cw[s] if ck else 1 - self.cw[s])
+        if OD:
+            for s, c in cnt.items():
+                ll += dirmult(self.kappa[s], (self.p[s][d], self.f[s][d], max(1e-9, 1 - self.p[s][d] - self.f[s][d])), c)
         n = sum(wrong.values()); a = self.alz[d] if V3 else self.alpha
         if n:   # Ewens partition probability of the wrong values
             ll += len(wrong) * math.log(a) + sum(math.lgamma(c) for c in wrong.values()) + math.lgamma(a) - math.lgamma(a + n)
@@ -234,7 +241,7 @@ class Model:
         for _ in range(iters):
             cnt = {s: [[1e-3, 1e-3, 1e-3] for _ in range(self.D)] for s in self.S}   # right, fail, wrong
             ck = {s: [1.0, 1.0, 1.0, 1.0] for s in self.S}   # right&pass, right&fail, wrong&pass, wrong&fail (+1 smoothing)
-            pis = [1e-3] * self.D; wrong_sets = []
+            pis = [1e-3] * self.D; wrong_sets = []; od_sets = []
             tk = {s: [[1e-3, 0.0, 0.0] for _ in range(self.D)] for s in self.S}   # weight, sum log t, sum (log t)^2
             for n_, obs in enumerate(problems):
                 post, _ = self.posterior(obs, labels[n_] if labels else "UNK")
@@ -253,6 +260,11 @@ class Model:
                             wr[k] += 1
                     if wr:
                         wrong_sets.append((w, list(wr.values()), d))
+                    if OD:
+                        cc = defaultdict(lambda: [0, 0, 0])
+                        for s2, k2, _, _ in obs:
+                            cc[s2][0 if (k2 is not None and y is not None and k2 == y) else (1 if k2 is None else 2)] += 1
+                        od_sets.append((w, d, dict(cc)))
             for s in self.S:
                 for d in range(self.D):
                     r, f_, w = cnt[s][d]; t = r + f_ + w
@@ -263,6 +275,11 @@ class Model:
                     if w > 1e-2:
                         m_ = s1 / w; self.mu[s][d] = m_; self.sd[s][d] = max(0.1, math.sqrt(max(1e-6, s2 / w - m_ * m_)))
             tp = sum(pis); self.pi = [x / tp for x in pis]
+            if OD:   # kappa per source by maximum expected Dirichlet-multinomial likelihood (grid e^-2 .. e^8, e^8 ~ independent samples)
+                for s in self.S:
+                    pr = lambda d: (self.p[s][d], self.f[s][d], max(1e-9, 1 - self.p[s][d] - self.f[s][d]))
+                    self.kappa[s] = max([math.exp(x / 2) for x in range(-4, 17)],
+                                        key=lambda kp: sum(w * dirmult(kp, pr(d), c[s]) for w, d, c in od_sets if s in c))
             grid = [math.exp(x / 4) for x in range(-16, 25)]   # alpha by maximum expected Ewens likelihood (grid e^-4 .. e^6)
             ev = lambda a, sel: sum(w * (len(c) * math.log(a) + math.lgamma(a) - math.lgamma(a + sum(c))) for w, c, d in wrong_sets if sel(d))
             self.alpha = max(grid, key=lambda a: ev(a, lambda d: True))
@@ -275,6 +292,12 @@ class Model:
                 self.mu[s] = [self.mu[s][d] for d in order]; self.sd[s] = [self.sd[s][d] for d in order]
             self.alz = [self.alz[d] for d in order]
         return sum(self.posterior(o, labels[n_] if labels else "UNK")[1] for n_, o in enumerate(problems))
+
+
+def dirmult(kp, pi, c):
+    """log Dirichlet-multinomial probability of an ordered sequence with category counts c"""
+    n = sum(c)
+    return math.lgamma(kp) - math.lgamma(kp + n) + sum(math.lgamma(kp * q + m) - math.lgamma(kp * q) for q, m in zip(pi, c))
 
 
 def stop_value(model, obs):
@@ -297,6 +320,11 @@ def outcomes(model, obs, s, post):
         if w < 1e-9:
             continue
         p, f = model.p[s][d], model.f[s][d]
+        if OD:   # predictive of the next sample of s given its earlier samples on this problem (Dirichlet-multinomial)
+            r_ = sum(1 for s2, k2, _, _ in obs if s2 == s and k2 is not None and y is not None and k2 == y)
+            f_ = sum(1 for s2, k2, _, _ in obs if s2 == s and k2 is None)
+            n_ = sum(1 for s2, _, _, _ in obs if s2 == s); kp = model.kappa[s]
+            p, f = (kp * p + r_) / (kp + n_), (kp * f + f_) / (kp + n_)
         out[None] += w * f
         wr = defaultdict(int)
         for _, k, _, _ in obs:
@@ -444,6 +472,7 @@ def main():
                 best = (bic, D, m)
         model = best[2]
         cost = {s: sum(t for i in fit_ids for _, t, _, _ in P[i][s]) / max(1, sum(len(P[i][s]) for i in fit_ids)) for s in srcs}
+        print(f"  half {h}: kappa={ {s: round(model.kappa[s], 1) for s in srcs} }")
         print(f"  half {h}: D={best[1]} alpha={model.alpha:.2f} alz={[round(a, 2) for a in model.alz]} pi={[round(x, 2) for x in model.pi]}; p[s]: "
               + ", ".join(f"{s} {[round(x, 2) for x in model.p[s]]}" for s in srcs), flush=True)
         # label-fitted best fixed ladder (FrugalGPT-style): all ladders of length <= 3 over sources with rules, chosen on fit_ids by labels
@@ -501,7 +530,7 @@ def main():
         mu, lo, hi, p = boot({i: U(*vo[i]) - U(*res[arm][i]) for i in ids})
         print(f"  {arm:40s} {mu:+6.2f} [{lo:+6.2f}, {hi:+6.2f}]  p={p:.4f}")
     json.dump({arm: {i: list(v) for i, v in R.items() if v is not None} for arm, R in res.items()},
-              open(f"{RES}/voi_{which}_lam{LAM}{'_v3' if V3 else ''}{'_brute' if OEIS_BRUTE else ''}.json", "w"))
+              open(f"{RES}/voi_{which}_lam{LAM}{'_v3' if V3 else ''}{'_brute' if OEIS_BRUTE else ''}{'_od' if OD else ''}.json", "w"))
 
 
 if __name__ == "__main__":

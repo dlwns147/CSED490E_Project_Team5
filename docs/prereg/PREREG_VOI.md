@@ -115,3 +115,17 @@ OEIS stays development; if it separates right from wrong there, it is carried to
 registration.
 - *Amendment 3 on word problems (2026-11-22 16:5x UTC):* labels add nothing — VOI-SS 5 / 10 / 25 / 100% at 70.8 / 70.1 / 70.7 / 70.5 vs label-free
   VOI 71.1 (all ≥ every baseline). The label-free fit is already as good as a supervised one where the sources are complementary.
+
+## Fresh Project Euler result (v2, registered claim) and amendment 6 (2026-11-22 17:4x UTC, before any Project Euler dev VOI row is scored)
+- **MathArena Project Euler 943–992 (50 fresh problems, 3 families × progc / thinkp × 3 seeds): VOI LOSES.** Best single source
+  (gpt-oss-120b think-then-program) 14.0% at 10.4k, utility 8.8; VOI 14.0% at 22.0k, utility 3.0: −5.83 [−7.35, −4.45]. VOI beats
+  self-consistency (+4.2 over SC@3 of the same source) but not the single best sample. Labels do not rescue it (VOI-SS 100% 5.2).
+- **Label-free diagnosis (posterior predictive check, poc/voi.py fit half):** the model under-predicts how often two samples of the
+  SAME source agree — words 0.78 observed vs 0.56 predicted (Qwen3-8B program), 0.85 vs 0.75 (gpt-oss-20b program); OEIS 0.45 vs 0.29;
+  MATH 0.79 vs 0.57, 0.93 vs 0.79. A source's repeated samples are correlated beyond the difficulty class (its errors repeat across
+  seeds), but the model treats each repeat as fresh evidence, so repeat samples and within-source agreement look worth more than they
+  are — the over-buying seen on MATH, OEIS and fresh Euler.
+- **Amendment 6 (OD):** each source's repeated samples on a problem are Dirichlet-multinomial (right / fail / wrong) with a
+  concentration κ_s fitted by EM (κ → ∞ recovers v2); the policy's predictive for the next sample of s uses s's earlier samples on
+  that problem. Test: Project Euler dev (120, not yet scored by any VOI version), VOI-OD − {best single, SC@3, label-fitted ladder,
+  VOI v2}, utility at 0.5, clustered bootstrap, Holm over the four. Every other set under OD is a diagnostic (already seen).
