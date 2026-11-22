@@ -25,3 +25,16 @@ Caveat stated in advance: OptMATH-Train labels come from generated gurobipy code
 Holm over the two models (poc/analyze_fresh.py). HOLDS if Holm p < 0.05. Also reported: accuracy, tokens, size-weighted cost view.
 **Reading fixed in advance:** if Qwen3-8B's test does not hold, the OptiBench "+2.4" is reported as a forking-path result and the report
 says the final method ties or trails LLMOPT on fresh problems for Qwen3-8B.
+
+## Result (2026-11-22 11:0x UTC; python3 poc/analyze_fresh.py; 300 fresh problems × 3 seeds)
+| model | FULL | LLMOPT-14B | FULL − LLMOPT (utility at 0.5) | Holm |
+|---|---|---|---|---|
+| Qwen3-8B | 76.7% @ 6.86k (size-weighted 6.2k) | 51.2% @ 5.05k (8.8k) | +24.5 [+20.1, +28.9] | p = 0.0005, holds |
+| gpt-oss-20b | 82.6% @ 3.72k (2.1k) | 51.2% @ 5.05k (8.8k) | +32.0 [+27.8, +36.1] | p = 0.0005, holds |
+- **Verdict:** both hold. On problems no decision has seen, the final method beats the official LLMOPT-14B by a wide margin for both
+  models, so the held-out win is not a forking-path artefact in general.
+- **Limits:** the fresh problems are OptMATH-style synthetic problems with unaudited labels, where LLMOPT is weak (51%, against 66% on
+  OptiBench); OptiBench-style fresh problems were not available (ReSocratic-29k is private). The OptiBench-specific "+2.4" for Qwen3-8B
+  remains a number chosen after three looks; the report quotes it with that caveat and leads with this fresh-set result.
+- LLMOPT's failures here are mostly models that run and give a wrong value (124 of 136 wrong rows, seed 1); its answer reader does not
+  matter (either reader right: 51–56%).

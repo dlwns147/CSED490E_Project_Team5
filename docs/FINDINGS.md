@@ -7598,3 +7598,11 @@ inconclusive on audited (+2.4 [−0.3, +5.1]); gpt-oss-20b is ahead everywhere. 
 - **Reading.** The hard band fails on modelling (36) and on producing a running program at all (42 incl. the 23 too slow); the checks we
   have (statement's small cases, brute force) were already measured as a tie (idea 44, E3b). No method candidate follows from this census
   that is new against ALGO / CodeT / Self-Debug; math computation proper stays the report's stated limitation (LOOP §1b S10).
+
+## 2026-11-22 11:0x UTC — PREREG_ADJ: showing the thinker the two disagreeing programs adds +1.6 for Qwen3-8B (both label sets), not shown for gpt-oss-20b; PREREG_FRESH: the final method beats LLMOPT-14B on 300 fresh problems by +24.5 / +32.0
+- **ADJ** (escalation with evidence, Mixture-of-Agents-style; held-out pool): Qwen3-8B 70.1 → 71.3% at fewer tokens (7.50k → 6.68k),
+  +1.65 [+0.61, +2.62] raw, +1.42 [+0.35, +2.54] audited, holds; gpt-oss-20b +0.70 [−0.34, +1.69], not shown (its adjudicating thinks
+  are 1.6k tokens longer). Adopted for Qwen3-8B only.
+- **FRESH** (confirmation on 300 OptMATH-Train problems after the training items; no decision used them): Qwen3-8B full method 76.7% @
+  6.9k vs LLMOPT 51.2% @ 5.1k, +24.5 [+20.1, +28.9]; gpt-oss-20b 82.6% @ 3.7k, +32.0 [+27.8, +36.1]; both hold (Holm). Caveat: synthetic,
+  unaudited, OptMATH-style, where LLMOPT is weak; the OptiBench comparison stays qualified (chosen after three looks).

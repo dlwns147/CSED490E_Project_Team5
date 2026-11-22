@@ -24,3 +24,16 @@ cost-aware cascade. Loop mark: K (known mechanism), not M.
 models (poc/analyze_adj.py). A model's test HOLDS if Holm p < 0.05 on raw labels AND on expert-audited labels (OR_CLEAN=1).
 **Prediction:** small: ceiling +3.4 (Qwen3-8B) / +3.3 (gpt-oss-20b) points if every recoverable row were recovered and none lost;
 expected +0.5 to +1.5. If neither holds, the escalation tier stays as in ESCT and the report states that adjudication does not pay.
+
+## Result (2026-11-22 11:0x UTC; python3 poc/analyze_adj.py, raw and OR_CLEAN=1; held-out pool 3,472 / 2,728 problem-seeds)
+| model | labels | ESCT final | ADJ final | ADJ − ESCT (utility at 0.5) | Holm |
+|---|---|---|---|---|---|
+| Qwen3-8B | raw | 70.1% @ 7.50k | 71.3% @ 6.68k | +1.65 [+0.61, +2.62] | p = 0.003, holds |
+| Qwen3-8B | audited | 75.8% @ 7.03k | 76.9% @ 6.25k | +1.42 [+0.35, +2.54] | p = 0.011, holds |
+| gpt-oss-20b | raw | 73.2% @ 3.81k | 74.7% @ 5.41k | +0.70 [−0.34, +1.69] | p = 0.093, not shown |
+| gpt-oss-20b | audited | 79.3% @ 3.71k | 80.7% @ 5.23k | +0.64 [−0.43, +1.79] | p = 0.126, not shown |
+- **Verdict:** holds for Qwen3-8B on both label sets (+1.2 accuracy points at fewer tokens: the adjudicating think is shorter than a
+  think from scratch); not shown for gpt-oss-20b (+1.5 accuracy points, but its adjudicating thinks cost 1.6k more tokens per problem).
+  Inside the predicted range (+0.5 to +1.5; ceiling +3.4).
+- **Method:** Qwen3-8B's escalation shows the thinker the two disagreeing programs; gpt-oss-20b keeps the plain think (ESCT). Mark K:
+  a Mixture-of-Agents-style aggregation step, reported as such.
