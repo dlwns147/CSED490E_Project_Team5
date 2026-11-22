@@ -24,6 +24,7 @@ RES = os.path.join(ROOT, "results")
 LAM = float(sys.argv[sys.argv.index("--lam") + 1]) if "--lam" in sys.argv else 0.5
 SEEDS = (1, 2, 3)
 DMAX = int(sys.argv[sys.argv.index("--dmax") + 1]) if "--dmax" in sys.argv else 6   # number of difficulty classes: chosen by BIC up to DMAX
+SS = [float(x) for x in sys.argv[sys.argv.index("--ss") + 1].split(",")] if "--ss" in sys.argv else []   # amendment 3
 V3 = "--v3" in sys.argv   # diagnostic after OEIS (see PREREG_VOI amendment 2): per-class concentration
 TOKLIK = "--v1" not in sys.argv   # v2 (default): token counts are observations of the difficulty class and set expected costs
 
@@ -210,20 +211,23 @@ class Model:
             ll += len(wrong) * math.log(a) + sum(math.lgamma(c) for c in wrong.values()) + math.lgamma(a) - math.lgamma(a + n)
         return ll
 
-    def posterior(self, obs):
+    def posterior(self, obs, label="UNK"):
+        """label (semi-supervised fit only): the known true class key ('GOLD' if some sample is right, None = U), else unknown"""
         hyps = sorted({k for _, k, _, _ in obs if k is not None}) + [None]
+        if label != "UNK":
+            hyps = [label]
         L = {(y, d): math.log(self.pi[d]) + self.loglik(obs, y, d) for y in hyps for d in range(self.D)}
         m = max(L.values()); Z = sum(math.exp(v - m) for v in L.values())
         return {k: math.exp(v - m) / Z for k, v in L.items()}, m + math.log(Z)
 
-    def fit(self, problems, iters=40):
+    def fit(self, problems, iters=40, labels=None):
         for _ in range(iters):
             cnt = {s: [[1e-3, 1e-3, 1e-3] for _ in range(self.D)] for s in self.S}   # right, fail, wrong
             ck = {s: [1.0, 1.0, 1.0, 1.0] for s in self.S}   # right&pass, right&fail, wrong&pass, wrong&fail (+1 smoothing)
             pis = [1e-3] * self.D; wrong_sets = []
             tk = {s: [[1e-3, 0.0, 0.0] for _ in range(self.D)] for s in self.S}   # weight, sum log t, sum (log t)^2
-            for obs in problems:
-                post, _ = self.posterior(obs)
+            for n_, obs in enumerate(problems):
+                post, _ = self.posterior(obs, labels[n_] if labels else "UNK")
                 for (y, d), w in post.items():
                     if w < 1e-6:
                         continue
@@ -260,7 +264,7 @@ class Model:
                 self.p[s] = [self.p[s][d] for d in order]; self.f[s] = [self.f[s][d] for d in order]
                 self.mu[s] = [self.mu[s][d] for d in order]; self.sd[s] = [self.sd[s][d] for d in order]
             self.alz = [self.alz[d] for d in order]
-        return sum(self.posterior(o)[1] for o in problems)
+        return sum(self.posterior(o, labels[n_] if labels else "UNK")[1] for n_, o in enumerate(problems))
 
 
 def stop_value(model, obs):
@@ -445,6 +449,12 @@ def main():
             return sum(U(*ladder(P[i], steps)) for i in I) / len(I)
         lad = max(cands, key=lambda st: mean_u(st, fit_ids))
         res["pre-generation router (labels)"].update(router(P, srcs, fit_ids, ev_ids, TXT))
+        for frac in SS:   # amendment 3: semi-supervised fit, labels on a fraction of the fit half (crc32 order), same D as label-free
+            lab_ids = set(sorted(fit_ids, key=lambda i: zlib.crc32(("lab" + i).encode()))[:int(round(frac * len(fit_ids)))])
+            labs = [("GOLD" if any(ok for s_ in srcs for _, _, ok, _ in P[i][s_]) else None) if i in lab_ids else "UNK" for i in fit_ids]
+            ms = Model(srcs, best[1]); ms.fit(probs, labels=labs)
+            for i in ev_ids:
+                res[f"VOI-SS {int(100 * frac)}% labels"][i] = run_voi(ms, P[i], cost)[:2]
         for i in ev_ids:
             res["VOI"][i] = run_voi(model, P[i], cost)[:2]
             res["DS-static (all samples)"][i] = ds_static(model, P[i])

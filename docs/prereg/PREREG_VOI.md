@@ -75,3 +75,17 @@ claim sets are OEIS, the five word-problem sets, Project Euler dev and Project E
 v3 = v2 + one concentration α per difficulty class + the α grid widened to e^6 (its e^3 bound was hit). Decided after reading OEIS, so
 OEIS and MATH under v3 are diagnostics only; v2 and v3 are both scored on Project Euler dev and fresh 943–992 (not yet seen), and the
 registered claim on those sets is v2's; v3 is reported beside it.
+
+## v3 diagnostic result and amendment 3 (2026-11-22 15:4x UTC, before any VOI-SS row is scored)
+- v3 (per-class concentration) does not fix OEIS: 26.9 vs v2 28.0 (best single 29.0); MATH 92.0 vs 91.8. The fitted per-class
+  concentrations run the opposite way to my reading (hard classes get HIGH α: their wrong values rarely coincide), so the amendment-2
+  diagnosis was wrong and v3 is dropped (it stays a reported diagnostic on Project Euler).
+- What the fits show instead: the label-free model cannot tell "agree and right" from "agree and wrong" when the share of right answers
+  in a hard class is low — the identifiability limit our LCM work found (agreement-based EM overstates p in hard classes, so further
+  samples look worth buying). The remedy that follows from that diagnosis is an independent signal on p, i.e. a few labels.
+- **Amendment 3 (VOI-SS):** the same v2 model fitted semi-supervised — on a fraction of the fit half the true class is given (the class
+  matching gold, or U if no sample is right); the rest unlabeled; same BIC-chosen D. Fractions 5%, 10%, 25%, 100% are all reported (a
+  curve, not a tuned value). Test: VOI-SS 10% − {best single source, the label-fitted ladder (which uses 100% of the fit half's labels),
+  SC@3, our cascade}, per set, utility at 0.5, clustered bootstrap, one-sided, Holm over sets × baselines; sets OEIS, word problems,
+  Project Euler dev and fresh 943–992; MATH + AIME descriptive (development). Prediction: VOI-SS 10% ≥ label-free VOI everywhere, and
+  ≥ the label-fitted ladder on OEIS and MATH, where label-free VOI over-buys.
