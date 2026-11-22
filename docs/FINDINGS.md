@@ -7652,4 +7652,7 @@ inconclusive on audited (+2.4 [−0.3, +5.1]); gpt-oss-20b is ahead everywhere. 
   did not remove it; it is the identifiability limit of agreement on hard sets.
 - **MathConstruct** (descriptive): the own-verify ladder beats thinking for all three families (+1.1 / +7.8 / +3.8), in proportion to
   verify()'s precision (27% / 67% / 81%).
-- Record: docs/prereg/PREREG_VOI.md (registration, six amendments, each committed before the set it concerns was scored).
+- **Fresh confirmation of the one win fails** (amendment 8, 300 fresh OptMATH-Train problems): VOI − our cascade −2.06 [−4.27, +0.12],
+  − SC@3 −0.28, − label-fitted ladder −0.09. So across all fresh data VOI does not beat the strongest simple baseline; its robust
+  result is beating self-consistency at lower cost on every set.
+- Record: docs/prereg/PREREG_VOI.md (registration and eight amendments, each committed before the set it concerns was scored).

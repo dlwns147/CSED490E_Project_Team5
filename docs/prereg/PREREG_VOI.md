@@ -190,3 +190,6 @@ The one claim set VOI won (word problems, held-out pool) has been looked at by e
 fresh OptMATH-Train problems already have the same four sources stored (Qwen3-8B / gpt-oss-20b own program freef and thinkfree, 3 seeds),
 never used by VOI. Test: python3 poc/voi.py words --fresh (v2, frozen settings), VOI − {our cascade (gpt-oss-20b), SC@3 gpt-oss-20b
 think, label-fitted ladder}, utility at 0.5, clustered bootstrap, Holm over three. Prediction: VOI ≥ each (as on the held-out pool).
+- *Amendment 8 result (2026-11-22 20:4x UTC):* **the word-problem win does not replicate on fresh problems.** VOI 82.7% @ 6.5k, U 79.4; our
+  cascade (gpt-oss-20b) 83.3% @ 3.7k, U 81.5: −2.06 [−4.27, +0.12]; SC@3 −0.28 [−2.01, +1.31]; label-fitted ladder −0.09 [−2.73, +2.63].
+  Not shown. On easier fresh problems (best single 78%) the fixed cascade's cheap agreement already captures what VOI's extra samples buy.
