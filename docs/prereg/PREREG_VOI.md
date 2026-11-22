@@ -50,3 +50,13 @@ published label-free baselines and ours); one-sided, Holm over all set × baseli
 VOI beats all four there. Also reported: B1, B6, B7, and the rates 0.25 / 1 / 2. Fresh confirmation: MathArena Project Euler 943–992.
 **Prediction:** VOI ≥ the best fixed baseline on every set (it can choose any fixed policy's actions), with the largest gains where
 source costs differ most (Project Euler, AIME); a loss anywhere means the fitted model is wrong there (read the EM fit first).
+
+## Amendment 1 (2026-11-22 15:1x UTC, after MATH + AIME, before any other set's VOI result was seen)
+MATH + AIME was run first and is now the DEVELOPMENT set. Two model changes were made after reading its fit, and are frozen for every
+other set: (v2) each sample's token count is an observation of the difficulty class (log tokens ~ N(mu[s,z], sd[s,z])) and the cost of a
+query is its posterior-expected token count — v1 used one mean cost per source although hard problems' thinks are longer; (D) the number
+of difficulty classes is chosen by BIC up to 6 (the registered cap of 3 was hit on both halves, so BIC wanted more). MATH + AIME results
+(development, not claims): v1 utility 90.5, v2 91.2, v2 + D≤6 91.8, against the best single source (Qwen3-32B think) 92.6, gpt-oss-20b
+think 92.1 and the label-fitted ladder 92.1: VOI over-samples on a set where one strong think is right 95% of the time (it takes a
+second sample on 133 of 280 problems; calibration is good: predicted ≥ 90% → 99% right). MATH + AIME is not in the claim family; the
+claim sets are OEIS, the five word-problem sets, Project Euler dev and Project Euler 943–992 (fresh).
