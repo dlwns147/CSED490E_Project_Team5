@@ -105,3 +105,11 @@ registered claim on those sets is v2's; v3 is reported beside it.
   single 28.7 (−0.9 [−3.6, +1.9]), label-fitted ladder 28.5; a vote over all samples with checks is right on 36.2% where some sample is
   right on 44.0%. The brute force shares the program's misreading (X56: 68% precise). *MATH + AIME semi-supervised (development):*
   every label fraction ties (92.1–92.2 vs best single 92.6); the set is saturated (some sample right on 98.9%).
+## Amendment 5 (2026-11-22 16:5x UTC, OEIS development, before any score exists)
+The OEIS bottleneck is choosing a lone right program among wrong ones; agreement and own brute force do not separate them. The signal
+that does not share the program's error path is the reverse direction (Coder-Reviewer reranking, Zhang et al. 2023): log p(the
+sequence's name | the program) under Qwen3-8B as a plain LM (poc/score_oeis_rev.py, Slurm 1551239). In VOI it enters as one more
+label-free observation per answer class — the class's score minus the problem's mean score, Gaussian with mean m_R if the class is
+the true answer and m_W otherwise, fitted in the same EM. Scoring is prefill only (no output tokens; reported in the in+out view).
+OEIS stays development; if it separates right from wrong there, it is carried to Project Euler (the name → the statement) only by a new
+registration.
