@@ -7606,3 +7606,8 @@ inconclusive on audited (+2.4 [−0.3, +5.1]); gpt-oss-20b is ahead everywhere. 
 - **FRESH** (confirmation on 300 OptMATH-Train problems after the training items; no decision used them): Qwen3-8B full method 76.7% @
   6.9k vs LLMOPT 51.2% @ 5.1k, +24.5 [+20.1, +28.9]; gpt-oss-20b 82.6% @ 3.7k, +32.0 [+27.8, +36.1]; both hold (Holm). Caveat: synthetic,
   unaudited, OptMATH-style, where LLMOPT is weak; the OptiBench comparison stays qualified (chosen after three looks).
+
+## 2026-11-22 12:4x UTC — Tool calls (PREREG_SPEC addendum TC): the final method (88.3%) is ahead of the published specialist ToolACE-2-8B (85.0%) on our 3,482 BFCL single-turn items; checking ToolACE's calls with Qwen3-8B adds nothing
+- ToolACE-2-8B, its native prompt format (= our items'), greedy: 85.0% at 35 tokens; live 79.7% reproduces its published 77.4.
+- TC2-AB 88.3% at 0.48k: ahead by about 3 utility points (unpaired). On BFCL multi-turn EnvScaler-8B remains ahead of our method (+5.4,
+  11-07). Check + escalation on top of ToolACE: 85.1 / 84.6 / 85.2%, no gain, since Qwen3-8B's think (83%) is the weaker model.

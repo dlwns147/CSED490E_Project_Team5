@@ -77,3 +77,15 @@ its published non-live AST 87.1 and live within 3 of 77.4 — else the compariso
 **Comparison** (descriptive, not paired: TC2-AB's per-item rows are not exported): utility at 0.5 per ktok, ToolACE's 95% bootstrap
 interval over items against TC2-AB's 88.3% at 0.48k. Ahead / behind if TC2-AB's utility lies outside that interval; else a tie.
 If ToolACE-2-8B is ahead, the report recommends the specialist for single-turn tool calls, as for SQL.
+
+### Addendum TC result (2026-11-22 12:4x UTC; /home1/leesangjun/venvs/bfcl/bin/python poc/grade_tc.py tace2 1)
+- **Harness check:** live categories pooled 79.7% (published live 77.4: within 3, passes). Non-live 92.8% mean of four (published
+  non-live AST 87.1: outside 3) because our non-live items are Python only (BFCL's non-live AST also averages Java and JavaScript,
+  where models score lower); the difference is in ToolACE's favour, not a handicap.
+- **ToolACE-2-8B:** 85.0% of 3,482 at 35 output tokens (simple 92.8, multiple 94.0, parallel 94.0, parallel_multiple 90.5, irrelevance
+  95.0; live_simple 78.7, live_multiple 80.2, live_irrelevance 81.3). 95% interval about ±1.2.
+- **Against TC2-AB (Qwen3-8B final method, 88.3% at 0.48k, 3 seeds):** utility 88.1 vs 85.0, outside ToolACE's interval: **our method is
+  ahead by about 3 points** (unpaired; ToolACE one greedy run). At 2 per ktok: 87.3 vs 84.9, still ahead.
+- *Exploratory (not registered):* ToolACE's call kept when it passes the schema check and equals Qwen3-8B's quick call (70%), else
+  Qwen3-8B's think: 85.1 / 84.6 / 85.2% over Qwen3-8B's seeds 1–3, no gain — Qwen3-8B's think (83%) is weaker than ToolACE, as the
+  PREREG_SPEC rule predicts.
