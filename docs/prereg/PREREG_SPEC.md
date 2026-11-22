@@ -64,3 +64,16 @@ weaker than Arctic on SQL (Arctic is kept on 71–75% of Spider questions; on th
 With the word-problem half: the check pays on top of a specialist only where the escalation model is stronger than the specialist on
 that distribution (gpt-oss-20b off LLMOPT's training data: +11); where the specialist is stronger in-domain (SQL), escalating to a
 general model costs 7–8 points.
+
+## Addendum TC (registered 2026-11-22 12:0x UTC, before any ToolACE row): a published tool-calling specialist against the final tool-call method
+**Why.** The report's tool-call method (TC2-AB, PREREG_LCM: Qwen3-8B quick call, schema check, trained verifier, cascade; 88.3% at 0.48k
+tokens on our 3,482 BFCL v4 single-turn items × 3 seeds) has only been compared with trained checkpoints on BFCL multi-turn
+(EnvScaler-8B leads there by +5.4, 2026-11-07). Published single-turn specialists report BFCL non-live AST about 85–88% at 8B.
+**Specialist.** ToolACE-2-8B (Team-ACE; its model card uses BFCL's prompt-mode system prompt, which our items carry, so no format change),
+greedy, one run, poc/run_spec_tc.py → results/tc/tace2_cheap_s1.jsonl, graded by poc/grade_tc.py (BFCL's AST checker). xLAM-2 and
+Hammer2.1 use their own function-calling formats; run in our prompt format they would be handicapped, so they are not run.
+**Harness check (fixed first):** ToolACE-2-8B's non-live categories (simple, multiple, parallel, parallel_multiple) within 3 points of
+its published non-live AST 87.1 and live within 3 of 77.4 — else the comparison is reported as harness-limited.
+**Comparison** (descriptive, not paired: TC2-AB's per-item rows are not exported): utility at 0.5 per ktok, ToolACE's 95% bootstrap
+interval over items against TC2-AB's 88.3% at 0.48k. Ahead / behind if TC2-AB's utility lies outside that interval; else a tie.
+If ToolACE-2-8B is ahead, the report recommends the specialist for single-turn tool calls, as for SQL.
