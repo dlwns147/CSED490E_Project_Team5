@@ -38,3 +38,6 @@ says the final method ties or trails LLMOPT on fresh problems for Qwen3-8B.
   remains a number chosen after three looks; the report quotes it with that caveat and leads with this fresh-set result.
 - LLMOPT's failures here are mostly models that run and give a wrong value (124 of 136 wrong rows, seed 1); its answer reader does not
   matter (either reader right: 51–56%).
+- *Descriptive FULL+ADJ (2026-11-22 12:0x UTC, FRESH_ADJ=1):* Qwen3-8B 76.8% @ 5.71k (vs FULL 76.7% @ 6.86k), +25.2 over LLMOPT; gpt-oss-20b
+  82.3% @ 4.90k (vs 82.6% @ 3.72k), +31.2. Same direction as PREREG_ADJ: for Qwen3-8B the adjudicating think saves tokens at equal
+  accuracy; for gpt-oss-20b it only costs more.
