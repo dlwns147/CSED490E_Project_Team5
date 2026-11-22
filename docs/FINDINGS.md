@@ -7611,3 +7611,18 @@ inconclusive on audited (+2.4 [−0.3, +5.1]); gpt-oss-20b is ahead everywhere. 
 - ToolACE-2-8B, its native prompt format (= our items'), greedy: 85.0% at 35 tokens; live 79.7% reproduces its published 77.4.
 - TC2-AB 88.3% at 0.48k: ahead by about 3 utility points (unpaired). On BFCL multi-turn EnvScaler-8B remains ahead of our method (+5.4,
   11-07). Check + escalation on top of ToolACE: 85.1 / 84.6 / 85.2%, no gain, since Qwen3-8B's think (83%) is the weaker model.
+
+## 2026-11-22 12:4x UTC — Report-level standing per domain, final methods against their strongest baselines (descriptive; committed scripts)
+| domain | final method | strongest baseline | standing |
+|---|---|---|---|
+| Word problems, held-out pool (5 sets) | Qwen3-8B 71.3% @ 6.7k (audited 76.9%); gpt-oss-20b 73.2% @ 3.8k (79.3%) | thinking 60.6% / 67.6% | +11.2 / +5.0 utility (raw), +11.7 / +5.1 (audited) |
+| Word problems, per set vs LLMOPT-14B | both models | official LLMOPT-14B | ahead on all 10 set × model cells, raw and audited; Qwen3-8B audited OptiBench +4.3 [+1.6, +7.1], a number chosen after four looks |
+| Word problems, fresh (PREREG_FRESH) | 76.7% / 82.6% | LLMOPT-14B 51.2% | +24.5 / +32.0, registered, holds |
+| SQL (PREREG_SPEC) | Qwen3-8B cascade | Arctic-Text2SQL-R1-7B alone | behind: −9.8 Spider test, −5.9 BIRD; recommend the specialist |
+| Tool calls, single-turn | TC2-AB 88.3% @ 0.48k | ToolACE-2-8B 85.0% | ahead by about 3 (unpaired) |
+| Tool calls, multi-turn | MT-SO | EnvScaler-8B | behind by 5.4 |
+| Futoshiki (large room) | ladder | thinking / program-of-thought | +35 / +38 (gpt-oss) |
+| Math computation (OEIS, Project Euler) | check + escalate | thinking | +1 to +2 on OEIS, tie on Project Euler: stated limitation |
+- Scripts: poc/analyze_final_wp.py (rows 1–2), analyze_fresh.py, analyze_spec_sql.py, PREREG_SPEC TC (grade_tc.py), PREREG_MT, analyze_futo_*.
+- Reading: the method wins where a free check exists and the escalation model is at least as strong as the specialist (word problems,
+  single-turn calls, Futoshiki); it loses to trained specialists where they are stronger than the whole cascade (SQL, multi-turn calls).
