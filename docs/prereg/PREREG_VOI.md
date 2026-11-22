@@ -168,3 +168,9 @@ policy's predicted value of an extra sample exceeds its realized value on hard s
 - Consequence for the method: label-free VOI is safe where the sources are right often enough to calibrate one another; on sets where
   the best source is right on under ~40% of problems it needs labels to calibrate (VOI-SS 100% raised fresh Euler from 3.0 to 5.2 with
   only 25 labelled problems per half) or should not be used.
+
+## MathConstruct (registered descriptive; 2026-11-22 19:4x UTC; results/x44/mcon_<m>_{progc,thinkp}_s1-3.jsonl, 121 problems × 3 seeds)
+Constructions cannot be compared for agreement, so VOI does not apply; the set's free check is the model's own verify(). Precision of a
+passing verify(): Qwen3-8B 27% (15 / 55), gpt-oss-20b 67% (60 / 89), gpt-oss-120b 81% (115 / 142). Own-verify ladder (construction
+accepted if verify() passes, else think-then-program) vs think alone, utility at 0.5: Qwen3-8B 8.4 vs 7.3 (14.7% vs 14.1%), gpt-oss-20b
+28.9 vs 21.1 (31.1% vs 23.4%), gpt-oss-120b 49.1 vs 45.3 (50.7% vs 46.8%). The check pays in proportion to its precision.

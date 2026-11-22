@@ -7636,3 +7636,20 @@ inconclusive on audited (+2.4 [−0.3, +5.1]); gpt-oss-20b is ahead everywhere. 
     templates. gpt-oss-20b routes 40, right on 34 vs 32.
 - Reading: the typed menu's gains came from MAMO's templates (where it was designed) and do not carry to fresh problems for the weaker
   model; the report should present it as template-bound (as S4 already said) and Qwen3-8B's final method is better without it here.
+
+## 2026-11-22 19:40 UTC — PREREG_VOI (24-hour task: one method across all math-computation sets): label-free value-of-information acquisition wins on word problems, ties on Project Euler dev, loses on fresh Project Euler; the cause is posterior overconfidence where right answers are rare
+- **Method** (poc/voi.py): a latent-class model of every stored answer source (cheap programs, text, thinking, brute force, a second
+  and third family, a math specialist), fitted by EM without labels, with shared-mistake (Ewens) and token-length terms; a two-step
+  value-of-information policy chooses which source to query next and when to stop. No hand threshold; λ = 0.5 per ktok.
+- **Claim sets** (problem-clustered bootstrap, utility): word problems +2.1 over our cascade, +2.2 over self-consistency, +2.2 over a
+  FrugalGPT-style ladder fitted with labels (wins); Project Euler dev +1.1 [−3.7, +6.0] over the best single sample (gpt-oss-120b
+  think-then-program), +2.3 over self-consistency; fresh Project Euler 943–992 −5.8 [−7.4, −4.5] vs the best single sample, +4.2 over
+  self-consistency. Development: MATH+AIME tie (saturated: 98.9% some sample right), OEIS tie (selection-limited: some sample right on
+  44%, no label-free signal picks it — agreement, own brute force, reviewer likelihood AUROC 0.53).
+- **Mechanism of the losses** (poc/voi_calib.py): the model passes its own label-free check (predicted ≈ realized posterior change) but
+  over-states P(returned answer right) where right answers are rare (fresh Euler, gpt-oss-120b think: predicted gain 16.2, realized with
+  labels 3.0); five model changes (token-aware costs, semi-supervised fit, brute checks, reviewer score, within-source overdispersion)
+  did not remove it; it is the identifiability limit of agreement on hard sets.
+- **MathConstruct** (descriptive): the own-verify ladder beats thinking for all three families (+1.1 / +7.8 / +3.8), in proportion to
+  verify()'s precision (27% / 67% / 81%).
+- Record: docs/prereg/PREREG_VOI.md (registration, six amendments, each committed before the set it concerns was scored).
