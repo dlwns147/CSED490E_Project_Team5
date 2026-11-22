@@ -89,3 +89,15 @@ registered claim on those sets is v2's; v3 is reported beside it.
   SC@3, our cascade}, per set, utility at 0.5, clustered bootstrap, one-sided, Holm over sets × baselines; sets OEIS, word problems,
   Project Euler dev and fresh 943–992; MATH + AIME descriptive (development). Prediction: VOI-SS 10% ≥ label-free VOI everywhere, and
   ≥ the label-fitted ladder on OEIS and MATH, where label-free VOI over-buys.
+
+## Amendment 3 result on OEIS, and amendment 4 (2026-11-22 16:4x UTC)
+- **VOI-SS on OEIS: the prediction failed.** Labels do not fix it: 5% 27.6, 10% 27.5, 25% 24.9, 100% 29.4 vs label-free VOI 28.0 and
+  best single 29.0. Even with every fit-half label, VOI only ties the best single source, so the identifiability diagnosis (amendment 3)
+  does not explain OEIS either.
+- **What does:** OEIS's headroom is in choosing, not buying. Some sample is right on 44.0% of sequences (oracle utility 43.6 vs best
+  single 29.0), but a vote over all 18 samples is right on only 35.8%: right programs are often unique among several wrong ones, and
+  agreement cannot pick them. The registered OEIS sources had no discriminating check — the brute-force programs we store were left out.
+- **Amendment 4 (OEIS development only):** each program / think sample carries a free check — its first 8 terms equal the same model's
+  brute force of the same seed — with the brute force's tokens added to its cost and P(pass | right), P(pass | wrong) fitted (label-free).
+  OEIS is now a development set for VOI (decided after three looks); the claim sets left are word problems (v2, scored) and Project Euler
+  dev + fresh 943–992, whose statement checks were in the registered design from the start.

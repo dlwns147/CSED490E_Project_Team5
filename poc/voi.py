@@ -25,6 +25,7 @@ LAM = float(sys.argv[sys.argv.index("--lam") + 1]) if "--lam" in sys.argv else 0
 SEEDS = (1, 2, 3)
 DMAX = int(sys.argv[sys.argv.index("--dmax") + 1]) if "--dmax" in sys.argv else 6   # number of difficulty classes: chosen by BIC up to DMAX
 SS = [float(x) for x in sys.argv[sys.argv.index("--ss") + 1].split(",")] if "--ss" in sys.argv else []   # amendment 3
+OEIS_BRUTE = "--brute" in sys.argv   # amendment 4
 V3 = "--v3" in sys.argv   # diagnostic after OEIS (see PREREG_VOI amendment 2): per-class concentration
 TOKLIK = "--v1" not in sys.argv   # v2 (default): token counts are observations of the difficulty class and set expected costs
 
@@ -78,12 +79,21 @@ def load_oeis():
                 fn = f"{RES}/x44/oeis_{tag}_{mode}_s{sd}.jsonl"
                 if m == "q8b" and mode == "think":
                     fn = f"{RES}/x44/oeis_{'q8bT' if sd == 1 else 'q8bTg'}_think_s{sd}.jsonl"
+                B = {}
+                if OEIS_BRUTE:   # amendment 4 (OEIS development only): the same model's brute force of the same seed as a free check
+                    for rb in rows(f"{RES}/x44/oeis_{m}_brute_s{sd}.jsonl"):
+                        ob = rb.get("outs"); ob = ob if isinstance(ob, list) else (eval(ob) if ob else [])
+                        B[rb["id"]] = ([str(x) for x in ob], int(rb.get("out_tokens") or 0))
                 for r in rows(fn):
                     got = True
                     outs = r.get("outs")
                     outs = outs if isinstance(outs, list) else (eval(outs) if outs else [])   # stored as a list or its repr
                     a = "|".join(map(str, outs)) if outs and r.get("code") is not False else None
-                    P[r["id"]][s].append(("GOLD" if T(r["correct"]) else a, int(r.get("out_tokens") or 0), T(r["correct"]), None))
+                    ck, bt = None, 0
+                    if OEIS_BRUTE and r["id"] in B:
+                        ob, bt = B[r["id"]]
+                        ck = (len(ob) == 8 and [str(x) for x in outs[:8]] == ob) if outs else None
+                    P[r["id"]][s].append(("GOLD" if T(r["correct"]) else a, int(r.get("out_tokens") or 0) + bt, T(r["correct"]), ck))
             if got:
                 srcs.append(s)
     return P, srcs
@@ -91,7 +101,7 @@ def load_oeis():
 
 def load_euler(which):
     srcs, P = [], defaultdict(lambda: defaultdict(list))
-    for m, tag in (("q8b", "q8bL"), ("oss20", "oss20")):
+    for m, tag in (("q8b", "q8bL"), ("oss20", "oss20"), ("oss120", "oss120")):
         for mode in ("progc", "thinkp"):
             s = f"{m}_{mode}"; got = False
             for sd in SEEDS:
@@ -491,7 +501,7 @@ def main():
         mu, lo, hi, p = boot({i: U(*vo[i]) - U(*res[arm][i]) for i in ids})
         print(f"  {arm:40s} {mu:+6.2f} [{lo:+6.2f}, {hi:+6.2f}]  p={p:.4f}")
     json.dump({arm: {i: list(v) for i, v in R.items() if v is not None} for arm, R in res.items()},
-              open(f"{RES}/voi_{which}_lam{LAM}{'_v3' if V3 else ''}.json", "w"))
+              open(f"{RES}/voi_{which}_lam{LAM}{'_v3' if V3 else ''}{'_brute' if OEIS_BRUTE else ''}.json", "w"))
 
 
 if __name__ == "__main__":
