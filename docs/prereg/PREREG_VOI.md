@@ -113,3 +113,5 @@ label-free observation per answer class — the class's score minus the problem'
 the true answer and m_W otherwise, fitted in the same EM. Scoring is prefill only (no output tokens; reported in the in+out view).
 OEIS stays development; if it separates right from wrong there, it is carried to Project Euler (the name → the statement) only by a new
 registration.
+- *Amendment 3 on word problems (2026-11-22 16:5x UTC):* labels add nothing — VOI-SS 5 / 10 / 25 / 100% at 70.8 / 70.1 / 70.7 / 70.5 vs label-free
+  VOI 71.1 (all ≥ every baseline). The label-free fit is already as good as a supervised one where the sources are complementary.
