@@ -180,3 +180,7 @@ The calibration diagnostic says hard sets need labels; fresh Euler had only 25 p
 Project Euler dev problems, semi-supervised with 100% labels, then also label-free for comparison) and run the policy on the 50 fresh
 943–992 problems, whose labels are never used. VOI-transfer − {best single source, SC@3, label-fitted ladder transferred the same way},
 utility at 0.5, clustered bootstrap, Holm over three (poc/voi_transfer.py).
+- *Amendment 7 result (2026-11-22 19:4x UTC, poc/voi_transfer.py):* calibrating on all 120 labelled dev problems does not rescue fresh Euler:
+  VOI-transfer 16.0% @ 23.9k, U 4.1 vs the best single source 14.0% @ 10.4k, U 8.8: −4.76 [−7.85, −0.27]; it beats SC@3 (+5.3) and ties
+  the transferred ladder (−2.3 [−7.1, +4.0]). The fresh problems are much harder than dev (best single 14% vs 38%), so dev's
+  calibration over-states fresh accuracy as well. Not shown.
