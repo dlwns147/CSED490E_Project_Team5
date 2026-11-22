@@ -150,3 +150,21 @@ Reading: VOI beats self-consistency everywhere and beats every baseline where ch
 problems); where one expensive source dominates and the rest add little (hard Project Euler), it over-buys. Five model changes
 (token-aware, semi-supervised, brute checks, reviewer score, overdispersion) did not remove that; the cause left standing is that the
 policy's predicted value of an extra sample exceeds its realized value on hard sets.
+
+## Why VOI over-buys on hard sets: predicted vs realized value of one more sample (2026-11-22 19:3x UTC; poc/voi_calib.py, fit half)
+| source | predicted gain | realized under the model | realized with labels |
+|---|---|---|---|
+| fresh Euler, gpt-oss-120b think | 16.2 | 15.0 | 3.0 |
+| fresh Euler, gpt-oss-20b think | 1.6 | 0.5 | 0.0 |
+| Euler dev, gpt-oss-120b think | 17.2 | 17.3 | 8.7 |
+| Euler dev, gpt-oss-120b program | 12.5 | 15.6 | 10.1 |
+| words, gpt-oss-20b think | 27.6 | 26.8 | 21.1 |
+| words, Qwen3-8B program | 10.7 | 10.3 | 9.1 |
+- The model is self-consistent (predicted ≈ realized under its own posterior: the label-free check passes), but its posterior
+  probability that the returned answer is right is too high where right answers are rare: on fresh Euler the realized gain with labels
+  is a fifth of the predicted one. That gap cannot be seen without labels — the same identifiability limit as before (agreement cannot
+  tell a shared wrong answer from a right one when right answers are rare), and it is why VOI over-buys exactly on the hardest sets.
+  On word problems the gap is small (21 vs 28) and VOI wins.
+- Consequence for the method: label-free VOI is safe where the sources are right often enough to calibrate one another; on sets where
+  the best source is right on under ~40% of problems it needs labels to calibrate (VOI-SS 100% raised fresh Euler from 3.0 to 5.2 with
+  only 25 labelled problems per half) or should not be used.
