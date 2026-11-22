@@ -60,3 +60,18 @@ of difficulty classes is chosen by BIC up to 6 (the registered cap of 3 was hit 
 think 92.1 and the label-fitted ladder 92.1: VOI over-samples on a set where one strong think is right 95% of the time (it takes a
 second sample on 133 of 280 problems; calibration is good: predicted ≥ 90% → 99% right). MATH + AIME is not in the claim family; the
 claim sets are OEIS, the five word-problem sets, Project Euler dev and Project Euler 943–992 (fresh).
+
+## Interim results, v2 as frozen in amendment 1 (2026-11-22 15:2x UTC; python3 poc/voi.py <set>; λ = 0.5)
+| set | VOI | best label-free baseline | VOI − baselines (B2 SC@3 / B5 our cascade; label-fitted ladder) |
+|---|---|---|---|
+| word problems (1,224 held-out problems, 4 sources) | 74.9% @ 7.6k, U 71.1 | our cascade (gpt-oss-20b) 71.0% @ 3.9k, U 69.0 | +2.18 [+0.96, +3.41] / +2.07 [+0.62, +3.59]; ladder (labels) +2.23 [+0.68, +3.77]; router (labels) +16.8 |
+| OEIS (500, 6 sources) | 35.4% @ 14.7k, U 28.0 | single gpt-oss-120b program 29.4% @ 0.8k, U 29.0 | SC@3 +7.81 [+5.49, +10.21] / cascade +0.50 [−1.73, +2.77]; best single −0.99 [−3.44, +1.56] |
+- Word problems: VOI beats every baseline, including the two that use labels. OEIS: VOI beats self-consistency, ties our cascade and
+  the best single source — it pays 14.7k tokens to gain 6 accuracy points over gpt-oss-120b's one cheap program.
+- *Constructive reading:* on both OEIS and MATH the policy over-buys samples. On OEIS the fitted Ewens concentration sat at the grid's
+  upper end (α = 20.1, "wrong programs almost never coincide"), while hard sequences have wrong programs that agree (the same simple
+  formula); a single α for all difficulty classes makes agreement on hard problems look like correctness, so more samples look valuable.
+## Amendment 2 (2026-11-22 15:2x UTC, after OEIS v2, before any Project Euler row is scored)
+v3 = v2 + one concentration α per difficulty class + the α grid widened to e^6 (its e^3 bound was hit). Decided after reading OEIS, so
+OEIS and MATH under v3 are diagnostics only; v2 and v3 are both scored on Project Euler dev and fresh 943–992 (not yet seen), and the
+registered claim on those sets is v2's; v3 is reported beside it.

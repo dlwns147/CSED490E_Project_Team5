@@ -24,6 +24,7 @@ RES = os.path.join(ROOT, "results")
 LAM = float(sys.argv[sys.argv.index("--lam") + 1]) if "--lam" in sys.argv else 0.5
 SEEDS = (1, 2, 3)
 DMAX = int(sys.argv[sys.argv.index("--dmax") + 1]) if "--dmax" in sys.argv else 6   # number of difficulty classes: chosen by BIC up to DMAX
+V3 = "--v3" in sys.argv   # diagnostic after OEIS (see PREREG_VOI amendment 2): per-class concentration
 TOKLIK = "--v1" not in sys.argv   # v2 (default): token counts are observations of the difficulty class and set expected costs
 
 
@@ -143,6 +144,35 @@ def load_words():
     return P, srcs
 
 
+def texts(which):
+    """question text per problem id, for the pre-generation router baseline"""
+    if which == "math":
+        D = json.load(open(f"{RES}/x1/problems.json"))
+        return {str(r["id"]): r["problem"] for v in D.values() for r in v}
+    DATA = os.path.join(os.path.dirname(ROOT), "nlp_data")
+    if which == "oeis":
+        return {x["id"]: x["name"] + " " + str(x.get("comments", "")) for x in json.load(open(f"{DATA}/compute/oeis.json"))}
+    if which in ("euler", "eulert"):
+        return {x["id"]: x["problem"] for x in json.load(open(f"{DATA}/compute/{'euler_dev' if which == 'euler' else 'euler_test'}.json"))}
+    import analyze_frontier as F
+    return dict(F.Q)
+
+
+def router(P, srcs, fit_ids, ev_ids, txt):
+    """'Is Escalation Worth It?' (arXiv 2605.06350)-style pre-generation router: from the question alone, predict the single source
+    whose first sample has the highest utility (TF-IDF + multinomial logistic regression, trained with LABELS on the other half)"""
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.linear_model import LogisticRegression
+    y = [max(srcs, key=lambda s: U(P[i][s][0][2], P[i][s][0][1])) for i in fit_ids]
+    if len(set(y)) < 2:
+        return {i: (P[i][y[0]][0][2], P[i][y[0]][0][1]) for i in ev_ids}
+    vec = TfidfVectorizer(min_df=2, ngram_range=(1, 2), sublinear_tf=True)
+    X = vec.fit_transform([txt.get(i, "") for i in fit_ids])
+    clf = LogisticRegression(max_iter=2000, C=1.0).fit(X, y)
+    pr = clf.predict(vec.transform([txt.get(i, "") for i in ev_ids]))
+    return {i: (P[i][s][0][2], P[i][s][0][1]) for i, s in zip(ev_ids, pr)}
+
+
 # ---------------------------------------------------------------- model
 class Model:
     def __init__(self, srcs, D):
@@ -151,6 +181,7 @@ class Model:
         self.p = {s: [0.3 + 0.5 * (d + 1) / D for d in range(D)][::-1] for s in srcs}    # class 0 = easy
         self.f = {s: [0.05] * D for s in srcs}
         self.alpha = 1.0
+        self.alz = [1.0] * D   # v3: one Ewens concentration per difficulty class (shared misreadings differ with difficulty)
         self.cr = {s: 0.8 for s in srcs}
         self.cw = {s: 0.3 for s in srcs}
         self.mu = {s: [math.log(500.0)] * D for s in srcs}   # v2 (decided after MATH, see PREREG_VOI): log tokens ~ N(mu[s,z], sd[s,z])
@@ -174,7 +205,7 @@ class Model:
                 ll += math.log(max(1e-12, 1 - p - f)); wrong[k] += 1
                 if ck is not None:
                     ll += math.log(self.cw[s] if ck else 1 - self.cw[s])
-        n = sum(wrong.values()); a = self.alpha
+        n = sum(wrong.values()); a = self.alz[d] if V3 else self.alpha
         if n:   # Ewens partition probability of the wrong values
             ll += len(wrong) * math.log(a) + sum(math.lgamma(c) for c in wrong.values()) + math.lgamma(a) - math.lgamma(a + n)
         return ll
@@ -207,7 +238,7 @@ class Model:
                         if j == 2:
                             wr[k] += 1
                     if wr:
-                        wrong_sets.append((w, list(wr.values())))
+                        wrong_sets.append((w, list(wr.values()), d))
             for s in self.S:
                 for d in range(self.D):
                     r, f_, w = cnt[s][d]; t = r + f_ + w
@@ -218,17 +249,17 @@ class Model:
                     if w > 1e-2:
                         m_ = s1 / w; self.mu[s][d] = m_; self.sd[s][d] = max(0.1, math.sqrt(max(1e-6, s2 / w - m_ * m_)))
             tp = sum(pis); self.pi = [x / tp for x in pis]
-            best = None
-            for a in [math.exp(x / 4) for x in range(-16, 13)]:   # alpha by maximum expected Ewens likelihood
-                v = sum(w * (len(c) * math.log(a) + math.lgamma(a) - math.lgamma(a + sum(c))) for w, c in wrong_sets)
-                if best is None or v > best[0]:
-                    best = (v, a)
-            self.alpha = best[1]
+            grid = [math.exp(x / 4) for x in range(-16, 25)]   # alpha by maximum expected Ewens likelihood (grid e^-4 .. e^6)
+            ev = lambda a, sel: sum(w * (len(c) * math.log(a) + math.lgamma(a) - math.lgamma(a + sum(c))) for w, c, d in wrong_sets if sel(d))
+            self.alpha = max(grid, key=lambda a: ev(a, lambda d: True))
+            if V3:
+                self.alz = [max(grid, key=lambda a, z=z: ev(a, lambda d: d == z)) for z in range(self.D)]
             order = sorted(range(self.D), key=lambda d: -sum(self.p[s][d] for s in self.S))   # keep class 0 = easiest
             self.pi = [self.pi[d] for d in order]
             for s in self.S:
                 self.p[s] = [self.p[s][d] for d in order]; self.f[s] = [self.f[s][d] for d in order]
                 self.mu[s] = [self.mu[s][d] for d in order]; self.sd[s] = [self.sd[s][d] for d in order]
+            self.alz = [self.alz[d] for d in order]
         return sum(self.posterior(o)[1] for o in problems)
 
 
@@ -257,7 +288,7 @@ def outcomes(model, obs, s, post):
         for _, k, _, _ in obs:
             if k is not None and k != y:
                 wr[k] += 1
-        n = sum(wr.values()); a = model.alpha
+        n = sum(wr.values()); a = model.alz[d] if V3 else model.alpha
         if y is not None:
             out[y] += w * p
         else:
@@ -381,6 +412,8 @@ def main():
     which = sys.argv[1]
     P, srcs = {"math": load_math, "oeis": load_oeis, "words": load_words}.get(which, lambda: load_euler(which))()
     ids = sorted(i for i in P if all(len(P[i].get(s, [])) for s in srcs))
+    global TXT
+    TXT = texts(which)
     print(f"{which}: {len(ids)} problems with every source; sources {srcs}; lam {LAM}", flush=True)
     half = {i: zlib.crc32(i.encode()) % 2 for i in ids}
     res = defaultdict(dict)
@@ -397,7 +430,7 @@ def main():
                 best = (bic, D, m)
         model = best[2]
         cost = {s: sum(t for i in fit_ids for _, t, _, _ in P[i][s]) / max(1, sum(len(P[i][s]) for i in fit_ids)) for s in srcs}
-        print(f"  half {h}: D={best[1]} alpha={model.alpha:.2f} pi={[round(x, 2) for x in model.pi]}; p[s]: "
+        print(f"  half {h}: D={best[1]} alpha={model.alpha:.2f} alz={[round(a, 2) for a in model.alz]} pi={[round(x, 2) for x in model.pi]}; p[s]: "
               + ", ".join(f"{s} {[round(x, 2) for x in model.p[s]]}" for s in srcs), flush=True)
         # label-fitted best fixed ladder (FrugalGPT-style): all ladders of length <= 3 over sources with rules, chosen on fit_ids by labels
         cands = []
@@ -411,6 +444,7 @@ def main():
         def mean_u(steps, I):
             return sum(U(*ladder(P[i], steps)) for i in I) / len(I)
         lad = max(cands, key=lambda st: mean_u(st, fit_ids))
+        res["pre-generation router (labels)"].update(router(P, srcs, fit_ids, ev_ids, TXT))
         for i in ev_ids:
             res["VOI"][i] = run_voi(model, P[i], cost)[:2]
             res["DS-static (all samples)"][i] = ds_static(model, P[i])
@@ -447,7 +481,7 @@ def main():
         mu, lo, hi, p = boot({i: U(*vo[i]) - U(*res[arm][i]) for i in ids})
         print(f"  {arm:40s} {mu:+6.2f} [{lo:+6.2f}, {hi:+6.2f}]  p={p:.4f}")
     json.dump({arm: {i: list(v) for i, v in R.items() if v is not None} for arm, R in res.items()},
-              open(f"{RES}/voi_{which}_lam{LAM}.json", "w"))
+              open(f"{RES}/voi_{which}_lam{LAM}{'_v3' if V3 else ''}.json", "w"))
 
 
 if __name__ == "__main__":
