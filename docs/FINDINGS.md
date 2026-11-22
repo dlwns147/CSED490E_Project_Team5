@@ -7585,3 +7585,16 @@ inconclusive on audited (+2.4 [−0.3, +5.1]); gpt-oss-20b is ahead everywhere. 
   fails (median 9 known terms; search-type sequences) and 6–7 of 86 easy ones.
 - **Decision:** SOL-1 dropped (headroom 1, bar 10). The hard band is not sequence-structured; it needs number-theoretic algorithms
   (sums of arithmetic functions, sieves), which no fixed guesser supplies.
+
+## 2026-11-22 09:3x UTC — Project Euler: why Qwen3-8B's thinking-with-code fails (120 problems, seed 1, 14k budget; stored rows, no run)
+- **Why.** SOL-1 failed at its first test; before proposing another method for the math-computation hard band, read what the failures are.
+- **Census of the 101 wrong rows** (results/x44/euler_q8bL_thinkpb_s1.jsonl, largest cut): a program that runs and prints a wrong value 36
+  (5 within 1%, 15 within 10×, 16 far); no value printed 32; time or memory limit 23; crash 10. Right at any of the four budgets: 23 of
+  120 (largest budget alone 19).
+- **Harness defect found (baseline side):** after a budget cut the answer often ends with a code block holding only the claimed output
+  (e.g. `1587000`), and `last_block` takes that block as the program, so it prints nothing: 13–28 of 120 rows per budget. The claimed
+  number equals the gold on 1 row (pe112 at 2k), so the undercount of thinking from this is about 1 problem; the program in the earlier
+  block was not stored, so its value is unknown. The idea-44 closure ("the checked ladder ties thinking") stands with this caveat.
+- **Reading.** The hard band fails on modelling (36) and on producing a running program at all (42 incl. the 23 too slow); the checks we
+  have (statement's small cases, brute force) were already measured as a tie (idea 44, E3b). No method candidate follows from this census
+  that is new against ALGO / CodeT / Self-Debug; math computation proper stays the report's stated limitation (LOOP §1b S10).
