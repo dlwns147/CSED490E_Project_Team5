@@ -83,3 +83,14 @@ The strong Project Euler answers (think-then-program) cannot be separated becaus
 thinking models for the progc program after thinking (mode thinkpc: solve(...) + CHECKS + main, poc/run_compute.py), gpt-oss-120b and
 gpt-oss-20b, dev 120 + fresh 50, seeds 1–3; then the DIFF sweep + oracle over progc ∪ thinkpc candidates (PE_MODES=progc,thinkpc).
 Test: DIFF − {plurality of the same pool, gpt-oss-120b think-then-program alone (single best source)}, accuracy and utility, per set.
+## Related work for addendum MC (searched 2026-11-23 11:1x UTC)
+FUSE (arXiv 2604.18547) ensembles verifiers with zero labels under Dawid–Skene assumptions; "LLMs as a jury" (2607.10139) uses
+cross-family panels; "Beyond Solving" (2512.02304, ICLR 2026) finds cross-family verification helps most. MC's label-free weighting of
+verifiers is FUSE's mechanism; what differs is that the verifiers are executable verify() programs written by other samples and the
+candidates are constructions checked by running them. Loop mark K.
+## Addendum PE3 (registered 2026-11-23 11:1x UTC, before scoring): statement checks as the separating cases for multi-argument programs
+Only 4 of the first 50 thinkpc programs take one argument, so the sweep reaches few problems. Every progc / thinkpc program already runs
+the small cases the statement itself gives (CHECKS, values copied from the statement — a free, label-free check). PE3: candidates =
+progc ∪ thinkpc of all families and seeds; keep those that pass all their statement checks; return the most frequent final answer among
+the kept (if none is kept, the most frequent overall). Test (poc/pe_checkpool.py): PE3 − {gpt-oss-120b think-then-program alone,
+the plurality of the same pool}, accuracy and utility at 0.5, dev and fresh separately, paired bootstrap.
