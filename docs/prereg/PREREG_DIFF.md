@@ -488,3 +488,5 @@ interval excludes 0, else keeps medium (fewer tokens).
 ## Hourly check 2026-11-23 21:35 UTC
 - EFF (Slurm 1565258): Project Euler fresh, high effort, seed 1 finished: **4 / 50 right at 37.2k tokens per problem** (most at the
   38k cap; medium thinkp: 14% at ~10k). Seed 2 and OEIS high running; the scored test follows when they finish.
+## Hourly check 2026-11-23 22:35 UTC
+- EFF (Slurm 1565258): Project Euler fresh at high effort, seed 2: 2 / 50 at 37.6k tokens (seed 1: 4 / 50). OEIS high seed 2 running.
