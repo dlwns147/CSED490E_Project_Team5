@@ -7656,3 +7656,13 @@ inconclusive on audited (+2.4 [−0.3, +5.1]); gpt-oss-20b is ahead everywhere. 
   − SC@3 −0.28, − label-fitted ladder −0.09. So across all fresh data VOI does not beat the strongest simple baseline; its robust
   result is beating self-consistency on four of five claim and development sets with stored seeds (ties it on fresh word problems).
 - Record: docs/prereg/PREREG_VOI.md (registration and eight amendments, each committed before the set it concerns was scored).
+
+## 2026-11-23 10:18 UTC — PREREG_DIFF: asking for one term where programs disagree beats the best single source on OEIS; cross-family verification lifts MathConstruct accuracy
+- OEIS (cheap programs of three families + gpt-oss-120b computing single terms where they disagree): utility +3.2 over the best single
+  source, +4.2 over VOI, +2.4 over the plurality, all hold (Holm). Accuracy 36.2% vs plurality 32.2% at 8.1k tokens.
+- MathConstruct: each candidate construction checked by the other samples' verify(), verifiers weighted by a label-free Dawid–Skene fit
+  (gpt-oss verifiers pass 3–6% of wrong constructions, 84–90% of right ones): 46.3% with programs only (+13.8 over the best single
+  source), 62.8% when the think-then-program answers are parsed in (+12.1 over the own-verify ladder) — accuracy only; in utility the
+  cost of the pool keeps it level with the ladder (+3.3 [−2.5, +9.1], cost-limited pool chosen after seeing the data).
+- Related work: S*, LLMCodeChoice, ExPairT-LLM, Agentic Verifier (code generation); here the separating question is a single term or
+  another family's checker. Project Euler step running (gs15 GPU 7).
