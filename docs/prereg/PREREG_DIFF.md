@@ -451,3 +451,7 @@ run_compute set "mconf"). Same recipe and settings as MC-R, gpt-oss-120b: progc 
 - Why smaller: on fresh parameters the cheap program is right less often (35 / 29 of 137) and its own verify() passes less (41 / 33),
   so more instances go straight to the thinking fallback, which is strong here (65 / 68); the repair competes with a better fallback.
   The original +8.32 used the paper's published variation, whose objects are in public outputs, so part of it may be recall.
+## Addendum MC-R-F2 (registered 2026-11-23 19:41 UTC, before running): problem-level replication
+MC-R-F holds per instance but not per problem. A new seed (3) on the same 137 fresh instances, gpt-oss-120b, same settings. Decision unit
+fixed now: the problem (70), seed 3 alone, one-sided bootstrap clustered by problem; holds if the 95% lower bound > 0. The 3-seed
+clustered estimate is reported as well (descriptive; it reuses looked-at seeds).
