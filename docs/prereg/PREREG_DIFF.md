@@ -232,3 +232,14 @@ simple baselines (best single source, plurality) the method wins on both sets.
 DIFF v2 on the fresh 309 with pools of 3 (one seed per family) and 6 (two seeds) programs instead of 9 (DIFF_SEEDS=1 / 1,2; tags _s1,
 _s12). Reported as a curve (accuracy, tokens, utility) with paired intervals against the 9-program pool and the best single source;
 the pool size is a design choice to report, not to tune on this set.
+## PE-R result, gpt-oss-120b (2026-11-23 14:0x UTC; python3 poc/pe_repair.py score)
+| set | thinkpc | + one repair on visible failure | utility difference |
+|---|---|---|---|
+| Project Euler dev (120 × 3 seeds) | 38.9%, U 35.1 | 44.4%, U 38.8 | **+3.64 [+1.12, +6.61]**, p 0.0015 |
+| Project Euler fresh 943–992 (50 × 3) | 11.3%, U 6.0 | 14.7%, U 6.6 | +0.53 [−2.04, +3.41], p 0.37 |
+Repaired rows: 184 / 360 and 103 / 150. **Holds on dev, not shown on the fresh set** (+3.4 accuracy points there, but repairs cost as much as
+they gain when right answers are this rare). Thinkpc + repair (U 38.8) is also above the earlier best single source on dev (gpt-oss-120b
+think-then-program, U 36.1). Unlike selection, which the bound caps at +1.7, improving the single sample moves Project Euler.
+## Where the OEIS method still fails (stored DIFF v2 rows)
+Of the sequences DIFF gets wrong, the right answer is absent from the pool in 304 of 315 (original) and 139 of 145 (fresh); the referee
+misses a present right class in only 11 / 6. Selection is essentially solved on OEIS; the remaining gap is generation.
