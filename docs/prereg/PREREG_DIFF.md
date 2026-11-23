@@ -353,3 +353,14 @@ alone, utility, paired; and − DIFF v2 on the fresh set, descriptive.
 - **Combining them does not pay (offline bound, so not run):** DIFF is wrong while a repaired program is consistent and right on only 2 of
   309 problems (+0.65 at most), while the brute force and repair cost 4.2k tokens per problem (−2.11). Repair fixes the problems where the
   pool already holds a right program; neither creates right programs where the pool has none, which is DIFF's failure (139 of 145).
+## Addendum OEIS-E (registered 2026-11-23 17:14 UTC, before running): escalate to a thinking program where the referee rejects every candidate
+**Why.** DIFF fails almost only where the pool has no right program, and the referee's "no class matches" signal finds those sequences
+(fresh: 77 flagged, 71 wrong; original: 173 flagged, DIFF right on 1.2%). Repairing a pool program from referee terms failed (OEIS-R,
+R2). The remaining action is a fresh program written with thinking, on the flagged sequences only. It pays iff
+100 × (p_think − p_DIFF) > 0.5 × ktok_think on them; estimated on the original 500 from stored rows (gpt-oss-120b medium think, seed 2):
+p_think 6.9%, 3.5k tokens, p_DIFF 1.2% → +4.0 per flagged sequence (+1.4 per sequence overall). The other stored thinking settings
+(gpt-oss-120b high, gpt-oss-20b, Qwen3-8B) lose on the same estimate, so the setting is fixed now: gpt-oss-120b, medium, seed 2.
+**Run.** run_compute oeisf oss120M think 2 on all 309 fresh sequences (a fresh thinking baseline as well), Slurm RTXPro6000.
+**Test (fresh 309, decisive):** policy = DIFF v2; on flagged sequences replace its answer by the thinking program and pay its tokens.
+DIFF + E − DIFF, utility, paired over 309. Prediction: mean > 0. Adopt if the 95% lower bound > 0; otherwise the generation gap is not
+closable by escalation at this model's thinking accuracy on hard sequences (O'Malley et al. 2411.04372 report the same for o3-class).
