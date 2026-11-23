@@ -6,14 +6,16 @@ from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA = os.path.join(os.environ.get("POC_DATA", os.path.join(os.path.dirname(ROOT), "nlp_data")), "compute", "oeis.json")
+DATA = os.path.join(os.environ.get("POC_DATA", os.path.join(os.path.dirname(ROOT), "nlp_data")), "compute",
+                    "oeis_fresh.json" if os.environ.get("DIFF_FRESH") else "oeis.json")
+PFX = "oeisf" if os.environ.get("DIFF_FRESH") else "oeis"   # addendum OEIS-F
 ASK = ("Here is an integer sequence.\nName: {name}\nComments: {comments}\nThe sequence starts at index n = {off}.\n\n"
        "Compute the single term a({n}) of this sequence from its definition. Work it out carefully, then give only that integer in \\boxed{{}}.")
 
 
 def pool(kind):
     C = defaultdict(lambda: defaultdict(list)); tok = defaultdict(int)
-    for f in sorted(glob.glob(os.environ.get("DIFF_POOL", f"{ROOT}/results/x44") + "/oeis_*_s*.jsonl")):
+    for f in sorted(glob.glob(os.environ.get("DIFF_POOL", f"{ROOT}/results/x44") + f"/{PFX}_*_s*.jsonl")):
         b = os.path.basename(f)
         if "brute" in b or "diff" in b or (kind == "cheap" and "_prog_" not in b):
             continue
@@ -35,7 +37,7 @@ def run(kind):
     from llm import chat
     seqs = {x["id"]: x for x in json.load(open(DATA))}
     C, tok = pool(kind)
-    out = f"{ROOT}/results/x44/oeis_diff_{kind}{os.environ.get('DIFF_TAG', '')}.jsonl"
+    out = f"{ROOT}/results/x44/{PFX}_diff_{kind}{os.environ.get('DIFF_TAG', '')}.jsonl"
     done = {json.loads(l)["id"] for l in open(out)} if os.path.exists(out) else set()
 
     def one(i):
