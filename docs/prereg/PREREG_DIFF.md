@@ -304,3 +304,8 @@ Own-verify ladder 50.7% at 3.20k tokens (U 49.1) → ladder + one repair turn **
 constructions skip the 3.2k-token think. This is the best MathConstruct utility of every method here (MC-SEQ 51.6, think alone 45.3),
 at about a sixth of MC-SEQ's tokens. Constructive reading: on MathConstruct the model's own checker is precise enough to drive a cheap
 fix, and improving one sample beats choosing among many — the same lesson as Project Euler (PE-R +3.6 on dev).
+## Addendum OEIS-B (registered 2026-11-23 16:0x UTC, before running): the MC-R lesson on OEIS
+A gpt-oss-120b cheap program whose first 8 terms disagree with the same model's brute force gets ONE repair turn (term-by-term evidence);
+the repair replaces the program if its first 8 terms then equal the brute force's. Brute-force tokens and repair tokens are paid on
+every sequence / every repaired one. Original 500 sequences (the fresh set has no brute-force rows), seeds 1–2. Test
+(poc/oeis_brute_repair.py score): program + check + repair − program alone, utility, paired. Prior: ALGO (brute-force oracle), Self-Debug.
