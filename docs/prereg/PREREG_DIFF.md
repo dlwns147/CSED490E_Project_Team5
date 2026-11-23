@@ -364,3 +364,22 @@ p_think 6.9%, 3.5k tokens, p_DIFF 1.2% → +4.0 per flagged sequence (+1.4 per s
 **Test (fresh 309, decisive):** policy = DIFF v2; on flagged sequences replace its answer by the thinking program and pay its tokens.
 DIFF + E − DIFF, utility, paired over 309. Prediction: mean > 0. Adopt if the 95% lower bound > 0; otherwise the generation gap is not
 closable by escalation at this model's thinking accuracy on hard sequences (O'Malley et al. 2411.04372 report the same for o3-class).
+## Competition answers at scale: MathArena's public runs (2026-11-23 17:21 UTC; descriptive, offline, no model call; poc/prep_matharena.py)
+**Why.** The AIME addendum (oracle 53 vs plurality 50 of 60) had too little power. MathArena publishes every model's graded runs
+(4 per problem) on post-cutoff competitions; 213 problems of AIME 2025, BRUMO 2025, HMMT Feb / Nov 2025, SMT 2025 and CMIMC 2025 have
+gpt-oss-120b (high) runs; 183 also gpt-oss-20b (high), 143 also Qwen3-30B-A3B and Qwen3-235B-A22B. Tokens are their output tokens.
+| policy (utility = 100 × right − 0.5 × ktok) | n | accuracy | utility |
+|---|---|---|---|
+| one gpt-oss-120b sample | 213 | 88% | **78.1** |
+| plurality of its 4 samples (some sample right 96.2%) | 213 | 92.1% | 49.2 |
+| plurality of 8 (gpt-oss-120b + 20b), some right 96.7% | 183 | 94.3% | −33.8 |
+| plurality of 16 (+ Qwen3-30B, Qwen3-235B) | 143 | 92.7% | −88.9 |
+- **Selection is not the lever on competition answers.** A high-effort sample costs 18–55k tokens (9–27 utility points), while the most any
+  selector can add over one sample is the pool's coverage gap: 96.2 − 88 ≈ 8 points of accuracy for 3 more samples (−32). An oracle
+  referee between the top answers (aime_diff.py) cannot pay for the pool it needs.
+- **Nor does a second sample bought on a free signal.** Policy: one sample; if its length exceeds t, a second; if they disagree, a third
+  and plurality. t chosen on AIME 2025 + BRUMO + HMMT Feb (90 problems), tested on SMT + CMIMC + HMMT Nov (123), averaged over run
+  orders: utility rises monotonically in t on both halves, and the best t is "never" (dev 79.7, test 76.9 vs t = 50k: 73.3 / 73.5).
+  Long outputs are more often wrong, but not enough to pay for a 20k-token second opinion.
+- **Consequence for this set:** at this token price the competition-answer recipe is one gpt-oss-120b sample; what could still pay is
+  a cheaper sample of the same accuracy (lower effort), not selection. Not run here: MathArena has only high-effort runs.
