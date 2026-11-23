@@ -7677,3 +7677,8 @@ inconclusive on audited (+2.4 [−0.3, +5.1]); gpt-oss-20b is ahead everywhere. 
 | AIME (descriptive) | referee between the two most common answers | 53 / 60 vs plurality 50, best single 47 |
 Pattern: a separating question pays where cheap candidates are diverse and a referee question is easy (one OEIS term); where the right
 answer needs an expensive sample anyway (Project Euler), any pool pays for samples that a single strong sample does not need.
+
+## 2026-11-23 13:07 UTC — The OEIS method replicates on fresh sequences (PREREG_DIFF OEIS-F)
+On 309 OEIS sequences added after all models' training data (A389000–A391999), asking gpt-oss-120b for the single most informative term
+where three families' cheap programs disagree beats the best single source by +5.3 [+1.8, +8.9] and the plurality by +2.1 [+0.2, +4.3]
+utility (Holm holds). 53.1% right at 8.1k tokens; some sample is right on 55.0%, so DIFF recovers most of the selection headroom.

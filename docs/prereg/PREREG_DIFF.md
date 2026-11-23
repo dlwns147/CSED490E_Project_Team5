@@ -182,3 +182,7 @@ candidates already bought. Everything else as MC-SEQ. Test: MC-SEQ2 − {own-ver
   that output is set aside (oeisf_diff_cheap_split_2fam_INVALID.jsonl). gpt-oss-20b and gpt-oss-120b programs are done (seed means
   37.9% / 45.3% right); Qwen3-8B programs and the registered three-family referee run now on gs15 GPU 7 (lane of_fresh).
 - JUDGE (S*-style) running on gs15 GPU 6 (77 / 500).
+## OEIS-F result — registered fresh confirmation (2026-11-23 13:0x UTC; 309 sequences A389000–A391999, three families' cheap programs × 3 seeds, DIFF v2 with gpt-oss-120b)
+DIFF 53.1% vs plurality 49.5% vs gpt-oss-120b program alone 44.0% (some sample right on 55.0%); tokens 5.2k pool + 2.9k referee.
+**DIFF − best single source +5.34 [+1.82, +8.90], p 0.0005; DIFF − plurality +2.09 [+0.17, +4.26], p 0.015 — both hold (Holm over two).**
+The OEIS result replicates on sequences added after every model's training data and after any decision here.

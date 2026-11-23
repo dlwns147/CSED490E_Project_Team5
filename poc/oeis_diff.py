@@ -89,7 +89,7 @@ def run(kind):
 def score():
     import random
     for kind in ("all", "cheap", "all_q8b", "cheap_q8b", "cheap_split", "cheap_judge"):
-        p = f"{ROOT}/results/x44/oeis_diff_{kind}.jsonl"
+        p = f"{ROOT}/results/x44/{PFX}_diff_{kind}.jsonl"
         if not os.path.exists(p):
             continue
         R = [json.loads(l) for l in open(p)]; n = len(R)
