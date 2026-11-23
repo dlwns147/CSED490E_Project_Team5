@@ -169,3 +169,7 @@ MC-SEQ used each source family's average right-rate p_s, so it kept buying on pr
 p_s a Beta prior per family whose mean and strength come from the fit half by the method of moments (mean and between-problem variance
 of the per-problem posterior right-rate; no hand constant), and updates it on THIS problem with the posteriors of the family's
 candidates already bought. Everything else as MC-SEQ. Test: MC-SEQ2 − {own-verify ladder, MC-SEQ}, utility, paired bootstrap.
+- *MC-SEQ2 result (2026-11-23 11:5x UTC; SEQ2=1 python3 poc/mcon_seq.py):* worse — 63.6% at 40.9k tokens (11.3 samples), utility 43.2 vs ladder
+  49.1 (−5.92 [−13.65, +1.54]) and vs MC-SEQ 51.6. The between-problem variance of the right-rate is large, so the fitted Beta prior is
+  weak and a few uncertain posteriors on the first samples raise the estimated rate instead of lowering it; the stopping rule then buys
+  more. Not adopted; MC-SEQ stays the MathConstruct line.
