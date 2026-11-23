@@ -213,3 +213,6 @@ over problems (seeds averaged), dev and fresh separately, one-sided.
   little cheaper; the anchoring hypothesis is not shown. The recent-research baseline is matched, not beaten.
 - REF20 − best single +0.28 [−2.43, +3.03]; − DIFF v2 −3.65 [−4.98, −2.45]: the smaller referee reasons twice as long for less accuracy.
   Across three referees, the method needs a referee that computes one term cheaply (gpt-oss-120b: 3.2k; gpt-oss-20b: 7.3k; Qwen3-8B 14.2k).
+## Addendum JUDGE-F (registered 2026-11-23 13:3x UTC, before running): DIFF v2 vs the S*-style judge on the fresh 309 sequences
+Same pool and referee as OEIS-F; JUDGE variant (DIFF_JUDGE=1). Test: DIFF v2 − JUDGE, utility, two-sided, paired; pooled with the
+original 500 as a second, descriptive line.
