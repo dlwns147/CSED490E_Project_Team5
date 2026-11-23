@@ -455,3 +455,17 @@ run_compute set "mconf"). Same recipe and settings as MC-R, gpt-oss-120b: progc 
 MC-R-F holds per instance but not per problem. A new seed (3) on the same 137 fresh instances, gpt-oss-120b, same settings. Decision unit
 fixed now: the problem (70), seed 3 alone, one-sided bootstrap clustered by problem; holds if the 95% lower bound > 0. The 3-seed
 clustered estimate is reported as well (descriptive; it reuses looked-at seeds).
+## MA-EFF result (2026-11-23 19:57 UTC; python poc/ma_effort.py score; 155 integer-answer problems × 2 seeds, gpt-oss-120b, one server)
+| effort | accuracy | tokens | utility |
+|---|---|---|---|
+| low | 54.2% | 1.9k | 53.24 |
+| medium | 75.5% | 5.9k | 72.55 |
+| high | **85.2%** | 15.2k | **77.56** |
+- **P1 fails: high is best.** medium − high −5.00 [−10.24, +0.06]; high leads on every competition (AIME 2026, after the cutoff: 78.9
+  vs 75.2 vs 64.1). **P2 holds:** low − medium −19.31 [−25.68, −13.20]. At λ = 0.5 the extra accuracy of high thinking on competition
+  answers is worth its tokens, unlike OEIS / word problems where cheap programs win; our high number (77.6) matches MathArena's own
+  gpt-oss-120b high runs (78.1 on the overlapping competitions), so the serving is comparable.
+- **A free failure signal remains:** 33 of 310 high samples hit the 38k cap with no answer. Offline on the stored samples (no new
+  run): high, and on a capped high a medium sample, gives 81.32 / 79.66 (seed 1 / seed 2 first) vs 78.10 / 77.01 for high alone,
+  about +3; a second high sample instead gives +1.3 / +1.6. This is the visible-failure retry already in the word-problem cascade
+  (PREREG_ESCT), not new; the competition-answer recipe is one high sample, and a medium retry when it runs out of room.
