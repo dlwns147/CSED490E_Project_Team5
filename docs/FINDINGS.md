@@ -7682,3 +7682,7 @@ answer needs an expensive sample anyway (Project Euler), any pool pays for sampl
 On 309 OEIS sequences added after all models' training data (A389000–A391999), asking gpt-oss-120b for the single most informative term
 where three families' cheap programs disagree beats the best single source by +5.3 [+1.8, +8.9] and the plurality by +2.1 [+0.2, +4.3]
 utility (Holm holds). 53.1% right at 8.1k tokens; some sample is right on 55.0%, so DIFF recovers most of the selection headroom.
+
+## 2026-11-23 16:05 UTC — MathConstruct: one repair turn driven by the model's own verify() adds +8.3 utility over the own-verify ladder (PREREG_DIFF MC-R)
+gpt-oss-120b, 121 problems × 3 seeds: 50.7% → 59.5% right at 3.2k → 4.2k tokens; repaired constructions that pass verify() are right 89%
+of the time. Best MathConstruct result of the session (cross-verification and sequential buying were accurate but expensive).

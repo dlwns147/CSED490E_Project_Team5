@@ -298,3 +298,9 @@ gpt-oss-120b (registered) and gpt-oss-20b (descriptive).
   weaker family the bottleneck is producing any program, not fixing one.
 - POOL-F: the Qwen3.6 programs are done (3 × 309), but the referee lane's command was mis-escaped and did not run; rewritten and
   requeued (gs15 GPU 6, lane poolf2). MC-R (Slurm 1562504) pending in the queue.
+## MC-R result (2026-11-23 16:0x UTC; python3 poc/mcon_repair.py score; gpt-oss-120b, 121 problems × 3 seeds)
+Own-verify ladder 50.7% at 3.20k tokens (U 49.1) → ladder + one repair turn **59.5% at 4.19k (U 57.4): +8.32 [+5.24, +11.60], p 0.0002.**
+221 programs failed their own verify(); the repair's verify() passed on 92, and 82 of those are right (89% precise), so most repaired
+constructions skip the 3.2k-token think. This is the best MathConstruct utility of every method here (MC-SEQ 51.6, think alone 45.3),
+at about a sixth of MC-SEQ's tokens. Constructive reading: on MathConstruct the model's own checker is precise enough to drive a cheap
+fix, and improving one sample beats choosing among many — the same lesson as Project Euler (PE-R +3.6 on dev).
