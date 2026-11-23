@@ -142,3 +142,6 @@ JSON API; kept if the keyword list has "easy" or "hard" (the benchmark's split, 
 programs) for Qwen3-8B, gpt-oss-20b (low) and gpt-oss-120b (low), seeds 1–3; DIFF v2 (most-informative term, gpt-oss-120b referee)
 over that pool. Test: DIFF − best single source fixed in advance as gpt-oss-120b prog seed 1 (the winner on the original set), and −
 plurality; utility at 0.5, clustered bootstrap, one-sided, Holm over two. Prediction: both positive.
+- *OEIS-F set built (2026-11-23 11:5x UTC, by the registered rule):* 3,000 entries fetched; 644 easy and 59 hard pass the filter (hard OEIS entries
+  rarely list ≥ 10 terms), so the set is 250 easy + 59 hard = 309 sequences. Generation: Slurm 1560557 (Qwen3-8B), 1560558 (gpt-oss-20b),
+  1560559 (gpt-oss-120b), prog seeds 1–3; then DIFF v2.
