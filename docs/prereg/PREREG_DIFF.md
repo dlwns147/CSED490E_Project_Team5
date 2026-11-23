@@ -279,3 +279,10 @@ Hourly: PE-R gpt-oss-20b lane had stopped with partial rows and no error in its 
 POOL shows that selection sits at the pool's coverage ceiling, so coverage per token decides utility. POOL-F adds Qwen3.6-35B-A3B
 (FP8, 3B active; a newer family) cheap programs on the fresh 309 (3 seeds, no thinking), then DIFF v2 over (a) the 12-program pool of four
 families and (b) the 8-program pool of seeds 1–2 of all four families; reported as coverage / accuracy / tokens / utility next to POOL.
+## OEIS-R2 result (2026-11-23 15:1x UTC; OEIS_R2=1 python3 poc/oeis_repair.py score)
+Worse than one term: fresh −1.94 [−2.41, −1.50], original −1.47 [−2.22, −0.56]. The three-term test rejects most repairs (consistent
+10 / 77 fresh, 38 / 173 original) — including 8 right repairs per set whose program disagrees with one of the referee's extra terms:
+the REFEREE is wrong on some of those terms. One referee term at the most-disputed index is accurate enough to choose among candidates,
+but repairing a program needs several trustworthy terms, and each extra referee term adds its own error and two more thinking calls.
+Conclusion for the OEIS generation gap: referee-guided repair does not close it at this referee's accuracy; the selection result
+(DIFF v2) stands as the OEIS method.
