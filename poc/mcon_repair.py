@@ -8,6 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 R = f"{ROOT}/results/x44"
+SET = os.environ.get("MC_SET", "mcon")   # mconf: fresh parameters (addendum MC-R-F)
 FIX = ("{task}\n\nYour earlier program for this problem:\n```python\n{code}\n```\n{evidence}\nFind the mistake (in the construction or in "
        "verify) and write the corrected program in the same format. Give it in a single ```python code block.")
 
@@ -15,9 +16,9 @@ FIX = ("{task}\n\nYour earlier program for this problem:\n```python\n{code}\n```
 def run(tag, seed):
     from llm import chat, last_block
     import run_compute as RC
-    P = {p["id"]: p for p in RC.problems("mcon")}
-    rows = [json.loads(l) for l in open(f"{R}/mcon_{tag}_progc_s{seed}.jsonl")]
-    out = f"{R}/mcon_{tag}_progcR_s{seed}.jsonl"
+    P = {p["id"]: p for p in RC.problems(SET)}
+    rows = [json.loads(l) for l in open(f"{R}/{SET}_{tag}_progc_s{seed}.jsonl")]
+    out = f"{R}/{SET}_{tag}_progcR_s{seed}.jsonl"
     todo = [r for r in rows if r.get("code") and str(r.get("verify")) != "True"]
 
     def one(r):
@@ -48,11 +49,11 @@ def score():
     for tag in ("oss120", "oss20"):
         lad, rep = {}, {}
         for s in (1, 2, 3):
-            pp = f"{R}/mcon_{tag}_progcR_s{s}.jsonl"
+            pp = f"{R}/{SET}_{tag}_progcR_s{s}.jsonl"
             if not os.path.exists(pp):
                 continue
-            C = {json.loads(l)["id"]: json.loads(l) for l in open(f"{R}/mcon_{tag}_progc_s{s}.jsonl")}
-            T = {json.loads(l)["id"]: json.loads(l) for l in open(f"{R}/mcon_{tag}_thinkp_s{s}.jsonl")}
+            C = {json.loads(l)["id"]: json.loads(l) for l in open(f"{R}/{SET}_{tag}_progc_s{s}.jsonl")}
+            T = {json.loads(l)["id"]: json.loads(l) for l in open(f"{R}/{SET}_{tag}_thinkp_s{s}.jsonl")}
             Z = {json.loads(l)["id"]: json.loads(l) for l in open(pp)}
             for i, c in C.items():
                 if i not in T:

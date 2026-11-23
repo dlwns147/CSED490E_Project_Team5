@@ -422,3 +422,17 @@ while only 23 / 27 wrong programs agree with it. Run: the same repair turn (poc/
 seed 2 with brute-force seed 2, program seed 3 with brute-force seed 1 (stored brute forces, their tokens charged), fresh 309, gs15.
 Test: thinking program + check + repair − thinking program alone, utility, paired, seeds averaged. Prediction: > 0 with lower bound > 0.
 Decision: holds → the OEIS recipe is "thinking program, own brute-force check, one repair" and is then compared with DIFF v2.
+## OEIS-TB result (2026-11-23 18:33 UTC; OEISB_PROG=oss120M_think OEISB_BMAP=2:2,3:1 python poc/oeis_brute_repair.py score)
+Thinking program 48.90 → + check + repair 49.48: **+0.58 [−0.95, +2.25], not shown** (accuracy 49.8 → 51.5% and 50.8 → 52.4%). Of 83
+repaired programs that now agree with the brute force, 17 are right: the correlated-misreading leak (OEIS-B-F) is worse here, because the
+thinking program and the brute force are written by the same model from the same reading. Against DIFF v2 (descriptive) +0.47 [−1.80, +2.57].
+**Offline, original set (no run):** a different family's brute force decorrelates the check but is wrong more often itself: wrong
+gpt-oss-120b programs pass gpt-oss-120b's brute force 23% of the time, gpt-oss-20b's 17%, Qwen3-8B's 10%; right programs pass 83%,
+70%, 48%. No family gives a check that is both independent and accurate. **OEIS summary:** every generation-side method tried
+(escalation, referee-guided repair, brute-force repair, thinking) lands within noise of 49–50 utility on the fresh set; the limit is the
+model's reading of the definitions, which every check built by the same models shares.
+## Addendum MC-R-F (registered 2026-11-23 18:33 UTC, before running): MC-R on fresh parameters
+MC-R (+8.32 on 121 problems) used each problem's first variation in the paper's published results, whose objects appear in public model
+outputs. MathConstruct's generators give new parameters: 137 instances of 70 held-out problems (side/construct.py, ids_mcfresh.txt; new
+run_compute set "mconf"). Same recipe and settings as MC-R, gpt-oss-120b: progc (low, 8k), thinkp (medium, 16k), repair (medium), seeds
+1–2, gs15. Test: ladder + repair − ladder, utility, paired over instances. Prediction: > 0 with 95% lower bound > 0.

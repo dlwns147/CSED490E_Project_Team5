@@ -162,9 +162,32 @@ def mcon_problems():
     return out
 
 
+def mconf_problems():
+    """PREREG_DIFF MC-R-F: MathConstruct instances with fresh parameters (side/construct.py build; $POC_DATA/construct/ids_mcfresh.txt,
+    137 instances of 70 held-out problems), graded by the benchmark's own checker for those parameters"""
+    import ast
+    mcon_problems()   # loads the package path and the problem classes
+    from math_construct.problems import get_all_problem_classes
+    C = {cls.config.name: cls for cls in get_all_problem_classes()}
+    base = os.path.join(os.path.dirname(DATA), "construct")
+    inst = {json.loads(l)["id"]: json.loads(l) for l in open(f"{base}/instances.jsonl")}
+    out = []
+    for i in [l.strip() for l in open(f"{base}/ids_mcfresh.txt") if l.strip()]:
+        x = inst[i]
+        try:
+            obj = C[x["name"]](**(x["params"] if isinstance(x["params"], dict) else ast.literal_eval(x["params"])))
+        except Exception:
+            continue
+        _MC[i] = obj
+        out.append({"id": i, "problem": str(obj) + "\n\nFormat your reply as follows:\n" + obj.get_formatting()})
+    return out
+
+
 def problems(s):
     if s == "mcon":
         return mcon_problems()
+    if s == "mconf":
+        return mconf_problems()
     return json.load(open(f"{DATA}/{ {'euler': 'euler_dev', 'eulert': 'euler_test', 'oeis': 'oeis', 'oeisf': 'oeis_fresh'}[s] }.json"))
 
 
@@ -243,7 +266,7 @@ def main():
     P = problems(s)
     if "--n" in sys.argv:
         P = P[:int(sys.argv[sys.argv.index("--n") + 1])]
-    euler, mcon = s.startswith("euler"), s == "mcon"
+    euler, mcon = s.startswith("euler"), s in ("mcon", "mconf")
     BUD = [int(x) for x in sys.argv[sys.argv.index("--budgets") + 1].split(",")] if "--budgets" in sys.argv else [2000, 4000, 8000, 14000]
     path = f"{RES}/{s}_{tag}_{mode}_s{seed}.jsonl"
     if "--regrade" in sys.argv and mcon and mode != "think":   # grade stored program output again (2026-11-13: backspace fix); no model calls
