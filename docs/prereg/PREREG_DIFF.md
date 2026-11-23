@@ -442,3 +442,12 @@ run_compute set "mconf"). Same recipe and settings as MC-R, gpt-oss-120b: progc 
 ## Hourly check 2026-11-23 19:37 UTC
 - MC-R-F (gs15 GPU 7): progc and thinkp done for both seeds on the 137 fresh instances; repair seed 2 running. MA-EFF (Slurm 1563871):
   high effort seed 2 running (the last arm).
+## MC-R-F result (2026-11-23 19:40 UTC; MC_SET=mconf python poc/mcon_repair.py score; 137 fresh-parameter instances of 70 problems, gpt-oss-120b, seeds 1–2)
+- **As registered (paired over instances): ladder 49.70 → ladder + repair 53.23, +3.53 [+0.30, +7.21], p 0.016 — holds.** Right
+  instances: seed 1 68 → 72, seed 2 73 → 81 of 137.
+- **But the instances are not independent** (two per problem on average). Clustered by problem (70): **+3.08 [−0.48, +6.96]**, which
+  does not exclude 0. The registration should have named the problem as the unit; the honest reading is "same direction, less than half
+  the original effect (+8.32), not shown at the problem level".
+- Why smaller: on fresh parameters the cheap program is right less often (35 / 29 of 137) and its own verify() passes less (41 / 33),
+  so more instances go straight to the thinking fallback, which is strong here (65 / 68); the repair competes with a better fallback.
+  The original +8.32 used the paper's published variation, whose objects are in public outputs, so part of it may be recall.
