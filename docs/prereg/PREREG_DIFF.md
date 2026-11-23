@@ -106,3 +106,8 @@ v1 asks the first index where classes differ, which often separates one rare cla
 remaining classes, weighted by how many samples each class has, has the largest entropy (the most informative single question under
 the sample-count prior); ties to the earliest index. Same oracle, same cheap pool, same 3 rounds (DIFF_SPLIT=1, tag _split). Test:
 v2 − v1 (utility, paired over sequences) and v2 − best single source.
+## Addendum AIME (registered 2026-11-23 11:1x UTC, before running): the one non-saturated part of MATH + AIME
+On AIME 2024+2025 (60) some stored sample is right on 56, the plurality on 50, the best single source (Qwen3-32B think) on 47. For the
+57 problems with ≥ 2 answers the oracle (gpt-oss-120b, medium) sees the problem and the two most frequent answers and decides (poc/
+aime_diff.py). Test: oracle-resolved − plurality, accuracy (descriptive; n = 60 gives low power — reported as counts). Prior work: LLM
+as judge between candidate answers (S*, ExPairT-LLM, "LLMs as a jury"); a known mechanism (mark K).
