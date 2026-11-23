@@ -173,3 +173,12 @@ candidates already bought. Everything else as MC-SEQ. Test: MC-SEQ2 − {own-ver
   49.1 (−5.92 [−13.65, +1.54]) and vs MC-SEQ 51.6. The between-problem variance of the right-rate is large, so the fitted Beta prior is
   weak and a few uncertain posteriors on the first samples raise the estimated rate instead of lowering it; the stopping rule then buys
   more. Not adopted; MC-SEQ stays the MathConstruct line.
+## Hourly check 2026-11-23 12:4x UTC
+- **Qwen3-8B as the referee (OEIS, complete):** cheap pool 34.2% vs plurality 32.2% (+2.0 accuracy) but its single-term reasoning costs
+  14.2k tokens per sequence (gpt-oss-120b: 3.2k), so utility −5.09 [−7.36, −2.76]. The referee must be a model that computes one term
+  cheaply; a weak model thinks at length and erases the gain.
+- **OEIS-F (fresh):** the first Slurm submission had to be repaired — OEIS offsets came as text ("0,3"; fixed to the first integer),
+  then the Qwen3-8B job failed on a GPU still held by the cancelled job's container, and the chained referee ran on a two-family pool;
+  that output is set aside (oeisf_diff_cheap_split_2fam_INVALID.jsonl). gpt-oss-20b and gpt-oss-120b programs are done (seed means
+  37.9% / 45.3% right); Qwen3-8B programs and the registered three-family referee run now on gs15 GPU 7 (lane of_fresh).
+- JUDGE (S*-style) running on gs15 GPU 6 (77 / 500).
