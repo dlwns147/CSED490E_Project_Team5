@@ -6,6 +6,7 @@ import json, math, os, random, zlib
 from collections import defaultdict
 R = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "results", "x44")
 LAM = 0.5
+SEQ2 = bool(os.environ.get("SEQ2"))   # addendum MC-SEQ2
 FAM = lambda v: v.split("_s")[0].rstrip("T")
 U = lambda ok, t: 100 * ok - LAM * t / 1000
 
@@ -53,20 +54,35 @@ def fit(I):
         ps[fs] = sum(v) / max(1, len(v))
     cs = {srcfam(s): sum(tok.get((i, x), 0) for i in I for x in SRCS if srcfam(x) == srcfam(s)) /
           max(1, sum(1 for i in I for x in SRCS if srcfam(x) == srcfam(s) and (i, x) in tok)) for s in SRCS}
-    return post, ps, cs
+    beta = {}
+    for fs in ps:   # method-of-moments Beta per family over problems (MC-SEQ2)
+        rates = []
+        for i in I:
+            v = [post((i, x)) for x in SRCS if srcfam(x) == fs and (i, x) in chk]
+            if v:
+                rates.append(sum(v) / len(v))
+        m_ = sum(rates) / max(1, len(rates)); var = sum((r - m_) ** 2 for r in rates) / max(1, len(rates) - 1)
+        k = max(0.1, m_ * (1 - m_) / var - 1) if var > 0 else 100.0
+        beta[fs] = (m_ * k, (1 - m_) * k)
+    return post, ps, cs, beta
 
 
 res = {}
 for h in (0, 1):
     fitI = [i for i in ids if zlib.crc32(i.encode()) % 2 != h]; ev = [i for i in ids if zlib.crc32(i.encode()) % 2 == h]
-    post, ps, cs = fit(fitI)
+    post, ps, cs, beta = fit(fitI)
     for i in ev:
         have, used, spent = [], set(), 0
         while True:
             vers = {x for x in used if not srcfam(x).endswith("T")}   # verifiers = verify() of the progc samples bought so far
             best = max(have, key=lambda x: post((i, x), vers), default=None)
             pb = post((i, best), vers) if best else 0.0
-            opts = [(100 * ps[srcfam(s)] * (1 - pb) - LAM * cs[srcfam(s)] / 1000, s) for s in SRCS if s not in used and (i, s) in tok]
+            def prate(fs):
+                if not SEQ2:
+                    return ps[fs]
+                a0, b0 = beta[fs]; got = [post((i, x), vers) for x in have if srcfam(x) == fs]
+                return (a0 + sum(got)) / (a0 + b0 + len(got))
+            opts = [(100 * prate(srcfam(s)) * (1 - pb) - LAM * cs[srcfam(s)] / 1000, s) for s in SRCS if s not in used and (i, s) in tok]
             if not opts:
                 break
             g, s = max(opts)

@@ -164,3 +164,8 @@ S* (arXiv 2502.14382) and LLMCodeChoice show the judge the candidates' outputs o
 exactly DIFF v2 (same pool, same most-informative index, same gpt-oss-120b, same 3 rounds) except that the prompt also lists the
 candidates' values for that term (DIFF_JUDGE=1, tag _judge). Test: DIFF v2 − JUDGE, utility, paired over the 500 sequences, two-sided.
 Hypothesis: showing the values anchors the judge on the plurality's (often shared) wrong value, so DIFF v2 ≥ JUDGE.
+## Addendum MC-SEQ2 (registered 2026-11-23 11:5x UTC, before running): problem-specific right-rate in the stopping rule
+MC-SEQ used each source family's average right-rate p_s, so it kept buying on problems where that family keeps failing. MC-SEQ2 gives
+p_s a Beta prior per family whose mean and strength come from the fit half by the method of moments (mean and between-problem variance
+of the per-problem posterior right-rate; no hand constant), and updates it on THIS problem with the posteriors of the family's
+candidates already bought. Everything else as MC-SEQ. Test: MC-SEQ2 − {own-verify ladder, MC-SEQ}, utility, paired bootstrap.
