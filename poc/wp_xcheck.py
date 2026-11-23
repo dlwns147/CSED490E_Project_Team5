@@ -15,6 +15,13 @@ def boot(d):
     return sum(d.values()) / n, bs[int(.025 * B)], bs[int(.975 * B) - 1], (sum(x <= 0 for x in bs) + 1) / (B + 1)
 
 
+def per_problem(keys, pol):
+    g = {}
+    for k in keys:
+        g.setdefault(k[0], []).append(pol["cross"][k] - pol["own"][k])
+    return {i: sum(v) / len(v) for i, v in g.items()}
+
+
 for A, B_ in (("q8b", "oss20"), ("oss20", "q8b")):
     stats = {"own": [0, 0, 0, 0], "cross": [0, 0, 0, 0]}   # right&flag, right, wrong&caught, wrong
     pol = {"own": {}, "cross": {}}
@@ -45,4 +52,4 @@ for A, B_ in (("q8b", "oss20"), ("oss20", "q8b")):
     for nm, (fa, r, ca, w) in stats.items():
         print(f"solver {A}, {nm} checker: false alarms on right {fa}/{r} ({100*fa/max(r,1):.0f}%), catches wrong {ca}/{w} ({100*ca/max(w,1):.0f}%)")
     print(f"  FF-V utility: own {sum(pol['own'][k] for k in keys)/len(keys):.2f}  cross {sum(pol['cross'][k] for k in keys)/len(keys):.2f}  "
-          f"cross - own %+.2f [%+.2f, %+.2f] p=%.4f  (n={len(keys)})" % boot({k: pol['cross'][k] - pol['own'][k] for k in keys}))
+          f"cross - own %+.2f [%+.2f, %+.2f] p=%.4f  (n={len(keys)}, clustered by problem)" % boot(per_problem(keys, pol)))
