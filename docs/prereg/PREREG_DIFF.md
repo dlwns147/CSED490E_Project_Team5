@@ -49,3 +49,9 @@ The ladder wins because think-then-program constructions are better (gpt-oss-120
 construct()). MC2 parses every think-then-program boxed answer with the problem's own parser into an object, adds it as a candidate,
 and checks it with all 9 progc verify() functions; same DS fit. Test: DS over all 18 candidates − own-verify ladder (accuracy and
 utility at 0.5 with every sample's tokens), one-sided paired bootstrap.
+## Addendum PE (registered 2026-11-23 09:4x UTC, before any sweep): poc/pe_diff.py
+Candidates: progc programs of three families × 3 seeds; those with a one-argument solve() are swept for n = 1..12 (sandbox, CPU job);
+per problem whose final answers disagree, the smallest n where the swept classes differ is asked to the oracle (statement + argument
+name + the asked call, "compute the answer for this small case"), up to 3 rounds; return the most frequent surviving final answer.
+Oracle: gpt-oss-120b (medium). Test: accuracy and utility vs the plurality final answer, Project Euler dev and fresh 943–992 separately,
+paired bootstrap. Stated limit: think-then-program answers (the strongest on fresh problems) have no solve() and are not candidates.
