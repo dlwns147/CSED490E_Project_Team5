@@ -262,3 +262,7 @@ fresh set (A389000–A391999) extends their "contemporary" idea past every model
 **Not shown on the fresh set** (registered decisive). A repaired program that matches the referee's single term is right only 18% /
 18% of the time (13 / 72, 6 / 34): one term is a weak acceptance test for a whole 20-term sequence, and the repairer mostly patches the
 program to hit that one value. The referee's term is a good detector of a wrong pool (89–95%) but not a sufficient guide for repairing it.
+## Addendum OEIS-R2 (registered 2026-11-23 14:2x UTC, before running): three referee terms as feedback and as the acceptance test
+OEIS-R's single term let the repairer patch the program to hit one value (18% of consistent repairs right). R2: on the same triggered
+sequences, the referee also computes the two most-disputed other terms (entropy of the candidates' values, sample-weighted); the repair
+sees all three (stated vs printed) and is accepted only if it prints all three. Test: R2 − DIFF v2, utility, paired, fresh decisive.
