@@ -336,3 +336,11 @@ the pool's tokens — the MC-R lesson holds on OEIS: repair one sample with a fr
 ## Addendum OEIS-B-F (registered 2026-11-23 16:2x UTC, before running): confirm on the fresh 309
 gpt-oss-120b brute force (seeds 1–2, run_compute oeisf brute), then the same repair (OEISB_FRESH=1). Test: + check + repair − program
 alone, utility, paired; and − DIFF v2 on the fresh set, descriptive.
+## Hourly check 2026-11-23 16:3x UTC — MC-R gpt-oss-20b and POOL-F
+- **MC-R gpt-oss-20b (descriptive line):** ladder U 28.9 → ladder + repair U 39.8, **+10.93 [+7.23, +14.62]**. The repair-before-thinking
+  gain holds for the weaker family too (larger, since its first constructions fail more often).
+- **POOL-F (fresh 309):** adding Qwen3.6 raises coverage (some sample right 55.0% → 56.3% with 12 programs) but its cheap programs
+  cost 2.9k tokens each, so utility falls: 4 families × 2 seeds 46.0 (−3.02 vs the 9-program pool), × 3 seeds 43.6 (−5.38); the
+  3-family pools stay best (6 programs 49.2, 9 programs 49.0). A new family pays only if its programs are as cheap as the others';
+  coverage per token, not coverage, decides.
+- Slurm OEIS-B-F pending in the queue; gs15 GPUs 6–7 idle → next registered step below.
