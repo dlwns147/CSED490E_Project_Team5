@@ -344,3 +344,12 @@ alone, utility, paired; and − DIFF v2 on the fresh set, descriptive.
   3-family pools stay best (6 programs 49.2, 9 programs 49.0). A new family pays only if its programs are as cheap as the others';
   coverage per token, not coverage, decides.
 - Slurm OEIS-B-F pending in the queue; gs15 GPUs 6–7 idle → next registered step below.
+## Result OEIS-B-F (2026-11-23 17:12 UTC; `OEISB_FRESH=1 python poc/oeis_brute_repair.py score`)
+- **Confirmed on the fresh 309:** program alone U 44.97 → + brute check + repair U 48.12, **+3.15 [+1.36, +5.21]** (p = 0.0002; original
+  set +5.13). Accuracy 44.0 → 48.5% (seed 1), 46.6 → 50.5% (seed 2); right → wrong 0 and 2.
+- **The leak:** of the 100 repaired programs that agree with the brute force, 72 are wrong. The check is the same model's brute force,
+  so the repair often converges on the brute force's own misreading of the definition: the two errors are correlated.
+- **Against DIFF v2 on the same set (descriptive):** DIFF v2 U 49.01, so check + repair on one program comes within 0.9 of the whole pool.
+- **Combining them does not pay (offline bound, so not run):** DIFF is wrong while a repaired program is consistent and right on only 2 of
+  309 problems (+0.65 at most), while the brute force and repair cost 4.2k tokens per problem (−2.11). Repair fixes the problems where the
+  pool already holds a right program; neither creates right programs where the pool has none, which is DIFF's failure (139 of 145).
