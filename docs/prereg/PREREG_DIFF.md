@@ -266,3 +266,12 @@ program to hit that one value. The referee's term is a good detector of a wrong 
 OEIS-R's single term let the repairer patch the program to hit one value (18% of consistent repairs right). R2: on the same triggered
 sequences, the referee also computes the two most-disputed other terms (entropy of the candidates' values, sample-weighted); the repair
 sees all three (stated vs printed) and is accepted only if it prints all three. Test: R2 − DIFF v2, utility, paired, fresh decisive.
+## POOL result and hourly check (2026-11-23 14:3x UTC; fresh 309)
+| cheap programs (families × seeds) | accuracy | some sample right | tokens | utility | vs best single source | vs 9-program pool |
+|---|---|---|---|---|---|---|
+| 3 (3 × 1) | 48.5% | 49.5% | 3.5k | 46.8 | +3.13 [+0.95, +5.66] | −2.21 [−4.92, +0.42] |
+| 6 (3 × 2) | 52.1% | 53.4% | 5.9k | 49.2 | +5.50 [+2.48, +8.70] | +0.15 [−1.76, +2.07] |
+| 9 (3 × 3) | 53.1% | 55.0% | 8.1k | 49.0 | +5.34 [+1.82, +8.90] | — |
+Every pool size beats the best single source; utility saturates at 6 programs (the 9th program costs about what it adds). With selection
+near the "some sample right" ceiling at every size (48.5 vs 49.5, 52.1 vs 53.4, 53.1 vs 55.0), the curve is the pool's coverage curve.
+Hourly: PE-R gpt-oss-20b lane had stopped with partial rows and no error in its log; resubmitted (it resumes). OEIS-R2 running (Slurm).
