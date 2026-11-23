@@ -249,3 +249,8 @@ When the referee's term matches no class (194 of 500 original, 87 of 309 fresh s
 program prints w" (gpt-oss-120b, medium); the repaired program replaces DIFF's answer if it now prints v at N (free consistency check).
 Repair tokens are paid. Prior work: Self-Debug / LDB (repair from feedback), ALGO (oracle-checked programs) — here the feedback is the
 referee's single term. Test (poc/oeis_repair.py score): DIFF + repair − DIFF, utility, paired; fresh set decisive, original reported.
+## Related work for the OEIS line (searched 2026-11-23 14:2x UTC)
+The OEIS task and grading follow O'Malley et al. (arXiv 2411.04372, NeurIPS 2025 datasets track): name + comments in, a program out,
+20-term unit tests, lookup-table detection. Their reported finding is that reasoning models (o3, o4-mini, Gemini 2.5 Pro) beat
+non-reasoning ones and hard sequences stay poor; no gpt-oss or Qwen3 numbers and no selection or referee method were found for it. Our
+fresh set (A389000–A391999) extends their "contemporary" idea past every model's cutoff.
