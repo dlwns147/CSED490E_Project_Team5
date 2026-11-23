@@ -217,3 +217,8 @@ over problems (seeds averaged), dev and fresh separately, one-sided.
 Same pool and referee as OEIS-F; JUDGE variant (DIFF_JUDGE=1). Test: DIFF v2 − JUDGE, utility, two-sided, paired; pooled with the
 original 500 as a second, descriptive line.
 - *PE-R also for gpt-oss-20b thinkpc (2026-11-23 13:3x UTC, descriptive second line; lane perep20 on gs15 GPU 7).*
+## Hourly check 2026-11-23 13:4x UTC
+- PE-R gpt-oss-120b (Slurm 1561672) running since 13:33, no errors. PE-R gpt-oss-20b (gs15 GPU 7): first 16 repaired dev rows (seed 1)
+  — 11 run, 5 right; one right repair (pe26) still fails a stated check, so the registered acceptance rule (checks must pass) will not
+  take it — the rule is kept as registered.
+- JUDGE-F (gs15 GPU 6): 10 / 309.
