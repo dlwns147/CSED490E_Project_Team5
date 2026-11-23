@@ -436,3 +436,6 @@ MC-R (+8.32 on 121 problems) used each problem's first variation in the paper's 
 outputs. MathConstruct's generators give new parameters: 137 instances of 70 held-out problems (side/construct.py, ids_mcfresh.txt; new
 run_compute set "mconf"). Same recipe and settings as MC-R, gpt-oss-120b: progc (low, 8k), thinkp (medium, 16k), repair (medium), seeds
 1–2, gs15. Test: ladder + repair − ladder, utility, paired over instances. Prediction: > 0 with 95% lower bound > 0.
+## Hourly check 2026-11-23 18:38 UTC
+- Scored this hour: OEIS-E (+0.45, not shown), OEIS-T (thinking program ties DIFF), OEIS-TB (+0.58, not shown).
+- Running: MA-EFF (Slurm 1563871; low and medium done, high seed 1 running), MC-R-F (gs15 GPU 7; fresh MathConstruct progc seed 1).
