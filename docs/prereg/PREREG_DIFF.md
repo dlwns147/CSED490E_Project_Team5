@@ -392,3 +392,8 @@ HMMT Feb / Nov, SMT 2025 (AIME 2026 is after every model's cutoff), same server,
   its extra accuracy at λ = 0.5).
 - MA-EFF-P2: low − medium < 0 (low effort loses more accuracy than it saves).
 Decision: the competition-answer recipe is one sample at the effort with the best utility; reported per competition as well.
+## Hourly check 2026-11-23 17:38 UTC
+- OEIS-E (gs15 GPU 7; the Slurm copy was cancelled 2 s after it started, its container removed by a pinned job): 148 of 309 thinking programs.
+- MA-EFF (Slurm 1563871, n95): server starting; low effort first.
+- Done this hour: OEIS-B-F (+3.15, confirmed), the DIFF + repair bound (not run: +0.65 at most vs −2.11 cost), MathArena (selection and
+  second samples do not pay on competition answers).
