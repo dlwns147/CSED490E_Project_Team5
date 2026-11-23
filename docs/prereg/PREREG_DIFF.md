@@ -439,3 +439,6 @@ run_compute set "mconf"). Same recipe and settings as MC-R, gpt-oss-120b: progc 
 ## Hourly check 2026-11-23 18:38 UTC
 - Scored this hour: OEIS-E (+0.45, not shown), OEIS-T (thinking program ties DIFF), OEIS-TB (+0.58, not shown).
 - Running: MA-EFF (Slurm 1563871; low and medium done, high seed 1 running), MC-R-F (gs15 GPU 7; fresh MathConstruct progc seed 1).
+## Hourly check 2026-11-23 19:37 UTC
+- MC-R-F (gs15 GPU 7): progc and thinkp done for both seeds on the 137 fresh instances; repair seed 2 running. MA-EFF (Slurm 1563871):
+  high effort seed 2 running (the last arm).
