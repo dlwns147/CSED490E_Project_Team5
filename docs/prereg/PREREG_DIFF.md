@@ -135,3 +135,10 @@ plurality over all progc + thinkpc): dev utility 25.8 (accuracy 44.1%) vs gpt-os
 −10.32 [−15.89, −4.62]; fresh −17.56 [−26.16, −8.31]; vs the pool's plurality +2.50 / +4.00 (not shown). **Not shown against the
 single best source:** pooling raises accuracy (+5.8 points on dev) but pays for every sample (36.7k / 47.9k tokens). On Project Euler a
 single strong think-then-program sample remains the best utility at 0.5 per ktok.
+## Addendum OEIS-F (registered 2026-11-23 11:4x UTC, before any fresh row): confirm the OEIS win on sequences no model or decision has seen
+Fresh set: OEIS entries A389000–A391999 (added after the 500-sequence set and after every model's training data), fetched with the OEIS
+JSON API; kept if the keyword list has "easy" or "hard" (the benchmark's split, 2411.04372), not "dead", and ≥ 10 listed terms; the first
+250 of each level by A-number (nlp_data/compute/oeis_fresh.json; graded on the first 20 listed terms as before). Runs: prog (cheap
+programs) for Qwen3-8B, gpt-oss-20b (low) and gpt-oss-120b (low), seeds 1–3; DIFF v2 (most-informative term, gpt-oss-120b referee)
+over that pool. Test: DIFF − best single source fixed in advance as gpt-oss-120b prog seed 1 (the winner on the original set), and −
+plurality; utility at 0.5, clustered bootstrap, one-sided, Holm over two. Prediction: both positive.

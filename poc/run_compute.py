@@ -165,7 +165,7 @@ def mcon_problems():
 def problems(s):
     if s == "mcon":
         return mcon_problems()
-    return json.load(open(f"{DATA}/{ {'euler': 'euler_dev', 'eulert': 'euler_test', 'oeis': 'oeis'}[s] }.json"))
+    return json.load(open(f"{DATA}/{ {'euler': 'euler_dev', 'eulert': 'euler_test', 'oeis': 'oeis', 'oeisf': 'oeis_fresh'}[s] }.json"))
 
 
 def _rows(path):
