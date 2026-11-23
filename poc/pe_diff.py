@@ -12,7 +12,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-R = f"{ROOT}/results/x44"
+R = os.environ.get("PE_DIR", f"{ROOT}/results/x44")
 DATA = os.path.join(os.environ.get("POC_DATA", os.path.join(os.path.dirname(ROOT), "nlp_data")), "compute")
 SRC = [("q8b", "q8bL"), ("oss20", "oss20"), ("oss120", "oss120")]
 SWEEP = """

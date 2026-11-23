@@ -107,6 +107,18 @@ def score():
     for (pid, src), r in Rw.items():
         probs[pid].append(src)
     right = {k: str(r["correct"]) == "True" for k, r in Rw.items()}
+    tok = defaultdict(int)
+    for (pid, src), r in Rw.items():
+        tok[pid] += int(r.get("out_tokens") or 0)
+    if os.environ.get("MC2"):   # addendum MC2: think-then-program answers parsed into objects join as candidates
+        for l in open(f"{R}/mcon_xv_objs2.jsonl"):
+            o = json.loads(l); tok[o["id"]] += o["tok"]
+            if o["obj"]:
+                right[(o["id"], o["src"])] = o["correct"]; probs[o["id"]].append(o["src"])
+        for l in open(f"{R}/mcon_xv_checks2.jsonl"):
+            x = json.loads(l)
+            if x["pass"] is not None:
+                C[(x["id"], x["cand"])][x["ver"]] = x["pass"]
     a = {f: 0.8 for f in ("q8b", "oss20", "oss120")}; b = {f: 0.3 for f in a}; pi = 0.3
     def post(pid, src):
         lr, lw = math.log(pi), math.log(1 - pi)
@@ -123,15 +135,17 @@ def score():
     print("fitted P(pass|right)", {f: round(x, 2) for f, x in a.items()}, "P(pass|wrong)", {f: round(x, 2) for f, x in b.items()}, "prior", round(pi, 2))
     res = defaultdict(dict)
     for pid, srcs in probs.items():
-        cands = [s for s in srcs if (pid, s) in C]
+        cands = [s for s in srcs if (pid, s) in C and (not os.environ.get("CANDS") or s.split("_s")[0] in os.environ["CANDS"].split(","))]
         ds = max(cands, key=lambda s: post(pid, s)) if cands else None
         mv = max(cands, key=lambda s: sum(C[(pid, s)].values())) if cands else None
         res["DS cross-verify"][pid] = right.get((pid, ds), False) if ds else False
         res["most passing verifiers"][pid] = right.get((pid, mv), False) if mv else False
-        res["any progc right (oracle)"][pid] = any(right[(pid, s)] for s in srcs)
+        res["any candidate right (oracle)"][pid] = any(right.get((pid, s), False) for s in srcs)
         for f in ("q8b", "oss20", "oss120"):
             res[f"single {f} progc (mean of seeds)"][pid] = sum(right.get((pid, f"{f}_s{s}"), False) for s in (1, 2, 3)) / 3
     ids = sorted(probs)
+    json.dump({k: dict(v) for k, v in res.items()}, open(f"{R}/mcon_xv_res{'_mc2' if os.environ.get('MC2') else ''}{('_' + os.environ['CANDS']) if os.environ.get('CANDS') else ''}.json", "w"))
+    print(f"  mean tokens of every sample per problem: {sum(tok[i] for i in ids) / len(ids) / 1000:.2f}k")
     for k, d in res.items():
         print(f"  {k:36s} {100 * sum(d[i] for i in ids) / len(ids):5.1f}%")
     for base in ("single oss120 progc (mean of seeds)", "most passing verifiers"):
