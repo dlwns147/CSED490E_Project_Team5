@@ -17,3 +17,23 @@ utility at 0.5 per ktok (all samples' tokens + oracle tokens for DIFF and the vo
 bootstrap over sequences, one-sided, Holm over three. Prediction: DIFF raises accuracy above the plurality (≤ +14 points of headroom);
 whether it wins in utility depends on the cost of buying every sample, so a second line reports DIFF on top of the cheap programs only
 (3 families × prog × 3 seeds).
+
+## Related work found after registration (searched 2026-11-23 08:4x UTC by mechanism) and the plan for every set
+Choosing among disagreeing programs by inputs that separate them is established for code generation: S* (arXiv 2502.14382; the LLM
+picks between outputs on distinguishing inputs), LLMCodeChoice (ISSTA 2024), ExPairT-LLM (2511.10855), Agentic Verifier (2602.04254),
+Semantic Voting (2605.08680). DIFF on OEIS is that mechanism carried to math sequences — a known mechanism (loop mark K); what differs
+is the oracle (one term from the natural-language definition, not a choice between outputs). Per set:
+- **OEIS:** DIFF as registered (running: gpt-oss-120b and Qwen3-8B oracles on gs15).
+- **MathConstruct (addendum MC, below):** constructions cannot be compared for equality, so the separating question is each OTHER
+  sample's verify(): every program's construct() is checked by the verify() functions written by the other samples (3 families × 3 seeds).
+- **Project Euler (addendum PE, next):** candidate programs with a one-argument solve(n) are run for small n; the smallest n where
+  they disagree is asked to the oracle (the problem at that size).
+- **Word problems / MATH+AIME:** not covered — the stored word-problem answers carry no solution vector to query (only objective values),
+  and MATH+AIME is saturated (98.9% some sample right; the plurality is already right on almost all of those).
+## Addendum MC (registered 2026-11-23 08:4x UTC, before any cross-verification run)
+Candidates: the 9 progc constructions per problem (Qwen3-8B, gpt-oss-20b, gpt-oss-120b × seeds 1–3). Each candidate is checked by the
+verify() of every other progc sample (poc/mcon_xverify.py, sandbox, CPU job). Selection: a Dawid–Skene model of the verifiers (each
+verifier family has its own P(pass | right), P(pass | wrong), fitted by EM without labels; conditional independence across families)
+gives each candidate a posterior of being right; return the candidate with the highest posterior. No extra model calls (zero extra
+output tokens; CPU only). Test: accuracy vs (a) the best single family's progc sample, (b) own-verify acceptance then think (the
+descriptive ladder, gpt-oss-120b), (c) majority-of-passing-verifiers; one-sided paired bootstrap over problems, Holm over three.
