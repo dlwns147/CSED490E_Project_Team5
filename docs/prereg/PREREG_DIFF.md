@@ -196,3 +196,10 @@ any of 6 (adding gpt-oss-20b) on 48.3% / 20.0%. A PERFECT selector over 3 seeds 
 samples (+15.0k / +21.2k tokens = 7.5 / 10.6 utility at 0.5 per ktok): at most +1.7 utility on dev and −2.6 on fresh. So at the course
 rate no selection or verification method over extra samples can beat one strong sample on Project Euler by more than ~2 points; what is
 left is making the single sample better (generation), not choosing among samples. This closes the selection line for Project Euler.
+## Addendum PE-R (registered 2026-11-23 13:3x UTC, before running): make the single Project Euler sample better instead of choosing among samples
+By the bound above, only generation can still gain on Project Euler. gpt-oss-120b thinkpc fails visibly on many rows (dev: 113 of 360
+crash or time out, 92 fail a statement check). PE-R gives such a row ONE repair turn with the evidence (the error, or each failing
+statement case as stated vs computed); the repaired answer replaces the original if the repaired program runs and passes its checks.
+Tokens of the repair are paid only on failing rows. Prior work: Self-Debug (Chen et al. 2023), LDB, ALGO — a known mechanism (mark K);
+the statement's own small cases serve as the free feedback. Test (poc/pe_repair.py score): thinkpc + repair − thinkpc, utility, paired
+over problems (seeds averaged), dev and fresh separately, one-sided.
