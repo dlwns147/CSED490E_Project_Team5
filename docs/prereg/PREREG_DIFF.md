@@ -482,3 +482,6 @@ interval excludes 0, else keeps medium (fewer tokens).
 - So the repair-before-thinking gain survives fresh parameters at the problem level; its size on fresh instances is about +4.6 per
   instance (seed spread +2 to +8), against +8.3 on the paper's published variations. MathConstruct's recipe stands: own verify(), one
   repair turn on a failure, thinking only after.
+## Hourly check 2026-11-23 20:36 UTC
+- Scored this hour: MA-EFF (high best on competition answers), MC-R-F (+3.53 per instance, holds as registered; not at problem level),
+  MC-R-F2 (seed 3, problem level: +7.73, holds). Running: EFF (Slurm 1565258; Project Euler high seed 1).
