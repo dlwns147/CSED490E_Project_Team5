@@ -154,3 +154,8 @@ being right using every verify() acquired so far. The next source s is bought on
 the current best candidate's posterior, c_s its mean tokens, λ = 0.5 per ktok; otherwise return the best candidate. No hand threshold.
 Test (poc/mcon_seq.py): MC-SEQ − own-verify ladder (gpt-oss-120b) and − gpt-oss-120b think-then-program alone, utility, paired
 bootstrap over problems, Holm over two.
+- *MC-SEQ result (2026-11-23 11:5x UTC; python3 poc/mcon_seq.py):* 63.6% accuracy (MC2's 62.8% at a third of its tokens: 24.0k vs 70.4k; 9.1 samples
+  bought per problem), utility 51.6 vs the own-verify ladder 49.1: +2.53 [−4.16, +8.98] (p 0.23) and vs gpt-oss-120b think-then-program
+  45.3: +6.37 [−0.53, +13.55] (p 0.037) — neither holds under Holm. Highest MathConstruct accuracy of any method here at the best
+  utility, but not a shown utility win; it still buys about nine samples, because the myopic gain uses the source's average right-rate
+  rather than the rate on problems like this one.
