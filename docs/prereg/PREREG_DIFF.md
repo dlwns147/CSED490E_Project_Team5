@@ -328,3 +328,11 @@ every sequence / every repaired one. Original 500 sequences (the fresh set has n
   separating index; not run separately (stated limit).
 - Agentic Verifier (2602.04254): a trained input-search agent; not reproducible here without its training (stated limit).
 - FUSE (2604.18547): label-free verifier ensembling = our MathConstruct Dawid–Skene cross-verification (MC); MC-R beats it in utility.
+## OEIS-B result (2026-11-23 16:2x UTC; python3 poc/oeis_brute_repair.py score; original 500, gpt-oss-120b seeds 1–2)
+gpt-oss-120b program alone 29.5% (U 29.1) → + own brute-force check + one repair **35.6% (U 34.2): +5.13 [+3.38, +6.99], p 0.0002.**
+427 programs disagreed with the brute force; 161 repairs became consistent with it, 67 of those right (42%), while the brute-force check
+itself costs every sequence its tokens. This beats the best single source by more than DIFF v2 did on this set (+3.9) at a fraction of
+the pool's tokens — the MC-R lesson holds on OEIS: repair one sample with a free check before buying many.
+## Addendum OEIS-B-F (registered 2026-11-23 16:2x UTC, before running): confirm on the fresh 309
+gpt-oss-120b brute force (seeds 1–2, run_compute oeisf brute), then the same repair (OEISB_FRESH=1). Test: + check + repair − program
+alone, utility, paired; and − DIFF v2 on the fresh set, descriptive.

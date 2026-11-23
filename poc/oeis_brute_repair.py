@@ -8,7 +8,9 @@ from concurrent.futures import ThreadPoolExecutor
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 R = f"{ROOT}/results/x44"
-DATA = os.path.join(os.environ.get("POC_DATA", os.path.join(os.path.dirname(ROOT), "nlp_data")), "compute", "oeis.json")
+FRESH = bool(os.environ.get("OEISB_FRESH"))   # addendum OEIS-B-F: the fresh 309
+PFX = "oeisf" if FRESH else "oeis"
+DATA = os.path.join(os.environ.get("POC_DATA", os.path.join(os.path.dirname(ROOT), "nlp_data")), "compute", "oeis_fresh.json" if FRESH else "oeis.json")
 FIX = ("{task}\n\nHere is your program for this sequence:\n```python\n{code}\n```\nA separate brute-force program written straight from the definition "
        "disagrees with it on the first terms:\n{diff}\nFind which one follows the definition, fix the program if it is wrong, and output the final "
        "code inside triple backticks.")
@@ -16,8 +18,8 @@ L = lambda v: [str(x) for x in (v if isinstance(v, list) else (eval(v) if v else
 
 
 def pairs(seed):
-    P = {json.loads(l)["id"]: json.loads(l) for l in open(f"{R}/oeis_oss120_prog_s{seed}.jsonl")}
-    B = {json.loads(l)["id"]: json.loads(l) for l in open(f"{R}/oeis_oss120_brute_s{seed}.jsonl")}
+    P = {json.loads(l)["id"]: json.loads(l) for l in open(f"{R}/{PFX}_oss120_prog_s{seed}.jsonl")}
+    B = {json.loads(l)["id"]: json.loads(l) for l in open(f"{R}/{PFX}_oss120_brute_s{seed}.jsonl")}
     return P, B
 
 
@@ -40,7 +42,7 @@ def run(seed):
         c = last_block(r.get("text") or "", ("python", "py", "python3", ""))
         ok, right, outs = RC.run_seq(c, seqs[i]["offset"], seqs[i]["terms"], k=RC.NTERMS) if c else (False, 0, [])
         return {"id": i, "tok": r.get("out_tokens") or 0, "correct": bool(ok), "consistent": [str(x) for x in outs[:8]] == b}
-    with ThreadPoolExecutor(32) as ex, open(f"{R}/oeis_oss120_brR_s{seed}.jsonl", "w") as f:
+    with ThreadPoolExecutor(32) as ex, open(f"{R}/{PFX}_oss120_brR_s{seed}.jsonl", "w") as f:
         for z in ex.map(one, todo):
             f.write(json.dumps(z) + "\n"); f.flush()
 
@@ -50,7 +52,7 @@ def score():
     base, rep = {}, {}
     for s in (1, 2):   # gpt-oss-120b prog exists for seeds 1-2
         P, B = pairs(s)
-        pp = f"{R}/oeis_oss120_brR_s{s}.jsonl"
+        pp = f"{R}/{PFX}_oss120_brR_s{s}.jsonl"
         Z = {json.loads(l)["id"]: json.loads(l) for l in open(pp)} if os.path.exists(pp) else {}
         for i, p in P.items():
             t = int(p.get("out_tokens") or 0); tb = int(B.get(i, {}).get("out_tokens") or 0); ok = str(p["correct"]) == "True"
