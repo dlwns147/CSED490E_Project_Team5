@@ -31,8 +31,9 @@ def main():
     SET = os.environ.get("NLOPT_SET", "bwor")
     Q = {p["id"]: p for p in problems(SET)}
     arm = sys.argv[3] if len(sys.argv) > 3 else "freev"   # HO4: formxv (the library arm with the solution printed)
-    src = {r["id"]: r for r in _rows(f"{RES}/opt_{m}_{SET}_{arm}_s{seed}.jsonl")}
-    path = f"{RES}/verify_{m}_{SET}{'' if arm == 'freev' else '_' + arm}_s{seed}.jsonl"
+    sm = os.environ.get("VERIFY_SRC_MODEL", m)   # PREREG_DIFF addendum WP: the checker model differs from the solver (cross-family)
+    src = {r["id"]: r for r in _rows(f"{RES}/opt_{sm}_{SET}_{arm}_s{seed}.jsonl")}
+    path = f"{RES}/verify_{m}{'' if sm == m else '_on_' + sm}_{SET}{'' if arm == 'freev' else '_' + arm}_s{seed}.jsonl"
     done = {r["id"] for r in _rows(path)}
     todo = [r for i, r in src.items() if i not in done and r.get("status") == "ok" and r.get("pred") not in (None, "NBS") and r.get("solution")]
 

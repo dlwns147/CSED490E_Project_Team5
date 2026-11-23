@@ -94,3 +94,10 @@ the small cases the statement itself gives (CHECKS, values copied from the state
 progc ∪ thinkpc of all families and seeds; keep those that pass all their statement checks; return the most frequent final answer among
 the kept (if none is kept, the most frequent overall). Test (poc/pe_checkpool.py): PE3 − {gpt-oss-120b think-then-program alone,
 the plurality of the same pool}, accuracy and utility at 0.5, dev and fresh separately, paired bootstrap.
+## Addendum WP (registered 2026-11-23 11:1x UTC, before running): cross-family solution checking for word problems
+HO3 (2026-10-22) had each model check its OWN printed solution with a checker written from the text: it flagged 66–97% of wrong
+solutions but also 18–65% of right ones, "repeating the model's comprehension errors in the other direction". Cross-family verification
+is reported to help most when solver and verifier differ (Beyond Solving, 2512.02304). WP: the OTHER family writes the checker
+(VERIFY_SRC_MODEL; Qwen3-8B checks gpt-oss-20b's freev solutions and vice versa) on BWOR, LogIOR and OptMATH, seeds 1–3.
+Test: false-alarm rate on right solutions and catch rate on wrong ones, own vs cross checker (paired over solutions); and the HO3 policy
+FF-V with the cross checker − with the own checker, utility at 0.5, clustered bootstrap. Prediction: fewer false alarms.
