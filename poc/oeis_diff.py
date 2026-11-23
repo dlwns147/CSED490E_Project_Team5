@@ -13,7 +13,7 @@ ASK = ("Here is an integer sequence.\nName: {name}\nComments: {comments}\nThe se
 
 def pool(kind):
     C = defaultdict(lambda: defaultdict(list)); tok = defaultdict(int)
-    for f in sorted(glob.glob(f"{ROOT}/results/x44/oeis_*_s*.jsonl")):
+    for f in sorted(glob.glob(os.environ.get("DIFF_POOL", f"{ROOT}/results/x44") + "/oeis_*_s*.jsonl")):
         if "brute" in f or "diff" in f or (kind == "cheap" and "_prog_" not in f):
             continue
         for l in open(f):
