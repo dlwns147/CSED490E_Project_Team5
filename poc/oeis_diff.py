@@ -34,7 +34,7 @@ def run(kind):
     from llm import chat
     seqs = {x["id"]: x for x in json.load(open(DATA))}
     C, tok = pool(kind)
-    out = f"{ROOT}/results/x44/oeis_diff_{kind}.jsonl"
+    out = f"{ROOT}/results/x44/oeis_diff_{kind}{os.environ.get('DIFF_TAG', '')}.jsonl"
     done = {json.loads(l)["id"] for l in open(out)} if os.path.exists(out) else set()
 
     def one(i):
@@ -70,7 +70,7 @@ def run(kind):
 
 def score():
     import random
-    for kind in ("all", "cheap"):
+    for kind in ("all", "cheap", "all_q8b", "cheap_q8b"):
         p = f"{ROOT}/results/x44/oeis_diff_{kind}.jsonl"
         if not os.path.exists(p):
             continue
