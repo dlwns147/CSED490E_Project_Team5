@@ -7666,3 +7666,14 @@ inconclusive on audited (+2.4 [−0.3, +5.1]); gpt-oss-20b is ahead everywhere. 
   cost of the pool keeps it level with the ladder (+3.3 [−2.5, +9.1], cost-limited pool chosen after seeing the data).
 - Related work: S*, LLMCodeChoice, ExPairT-LLM, Agentic Verifier (code generation); here the separating question is a single term or
   another family's checker. Project Euler step running (gs15 GPU 7).
+
+## 2026-11-23 11:42 UTC — Second 24-hour window (PREREG_DIFF), interim: where separating questions pay and where they do not
+| set | method | result |
+|---|---|---|
+| OEIS | one term from the definition where cheap programs disagree (gpt-oss-120b referee) | **+3.9 utility over the best single source** (v2, most-informative term); +3.2 (v1) |
+| MathConstruct | other samples' verify() as checkers, Dawid–Skene weights | 46.3% (+13.8 over best single program); 62.8% with parsed think answers vs ladder 50.7% — accuracy only, utility level |
+| Project Euler | statement checks filter a pool incl. think-then-solve() programs | accuracy +5.8 on dev, utility −10.3 vs one strong think sample |
+| word problems | the other family writes the solution checker | no gain (+0.3) / worse (−1.9): a checker's false alarms follow its own reading, not its family |
+| AIME (descriptive) | referee between the two most common answers | 53 / 60 vs plurality 50, best single 47 |
+Pattern: a separating question pays where cheap candidates are diverse and a referee question is easy (one OEIS term); where the right
+answer needs an expensive sample anyway (Project Euler), any pool pays for samples that a single strong sample does not need.
