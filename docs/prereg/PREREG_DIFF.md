@@ -128,3 +128,10 @@ comparisons, invented constraints). Word problems keep the fixed cascade (PREREG
   good as the first difference and keeps the win over the best single source.
 - **AIME (descriptive, 60 problems):** oracle-resolved 53 vs plurality 50 vs best single source 47, some sample right on 56; the oracle
   costs 4.9k tokens per problem on top of the pool. Direction as predicted, power too low to claim.
+## Addendum PE2 / PE3 result (2026-11-23 11:4x UTC; python3 poc/pe_checkpool.py; gpt-oss-120b thinkpc 3 seeds; gpt-oss-20b thinkpc still generating)
+gpt-oss-120b's think-then-parameterised-program (thinkpc) is right on 38.9% (dev) / 11.3% (fresh) at 7.5k / 10.6k tokens — as good as
+its plain think-then-program (38.3% / 14.0%), so asking for solve() + CHECKS costs nothing in accuracy. PE3 (statement-check-filtered
+plurality over all progc + thinkpc): dev utility 25.8 (accuracy 44.1%) vs gpt-oss-120b think-then-program alone 36.1 (38.3%):
+−10.32 [−15.89, −4.62]; fresh −17.56 [−26.16, −8.31]; vs the pool's plurality +2.50 / +4.00 (not shown). **Not shown against the
+single best source:** pooling raises accuracy (+5.8 points on dev) but pays for every sample (36.7k / 47.9k tokens). On Project Euler a
+single strong think-then-program sample remains the best utility at 0.5 per ktok.
