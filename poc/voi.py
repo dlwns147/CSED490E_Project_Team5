@@ -104,7 +104,7 @@ def load_oeis():
 def load_euler(which):
     srcs, P = [], defaultdict(lambda: defaultdict(list))
     for m, tag in (("q8b", "q8bL"), ("oss20", "oss20"), ("oss120", "oss120")):
-        for mode in ("progc", "thinkp"):
+        for mode in ("progc", "thinkp", "thinkpc"):
             s = f"{m}_{mode}"; got = False
             for sd in SEEDS:
                 for r in rows(f"{RES}/x44/{which}_{tag}_{mode}_s{sd}.jsonl"):

@@ -52,14 +52,14 @@ def norm(s):
 def cands(which):
     out = []
     for m, tag in SRC:
-        for s in (1, 2, 3):
-            p = f"{R}/{which}_{tag}_progc_s{s}.jsonl"
+        for s, mode in [(s, md) for s in (1, 2, 3) for md in (os.environ.get("PE_MODES", "progc").split(","))]:
+            p = f"{R}/{which}_{tag}_{mode}_s{s}.jsonl"
             for l in (open(p) if os.path.exists(p) else []):
                 r = json.loads(l)
                 c = r.get("code") or ""
                 sig = re.search(r"def solve\(\s*(\w+)\s*(?:=[^,)]*)?\)", c)
                 call = re.search(r"__main__.*?(solve\([^\n]*\))", c, re.S)
-                out.append({"id": r["id"], "src": f"{m}_s{s}", "answer": norm(r.get("answer")), "right": str(r["correct"]) == "True",
+                out.append({"id": r["id"], "src": f"{m}{'' if mode == 'progc' else 'T'}_s{s}", "answer": norm(r.get("answer")), "right": str(r["correct"]) == "True",
                             "tok": int(r.get("out_tokens") or 0), "arg": sig.group(1) if sig else None,
                             "call": call.group(1)[:120] if call else None, "code": c})
     return out

@@ -266,11 +266,11 @@ def main():
             q = {"think": "{p}", "prog": MC_PROG, "thinkp": MC_PROG, "progc": MC_PROGC}[mode].format(p=p["problem"])
         elif euler:
             q = {"think": EULER_THINK, "prog": EULER_PROG, "thinkp": EULER_PROG, "thinkpb": EULER_PROG, "progc": EULER_PROGC, "progc2": EULER_PROGC2, "mem": EULER_MEM,
-                 "brutef": EULER_BRUTEF}[mode].format(p=p["problem"])
+                 "brutef": EULER_BRUTEF, "thinkpc": EULER_PROGC}[mode].format(p=p["problem"])
         else:
             q = OEIS.format(name=p["name"], comments=p["comments"])
             q = OEIS_BRUTE.format(q=q) if mode == "brute" else q
-        th = mode in ("think", "thinkp")
+        th = mode in ("think", "thinkp", "thinkpc")   # thinkpc (PREREG_DIFF PE2): thinking, then the progc program (solve + CHECKS)
         if mode == "thinkpb":
             C = think_cuts(EULER_PROG.format(p=p["problem"]), BUD, seed=sd, temperature=0.6)
             cuts = {}
@@ -324,7 +324,7 @@ def main():
                 r = run_python(code, "", timeout=PROG_S, mem_bytes=4 << 30) if code else None
                 out = ((r.stdout if r and r.status == "ok" else "") or "").strip()
                 row.update(code=code, status=(r.status if r else "no_code"), answer=out.splitlines()[-1] if out else "")
-                if mode == "progc" and code:
+                if mode in ("progc", "thinkpc") and code:
                     row["checks"], row["check_status"] = run_checks(code)
                 if mode == "progc2" and code:
                     row["checks"], row["check_status"] = run_checks2(code, p["problem"])
