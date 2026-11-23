@@ -101,3 +101,8 @@ is reported to help most when solver and verifier differ (Beyond Solving, 2512.0
 (VERIFY_SRC_MODEL; Qwen3-8B checks gpt-oss-20b's freev solutions and vice versa) on BWOR, LogIOR and OptMATH, seeds 1–3.
 Test: false-alarm rate on right solutions and catch rate on wrong ones, own vs cross checker (paired over solutions); and the HO3 policy
 FF-V with the cross checker − with the own checker, utility at 0.5, clustered bootstrap. Prediction: fewer false alarms.
+## Amendment DIFF-v2 (registered 2026-11-23 11:1x UTC, before running): which term to ask
+v1 asks the first index where classes differ, which often separates one rare class from the rest. v2 asks the index whose split of the
+remaining classes, weighted by how many samples each class has, has the largest entropy (the most informative single question under
+the sample-count prior); ties to the earliest index. Same oracle, same cheap pool, same 3 rounds (DIFF_SPLIT=1, tag _split). Test:
+v2 − v1 (utility, paired over sequences) and v2 − best single source.

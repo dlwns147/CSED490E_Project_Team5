@@ -47,7 +47,18 @@ def run(kind):
                 break
             terms = {k: k.split("|") for k in cls}
             L = min(len(t) for t in terms.values())
-            j = next((j for j in range(L) if len({t[j] for t in terms.values()}) > 1), None)
+            if os.environ.get("DIFF_SPLIT"):   # v2: the index whose split of the remaining classes (weighted by sample counts) has the most entropy
+                import math
+                def ent(j):
+                    g = defaultdict(int)
+                    for k, t in terms.items():
+                        g[t[j]] += len(cls[k])
+                    tot = sum(g.values())
+                    return -sum(v / tot * math.log(v / tot) for v in g.values()) if len(g) > 1 else -1
+                j = max(range(L), key=lambda j: (ent(j), -j)) if L else None
+                j = j if (j is not None and ent(j) > 0) else None
+            else:
+                j = next((j for j in range(L) if len({t[j] for t in terms.values()}) > 1), None)
             if j is None:
                 break
             o = chat(ASK.format(name=seqs[i]["name"], comments=seqs[i].get("comments", ""), off=off, n=off + j), think=True, max_tokens=16000,
@@ -71,7 +82,7 @@ def run(kind):
 
 def score():
     import random
-    for kind in ("all", "cheap", "all_q8b", "cheap_q8b"):
+    for kind in ("all", "cheap", "all_q8b", "cheap_q8b", "cheap_split"):
         p = f"{ROOT}/results/x44/oeis_diff_{kind}.jsonl"
         if not os.path.exists(p):
             continue
