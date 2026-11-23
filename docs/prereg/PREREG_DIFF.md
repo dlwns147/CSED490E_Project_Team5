@@ -397,3 +397,16 @@ Decision: the competition-answer recipe is one sample at the effort with the bes
 - MA-EFF (Slurm 1563871, n95): server starting; low effort first.
 - Done this hour: OEIS-B-F (+3.15, confirmed), the DIFF + repair bound (not run: +0.65 at most vs −2.11 cost), MathArena (selection and
   second samples do not pay on competition answers).
+## OEIS-E result (2026-11-23 17:48 UTC; python poc/oeis_escalate.py; gs15 GPU 7)
+- **Fresh 309 (decisive): +0.45 [−0.88, +1.93], p 0.28 — not shown.** On the 77 flagged sequences the thinking program is right on 9 (DIFF
+  6). Original (the set the setting was chosen on): +1.39 [+0.14, +2.78]. Escalation does not close the generation gap either.
+- **A missing baseline, found here:** one gpt-oss-120b medium thinking program *alone* is as good as the whole DIFF pipeline:
+  fresh 48.43 vs 49.01 (−0.58 [−3.55, +2.09]), original 35.10 vs 32.95 (+2.15 [−0.45, +4.65]), at 2.8k / 3.4k tokens against the pool's
+  6k + referee. They are right on mostly the same sequences (fresh: both 149, thinking only 5, DIFF only 15). DIFF's wins so far were
+  against the best *cheap* single source; against a thinking program they are not shown. Constructive consequence: OEIS claims must be
+  restated against this baseline, and the test below decides which recipe stands.
+## Addendum OEIS-T (registered 2026-11-23 17:48 UTC, before running): DIFF v2 vs one thinking program, fresh seed
+Seed 2 has been seen, so the decisive data is a new seed: gpt-oss-120b medium think, seed 3, fresh 309 (gs15). Test: think − DIFF v2,
+utility, paired over sequences, seed 3 alone. Non-inferiority margin 2 points (one sequence in fifty): if the 95% lower bound > −2, the
+OEIS recipe becomes the single thinking program (simpler, fewer tokens); if the upper bound < 0, DIFF stands with the claim restated
+against this baseline; otherwise both are reported as equal within noise.
