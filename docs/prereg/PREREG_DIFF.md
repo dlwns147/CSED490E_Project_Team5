@@ -111,3 +111,14 @@ On AIME 2024+2025 (60) some stored sample is right on 56, the plurality on 50, t
 57 problems with ≥ 2 answers the oracle (gpt-oss-120b, medium) sees the problem and the two most frequent answers and decides (poc/
 aime_diff.py). Test: oracle-resolved − plurality, accuracy (descriptive; n = 60 gives low power — reported as counts). Prior work: LLM
 as judge between candidate answers (S*, ExPairT-LLM, "LLMs as a jury"); a known mechanism (mark K).
+## Addendum WP result (2026-11-23 11:2x UTC; python3 poc/wp_xcheck.py; BWOR + LogIOR + OptMATH, seeds 1–3, 822 problem-seeds per solver)
+| solver | checker | false alarms on right solutions | catches wrong solutions | FF-V utility |
+|---|---|---|---|---|
+| Qwen3-8B | own | 35 / 49 (71%) | 102 / 116 (88%) | 22.9 |
+| Qwen3-8B | gpt-oss-20b (cross) | 30 / 49 (61%) | 102 / 116 (88%) | 23.2 (+0.26 [−0.57, +1.16]) |
+| gpt-oss-20b | own | 78 / 282 (28%) | 119 / 216 (55%) | 47.5 |
+| gpt-oss-20b | Qwen3-8B (cross) | 187 / 282 (66%) | 168 / 216 (78%) | 45.6 (−1.93 [−3.65, −0.16]) |
+**Prediction failed.** Cross-family checking does not reduce false alarms in general: a stronger checker barely helps the weak solver,
+and a weaker checker hurts the strong one (it rejects 66% of gpt-oss-20b's right solutions). What sets a checker's false-alarm rate is
+the checker's own reading of the text, not whether it shares the solver's family — consistent with HO3's raw cases (misread
+comparisons, invented constraints). Word problems keep the fixed cascade (PREREG_FRESH) as the method.
