@@ -292,3 +292,9 @@ progc construction whose own verify() fails (or that crashes) is repaired with t
 verify() passes, else the ladder falls back to think-then-program as before. Repair tokens are paid. Prior work: Self-Debug / LDB
 (known mechanism, mark K). Test (poc/mcon_repair.py score): ladder + repair − ladder, utility, paired over problems (seeds averaged),
 gpt-oss-120b (registered) and gpt-oss-20b (descriptive).
+## Hourly check 2026-11-23 15:3x UTC
+- PE-R gpt-oss-20b (descriptive line) complete: dev +1.05 [−0.10, +2.68], fresh +0.41 [−0.43, +1.86]. It was never stuck: only 36% of
+  gpt-oss-20b's thinkpc replies contain a program at all (16k cap reached while thinking), so just 48 rows were repair-eligible. For the
+  weaker family the bottleneck is producing any program, not fixing one.
+- POOL-F: the Qwen3.6 programs are done (3 × 309), but the referee lane's command was mis-escaped and did not run; rewritten and
+  requeued (gs15 GPU 6, lane poolf2). MC-R (Slurm 1562504) pending in the queue.

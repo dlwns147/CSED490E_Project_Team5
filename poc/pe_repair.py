@@ -52,13 +52,16 @@ def run(which, tag, seed):
             f.write(json.dumps(z) + "\n"); f.flush()
 
 
+TAGM = os.environ.get("PE_TAG", "oss120")
+
+
 def score():
     U = lambda ok, t: 100 * ok - 0.5 * t / 1000
     for which in ("euler", "eulert"):
         base, rep = {}, {}
         for s in (1, 2, 3):
-            F = {json.loads(l)["id"]: json.loads(l) for l in open(f"{R}/{which}_oss120_thinkpc_s{s}.jsonl")}
-            p = f"{R}/{which}_oss120_thinkpcR_s{s}.jsonl"
+            F = {json.loads(l)["id"]: json.loads(l) for l in open(f"{R}/{which}_{TAGM}_thinkpc_s{s}.jsonl")}
+            p = f"{R}/{which}_{TAGM}_thinkpcR_s{s}.jsonl"
             Rr = {json.loads(l)["id"]: json.loads(l) for l in open(p)} if os.path.exists(p) else {}
             for i, r in F.items():
                 t = int(r.get("out_tokens") or 0); ok = str(r["correct"]) == "True"
