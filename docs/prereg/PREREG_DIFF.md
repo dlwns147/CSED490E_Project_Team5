@@ -275,3 +275,7 @@ sees all three (stated vs printed) and is accepted only if it prints all three. 
 Every pool size beats the best single source; utility saturates at 6 programs (the 9th program costs about what it adds). With selection
 near the "some sample right" ceiling at every size (48.5 vs 49.5, 52.1 vs 53.4, 53.1 vs 55.0), the curve is the pool's coverage curve.
 Hourly: PE-R gpt-oss-20b lane had stopped with partial rows and no error in its log; resubmitted (it resumes). OEIS-R2 running (Slurm).
+## Addendum POOL-F (registered 2026-11-23 14:4x UTC, before running): a fourth family instead of more seeds
+POOL shows that selection sits at the pool's coverage ceiling, so coverage per token decides utility. POOL-F adds Qwen3.6-35B-A3B
+(FP8, 3B active; a newer family) cheap programs on the fresh 309 (3 seeds, no thinking), then DIFF v2 over (a) the 12-program pool of four
+families and (b) the 8-program pool of seeds 1–2 of all four families; reported as coverage / accuracy / tokens / utility next to POOL.
