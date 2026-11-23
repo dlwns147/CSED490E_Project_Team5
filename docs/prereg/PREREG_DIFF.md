@@ -190,3 +190,9 @@ The OEIS result replicates on sequences added after every model's training data 
 gpt-oss-120b referees for 2.9–3.2k tokens per sequence; Qwen3-8B cost 14k and lost. REF20: the same DIFF v2 on the original 500-sequence
 cheap pool with gpt-oss-20b (medium) as the referee (tag _split20). Test: REF20 − best single source and − DIFF v2 (gpt-oss-120b),
 utility, paired; reported with the referee's tokens.
+## Project Euler selection bound (2026-11-23 13:3x UTC; stored thinkpc rows, labels used only for the bound)
+gpt-oss-120b thinkpc: one sample right on 38.3% (dev) / 10.0% (fresh) at 7.5k / 10.6k tokens; any of its 3 seeds right on 47.5% / 18.0%;
+any of 6 (adding gpt-oss-20b) on 48.3% / 20.0%. A PERFECT selector over 3 seeds gains at most +9.2 / +8.0 accuracy points for two more
+samples (+15.0k / +21.2k tokens = 7.5 / 10.6 utility at 0.5 per ktok): at most +1.7 utility on dev and −2.6 on fresh. So at the course
+rate no selection or verification method over extra samples can beat one strong sample on Project Euler by more than ~2 points; what is
+left is making the single sample better (generation), not choosing among samples. This closes the selection line for Project Euler.
