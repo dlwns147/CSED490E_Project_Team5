@@ -286,3 +286,9 @@ the REFEREE is wrong on some of those terms. One referee term at the most-disput
 but repairing a program needs several trustworthy terms, and each extra referee term adds its own error and two more thinking calls.
 Conclusion for the OEIS generation gap: referee-guided repair does not close it at this referee's accuracy; the selection result
 (DIFF v2) stands as the OEIS method.
+## Addendum MC-R (registered 2026-11-23 15:1x UTC, before running): repair before thinking on MathConstruct
+PE-R showed that improving the single sample pays where selection cannot. MC-R inserts ONE repair turn into the own-verify ladder: a
+progc construction whose own verify() fails (or that crashes) is repaired with that evidence; the repaired construction is used if its
+verify() passes, else the ladder falls back to think-then-program as before. Repair tokens are paid. Prior work: Self-Debug / LDB
+(known mechanism, mark K). Test (poc/mcon_repair.py score): ladder + repair − ladder, utility, paired over problems (seeds averaged),
+gpt-oss-120b (registered) and gpt-oss-20b (descriptive).
