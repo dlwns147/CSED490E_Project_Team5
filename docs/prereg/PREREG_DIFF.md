@@ -186,3 +186,7 @@ candidates already bought. Everything else as MC-SEQ. Test: MC-SEQ2 − {own-ver
 DIFF 53.1% vs plurality 49.5% vs gpt-oss-120b program alone 44.0% (some sample right on 55.0%); tokens 5.2k pool + 2.9k referee.
 **DIFF − best single source +5.34 [+1.82, +8.90], p 0.0005; DIFF − plurality +2.09 [+0.17, +4.26], p 0.015 — both hold (Holm over two).**
 The OEIS result replicates on sequences added after every model's training data and after any decision here.
+## Addendum REF20 (registered 2026-11-23 13:0x UTC): a cheaper referee
+gpt-oss-120b referees for 2.9–3.2k tokens per sequence; Qwen3-8B cost 14k and lost. REF20: the same DIFF v2 on the original 500-sequence
+cheap pool with gpt-oss-20b (medium) as the referee (tag _split20). Test: REF20 − best single source and − DIFF v2 (gpt-oss-120b),
+utility, paired; reported with the referee's tokens.
