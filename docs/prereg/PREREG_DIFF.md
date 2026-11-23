@@ -319,3 +319,12 @@ every sequence / every repaired one. Original 500 sequences (the fresh set has n
 - **MathConstruct** (Balunović et al., 2502.10197 v1: 121 problems, best model o3-mini ~60% average accuracy over variations): ours, one
   instance per problem, gpt-oss-120b ladder + repair (MC-R) 59.5% — the paper's best level, with a 120B open model; instance mixes differ.
 - **Project Euler 943–992:** MathArena does not publish answers or per-model Euler scores, so no published comparison exists.
+## Mapping the recent selection methods onto our baselines (2026-11-23 16:1x UTC)
+- Semantic Voting / execution-fingerprint clustering (2605.08680): cluster candidates by their outputs on probe inputs, vote over clusters.
+  On OEIS the 20 graded indices ARE the probe inputs and our "plurality" baseline is exactly that vote; DIFF beats it on both sets
+  (+3.2 original, +2.1 fresh).
+- S* (2502.14382) / LLMCodeChoice (ISSTA 2024): distinguishing input + LLM picks among outputs = our JUDGE arm; ties DIFF (+0.6, n.s.).
+- ExPairT-LLM (2511.10855): pairwise equivalence / preference queries; with ≥ 2 classes per round it reduces to the JUDGE query on the
+  separating index; not run separately (stated limit).
+- Agentic Verifier (2602.04254): a trained input-search agent; not reproducible here without its training (stated limit).
+- FUSE (2604.18547): label-free verifier ensembling = our MathConstruct Dawid–Skene cross-verification (MC); MC-R beats it in utility.
