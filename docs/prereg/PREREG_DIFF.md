@@ -383,3 +383,12 @@ gpt-oss-120b (high) runs; 183 also gpt-oss-20b (high), 143 also Qwen3-30B-A3B an
   Long outputs are more often wrong, but not enough to pay for a 20k-token second opinion.
 - **Consequence for this set:** at this token price the competition-answer recipe is one gpt-oss-120b sample; what could still pay is
   a cheaper sample of the same accuracy (lower effort), not selection. Not run here: MathArena has only high-effort runs.
+## Addendum MA-EFF (registered 2026-11-23 17:29 UTC, before running): the one lever left on competition answers — effort
+The MathArena analysis above shows that on competition answers neither selection nor a second sample pays at our token price; the
+recipe is one sample, so what remains is how much thinking that sample gets. Run (poc/ma_effort.py): gpt-oss-120b, one sample at low,
+medium and high effort, seeds 1–2, temperature 1.0, 38k cap, on the 155 integer-answer problems of AIME 2025 / 2026, BRUMO, CMIMC,
+HMMT Feb / Nov, SMT 2025 (AIME 2026 is after every model's cutoff), same server, so the effort is the only difference.
+- MA-EFF-P1: medium − high utility (paired over problems, seed-averaged) > 0 with 95% lower bound > 0 (high's extra tokens cost more than
+  its extra accuracy at λ = 0.5).
+- MA-EFF-P2: low − medium < 0 (low effort loses more accuracy than it saves).
+Decision: the competition-answer recipe is one sample at the effort with the best utility; reported per competition as well.
