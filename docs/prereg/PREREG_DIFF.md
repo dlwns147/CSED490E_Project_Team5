@@ -254,3 +254,11 @@ The OEIS task and grading follow O'Malley et al. (arXiv 2411.04372, NeurIPS 2025
 20-term unit tests, lookup-table detection. Their reported finding is that reasoning models (o3, o4-mini, Gemini 2.5 Pro) beat
 non-reasoning ones and hard sequences stay poor; no gpt-oss or Qwen3 numbers and no selection or referee method were found for it. Our
 fresh set (A389000–A391999) extends their "contemporary" idea past every model's cutoff.
+## OEIS-R result (2026-11-23 14:2x UTC; python3 poc/oeis_repair.py score)
+| set | repairs | consistent with the referee's term | right | accuracy | utility vs DIFF v2 |
+|---|---|---|---|---|---|
+| fresh 309 (decisive) | 77 | 34 | 6 | 53.1% → 53.4% | −0.12 [−1.18, +0.93] |
+| original 500 | 173 | 72 | 13 | 37.0% → 39.0% | +1.45 [+0.23, +2.85], p 0.009 |
+**Not shown on the fresh set** (registered decisive). A repaired program that matches the referee's single term is right only 18% /
+18% of the time (13 / 72, 6 / 34): one term is a weak acceptance test for a whole 20-term sequence, and the repairer mostly patches the
+program to hit that one value. The referee's term is a good detector of a wrong pool (89–95%) but not a sufficient guide for repairing it.
