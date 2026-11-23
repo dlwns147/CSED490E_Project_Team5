@@ -19,6 +19,8 @@ def pool(kind):
         b = os.path.basename(f)
         if "brute" in b or "diff" in b or (kind == "cheap" and "_prog_" not in b):
             continue
+        if os.environ.get("DIFF_SEEDS") and not any(b.endswith(f"_s{x}.jsonl") for x in os.environ["DIFF_SEEDS"].split(",")):
+            continue   # addendum POOL: pool built from these seeds only
         for l in open(f):
             r = json.loads(l); o = r.get("outs"); o = o if isinstance(o, list) else (eval(o) if o else [])
             tok[r["id"]] += int(r.get("out_tokens") or 0)

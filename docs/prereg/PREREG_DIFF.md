@@ -228,3 +228,7 @@ Fresh 309: DIFF v2 53.1% (U 49.0) vs S*-style judge 52.8% (U 48.4): +0.63 [−0.
 DIFF is consistently a little cheaper (fewer referee tokens) but not significantly better. Constructive reading: the contribution over S*
 is not the referee prompt but carrying separate-and-ask to math sequences with a most-informative-term choice; against the strongest
 simple baselines (best single source, plurality) the method wins on both sets.
+## Addendum POOL (registered 2026-11-23 13:5x UTC, before running): how many cheap programs to buy
+DIFF v2 on the fresh 309 with pools of 3 (one seed per family) and 6 (two seeds) programs instead of 9 (DIFF_SEEDS=1 / 1,2; tags _s1,
+_s12). Reported as a curve (accuracy, tokens, utility) with paired intervals against the 9-program pool and the best single source;
+the pool size is a design choice to report, not to tune on this set.
