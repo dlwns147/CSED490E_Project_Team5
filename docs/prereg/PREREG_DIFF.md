@@ -469,3 +469,10 @@ clustered estimate is reported as well (descriptive; it reuses looked-at seeds).
   run): high, and on a capped high a medium sample, gives 81.32 / 79.66 (seed 1 / seed 2 first) vs 78.10 / 77.01 for high alone,
   about +3; a second high sample instead gives +1.3 / +1.6. This is the visible-failure retry already in the word-problem cascade
   (PREREG_ESCT), not new; the competition-answer recipe is one high sample, and a medium retry when it runs out of room.
+## Addendum EFF (registered 2026-11-23 19:58 UTC, before running): does high effort pay on the computation sets too?
+MA-EFF found high > medium on competition answers; the OEIS and Project Euler recipes use medium thinking. Same question there, same
+model and server type: gpt-oss-120b high effort, 38k cap. (a) OEIS fresh 309, think mode (thinking, then the program), seeds 2–3, vs
+the stored medium rows (oss120M_think s2–s3). (b) Project Euler fresh (eulert, 50), thinkp, seeds 1–2, vs stored medium thinkp s1–2.
+Test per set: high − medium utility, paired, seed-averaged, clustered by problem. No direction predicted (MA-EFF says high; OEIS's
+cheap-program results say tokens dominate); decision: the per-set recipe takes the effort with the higher utility only if the 95%
+interval excludes 0, else keeps medium (fewer tokens).
