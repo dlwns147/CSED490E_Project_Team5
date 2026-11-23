@@ -203,3 +203,13 @@ statement case as stated vs computed); the repaired answer replaces the original
 Tokens of the repair are paid only on failing rows. Prior work: Self-Debug (Chen et al. 2023), LDB, ALGO — a known mechanism (mark K);
 the statement's own small cases serve as the free feedback. Test (poc/pe_repair.py score): thinkpc + repair − thinkpc, utility, paired
 over problems (seeds averaged), dev and fresh separately, one-sided.
+## JUDGE and REF20 results (2026-11-23 13:3x UTC; original 500-sequence cheap pool)
+| referee | accuracy | referee tokens | utility |
+|---|---|---|---|
+| DIFF v2, gpt-oss-120b computes the term blind | 37.0% | 3.23k | 32.95 |
+| JUDGE (S*-style), gpt-oss-120b sees the candidates' values | 36.8% | 3.85k | 32.44 |
+| REF20, gpt-oss-20b computes the term | 35.4% | 7.32k | 29.30 |
+- DIFF v2 − JUDGE +0.51 [−0.13, +1.27] (two-sided p 0.13): computing the term blind is as accurate as judging the shown values and a
+  little cheaper; the anchoring hypothesis is not shown. The recent-research baseline is matched, not beaten.
+- REF20 − best single +0.28 [−2.43, +3.03]; − DIFF v2 −3.65 [−4.98, −2.45]: the smaller referee reasons twice as long for less accuracy.
+  Across three referees, the method needs a referee that computes one term cheaply (gpt-oss-120b: 3.2k; gpt-oss-20b: 7.3k; Qwen3-8B 14.2k).
