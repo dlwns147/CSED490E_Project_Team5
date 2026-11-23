@@ -14,7 +14,8 @@ ASK = ("Here is an integer sequence.\nName: {name}\nComments: {comments}\nThe se
 def pool(kind):
     C = defaultdict(lambda: defaultdict(list)); tok = defaultdict(int)
     for f in sorted(glob.glob(os.environ.get("DIFF_POOL", f"{ROOT}/results/x44") + "/oeis_*_s*.jsonl")):
-        if "brute" in f or "diff" in f or (kind == "cheap" and "_prog_" not in f):
+        b = os.path.basename(f)
+        if "brute" in b or "diff" in b or (kind == "cheap" and "_prog_" not in b):
             continue
         for l in open(f):
             r = json.loads(l); o = r.get("outs"); o = o if isinstance(o, list) else (eval(o) if o else [])
