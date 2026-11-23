@@ -50,9 +50,6 @@ def check():
             f.write(json.dumps(o) + "\n"); f.flush()
 
 
-if __name__ == "__main__":
-    if sys.argv[1] != "score":
-        {"build": build, "check": check, "build2": build2, "check2": check2}[sys.argv[1]]()
 
 
 def build2():
@@ -145,5 +142,5 @@ def score():
 
 
 import math  # noqa: E402
-if __name__ == "__main__" and sys.argv[1] == "score":
-    score()
+if __name__ == "__main__":
+    {"build": build, "check": check, "build2": build2, "check2": check2, "score": score}[sys.argv[1]]()
