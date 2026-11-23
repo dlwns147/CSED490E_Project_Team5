@@ -222,3 +222,9 @@ original 500 as a second, descriptive line.
   — 11 run, 5 right; one right repair (pe26) still fails a stated check, so the registered acceptance rule (checks must pass) will not
   take it — the rule is kept as registered.
 - JUDGE-F (gs15 GPU 6): 10 / 309.
+## JUDGE-F result (2026-11-23 13:5x UTC)
+Fresh 309: DIFF v2 53.1% (U 49.0) vs S*-style judge 52.8% (U 48.4): +0.63 [−0.79, +2.19], two-sided p 0.41. Pooled with the original 500
+(809 sequences, descriptive): +0.56 [−0.12, +1.25], p 0.11. **Computing the term blind and judging the shown values tie on both sets**;
+DIFF is consistently a little cheaper (fewer referee tokens) but not significantly better. Constructive reading: the contribution over S*
+is not the referee prompt but carrying separate-and-ask to math sequences with a most-informative-term choice; against the strongest
+simple baselines (best single source, plurality) the method wins on both sets.
