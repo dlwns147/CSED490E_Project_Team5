@@ -243,3 +243,9 @@ think-then-program, U 36.1). Unlike selection, which the bound caps at +1.7, imp
 ## Where the OEIS method still fails (stored DIFF v2 rows)
 Of the sequences DIFF gets wrong, the right answer is absent from the pool in 304 of 315 (original) and 139 of 145 (fresh); the referee
 misses a present right class in only 11 / 6. Selection is essentially solved on OEIS; the remaining gap is generation.
+## Addendum OEIS-R (registered 2026-11-23 14:0x UTC, before running): use the referee's term to repair when it rejects every candidate
+When the referee's term matches no class (194 of 500 original, 87 of 309 fresh sequences; the pool truly has no right program in 95% /
+89% of them), give ONE repair turn to the most frequent class's program with the evidence "a careful computation gives a(N) = v, your
+program prints w" (gpt-oss-120b, medium); the repaired program replaces DIFF's answer if it now prints v at N (free consistency check).
+Repair tokens are paid. Prior work: Self-Debug / LDB (repair from feedback), ALGO (oracle-checked programs) — here the feedback is the
+referee's single term. Test (poc/oeis_repair.py score): DIFF + repair − DIFF, utility, paired; fresh set decisive, original reported.
