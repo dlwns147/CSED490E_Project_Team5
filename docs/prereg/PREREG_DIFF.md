@@ -122,3 +122,9 @@ as judge between candidate answers (S*, ExPairT-LLM, "LLMs as a jury"); a known 
 and a weaker checker hurts the strong one (it rejects 66% of gpt-oss-20b's right solutions). What sets a checker's false-alarm rate is
 the checker's own reading of the text, not whether it shares the solver's family — consistent with HO3's raw cases (misread
 comparisons, invented constraints). Word problems keep the fixed cascade (PREREG_FRESH) as the method.
+## DIFF-v2 and AIME results (2026-11-23 11:4x UTC)
+- **OEIS v2 (most-informative term):** 37.0% vs v1 36.2%; utility v2 − v1 +0.77 [−0.67, +2.27] (not shown); v2 − best single source
+  **+3.93 [+1.53, +6.49]**, p 0.002; v2 − plurality +3.19 [+1.12, +5.37]. Choosing the term by the entropy of the split is at least as
+  good as the first difference and keeps the win over the best single source.
+- **AIME (descriptive, 60 problems):** oracle-resolved 53 vs plurality 50 vs best single source 47, some sample right on 56; the oracle
+  costs 4.9k tokens per problem on top of the pool. Direction as predicted, power too low to claim.
