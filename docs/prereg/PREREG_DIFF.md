@@ -410,3 +410,15 @@ Seed 2 has been seen, so the decisive data is a new seed: gpt-oss-120b medium th
 utility, paired over sequences, seed 3 alone. Non-inferiority margin 2 points (one sequence in fifty): if the 95% lower bound > −2, the
 OEIS recipe becomes the single thinking program (simpler, fewer tokens); if the upper bound < 0, DIFF stands with the claim restated
 against this baseline; otherwise both are reported as equal within noise.
+## OEIS-T result (2026-11-23 18:09 UTC; python poc/oeis_escalate.py think fresh 3)
+Seed 3 (decisive): thinking program alone 50.8% at 2.9k tokens vs DIFF v2 53.1%; **think − DIFF +0.36 [−2.45, +3.13]** (seed 2: −0.58
+[−3.55, +2.09]). Neither non-inferior by the 2-point margin nor worse: **equal within noise**, as registered. So on OEIS the claim is:
+DIFF v2 beats every cheap single source (+5.3) and ties one medium thinking program at about twice the tokens. The thinking program is
+the simpler recipe; DIFF's distinct value is that it needs no thinking model.
+## Addendum OEIS-TB (registered 2026-11-23 18:09 UTC, before running): the brute-force check and one repair on the thinking program
+OEIS-B-F showed check + repair adds +3.15 to a cheap program. The thinking program's errors are also mostly visible to the same model's
+brute force: its first 8 terms disagree with it on 147 (seed 2) and 143 (seed 3) sequences, of which 132 / 125 are wrong (90% precision),
+while only 23 / 27 wrong programs agree with it. Run: the same repair turn (poc/oeis_brute_repair.py, OEISB_PROG=oss120M_think), program
+seed 2 with brute-force seed 2, program seed 3 with brute-force seed 1 (stored brute forces, their tokens charged), fresh 309, gs15.
+Test: thinking program + check + repair − thinking program alone, utility, paired, seeds averaged. Prediction: > 0 with lower bound > 0.
+Decision: holds → the OEIS recipe is "thinking program, own brute-force check, one repair" and is then compared with DIFF v2.

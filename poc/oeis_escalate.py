@@ -26,5 +26,23 @@ def main(kind):
           f"diff {sum(d.values())/len(ids):+.2f} [{bs[100]:+.2f}, {bs[3899]:+.2f}] p={(sum(x <= 0 for x in bs)+1)/(B+1):.4f}")
 
 
+def think_vs_diff(kind, seed):
+    """addendum OEIS-T: one thinking program (gpt-oss-120b medium, seed) alone vs DIFF v2, utility, paired"""
+    pfx = "oeisf" if kind == "fresh" else "oeis"
+    D = {json.loads(l)["id"]: json.loads(l) for l in open(f"{R}/{pfx}_diff_cheap_split.jsonl")}
+    T = {json.loads(l)["id"]: json.loads(l) for l in open(f"{R}/{pfx}_oss120M_think_s{seed}.jsonl")}
+    U = lambda ok, t: 100 * ok - 0.5 * t / 1000
+    ids = sorted(i for i in D if i in T)
+    d = {i: U(str(T[i].get("correct")) == "True", int(T[i].get("out_tokens") or 0)) - U(D[i]["right"], D[i]["pool_tok"] + D[i]["oracle_tok"]) for i in ids}
+    rng = random.Random(1); B = 4000
+    bs = sorted(sum(d[rng.choice(ids)] for _ in ids) / len(ids) for _ in range(B))
+    acc = sum(str(T[i].get("correct")) == "True" for i in ids) / len(ids)
+    print(f"{kind} seed {seed}: think alone {100*acc:.1f}% ({sum(int(T[i].get('out_tokens') or 0) for i in ids)/len(ids):.0f} tok) vs DIFF "
+          f"{100*sum(D[i]['right'] for i in ids)/len(ids):.1f}%; think - DIFF {sum(d.values())/len(ids):+.2f} [{bs[100]:+.2f}, {bs[3899]:+.2f}] n={len(ids)}")
+
+
 if __name__ == "__main__":
-    main(sys.argv[1] if len(sys.argv) > 1 else "fresh")
+    if len(sys.argv) > 2 and sys.argv[1] == "think":
+        think_vs_diff(sys.argv[2], int(sys.argv[3]))
+    else:
+        main(sys.argv[1] if len(sys.argv) > 1 else "fresh")
