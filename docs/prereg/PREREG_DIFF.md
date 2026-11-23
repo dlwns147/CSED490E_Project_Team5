@@ -159,3 +159,8 @@ bootstrap over problems, Holm over two.
   45.3: +6.37 [−0.53, +13.55] (p 0.037) — neither holds under Holm. Highest MathConstruct accuracy of any method here at the best
   utility, but not a shown utility win; it still buys about nine samples, because the myopic gain uses the source's average right-rate
   rather than the rate on problems like this one.
+## Addendum JUDGE (registered 2026-11-23 11:5x UTC, before running): the recent-research baseline on the same pool
+S* (arXiv 2502.14382) and LLMCodeChoice show the judge the candidates' outputs on a separating input and let it pick. JUDGE runs
+exactly DIFF v2 (same pool, same most-informative index, same gpt-oss-120b, same 3 rounds) except that the prompt also lists the
+candidates' values for that term (DIFF_JUDGE=1, tag _judge). Test: DIFF v2 − JUDGE, utility, paired over the 500 sequences, two-sided.
+Hypothesis: showing the values anchors the judge on the plurality's (often shared) wrong value, so DIFF v2 ≥ JUDGE.

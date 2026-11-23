@@ -63,8 +63,12 @@ def run(kind):
                 j = next((j for j in range(L) if len({t[j] for t in terms.values()}) > 1), None)
             if j is None:
                 break
-            o = chat(ASK.format(name=seqs[i]["name"], comments=seqs[i].get("comments", ""), off=off, n=off + j), think=True, max_tokens=16000,
-                     temperature=0.7, seed=1000 + j)
+            q = ASK.format(name=seqs[i]["name"], comments=seqs[i].get("comments", ""), off=off, n=off + j)
+            if os.environ.get("DIFF_JUDGE"):   # S*-style baseline (arXiv 2502.14382): the judge sees the candidates' values and picks one
+                vals = sorted({t[j] for t in terms.values()})
+                q += ("\n\nSeveral programs computed this term and disagree. Their values are: " + ", ".join(vals) +
+                      ". Decide which value is correct and give it in \\boxed{}.")
+            o = chat(q, think=True, max_tokens=16000, temperature=0.7, seed=1000 + j)
             otok += o.get("out_tokens") or 0; v = boxed(o.get("text"))
             keep = {k: c for k, c in cls.items() if terms[k][j] == v}
             rounds.append({"j": j, "oracle": v, "kept": len(keep), "of": len(cls)})
@@ -84,7 +88,7 @@ def run(kind):
 
 def score():
     import random
-    for kind in ("all", "cheap", "all_q8b", "cheap_q8b", "cheap_split"):
+    for kind in ("all", "cheap", "all_q8b", "cheap_q8b", "cheap_split", "cheap_judge"):
         p = f"{ROOT}/results/x44/oeis_diff_{kind}.jsonl"
         if not os.path.exists(p):
             continue
