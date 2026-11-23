@@ -145,3 +145,12 @@ plurality; utility at 0.5, clustered bootstrap, one-sided, Holm over two. Predic
 - *OEIS-F set built (2026-11-23 11:5x UTC, by the registered rule):* 3,000 entries fetched; 644 easy and 59 hard pass the filter (hard OEIS entries
   rarely list ≥ 10 terms), so the set is 250 easy + 59 hard = 309 sequences. Generation: Slurm 1560557 (Qwen3-8B), 1560558 (gpt-oss-20b),
   1560559 (gpt-oss-120b), prog seeds 1–3; then DIFF v2.
+## Addendum MC-SEQ (registered 2026-11-23 11:5x UTC, before running): buy MathConstruct samples one at a time
+MC2 is accurate (62.8%) but pays for every sample (70k tokens); the cost-limited pool chosen afterwards was not significant. MC-SEQ
+acquires samples sequentially (sources: progc and parsed think-then-program of the three families, seeds in order). After each
+acquisition, the Dawid–Skene model (fitted label-free on the other half of problems, cross-fitted) gives each candidate's posterior of
+being right using every verify() acquired so far. The next source s is bought only if its expected gain is positive:
+100 · p_s · (1 − P_best) − λ · c_s, where p_s is the fitted rate at which s's candidates are right (label-free, from the posterior), P_best
+the current best candidate's posterior, c_s its mean tokens, λ = 0.5 per ktok; otherwise return the best candidate. No hand threshold.
+Test (poc/mcon_seq.py): MC-SEQ − own-verify ladder (gpt-oss-120b) and − gpt-oss-120b think-then-program alone, utility, paired
+bootstrap over problems, Holm over two.
