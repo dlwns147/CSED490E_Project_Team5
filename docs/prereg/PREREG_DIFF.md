@@ -216,3 +216,4 @@ over problems (seeds averaged), dev and fresh separately, one-sided.
 ## Addendum JUDGE-F (registered 2026-11-23 13:3x UTC, before running): DIFF v2 vs the S*-style judge on the fresh 309 sequences
 Same pool and referee as OEIS-F; JUDGE variant (DIFF_JUDGE=1). Test: DIFF v2 − JUDGE, utility, two-sided, paired; pooled with the
 original 500 as a second, descriptive line.
+- *PE-R also for gpt-oss-20b thinkpc (2026-11-23 13:3x UTC, descriptive second line; lane perep20 on gs15 GPU 7).*
