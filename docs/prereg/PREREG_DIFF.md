@@ -309,3 +309,13 @@ A gpt-oss-120b cheap program whose first 8 terms disagree with the same model's 
 the repair replaces the program if its first 8 terms then equal the brute force's. Brute-force tokens and repair tokens are paid on
 every sequence / every repaired one. Original 500 sequences (the fresh set has no brute-force rows), seeds 1–2. Test
 (poc/oeis_brute_repair.py score): program + check + repair − program alone, utility, paired. Prior: ALGO (brute-force oracle), Self-Debug.
+## Comparison with published numbers (2026-11-23 16:1x UTC; descriptive — different models, metrics differ as noted)
+- **OEIS** (O'Malley et al., 2411.04372 v3, contemporary half = our 500; 4 s limit; their "Avg. Score" gives partial credit per term):
+  best published contemporary-easy scores o3 73.6, gemini-2.5-pro 72.3, o3-mini 70.5, o4-mini 70.3; contemporary-hard o3-mini 32.0, o4-mini
+  31.8, o3 29.7. Ours on the same 500 in their metric: gpt-oss-120b program alone easy 67.2 / hard 21.7; gpt-oss-20b think 68.9 / 26.6.
+  DIFF v2 under the STRICTER all-20-terms metric: easy 70.0% (a lower bound on its Avg. Score) — open-weight models with DIFF reach the
+  o3-mini / o4-mini level on contemporary-easy at ~8k tokens per sequence. Hard: DIFF strict 4.0%, not comparable to their partial-credit
+  hard scores (strict accuracy on hard is near zero for every source here).
+- **MathConstruct** (Balunović et al., 2502.10197 v1: 121 problems, best model o3-mini ~60% average accuracy over variations): ours, one
+  instance per problem, gpt-oss-120b ladder + repair (MC-R) 59.5% — the paper's best level, with a 120B open model; instance mixes differ.
+- **Project Euler 943–992:** MathArena does not publish answers or per-model Euler scores, so no published comparison exists.
