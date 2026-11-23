@@ -476,3 +476,9 @@ the stored medium rows (oss120M_think s2–s3). (b) Project Euler fresh (eulert,
 Test per set: high − medium utility, paired, seed-averaged, clustered by problem. No direction predicted (MA-EFF says high; OEIS's
 cheap-program results say tokens dominate); decision: the per-set recipe takes the effort with the higher utility only if the 95%
 interval excludes 0, else keeps medium (fewer tokens).
+## MC-R-F2 result (2026-11-23 20:22 UTC; seed 3, 137 fresh instances, clustered by problem)
+- **Holds: seed 3 alone +7.73 [+1.94, +14.11], p 0.007** (70 problems, one-sided clustered bootstrap, as registered).
+- Seeds 1–3 together, clustered (descriptive; seeds 1–2 were seen): **+4.63 [+0.84, +8.50]**.
+- So the repair-before-thinking gain survives fresh parameters at the problem level; its size on fresh instances is about +4.6 per
+  instance (seed spread +2 to +8), against +8.3 on the paper's published variations. MathConstruct's recipe stands: own verify(), one
+  repair turn on a failure, thinking only after.
