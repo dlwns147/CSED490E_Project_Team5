@@ -739,3 +739,10 @@ shown, the MathConstruct recipe's repair step is reported as "as good as resampl
 Adaptive self-consistency (Aggarwal et al. 2023; ESC, Li et al. 2024): draw two high samples, stop if they agree, else a third and the
 plurality. Utility 73.35 vs our recipe (one high sample, a medium one on a cap) 80.93: **ASC − ours −7.58 [−10.52, −5.00]**. The
 published way of making self-consistency cheap still spends a second 20k-token sample on every problem; the recipe stands against it.
+## Addendum XM (registered 2026-11-24 13:07 UTC, before running): the recipes with a newer model family (user: why not recent models?)
+Every recipe of the last two windows was measured with gpt-oss (and Qwen3-8B / Qwen3.6 as cheap pool members). The newest open model on
+the server is **Qwen3.8-27B (FP8; qwen3_5 architecture)**; it fits one GPU. Runs (gs15): (a) OEIS fresh 309, think mode (thinking, then
+the program), 16k cap, seed 1; (b) the 155 integer-answer competition problems, thinking, 38k cap, seed 1. Reported against the
+gpt-oss-120b rows already stored: (a) one thinking program each, and a **cross-family pair** (gpt-oss-120b s2 + Qwen3.8) under the DIFF
+referee vs the same-family pair of OEIS-TP — the test of lesson 4 (does a different family misread differently?); (b) one sample each,
+and the retry-on-cap rule. Predictions: (a) cross-family pair coverage > same-family pair coverage (55.0%); (b) no direction.
