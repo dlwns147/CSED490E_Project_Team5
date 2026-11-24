@@ -617,7 +617,7 @@ Per set, what stands (registered tests; fresh / held-out data where marked), and
 | OEIS | one medium thinking program (ties DIFF on fresh, beats it by ~3 on the original set); DIFF v2 when only cheap models are used; a cheap program + own brute-force check + one repair | DIFF +5.3 vs best cheap source (fresh); OEIS-T tie (+0.36); OEIS-B-F +3.15 [+1.36, +5.21] (fresh) | referee repair (−0.12, −1.94), escalation (+0.45), think + check (+0.58), 4th family, high effort (−14.8) |
 | MathConstruct | own verify(), one repair turn, then think | +8.3 (published variations); fresh: seed 3 +7.73 [+1.94, +14.11] by problem; gpt-oss-20b fresh +7.66 | — |
 | Project Euler | think-then-program, medium | PE-R dev +3.64; selection bound +1.7 | PE-R fresh +0.53 (n.s.); high effort −21.7 |
-| Competition answers (MathArena, 155–213) | one high-effort sample; a medium one when it hits the cap | MA-EFF high best; MA-RETRY +3.13 [+0.50, +6.28] (fresh seed) | pools / plurality / referee (−29 to −89 vs one sample); second sample on length |
+| Competition answers (MathArena, 155–213) | one sample at the highest effort that rarely hits the cap (gpt-oss-120b: high; gpt-oss-20b: medium); a medium retry when it hits the cap | MA-EFF high best; MA-RETRY +3.13 [+0.50, +6.28] (fresh seed) | pools / plurality / referee (−29 to −89 vs one sample); second sample on length |
 | Word problems | plurality of three cheap programs (fresh: 80.2, near its ceiling) | WP-PLAN baselines | plan check (+0.85, +1.60), program judge, constraint dispute (−1.42): all within noise |
 **What carries across sets (and what does not).**
 1. *Repair pays when the free check returns a value that contradicts the attempt* (verify() on the object, the statement's small case,
