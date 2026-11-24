@@ -505,3 +505,6 @@ problem. **Sets:** fresh OptMATH-Train 300 (omtf; pool generated now) decisive; 
 Plurality on the stored pools: 55.9 / 53.9 / 32.2 utility vs the some-right bound 62.0 / 58.2 / 38.2 (6.1 / 4.4 / 6.0 of room).
 **Test (omtf):** PLAN − plurality, utility (pool + oracle tokens), paired by problem. Prediction: > 0 with 95% lower bound > 0. Also
 PLAN − JUDGE (descriptive). Decision: holds → the word-problem pool step is plan-checking; fails → word problems keep plurality / cascade.
+## Hourly check 2026-11-24 00:35 UTC
+- WP-PLAN started on gs15 (GPU 6: gpt-oss-20b freev pool on omtf, then the oracle; GPU 7: the oracle on the stored BWOR / LogIOR /
+  OptMATH pools). EFF: OEIS high effort seed 2 still running (since 21:57).
