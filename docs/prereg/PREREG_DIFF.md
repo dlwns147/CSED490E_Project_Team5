@@ -712,3 +712,15 @@ plurality of three cheap gpt-oss-20b programs 30.43, bound 39.03) has room. Run:
 prompt (run_nlopt thinkfree), seeds 1–2, on optnew and omtf (300); referee = the program JUDGE (poc/wp_plan.py, WP_MODE=thinkfree),
 called only where the two disagree. Decision on optnew: two thinking + JUDGE − cheap plurality > 0 with 95% lower bound > 0; also
 reported: − one thinking program (seed mean), and omtf (near its ceiling with cheap programs, so a check that the recipe does not lose).
+## WP-TP result (2026-11-24 13:02 UTC; gpt-oss-120b medium thinking, free-solver prompt, seeds 1–2; judge on disagreements)
+| set | cheap plurality (3 × gpt-oss-20b) | one thinking program | **two thinking + judge** | two − cheap | two − one |
+|---|---|---|---|---|---|
+| **optnew 93 (decisive)** | 30.43 | 35.77 (37.1% right) | **46.74** | **+16.31 [+4.47, +28.08] — holds** | +10.97 [+6.73, +15.30] |
+| omtf 300 | 80.20 | 80.38 | 81.71 | +1.51 [−1.48, +4.51] | +1.33 [+0.19, +2.55] |
+- **Where the gain comes from (constructive check):** on optnew one of the two programs prints no value in 26 of 93 problems (both in
+  23) and they disagree in only 8; most of the +11 over one program is the second program standing in when the first fails visibly,
+  not the judge. That is the free failure signal the word-problem cascade already uses, here bought with a second thinking program.
+- **Word-problem recipe update:** on hard problems, two medium thinking programs (take the one that prints a value; judge if both do
+  and disagree) beat both cheap plurality (+16) and a single thinking program (+11); on easy fresh problems the cheap plurality is
+  already at its ceiling and the two-program recipe only matches it. Published reference to add: SIRL / OptMATH models' accuracy on
+  OptMATH-Bench (the source of optnew) — not yet tabulated here.
