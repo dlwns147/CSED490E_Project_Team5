@@ -619,3 +619,23 @@ statements. Decision: if the utility of adding them is > 0 the Lean budget rule 
 - Scored: EFF (medium beats high on OEIS and Project Euler). Waiting: LEAN-HIGH compile check (CPU job 1569695, pending resources).
 ## Hourly check 2026-11-24 06:37 UTC
 - LEAN-HIGH compile check running (CPU job 1569695, n12). gs15 GPUs free after the last proof-selection add-on.
+## Window summary — math computation (written 2026-11-24 06:37 UTC; the second 24-hour window, 11-23 10:50 → 11-24 10:50)
+Per set, what stands (registered tests; fresh / held-out data where marked), and what was tried and did not.
+| set | recipe that stands | evidence | tried, not shown or worse |
+|---|---|---|---|
+| OEIS | DIFF v2 over 3 cheap families, or one medium thinking program (tie); a cheap program + own brute-force check + one repair | DIFF +5.3 vs best cheap source (fresh); OEIS-T tie (+0.36); OEIS-B-F +3.15 [+1.36, +5.21] (fresh) | referee repair (−0.12, −1.94), escalation (+0.45), think + check (+0.58), 4th family, high effort (−14.8) |
+| MathConstruct | own verify(), one repair turn, then think | +8.3 (published variations); fresh: seed 3 +7.73 [+1.94, +14.11] by problem; gpt-oss-20b fresh +7.66 | — |
+| Project Euler | think-then-program, medium | PE-R dev +3.64; selection bound +1.7 | PE-R fresh +0.53 (n.s.); high effort −21.7 |
+| Competition answers (MathArena, 155–213) | one high-effort sample; a medium one when it hits the cap | MA-EFF high best; MA-RETRY +3.13 [+0.50, +6.28] (fresh seed) | pools / plurality / referee (−29 to −89 vs one sample); second sample on length |
+| Word problems | plurality of three cheap programs (fresh: 80.2, near its ceiling) | WP-PLAN baselines | plan check (+0.85, +1.60), program judge, constraint dispute (−1.42): all within noise |
+**What carries across sets (and what does not).**
+1. *Repair pays when the free check returns a value that contradicts the attempt* (verify() on the object, the statement's small case,
+   brute-force terms): MathConstruct, OEIS, Project Euler dev. It does not when the check only says where it stopped (Lean errors: repair
+   = a fresh attempt) or when the check shares the attempt's misreading (OEIS: 72% of brute-force-consistent repairs are wrong).
+2. *The effort that pays depends on where the answer comes from:* thinking to an answer rewards more effort (competition answers: high);
+   thinking to a program rewards stopping early and running it (OEIS, Project Euler: medium beats high by 15–22 utility).
+3. *A narrower question helps only where the dispute is checkable.* One disputed OEIS term (DIFF) is computable from the definition; a
+   proof's self-named weak step, a plan's feasibility under the text, or an itemised constraint difference are not more checkable than
+   the whole — each lost to plain comparison (proofs, word problems).
+4. *Selection is near its ceiling wherever a cheap pool exists* (OEIS, word problems on fresh data); the open gap is generation, i.e. the
+   model's reading of the problem, which every check built by the same models shares.
