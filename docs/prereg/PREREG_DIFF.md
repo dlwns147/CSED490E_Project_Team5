@@ -812,3 +812,7 @@ about every pair of output clusters; DIFF asks one question per round at the ter
 recent methods buy no accuracy over DIFF and cost 1.6–4.3× its tokens. ExPairT's original-set pass was stopped to free the GPU for the
 newer-model runs (the fresh set was the registered decision). **Summary of the OEIS selection baselines:** DIFF is ahead of CodeT
 (+2.04), S\* (+4.57 fresh, +2.95 original) and ExPairT-LLM (+13.29), and is Pareto-better than S\* and ExPairT.
+- XM3 (2026-11-24 18:18 UTC): **Mistral Small 4 not run** — the NVFP4 checkpoint loads but vLLM 0.22's FP4 kernels have no build for these GPUs'
+  architecture ("No supported CUDA architectures found for major versions [12]"); the BF16 original (≈238 GB) does not fit our GPUs.
+  No substitute, as registered. Newer-model status: Qwen3.8 dominated; Gemma 4 and Mistral Small 4 not loadable in our image;
+  Qwen3.6-27B running.
