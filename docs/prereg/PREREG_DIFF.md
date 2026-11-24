@@ -548,3 +548,12 @@ On omtf the pool sat at its ceiling. optnew (SIRL's OptMATH-Bench problems outsi
 H) gives room. Same pool recipe (gpt-oss-20b freev, low, 3 seeds; files tagged oss20_optnew) and oracle; decision on optnew alone:
 PLAN − plurality > 0 with 95% lower bound > 0; PLAN − JUDGE reported. Given the relaxation bias seen on the stored pools, no direction is
 assumed for PLAN − JUDGE.
+## WP-PLAN2 result, optnew 93 (decisive; 2026-11-24 01:03 UTC)
+single 20.54 · plurality 30.43 · JUDGE 32.30 · **PLAN 32.04** · bound 39.03. **PLAN − plurality +1.60 [−4.08, +7.90], not shown**;
+PLAN − JUDGE −0.26 [−4.60, +4.09]. On the harder set with room (8.6 points), both oracle selectors recover about a fifth of it and are
+indistinguishable from each other and from plurality at n = 93.
+**Word-problem summary for this window:** across five sets the plan check and the program judge each add 0–3 points over plurality,
+never shown; plurality of three cheap programs is the strong, cheap baseline (fresh omtf 80.2, near its ceiling). The obstacle for
+plan checking is measured (the oracle accepts a third of wrong plans, which biases the best-value rule toward relaxations); a
+constraint-level dispute question (does the text require the constraint one program has and the other lacks?) is the next form to
+test, not run in this window.
