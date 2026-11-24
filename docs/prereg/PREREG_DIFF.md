@@ -593,18 +593,10 @@ alone: (high; medium on a capped high) − high alone, utility, paired by proble
 High alone 77.42 (85.2% right); with a medium sample on a capped high 80.55: **+3.13 [+0.50, +6.28], p 0.008 — holds.** 19 of 155 high
 samples hit the cap with no answer; the medium retry is right on 6 of them. Competition-answer recipe confirmed on new samples: one
 high-effort sample, and a medium one when it runs out of room (no pool, no selector).
-## Addendum LEAN-HIGH (registered 2026-11-24 02:57 UTC, before running): the effort lever on formal proofs
-MA-EFF / MA-RETRY: high effort pays on competition answers; Lean's stored gpt-oss-120b arms are low (32 attempts) and medium (8). Run:
-gpt-oss-120b high effort, 2 attempts, 38k cap, on the miniF2F-test statements neither stored arm proves (results/x4/oss120_unsolved.txt),
-generated on gs15, compiled with the batch checker on a CPU node. Reported: statements newly proved, tokens per statement, and the
-utility of adding 2 high attempts after the stored FF(4, 1) policy (PL2's best split) on those statements. Prediction: >= 5 new
-statements. Decision: if the utility of adding them is > 0 the Lean budget rule gains a high-effort tail; otherwise it stays as PL2.
-- LEAN-HIGH operations: the 153 statements are split in two halves (oss120_unsolved_a/b.txt) over gs15 GPUs 6 and 7, 2 attempts each (tags oss120highA / oss120highB), so seeds differ per attempt; checking follows on a CPU node.
 ## Hourly check 2026-11-24 03:35 UTC
-- Scored this hour: MA-RETRY (holds, +3.13). Teammate kit T2 smoke-tested (host record). Running: LEAN-HIGH generation (gs15 GPUs 6–7,
-  67 of 306 attempts), EFF OEIS high seed 3 (Slurm 1565258).
+- Scored this hour: MA-RETRY (holds, +3.13). Running: EFF OEIS high seed 3 (Slurm 1565258).
 ## Hourly check 2026-11-24 04:35 UTC
-- LEAN-HIGH generation 200 of 306 attempts (gs15); EFF OEIS high seed 3 running (Slurm 1565258).
+- EFF OEIS high seed 3 running (Slurm 1565258).
 ## EFF result (2026-11-24 05:35 UTC; gpt-oss-120b high vs medium, seed-averaged, paired by problem)
 | set | high: accuracy @ tokens | medium: accuracy @ tokens | high − medium utility |
 |---|---|---|---|
@@ -616,9 +608,9 @@ statements. Decision: if the utility of adding them is > 0 the Lean budget rule 
   answer is the end of the thought): high > medium. **The effort that pays depends on where the answer comes from** — thinking to an
   answer rewards more effort; thinking to a program rewards stopping early and running it.
 ## Hourly check 2026-11-24 05:36 UTC
-- Scored: EFF (medium beats high on OEIS and Project Euler). Waiting: LEAN-HIGH compile check (CPU job 1569695, pending resources).
+- Scored: EFF (medium beats high on OEIS and Project Euler).
 ## Hourly check 2026-11-24 06:37 UTC
-- LEAN-HIGH compile check running (CPU job 1569695, n12). gs15 GPUs free after the last proof-selection add-on.
+- gs15 GPUs free.
 ## Window summary — math computation (written 2026-11-24 06:37 UTC; the second 24-hour window, 11-23 10:50 → 11-24 10:50)
 Per set, what stands (registered tests; fresh / held-out data where marked), and what was tried and did not.
 | set | recipe that stands | evidence | tried, not shown or worse |
@@ -630,8 +622,7 @@ Per set, what stands (registered tests; fresh / held-out data where marked), and
 | Word problems | plurality of three cheap programs (fresh: 80.2, near its ceiling) | WP-PLAN baselines | plan check (+0.85, +1.60), program judge, constraint dispute (−1.42): all within noise |
 **What carries across sets (and what does not).**
 1. *Repair pays when the free check returns a value that contradicts the attempt* (verify() on the object, the statement's small case,
-   brute-force terms): MathConstruct, OEIS, Project Euler dev. It does not when the check only says where it stopped (Lean errors: repair
-   = a fresh attempt) or when the check shares the attempt's misreading (OEIS: 72% of brute-force-consistent repairs are wrong).
+   brute-force terms): MathConstruct, OEIS, Project Euler dev. It does not when the check shares the attempt's misreading (OEIS: 72% of brute-force-consistent repairs are wrong).
 2. *The effort that pays depends on where the answer comes from:* thinking to an answer rewards more effort (competition answers: high);
    thinking to a program rewards stopping early and running it (OEIS, Project Euler: medium beats high by 15–22 utility).
 3. *A narrower question helps only where the dispute is checkable.* One disputed OEIS term (DIFF) is computable from the definition; a
@@ -639,9 +630,3 @@ Per set, what stands (registered tests; fresh / held-out data where marked), and
    the whole — each lost to plain comparison (proofs, word problems).
 4. *Selection is near its ceiling wherever a cheap pool exists* (OEIS, word problems on fresh data); the open gap is generation, i.e. the
    model's reading of the problem, which every check built by the same models shares.
-## LEAN-HIGH result (2026-11-24 06:39 UTC; CPU job 1569695, batch checker)
-On the 153 miniF2F-test statements gpt-oss-120b's stored low (32) and medium (8) attempts never prove, 2 high-effort attempts prove **7
-new statements** (prediction >= 5 holds), none beyond the other 22 stored model settings. But they cost 62.6k tokens per statement (57% of
-attempts hit the 38k cap with no proof), so adding them is **−26.71 utility per statement**: by the rule, the Lean budget rule stays as
-PL2 (a few cheap attempts, at most one medium). Consistent with EFF: on Lean the answer is code the compiler runs, and long thinking that
-never reaches the code is wasted.
