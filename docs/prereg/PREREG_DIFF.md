@@ -623,7 +623,8 @@ Per set, what stands (registered tests; fresh / held-out data where marked), and
 1. *Repair pays when the free check returns a value that contradicts the attempt* (verify() on the object, the statement's small case,
    brute-force terms): MathConstruct, OEIS, Project Euler dev. It does not when the check shares the attempt's misreading (OEIS: 72% of brute-force-consistent repairs are wrong).
 2. *The effort that pays depends on where the answer comes from:* thinking to an answer rewards more effort (competition answers: high);
-   thinking to a program rewards stopping early and running it (OEIS, Project Euler: medium beats high by 15–22 utility).
+   thinking to a program rewards medium — high runs out of room before the code (OEIS, Project Euler: −15 / −22), low under-thinks
+   (MathConstruct: −22; see MC-EFF, which corrected a broader first wording of this line).
 3. *A narrower question helps only where the dispute is checkable.* One disputed OEIS term (DIFF) is computable from the definition; a
    plan's feasibility under the text or an itemised constraint difference is not more checkable than the whole formulation — both
    stayed within noise of plain comparison on word problems.
@@ -634,3 +635,9 @@ EFF / MA-EFF suggest: when the answer is a program the harness runs, more thinki
 thinking fallback (thinkp, the answer is the constructed object printed by code): gpt-oss-120b thinkp at **low** effort on the 137 fresh
 instances, seeds 1–2, vs the stored medium thinkp rows (same prompt, 16k cap). Test: low − medium utility, paired, clustered by problem.
 Prediction: >= 0 (low effort loses no more accuracy than its token saving is worth). Falsified if the 95% upper bound < 0.
+## MC-EFF result (2026-11-24 06:50 UTC; 137 fresh MathConstruct instances, seeds 1–2, clustered by problem)
+Low effort 24.8% at 0.9k tokens vs medium 48.5% at 3.0k: **low − medium −22.21 [−29.72, −14.79]. Prediction falsified.** The reading in
+the window summary was too broad: for program answers it is *high* effort that does not pay (it runs out of room before the code); low
+effort under-thinks the construction and loses half the accuracy, far more than its tokens save. Corrected statement of lesson 2:
+**medium is the effort for program answers (OEIS, Project Euler, MathConstruct); high only for answers reasoned to directly
+(competition answers).** Both ends were tested: high on OEIS / Project Euler (−15 / −22), low on MathConstruct (−22).
