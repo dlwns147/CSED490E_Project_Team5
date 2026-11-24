@@ -593,3 +593,9 @@ alone: (high; medium on a capped high) − high alone, utility, paired by proble
 High alone 77.42 (85.2% right); with a medium sample on a capped high 80.55: **+3.13 [+0.50, +6.28], p 0.008 — holds.** 19 of 155 high
 samples hit the cap with no answer; the medium retry is right on 6 of them. Competition-answer recipe confirmed on new samples: one
 high-effort sample, and a medium one when it runs out of room (no pool, no selector).
+## Addendum LEAN-HIGH (registered 2026-11-24 02:57 UTC, before running): the effort lever on formal proofs
+MA-EFF / MA-RETRY: high effort pays on competition answers; Lean's stored gpt-oss-120b arms are low (32 attempts) and medium (8). Run:
+gpt-oss-120b high effort, 2 attempts, 38k cap, on the miniF2F-test statements neither stored arm proves (results/x4/oss120_unsolved.txt),
+generated on gs15, compiled with the batch checker on a CPU node. Reported: statements newly proved, tokens per statement, and the
+utility of adding 2 high attempts after the stored FF(4, 1) policy (PL2's best split) on those statements. Prediction: >= 5 new
+statements. Decision: if the utility of adding them is > 0 the Lean budget rule gains a high-effort tail; otherwise it stays as PL2.
