@@ -767,3 +767,8 @@ OptMATH-Qwen2.5-7B 24.4%*, OptiMUS 20.2%*, GPT-4 16.6%*, LLMOpt-14B 12.5%*, ORLM
 subset, so descriptive): gpt-oss-20b cheap plurality 32.3%, one gpt-oss-120b thinking program 37.1%, **two thinking programs + judge
 49.5%** (accuracy; 5.3k tokens + judge). IndustryOR / NL4OPT / MAMO rows from the same table are the references for the older sets
 (SIRL-7B 33.0 / 96.3 / 90.0 & 62.1). Not run by us: SIRL-32B (writes COPT / Gurobi code; neither solver is in our sandbox).
+## Addendum XM3 (registered 2026-11-24 14:33 UTC, before running): Mistral Small 4 (the token-efficiency candidate)
+Mistral Small 4 (119B, 6B active, NVFP4; Mistral reports shorter outputs at gpt-oss-120b's level). Slurm RTXPro6000, 2 GPUs (tensor
+parallel, as the model card recommends), reasoning_effort high: OEIS fresh 309 (think, 16k cap) and the 155 competition problems (38k
+cap), seed 1. Same reporting and Pareto rule as XM2. If the image's vLLM cannot load the Mistral-format checkpoint the run is reported as
+not run (no substitute).
