@@ -570,3 +570,7 @@ lacks, settled by the sentence of the text that decides it; the program the text
 Same pools, oracle and disputed problems as WP-PLAN / WP-PLAN2. Decision on optnew (the set with room): CDIS − plurality > 0 with 95%
 lower bound > 0, and CDIS − JUDGE reported. Prior evidence against: on proofs the dispute-first wording gave nothing over the plain
 comparison (host record PR-SEL4); stated here so the test is not read as a fresh idea.
+## Addendum MA-RETRY (registered 2026-11-24 01:55 UTC, before running): confirm the retry-on-cap rule with fresh samples
+MA-EFF's offline estimate (high, and a medium sample when the high one hits the cap with no answer: +3.2 / +2.7) used the same stored
+samples it was read from. New samples, seed 3: gpt-oss-120b high and medium on the 155 integer-answer problems (gs15). Test on seed 3
+alone: (high; medium on a capped high) − high alone, utility, paired by problem. Prediction: > 0 with 95% lower bound > 0.
