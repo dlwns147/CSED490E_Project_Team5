@@ -543,3 +543,8 @@ to the smaller family on parameters it cannot have seen.
   room is on the harder held-out sets (BWOR / LogIOR / OptMATH-Bench), where the plan check's relaxation bias (above) is the obstacle.
 - Scoring note: the first local score read only seed 3 of the pool (the renamed seed 1–2 files were older than the pull marker); the
   numbers above use all three seeds, the same pool the oracle saw.
+## Addendum WP-PLAN2 (registered 2026-11-24 00:52 UTC, before running): the same test where there is room
+On omtf the pool sat at its ceiling. optnew (SIRL's OptMATH-Bench problems outside our 100; 93 never-used problems, harder, PREREG_TYPED
+H) gives room. Same pool recipe (gpt-oss-20b freev, low, 3 seeds; files tagged oss20_optnew) and oracle; decision on optnew alone:
+PLAN − plurality > 0 with 95% lower bound > 0; PLAN − JUDGE reported. Given the relaxation bias seen on the stored pools, no direction is
+assumed for PLAN − JUDGE.
