@@ -843,3 +843,7 @@ at 5.7k (U 74.58): **dominated by both gpt-oss settings.** With OEIS (19.7% at 1
 **newer-model summary (Pareto rule):** of four recent general models tried, two ran and both are dominated by gpt-oss-120b on accuracy *and*
 tokens (they think past the budget); two could not be loaded in our server image (Gemma 4: unknown architecture; Mistral Small 4:
 no FP4 kernels for these GPUs). No recipe changes. A newer vLLM image is the prerequisite for testing Gemma 4 / Mistral Small 4.
+## Hourly check 2026-11-24 23:06 UTC
+- Both gs15 GPUs on the proof part's last model round (no computation run this hour). Computation track: all registered tests scored;
+  next window's open items: a newer vLLM image (to test Gemma 4 / Mistral Small 4), and a method that wins on both accuracy and tokens
+  where the current recipes are trade-offs (OEIS two programs, MathConstruct repair).
