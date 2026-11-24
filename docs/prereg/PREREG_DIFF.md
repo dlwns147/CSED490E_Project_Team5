@@ -527,3 +527,19 @@ PLAN − JUDGE (descriptive). Decision: holds → the word-problem pool step is 
 Same 137 fresh instances and settings as MC-R-F, gpt-oss-20b (progc low 8k, thinkp medium 16k, repair medium), seeds 1–2, gs15 GPU 7.
 Reported clustered by problem: ladder + repair − ladder (original instances: +10.93). Descriptive: it tells whether the recipe carries
 to the smaller family on parameters it cannot have seen.
+## WP-PLAN result, fresh OptMATH-Train 300 (decisive; 2026-11-24 00:52 UTC; python poc/wp_plan.py score oss20 omtf)
+| arm | utility |
+|---|---|
+| one gpt-oss-20b freev program (seed mean) | 72.51 |
+| plurality of 3 | 80.20 |
+| JUDGE (oracle compares the two leading programs) | 80.03 |
+| **PLAN (oracle checks each candidate's plan)** | **81.06** |
+| some right (bound) | 81.87 |
+- **Prediction not shown:** PLAN − plurality **+0.85 [−0.22, +2.30], p 0.09** (65 disputed problems). It recovers half of the 1.7 points
+  of room, and beats the S*-style judge (+1.03 [−0.01, +2.41]), the reverse of the stored pools, but the registered bound is missed.
+- **The larger finding is the baseline:** three cheap gpt-oss-20b programs and a plurality vote reach 80.2 on these fresh problems at
+  ~2.3k tokens — about the level of PREREG_FRESH's full cascade for the same model (82.6% at 3.72k, utility ~80.7), which beat
+  LLMOPT-14B by +32. On OptMATH-style fresh problems the pool is near its ceiling (bound 81.9), so no selector can add much there; the
+  room is on the harder held-out sets (BWOR / LogIOR / OptMATH-Bench), where the plan check's relaxation bias (above) is the obstacle.
+- Scoring note: the first local score read only seed 3 of the pool (the renamed seed 1–2 files were older than the pull marker); the
+  numbers above use all three seeds, the same pool the oracle saw.
