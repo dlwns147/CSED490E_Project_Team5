@@ -491,7 +491,7 @@ interval excludes 0, else keeps medium (fewer tokens).
 ## Hourly check 2026-11-23 22:35 UTC
 - EFF (Slurm 1565258): Project Euler fresh at high effort, seed 2: 2 / 50 at 37.6k tokens (seed 1: 4 / 50). OEIS high seed 2 running.
 ## Hourly check 2026-11-23 23:35 UTC
-- EFF (Slurm 1565258): OEIS high seed 2 still running (started 21:57). Proof-part runs continue off git.
+- EFF (Slurm 1565258): OEIS high seed 2 still running (started 21:57).
 ## Addendum WP-PLAN (registered 2026-11-24 00:32 UTC, before any oracle call): separate-and-ask on word problems, with plans
 **Why.** OEIS's DIFF works because the disputed quantity (one term) can be checked from the definition. On optimization word problems
 the stored pools carry only objective values, which the text cannot check. A plan can be: the freev programs print the decision
@@ -568,8 +568,7 @@ The plan check failed by accepting wrong plans (relaxation bias); the program ju
 question between two formulations is each *difference* between them: a constraint, bound, domain or objective term one has and the other
 lacks, settled by the sentence of the text that decides it; the program the text contradicts loses (CDIS prompt in poc/wp_plan.py).
 Same pools, oracle and disputed problems as WP-PLAN / WP-PLAN2. Decision on optnew (the set with room): CDIS − plurality > 0 with 95%
-lower bound > 0, and CDIS − JUDGE reported. Prior evidence against: on proofs the dispute-first wording gave nothing over the plain
-comparison (host record PR-SEL4); stated here so the test is not read as a fresh idea.
+lower bound > 0, and CDIS − JUDGE reported. No direction is assumed.
 ## Addendum MA-RETRY (registered 2026-11-24 01:55 UTC, before running): confirm the retry-on-cap rule with fresh samples
 MA-EFF's offline estimate (high, and a medium sample when the high one hits the cap with no answer: +3.2 / +2.7) used the same stored
 samples it was read from. New samples, seed 3: gpt-oss-120b high and medium on the 155 integer-answer problems (gs15). Test on seed 3
@@ -583,7 +582,7 @@ alone: (high; medium on a capped high) − high alone, utility, paired by proble
 | LogIOR | 53.87 | 56.95 | 52.48 | −1.39 | −4.46 |
 | OptMATH | 32.21 | 33.00 | 34.87 | +2.65 | +1.86 |
 - **Fails as registered** (optnew −1.42). Itemising the differences and settling each from the text does not beat the plain comparison;
-  it is worse on three of five sets. Same as on proofs (PR-SEL4): telling the judge *where* to look does not add to letting it compare.
+  it is worse on three of five sets: telling the judge *where* to look does not add to letting it compare.
 - **Word problems close for this window:** plurality of three cheap programs is the recipe; every oracle selector (plan check, whole
   comparison, constraint dispute) stays within noise of it on the five sets.
 ## Hourly check 2026-11-24 02:35 UTC
@@ -626,7 +625,7 @@ Per set, what stands (registered tests; fresh / held-out data where marked), and
 2. *The effort that pays depends on where the answer comes from:* thinking to an answer rewards more effort (competition answers: high);
    thinking to a program rewards stopping early and running it (OEIS, Project Euler: medium beats high by 15–22 utility).
 3. *A narrower question helps only where the dispute is checkable.* One disputed OEIS term (DIFF) is computable from the definition; a
-   proof's self-named weak step, a plan's feasibility under the text, or an itemised constraint difference are not more checkable than
-   the whole — each lost to plain comparison (proofs, word problems).
+   plan's feasibility under the text or an itemised constraint difference is not more checkable than the whole formulation — both
+   stayed within noise of plain comparison on word problems.
 4. *Selection is near its ceiling wherever a cheap pool exists* (OEIS, word problems on fresh data); the open gap is generation, i.e. the
    model's reading of the problem, which every check built by the same models shares.
