@@ -676,3 +676,13 @@ utility); high is the choice when accuracy matters, medium at this token price.
 ## Addendum MA-RETRY20 (registered 2026-11-24 09:58 UTC, before running; descriptive): the competition-answer recipe for gpt-oss-20b
 Same 155 problems, gpt-oss-20b, seed 1: high (38k) and medium samples (gs15 GPUs 6 and 7, MA_TAG=oss20). Reported: high alone vs
 high + medium on a capped high, and medium alone — does the recipe carry to the smaller model?
+## MA-RETRY20 result (2026-11-24 10:39 UTC; descriptive; gpt-oss-20b, 155 problems, seed 1)
+| policy | accuracy | tokens | utility |
+|---|---|---|---|
+| high | 65.2% | 24.3k | 53.00 (53 of 155 capped) |
+| high, medium on a capped high | | | 63.55 (+10.56 [+5.52, +16.09] over high) |
+| **medium** | **70.3%** | 11.1k | **64.76** (high − medium −11.77 [−19.69, −4.13]) |
+**The effort choice is model-dependent.** For gpt-oss-20b high effort hits the cap on a third of the problems and is *less* accurate
+than medium; the retry rescues most of that, but medium alone is best. So the competition-answer recipe is "the highest effort that
+rarely hits the cap" — high for gpt-oss-120b (12% capped), medium for gpt-oss-20b (34% capped at high) — with the medium retry on a cap
+as the guard either way.
