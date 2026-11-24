@@ -818,3 +818,6 @@ newer-model runs (the fresh set was the registered decision). **Summary of the O
   Qwen3.6-27B running.
 ## Hourly check 2026-11-24 18:23 UTC
 - Running: Qwen3.6-27B on OEIS fresh (gs15 GPU 7), GenSelect proof-selection baseline (GPU 6); Leanstral (Slurm 1574885) pending.
+- XM2, Qwen3.6-27B on OEIS fresh (2026-11-24 19:07 UTC): 19.7% at 14.2k tokens, 222 of 309 at the 16k cap (gpt-oss-120b medium 50.3% at 2.8k) —
+  dominated, the same failure as Qwen3.8 (it thinks past the budget before writing the program). Cross-family pair coverage with
+  gpt-oss-120b s2: 52.8% vs the same-family pair 55.0% — no decorrelation gain. Competition run in progress.
