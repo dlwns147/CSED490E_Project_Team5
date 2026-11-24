@@ -782,3 +782,11 @@ not run (no substitute).
   differently?) is therefore not informative with this model; it needs a family that finishes within the budget.
 - Constructive reading: on these tasks the newer Qwen spends its budget thinking (the token problem the user raised); "newer" is not
   "better per token". Recipes unchanged by the Pareto rule. XM2 (Qwen3.6-27B, Gemma 4) and XM3 (Mistral Small 4) are queued on Slurm.
+## Updated goal (user, 2026-11-24 15:24 UTC): measure recent research as baselines and compare with ours
+## Addendum SELB (registered 2026-11-24 15:24 UTC, before running): ExPairT-LLM and S* against DIFF on OEIS, same pool and oracle
+DIFF v2 is a close variant of two recent selection methods, so they are its baselines, run on the same 9-program cheap pool with the
+same oracle (gpt-oss-120b medium): **ExPairT-LLM** (AAAI 2026, 2511.10855: cluster by outputs on inputs I = first 10 indices, round-robin
+pairwise membership queries, Copeland; equivalence queries not run — a stated deviation) and **S\*** (EMNLP Findings 2025: knockout with
+one execution-found distinguishing input per match, both outputs shown, the oracle picks). poc/oeis_sel_baselines.py. Test (fresh 309,
+decisive): DIFF v2 − each, utility paired, plus accuracy and oracle tokens separately. No direction predicted (ExPairT reports large
+gains on code with o1-mini; DIFF asks the oracle to compute a term, they ask it to choose between shown values).
