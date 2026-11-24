@@ -821,3 +821,17 @@ newer-model runs (the fresh set was the registered decision). **Summary of the O
 - XM2, Qwen3.6-27B on OEIS fresh (2026-11-24 19:07 UTC): 19.7% at 14.2k tokens, 222 of 309 at the 16k cap (gpt-oss-120b medium 50.3% at 2.8k) —
   dominated, the same failure as Qwen3.8 (it thinks past the budget before writing the program). Cross-family pair coverage with
   gpt-oss-120b s2: 52.8% vs the same-family pair 55.0% — no decorrelation gain. Competition run in progress.
+## Addendum TP-COND (registered 2026-11-24 19:08 UTC, before computing; offline on stored rows): buy the second thinking program only on a free failure signal
+OEIS-TP's two programs + referee is a trade-off (+4.4 points for +4.0k tokens). Policy: run one thinking program (seed 2); call the
+second (seed 3) and the referee only if the first prints nothing or its first 8 terms disagree with the same model's brute force
+(seed 1, cost charged). Uses the stored OEIS-TP referee outcome on those sequences. Fresh 309 decisive. Reported: accuracy and tokens
+vs one program and vs two + referee. Prediction: accuracy within 1 point of two + referee at <= 60% of its tokens.
+### TP-COND result (2026-11-24 19:08 UTC)
+| set | one program | conditional second (ours) | two + referee |
+|---|---|---|---|
+| fresh 309 | 49.8% @ 2.8k | **54.4% @ 6.2k** (second called on 144) | 54.7% @ 6.8k |
+| original 500 | 36.8% @ 3.4k | 39.6% @ 6.2k (called on 207) | 39.8% @ 7.8k |
+Accuracy within 0.3 points of two + referee (prediction holds there) but tokens are 90% / 79% of it, not <= 60% (**prediction fails**):
+the brute force is paid on every sequence and flags 47% / 41% of first programs, so the second program is still bought often. Utility
+equal to two + referee (+0.01 / +0.63, n.s.), above one program (+2.86 [+0.73, +5.12] fresh). A modest token saving, not a Pareto
+change; the brute-force check is too loose a filter here (it shares the misreading, OEIS-B-F).
