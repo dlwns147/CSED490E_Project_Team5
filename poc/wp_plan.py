@@ -22,6 +22,13 @@ JUDGE = ("{q}\n\nTwo programs were written for this problem and they disagree.\n
          "End with \\boxed{{1}} or \\boxed{{2}}.")
 
 
+CDIS = ("{q}\n\nTwo programs were written for this problem and they disagree.\nProgram 1 printed {v1}:\n```python\n{c1}\n```\nProgram 2 "
+        "printed {v2}:\n```python\n{c2}\n```\nDo not judge the programs as a whole. List every constraint, bound, variable domain or "
+        "objective term that one program has and the other lacks or states differently. For each difference, quote the sentence of the "
+        "problem that settles it and say which program the text supports. The program the text contradicts on any difference loses. "
+        "End with \\boxed{{1}} or \\boxed{{2}}.")
+
+
 def pool(tag, st):
     import run_nlopt as RN
     os.environ["NLOPT_SET"] = st
@@ -80,10 +87,10 @@ def run(tag, st, arm):
                 checks.append({"v": c["v"], "plan": True, "obj": RN.value_of(b[-1]) if b else None, "sense": s[-1].upper() if s else None,
                                "feasible": (f[-1].upper() == "YES") if f else None})
             res["checks"] = checks
-        else:
+        else:   # judge or cdis
             a, b = C[0], C[1]
             ra = next((x for x in a["rows"] if x.get("code")), a["rows"][0]); rb = next((x for x in b["rows"] if x.get("code")), b["rows"][0])
-            o = chat(JUDGE.format(q=q, v1=a["v"], c1=(ra.get("code") or "")[:6000], v2=b["v"], c2=(rb.get("code") or "")[:6000]), think=True,
+            o = chat((CDIS if arm == "cdis" else JUDGE).format(q=q, v1=a["v"], c1=(ra.get("code") or "")[:6000], v2=b["v"], c2=(rb.get("code") or "")[:6000]), think=True,
                      max_tokens=12000, temperature=0.7, seed=5000 + zlib.crc32(i.encode()) % 997)
             t = o.get("text") or ""; res["tok"] = o.get("out_tokens") or 0
             m = re.findall(r"\\boxed\{\s*([12])\s*\}", t); res["pick"] = int(m[-1]) if m else None
@@ -97,7 +104,7 @@ def score(tag, st):
     P, G, RN = pool(tag, st)
     U = lambda ok, t: 100 * ok - 0.5 * t / 1000
     Z = {a: ({json.loads(l)["id"]: json.loads(l) for l in open(f"{OUT}/wpplan_{tag}_{st}_{a}.jsonl")}
-             if os.path.exists(f"{OUT}/wpplan_{tag}_{st}_{a}.jsonl") else {}) for a in ("plan", "judge")}
+             if os.path.exists(f"{OUT}/wpplan_{tag}_{st}_{a}.jsonl") else {}) for a in ("plan", "judge", "cdis")}
     right = lambda i, v: v is not None and RN.correct(v, P[i]["gold"])
     arms = defaultdict(dict); ids = sorted(G)
     for i in ids:
@@ -120,9 +127,13 @@ def score(tag, st):
         if z and z.get("pick") in (1, 2) and len(C) >= 2:
             jp = C[z["pick"] - 1]["v"]
         arms["JUDGE"][i] = U(right(i, jp), tp + (z["tok"] if z else 0))
+        z = Z["cdis"].get(i); cp = plur
+        if z and z.get("pick") in (1, 2) and len(C) >= 2:
+            cp = C[z["pick"] - 1]["v"]
+        arms["CDIS"][i] = U(right(i, cp), tp + (z["tok"] if z else 0))
     for a, d in arms.items():
         print(f"{st} {a:20s} n={len(d)} utility {sum(d.values())/len(d):.2f}")
-    for a, b in (("PLAN (ours)", "plurality"), ("PLAN (ours)", "JUDGE"), ("JUDGE", "plurality")):
+    for a, b in (("PLAN (ours)", "plurality"), ("PLAN (ours)", "JUDGE"), ("JUDGE", "plurality"), ("CDIS", "plurality"), ("CDIS", "JUDGE")):
         d = [arms[a][i] - arms[b][i] for i in ids]; rng = random.Random(1)
         bs = sorted(sum(rng.choice(d) for _ in d) / len(d) for _ in range(4000))
         print(f"{st} {a} - {b}: {sum(d)/len(d):+.2f} [{bs[100]:+.2f}, {bs[3899]:+.2f}] p={(sum(x <= 0 for x in bs)+1)/4001:.4f}")

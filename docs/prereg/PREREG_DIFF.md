@@ -563,3 +563,10 @@ the smaller family on parameters it cannot have seen, with a larger gain than fo
 fail more often and its thinking fallback is weaker.
 - EFF interim (Slurm 1565258): OEIS fresh, high effort, seed 2: 142 / 309 right (46.0%) at 23.7k tokens per sequence, against medium's
   49.8% at 2.8k; seed 3 running.
+## Addendum WP-CDIS (registered 2026-11-24 01:35 UTC, before running): the constraint-level dispute
+The plan check failed by accepting wrong plans (relaxation bias); the program judge compares formulations as wholes. The narrowest
+question between two formulations is each *difference* between them: a constraint, bound, domain or objective term one has and the other
+lacks, settled by the sentence of the text that decides it; the program the text contradicts loses (CDIS prompt in poc/wp_plan.py).
+Same pools, oracle and disputed problems as WP-PLAN / WP-PLAN2. Decision on optnew (the set with room): CDIS − plurality > 0 with 95%
+lower bound > 0, and CDIS − JUDGE reported. Prior evidence against: on proofs the dispute-first wording gave nothing over the plain
+comparison (host record PR-SEL4); stated here so the test is not read as a fresh idea.
