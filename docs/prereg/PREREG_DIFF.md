@@ -799,3 +799,5 @@ gains on code with o1-mini; DIFF asks the oracle to compute a term, they ask it 
 term once, at the index that splits the classes most, beats a knockout of *pick-one-of-two* questions, which needs a call per match.
 - S\* on the original 500 (2026-11-24 17:13 UTC): DIFF 37.0% at 8.1k vs S\* 36.0% at 12.0k; **DIFF − S\* +2.95 [+1.36, +4.58]** — the same direction on
   both sets, and again better on accuracy and tokens.
+- XM2 operations (2026-11-24 17:23 UTC): **Gemma 4 not run** — the server image's Transformers does not recognise the `gemma4` architecture (vLLM
+  refuses the checkpoint); no substitute, as registered. Qwen3.6-27B moved to gs15 GPU 7 (free now) instead of waiting behind ExPairT.
