@@ -599,3 +599,4 @@ gpt-oss-120b high effort, 2 attempts, 38k cap, on the miniF2F-test statements ne
 generated on gs15, compiled with the batch checker on a CPU node. Reported: statements newly proved, tokens per statement, and the
 utility of adding 2 high attempts after the stored FF(4, 1) policy (PL2's best split) on those statements. Prediction: >= 5 new
 statements. Decision: if the utility of adding them is > 0 the Lean budget rule gains a high-effort tail; otherwise it stays as PL2.
+- LEAN-HIGH operations: the 153 statements are split in two halves (oss120_unsolved_a/b.txt) over gs15 GPUs 6 and 7, 2 attempts each (tags oss120highA / oss120highB), so seeds differ per attempt; checking follows on a CPU node.
