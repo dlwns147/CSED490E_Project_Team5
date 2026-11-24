@@ -706,3 +706,9 @@ DIFF sits at the two-program ceiling on both sets (54.7 of 55.0, 39.8 of 41.0): 
 the two thinking programs. Whether the second program pays depends on how much it adds: on fresh sequences +5.2 points of coverage for
 ~2.9k tokens (pays), on the original set +4.2 for ~3.3k plus referee calls (breaks even). **OEIS recipe update:** two medium thinking
 programs + DIFF's referee on their disagreements (fresh: +2.4 over one program); on the original set the single program is as good.
+## Addendum WP-TP (registered 2026-11-24 12:01 UTC, before running): OEIS-TP's pattern on word problems
+OEIS-TP: two thinking programs + a referee on their disagreements beat one (+2.37, fresh). Word problems' hardest fresh set (optnew, 93;
+plurality of three cheap gpt-oss-20b programs 30.43, bound 39.03) has room. Run: gpt-oss-120b medium, thinking, the free-solver
+prompt (run_nlopt thinkfree), seeds 1–2, on optnew and omtf (300); referee = the program JUDGE (poc/wp_plan.py, WP_MODE=thinkfree),
+called only where the two disagree. Decision on optnew: two thinking + JUDGE − cheap plurality > 0 with 95% lower bound > 0; also
+reported: − one thinking program (seed mean), and omtf (near its ceiling with cheap programs, so a check that the recipe does not lose).

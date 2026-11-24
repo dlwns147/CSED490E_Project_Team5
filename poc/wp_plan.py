@@ -34,7 +34,7 @@ def pool(tag, st):
     os.environ["NLOPT_SET"] = st
     P = {p["id"]: p for p in RN.problems()}
     G = defaultdict(list)
-    for f in sorted(glob.glob(f"{R3}/opt_{tag}_{st}_freev_s*.jsonl")):
+    for f in sorted(glob.glob(f"{R3}/opt_{tag}_{st}_{os.environ.get('WP_MODE', 'freev')}_s*.jsonl")):
         for l in open(f):
             r = json.loads(l)
             if r["id"] in P:
@@ -68,7 +68,7 @@ def classes(rows):
 def run(tag, st, arm):
     from llm import chat
     P, G, RN = pool(tag, st)
-    out = f"{OUT}/wpplan_{tag}_{st}_{arm}.jsonl"
+    out = f"{OUT}/wpplan_{tag}_{st}_{arm}{os.environ.get('WP_SFX', '')}.jsonl"
     done = {json.loads(l)["id"] for l in open(out)} if os.path.exists(out) else set()
     todo = [i for i, rows in G.items() if len(classes(rows)) >= 2 and i not in done]
 
@@ -103,8 +103,9 @@ def run(tag, st, arm):
 def score(tag, st):
     P, G, RN = pool(tag, st)
     U = lambda ok, t: 100 * ok - 0.5 * t / 1000
-    Z = {a: ({json.loads(l)["id"]: json.loads(l) for l in open(f"{OUT}/wpplan_{tag}_{st}_{a}.jsonl")}
-             if os.path.exists(f"{OUT}/wpplan_{tag}_{st}_{a}.jsonl") else {}) for a in ("plan", "judge", "cdis")}
+    SX = os.environ.get("WP_SFX", "")
+    Z = {a: ({json.loads(l)["id"]: json.loads(l) for l in open(f"{OUT}/wpplan_{tag}_{st}_{a}{SX}.jsonl")}
+             if os.path.exists(f"{OUT}/wpplan_{tag}_{st}_{a}{SX}.jsonl") else {}) for a in ("plan", "judge", "cdis")}
     right = lambda i, v: v is not None and RN.correct(v, P[i]["gold"])
     arms = defaultdict(dict); ids = sorted(G)
     for i in ids:
