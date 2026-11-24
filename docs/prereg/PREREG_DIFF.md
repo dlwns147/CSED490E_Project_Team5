@@ -663,3 +663,4 @@ High − medium utility **−0.75 [−11.92, +10.01]**: unlike OEIS and Project 
 the gain about pays for its tokens. So the "program answers" half of lesson 2 needs a qualifier: where the program is a construction the
 model must design (MathConstruct), more thinking improves it; where the program follows from reading a definition or statement (OEIS,
 Project Euler), more thinking does not. Medium stays the cheaper equal choice for MathConstruct at λ = 0.5.
+- MC-EFF2 add-on (08:26 UTC): seed 2 of thinkp high queued (gs15 GPU 7) to reduce the noise on the high ≈ medium utility tie.
