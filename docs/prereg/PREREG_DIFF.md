@@ -557,3 +557,9 @@ never shown; plurality of three cheap programs is the strong, cheap baseline (fr
 plan checking is measured (the oracle accepts a third of wrong plans, which biases the best-value rule toward relaxations); a
 constraint-level dispute question (does the text require the constraint one program has and the other lacks?) is the next form to
 test, not run in this window.
+## MC-R-F20 result (2026-11-24 01:33 UTC; descriptive; gpt-oss-20b, 137 fresh instances, seeds 1–2, clustered by problem)
+Accuracy 25.5% → 34.7%; utility **+7.66 [+4.30, +11.31]** (original instances: +10.93). The repair-before-thinking recipe carries to
+the smaller family on parameters it cannot have seen, with a larger gain than for gpt-oss-120b (+4.6), because its first constructions
+fail more often and its thinking fallback is weaker.
+- EFF interim (Slurm 1565258): OEIS fresh, high effort, seed 2: 142 / 309 right (46.0%) at 23.7k tokens per sequence, against medium's
+  49.8% at 2.8k; seed 3 running.
