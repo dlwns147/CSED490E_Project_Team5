@@ -761,3 +761,9 @@ fresh 309 decisive, utility paired.
 Fresh 309: CodeT 46.97 vs DIFF v2 49.01, **DIFF − CodeT +2.04 [+0.07, +4.21]**; original 500: 31.96 vs 32.95, +1.00 [−0.60, +2.70].
 DIFF's one targeted referee term beats CodeT's untargeted generated tests (the model's own brute-force terms share the programs'
 misreading, so they confirm wrong classes too — the same leak as OEIS-B). Same pool, same tokens for the pool (5.2k).
+## Published reference rows for word problems (2026-11-24 14:04 UTC; SIRL, arXiv 2505.11792 v2, Table 2, pass@1; * = numbers that paper took from others)
+OptMATH-Bench (193; our optmath = STORM's 100 of them, optnew = the other 93): DeepSeek-V3 32.6%*, **SIRL-Qwen2.5-7B 29.0%**,
+OptMATH-Qwen2.5-7B 24.4%*, OptiMUS 20.2%*, GPT-4 16.6%*, LLMOpt-14B 12.5%*, ORLM-LLaMA-3-8B 2.6%*. Ours on optnew (93; not the same
+subset, so descriptive): gpt-oss-20b cheap plurality 32.3%, one gpt-oss-120b thinking program 37.1%, **two thinking programs + judge
+49.5%** (accuracy; 5.3k tokens + judge). IndustryOR / NL4OPT / MAMO rows from the same table are the references for the older sets
+(SIRL-7B 33.0 / 96.3 / 90.0 & 62.1). Not run by us: SIRL-32B (writes COPT / Gurobi code; neither solver is in our sandbox).
