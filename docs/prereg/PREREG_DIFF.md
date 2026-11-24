@@ -724,3 +724,15 @@ reported: − one thinking program (seed mean), and omtf (near its ceiling with 
   and disagree) beat both cheap plurality (+16) and a single thinking program (+11); on easy fresh problems the cheap plurality is
   already at its ceiling and the two-program recipe only matches it. Published reference to add: SIRL / OptMATH models' accuracy on
   OptMATH-Bench (the source of optnew) — not yet tabulated here.
+## Addendum MC-RS (registered 2026-11-24 13:02 UTC, before computing; offline on stored rows): repair vs a fresh resample — the missing baseline
+MC-R was compared with "fall back to thinking"; the natural competitor (Lean: fresh = repair) is a fresh cheap program when verify()
+fails. Policies per seed pair (a, b): REPAIR = progc_a; if its verify fails, the repair of progc_a; if that fails, thinkp_a.
+RESAMPLE = progc_a; if its verify fails, progc_b (an independent cheap sample); if that fails, thinkp_a. Tokens charged as used.
+Sets: fresh mconf (seeds 1–3, gpt-oss-120b; pairs (1,2), (2,3), (3,1)) decisive, original mcon reported. Test: REPAIR − RESAMPLE,
+utility, clustered by problem. Prediction: > 0 (verify()'s failure is value evidence, unlike a compiler error). Decision: if not
+shown, the MathConstruct recipe's repair step is reported as "as good as resampling", not as a gain from repair.
+### MC-RS result (2026-11-24 13:03 UTC)
+- **Holds: repair beats a fresh resample.** Fresh (70 problems): accuracy 56.2% vs 50.6%, **REPAIR − RESAMPLE +4.63 [+1.53, +7.79],
+  p 0.002**; original (121): 59.5% vs 52.6%, +6.55 [+3.47, +10.08]. So the MathConstruct gain is from the repair itself, not just
+  from a second try — the contrast with Lean (repair = fresh) supports lesson 1: verify()'s failure on a concrete object tells the
+  model what is wrong; a compiler error does not.
