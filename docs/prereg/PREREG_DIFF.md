@@ -614,7 +614,7 @@ high-effort sample, and a medium one when it runs out of room (no pool, no selec
 Per set, what stands (registered tests; fresh / held-out data where marked), and what was tried and did not.
 | set | recipe that stands | evidence | tried, not shown or worse |
 |---|---|---|---|
-| OEIS | one medium thinking program (ties DIFF on fresh, beats it by ~3 on the original set); DIFF v2 when only cheap models are used; a cheap program + own brute-force check + one repair | DIFF +5.3 vs best cheap source (fresh); OEIS-T tie (+0.36); OEIS-B-F +3.15 [+1.36, +5.21] (fresh) | referee repair (−0.12, −1.94), escalation (+0.45), think + check (+0.58), 4th family, high effort (−14.8) |
+| OEIS | two medium thinking programs + the DIFF referee on their disagreements (third window: +2.37 over one, fresh); one thinking program ties or beats DIFF over cheap programs; a cheap program + own brute-force check + one repair | DIFF +5.3 vs best cheap source (fresh); OEIS-T tie (+0.36); OEIS-B-F +3.15 [+1.36, +5.21] (fresh) | referee repair (−0.12, −1.94), escalation (+0.45), think + check (+0.58), 4th family, high effort (−14.8) |
 | MathConstruct | own verify(), one repair turn, then think | +8.3 (published variations); fresh: seed 3 +7.73 [+1.94, +14.11] by problem; gpt-oss-20b fresh +7.66 | — |
 | Project Euler | think-then-program, medium | PE-R dev +3.64; selection bound +1.7 | PE-R fresh +0.53 (n.s.); high effort −21.7 |
 | Competition answers (MathArena, 155–213) | one sample at the highest effort that rarely hits the cap (gpt-oss-120b: high; gpt-oss-20b: medium); a medium retry when it hits the cap | MA-EFF high best; MA-RETRY +3.13 [+0.50, +6.28] (fresh seed) | pools / plurality / referee (−29 to −89 vs one sample); second sample on length |
@@ -697,3 +697,12 @@ referee — near its ceiling on cheap pools — could turn two thinking programs
 seeds 2 and 3 (stored); DIFF v2 (entropy index, 3 rounds, gpt-oss-120b medium referee), same code (poc/oeis_diff.py, pool "all" over a
 directory holding only these two files). Test (fresh 309, decisive): DIFF-over-2-thinking − one thinking program (seed mean), utility,
 paired. Prediction: > 0 with 95% lower bound > 0. Original 500 reported.
+## OEIS-TP result (2026-11-24 11:18 UTC; DIFF v2 over two gpt-oss-120b medium thinking programs)
+| set | one thinking program (seed mean) | DIFF over two | DIFF − one |
+|---|---|---|---|
+| **fresh 309 (decisive)** | 48.90 | **51.27** (54.7% right; some program right 55.0%) | **+2.37 [+0.78, +3.97], p 0.002 — holds** |
+| original 500 | 35.63 | 35.89 (39.8%; bound 41.0%) | +0.25 [−0.92, +1.47] |
+DIFF sits at the two-program ceiling on both sets (54.7 of 55.0, 39.8 of 41.0): the referee resolves almost every disagreement between
+the two thinking programs. Whether the second program pays depends on how much it adds: on fresh sequences +5.2 points of coverage for
+~2.9k tokens (pays), on the original set +4.2 for ~3.3k plus referee calls (breaks even). **OEIS recipe update:** two medium thinking
+programs + DIFF's referee on their disagreements (fresh: +2.4 over one program); on the original set the single program is as good.
