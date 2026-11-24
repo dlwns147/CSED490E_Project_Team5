@@ -623,8 +623,9 @@ Per set, what stands (registered tests; fresh / held-out data where marked), and
 1. *Repair pays when the free check returns a value that contradicts the attempt* (verify() on the object, the statement's small case,
    brute-force terms): MathConstruct, OEIS, Project Euler dev. It does not when the check shares the attempt's misreading (OEIS: 72% of brute-force-consistent repairs are wrong).
 2. *The effort that pays depends on where the answer comes from:* thinking to an answer rewards more effort (competition answers: high);
-   thinking to a program rewards medium — high runs out of room before the code (OEIS, Project Euler: −15 / −22), low under-thinks
-   (MathConstruct: −22; see MC-EFF, which corrected a broader first wording of this line).
+   thinking to a program rewards medium — high runs out of room before the code on OEIS / Project Euler (−15 / −22), low under-thinks
+   (MathConstruct −22), and on MathConstruct high is more accurate (+8 points) but only ties medium in utility (MC-EFF, MC-EFF2 corrected
+   a broader first wording of this line).
 3. *A narrower question helps only where the dispute is checkable.* One disputed OEIS term (DIFF) is computable from the definition; a
    plan's feasibility under the text or an itemised constraint difference is not more checkable than the whole formulation — both
    stayed within noise of plain comparison on word problems.
@@ -652,3 +653,13 @@ Original 500, seed 3: one medium thinking program 37.8% at 3.3k tokens vs DIFF v
 tie (+0.36, −0.58). Together: DIFF never beats one medium thinking program, and on one of two sets loses to it by ~3 utility. The OEIS
 claim for the report is therefore "one medium thinking program (with its own brute-force check and repair as an option) is the
 recipe; DIFF is the method when only cheap no-thinking models are available".
+## MC-EFF2 result (2026-11-24 08:26 UTC; descriptive; fresh MathConstruct, seed 1, thinkp)
+| effort | right | tokens | capped |
+|---|---|---|---|
+| low | 27.7% | 0.95k | 0 |
+| medium | 47.4% | 3.0k | 0 |
+| high | **55.5%** | 23.0k | 43 / 137 |
+High − medium utility **−0.75 [−11.92, +10.01]**: unlike OEIS and Project Euler, high effort *is* more accurate here (+8 points) and
+the gain about pays for its tokens. So the "program answers" half of lesson 2 needs a qualifier: where the program is a construction the
+model must design (MathConstruct), more thinking improves it; where the program follows from reading a definition or statement (OEIS,
+Project Euler), more thinking does not. Medium stays the cheaper equal choice for MathConstruct at λ = 0.5.
