@@ -523,3 +523,7 @@ PLAN − JUDGE (descriptive). Decision: holds → the word-problem pool step is 
   the oracle misses that constraint too, the wrong value wins by construction. The derivation's premise (a passed plan is truly
   feasible) is the part that fails. Checking plans costs 3.8k tokens per disputed problem, comparing programs about the same.
 - The omtf test runs as registered (decisive); this diagnosis was made on the stored pools before any omtf row was scored.
+## Addendum MC-R-F20 (registered 2026-11-24 00:47 UTC, before running; descriptive): the MathConstruct recipe for gpt-oss-20b on fresh parameters
+Same 137 fresh instances and settings as MC-R-F, gpt-oss-20b (progc low 8k, thinkp medium 16k, repair medium), seeds 1–2, gs15 GPU 7.
+Reported clustered by problem: ladder + repair − ladder (original instances: +10.93). Descriptive: it tells whether the recipe carries
+to the smaller family on parameters it cannot have seen.
