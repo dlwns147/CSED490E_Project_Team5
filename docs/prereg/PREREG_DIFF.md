@@ -735,3 +735,7 @@ shown, the MathConstruct recipe's repair step is reported as "as good as resampl
 - **Holds: repair beats a fresh resample.** Fresh (70 problems): accuracy 56.2% vs 50.6%, **REPAIR − RESAMPLE +4.63 [+1.53, +7.79],
   p 0.002**; original (121): 59.5% vs 52.6%, +6.55 [+3.47, +10.08]. So the MathConstruct gain is from the repair itself, not just
   from a second try — consistent with lesson 1: verify()'s failure on a concrete object tells the model what is wrong.
+## Baseline ASC (2026-11-24 13:03 UTC; offline on the stored gpt-oss-120b high seeds 1–3 and medium seeds 1–3, all 6 orders averaged)
+Adaptive self-consistency (Aggarwal et al. 2023; ESC, Li et al. 2024): draw two high samples, stop if they agree, else a third and the
+plurality. Utility 73.35 vs our recipe (one high sample, a medium one on a cap) 80.93: **ASC − ours −7.58 [−10.52, −5.00]**. The
+published way of making self-consistency cheap still spends a second 20k-token sample on every problem; the recipe stands against it.
