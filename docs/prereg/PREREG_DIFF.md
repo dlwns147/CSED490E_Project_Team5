@@ -667,3 +667,5 @@ Project Euler), more thinking does not. Medium stays the cheaper equal choice fo
 ## Hourly check 2026-11-24 08:36 UTC
 - Scored this hour: OEIS-T2 (one thinking program beats DIFF by ~3 on the original set), MC-EFF2 (high ties medium in utility on
   MathConstruct, +8 points accuracy). Running: MathConstruct thinkp high, seed 2 (gs15 GPU 7, 12 / 137).
+## Hourly check 2026-11-24 09:35 UTC
+- MathConstruct thinkp high seed 2: 97 / 137 (gs15 GPU 7). No other runs.
