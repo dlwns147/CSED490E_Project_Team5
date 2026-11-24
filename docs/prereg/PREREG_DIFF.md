@@ -586,3 +586,6 @@ alone: (high; medium on a capped high) − high alone, utility, paired by proble
   it is worse on three of five sets. Same as on proofs (PR-SEL4): telling the judge *where* to look does not add to letting it compare.
 - **Word problems close for this window:** plurality of three cheap programs is the recipe; every oracle selector (plan check, whole
   comparison, constraint dispute) stays within noise of it on the five sets.
+## Hourly check 2026-11-24 02:35 UTC
+- Scored this hour: WP-CDIS (fails; word problems closed). Running: MA-RETRY (gs15; medium seed 3 done 155 / 155, high seed 3 81 / 155),
+  EFF OEIS high seed 3 (Slurm 1565258).
