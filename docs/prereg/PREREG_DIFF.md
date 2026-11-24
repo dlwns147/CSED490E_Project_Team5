@@ -751,3 +751,13 @@ Qwen3.6-27B (FP8) and Gemma 4 26B-A4B (4B active), downloaded to the cluster mod
 each: OEIS fresh 309 (think mode, 16k cap, seed 1) and the 155 integer-answer competition problems (thinking, 38k cap, seed 1).
 Reported per model: accuracy, output tokens per problem, utility, against gpt-oss-120b's stored rows; a recipe change follows only if a
 model is better on accuracy at no more tokens, or equal on accuracy at fewer tokens (the Pareto rule the user asked for).
+## Baseline CodeT on OEIS (registered 2026-11-24 14:03 UTC, before computing; offline)
+CodeT (Chen et al. 2022, 2207.10397): rank programs by dual agreement — the size of a program's output class times the number of
+generated test cases it passes. On OEIS the model's own brute-force programs are the generated tests (each gives the first 8 terms):
+tests = gpt-oss-120b brute force seeds 1–2 (16 (n, a(n)) pairs); candidates = the same 9-program cheap pool DIFF v2 used; pick the class
+with the largest class size × tests passed (ties: larger class). Tokens: pool + both brute forces. Compared with DIFF v2 (same pool),
+fresh 309 decisive, utility paired.
+### CodeT result (2026-11-24 14:03 UTC)
+Fresh 309: CodeT 46.97 vs DIFF v2 49.01, **DIFF − CodeT +2.04 [+0.07, +4.21]**; original 500: 31.96 vs 32.95, +1.00 [−0.60, +2.70].
+DIFF's one targeted referee term beats CodeT's untargeted generated tests (the model's own brute-force terms share the programs'
+misreading, so they confirm wrong classes too — the same leak as OEIS-B). Same pool, same tokens for the pool (5.2k).
