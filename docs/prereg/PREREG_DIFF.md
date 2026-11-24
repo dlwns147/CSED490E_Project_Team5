@@ -639,3 +639,9 @@ Per set, what stands (registered tests; fresh / held-out data where marked), and
    the whole — each lost to plain comparison (proofs, word problems).
 4. *Selection is near its ceiling wherever a cheap pool exists* (OEIS, word problems on fresh data); the open gap is generation, i.e. the
    model's reading of the problem, which every check built by the same models shares.
+## LEAN-HIGH result (2026-11-24 06:39 UTC; CPU job 1569695, batch checker)
+On the 153 miniF2F-test statements gpt-oss-120b's stored low (32) and medium (8) attempts never prove, 2 high-effort attempts prove **7
+new statements** (prediction >= 5 holds), none beyond the other 22 stored model settings. But they cost 62.6k tokens per statement (57% of
+attempts hit the 38k cap with no proof), so adding them is **−26.71 utility per statement**: by the rule, the Lean budget rule stays as
+PL2 (a few cheap attempts, at most one medium). Consistent with EFF: on Lean the answer is code the compiler runs, and long thinking that
+never reaches the code is wasted.
