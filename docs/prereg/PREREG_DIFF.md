@@ -508,3 +508,6 @@ PLAN − JUDGE (descriptive). Decision: holds → the word-problem pool step is 
 ## Hourly check 2026-11-24 00:35 UTC
 - WP-PLAN started on gs15 (GPU 6: gpt-oss-20b freev pool on omtf, then the oracle; GPU 7: the oracle on the stored BWOR / LogIOR /
   OptMATH pools). EFF: OEIS high effort seed 2 still running (since 21:57).
+- WP-PLAN operations (2026-11-24 00:41 UTC): the omtf pool was written under tag "oss20" (run_nlopt names files by tag, not set), so the first oracle
+  pass found no pool and wrote nothing; files renamed to opt_oss20_omtf_freev_s1–3 (900 rows; 218 / 223 / 215 of 300 right per seed),
+  oracle re-queued. No row was scored before this.
