@@ -628,4 +628,4 @@ Per set, what stands (registered tests; fresh / held-out data where marked), and
    plan's feasibility under the text or an itemised constraint difference is not more checkable than the whole formulation — both
    stayed within noise of plain comparison on word problems.
 4. *Selection is near its ceiling wherever a cheap pool exists* (OEIS, word problems on fresh data); the open gap is generation, i.e. the
-   model's reading of the problem, which every check built by the same models shares.
+   model's reading of the problem, which every check built by the same models shares.- Note (2026-11-24 06:40 UTC): references to proof-part work (a Lean effort test, proof-selection records) were removed from this file under the user's rule that proof progress stays off git; in WP-CDIS's registration a sentence citing that record was replaced by "No direction is assumed". No prediction, design or decision rule was changed.
