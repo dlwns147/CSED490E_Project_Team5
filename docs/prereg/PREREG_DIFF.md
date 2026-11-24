@@ -686,3 +686,6 @@ high + medium on a capped high, and medium alone — does the recipe carry to th
 than medium; the retry rescues most of that, but medium alone is best. So the competition-answer recipe is "the highest effort that
 rarely hits the cap" — high for gpt-oss-120b (12% capped), medium for gpt-oss-20b (34% capped at high) — with the medium retry on a cap
 as the guard either way.
+## Window closed (2026-11-24 10:51 UTC)
+The second 24-hour window (11-23 10:50 → 11-24 10:50 UTC) is over; every run registered in it is scored above, the summary table is
+current, and no job of this window is running.
