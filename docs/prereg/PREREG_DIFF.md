@@ -615,3 +615,5 @@ statements. Decision: if the utility of adding them is > 0 the Lean budget rule 
   scores 0); on OEIS the extra thinking does not fix the reading of the definition. Contrast MA-EFF (competition answers, where the
   answer is the end of the thought): high > medium. **The effort that pays depends on where the answer comes from** — thinking to an
   answer rewards more effort; thinking to a program rewards stopping early and running it.
+## Hourly check 2026-11-24 05:36 UTC
+- Scored: EFF (medium beats high on OEIS and Project Euler). Waiting: LEAN-HIGH compile check (CPU job 1569695, pending resources).
