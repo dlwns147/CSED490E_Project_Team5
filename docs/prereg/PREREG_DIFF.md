@@ -603,3 +603,5 @@ statements. Decision: if the utility of adding them is > 0 the Lean budget rule 
 ## Hourly check 2026-11-24 03:35 UTC
 - Scored this hour: MA-RETRY (holds, +3.13). Teammate kit T2 smoke-tested (host record). Running: LEAN-HIGH generation (gs15 GPUs 6–7,
   67 of 306 attempts), EFF OEIS high seed 3 (Slurm 1565258).
+## Hourly check 2026-11-24 04:35 UTC
+- LEAN-HIGH generation 200 of 306 attempts (gs15); EFF OEIS high seed 3 running (Slurm 1565258).
