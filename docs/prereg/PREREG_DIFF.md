@@ -669,3 +669,7 @@ Project Euler), more thinking does not. Medium stays the cheaper equal choice fo
   MathConstruct, +8 points accuracy). Running: MathConstruct thinkp high, seed 2 (gs15 GPU 7, 12 / 137).
 ## Hourly check 2026-11-24 09:35 UTC
 - MathConstruct thinkp high seed 2: 97 / 137 (gs15 GPU 7). No other runs.
+## MC-EFF2, two seeds (2026-11-24 09:56 UTC; descriptive)
+High 58.8% at 22.9k tokens vs medium 48.5% at 3.0k; high − medium utility **+1.12 [−8.20, +10.50]** (274 instance-seeds, clustered by
+problem). Confirms seed 1: on MathConstruct high effort is ~10 points more accurate and its gain just pays for the tokens (a tie in
+utility); high is the choice when accuracy matters, medium at this token price.
