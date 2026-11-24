@@ -673,3 +673,6 @@ Project Euler), more thinking does not. Medium stays the cheaper equal choice fo
 High 58.8% at 22.9k tokens vs medium 48.5% at 3.0k; high − medium utility **+1.12 [−8.20, +10.50]** (274 instance-seeds, clustered by
 problem). Confirms seed 1: on MathConstruct high effort is ~10 points more accurate and its gain just pays for the tokens (a tie in
 utility); high is the choice when accuracy matters, medium at this token price.
+## Addendum MA-RETRY20 (registered 2026-11-24 09:58 UTC, before running; descriptive): the competition-answer recipe for gpt-oss-20b
+Same 155 problems, gpt-oss-20b, seed 1: high (38k) and medium samples (gs15 GPUs 6 and 7, MA_TAG=oss20). Reported: high alone vs
+high + medium on a capped high, and medium alone — does the recipe carry to the smaller model?

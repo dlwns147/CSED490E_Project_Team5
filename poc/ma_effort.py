@@ -21,7 +21,7 @@ def ans(t):
 
 def run(e, seed):
     from llm import chat
-    out = f"{R}/ma_oss120{e}_s{seed}.jsonl"
+    out = f"{R}/ma_{os.environ.get('MA_TAG', 'oss120')}{e}_s{seed}.jsonl"
     done = {json.loads(l)["id"] for l in open(out)} if os.path.exists(out) else set()
 
     def one(p):
