@@ -664,3 +664,6 @@ the gain about pays for its tokens. So the "program answers" half of lesson 2 ne
 model must design (MathConstruct), more thinking improves it; where the program follows from reading a definition or statement (OEIS,
 Project Euler), more thinking does not. Medium stays the cheaper equal choice for MathConstruct at λ = 0.5.
 - MC-EFF2 add-on (08:26 UTC): seed 2 of thinkp high queued (gs15 GPU 7) to reduce the noise on the high ≈ medium utility tie.
+## Hourly check 2026-11-24 08:36 UTC
+- Scored this hour: OEIS-T2 (one thinking program beats DIFF by ~3 on the original set), MC-EFF2 (high ties medium in utility on
+  MathConstruct, +8 points accuracy). Running: MathConstruct thinkp high, seed 2 (gs15 GPU 7, 12 / 137).
