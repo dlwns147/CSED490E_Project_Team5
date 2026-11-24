@@ -835,3 +835,5 @@ Accuracy within 0.3 points of two + referee (prediction holds there) but tokens 
 the brute force is paid on every sequence and flags 47% / 41% of first programs, so the second program is still bought often. Utility
 equal to two + referee (+0.01 / +0.63, n.s.), above one program (+2.86 [+0.73, +5.12] fresh). A modest token saving, not a Pareto
 change; the brute-force check is too loose a filter here (it shares the misreading, OEIS-B-F).
+## Hourly check 2026-11-24 20:07 UTC
+- Qwen3.6-27B competition run 49 / 155 (gs15 GPU 7; Qwen thinks long, ~2 h left). Nothing else of the computation track running.
