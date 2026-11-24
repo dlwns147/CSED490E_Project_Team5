@@ -617,3 +617,5 @@ statements. Decision: if the utility of adding them is > 0 the Lean budget rule 
   answer rewards more effort; thinking to a program rewards stopping early and running it.
 ## Hourly check 2026-11-24 05:36 UTC
 - Scored: EFF (medium beats high on OEIS and Project Euler). Waiting: LEAN-HIGH compile check (CPU job 1569695, pending resources).
+## Hourly check 2026-11-24 06:37 UTC
+- LEAN-HIGH compile check running (CPU job 1569695, n12). gs15 GPUs free after the last proof-selection add-on.
