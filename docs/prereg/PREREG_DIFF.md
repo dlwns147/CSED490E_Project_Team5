@@ -816,3 +816,5 @@ newer-model runs (the fresh set was the registered decision). **Summary of the O
   architecture ("No supported CUDA architectures found for major versions [12]"); the BF16 original (≈238 GB) does not fit our GPUs.
   No substitute, as registered. Newer-model status: Qwen3.8 dominated; Gemma 4 and Mistral Small 4 not loadable in our image;
   Qwen3.6-27B running.
+## Hourly check 2026-11-24 18:23 UTC
+- Running: Qwen3.6-27B on OEIS fresh (gs15 GPU 7), GenSelect proof-selection baseline (GPU 6); Leanstral (Slurm 1574885) pending.
