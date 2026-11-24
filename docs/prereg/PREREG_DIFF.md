@@ -605,3 +605,13 @@ statements. Decision: if the utility of adding them is > 0 the Lean budget rule 
   67 of 306 attempts), EFF OEIS high seed 3 (Slurm 1565258).
 ## Hourly check 2026-11-24 04:35 UTC
 - LEAN-HIGH generation 200 of 306 attempts (gs15); EFF OEIS high seed 3 running (Slurm 1565258).
+## EFF result (2026-11-24 05:35 UTC; gpt-oss-120b high vs medium, seed-averaged, paired by problem)
+| set | high: accuracy @ tokens | medium: accuracy @ tokens | high − medium utility |
+|---|---|---|---|
+| Project Euler fresh (50) | 6.0% @ 37.4k | 14.0% @ 10.1k | **−21.66 [−30.83, −14.16]** |
+| OEIS fresh (309) | 46.1% @ 24.1k | 50.3% @ 2.8k | **−14.83 [−18.14, −11.72]** |
+- **Both exclude 0 the other way: medium stays.** High effort is *less* accurate here, not just dearer: on Project Euler most high
+  samples hit the 38k cap before writing the program (the answer comes from running code, so a long think that never reaches the code
+  scores 0); on OEIS the extra thinking does not fix the reading of the definition. Contrast MA-EFF (competition answers, where the
+  answer is the end of the thought): high > medium. **The effort that pays depends on where the answer comes from** — thinking to an
+  answer rewards more effort; thinking to a program rewards stopping early and running it.
