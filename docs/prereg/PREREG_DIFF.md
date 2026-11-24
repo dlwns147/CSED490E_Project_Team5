@@ -797,3 +797,5 @@ gains on code with o1-mini; DIFF asks the oracle to compute a term, they ask it 
 | S\* (knockout; oracle picks between two shown values at the distinguishing index) | 51.1% | 13.4k (3.4 oracle calls) | 44.44 |
 **DIFF − S\* +4.57 [+2.39, +6.86]; DIFF is better on both accuracy and tokens (Pareto).** Asking the oracle to *compute* the disputed
 term once, at the index that splits the classes most, beats a knockout of *pick-one-of-two* questions, which needs a call per match.
+- S\* on the original 500 (2026-11-24 17:13 UTC): DIFF 37.0% at 8.1k vs S\* 36.0% at 12.0k; **DIFF − S\* +2.95 [+1.36, +4.58]** — the same direction on
+  both sets, and again better on accuracy and tokens.
