@@ -746,3 +746,8 @@ the program), 16k cap, seed 1; (b) the 155 integer-answer competition problems, 
 gpt-oss-120b rows already stored: (a) one thinking program each, and a **cross-family pair** (gpt-oss-120b s2 + Qwen3.8) under the DIFF
 referee vs the same-family pair of OEIS-TP — the test of lesson 4 (does a different family misread differently?); (b) one sample each,
 and the retry-on-cap rule. Predictions: (a) cross-family pair coverage > same-family pair coverage (55.0%); (b) no direction.
+## Addendum XM2 (registered 2026-11-24 13:41 UTC, before running): two more recent families, accuracy and tokens reported separately
+Qwen3.6-27B (FP8) and Gemma 4 26B-A4B (4B active), downloaded to the cluster model store. Same runs as XM, Slurm RTXPro6000, one GPU
+each: OEIS fresh 309 (think mode, 16k cap, seed 1) and the 155 integer-answer competition problems (thinking, 38k cap, seed 1).
+Reported per model: accuracy, output tokens per problem, utility, against gpt-oss-120b's stored rows; a recipe change follows only if a
+model is better on accuracy at no more tokens, or equal on accuracy at fewer tokens (the Pareto rule the user asked for).
