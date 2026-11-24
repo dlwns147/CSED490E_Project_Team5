@@ -801,3 +801,14 @@ term once, at the index that splits the classes most, beats a knockout of *pick-
   both sets, and again better on accuracy and tokens.
 - XM2 operations (2026-11-24 17:23 UTC): **Gemma 4 not run** — the server image's Transformers does not recognise the `gemma4` architecture (vLLM
   refuses the checkpoint); no substitute, as registered. Qwen3.6-27B moved to gs15 GPU 7 (free now) instead of waiting behind ExPairT.
+### SELB: ExPairT-LLM result, fresh 309 (2026-11-24 18:16 UTC)
+| method | accuracy | tokens / sequence | oracle calls | utility |
+|---|---|---|---|---|
+| **DIFF v2** | **53.1%** | **8.1k** | ≤ 3 | **49.01** |
+| ExPairT-LLM (round-robin membership queries, Copeland) | 53.1% | 34.7k | 9.5 | 35.73 |
+| S\* (knockout, pick between shown values) | 51.1% | 13.4k | 3.4 | 44.44 |
+**DIFF − ExPairT +13.29 [+11.10, +15.53]: the same accuracy at a quarter of the tokens (DIFF dominates).** ExPairT's round-robin asks
+about every pair of output clusters; DIFF asks one question per round at the term that splits the classes most. On this task the two
+recent methods buy no accuracy over DIFF and cost 1.6–4.3× its tokens. ExPairT's original-set pass was stopped to free the GPU for the
+newer-model runs (the fresh set was the registered decision). **Summary of the OEIS selection baselines:** DIFF is ahead of CodeT
+(+2.04), S\* (+4.57 fresh, +2.95 original) and ExPairT-LLM (+13.29), and is Pareto-better than S\* and ExPairT.
