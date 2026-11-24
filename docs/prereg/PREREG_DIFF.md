@@ -589,3 +589,7 @@ alone: (high; medium on a capped high) − high alone, utility, paired by proble
 ## Hourly check 2026-11-24 02:35 UTC
 - Scored this hour: WP-CDIS (fails; word problems closed). Running: MA-RETRY (gs15; medium seed 3 done 155 / 155, high seed 3 81 / 155),
   EFF OEIS high seed 3 (Slurm 1565258).
+## MA-RETRY result (2026-11-24 02:55 UTC; fresh seed 3, 155 integer-answer problems)
+High alone 77.42 (85.2% right); with a medium sample on a capped high 80.55: **+3.13 [+0.50, +6.28], p 0.008 — holds.** 19 of 155 high
+samples hit the cap with no answer; the medium retry is right on 6 of them. Competition-answer recipe confirmed on new samples: one
+high-effort sample, and a medium one when it runs out of room (no pool, no selector).
