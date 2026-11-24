@@ -772,3 +772,13 @@ Mistral Small 4 (119B, 6B active, NVFP4; Mistral reports shorter outputs at gpt-
 parallel, as the model card recommends), reasoning_effort high: OEIS fresh 309 (think, 16k cap) and the 155 competition problems (38k
 cap), seed 1. Same reporting and Pareto rule as XM2. If the image's vLLM cannot load the Mistral-format checkpoint the run is reported as
 not run (no substitute).
+## XM result (2026-11-24 15:03 UTC; Qwen3.8-27B FP8, seed 1)
+| set | Qwen3.8-27B | gpt-oss-120b (stored) | Pareto |
+|---|---|---|---|
+| OEIS fresh 309 (think, 16k cap) | 6.5% at 15.4k tokens; **286 of 309 hit the cap** before writing a program | medium: 50.3% at 2.8k | dominated |
+| Competition 155 (38k cap) | 83.2% at 17.0k (23 no answer), U 74.72 | high: 85.8% at 15.4k, U 78.10; medium: 77.4% at 5.7k | dominated by high |
+- **Cross-family pair prediction fails:** coverage of {gpt-oss-120b s2, Qwen3.8} 49.8% vs the same-family pair 55.0% — Qwen3.8 adds almost
+  no sequence the first program misses, because under this cap it rarely finishes. The test of lesson 4 (does another family misread
+  differently?) is therefore not informative with this model; it needs a family that finishes within the budget.
+- Constructive reading: on these tasks the newer Qwen spends its budget thinking (the token problem the user raised); "newer" is not
+  "better per token". Recipes unchanged by the Pareto rule. XM2 (Qwen3.6-27B, Gemma 4) and XM3 (Mistral Small 4) are queued on Slurm.
