@@ -837,3 +837,9 @@ equal to two + referee (+0.01 / +0.63, n.s.), above one program (+2.86 [+0.73, +
 change; the brute-force check is too loose a filter here (it shares the misreading, OEIS-B-F).
 ## Hourly check 2026-11-24 20:07 UTC
 - Qwen3.6-27B competition run 49 / 155 (gs15 GPU 7; Qwen thinks long, ~2 h left). Nothing else of the computation track running.
+## XM2 result, Qwen3.6-27B (2026-11-24 21:13 UTC; competition 155, 38k cap)
+72.3% at 29.1k tokens (42 of 155 with no answer at the cap), U 57.69 — vs gpt-oss-120b high 85.8% at 15.4k (U 78.10) and medium 77.4%
+at 5.7k (U 74.58): **dominated by both gpt-oss settings.** With OEIS (19.7% at 14.2k) and Qwen3.8 (6.5% / 83.2%):
+**newer-model summary (Pareto rule):** of five recent models tried, two ran and both are dominated by gpt-oss-120b on accuracy *and*
+tokens (they think past the budget); three could not be loaded in our server image (Gemma 4: unknown architecture; Mistral Small 4:
+no FP4 kernels for these GPUs). No recipe changes. A newer vLLM image is the prerequisite for testing Gemma 4 / Mistral Small 4.
