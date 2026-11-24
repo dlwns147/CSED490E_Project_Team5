@@ -600,3 +600,6 @@ generated on gs15, compiled with the batch checker on a CPU node. Reported: stat
 utility of adding 2 high attempts after the stored FF(4, 1) policy (PL2's best split) on those statements. Prediction: >= 5 new
 statements. Decision: if the utility of adding them is > 0 the Lean budget rule gains a high-effort tail; otherwise it stays as PL2.
 - LEAN-HIGH operations: the 153 statements are split in two halves (oss120_unsolved_a/b.txt) over gs15 GPUs 6 and 7, 2 attempts each (tags oss120highA / oss120highB), so seeds differ per attempt; checking follows on a CPU node.
+## Hourly check 2026-11-24 03:35 UTC
+- Scored this hour: MA-RETRY (holds, +3.13). Teammate kit T2 smoke-tested (host record). Running: LEAN-HIGH generation (gs15 GPUs 6–7,
+  67 of 306 attempts), EFF OEIS high seed 3 (Slurm 1565258).
