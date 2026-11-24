@@ -511,3 +511,15 @@ PLAN − JUDGE (descriptive). Decision: holds → the word-problem pool step is 
 - WP-PLAN operations (2026-11-24 00:41 UTC): the omtf pool was written under tag "oss20" (run_nlopt names files by tag, not set), so the first oracle
   pass found no pool and wrote nothing; files renamed to opt_oss20_omtf_freev_s1–3 (900 rows; 218 / 223 / 215 of 300 right per seed),
   oracle re-queued. No row was scored before this.
+## WP-PLAN, stored pools (descriptive; 2026-11-24 00:47 UTC; python poc/wp_plan.py score oss20 <set>)
+| set | plurality | PLAN (ours) | JUDGE | bound | PLAN − plurality | JUDGE − plurality |
+|---|---|---|---|---|---|---|
+| BWOR (82) | 55.94 | 57.74 | 59.14 | 62.04 | +1.81 [−0.70, +5.51] | +3.20 [−0.39, +7.92] |
+| LogIOR (92) | 53.87 | 53.48 | 56.95 | 58.22 | −0.39 [−3.63, +2.88] | +3.08 [−0.14, +7.37] |
+| OptMATH (100) | 32.21 | 32.71 | 33.00 | 38.21 | +0.50 [−2.62, +4.27] | +0.79 [−2.26, +3.84] |
+- **The judge beats the plan check on all three.** Why, from the 160 checked plans: the oracle accepts (feasible, value matches) 26 of
+  42 right candidates (62%) but also 39 of 118 wrong ones (33%). The best-value rule is sound only for an exact feasibility check; with
+  a third of wrong plans accepted it is biased toward *relaxations* — a formulation that drops a constraint has a better optimum, and if
+  the oracle misses that constraint too, the wrong value wins by construction. The derivation's premise (a passed plan is truly
+  feasible) is the part that fails. Checking plans costs 3.8k tokens per disputed problem, comparing programs about the same.
+- The omtf test runs as registered (decisive); this diagnosis was made on the stored pools before any omtf row was scored.
