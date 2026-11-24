@@ -790,3 +790,10 @@ pairwise membership queries, Copeland; equivalence queries not run — a stated 
 one execution-found distinguishing input per match, both outputs shown, the oracle picks). poc/oeis_sel_baselines.py. Test (fresh 309,
 decisive): DIFF v2 − each, utility paired, plus accuracy and oracle tokens separately. No direction predicted (ExPairT reports large
 gains on code with o1-mini; DIFF asks the oracle to compute a term, they ask it to choose between shown values).
+### SELB: S* result, fresh 309 (2026-11-24 16:24 UTC; ExPairT-LLM still running)
+| method (same 9-program pool, gpt-oss-120b oracle) | accuracy | tokens / sequence (pool + oracle) | utility |
+|---|---|---|---|
+| **DIFF v2** (oracle computes the one most-disputed term) | **53.1%** | **8.1k** | **49.01** |
+| S\* (knockout; oracle picks between two shown values at the distinguishing index) | 51.1% | 13.4k (3.4 oracle calls) | 44.44 |
+**DIFF − S\* +4.57 [+2.39, +6.86]; DIFF is better on both accuracy and tokens (Pareto).** Asking the oracle to *compute* the disputed
+term once, at the index that splits the classes most, beats a knockout of *pick-one-of-two* questions, which needs a call per match.
