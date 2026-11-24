@@ -574,3 +574,15 @@ comparison (host record PR-SEL4); stated here so the test is not read as a fresh
 MA-EFF's offline estimate (high, and a medium sample when the high one hits the cap with no answer: +3.2 / +2.7) used the same stored
 samples it was read from. New samples, seed 3: gpt-oss-120b high and medium on the 155 integer-answer problems (gs15). Test on seed 3
 alone: (high; medium on a capped high) − high alone, utility, paired by problem. Prediction: > 0 with 95% lower bound > 0.
+## WP-CDIS result (2026-11-24 01:58 UTC; python poc/wp_plan.py score oss20 <set>)
+| set | plurality | JUDGE | CDIS | CDIS − plurality | CDIS − JUDGE |
+|---|---|---|---|---|---|
+| **optnew (decisive)** | 30.43 | 32.30 | 29.01 | **−1.42 [−6.78, +2.98]** | −3.29 [−8.57, +1.01] |
+| omtf | 80.20 | 80.03 | 78.92 | −1.28 [−2.99, +0.39] | −1.11 [−2.43, −0.10] |
+| BWOR | 55.94 | 59.14 | 57.94 | +2.01 | −1.19 |
+| LogIOR | 53.87 | 56.95 | 52.48 | −1.39 | −4.46 |
+| OptMATH | 32.21 | 33.00 | 34.87 | +2.65 | +1.86 |
+- **Fails as registered** (optnew −1.42). Itemising the differences and settling each from the text does not beat the plain comparison;
+  it is worse on three of five sets. Same as on proofs (PR-SEL4): telling the judge *where* to look does not add to letting it compare.
+- **Word problems close for this window:** plurality of three cheap programs is the recipe; every oracle selector (plan check, whole
+  comparison, constraint dispute) stays within noise of it on the five sets.
