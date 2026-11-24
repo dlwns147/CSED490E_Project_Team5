@@ -629,3 +629,8 @@ Per set, what stands (registered tests; fresh / held-out data where marked), and
    stayed within noise of plain comparison on word problems.
 4. *Selection is near its ceiling wherever a cheap pool exists* (OEIS, word problems on fresh data); the open gap is generation, i.e. the
    model's reading of the problem, which every check built by the same models shares.- Note (2026-11-24 06:40 UTC): references to proof-part work (a Lean effort test, proof-selection records) were removed from this file under the user's rule that proof progress stays off git; in WP-CDIS's registration a sentence citing that record was replaced by "No direction is assumed". No prediction, design or decision rule was changed.
+## Addendum MC-EFF (registered 2026-11-24 06:40 UTC, before running): testing the "where the answer comes from" reading on a new set
+EFF / MA-EFF suggest: when the answer is a program the harness runs, more thinking effort does not pay. Prediction on MathConstruct's
+thinking fallback (thinkp, the answer is the constructed object printed by code): gpt-oss-120b thinkp at **low** effort on the 137 fresh
+instances, seeds 1–2, vs the stored medium thinkp rows (same prompt, 16k cap). Test: low − medium utility, paired, clustered by problem.
+Prediction: >= 0 (low effort loses no more accuracy than its token saving is worth). Falsified if the 95% upper bound < 0.
