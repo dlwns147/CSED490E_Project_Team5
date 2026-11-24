@@ -689,3 +689,11 @@ as the guard either way.
 ## Window closed (2026-11-24 10:51 UTC)
 The second 24-hour window (11-23 10:50 → 11-24 10:50 UTC) is over; every run registered in it is scored above, the summary table is
 current, and no job of this window is running.
+# Third window (from 2026-11-24 10:54 UTC): the same two goals for another 24 hours (user)
+## Addendum OEIS-TP (registered 2026-11-24 10:54 UTC, before running): DIFF over thinking programs
+The second window's OEIS recipe is one medium thinking program; DIFF so far ran only over cheap programs. A second thinking program
+(another seed) raises "some program right" from 49.8% to 55.0% (fresh) and 36.8% to 41.0% (original) for ~3k more tokens, so DIFF's
+referee — near its ceiling on cheap pools — could turn two thinking programs into more than one. Pool: gpt-oss-120b medium think,
+seeds 2 and 3 (stored); DIFF v2 (entropy index, 3 rounds, gpt-oss-120b medium referee), same code (poc/oeis_diff.py, pool "all" over a
+directory holding only these two files). Test (fresh 309, decisive): DIFF-over-2-thinking − one thinking program (seed mean), utility,
+paired. Prediction: > 0 with 95% lower bound > 0. Original 500 reported.
