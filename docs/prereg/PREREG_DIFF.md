@@ -492,3 +492,16 @@ interval excludes 0, else keeps medium (fewer tokens).
 - EFF (Slurm 1565258): Project Euler fresh at high effort, seed 2: 2 / 50 at 37.6k tokens (seed 1: 4 / 50). OEIS high seed 2 running.
 ## Hourly check 2026-11-23 23:35 UTC
 - EFF (Slurm 1565258): OEIS high seed 2 still running (started 21:57). Proof-part runs continue off git.
+## Addendum WP-PLAN (registered 2026-11-24 00:32 UTC, before any oracle call): separate-and-ask on word problems, with plans
+**Why.** OEIS's DIFF works because the disputed quantity (one term) can be checked from the definition. On optimization word problems
+the stored pools carry only objective values, which the text cannot check. A plan can be: the freev programs print the decision
+variables. Checking a plan against the text (are the stated conditions met? what objective does the text assign to it?) is easier than
+formulating (verification, not search), and it has a derived decision rule: a plan that truly satisfies the text bounds the true
+optimum, so among candidates whose plan passes and whose claimed value matches the oracle's evaluation, the best value wins (sense from
+the oracle); otherwise the plurality stands. Baseline JUDGE (S*-style): the oracle sees the two most frequent candidates' programs and
+picks one. Related: LLM-as-judge over solver code (ORLM / OptiBench evaluations), S* (2502.14382); none checks the candidates' plans.
+**Pool:** gpt-oss-20b freev (low effort, 8k cap), seeds 1–3. **Oracle:** gpt-oss-120b medium, 12k cap, up to 3 classes per disputed
+problem. **Sets:** fresh OptMATH-Train 300 (omtf; pool generated now) decisive; BWOR, LogIOR, OptMATH-Bench (stored pools) descriptive.
+Plurality on the stored pools: 55.9 / 53.9 / 32.2 utility vs the some-right bound 62.0 / 58.2 / 38.2 (6.1 / 4.4 / 6.0 of room).
+**Test (omtf):** PLAN − plurality, utility (pool + oracle tokens), paired by problem. Prediction: > 0 with 95% lower bound > 0. Also
+PLAN − JUDGE (descriptive). Decision: holds → the word-problem pool step is plan-checking; fails → word problems keep plurality / cascade.
