@@ -641,3 +641,8 @@ the window summary was too broad: for program answers it is *high* effort that d
 effort under-thinks the construction and loses half the accuracy, far more than its tokens save. Corrected statement of lesson 2:
 **medium is the effort for program answers (OEIS, Project Euler, MathConstruct); high only for answers reasoned to directly
 (competition answers).** Both ends were tested: high on OEIS / Project Euler (−15 / −22), low on MathConstruct (−22).
+## Addendum OEIS-T2 and MC-EFF2 (registered 2026-11-24 06:50 UTC, before running; descriptive)
+- OEIS-T2: a new seed (3) of gpt-oss-120b medium think on the original 500, think − DIFF v2 (orig seed 2 gave +2.15 [−0.45, +4.65]),
+  to see whether the tie with DIFF also holds on the second set.
+- MC-EFF2: thinkp at high effort (38k) on the 137 fresh MathConstruct instances, seed 1, completing the effort grid there (low / medium
+  / high). Expected from EFF: high − medium < 0.
