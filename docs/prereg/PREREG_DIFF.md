@@ -614,7 +614,7 @@ high-effort sample, and a medium one when it runs out of room (no pool, no selec
 Per set, what stands (registered tests; fresh / held-out data where marked), and what was tried and did not.
 | set | recipe that stands | evidence | tried, not shown or worse |
 |---|---|---|---|
-| OEIS | DIFF v2 over 3 cheap families, or one medium thinking program (tie); a cheap program + own brute-force check + one repair | DIFF +5.3 vs best cheap source (fresh); OEIS-T tie (+0.36); OEIS-B-F +3.15 [+1.36, +5.21] (fresh) | referee repair (−0.12, −1.94), escalation (+0.45), think + check (+0.58), 4th family, high effort (−14.8) |
+| OEIS | one medium thinking program (ties DIFF on fresh, beats it by ~3 on the original set); DIFF v2 when only cheap models are used; a cheap program + own brute-force check + one repair | DIFF +5.3 vs best cheap source (fresh); OEIS-T tie (+0.36); OEIS-B-F +3.15 [+1.36, +5.21] (fresh) | referee repair (−0.12, −1.94), escalation (+0.45), think + check (+0.58), 4th family, high effort (−14.8) |
 | MathConstruct | own verify(), one repair turn, then think | +8.3 (published variations); fresh: seed 3 +7.73 [+1.94, +14.11] by problem; gpt-oss-20b fresh +7.66 | — |
 | Project Euler | think-then-program, medium | PE-R dev +3.64; selection bound +1.7 | PE-R fresh +0.53 (n.s.); high effort −21.7 |
 | Competition answers (MathArena, 155–213) | one high-effort sample; a medium one when it hits the cap | MA-EFF high best; MA-RETRY +3.13 [+0.50, +6.28] (fresh seed) | pools / plurality / referee (−29 to −89 vs one sample); second sample on length |
@@ -646,3 +646,9 @@ effort under-thinks the construction and loses half the accuracy, far more than 
   to see whether the tie with DIFF also holds on the second set.
 - MC-EFF2: thinkp at high effort (38k) on the 137 fresh MathConstruct instances, seed 1, completing the effort grid there (low / medium
   / high). Expected from EFF: high − medium < 0.
+## OEIS-T2 result (2026-11-24 07:37 UTC; descriptive)
+Original 500, seed 3: one medium thinking program 37.8% at 3.3k tokens vs DIFF v2 37.0%: **think − DIFF +3.21 [+0.95, +5.50]** (seed 2:
++2.15 [−0.45, +4.65]). On the original set the single thinking program is *ahead* of the whole pool + referee; on the fresh set they
+tie (+0.36, −0.58). Together: DIFF never beats one medium thinking program, and on one of two sets loses to it by ~3 utility. The OEIS
+claim for the report is therefore "one medium thinking program (with its own brute-force check and repair as an option) is the
+recipe; DIFF is the method when only cheap no-thinking models are available".
