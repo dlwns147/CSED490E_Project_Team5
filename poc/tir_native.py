@@ -8,7 +8,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 ROOT = os.path.dirname(HERE); R = f"{ROOT}/results/x44"
 CALL, RET = 200012, 200002
-CAP, MAXCALLS, TOOL_S, OUTC = 38000, 30, 60, 4000
+CAP, MAXCALLS, TOOL_S, OUTC = 38000, int(os.environ.get("TIR_MAXCALLS", 30)), 60, 4000
 SYS = ("<|start|>system<|message|>You are ChatGPT, a large language model trained by OpenAI.\nKnowledge cutoff: 2024-06\nCurrent date: 2026-11-25\n\nReasoning: {e}\n\n# Tools\n\n## python\n\n"
        "Use this tool to execute Python code in your chain of thought. The code will not be shown to the user. This tool should be used for internal reasoning, not for code that is intended to be visible to the user "
        "(e.g. when creating plots, tables, or files).\n\nWhen you send a message containing Python code to python, it will be executed in a stateful Jupyter notebook environment. python will respond with the output of the execution or "
@@ -122,7 +122,7 @@ def solve(q, effort, seed):
                 if calls > MAXCALLS:
                     fin = "calls"; break
                 o = T.run(code) if "python" in head else "Unknown tool. Only python is available."
-                codes.append(code); lastout = o; outs.append(o[:300])
+                codes.append(code); lastout = o; outs.append(o)
                 oi = tok(o); tooltok += len(oi); ids = ids + g + tok("<|start|>python to=assistant<|channel|>analysis<|message|>") + oi + tok("<|end|><|start|>assistant")
                 continue
             break
@@ -130,6 +130,16 @@ def solve(q, effort, seed):
         T.close()
     final = text.split("<|channel|>final<|message|>")[-1].split("<|return|>")[0] if "<|channel|>final<|message|>" in text else ""
     return {"final": final, "out_tokens": used, "calls": calls, "finish": fin, "codes": codes, "outs": outs, "tool_tokens": tooltok, "prefill_tokens": prefill}
+
+
+def provenance(z):
+    """PROV: was the final boxed answer printed by a tool run? (digit grouping and LaTeX spacing removed; None = no boxed answer)"""
+    import ma_effort as M
+    a = M.ans(z["final"])
+    if not a:
+        return None
+    pat = re.compile(r"(?<![\d.])" + re.escape(a) + r"(?!\d)")
+    return any(pat.search(re.sub(r"(?<=\d)[,_](?=\d{3})", "", o)) is not None for o in z["outs"])
 
 
 def task(st):
@@ -149,7 +159,8 @@ def task(st):
                 except Exception as e:
                     ok, d = False, f"grader error {type(e).__name__}"
                 return {"pred": t[-600:], "correct": bool(ok), "detail": str(d)[:200]}
-            return P, lambda p: p["problem"], gm
+            F = " The boxed answer is parsed by a program: write it exactly in the format above, plain, without LaTeX spacing commands." if os.environ.get("TIR_FMT") else ""
+            return P, lambda p: p["problem"] + F, gm
         def go(p, t):
             from llm import last_block
             code = last_block(t, ("python", "py", "python3", ""))
@@ -171,7 +182,7 @@ def task(st):
 
 
 def main(st, effort, seed):
-    P, prompt, grade = task(st); path = f"{R}/tir_{st}_{effort}_s{seed}.jsonl"
+    P, prompt, grade = task(st); path = f"{R}/tir_{st}_{effort}{os.environ.get('TIR_TAG', '')}_s{seed}.jsonl"
     done = {json.loads(l)["id"] for l in open(path)} if os.path.exists(path) else set()
 
     def one(p):
@@ -180,7 +191,7 @@ def main(st, effort, seed):
                 z = solve(prompt(p), effort, seed * 1000 + zlib.crc32(p["id"].encode()) % 997); break
             except Exception as e:
                 z = {"final": "", "out_tokens": 0, "calls": 0, "finish": "error " + repr(e)[:200], "codes": [], "outs": []}
-        z.update(id=p["id"], **grade(p, z["final"])); z["final"] = z["final"][-1500:]; z["codes"] = [c[:3000] for c in z["codes"]]
+        z.update(id=p["id"], **grade(p, z["final"])); z["prov"] = provenance(z); z["final"] = z["final"][-4000:]; z["codes"] = [c[:3000] for c in z["codes"]]; z["outs"] = [o[:300] for o in z["outs"]]
         return z
     N = int(os.environ.get("TIR_N", 0)) or len(P)
     with ThreadPoolExecutor(int(os.environ.get("TIR_WORKERS", 32))) as ex, open(path, "a") as f:
