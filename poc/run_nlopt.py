@@ -156,6 +156,9 @@ def problems(which=None):
     if which == "omtf":   # C-0 (PREREG_FRESH, 2026-11-22): 300 OptMATH-Train problems after the 8,000 training items (poc/prep_wptrain.py --fresh)
         for r in map(json.loads, open(f"{DATA}/optmath_train/omtf_items.jsonl")):
             out.append({"id": r["id"], "src": "omtf", "q": r["q"], "gold": str(float(r["gold"])), "difficulty": "omtf"})
+    if which == "omtf2":   # WP-NOIN-F2 (PREREG_DIFF, 2026-11-25): the next 300 of the same shuffle (prep_wptrain.py 8300 --fresh 300 --out omtf2_items.jsonl)
+        for r in map(json.loads, open(f"{DATA}/optmath_train/omtf2_items.jsonl")):
+            out.append({"id": r["id"], "src": "omtf2", "q": r["q"], "gold": str(float(r["gold"])), "difficulty": "omtf2"})
     if which == "optnew":   # PREREG_TYPED addendum H (2026-11-19): SIRL's OptMATH-Bench 193 minus the 100 in `optmath` (fresh problems)
         seen = {re.sub(r"\s+", " ", p["q"]).strip() for p in problems("optmath")}
         for k, l in enumerate(open(f"{DATA}/sirl_fixed/OptMATH_Bench_193.jsonl")):

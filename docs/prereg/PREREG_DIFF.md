@@ -1009,3 +1009,10 @@ separately (Pareto rule); SIRL's card reports 64.1% on OptiBench, so the predict
   +9.20 [+5.20, +12.83]. SIRL loses only if 1k tokens are worth more than ~10 accuracy points (our price 0.5). SIRL's 62.6% matches its
   card (64.1%; their checker 63.5% here), so the harness runs it faithfully. On the set no decision used, the word-problem recipe
   stands against the strongest public specialist; its only win remains omtf (synthetic OptMATH-Train style).
+## Addendum WP-NOIN-F2 (registered 2026-11-25 06:03 UTC, before generating the set): the two scope claims on new OptMATH-style problems
+Two claims now rest on sets that were looked at: (a) the stdin failure is a property of OptMATH-style texts (seen on optnew / omtf, absent
+on OptiBench); (b) SIRL wins on both on OptMATH-Train-style problems (omtf only). New set omtf2: the next 300 problems of the same
+decontaminated shuffle (poc/prep_wptrain.py 8300 --fresh 300 --out omtf2_items.jsonl; disjoint from the 8,000 training items and omtf).
+Run: gpt-oss-120b medium thinking, old and corrected prompts, seed 1 each; SIRL-32B (its recipe). Tests (paired, 95%): (a) old-prompt
+stdin readers ≥ 5% of 300 and corrected ≤ 0.5%; new − old one program, utility ≥ 0 (omtf: +0.77). (b) SIRL − ours-one (corrected),
+utility: prediction ≥ 0 (omtf: +1.88) with SIRL's tokens below ours (omtf: −0.76k).
