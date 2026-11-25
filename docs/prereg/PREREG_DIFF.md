@@ -1301,3 +1301,22 @@ second program and a judge", with no claim about families, and the cheaper SAMER
 - **Correction to XM3 and the newer-model status lines (2026-11-25):** "Mistral Small 4 not loadable in our image: no FP4 kernels for these GPUs" was inferred from the last log line. The same line on two other checkpoints turned out to be
   FlashInfer JIT compiles that the container's nvcc 12.6 cannot do, avoidable with vLLM options (`--moe-backend triton`; VLLM_DISABLED_KERNELS): OptiMind-SFT and a 119B FP8 MoE both load and serve with them. Whether the NVFP4 checkpoint
   has a kernel outside that path was not tested; the entry is to be read as "did not load with default kernels", and no conclusion about Mistral Small 4 follows.
+### CROSSREF-C result (2026-11-25 13:17 UTC; python poc/wp_crossref.py scorec; nine sets, 1,709 problems; gpt-oss-120b seeds 1–3 in the corrected environment; accuracy · ktok · utility)
+| arm | accuracy | ktok | utility |
+|---|---|---|---|
+| A (one gpt-oss-120b program) | 74.1% | 2.27 | 73.00 |
+| B (OptiMind) | 72.9% | 2.52 | 71.65 |
+| **JUDGE (A + OptiMind + judge)** | **78.3%** | 5.13 | **75.73** |
+| SAMEREF (A + A2 + the same judge) | 77.5% | 4.82 | 75.06 |
+| PLUR3 (plurality of three, A when all differ) | 76.3% | 6.89 | 72.86 |
+| ADAPT3 (two, a third only on disagreement, majority) — *not registered; added before any of these lines was written* | 76.8% | 4.92 | 74.31 |
+| ADAPT3 + judge on a three-way split — *idem* | 77.2% | 4.98 | 74.75 |
+Judge right on resolvable disagreements: JUDGE 127 of 182 (70%), SAMEREF 101 of 148 (68%). **JUDGE − SAMEREF accuracy +0.82 [−0.29, +1.99], utility +0.67 [−0.45, +1.82]: the family claim FAILS its registered test** (+1.0 with lower bound > 0); per set it is
+positive on optc, indc, mamoc, omtf and OptiBench and negative on optnew (−5.4), OptMATH (−3.0), LogIOR (−2.2) and BWOR (−1.2).
+JUDGE − PLUR3 +1.99 [+0.88, +3.16] at −1.76 ktok, SAMEREF − PLUR3 +1.17 [+0.23, +2.11] at −2.07 ktok: both a **win on both** against the three-sample plurality. JUDGE − ADAPT3 (the stronger, unregistered baseline) accuracy +1.52 [+0.41, +2.69],
+utility +1.41 [+0.29, +2.60] at +0.21 ktok; SAMEREF − ADAPT3 +0.70 [−0.18, +1.64], not shown. SAMEREF − A +3.34 [+2.28, +4.45] at +2.56 ktok (utility +2.06 [+1.03, +3.15]).
+- **What is claimed, and what is not.** Claimed: on word problems, a second program and a judge called only on disagreements add +3.3 points over one program for +2.6 ktok, and beat a three-program plurality on both accuracy and tokens; the
+  judge is right on about 70% of the disagreements where one side is right. Not claimed: that two *families* help (registered, failed; point estimate +0.8). By the registered rule the **recipe is SAMEREF** (one model, cheaper to deploy), with the cross-family
+  version reported as +0.8 points [−0.3, +2.0] for +0.3 ktok.
+- Correction of an earlier reading: WP-TP / WP-NOIN found the second program + judge "not shown" (+2.85 [−1.43, +7.06] on 93 problems; +0.75 on 300); with 1,709 problems and the corrected environment the same pattern is shown. The earlier sets were too small.
+- The SAMEREF arm's A / A2 agreement and the judge are the same recipe as WP-TP; what is new is the size, the corrected environment and the controls (plurality, adaptive).

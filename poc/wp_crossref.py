@@ -72,7 +72,7 @@ NINE = ("optc", "indc", "mamoc", "optnew", "optmath", "omtf", "bwor", "logior", 
 
 
 def scorec():
-    pool = {k: {} for k in ("A", "B", "JUDGE", "SAMEREF", "PLUR3")}; rr = {"JUDGE": [0, 0], "SAMEREF": [0, 0]}
+    pool = {k: {} for k in ("A", "B", "JUDGE", "SAMEREF", "PLUR3", "ADAPT3", "ADAPT3+J")}; rr = {"JUDGE": [0, 0], "SAMEREF": [0, 0]}
     for st in NINE:
         RN, P, A, B, S, A2 = load(st)
         A3 = L(f"opt_oss120_{st}_thinkfreenE_s3.jsonl")
@@ -102,11 +102,21 @@ def scorec():
                             cls.append([r])
                 best = max(cls, key=len) if cls and max(len(c) for c in cls) >= 2 else [A[i]]
                 pool["PLUR3"][(st, i)] = (bool(best[0]["correct"]), sum(tk(r) for r in rows))
+                # adaptive consistency (ASC with at most 3 samples): stop after two that agree, else a third; majority, else the first program (ADAPT3); ADAPT3+J: the judge when the two differ and no third agrees
+                a2 = A2[i]; t2 = tk(A[i]) + tk(a2)
+                if same(RN, A[i]["pred"], a2["pred"]) or A[i]["pred"] is None or a2["pred"] is None:
+                    pick = A[i] if A[i]["pred"] is not None else a2
+                    pool["ADAPT3"][(st, i)] = pool["ADAPT3+J"][(st, i)] = (bool(pick["correct"]), t2)
+                else:
+                    t3 = t2 + tk(A3[i]); m = [r for r in (A[i], a2) if same(RN, A3[i]["pred"], r["pred"])]
+                    pool["ADAPT3"][(st, i)] = (bool((m[0] if m else A[i])["correct"]), t3)
+                    zs = ZS.get(i, {}); pickj = a2 if zs.get("pick") == "A2" else A[i]
+                    pool["ADAPT3+J"][(st, i)] = (bool((m[0] if m else pickj)["correct"]), t3 + (0 if m else (zs.get("tok") or 0)))
     print("judge right on resolvable disagreements:", {k: f"{a} of {b} ({100*a/max(1,b):.0f}%)" for k, (a, b) in rr.items()})
     for k, v in pool.items():
         if v:
             print(f"{k:8s} n={len(v)} accuracy {100*sum(x for x, _ in v.values())/len(v):.1f}%  tokens {sum(t for _, t in v.values())/len(v)/1000:.2f}k  utility {sum(U(*x) for x in v.values())/len(v):.2f}")
-    for x, y in (("JUDGE", "A"), ("SAMEREF", "A"), ("JUDGE", "SAMEREF"), ("JUDGE", "PLUR3"), ("PLUR3", "A"), ("SAMEREF", "PLUR3")):
+    for x, y in (("JUDGE", "A"), ("SAMEREF", "A"), ("JUDGE", "SAMEREF"), ("JUDGE", "PLUR3"), ("PLUR3", "A"), ("SAMEREF", "PLUR3"), ("SAMEREF", "ADAPT3"), ("JUDGE", "ADAPT3"), ("ADAPT3", "A"), ("ADAPT3+J", "SAMEREF")):
         if pool[x] and pool[y]:
             ids = list(pool[x])
             print(f"{x} − {y}: accuracy {ci([100*(pool[x][i][0]-pool[y][i][0]) for i in ids])}  ktok {ci([(pool[x][i][1]-pool[y][i][1])/1000 for i in ids])}  utility {ci([U(*pool[x][i])-U(*pool[y][i]) for i in ids])}")
