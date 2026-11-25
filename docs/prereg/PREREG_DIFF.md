@@ -1256,5 +1256,5 @@ Ours − SIRL: +15.10 accuracy [+10.98, +19.22], +1.43 ktok; per set +24.61 / +1
   us: its labels are the uncleaned ones that OptiMind's authors found wrong on 41% of OptMATH, on the same family's cleaned set the two tie (86.7 / 86.3), and OptiMind was trained on cleaned data, so answers that follow
   the corrected problem are graded wrong there. The fair reading of OptMATH-family problems is the cleaned tie.
 - **Conclusion for the word-problem standard (correcting the CLEAN entry):** a fine-tuned 20B model with no inference-time method equals gpt-oss-120b with ours on 10 of 12 sets and beats it on one. At equal output tokens and a
-  fraction of the model size, OptiMind-SFT is the better-value recipe; ours has no set where it wins on clean labels. The registered rule stands: **the summary's word-problem row names OptiMind-SFT**, with gpt-oss-120b one program
-  as the equal-accuracy alternative when only a general model is available; SIRL-32B stays the choice on omtf / omtf2 (+0.7 to +3.0 points over both at 0.75k fewer tokens).
+  fraction of the model size, OptiMind-SFT is the better-value recipe; ours has no set where it is significantly ahead on clean labels (IndustryOR cleaned +4.55 [−4.55, +13.64]). The registered rule stands: **the summary's word-problem row names OptiMind-SFT**, with gpt-oss-120b one program
+  as the equal-accuracy alternative when only a general model is available; SIRL-32B stays the choice on omtf / omtf2 (+0.7 and +1.5 points over OptiMind and ours on omtf, +3.4 and +3.0 on omtf2, at 0.7–0.8k fewer tokens).
