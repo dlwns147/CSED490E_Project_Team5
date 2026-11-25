@@ -6,7 +6,24 @@ import json, os, re, sys, zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 import tir_native as T
-R = T.R; PRE = r'''
+R = T.R
+# the model sometimes writes its own `def submit(...)` (or submit = ...), which replaced ours and lost the answer (2026-11-25): such definitions are removed from every cell before it runs, at any nesting level
+T_DRIVER = T.DRIVER.replace('t = ast.parse(code); last =', 't = _Keep().visit(ast.parse(code)); ast.fix_missing_locations(t); last =').replace('G = {"__name__": "__main__"}', '''G = {"__name__": "__main__"}
+class _Keep(ast.NodeTransformer):
+    def visit_FunctionDef(self, n):
+        self.generic_visit(n); return ast.Pass() if n.name == "submit" else n
+    visit_AsyncFunctionDef = visit_FunctionDef
+    def visit_ClassDef(self, n):
+        self.generic_visit(n); return ast.Pass() if n.name == "submit" else n
+    def visit_Assign(self, n):
+        self.generic_visit(n); return ast.Pass() if any(isinstance(x, ast.Name) and x.id == "submit" for t_ in n.targets for x in ast.walk(t_)) else n
+    def visit_AnnAssign(self, n):
+        return ast.Pass() if isinstance(n.target, ast.Name) and n.target.id == "submit" else n
+    def visit_Delete(self, n):
+        return ast.Pass() if any(isinstance(x, ast.Name) and x.id == "submit" for x in n.targets) else n
+''')
+assert "_Keep().visit" in T_DRIVER and "class _Keep" in T_DRIVER
+PRE = r'''
 import signal as _sig, json as _js
 _CODE = {code}
 _CODE2 = {code2}
@@ -24,7 +41,7 @@ except BaseException:
     _NS2 = {{}}
 def _alarm(*a):
     raise TimeoutError("check over 20 s")
-def submit(s):
+def _submit_(s):
     import re as _re
     s = str(s).strip(); bad = []; note = ""; _m = _re.fullmatch(r"(?s)\\boxed{{(.*)}}", s); s = _m.group(1).strip() if _m else s
     def _judge(ns):
@@ -65,6 +82,7 @@ def submit(s):
         print("submitted")
     if not fin:
         print("REJECTED (%d of 3). These stated conditions fail:" % _S["n"]); [print(" -", b) for b in bad]
+globals()["submit"] = _submit_
 '''
 TAIL = ("\n\nFinish by calling submit(s) in the python tool (the function already exists in the session). s is the exact text that goes inside \\boxed{...} in the required format, built by your code from the computed value "
         "(plain text, no LaTeX spacing commands). The attempt ends at that call; no further message is needed.")
@@ -85,7 +103,7 @@ def solve(q, effort, seed, arm, spec_code, spec2=""):
     import llm
     tok = lambda s: llm.post_json("/tokenize", {"model": "local", "prompt": s, "add_special_tokens": False})["tokens"]
     q = q + TAIL + {"S0": "", "OWN": OWN, "BLIND": BLINDT, "BLIND2": BLINDT}[arm]
-    ids = tok(T.SYS.format(e=effort, q=q)); used = calls = prefill = tooltok = 0; tool = T.Tool(); codes, outs, subs = [], [], []; msgs = 0; fin = "stop"; text = ""; final = ""
+    ids = tok(T.SYS.format(e=effort, q=q)); used = calls = prefill = tooltok = 0; tool = T.Tool(); open(tool.f, "w").write(T_DRIVER); codes, outs, subs = [], [], []; msgs = 0; fin = "stop"; text = ""; final = ""
     subf = os.path.join(tool.d.name, "subs.jsonl"); pre = PRE.format(code=repr(spec_code or ""), code2=repr(spec2 or ""), enf=arm.startswith("BLIND"), sub=repr(subf)); inited = None
     try:
         while True:
@@ -138,7 +156,7 @@ def main(arm, st, effort, seed):
             pass
     else:
         P, prompt, grade = T.task(st)
-    path = f"{R}/tirsub2_{arm}_{st}_{effort}_s{seed}.jsonl"; done = {json.loads(l)["id"] for l in open(path)} if os.path.exists(path) else set()
+    path = f"{R}/tirsub3_{arm}_{st}_{effort}_s{seed}.jsonl"; done = {json.loads(l)["id"] for l in open(path)} if os.path.exists(path) else set()
     specp = f"{R}/tirsub2_spec_{st}.jsonl"; SP = {json.loads(l)["id"]: json.loads(l) for l in open(specp)} if os.path.exists(specp) else {}
     SP2 = {}
     if arm == "BLIND2":
@@ -183,8 +201,8 @@ def main(arm, st, effort, seed):
 if __name__ == "__main__":
     if sys.argv[1] == "selftest":
         for enf, code in ((True, "def check(s):\n    v=eval(s)\n    return [] if sum(v)==10 else ['sum is %d, not 10'%sum(v)]"), (True, "def check(s):\n    raise ValueError('x')"), (True, "syntax error("), (False, ""), (True, "def check(s):\n    while True: pass")):
-            t = T.Tool(); f = os.path.join(t.d.name, "subs.jsonl"); t.run(PRE.format(code=repr(code), enf=enf, sub=repr(f)))
-            for c in ("submit([1,2])", "submit(str([4,6]))", "submit('[1]')\nsubmit('[2]')\nsubmit('[3]')\nsubmit('[4]')"):
+            t = T.Tool(); open(t.f, "w").write(T_DRIVER); f = os.path.join(t.d.name, "subs.jsonl"); t.run(PRE.format(code=repr(code), code2=repr(""), enf=enf, sub=repr(f)))
+            for c in ("def submit(s):\n    print('Submitted:', s)\nsubmit('[1,1]')", "try:\n    submit\nexcept NameError:\n    def submit(x): print(x)\nsubmit = print\nsubmit([1,2])", "submit(str([4,6]))", "submit('[1]')\nsubmit('[2]')\nsubmit('[3]')\nsubmit('[4]')"):
                 print(repr(code[:30]), c[:30].replace("\n", ";"), "->", t.run(c).replace("\n", " | ")[:400])
             print("   file:", open(f).read()[:600] if os.path.exists(f) else None); t.close()
     else:
