@@ -1325,3 +1325,54 @@ The nine CROSSREF-C sets average 74% for one program. Three sets never had a sec
 environment by wp_env_regrade), then the same judge on the disagreements of seeds 1 and 2. **Test:** SAMEREF − A accuracy and utility, per set and pooled, paired. **Prediction:** accuracy gain positive on all three and significant pooled; **utility gain ≤ 0 on easyc and nl4c**
 (the second program costs about 1 utility point and fewer than 1 in 100 problems can be recovered at 92%), so the recipe should be applied where one program is below about 85%, read off the one-program accuracy of the set's own agreement, not a tuned threshold:
 the agreement rate of the two programs (no labels) is the decision variable and is reported per set beside the gain.
+
+### CROSSREF-C2 result (2026-11-25 15:19 UTC; python poc/wp_crossref.py scorec2; gpt-oss-120b seeds 1–2, corrected environment)
+| set | n | agreement of the two programs | one program | SAMEREF | accuracy gain | utility gain |
+|---|---|---|---|---|---|---|
+| easyc | 642 | 93.3% | 92.5% @ 1.99k | 94.1% @ 4.09k | +1.56 [+0.31, +2.96] | +0.51 [−0.72, +1.86] |
+| nl4c | 245 | 95.1% | 88.2% @ 1.51k | 89.8% @ 3.12k | +1.63 [−0.41, +4.08] | +0.83 [−1.26, +3.27] |
+| omtf2 | 300 | 86.3% | 81.7% @ 2.01k | 83.7% @ 4.24k | +2.00 [+0.67, +3.67] | +0.89 [−0.47, +2.55] |
+| three pooled | 1,187 | | | | +1.68 [+0.76, +2.70] | +0.67 [−0.26, +1.64] at +2.03 ktok |
+- **Predictions:** accuracy gain positive on all three and significant pooled: **holds**. Utility gain ≤ 0 on easyc and nl4c: **fails** (+0.51, +0.83, neither shown). The agreement rate as the decision variable is **not supported**: the nine other sets
+  go from 57.6% to 85.3% agreement with gains that do not follow it (optnew 62.4%: +0.00; BWOR 74.4%: +8.54; Mamo-Complex 81.0%: +5.24).
+
+## Census and the missing competitor: RETRY (2026-11-25 15:19 UTC; descriptive, offline, all rows seen; poc/wp_crossref_census.py, poc/wp_retry.py; 12 sets, 2,896 problems)
+Where SAMEREF's 77 extra right answers come from: **45 from the second program standing in on the 85 problems where the first prints no value; 32 from the judge** (287 judged). Every earlier comparison left out the cheapest competitor: **RETRY = one
+program, a second only if the first prints no value** (the visible-failure retry already used in PREREG_ESCT and MA-RETRY; not new).
+| arm | accuracy | ktok | utility |
+|---|---|---|---|
+| one program | 80.2% | 2.12 | 79.12 |
+| **RETRY** | 81.7% | 2.19 | **80.64** |
+| SAMEREF | 82.8% | 4.46 | 80.61 |
+RETRY − one: accuracy +1.55 [+1.14, +2.00] for +0.08 ktok (utility +1.52 [+1.10, +1.96]); the same with every other seed order (s2→s1 +1.92, s2→s3 +2.21, s3→s1 +1.36, s3→s2 +1.30, all shown). **SAMEREF − RETRY: accuracy +1.10 [+0.48, +1.69] for
++2.26 ktok, utility −0.03 [−0.64, +0.56]** (nine sets +0.17 [−0.67, +1.03]; three easy sets −0.32).
+- **Withdrawn:** "the word-problem recipe is SAMEREF" (CROSSREF-C). Its +2.06 utility over one program is mostly RETRY's; what the second program and the judge add beyond RETRY is +1.1 accuracy at a break-even price of 0.49 points per ktok, i.e. nothing at our price. **The
+  recipe is one program plus RETRY.** The wins over plurality (PLUR3, ADAPT3) stand as comparisons of sampling rules, and RETRY dominates them in utility.
+- The same question must be asked of every other two-program result (OEIS-TP first).
+
+# Fifth window (goal re-sent 2026-11-25 15:14 UTC; to 2026-11-26 15:14 UTC)
+## Addendum STOP (registered 2026-11-25 15:19 UTC, before any trace): how much is there to gain from stopping a high-effort think early? (headroom first)
+**Why this set.** Competition answers are the token-heaviest set (high effort 15.2k tokens, 7.6 utility points) and have no free check, so selection, gates and second samples all lost there (MathArena analysis, ASC −7.6). What is left is *how long one sample thinks*.
+**Recent work (searched 15:1x UTC).** "When Does Learning to Stop Help?" (arXiv 2606.30852, 06/2026): learned stoppers against static budgets, certified by Learn-then-Test, neither better throughout, provisional answers must be priced; dynamic abstention as optimal stopping
+on a value probe of hidden states (2604.18419); Answer Convergence (2506.02536), DEER (2504.15895). Ours before: CONT (word problems, 10-30) early exit on a *free check* +0.39 n.s.; a think's own probes were the least precise stop signal there. **So the method is not new by itself; a headroom test
+comes first, and nothing is built if the hindsight bound is small.**
+**Run.** gpt-oss-120b high, 155 integer-answer problems, fresh seeds (raw harmony completions, token ids stored, 38k cap), seeds 1–2. At cuts 512·2^(k/2) of the analysis channel (a resolution, not a tuned choice) and at its end: force the final channel and read the answer greedily with its
+probability (≤ 32 tokens, charged; poc/ma_stop.py).
+**Descriptive outputs:** accuracy of the forced answer by cut; hindsight-oracle stop (probes charged); the zero-think competitor *forced answer at the 38k cap* against MA-RETRY's medium retry.
+**Decision.** If the oracle's utility lead over HIGH + forced answer at the cap is < 3 points, stop here (a real rule recovers a fraction of the oracle's lead). Otherwise: optimal stopping by backward induction (Longstaff–Schwartz regression of the continuation value on the probe's probability, its run of
+identical answers and the cut; price λ = 0.5 per ktok; no threshold set by hand), fitted leave-one-competition-out, against HIGH, MEDIUM, HIGH + forced cap, MA-RETRY, a static budget, answer convergence (run length chosen on the same training competitions) and a confidence threshold (*idem*). Claim only if
+utility lower bound > 0 against the best of these AND accuracy within 1 point of HIGH + forced cap with fewer tokens; anything else is a trade-off.
+**Predictions:** the oracle leads by ≥ 3; the forced answer at the cap is right on ≥ 20% of the capped samples; the rule beats the static budget but not by more than 1.5 points.
+
+## OEIS-RETRY and OEIS-PAIR (2026-11-25 15:21 UTC; descriptive, offline, rows seen; poc/oeis_retry.py, poc/oeis_pair.py)
+- **OEIS-TP survives RETRY:** a thinking program prints nothing on only 3 of 618 fresh programs. Fresh 309: one 50.3% @ 2.84k (48.90), RETRY 50.5% @ 2.86k (49.06), two + DIFF 54.7% @ 6.84k (51.27); **TP − RETRY utility +2.22 [+0.66, +3.86]**, accuracy +4.21 at +3.97 ktok. Original 500:
+  +0.26 [−0.90, +1.43]. So the OEIS gain is the referee's (a disputed term can be computed from the definition), the word-problem gain was the stand-in's.
+- **Which second source (development = original 500)?** Expected utility from coverage, the measured referee rate (83.8% right where some program is right, 2,567 tokens per call-set): second thinking program 35.89, best cheap program 34.66, brute force 33.75, other families
+  31–34. One thinking program alone 35.10. No cheaper second source has headroom; not run.
+
+## Addendum RELOOP-B (registered 2026-11-25 15:21 UTC, before any call): ReLoop as the recent-research baseline on word problems
+ReLoop (Lian et al., NeurIPS 2026; arXiv 2602.15983; official MIT code, no training): structured generation, an execution check with regeneration, solver perturbation tests, diagnosis-guided repair. It is the closest published method to "a free check, then spend more", and its check is
+not a second program. Official pipeline unchanged with gpt-oss-120b medium (poc/wp_reloop.py; only the client is ours: 16k tokens per call, every completion token charged), all 12 sets, 2,896 problems. Arms on the same problems: one program, RETRY (the recipe), ReLoop; its own generation-only and
+after-L1 stages. Checked before reading: failed requests, zero-token rows, cut calls, problems refused by the solver licence.
+**Also searched:** Opt-Verifier (2605.29556, dual-side verification; whether code is released was not established), solution-level certificates (NeurIPS 2026: not deployable verifiers by their own account), ModelEquivBench (2607.29431, benchmark).
+**Prediction:** ReLoop − RETRY pooled accuracy < 0 or not shown, at ≥ 1.5× its tokens (the paper's own gain over structured generation is +2 to +6 points on these set families at ~3× tokens). Falsifier: ReLoop − RETRY utility lower bound > 0; then ReLoop becomes the recipe to beat.

@@ -1,5 +1,5 @@
 """CROSSREF (PREREG_DIFF, 2026-11-25): a referee on the disagreements of two different families, A = gpt-oss-120b one program (corrected environment, seed 1)
-and B = OptiMind-SFT. usage: POC_BASE_URL=... python wp_crossref.py run <set> [...]   |   python wp_crossref.py score | scorec   |   ... runc <set> [...]   (CROSSREF-C: same-family judge)"""
+and B = OptiMind-SFT. usage: POC_BASE_URL=... python wp_crossref.py run <set> [...]   |   python wp_crossref.py score | scorec | scorec2   |   ... runc <set> [...]   (CROSSREF-C: same-family judge)"""
 import json, os, random, re, sys, zlib
 from concurrent.futures import ThreadPoolExecutor
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -125,6 +125,32 @@ def scorec():
         print(f"  {st:9s} JUDGE − SAMEREF accuracy {100*sum(pool['JUDGE'][i][0]-pool['SAMEREF'][i][0] for i in ids)/len(ids):+.2f}" + (f"  PLUR3 acc {100*sum(pool['PLUR3'][i][0] for i in ids)/len(ids):.1f}" if pool["PLUR3"] else ""))
 
 
+def scorec2():
+    """CROSSREF-C2: SAMEREF - A per set and pooled, on the three easy sets and (for the agreement rate -> gain relation) the nine sets of CROSSREF-C. The agreement rate uses no labels."""
+    T3 = ("easyc", "nl4c", "omtf2"); pool = {}
+    for st in NINE + T3:
+        RN, P, A, _, _, A2 = load(st)
+        Z = {json.loads(l)["id"]: json.loads(l) for l in open(f"{W.OUT}/crossref_{st}_samejudge.jsonl")}
+        agree = res = right = miss = 0; row = []
+        for i in P:
+            x, y = A[i], A2[i]; cx, cy = bool(x["correct"]), bool(y["correct"]); t = tk(x) + tk(y); ok = cx
+            if same(RN, x["pred"], y["pred"]):
+                agree += 1
+            elif x["pred"] is None or y["pred"] is None:
+                ok = cy if x["pred"] is None else cx
+            else:
+                z = Z.get(i); miss += z is None; z = z or {}; pk = z.get("pick"); t += z.get("tok") or 0; ok = cy if pk == "A2" else cx
+                if cx != cy:
+                    res += 1; right += pk is not None and (pk == "A") == cx
+            row.append((cx, tk(x), ok, t))
+        pool[st] = row; n = len(row)
+        print(f"{st:9s} n={n:3d} agree {100*agree/n:5.1f}%  A {100*sum(r[0] for r in row)/n:5.1f}% {sum(r[1] for r in row)/n/1000:.2f}k  SAMEREF {100*sum(r[2] for r in row)/n:5.1f}% {sum(r[3] for r in row)/n/1000:.2f}k  judge {right}/{res}" + (f"  NOT JUDGED {miss}" if miss else "")
+              + f"  acc {ci([100*(r[2]-r[0]) for r in row])}  utility {ci([U(r[2], r[3])-U(r[0], r[1]) for r in row])}", flush=True)
+    for lab, ss in (("three easy sets", T3), ("nine sets", NINE), ("all twelve", NINE + T3)):
+        R = [r for st in ss for r in pool[st]]
+        print(f"{lab}: n={len(R)} acc {ci([100*(r[2]-r[0]) for r in R])}  ktok {ci([(r[3]-r[1])/1000 for r in R])}  utility {ci([U(r[2], r[3])-U(r[0], r[1]) for r in R])}")
+
+
 def ci(d, n=4000):
     rng = random.Random(1); b = sorted(sum(rng.choice(d) for _ in d) / len(d) for _ in range(n))
     return f"{sum(d)/len(d):+.2f} [{b[100]:+.2f}, {b[3899]:+.2f}]"
@@ -172,4 +198,4 @@ def score():
 
 
 if __name__ == "__main__":
-    {"run": lambda: run(sys.argv[2:]), "runc": lambda: runc(sys.argv[2:]), "score": score, "scorec": scorec}[sys.argv[1]]()
+    {"run": lambda: run(sys.argv[2:]), "runc": lambda: runc(sys.argv[2:]), "score": score, "scorec": scorec, "scorec2": scorec2}[sys.argv[1]]()
