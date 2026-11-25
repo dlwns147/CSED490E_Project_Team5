@@ -1,11 +1,12 @@
 """ENV (PREREG_DIFF, 2026-11-25): the zero-token competitor of VALID. The stored programs that VALID triggered on, re-run with cp_model.INT_MAX / INT_MIN
-set to the largest accepted domain, +-(2**62 - 1). usage: python wp_env.py <set> [<set> ...]   (reads results/x3/valid_oss120_<set>_thinkfreen_s1.jsonl)"""
+set to the largest accepted domain (ENV_BITS=62, default) or cp_model.INT32_MAX (ENV_BITS=32, ENV32). usage: python wp_env.py <set> [<set> ...]   (reads results/x3/valid_oss120_<set>_thinkfreen_s1.jsonl)"""
 import json, os, random, sys
 from concurrent.futures import ThreadPoolExecutor
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from sandbox import run_python
 R3 = f"{os.path.dirname(os.path.dirname(os.path.abspath(__file__)))}/results/x3"
-PRE = "from ortools.sat.python import cp_model as _cm\n_cm.INT_MAX = 2 ** 62 - 1\n_cm.INT_MIN = -(2 ** 62 - 1)\n"
+B = {"62": 2 ** 62 - 1, "32": 2 ** 31 - 1}[os.environ.get("ENV_BITS", "62")]   # 62: largest single domain CP-SAT accepts (ENV); 32: cp_model.INT32_MAX (ENV32)
+PRE = f"from ortools.sat.python import cp_model as _cm\n_cm.INT_MAX = {B}\n_cm.INT_MIN = -{B}\n"
 U = lambda ok, t: 100 * ok - 0.5 * t / 1000
 
 
@@ -30,7 +31,8 @@ for st in sys.argv[1:]:
         got = dict(ex.map(one, [r for r in rows if r["id"] in Z]))
     ok = {i: (RN.correct(p, Z[i]["gold"]) if p is not None else False) for i, p in got.items()}
     print(f"{st}: triggered {len(Z)}: ENV prints a number {sum(isinstance(p, float) for p in got.values())}, NBS {sum(p == 'NBS' for p in got.values())}, nothing {sum(p is None for p in got.values())}; "
-          f"ENV right {sum(ok.values())}, V right {sum(z['v_correct'] for z in Z.values())}, both {sum(ok[i] and Z[i]['v_correct'] for i in Z)}")
+          f"ENV right {sum(ok.values())}, V right {sum(z['v_correct'] for z in Z.values())}, both {sum(ok[i] and Z[i]['v_correct'] for i in Z)}, "
+          f"both numeric and different {sum(isinstance(got[i], float) and isinstance(Z[i]['v_pred'], float) and not RN.correct(got[i], str(Z[i]['v_pred'])) for i in Z)}")
     for r in rows:
         t0 = int(r["out_tokens"] or 0); z = Z.get(r["id"]); N.append((bool(r["correct"]), t0))
         V.append((bool(z["v_correct"]), t0 + int(z["v_tok"] or 0)) if z else N[-1]); E.append((bool(ok[r["id"]]), t0) if z else N[-1])

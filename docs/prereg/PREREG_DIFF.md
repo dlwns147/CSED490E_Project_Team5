@@ -1192,3 +1192,10 @@ Policy: run the stored program unchanged in an environment where cp_model.INT_MA
 prefix; no model call, no new tokens. Applied to the same triggered rows, graded the same way. Anything that stays invalid (e.g. overflowing sums) keeps the stored answer.
 **Prediction:** ENV recovers ≥ 80% of what V recovers; then V − ENV ≤ +1 point and the right action is to fix the environment (a harness correction, reported as such, applied to every CP-SAT row of every
 set), with V kept only for what the fix leaves. If ENV recovers < 50%, V is the recipe step. **Adoption rule:** the cheaper of the two that does not lose accuracy (paired 95%: lower bound of V − ENV > 0 → V).
+### ENV result (2026-11-25 10:03 UTC; python poc/wp_env.py easyc nl4c): 0 of 59 recovered (mamoc 0 of 20) — and why that is not a fair competitor
+The prefix took effect (78 of the 79 triggered programs use cp_model.INT_MAX; the 79th has an empty domain), but at ±(2^62 − 1) every model is still MODEL_INVALID for another reason: 53 "sum of all variable domains do
+not fit on an int64", 25 "possible integer overflow in constraint". The registered ENV value (the largest *accepted single domain*) leaves no room for sums; it was my misreading of what "accepts" means.
+## Addendum ENV32 (registered 2026-11-25 10:03 UTC, before running): the same competitor with the library's 32-bit maximum
+As ENV, with INT_MAX / INT_MIN = ±cp_model.INT32_MAX (2^31 − 1, a constant of the same library that a program can write; still no tuned number). Same adoption rule: the cheaper of V and ENV32 that does not lose
+accuracy (V adopted only if the 95% lower bound of V − ENV32 is > 0; otherwise the zero-token environment fix is the action). Additional check, because a box can hide a better optimum: the number of triggered rows
+on which ENV32 and V both print a number and disagree. This is the second competitor after seeing V and ENV, so its result is quoted with that count.
