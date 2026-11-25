@@ -1025,7 +1025,7 @@ Per set: the recipe that stands, its evidence, and the recent-research baselines
 | MathConstruct (fresh parameters) | own verify(), one medium repair turn, then think | MC-R +7.73 [+1.94, +14.11] by problem; repair − fresh resample +4.63 [+1.53, +7.79] | (the benchmark has no published method beyond direct answers) | low-effort repair (cheaper trade-off), high effort (ties) |
 | Project Euler | think-then-program, medium effort | PE-R dev +3.64 (fresh n.s.) | — | high effort −21.7 |
 | Competition answers (155) | one high-effort sample; a medium retry when it hits the cap | MA-RETRY +3.13 [+0.50, +6.28] | adaptive self-consistency −7.58 [−10.52, −5.00]; DeepConf not run: it needs ≥ 16 full warm-up traces, more than ASC's minimum, which already loses | pools, selectors, second sample on length |
-| Word problems | one medium thinking program with the corrected (no-input) prompt | vs cheap plurality optnew +14.5 at −1.0k tokens (win on both); the fix: +9.16 [+2.16, +16.69] on optnew, +0.10 on OptiBench (OptMATH-style texts only) | SIRL-32B: ours +7.5 (optnew, n.s.) / +25.2 / +18.3 / +13.0 / +9.2 (OptiBench, fresh; trade-off at ~10 points per ktok); SIRL wins on omtf (−1.88 n.s., −0.76k tokens); ORLM-8B far below everywhere | two programs + judge (+2.85 n.s. over one), SIRL as peer (more tokens), plan / constraint judges |
+| Word problems | one medium thinking program with the corrected (no-input) prompt | vs cheap plurality optnew +14.5 at −1.0k tokens (win on both); the fix: +9.16 [+2.16, +16.69] on optnew, +0.10 on OptiBench (OptMATH-style texts only) | SIRL-32B: ours +7.5 (optnew, n.s.) / +25.2 / +18.3 / +13.0 / +9.2 (OptiBench, fresh; trade-off at ~10 points per ktok); SIRL wins on omtf (−1.88 n.s., −0.76k tokens) and on omtf2 (−3.70 [−6.66, −1.02], −0.74k; row updated after WP-NOIN-F2); ORLM-8B far below everywhere | two programs + judge (+2.85 n.s. over one), SIRL as peer (more tokens), plan / constraint judges |
 **What changed in what we know this window.** (1) A harness-specification gap (programs reading an input that is never given) sat
 inside a reported gain; reading the status behind "no value" found it (now a loop checklist rule). (2) The strongest public
 specialist for word problems, run with its own recipe, is behind our recipe on every hard set and on the fresh OptiBench, and ahead on
@@ -1075,7 +1075,7 @@ says that better formulation is not the only missing piece.
 | **SIRL-32B** | **84.7%** | **1.28k** | **84.03** | — |
 - **(a) holds as registered:** old-prompt stdin readers 41 of 300 (13.7%, ≥ 5%), corrected 0; utility new − old +0.82 [−1.85, +3.50]
   (≥ 0 in point estimate, not significant; tokens **+0.36k**, which the earlier "costs nothing" wording for OptiBench hid: the corrected
-  prompt costs +8% to +22% tokens on every set). The scope claim stands: the stdin failure is specific to OptMATH-style texts.
+  prompt costs +6% to +22% tokens on omtf / OptiBench / omtf2 and −1% on optnew). The scope claim stands: the stdin failure is specific to OptMATH-style texts.
 - **(b) holds, and now significant:** ours-one − SIRL **−3.70 [−6.66, −1.02]** utility (accuracy −3.33 [−6.33, −0.67]; SIRL −0.74k tokens
   [−0.91, −0.58]). On OptMATH-Train-style problems SIRL wins on both, replicated on new problems. The table's statement is corrected:
   "SIRL wins on OptMATH-Train-style problems (omtf, omtf2)"; on the four other sets it loses. Our own recipe is not the best choice there.

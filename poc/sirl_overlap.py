@@ -1,4 +1,6 @@
-"""Overlap audit (PREREG_DIFF, 2026-11-25): 13-gram overlap of our word-problem sets with the training sample SIRL publishes in its repo\n(SIRLTrain/trainset, ~4.2k rows, described there as a lightweight example set, not the full training data). Run on the repo clone\n($POC_DATA/optmath_train/sirl_dl/repo/SIRLTrain); needs pyarrow."""
+"""Overlap audit (PREREG_DIFF, 2026-11-25): 13-gram overlap of our word-problem sets with the training sample SIRL publishes in its repo
+(SIRLTrain/trainset, ~4.2k rows, described there as a lightweight example set, not the full training data). Run on the repo clone
+($POC_DATA/optmath_train/sirl_dl/repo/SIRLTrain); needs pyarrow."""
 import json, re
 import pyarrow.parquet as pq
 from collections import Counter
