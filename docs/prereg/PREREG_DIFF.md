@@ -989,3 +989,13 @@ never been run with gpt-oss-120b thinking or with SIRL. Run: gpt-oss-120b medium
 the corrected one (thinkfreen, GPU 7), then SIRL-32B (its recipe, n = 1). Tests, paired by problem, 95% bootstrap: (1) new − old one
 program, utility: prediction > 0; old-prompt stdin readers ≥ 3% of 605, new ≤ 0.5%. (2) new one program − SIRL, accuracy and tokens
 separately (Pareto rule); SIRL's card reports 64.1% on OptiBench, so the prediction is "ours more accurate, SIRL cheaper" (a trade-off).
+### WP-NOIN-F result, part 1 (2026-11-25 05:27 UTC; OptiBench 605, gpt-oss-120b medium thinking, seed 1)
+| prompt | accuracy | tokens | utility | programs reading stdin | "No Best Solution" | no value |
+|---|---|---|---|---|---|---|
+| old (thinkfree) | 71.2% | 1.65k | 70.41 | 1 | 46 | 23 |
+| corrected (thinkfreen) | 71.4% | 1.78k | 70.52 | 0 | 36 | 27 |
+- **Prediction fails:** new − old **+0.10 [−2.71, +2.94]**; only 1 of 605 old programs read stdin (predicted ≥ 3%). The stdin failure is
+  specific to the OptMATH-generated texts (optnew, omtf: their problems are written like data files, and the model writes a reader for
+  them); OptiBench's narrative texts do not trigger it. The fix costs nothing where the failure is absent (+0.13k tokens, accuracy
+  tied), so it stays in the prompt, but its gain is a property of the OptMATH-style sets, not a general one: the +9.16 on optnew is
+  quoted with that scope.
