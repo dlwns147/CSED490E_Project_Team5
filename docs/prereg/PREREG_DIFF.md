@@ -896,3 +896,16 @@ Prediction: ours more accurate (> +5 points), SIRL cheaper in tokens; utility di
   Operations Research 2025) with its own recipe (poc/wp_sirl.py run orlm: the README completion template, greedy, first python block,
   eval/execute.py's appended objective print, 600 s; deviation: 6,144 output tokens instead of the full context). It is on gs15 already,
   so it runs first (GPU 7) while SIRL downloads. Prediction: below SIRL and below our recipe on optnew; cheapest in tokens.
+### ORLM-B result (2026-11-25 03:16 UTC; ORLM-LLaMA-3-8B, its recipe, greedy, one program per problem; python poc/wp_sirl.py score orlm <set>)
+| set | ORLM-8B accuracy | tokens | utility | ours (utility): recipe |
+|---|---|---|---|---|
+| **optnew 93 (decisive)** | 7.5% | 1.3k | 6.86 | **46.74**: two thinking gpt-oss-120b programs + judge (WP-TP) |
+| omtf 300 | 57.3% | 1.2k | 56.75 | 80.20: plurality of 3 cheap gpt-oss-20b programs (~2.3k tokens) |
+| BWOR 82 | 17.1% | 1.2k | 16.47 | 55.94: same plurality |
+| LogIOR 92 | 15.2% | 1.3k | 14.57 | 53.87 |
+| OptMATH 100 | 6.0% | 1.6k | 5.22 | 32.21 |
+- **Prediction holds (below ours, cheapest).** A trade-off by the Pareto rule (ORLM spends ~1.1k fewer tokens than the cheap plurality),
+  but its break-even price is absurd: on omtf the plurality's +24 points cost 1.1k tokens, so ORLM wins only if 1k tokens are worth
+  more than ~22 accuracy points (our price: 0.5). On optnew 46 of 93 programs crash (non-existent coptpy calls such as coptpy.max /
+  coptpy.maximum, syntax errors) and 5 have no code: the 2024-era specialised 8B model fails mostly on code validity, not on modelling.
+- COPT's size-limited pip licence refused 3 of 667 solves (counted wrong); it does not explain the gap.

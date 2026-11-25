@@ -103,7 +103,7 @@ def score(mdl, st):
     tag = {"sirl": "sirl32", "orlm": "orlm8"}[mdl]
     rows = [json.loads(l) for f in sorted(os.listdir(R3)) if f.startswith(f"opt_{tag}_{st}_copt_s") for l in open(f"{R3}/{f}")]
     n = len(rows)
-    lic = sum("licen" in (r.get("stdout", "") + r.get("err", "")).lower() for r in rows)
+    lic = sum("exceed" in (r.get("stdout", "") + r.get("err", "")).lower() for r in rows)   # COPT size limit (its banner always says "licen")
     their = sum(r["correct"] or ((r["infeasible"] or r["pred"] is not None) and r.get("correct2")) for r in rows)
     print(f"{st}: {tag} their checker (uses gold, upper bound) {100*their/max(1,n):.1f}%")
     print(f"{st}: {tag} n={n} accuracy {100*sum(r['correct'] for r in rows)/max(1,n):.1f}%  tokens "
