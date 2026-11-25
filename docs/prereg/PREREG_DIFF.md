@@ -1238,3 +1238,23 @@ Ours − SIRL: +15.10 accuracy [+10.98, +19.22], +1.43 ktok; per set +24.61 / +1
   SIRL table's ours-one rows are: optnew 46.2 (unchanged), omtf 82.2, omtf2 81.7 (ours − SIRL −3.37 [−6.09, −0.73]), BWOR 70.7, LogIOR 62.5, OptMATH 47.5, OptiBench 74.3 (+11.18 [+7.31, +14.67]); SIRL's lead stays on omtf / omtf2 only.
 - **Next (registered now, before running): CLEAN-X.** OptiMind-SFT on the nine other word-problem sets (optnew, OptMATH, omtf, omtf2, BWOR, LogIOR, OptiBench, easyc, nl4c), its card recipe, same reader, to replace the summary's
   word-problem row with a per-set table; predictions: OptiMind ≥ ours-one on easyc and nl4c in accuracy (its training data is of that kind), ours-one ≥ OptiMind on BWOR and LogIOR (textbook OR / logistics), tokens higher for OptiMind.
+### CLEAN-X result (2026-11-25 11:27 UTC; python poc/wp_x.py; OptiMind-SFT, card recipe, seed 1; ours-one = gpt-oss-120b one program, corrected environment; no zero-token rows; accuracy · output ktok)
+| set (n) | OptiMind-SFT (20B) | ours-one (120B; seeds) | SIRL-32B | ours − OptiMind accuracy (95%) | ktok |
+|---|---|---|---|---|---|
+| optnew (93) | 31.2% · 3.10 | 46.2% · 2.62 (2) | 38.7% · 2.71 | **+15.05 [+3.76, +26.34]** | −0.48 |
+| OptMATH (100) | 43.0% · 3.06 | 47.5% · 2.35 (2) | 34.0% · 2.37 | +4.50 [−4.00, +13.50] | −0.71 |
+| omtf (300) | 83.0% · 2.05 | 82.2% · 2.02 (2) | 83.7% · 1.27 | −0.83 [−3.17, +1.50] | −0.03 |
+| omtf2 (300) | 81.3% · 2.10 | 81.7% · 2.01 (1) | 84.7% · 1.28 | +0.33 [−2.67, +3.33] | −0.09 |
+| BWOR (82) | 69.5% · 2.78 | 70.7% · 3.24 (2) | 43.9% · 1.28 | +1.22 [−6.71, +9.15] | +0.46 |
+| LogIOR (92) | 66.3% · 2.87 | 62.5% · 2.98 (2) | 43.5% · 1.46 | −3.80 [−9.24, +2.17] | +0.12 |
+| OptiBench (605) | 72.7% · 1.80 | 74.3% · 1.77 (2) | 62.6% · 0.83 | +1.57 [−1.16, +4.30] | −0.02 |
+| easyc (642) | 93.5% · 1.93 | 92.5% · 1.99 (1) | — | −0.93 [−2.80, +1.09] | +0.07 |
+| nl4c (245) | 87.8% · 1.63 | 88.2% · 1.51 (1) | — | +0.41 [−3.67, +4.49] | −0.12 |
+- **Predictions:** OptiMind ≥ ours on easyc and nl4c: point estimate holds on easyc only (+0.9), neither significant; ours ≥ OptiMind on BWOR and LogIOR: holds on BWOR only (+1.2), neither significant; tokens higher for
+  OptiMind: not shown (significantly higher on optnew, OptMATH and nl4c, significantly lower on BWOR, equal on the rest). **As registered, mostly not shown.**
+- **Standing on 12 sets (with CLEAN):** OptiMind is significantly ahead on one (Mamo-Complex cleaned, 7.1 points), ours on one (optnew with its original labels, 15.1), and ten are ties. The optnew row must not be read as a win for
+  us: its labels are the uncleaned ones that OptiMind's authors found wrong on 41% of OptMATH, on the same family's cleaned set the two tie (86.7 / 86.3), and OptiMind was trained on cleaned data, so answers that follow
+  the corrected problem are graded wrong there. The fair reading of OptMATH-family problems is the cleaned tie.
+- **Conclusion for the word-problem standard (correcting the CLEAN entry):** a fine-tuned 20B model with no inference-time method equals gpt-oss-120b with ours on 10 of 12 sets and beats it on one. At equal output tokens and a
+  fraction of the model size, OptiMind-SFT is the better-value recipe; ours has no set where it wins on clean labels. The registered rule stands: **the summary's word-problem row names OptiMind-SFT**, with gpt-oss-120b one program
+  as the equal-accuracy alternative when only a general model is available; SIRL-32B stays the choice on omtf / omtf2 (+0.7 to +3.0 points over both at 0.75k fewer tokens).
