@@ -1158,3 +1158,21 @@ word-problem standard in the summary (a public model that wins on both is the re
 - **Not run in CLEAN (2026-11-25 07:31 UTC):** SOLID-StepORLM (arXiv 2609.09957, Qwen3-8B, the newest open checkpoint found): its own card reports pass@1
   18.25 on OptMATH, 66.43 on Mamo-Complex and 39.81 on IndustryOR (labels as published there), below SIRL's on OptMATH; a fifth 8B model would
   not change the comparison. StepORLM (ICLR 2026, arXiv 2509.22558) likewise. Only OptiMind-SFT is downloaded.
+## Diagnosis (descriptive, 2026-11-25 09:26 UTC; poc/wp_nbs_diag.py): what "No Best Solution" means on Mamo-Complex
+In the CLEAN first pass (table to be recorded after its 2 failed SIRL rows are re-asked) ours loses 15 points to OptiMind-SFT on Mamo-Complex; most of it is the diet problems (ours 20 of 44 right,
+OptiMind 40, gpt-oss-20b 36). Re-running all 40 of our "No Best Solution" programs there (seeds 1–2) with the CP-SAT status and validation message printed after Solve:
+**33 MODEL_INVALID** ("var domain do not fall in [-kint64max / 2, kint64max / 2]", from bounds set to cp_model.INT_MAX), 4 INFEASIBLE, 3 other libraries. (My first reading from one program, "the sums
+overflow", was wrong in the detail: the single variable's domain is rejected.) The formulations are not the cause: nothing was solved, and the program's
+branch "else: print No Best Solution" folds a rejected model into an infeasible one. The same diagnosis of gpt-oss-20b's 29 such rows gives 20 INFEASIBLE, 9 other, no invalid model.
+It is an interaction of this OR-Tools version with a constant the model writes, so it is a property of our stack (OptiMind uses Gurobi) and not a statement about the models' reasoning.
+## Addendum VALID (registered 2026-11-25 09:26 UTC, before any run): give the solver's own rejection back for one repair
+Trigger: the solver status of a re-run of the stored program is MODEL_INVALID or UNKNOWN (poc/wp_valid.py; no rule on the program text, no threshold; INFEASIBLE is never repaired).
+V = one repair turn (gpt-oss-120b, medium thinking) with the problem, the program, the status and model.Validate()'s message; R = a fresh thinking program for the
+problem (the resample baseline of MC-RS); N = the stored answer. Tokens of V / R are added to the triggered rows only. Prior work: solver / interpreter feedback repair (Self-Debug,
+OptiMUS's debugging loop) is known; the test is whether a *rejected* model, told apart from an infeasible one by the solver's own status, is worth a repair (the October INFEAS repair
+of truly infeasible programs fixed 8–33%).
+**Data:** mamoc is where it was found, so it is descriptive only. **Decisive: easyc (MAMO EasyLP as corrected by SIRL's authors, 642) and nl4c (NL4OPT, 245, with 17 true "No Best
+Solution" answers), pooled 887** — no gpt-oss-120b thinking program has been run on either; gpt-oss-120b medium, corrected prompt, seed 1. These two sets were used in October for other
+questions by other models.
+**Predictions:** (1) MODEL_INVALID is at least 1% of the 887 programs; (2) of the triggered programs V is right on ≥ 60%; (3) V − N pooled accuracy > 0 with 95% lower bound > 0;
+(4) V − R utility ≥ 0. If (1) fails the repair has nothing to act on outside Mamo-Complex and is reported as a property of that set only. **Decision:** adopt V only if (3) and (4) hold.

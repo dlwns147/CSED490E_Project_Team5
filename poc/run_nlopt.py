@@ -170,6 +170,11 @@ def problems(which=None):
             if a:   # two OptMATH rows have no answer
                 g = ast.literal_eval(a)[0] if a.startswith("[") else float(a)
                 out.append({"id": f"{which}-{k}", "src": which, "q": r["question"].strip(), "gold": str(float(g)), "difficulty": r["problem_class"][:60]})
+    if which in ("easyc", "nl4c"):   # VALID (PREREG_DIFF, 2026-11-25): MAMO EasyLP as corrected by the SIRL authors (642) and NL4OPT (245; 17 true 'No Best Solution'), from their repo's test_data
+        f = {"easyc": "MAMO_EasyLP_fixed.jsonl", "nl4c": "NL4OPT.jsonl"}[which]
+        for k, r in enumerate(map(json.loads, open(f"{DATA}/optmath_train/sirl_dl/repo/test_data/{f}"))):
+            g = str(r["en_answer"]).strip()
+            out.append({"id": f"{which}-{k}", "src": which, "q": r["en_question"].strip(), "gold": g if g.lower().startswith("no best") else str(float(g)), "difficulty": which})
     if which == "optnew":   # PREREG_TYPED addendum H (2026-11-19): SIRL's OptMATH-Bench 193 minus the 100 in `optmath` (fresh problems)
         seen = {re.sub(r"\s+", " ", p["q"]).strip() for p in problems("optmath")}
         for k, l in enumerate(open(f"{DATA}/sirl_fixed/OptMATH_Bench_193.jsonl")):
