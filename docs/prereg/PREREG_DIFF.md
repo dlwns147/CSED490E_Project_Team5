@@ -980,6 +980,12 @@ utility ≥ ours-one − 1.
 | OptMATH | 47.0% · 2.35k · 45.83 | 46.0% · 5.51k · 43.24 | −2.58 [−6.09, +0.06] | 86 / 100 |
 - **Prediction fails:** on omtf the cascade is more accurate (+2.0) but costs MORE tokens (2.61k vs 2.02k; predicted ≤ 85%), and on
   OptMATH it loses 2.6 (predicted ≥ −1). A trade-off on omtf, no gain elsewhere.
-- Why (the GATE lesson again): the two cheap programs cost ~2.5k together, about one thinking program, and they agree on only 7–42% of
+- Why (the GATE lesson again): the two cheap programs cost ~2.5k together, about one thinking program, and they agree on only 14–41% of
   the hard-set problems, so the thinking program is still bought on 58–86% of them. A pre-check pays only when it is much cheaper than
   what it saves times how often it fires. Not pursued; the word-problem recipe stays one thinking program with the corrected prompt.
+## Addendum WP-NOIN-F (registered 2026-11-25 05:07 UTC, before running): the prompt fix and the SIRL comparison on a set no decision has used
+WP-NOIN was found and tested on optnew / omtf, the sets whose failures motivated it (a forking path). OptiBench (605; ICLR 2025) has
+never been run with gpt-oss-120b thinking or with SIRL. Run: gpt-oss-120b medium thinking, seed 1, the old prompt (thinkfree, GPU 6) and
+the corrected one (thinkfreen, GPU 7), then SIRL-32B (its recipe, n = 1). Tests, paired by problem, 95% bootstrap: (1) new − old one
+program, utility: prediction > 0; old-prompt stdin readers ≥ 3% of 605, new ≤ 0.5%. (2) new one program − SIRL, accuracy and tokens
+separately (Pareto rule); SIRL's card reports 64.1% on OptiBench, so the prediction is "ours more accurate, SIRL cheaper" (a trade-off).
