@@ -1000,3 +1000,12 @@ separately (Pareto rule); SIRL's card reports 64.1% on OptiBench, so the predict
   embedding the data (a reading of the counts, not a tested mechanism). OptiBench does not trigger it. The fix costs nothing where the failure is absent (+0.13k tokens, accuracy
   tied), so it stays in the prompt, but its gain is a property of the OptMATH-style sets, not a general one: the +9.16 on optnew is
   quoted with that scope.
+### WP-NOIN-F result, part 2 (2026-11-25 06:02 UTC; OptiBench 605; python poc/wp_sirl_compare.py optibench)
+| arm | accuracy | tokens | utility |
+|---|---|---|---|
+| SIRL-32B (its recipe, n = 1) | 62.6% | 0.83k | 62.23 |
+| ours: one thinking program (corrected prompt, seeds 1–2) | 72.3% | 1.77k | 71.43 |
+- **Prediction holds (a trade-off):** ours − SIRL accuracy **+9.67 [+5.70, +13.31]** points, tokens +0.95k [+0.89, +1.01]; utility
+  +9.20 [+5.20, +12.83]. SIRL loses only if 1k tokens are worth more than ~10 accuracy points (our price 0.5). SIRL's 62.6% matches its
+  card (64.1%; their checker 63.5% here), so the harness runs it faithfully. On the set no decision used, the word-problem recipe
+  stands against the strongest public specialist; its only win remains omtf (synthetic OptMATH-Train style).
