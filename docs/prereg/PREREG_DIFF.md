@@ -864,3 +864,13 @@ effort costs a fraction of the tokens. Run: gpt-oss-120b, low effort, the same r
 verify() fails, seeds 1–2 (gs15). Policy as MC-R (progc; repair on a failure; thinking only if the repair also fails). Reported against
 the ladder (no repair) and MC-R (medium repair): accuracy and tokens separately. Prediction: accuracy within 1 point of MC-R at fewer
 tokens than the ladder (a win on both over the ladder).
+### MC-RL result (2026-11-25 01:27 UTC; fresh 137 instances, seeds 1–2, clustered by problem)
+| policy | accuracy | tokens / instance | utility |
+|---|---|---|---|
+| ladder (no repair) | 51.5% | 3.5k | 49.70 |
+| **repair at low effort** | 53.6% | 3.9k | 51.71 |
+| repair at medium effort (MC-R) | 55.8% | 5.2k | 53.23 |
+**Prediction fails on both counts:** low-effort repair is 2.2 points below medium (not within 1) and costs 0.4k more than the ladder
+(not fewer). It sits between the two (low − ladder +2.31 [−0.88, +5.58]; low − medium −0.77 [−4.45, +3.15]): a cheaper trade-off,
+not a win on both. A low-effort repair fixes fewer constructions, so more instances still fall through to thinking. MC-R (medium)
+stays the recipe; no win-on-both variant found.
