@@ -923,3 +923,19 @@ seeds 1–2, optnew and omtf; judge on disagreements (wp_plan.py, WP_MODE=thinkf
 **Test (optnew, decisive):** WP-NOIN two thinking + judge − WP-TP two thinking + judge, utility, paired by problem, 95% bootstrap.
 Prediction: > 0 with lower bound > 0, and stdin-reading programs ≤ 3 of 93 per seed; accuracy and tokens reported separately (tokens
 expected within ±10%). Also reported: one thinking program (seed mean) new − old, and the same on omtf.
+## WP-NOIN result (2026-11-25 03:52 UTC; python poc/wp_noin_score.py <set>; gs15)
+| set | cheap plurality (3 × gpt-oss-20b) | WP-TP two thinking + judge | **WP-NOIN two thinking + judge** | WP-NOIN one program (seed mean) |
+|---|---|---|---|---|
+| **optnew 93** | 32.3% · 3.65k · 30.43 | 49.5% · 5.44k · 46.74 | 50.5% · 5.52k · **47.78** | 46.2% · 2.62k · 44.93 |
+| omtf 300 | 81.3% · 2.26k · 80.20 | 83.7% · 3.90k · 81.71 | 84.0% · 4.19k · 81.91 | 82.2% · 2.02k · 81.16 |
+(accuracy · tokens per problem · utility). Programs reading stdin: 25 / 27 → **0 / 0** of 93 (optnew), 33 / 31 → 0 / 0 of 300 (omtf).
+- **Registered test fails:** WP-NOIN two − WP-TP two **+1.03 [−7.65, +9.72]** (optnew); omtf +0.19 [−1.54, +1.97]. The stdin rule holds.
+- **What the fix does change: the single program.** One thinking program, new − old, **+9.16 [+2.16, +16.69]** on optnew (37.1% → 46.2%
+  right at the same tokens); omtf +0.77 [−1.24, +2.78]. The two-program recipe gained little because its second program was already
+  covering for the first one's stdin failure: WP-TP's "+11 of two over one" was mostly that bug, as the diagnosis suspected.
+- **Corrected comparison:** with the prompt fixed, two programs + judge − one program **+2.85 [−1.43, +7.06]** (optnew; +4.3 points of
+  accuracy for +2.9k tokens, i.e. pays only while 1k tokens are worth < 1.5 points), omtf +0.75 [−0.43, +2.01]. Not shown; the
+  word-problem recipe for hard problems becomes **one medium thinking program with the corrected prompt** (vs cheap plurality +14.5 on
+  optnew at −1.0k tokens: a win on both), the second program a registered trade-off, not a shown gain.
+- Lesson for every set: a free signal ("the program reads input that the harness never gives") was hiding in the baseline numbers; the
+  check that finds it is reading the status behind "No Best Solution", which the scorer had folded into "no value".
