@@ -946,10 +946,12 @@ expected within ±10%). Also reported: one thinking program (seed mean) new − 
 |---|---|---|---|---|---|
 | **optnew 93** | 38.7% · 2.62k · 37.40 | 7.5% · 1.32k · 6.86 | 32.3% · 3.65k · 30.43 | 46.2% · 2.62k · **44.93** | +7.53 [−2.29, +17.23] |
 | omtf 300 | 83.7% · 1.27k · **83.03** | 57.3% · 1.16k · 56.75 | 81.3% · 2.26k · 80.20 | 82.2% · 2.02k · 81.16 | −1.88 [−4.36, +0.62] |
-| BWOR 82 | 43.9% · 1.28k · 43.26 | 17.1% · 1.20k · 16.47 | 57.3% · 2.76k · 55.94 | 67.7% · 3.24k · **66.06** | +22.80 [+11.86, +33.69] |
+| BWOR 82 | 43.9% · 1.28k · 43.26 | 17.1% · 1.20k · 16.47 | 57.3% · 2.76k · 55.94 | 70.1% · 3.24k · **68.50** | +25.24 [+14.32, +35.55] |
 | LogIOR 92 | 43.5% · 1.46k · 42.75 | 15.2% · 1.30k · 14.57 | 55.4% · 3.13k · 53.87 | 62.5% · 2.98k · **61.01** | +18.26 [+9.11, +27.51] |
 | OptMATH 100 | 34.0% · 2.27k · 32.86 | 6.0% · 1.57k · 5.22 | 34.0% · 3.57k · 32.21 | 47.0% · 2.35k · **45.83** | +12.96 [+0.45, +25.46] |
-(accuracy · output tokens per problem · utility.) SIRL's gold-consulting checker adds 0–1.2 points (BWOR 45.1%). COPT's size limit
+(accuracy · output tokens per problem · utility; BWOR corrected the same hour: the first pass graded our rows through the plurality's
+numeric-only reader, which drops a printed "No Best Solution" on BWOR's two infeasible problems, while SIRL's rows counted it — a
+scorer asymmetry against us, fixed.) SIRL's gold-consulting checker adds 0–1.2 points (BWOR 45.1%). COPT's size limit
 refused 5 LogIOR solves. SIRL reproduces its published level (OptMATH-166 39.8% in its card; here 34.0–38.7% on OptMATH-Bench problems).
 - **Registered test (optnew): fails as registered.** Two thinking programs + judge − SIRL: WP-TP **+9.35 [−2.61, +21.22]**, WP-NOIN
   +10.38 [−1.22, +21.18]; the lower bound is below 0 (93 problems). The token half of the prediction also fails: SIRL is not cheaper on
@@ -968,3 +970,16 @@ the peer is a public specialist). Policy: run SIRL (n = 1) and one cheap gpt-oss
 of the two reported). Tokens = SIRL + cheap + thinking when escalated. Compared with ours-one (always think) per set, accuracy and
 tokens separately. Prediction: omtf win on both (≤ 85% of ours-one's tokens, accuracy ≥ ours-one − 0.5); on the four hard sets
 utility ≥ ours-one − 1.
+### SPEC-PEER result (2026-11-25 05:07 UTC; python poc/wp_specpeer.py <sets>; offline, seeds 1–2 of the thinking program averaged)
+| set | ours-one (always think) | SPEC-PEER (SIRL + cheap agree → answer, else think) | cascade − ours-one | escalated |
+|---|---|---|---|---|
+| optnew | 46.2% · 2.62k · 44.93 | 48.4% · 5.97k · 45.40 | +0.47 [−1.70, +3.44] | 77 / 93 |
+| omtf | 82.2% · 2.02k · 81.16 | 84.2% · 2.61k · 82.86 | +1.71 [+0.54, +3.10] | 83 / 300 |
+| BWOR | 70.1% · 3.24k · 68.50 | 70.7% · 4.69k · 68.39 | −0.11 [−3.75, +3.58] | 58 / 82 |
+| LogIOR | 62.5% · 2.98k · 61.01 | 63.0% · 4.31k · 60.89 | −0.12 [−3.41, +3.04] | 54 / 92 |
+| OptMATH | 47.0% · 2.35k · 45.83 | 46.0% · 5.51k · 43.24 | −2.58 [−6.09, +0.06] | 86 / 100 |
+- **Prediction fails:** on omtf the cascade is more accurate (+2.0) but costs MORE tokens (2.61k vs 2.02k; predicted ≤ 85%), and on
+  OptMATH it loses 2.6 (predicted ≥ −1). A trade-off on omtf, no gain elsewhere.
+- Why (the GATE lesson again): the two cheap programs cost ~2.5k together, about one thinking program, and they agree on only 7–42% of
+  the hard-set problems, so the thinking program is still bought on 58–86% of them. A pre-check pays only when it is much cheaper than
+  what it saves times how often it fires. Not pursued; the word-problem recipe stays one thinking program with the corrected prompt.

@@ -1,6 +1,8 @@
 """SIRL-B / ORLM-B comparison table (PREREG_DIFF, 2026-11-25): per set, accuracy · tokens · utility of SIRL-32B-COPT, ORLM-8B, the cheap
 plurality (3 x gpt-oss-20b freev) and our corrected one-program recipe (gpt-oss-120b medium thinking, thinkfreen, seed mean), and the
-paired difference ours-one − SIRL (problem-level bootstrap, 95%). usage: python wp_sirl_compare.py <set> [<set> ...]"""
+paired difference ours-one − SIRL (problem-level bootstrap, 95%). SIRL / ORLM / ours-one are graded by each row's stored
+run_nlopt.correct (a printed "No Best Solution" counts on BWOR's two infeasible problems); the cheap plurality keeps wp_plan's convention
+(numeric classes only), as in every earlier word-problem table. usage: python wp_sirl_compare.py <set> [<set> ...]"""
 import json, os, random, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import wp_plan as W
@@ -25,7 +27,7 @@ for st in sys.argv[1:]:
         A["cheap plurality"] = {}
         for i in P:
             C = W.classes(GC.get(i, [])); A["cheap plurality"][i] = (right(i, C[0]["v"] if C else None), sum(int(r.get("out_tokens") or 0) for r in GC.get(i, [])))
-    A["ours: one thinking program"] = {i: (sum(right(i, W.val(r)) for r in G[i]) / len(G[i]), sum(int(r.get("out_tokens") or 0) for r in G[i]) / len(G[i])) for i in P}
+    A["ours: one thinking program"] = {i: (sum(bool(r["correct"]) for r in G[i]) / len(G[i]), sum(int(r.get("out_tokens") or 0) for r in G[i]) / len(G[i])) for i in P}
     ids = sorted(P)
     for name, v in A.items():
         print(f"{st:8s} {name:28s} n={len(ids)} accuracy {100*sum(v[i][0] for i in ids)/len(ids):5.1f}%  tokens {sum(v[i][1] for i in ids)/len(ids)/1000:.2f}k  "
