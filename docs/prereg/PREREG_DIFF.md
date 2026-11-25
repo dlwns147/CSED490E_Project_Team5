@@ -1138,7 +1138,7 @@ The errors are the programs' own (RuntimeError "No suitable n found within the s
 listed causes cover 44 of the 50 cheap 're' and contain no import, memory or sandbox error (the other 6 were not itemised). A 10× time
 limit rescues 3 of 40 cheap and 1 of 23 thinking timeouts (at most 2.2 and 0.7 points of 137). **No hidden harness gap found; not adopted.**
 ## Addendum CLEAN (registered 2026-11-25 07:31 UTC, before any run): the word-problem recipes on an independently audited benchmark, against two newer models
-**Why.** Found by search this hour (OptiMind, arXiv 2509.22979, Microsoft Research; abstract and tables read): its authors report errors in 50% of IndustryOR's and
+**Why.** Found by search this hour (OptiMind, arXiv 2509.22979, Microsoft Research; read through an automatic page extraction, so its numbers below are not checked against the PDF): its authors report errors in 50% of IndustryOR's and
 41% of OptMATH's original test problems, spent a month of expert cleaning, and released cleaned versions (github.com/microsoft/OptiGuide,
 optimind/data). Their cleaning independently touched most of this morning's hand audit: the nearest cleaned counterparts (8-gram Jaccard 0.50–0.71) of optmath-10,
 30, 33, 63, 79, 93 carry different answers from ours (6, 4, 5, 5, 5, 5 against 5, 5, 6, 3, 3, 3; the nearest item may be a sibling of the
