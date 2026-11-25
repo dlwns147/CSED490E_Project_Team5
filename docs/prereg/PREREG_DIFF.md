@@ -1085,3 +1085,15 @@ says that better formulation is not the only missing piece.
   (OptMATH-Bench), 9 / 600 (OptMATH-Train control), 0 / 605 (OptiBench): the OptMATH-family texts share generator phrases with each other,
   no duplicates. A sample cannot rule out overlap with the full training set (not published); the data_source label and the family-shaped
   phrases are consistent with SIRL being trained on this generator's style. Stated as: SIRL is in distribution on omtf / omtf2.
+## Addendum PICK (registered 2026-11-25 07:12 UTC, before computing; offline on stored rows; every arm's accuracy was seen, so this is a first look only)
+Question from WP-NOIN-F2: the best word-problem model depends on the set (SIRL on omtf / omtf2, ours elsewhere). Can the choice be made
+WITHOUT labels, from how the arms' answers agree on the set's own problems? Method: the one-coin Dawid–Skene latent-truth model (Dawid &
+Skene 1979) fitted by EM per set, on the printed numeric values of four arms from different families — SIRL-32B (seed 1), gpt-oss-120b
+thinking with the corrected prompt (seed 1), gpt-oss-20b freev (seed 1; where stored), ORLM-8B — equal values (run_nlopt tolerance) are one
+class, a missing value is an abstention; it returns an estimated accuracy per arm and no tuned constant. The set's arm = the one with
+the highest estimated utility (100 × estimated accuracy − 0.5 × its mean ktok). Prior work: label-free model selection by agreement
+(e.g. Platanios et al. 2017; MoE / router literature) — not claimed as new; the test is whether it recovers the per-set choice.
+**Score per set:** the chosen arm's true utility against always-ours, always-SIRL and the per-set best (oracle); sets: omtf, omtf2 (the
+two where SIRL wins), optnew, optmath, BWOR, LogIOR, OptiBench. Prediction: it picks SIRL on omtf and omtf2 and ours on ≥ 4 of the other
+5, and its mean utility over sets is ≥ always-ours + 0.5. Risk stated: SIRL and ORLM share the OptMATH/COPT lineage (correlated errors),
+which inflates both.
