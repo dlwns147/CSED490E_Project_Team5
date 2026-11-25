@@ -1067,3 +1067,21 @@ for every method in the table alike. A model answer on such items is a guess: SI
 under-specified job shops; ours on none), which no reader of the text could derive, so its accuracy there is not evidence of modelling.
 It does not change any paired comparison recorded above (all arms see the same items), but it caps what "the hard band" can yield and
 says that better formulation is not the only missing piece.
+### WP-NOIN-F2 result (2026-11-25 07:11 UTC; omtf2, 300 new OptMATH-Train-style problems; seed 1; python poc/wp_sirl_compare.py omtf2)
+| arm | accuracy | tokens | utility | programs reading stdin |
+|---|---|---|---|---|
+| old prompt, one thinking program | 80.3% | 1.65k | 79.51 | 41 |
+| corrected prompt, one thinking program (ours-one) | 81.3% | 2.01k | 80.33 | 0 |
+| **SIRL-32B** | **84.7%** | **1.28k** | **84.03** | — |
+- **(a) holds as registered:** old-prompt stdin readers 41 of 300 (13.7%, ≥ 5%), corrected 0; utility new − old +0.82 [−1.85, +3.50]
+  (≥ 0 in point estimate, not significant; tokens **+0.36k**, which the earlier "costs nothing" wording for OptiBench hid: the corrected
+  prompt costs +8% to +22% tokens on every set). The scope claim stands: the stdin failure is specific to OptMATH-style texts.
+- **(b) holds, and now significant:** ours-one − SIRL **−3.70 [−6.66, −1.02]** utility (accuracy −3.33 [−6.33, −0.67]; SIRL −0.74k tokens
+  [−0.91, −0.58]). On OptMATH-Train-style problems SIRL wins on both, replicated on new problems. The table's statement is corrected:
+  "SIRL wins on OptMATH-Train-style problems (omtf, omtf2)"; on the four other sets it loses. Our own recipe is not the best choice there.
+- **Training overlap (checked, not resolved; poc/sirl_overlap.py):** the SIRL repo publishes a training SAMPLE (4,181 rows, described as a
+  lightweight example set); its rows carry data_source "OptMATH". No problem of omtf / omtf2 / OptMATH-Bench / OptiBench is covered even 10%
+  by any one sample row, and the share of items sharing any 13-gram with the sample is 11 / 300 (omtf), 15 / 300 (omtf2), 6 / 193
+  (OptMATH-Bench), 9 / 600 (OptMATH-Train control), 0 / 605 (OptiBench): the OptMATH-family texts share generator phrases with each other,
+  no duplicates. A sample cannot rule out overlap with the full training set (not published); the data_source label and the family-shaped
+  phrases are consistent with SIRL being trained on this generator's style. Stated as: SIRL is in distribution on omtf / omtf2.
