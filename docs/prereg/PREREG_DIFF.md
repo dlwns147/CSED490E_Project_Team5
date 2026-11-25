@@ -1514,3 +1514,14 @@ Pooled 170: **PROV2 − ONE accuracy +4.22 [+2.45, +6.08], utility +1.93 [+0.15,
 - **What is claimed:** where the answer must be computed, "was it ever printed by a tool run?" is a free failure signal with ~92% precision, and spending the second attempt there gives the accuracy of a majority of three at half its tokens, and more than the same spending at random. **What is not claimed:** the signal itself (ThinC, TIDE-Bench), a utility gain over one attempt on the fresh set, or anything on competition
   answers (there the flag fails, above).
 - The plain tool's seed means replace the seed-1 rows above: 50.8% (dev), 28.0% (fresh); still +11 / +15 accuracy over think-then-program.
+
+### SUBMIT v5 on development data: the gate passes (written 2026-11-25 22:18 UTC; mconf seed 1, 137, clustered by problem; OWN still running and not read; mcon untouched by every submit arm)
+| arm | accuracy | ktok | utility |
+|---|---|---|---|
+| TIR-F | 71.5% | 6.41 | 68.33 |
+| S0 | 75.9% | 4.79 | 73.52 |
+| BLIND2 (check 1.56k) | 79.6% | 6.98 | 76.07 |
+Gate of amendment 2: right submissions rejected **0 of 109** (bound 10%; the first check alone rejected 3, the second withdrew all 3); BLIND2 − S0 utility +2.55 (> 0). Both hold, so mcon is run (S0, OWN, BLIND2, seeds 1–2; TIR-F seeds 1–2 already there).
+**Not shown on this data:** BLIND2 − S0 accuracy +3.65 [−3.62, +10.87], utility +2.55 [−4.72, +9.82]; S0 − TIR-F utility +5.19 [−1.53, +11.88]; BLIND2 − TIR-F accuracy +8.03 [+0.72, +15.44], utility +7.74 [−0.22, +15.50]. The check rejects on 13 of 137 problems (all 13 rejected objects wrong); 6 of the 13 end right. 13 further wrong objects pass it, and 15 attempts never submit
+(S0: 6): in 5 of the 15 a submission had been rejected, the other 10 never called submit and mostly say they found no object. One of the 15 is right in S0, so this is not where BLIND2 loses; the difference in unsubmitted counts is not explained further. On the 124 problems without a rejection BLIND2 has 103 right and S0 101, which is between-run noise.
+**Added before any mcon row (descriptive, the low-variance estimate of what the check does):** within the BLIND2 run, final answer against the attempt's *first* submission (same sample, so no between-run noise): problems repaired, problems broken, and the tokens spent after the first submission plus the check. It is not a decision test; the registered tests are unchanged.
