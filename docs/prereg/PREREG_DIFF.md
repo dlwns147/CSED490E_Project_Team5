@@ -1298,3 +1298,6 @@ On the nine sets with a second gpt-oss-120b program (optc, indc, mamoc, optnew, 
 plurality of three gpt-oss-120b programs (seeds 1–3; seed 3 generated now with the corrected prompt; A when all differ, no judge). **Test:** CROSSREF JUDGE − SAMEREF and − PLUR3, accuracy and utility, paired, 95%. **Prediction:** JUDGE ≥ SAMEREF + 1.0
 accuracy with lower bound > 0 (the headroom table's coverage is larger for A + B than for A + A2 on seven of the nine sets, smaller on BWOR and LogIOR, so this can fail); utility lower bound > 0. If it fails, the result is reported as "a
 second program and a judge", with no claim about families, and the cheaper SAMEREF is the recipe.
+- **Correction to XM3 and the newer-model status lines (2026-11-25):** "Mistral Small 4 not loadable in our image: no FP4 kernels for these GPUs" was inferred from the last log line. The same line on two other checkpoints turned out to be
+  FlashInfer JIT compiles that the container's nvcc 12.6 cannot do, avoidable with vLLM options (`--moe-backend triton`; VLLM_DISABLED_KERNELS): OptiMind-SFT and a 119B FP8 MoE both load and serve with them. Whether the NVFP4 checkpoint
+  has a kernel outside that path was not tested; the entry is to be read as "did not load with default kernels", and no conclusion about Mistral Small 4 follows.
