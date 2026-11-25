@@ -1485,3 +1485,14 @@ the generator is shown only the schema of the data a first call extracted, and i
 v1: 73.0% @ 7.37k (the check costs 2.15k) vs TIR-F 71.5% @ 6.41k. **Two faults of the implementation, both found here:** (1) the registration says the attempt ends only by submit(); v1 let a final message through: 66 of 137 submitted, and 33 of the 36 wrong answers are final messages that no check saw; among the 66 submitted, 63 are right. (2) 22 of 35 rejections were of *right* answers, because the check demanded a literal
 \boxed or could not read a surd (by the registered falsifier this check would be dropped). **v2 (amendment):** a final message without submit() is answered once in the same session ("not submitted …", at most 3 such replies, all arms alike); the check sees the box's content and the boxed form and rejects only if every form it can read is rejected; a crash or parse failure cannot reject; the check is written at
 **low** effort (cost). v1 rows are kept apart (tirsub_*, v2 = tirsub2_*); S0 and OWN are run as v2 only. Tests, predictions and falsifiers unchanged; mcon stays untouched until v2 has passed the 10% false-alarm bound on mconf.
+
+### SUBMIT v2 on development data and amendment 2 (2026-11-25 20:30 UTC; mconf seed 1, clustered by problem; mcon still untouched)
+| arm | accuracy | ktok | utility |
+|---|---|---|---|
+| TIR-F | 71.5% | 6.41 | 68.33 |
+| S0 (submit, no check) | 67.2% | 5.15 | 64.58 |
+| BLIND (submit + blind check, 1.32k) | 76.6% | 7.25 | 73.02 |
+BLIND − S0 accuracy +9.49 [+0.74, +18.25], utility +8.44 [−0.36, +17.44]; BLIND − TIR-F +5.11 [−1.44, +11.51], +4.69 [−1.86, +11.15]; S0 − TIR-F −4.38 [−13.77, +4.44] (prediction S0 > TIR-F not supported: forcing the form alone does not help). **The gate fails:** the check rejected 15 of 110 right submissions (13.6%; 10.4% when an identical
+resubmission is allowed to stand; 4 of 95 first submissions); the bound is 10% of right submissions and is not moved. True alarms that ended right 7, false alarms that ended wrong 3.
+**Amendment 2 (v4, arm BLIND2):** a rejection must be confirmed by a second check written independently (another seed, same prompt, low effort); the second check is written, and charged, only once the first has rejected something; a second check that passes or cannot read the object withdraws the rejection. An identical resubmission stands. Same gate on mconf (seed 1): right submissions rejected ≤ 10%, BLIND2 − S0 > 0.
+If it passes, the decisive set runs S0, OWN, BLIND2 (and TIR-F), seeds 1–2; if it fails, the idea is reported as it stands here and mcon is not used. This is the last change of the check.

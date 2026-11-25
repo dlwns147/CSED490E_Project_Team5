@@ -9,6 +9,7 @@ import tir_native as T
 R = T.R; PRE = r'''
 import signal as _sig, json as _js
 _CODE = {code}
+_CODE2 = {code2}
 _ENF = {enf}
 _S = {{"n": 0}}
 _NS = {{}}
@@ -16,32 +17,49 @@ try:
     exec(_CODE, _NS)
 except BaseException:
     _NS = {{}}
+_NS2 = {{}}
+try:
+    exec(_CODE2, _NS2)
+except BaseException:
+    _NS2 = {{}}
 def _alarm(*a):
     raise TimeoutError("check over 20 s")
 def submit(s):
     import re as _re
     s = str(s).strip(); bad = []; note = ""; _m = _re.fullmatch(r"(?s)\\boxed{{(.*)}}", s); s = _m.group(1).strip() if _m else s
-    if _ENF and callable(_NS.get("check")):
+    def _judge(ns):
+        # the check may expect the box or its content: it rejects only if every form it can read is rejected; a crash / parse failure / time-out cannot reject. returns (violated, note, readable)
+        if not callable(ns.get("check")):
+            return [], "no check", False
+        errs, res = [], []
         old = _sig.signal(_sig.SIGALRM, _alarm); _sig.setitimer(_sig.ITIMER_REAL, 20)
         try:
-            errs, res = [], []
-            for form in (s, chr(92) + "boxed{{" + s + "}}"):          # the check may expect the box or its content: it rejects only if every form it can read is rejected; a crash / parse failure cannot reject
+            for form in (s, chr(92) + "boxed{{" + s + "}}"):
                 try:
-                    res.append([str(x)[:300] for x in (_NS["check"](form) or [])][:6])
+                    res.append([str(x)[:300] for x in (ns["check"](form) or [])][:6])
                 except TimeoutError:
                     raise
                 except BaseException as e:
                     errs.append(type(e).__name__ + ": " + str(e)[:150])
-            bad = min(res, key=lambda r: sum("boxed" in x.lower() for x in r)) if res and all(res) else []; note = "check error " + errs[0] if errs and not res else ""
         except BaseException as e:
-            bad = []; note = "check error " + type(e).__name__ + ": " + str(e)[:150]
+            return [], "check error " + type(e).__name__ + ": " + str(e)[:150], False
         finally:
             _sig.setitimer(_sig.ITIMER_REAL, 0); _sig.signal(_sig.SIGALRM, old)
+        bad_ = min(res, key=lambda r: sum("boxed" in x.lower() for x in r)) if res and all(res) else []
+        return bad_, ("check error " + errs[0] if errs and not res else ""), bool(res)
+    b1 = b2 = None
+    if _ENF:
+        bad, note, rd = _judge(_NS); b1 = list(bad)
+        if bad and _CODE2:                       # a rejection must be confirmed by the second, independently written check
+            bad2, note2, rd2 = _judge(_NS2); b2 = list(bad2)
+            if not bad2:
+                note = "first check rejected, second did not (%s)" % (note2 or "passes"); bad = []
     _S["n"] += 1
-    fin = (not bad) or _S["n"] > 3
+    insist = bool(bad) and s == _S.get("last"); _S["last"] = s        # v3: the identical object resubmitted after its complaint was shown stands (the solver overrules the check)
+    fin = (not bad) or insist or _S["n"] > 3
     if not _S.get("done"):
         with open({sub}, "a") as f:
-            f.write(_js.dumps({{"s": s, "final": fin, "bad": bad, "note": note, "n": _S["n"]}}) + chr(10))
+            f.write(_js.dumps({{"s": s, "final": fin, "bad": bad, "note": note, "n": _S["n"], "b1": b1, "b2": b2}}) + chr(10))
     _S["done"] = _S.get("done") or fin
     if fin:
         print("submitted")
@@ -63,12 +81,12 @@ def prompt_spec(p):
     return SPEC.format(p=p)
 
 
-def solve(q, effort, seed, arm, spec_code):
+def solve(q, effort, seed, arm, spec_code, spec2=""):
     import llm
     tok = lambda s: llm.post_json("/tokenize", {"model": "local", "prompt": s, "add_special_tokens": False})["tokens"]
-    q = q + TAIL + {"S0": "", "OWN": OWN, "BLIND": BLINDT}[arm]
+    q = q + TAIL + {"S0": "", "OWN": OWN, "BLIND": BLINDT, "BLIND2": BLINDT}[arm]
     ids = tok(T.SYS.format(e=effort, q=q)); used = calls = prefill = tooltok = 0; tool = T.Tool(); codes, outs, subs = [], [], []; msgs = 0; fin = "stop"; text = ""; final = ""
-    subf = os.path.join(tool.d.name, "subs.jsonl"); pre = PRE.format(code=repr(spec_code or ""), enf=arm == "BLIND", sub=repr(subf)); inited = None
+    subf = os.path.join(tool.d.name, "subs.jsonl"); pre = PRE.format(code=repr(spec_code or ""), code2=repr(spec2 or ""), enf=arm.startswith("BLIND"), sub=repr(subf)); inited = None
     try:
         while True:
             room = min(T.CAP - used, int(os.environ.get("TIR_CTX", 64000)) - len(ids) - 8)
@@ -85,7 +103,7 @@ def solve(q, effort, seed, arm, spec_code):
                 if msgs > 3:
                     break
                 note = "Your answer was not submitted. Call submit(s) in the python tool with the text that goes inside the box, built by your code from a value it computed."
-                if arm == "BLIND":
+                if arm.startswith("BLIND"):
                     note += " submit also checks the stated conditions."
                 base = g[:-1] if g and g[-1] == T.RET else g
                 ids = ids + base + tok("<|end|><|start|>user<|message|>" + note + "<|end|><|start|>assistant"); continue
@@ -122,7 +140,16 @@ def main(arm, st, effort, seed):
         P, prompt, grade = T.task(st)
     path = f"{R}/tirsub2_{arm}_{st}_{effort}_s{seed}.jsonl"; done = {json.loads(l)["id"] for l in open(path)} if os.path.exists(path) else set()
     specp = f"{R}/tirsub2_spec_{st}.jsonl"; SP = {json.loads(l)["id"]: json.loads(l) for l in open(specp)} if os.path.exists(specp) else {}
-    if arm == "BLIND":
+    SP2 = {}
+    if arm == "BLIND2":
+        p2 = f"{R}/tirsub2_spec_{st}_b.jsonl"; SP2 = {json.loads(l)["id"]: json.loads(l) for l in open(p2)} if os.path.exists(p2) else {}
+        def spec2(p):
+            z = chat(prompt_spec(prompt(p)), think=True, max_tokens=12000, temperature=0.7, effort="low", seed=19000 + zlib.crc32(p["id"].encode()) % 997)
+            return {"id": p["id"], "code": last_block(z.get("text") or "", ("python", "py", "python3")) or "", "tok": z.get("out_tokens") or 0}
+        with ThreadPoolExecutor(32) as ex, open(p2, "a") as f:
+            for z in ex.map(spec2, [p for p in P if p["id"] not in SP2]):
+                SP2[z["id"]] = z; f.write(json.dumps(z) + "\n"); f.flush()
+    if arm.startswith("BLIND"):
         def spec(p):
             z = chat(prompt_spec(prompt(p)), think=True, max_tokens=12000, temperature=0.7, effort="low", seed=9000 + zlib.crc32(p["id"].encode()) % 997)
             return {"id": p["id"], "code": last_block(z.get("text") or "", ("python", "py", "python3")) or "", "tok": z.get("out_tokens") or 0}
@@ -131,17 +158,18 @@ def main(arm, st, effort, seed):
                 SP[z["id"]] = z; f.write(json.dumps(z) + "\n"); f.flush()
 
     def one(p):
-        sd = seed * 1000 + zlib.crc32(p["id"].encode()) % 997; sp = SP.get(p["id"], {}) if arm == "BLIND" else {}
+        sd = seed * 1000 + zlib.crc32(p["id"].encode()) % 997; sp = SP.get(p["id"], {}) if arm.startswith("BLIND") else {}; sp2 = SP2.get(p["id"], {})
         for _ in range(2):
             try:
-                z = solve(prompt(p), effort, sd, arm, sp.get("code")); break
+                z = solve(prompt(p), effort, sd, arm, sp.get("code"), sp2.get("code")); break
             except Exception as e:
                 z = {"final": "", "out_tokens": 0, "calls": 0, "finish": "error " + repr(e)[:200], "codes": [], "outs": [], "subs": []}
         g = grade(p, z["final"])
         # grade every submission too (false alarms of the check: a rejected submission that is right)
         for x in z["subs"]:
             x["right"] = bool(grade(p, "\\boxed{" + x["s"] + "}")["correct"]); x["s"] = x["s"][:1500]
-        z.update(id=p["id"], spec_tokens=sp.get("tok", 0), **g); z["out_tokens_total"] = z["out_tokens"] + z["spec_tokens"]; z["final"] = z["final"][-4000:]; z["codes"] = [c[:3000] for c in z["codes"]]; z["outs"] = [o[:300] for o in z["outs"]]
+        used2 = any(x.get("b1") for x in z["subs"])      # the second check is written (and charged) only once the first has rejected something
+        z.update(id=p["id"], spec_tokens=sp.get("tok", 0) + (sp2.get("tok", 0) if used2 else 0), **g); z["out_tokens_total"] = z["out_tokens"] + z["spec_tokens"]; z["final"] = z["final"][-4000:]; z["codes"] = [c[:3000] for c in z["codes"]]; z["outs"] = [o[:300] for o in z["outs"]]
         return z
     N = int(os.environ.get("TIR_N", 0)) or len(P)
     with ThreadPoolExecutor(int(os.environ.get("TIR_WORKERS", 32))) as ex, open(path, "a") as f:
