@@ -32,7 +32,7 @@ def submit(s):
                     raise
                 except BaseException as e:
                     errs.append(type(e).__name__ + ": " + str(e)[:150])
-            bad = res[0] if res and all(res) else []; note = "check error " + errs[0] if errs and not res else ""
+            bad = min(res, key=lambda r: sum("boxed" in x.lower() for x in r)) if res and all(res) else []; note = "check error " + errs[0] if errs and not res else ""
         except BaseException as e:
             bad = []; note = "check error " + type(e).__name__ + ": " + str(e)[:150]
         finally:
