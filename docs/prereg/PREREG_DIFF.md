@@ -874,3 +874,6 @@ tokens than the ladder (a win on both over the ladder).
 (not fewer). It sits between the two (low − ladder +2.31 [−0.88, +5.58]; low − medium −0.77 [−4.45, +3.15]): a cheaper trade-off,
 not a win on both. A low-effort repair fixes fewer constructions, so more instances still fall through to thinking. MC-R (medium)
 stays the recipe; no win-on-both variant found.
+## Hourly check 2026-11-25 02:06 UTC
+- Scored this hour: GATE (fails on tokens), MC-RL (cheaper trade-off, not a win on both). gs15 GPUs idle; no further registered
+  computation step this window — remaining open items are listed in the window summary.
