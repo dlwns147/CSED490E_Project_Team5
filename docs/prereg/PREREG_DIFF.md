@@ -892,3 +892,7 @@ when the first result mismatches the gold) is reported second as an upper bound.
 **Test (optnew):** our recipe (two medium gpt-oss-120b thinking programs + judge, WP-TP) − SIRL, utility, paired by problem, 95%
 bootstrap; accuracy and tokens reported separately and labelled by the Pareto rule (win on both / trade-off with break-even price).
 Prediction: ours more accurate (> +5 points), SIRL cheaper in tokens; utility difference > 0 with lower bound > 0.
+- **ORLM-B (added 2026-11-25 03:05 UTC, before running; same test and sets):** the earlier specialised model **ORLM-LLaMA-3-8B** (Huang et al.,
+  Operations Research 2025) with its own recipe (poc/wp_sirl.py run orlm: the README completion template, greedy, first python block,
+  eval/execute.py's appended objective print, 600 s; deviation: 6,144 output tokens instead of the full context). It is on gs15 already,
+  so it runs first (GPU 7) while SIRL downloads. Prediction: below SIRL and below our recipe on optnew; cheapest in tokens.
