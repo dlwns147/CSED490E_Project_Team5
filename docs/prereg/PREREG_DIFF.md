@@ -1270,3 +1270,31 @@ Prior work: ensembles / FrugalGPT / Mixture-of-Agents / cross-family peers (X-se
 same-model pairs was within noise (WP-PLAN, WP-TP).
 **Primary test:** JUDGE − max(A, B) pooled over the 12 sets, utility and accuracy, paired by problem, 95%; also per set. **Predictions:** JUDGE right on ≥ 65% of the resolvable disagreements; pooled accuracy ≥ the better single + 2.0 with
 lower bound > 0; utility lower bound > 0. It is a **trade-off by construction** (more tokens than either alone), reported with its break-even price; adopted only if the utility lower bound is > 0.
+### CROSSREF result (2026-11-25 12:18 UTC; python poc/wp_crossref.py score; gpt-oss-120b judge on 400 cross-family disagreements; the rest agree or one printed no value)
+Judge right on **171 of 244 (70%)** resolvable disagreements. Accuracy · ktok · utility:
+| set | A gpt-oss-120b | B OptiMind | **JUDGE (A + B + judge)** | VOTE (SIRL) | A2 (second gpt-oss-120b) |
+|---|---|---|---|---|---|
+| optc | 87.5 · 2.54 · 86.2 | 86.7 · 3.56 · 84.9 | 91.4 · 6.32 · **88.3** | 92.2 · 6.26 · 89.1 | 91.4 · 6.31 · 88.3 |
+| indc | 78.8 · 2.80 · 77.4 | 70.7 · 2.47 · 69.5 | 83.8 · 5.86 · **80.9** | 80.8 · 5.62 · 78.0 | 78.8 · 6.12 · 75.7 |
+| mamoc | 82.4 · 2.68 · 81.0 | 88.6 · 3.89 · 86.6 | 91.0 · 6.96 · **87.5** | 85.2 · 6.74 · 81.9 | 88.6 · 7.07 · 85.0 |
+| optnew | 48.4 · 2.57 · 47.1 | 31.2 · 3.10 · 29.6 | 43.0 · 6.41 · 39.8 | 50.5 · 6.73 · 47.2 | 47.3 · 6.81 · 43.9 |
+| OptMATH | 49.0 · 2.40 · 47.8 | 43.0 · 3.06 · 41.5 | 49.0 · 6.31 · 45.8 | 54.0 · 6.24 · 50.9 | 53.0 · 6.25 · 49.9 |
+| omtf | 82.0 · 2.04 · 81.0 | 83.0 · 2.05 · 82.0 | 84.7 · 4.25 · 82.5 | 84.0 · 4.29 · 81.9 | 84.3 · 4.38 · 82.1 |
+| omtf2 | 81.7 · 2.01 · 80.7 | 81.3 · 2.10 · 80.3 | 84.3 · 4.30 · 82.2 | 85.0 · 4.37 · 82.8 | — |
+| BWOR | 69.5 · 3.19 · 67.9 | 69.5 · 2.78 · 68.1 | 76.8 · 6.46 · **73.6** | 74.4 · 6.33 · 71.2 | 74.4 · 6.81 · 71.0 |
+| LogIOR | 68.5 · 3.03 · 67.0 | 66.3 · 2.87 · 64.9 | 70.7 · 6.30 · 67.5 | 67.4 · 6.14 · 64.3 | 75.0 · 6.61 · 71.7 |
+| OptiBench | 73.4 · 1.78 · 72.5 | 72.7 · 1.80 · 71.8 | 78.7 · 3.81 · **76.8** | 76.4 · 3.71 · 74.5 | 78.5 · 3.85 · 76.6 |
+| easyc | 92.5 · 1.99 · 91.5 | 93.5 · 1.93 · 92.5 | 94.7 · 4.00 · 92.7 | — | — |
+| nl4c | 88.2 · 1.51 · 87.4 | 87.8 · 1.63 · 86.9 | 90.6 · 3.28 · 89.0 | — | — |
+**Pooled 2,896: JUDGE 83.6% at 4.64k against A 80.2% at 2.12k and B 79.6% at 2.27k; JUDGE − A accuracy +3.42 [+2.59, +4.25], utility +2.16 [+1.34, +3.01]**. VOTE − A (2,009): +2.89 / utility +1.53 [+0.55, +2.53];
+A2 − A (1,709): +4.04 / utility +2.55 [+1.41, +3.67].
+- **All registered predictions hold** (70% ≥ 65%; accuracy gain ≥ 2.0 with lower bound > 0; utility lower bound > 0). It is a trade-off: +2.5k tokens per problem for +3.4 points, i.e. the break-even price is about 1.36 points per ktok; our price
+  is 0.5. On optnew and OptMATH (original labels, 41% reported wrong) the judge is below A.
+- **What is NOT shown yet — the heterogeneity claim.** The A2 arm (gpt-oss-120b's own second program added as a tie-breaker to A + B) does at least as well on its nine sets, and a same-family control (A + A2 + the same judge) and a token-matched
+  one (plurality of three gpt-oss-120b programs, ~6.5k tokens) were not registered or run. If a second gpt-oss-120b program with the same judge gives the same +3, the gain is "a second sample and a judge" (WP-TP / WP-NOIN: +2.85, not
+  significant, on one set), not two families.
+## Addendum CROSSREF-C (registered 2026-11-25 12:18 UTC, before any run): the same-family and token-matched controls
+On the nine sets with a second gpt-oss-120b program (optc, indc, mamoc, optnew, OptMATH, omtf, BWOR, LogIOR, OptiBench; 1,709 problems): **SAMEREF** = A + A2, the same judge (wp_plan.JUDGE, order by hash) on their disagreements; **PLUR3** =
+plurality of three gpt-oss-120b programs (seeds 1–3; seed 3 generated now with the corrected prompt; A when all differ, no judge). **Test:** CROSSREF JUDGE − SAMEREF and − PLUR3, accuracy and utility, paired, 95%. **Prediction:** JUDGE ≥ SAMEREF + 1.0
+accuracy with lower bound > 0 (different families cover more: 86.1% against 86.0–86.9% was NOT larger on every set in the headroom table, so this is a real risk of failing); utility lower bound > 0. If it fails, the result is reported as "a
+second program and a judge", with no claim about families, and the cheaper SAMEREF is the recipe.
