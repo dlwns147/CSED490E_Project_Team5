@@ -939,3 +939,5 @@ expected within ±10%). Also reported: one thinking program (seed mean) new − 
   optnew at −1.0k tokens: a win on both), the second program a registered trade-off, not a shown gain.
 - Lesson for every set: a free signal ("the program reads input that the harness never gives") was hiding in the baseline numbers; the
   check that finds it is reading the status behind "No Best Solution", which the scorer had folded into "no value".
+- **WP-NOIN-HO (added 2026-11-25 03:52 UTC, descriptive, before running):** the corrected one-program recipe (gpt-oss-120b medium thinking, thinkfreen,
+  seeds 1–2) on BWOR 82 / LogIOR 92 / OptMATH 100, so SIRL-B / ORLM-B have our recipe on every set (WP-TP never ran there).
