@@ -71,6 +71,8 @@ P_FREE = ("{q}\n\nWrite a complete Python 3 program that formulates this problem
           "whichever fits the problem class: Google OR-Tools (`pywraplp` with SCIP for linear / mixed-integer models, CP-SAT), cvxpy "
           "(convex continuous models, including quadratic and second-order cone constraints) or scipy.optimize. Print ONLY the optimal "
           "objective value." + TAIL)   # HO-L (PREREG_HO.md, 2026-10-19): 27 of 100 OptMATH problems are not linear
+P_FREEN = P_FREE[:-len(TAIL)] + (" The program receives no input (stdin is empty): write every number given in the problem into the "
+                                   "program itself.") + TAIL   # WP-NOIN (PREREG_DIFF, 2026-11-25): 25-27 of 93 optnew thinking programs read stdin
 P_FREEV = P_FREE[:-len(TAIL)].replace("Print ONLY the optimal objective value.", "Print exactly two lines at the end: first the values of all "
           "decision variables as ONE JSON object on one line (variable name -> value), then the optimal objective value alone on the last "
           "line.") + TAIL   # HO3 (PREREG_HO.md, 2026-10-23): the solution, for a checker written from the text (poc/run_verify.py)
@@ -227,7 +229,7 @@ def main():
         sd = seed * 1000 + zlib.crc32(p["id"].encode()) % 997
         tmpl = {"mip": P_MIP, "mipf": P_MIP + SNIP, "cpsat": P_CPSAT, "text": P_TEXT, "think": P_MIP, "thinkf": P_MIP + SNIP,
                 "mipa": P_MIP + AUTO.replace("{", "{{").replace("}", "}}"), "thinka": P_MIP + AUTO.replace("{", "{{").replace("}", "}}"),
-                "mipv": P_MIP, "thinkv": P_MIP, "mips": P_MIP, "thinks": P_MIP, "free": P_FREE, "thinkfree": P_FREE, "mipt": P_MIP + SNIP_TEXT, "freef": P_FREE + LIBCARD, "freev": P_FREEV,
+                "mipv": P_MIP, "thinkv": P_MIP, "mips": P_MIP, "thinks": P_MIP, "free": P_FREE, "thinkfree": P_FREE, "thinkfreen": P_FREEN, "mipt": P_MIP + SNIP_TEXT, "freef": P_FREE + LIBCARD, "freev": P_FREEV,
                 "thinkadj": P_MIP + SNIP if os.environ.get("NLOPT_SET", "x3") == "x3" else P_FREE}[mode]
         q = tmpl.format(q=p["q"])
         if mode == "thinkadj":
@@ -251,7 +253,7 @@ def main():
         else:
             code = last_block(text, ("python", "py", "python3"))
             r = run_python(code, "", timeout=60, mem_bytes=4 << 30,   # free modes may pick multi-threaded CP-SAT: CPU limit >> wall (H5 bug)
-                           cpu_s=(3600 if mode in ("free", "thinkfree", "freef", "freev") else None)) if code else None
+                           cpu_s=(3600 if mode in ("free", "thinkfree", "thinkfreen", "freef", "freev") else None)) if code else None
             out = (r.stdout if r and r.status == "ok" else "") or ""
             lines = [l for l in out.strip().splitlines() if l.strip()]
             pred = value_of(lines[-1]) if lines else None

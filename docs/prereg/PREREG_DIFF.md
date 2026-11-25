@@ -909,3 +909,17 @@ Prediction: ours more accurate (> +5 points), SIRL cheaper in tokens; utility di
   more than ~22 accuracy points (our price: 0.5). On optnew 46 of 93 programs crash (non-existent coptpy calls such as coptpy.max /
   coptpy.maximum, syntax errors) and 5 have no code: the 2024-era specialised 8B model fails mostly on code validity, not on modelling.
 - COPT's size-limited pip licence refused 3 of 667 solves (counted wrong); it does not explain the gap.
+## Diagnosis (descriptive, 2026-11-25 03:25 UTC; poc/wp_nbs_diag.py, CPU job 1582931): why the word-problem thinking programs print "No Best Solution"
+optnew has no infeasible gold, yet 32 / 27 of 93 gpt-oss-120b thinking programs (WP-TP, seeds 1 / 2) print it. Re-running the 59 with the
+CP-SAT status printed after Solve: 7 INFEASIBLE, 11 other libraries, and **41 never reach Solve** — they read the data from stdin, find it
+empty and print "No Best Solution" in their input-parsing branch. Counting by code: programs that read stdin are 25 / 27 of 93 on optnew
+and 33 / 31 of 300 on omtf (gpt-oss-120b thinking), 6–9 of 300 for gpt-oss-20b, ~0 for the Qwen models; 1–2 of them are right. The
+harness gives empty stdin, and the prompt never says so: a specification gap, not a modelling error, and it sits inside WP-TP's numbers
+(it is most of "one of the two prints no value in 26 of 93"). The October INFEAS repair targeted a different class (true over-strict models).
+## Addendum WP-NOIN (registered 2026-11-25 03:25 UTC, before running): state the harness in the prompt
+Change: the free-solver prompt gains one sentence, "The program receives no input (stdin is empty): write every number given in the
+problem into the program itself." (run_nlopt mode thinkfreen). Run exactly as WP-TP otherwise: gpt-oss-120b medium thinking, 16k,
+seeds 1–2, optnew and omtf; judge on disagreements (wp_plan.py, WP_MODE=thinkfreen, WP_SFX=_tpn).
+**Test (optnew, decisive):** WP-NOIN two thinking + judge − WP-TP two thinking + judge, utility, paired by problem, 95% bootstrap.
+Prediction: > 0 with lower bound > 0, and stdin-reading programs ≤ 3 of 93 per seed; accuracy and tokens reported separately (tokens
+expected within ±10%). Also reported: one thinking program (seed mean) new − old, and the same on omtf.
