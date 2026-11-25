@@ -1434,3 +1434,15 @@ High stays ahead of medium (86.6% vs 79.4%, seed means over three seeds); the MA
 **Arms** (all ordered seed pairs averaged; tokens as used): ONE; **PROV2** (a second attempt only if the first is flagged; its answer unless it is flagged too, then the first's); MAJ3 (majority of three, first on a three-way split); PROV-HIGH (a flagged medium attempt is followed by one high-effort attempt); RAND2 (second attempt on the same number of problems at random: exact expectation).
 **Tests** (170 problems, paired by problem, dev and fresh reported apart): PROV2 − ONE utility; PROV2 − MAJ3; PROV2 − RAND2. **Predictions:** flagged precision (flagged → wrong) ≥ 85% on seeds 2–3; PROV2 − MAJ3 utility lower bound > 0 (it buys a third of the tokens); **PROV2 − ONE utility is positive but small, and can be ≤ 0**: the retry must succeed on > 6–7% of the flagged problems to pay (12k tokens
 at 0.5 points per ktok). If it does not pay, the signal's value is the opposite decision: abstain / stop spending, reported as accuracy among answered problems, not as a utility win.
+
+## TIR-N on competition answers, medium (2026-11-25 17:40 UTC; 155 problems, seed 1)
+| arm | accuracy | ktok | utility |
+|---|---|---|---|
+| **native python tool, medium** | **92.3%** | **3.82** | **90.35** |
+| high, forced answer at the end of the thinking (recipe of 16:21 UTC) | 89.4% | 14.23 | 82.24 |
+| high + medium retry at the cap | 90.8% | 16.57 | 82.47 |
+| high / medium without the tool (3 seeds) | 86.7 / 79.4% | 15.30 / 5.93 | 79.02 / 76.39 |
+TIR − recipe: utility **+8.11 [+2.60, +13.66]**, accuracy +2.90 [−2.26, +8.06], −10.41 ktok [−11.99, −8.96]; TIR − medium without the tool +13.96 [+8.28, +19.47]. **TIR is the competition recipe** (registered rule). Per competition 86.7% (AIME 2025) to 96.7% (AIME 2026, after the training cutoff): no sign that the gain is memory.
+Price check promised in the registration: 183 tool-output tokens per problem, 4.7 calls, 19.7k re-read (prefill) tokens per problem against 5.9k-token no-tool prompts of ~0.2k: even priced at a tenth of an output token the re-reading adds 2.0k, and TIR stays ahead of the recipe (−8.4 ktok).
+- **Prediction held** (fewer tokens than HIGH at equal accuracy). **What this says about our earlier record (constructive):** ten weeks of competition-answer work (efforts, retries, selectors, stopping) compared no-tool arms with each other; the native tool at medium effort beats all of them by more than any of those differences. The gap was a missing baseline, not a missing idea.
+- **PROV amendment (same time, before any high-effort tool row is read):** competition answers join PROV: ONE (medium), PROV2 (a second medium attempt when flagged; seeds 2–3 to be run), PROV-HIGH (a flagged medium attempt followed by a high-effort tool attempt, seed 1), HIGH-TOOL alone. Prediction: PROV-HIGH beats HIGH-TOOL on utility by > 2 (high effort bought on ≤ 15% of the problems).
