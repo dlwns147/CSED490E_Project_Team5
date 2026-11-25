@@ -1097,3 +1097,18 @@ the highest estimated utility (100 × estimated accuracy − 0.5 × its mean kto
 two where SIRL wins), optnew, optmath, BWOR, LogIOR, OptiBench. Prediction: it picks SIRL on omtf and omtf2 and ours on ≥ 4 of the other
 5, and its mean utility over sets is ≥ always-ours + 0.5. Risk stated: SIRL and ORLM share the OptMATH/COPT lineage (correlated errors),
 which inflates both.
+### PICK result (2026-11-25 07:27 UTC; python poc/wp_pick.py <sets>; the two missing arms were run first, so all seven sets have four arms)
+Picks SIRL on omtf and omtf2 and ours-one on optnew / OptMATH / BWOR / LogIOR / OptiBench: the per-set best on 7 of 7; mean utility over
+the sets **66.62 against always-ours 65.80 (+0.82) and always-SIRL 55.08**; the registered prediction holds on this first look.
+Constructive reading, before any claim: (i) the arms' accuracies had been seen when the sets were chosen; (ii) the seven decisions contain
+two distinct answers, and omtf / omtf2 are one distribution, so this is effectively one success against a rule ("always ours") that is
+right on 5 of 7 anyway; (iii) the estimated accuracies are far from the truth (ours-one 0.76 vs 0.48 on optnew), only the order is right;
+(iv) **the probe cost is not charged**: all four arms were run on every problem. (iv) is tested next.
+## Addendum PICK-COST (registered 2026-11-25 07:27 UTC, before computing; offline, same rows)
+Deployable version: on a set of N problems, run all four arms on m randomly drawn problems (their tokens charged), fit the same model
+on those m, answer the probe problems with the picked arm's answer (its tokens already counted) and the other N − m with the picked arm
+alone. Baselines: always-ours, always-SIRL (no probe). m ∈ {10, 20, 30, 50}, 300 random draws each, per set; utility per problem
+(mean over draws) − always-ours; also the share of draws that pick the per-set best. Prediction: the pick recovers the best arm in ≥ 80%
+of draws at m = 30 on every set, AND the mean over the seven sets of (PICK-COST − always-ours) is > 0 at some m. The second half is the
+one that decides whether PICK is usable; by the arithmetic of the earlier checks (a cheap check must save more than it costs) I expect
+it to fail on the small sets.
