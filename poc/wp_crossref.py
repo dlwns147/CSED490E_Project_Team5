@@ -1,5 +1,5 @@
 """CROSSREF (PREREG_DIFF, 2026-11-25): a referee on the disagreements of two different families, A = gpt-oss-120b one program (corrected environment, seed 1)
-and B = OptiMind-SFT. usage: POC_BASE_URL=... python wp_crossref.py run <set> [...]   |   python wp_crossref.py score"""
+and B = OptiMind-SFT. usage: POC_BASE_URL=... python wp_crossref.py run <set> [...]   |   python wp_crossref.py score | scorec   |   ... runc <set> [...]   (CROSSREF-C: same-family judge)"""
 import json, os, random, re, sys, zlib
 from concurrent.futures import ThreadPoolExecutor
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -44,6 +44,75 @@ def run(sets):
         with ThreadPoolExecutor(32) as ex, open(out, "a") as f:
             for z in ex.map(one, todo):
                 f.write(json.dumps(z) + "\n"); f.flush()
+
+
+def runc(sets):
+    """CROSSREF-C: SAMEREF = the same judge on the disagreements of two gpt-oss-120b programs (seeds 1, 2, corrected environment)"""
+    from llm import chat
+    for st in sets:
+        RN, P, A, _, _, A2 = load(st)
+        out = f"{W.OUT}/crossref_{st}_samejudge.jsonl"
+        done = {json.loads(l)["id"] for l in open(out)} if os.path.exists(out) else set()
+        todo = [i for i in P if i not in done and A[i]["pred"] is not None and A2[i]["pred"] is not None and not same(RN, A[i]["pred"], A2[i]["pred"])]
+        print(st, "to judge (same family)", len(todo), flush=True)
+
+        def one(i):
+            first = "A" if zlib.crc32(i.encode()) % 2 == 0 else "A2"
+            X = {"A": A[i], "A2": A2[i]}; o = {"A": "A2", "A2": "A"}[first]
+            z = chat(W.JUDGE.format(q=P[i]["q"], v1=X[first]["pred"], c1=(X[first].get("code") or "")[:6000], v2=X[o]["pred"], c2=(X[o].get("code") or "")[:6000]),
+                     think=True, max_tokens=12000, temperature=0.7, seed=5000 + zlib.crc32(i.encode()) % 997)
+            m = re.findall(r"\\boxed\{\s*([12])\s*\}", z.get("text") or "")
+            return {"id": i, "pick": {"1": first, "2": o}[m[-1]] if m else None, "tok": z.get("out_tokens") or 0}
+        with ThreadPoolExecutor(32) as ex, open(out, "a") as f:
+            for z in ex.map(one, todo):
+                f.write(json.dumps(z) + "\n"); f.flush()
+
+
+NINE = ("optc", "indc", "mamoc", "optnew", "optmath", "omtf", "bwor", "logior", "optibench")
+
+
+def scorec():
+    pool = {k: {} for k in ("A", "B", "JUDGE", "SAMEREF", "PLUR3")}; rr = {"JUDGE": [0, 0], "SAMEREF": [0, 0]}
+    for st in NINE:
+        RN, P, A, B, S, A2 = load(st)
+        A3 = L(f"opt_oss120_{st}_thinkfreenE_s3.jsonl")
+        ZJ = {json.loads(l)["id"]: json.loads(l) for l in open(f"{W.OUT}/crossref_{st}_judge.jsonl")}; ZS = {json.loads(l)["id"]: json.loads(l) for l in open(f"{W.OUT}/crossref_{st}_samejudge.jsonl")}
+
+        def ref(i, X, Y, Z, name, yk):
+            x, y = X[i], Y[i]; cx, cy = bool(x["correct"]), bool(y["correct"]); base = tk(x) + tk(y)
+            if same(RN, x["pred"], y["pred"]):
+                return cx, base
+            if x["pred"] is None or y["pred"] is None:
+                return (cy if x["pred"] is None else cx), base
+            z = Z.get(i, {}); pk = z.get("pick")
+            if cx != cy:
+                rr[name][1] += 1; rr[name][0] += (pk == "A") == cx and pk is not None
+            return (cy if pk == yk else cx), base + (z.get("tok") or 0)
+        for i in P:
+            pool["A"][(st, i)] = (bool(A[i]["correct"]), tk(A[i])); pool["B"][(st, i)] = (bool(B[i]["correct"]), tk(B[i]))
+            pool["JUDGE"][(st, i)] = ref(i, A, B, ZJ, "JUDGE", "B"); pool["SAMEREF"][(st, i)] = ref(i, A, A2, ZS, "SAMEREF", "A2")
+            if A3:
+                rows = [A[i], A2[i], A3[i]]; cls = []
+                for r in rows:
+                    for c in cls:
+                        if same(RN, c[0]["pred"], r["pred"]):
+                            c.append(r); break
+                    else:
+                        if r["pred"] is not None:
+                            cls.append([r])
+                best = max(cls, key=len) if cls and max(len(c) for c in cls) >= 2 else [A[i]]
+                pool["PLUR3"][(st, i)] = (bool(best[0]["correct"]), sum(tk(r) for r in rows))
+    print("judge right on resolvable disagreements:", {k: f"{a} of {b} ({100*a/max(1,b):.0f}%)" for k, (a, b) in rr.items()})
+    for k, v in pool.items():
+        if v:
+            print(f"{k:8s} n={len(v)} accuracy {100*sum(x for x, _ in v.values())/len(v):.1f}%  tokens {sum(t for _, t in v.values())/len(v)/1000:.2f}k  utility {sum(U(*x) for x in v.values())/len(v):.2f}")
+    for x, y in (("JUDGE", "A"), ("SAMEREF", "A"), ("JUDGE", "SAMEREF"), ("JUDGE", "PLUR3"), ("PLUR3", "A"), ("SAMEREF", "PLUR3")):
+        if pool[x] and pool[y]:
+            ids = list(pool[x])
+            print(f"{x} − {y}: accuracy {ci([100*(pool[x][i][0]-pool[y][i][0]) for i in ids])}  ktok {ci([(pool[x][i][1]-pool[y][i][1])/1000 for i in ids])}  utility {ci([U(*pool[x][i])-U(*pool[y][i]) for i in ids])}")
+    for st in NINE:
+        ids = [i for i in pool["A"] if i[0] == st]
+        print(f"  {st:9s} JUDGE − SAMEREF accuracy {100*sum(pool['JUDGE'][i][0]-pool['SAMEREF'][i][0] for i in ids)/len(ids):+.2f}" + (f"  PLUR3 acc {100*sum(pool['PLUR3'][i][0] for i in ids)/len(ids):.1f}" if pool["PLUR3"] else ""))
 
 
 def ci(d, n=4000):
@@ -93,4 +162,4 @@ def score():
 
 
 if __name__ == "__main__":
-    run(sys.argv[2:]) if sys.argv[1] == "run" else score()
+    {"run": lambda: run(sys.argv[2:]), "runc": lambda: runc(sys.argv[2:]), "score": score, "scorec": scorec}[sys.argv[1]]()

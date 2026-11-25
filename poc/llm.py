@@ -30,7 +30,7 @@ def chat(prompt: str, model: str = "local", temperature: float = 0.7, max_tokens
         max_tokens=max_tokens, seed=seed, **({"logprobs": True} if logprobs or top_logprobs else {}),
         **({"top_logprobs": top_logprobs} if top_logprobs else {}),
         **({"presence_penalty": ts["presence_penalty"]} if "presence_penalty" in ts else {}),
-        extra_body={"chat_template_kwargs": {"enable_thinking": think, **_TK, **({"thinking_budget": (budget or -1) if think else 0} if SEED else {})},
+        extra_body={**({} if os.environ.get("POC_NO_TEMPLATE_KW") else {"chat_template_kwargs": {"enable_thinking": think, **_TK, **({"thinking_budget": (budget or -1) if think else 0} if SEED else {})}}),   # POC_NO_TEMPLATE_KW: servers that refuse chat_template_kwargs (Mistral tokenizer, Leanstral)
                     **(_EFF if effort is None else {"reasoning_effort": effort}), **({"top_k": int(ts["top_k"])} if "top_k" in ts else {}),
                     # vLLM needs these to continue an assistant prefill; llama-server ignores them
                     **({"continue_final_message": True, "add_generation_prompt": False} if prefill else {})},

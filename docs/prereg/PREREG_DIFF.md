@@ -1290,11 +1290,11 @@ Judge right on **171 of 244 (70%)** resolvable disagreements. Accuracy · ktok �
 A2 − A (1,709): +4.04 / utility +2.55 [+1.41, +3.67].
 - **All registered predictions hold** (70% ≥ 65%; accuracy gain ≥ 2.0 with lower bound > 0; utility lower bound > 0). It is a trade-off: +2.5k tokens per problem for +3.4 points, i.e. the break-even price is about 1.36 points per ktok; our price
   is 0.5. On optnew and OptMATH (original labels, 41% reported wrong) the judge is below A.
-- **What is NOT shown yet — the heterogeneity claim.** The A2 arm (gpt-oss-120b's own second program added as a tie-breaker to A + B) does at least as well on its nine sets, and a same-family control (A + A2 + the same judge) and a token-matched
+- **What is NOT shown yet — the heterogeneity claim.** The A2 arm (gpt-oss-120b's own second program added as a tie-breaker to A + B) is pooled over nine sets and JUDGE over twelve, so their gains are not comparable as printed, and a same-family control (A + A2 + the same judge) and a token-matched
   one (plurality of three gpt-oss-120b programs, ~6.5k tokens) were not registered or run. If a second gpt-oss-120b program with the same judge gives the same +3, the gain is "a second sample and a judge" (WP-TP / WP-NOIN: +2.85, not
   significant, on one set), not two families.
 ## Addendum CROSSREF-C (registered 2026-11-25 12:18 UTC, before any run): the same-family and token-matched controls
 On the nine sets with a second gpt-oss-120b program (optc, indc, mamoc, optnew, OptMATH, omtf, BWOR, LogIOR, OptiBench; 1,709 problems): **SAMEREF** = A + A2, the same judge (wp_plan.JUDGE, order by hash) on their disagreements; **PLUR3** =
 plurality of three gpt-oss-120b programs (seeds 1–3; seed 3 generated now with the corrected prompt; A when all differ, no judge). **Test:** CROSSREF JUDGE − SAMEREF and − PLUR3, accuracy and utility, paired, 95%. **Prediction:** JUDGE ≥ SAMEREF + 1.0
-accuracy with lower bound > 0 (different families cover more: 86.1% against 86.0–86.9% was NOT larger on every set in the headroom table, so this is a real risk of failing); utility lower bound > 0. If it fails, the result is reported as "a
+accuracy with lower bound > 0 (the headroom table's coverage is larger for A + B than for A + A2 on seven of the nine sets, smaller on BWOR and LogIOR, so this can fail); utility lower bound > 0. If it fails, the result is reported as "a
 second program and a judge", with no claim about families, and the cheaper SAMEREF is the recipe.
