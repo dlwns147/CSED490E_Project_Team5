@@ -19,11 +19,20 @@ except BaseException:
 def _alarm(*a):
     raise TimeoutError("check over 20 s")
 def submit(s):
-    s = str(s); bad = []; note = ""
+    import re as _re
+    s = str(s).strip(); bad = []; note = ""; _m = _re.fullmatch(r"(?s)\\boxed{{(.*)}}", s); s = _m.group(1).strip() if _m else s
     if _ENF and callable(_NS.get("check")):
         old = _sig.signal(_sig.SIGALRM, _alarm); _sig.setitimer(_sig.ITIMER_REAL, 20)
         try:
-            bad = [str(x)[:300] for x in (_NS["check"](s) or [])][:6]
+            errs, res = [], []
+            for form in (s, chr(92) + "boxed{{" + s + "}}"):          # the check may expect the box or its content: it rejects only if every form it can read is rejected; a crash / parse failure cannot reject
+                try:
+                    res.append([str(x)[:300] for x in (_NS["check"](form) or [])][:6])
+                except TimeoutError:
+                    raise
+                except BaseException as e:
+                    errs.append(type(e).__name__ + ": " + str(e)[:150])
+            bad = res[0] if res and all(res) else []; note = "check error " + errs[0] if errs and not res else ""
         except BaseException as e:
             bad = []; note = "check error " + type(e).__name__ + ": " + str(e)[:150]
         finally:
@@ -44,7 +53,8 @@ TAIL = ("\n\nFinish by calling submit(s) in the python tool (the function alread
 OWN = " Before that, write a function in the session that tests every condition the problem states on the final object, run it, and submit only if it passes."
 BLINDT = " submit runs a check of the stated conditions; if it prints REJECTED, fix the object and submit again."
 SPEC = ("Below is a problem that asks for an answer in a fixed format. Do NOT solve it. Write one Python 3 function `check(s)` that tests a proposed answer against the conditions the problem states.\n"
-        "- s is a string: exactly the text that would stand inside \\boxed{{...}} in the required format. Parse it tolerantly (spaces, LaTeX spacing, line breaks, (), [], {{}} as list brackets, an array environment if the format uses one).\n"
+        "- s is a string: the text that stands inside \\boxed{{...}} in the required format, WITHOUT the \\boxed itself. Parse it tolerantly (spaces, LaTeX spacing and fractions / roots, line breaks, (), [], {{}} as list brackets, an array environment if the format uses one). "
+        "If you cannot parse s, raise ValueError; never report a format problem as a violated condition.\n"
         "- Return a list of short strings, one per violated condition; return [] if every stated condition holds. Test only conditions the statement gives, with the given parameters; never require a particular answer. If a condition cannot be tested "
         "by computation, skip it.\n- It must run within 10 seconds; standard library, numpy and sympy only; no input, no prints, no files.\n\nProblem:\n{p}\n\nGive the function in a single ```python code block.")
 
@@ -57,7 +67,7 @@ def solve(q, effort, seed, arm, spec_code):
     import llm
     tok = lambda s: llm.post_json("/tokenize", {"model": "local", "prompt": s, "add_special_tokens": False})["tokens"]
     q = q + TAIL + {"S0": "", "OWN": OWN, "BLIND": BLINDT}[arm]
-    ids = tok(T.SYS.format(e=effort, q=q)); used = calls = prefill = tooltok = 0; tool = T.Tool(); codes, outs, subs = [], [], []; fin = "stop"; text = ""; final = ""
+    ids = tok(T.SYS.format(e=effort, q=q)); used = calls = prefill = tooltok = 0; tool = T.Tool(); codes, outs, subs = [], [], []; msgs = 0; fin = "stop"; text = ""; final = ""
     subf = os.path.join(tool.d.name, "subs.jsonl"); pre = PRE.format(code=repr(spec_code or ""), enf=arm == "BLIND", sub=repr(subf)); inited = None
     try:
         while True:
@@ -70,7 +80,15 @@ def solve(q, effort, seed, arm, spec_code):
             if fin == "length":
                 break
             if T.CALL not in (g[-1] if g else None, c.stop_reason):
-                break
+                fm = text.split("<|channel|>final<|message|>")[-1].split("<|return|>")[0] if "<|channel|>final<|message|>" in text else ""
+                msgs += 1
+                if msgs > 3:
+                    break
+                note = "Your answer was not submitted. Call submit(s) in the python tool with the text that goes inside the box, built by your code from a value it computed."
+                if arm == "BLIND":
+                    note += " submit also checks the stated conditions."
+                base = g[:-1] if g and g[-1] == T.RET else g
+                ids = ids + base + tok("<|end|><|start|>user<|message|>" + note + "<|end|><|start|>assistant"); continue
             if g[-1] != T.CALL:
                 g.append(T.CALL)
             m = text.split("<|call|>")[0].split("<|message|>"); head, code = m[-2].split("<|start|>")[-1] if len(m) > 1 else "", m[-1]; calls += 1
@@ -90,7 +108,7 @@ def solve(q, effort, seed, arm, spec_code):
         final = text.split("<|channel|>final<|message|>")[-1].split("<|return|>")[0] if "<|channel|>final<|message|>" in text else ""
         if "\\boxed" not in final and subs:
             final = "\\boxed{" + subs[-1]["s"] + "}"
-    return {"final": final, "out_tokens": used, "calls": calls, "finish": fin, "codes": codes, "outs": outs, "subs": subs, "tool_tokens": tooltok, "prefill_tokens": prefill}
+    return {"final": final, "out_tokens": used, "calls": calls, "finish": fin, "codes": codes, "outs": outs, "subs": subs, "unsubmitted_messages": msgs, "tool_tokens": tooltok, "prefill_tokens": prefill}
 
 
 def main(arm, st, effort, seed):
@@ -102,11 +120,11 @@ def main(arm, st, effort, seed):
             pass
     else:
         P, prompt, grade = T.task(st)
-    path = f"{R}/tirsub_{arm}_{st}_{effort}_s{seed}.jsonl"; done = {json.loads(l)["id"] for l in open(path)} if os.path.exists(path) else set()
-    specp = f"{R}/tirsub_spec_{st}.jsonl"; SP = {json.loads(l)["id"]: json.loads(l) for l in open(specp)} if os.path.exists(specp) else {}
+    path = f"{R}/tirsub2_{arm}_{st}_{effort}_s{seed}.jsonl"; done = {json.loads(l)["id"] for l in open(path)} if os.path.exists(path) else set()
+    specp = f"{R}/tirsub2_spec_{st}.jsonl"; SP = {json.loads(l)["id"]: json.loads(l) for l in open(specp)} if os.path.exists(specp) else {}
     if arm == "BLIND":
         def spec(p):
-            z = chat(prompt_spec(prompt(p)), think=True, max_tokens=12000, temperature=0.7, seed=9000 + zlib.crc32(p["id"].encode()) % 997)
+            z = chat(prompt_spec(prompt(p)), think=True, max_tokens=12000, temperature=0.7, effort="low", seed=9000 + zlib.crc32(p["id"].encode()) % 997)
             return {"id": p["id"], "code": last_block(z.get("text") or "", ("python", "py", "python3")) or "", "tok": z.get("out_tokens") or 0}
         with ThreadPoolExecutor(32) as ex, open(specp, "a") as f:
             for z in ex.map(spec, [p for p in P if p["id"] not in SP]):
