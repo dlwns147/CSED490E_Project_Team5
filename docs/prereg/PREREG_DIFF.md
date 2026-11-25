@@ -858,3 +858,9 @@ at 7.8k. **Prediction fails (more tokens, not fewer).** The three cheap families
 94.6% there), so the gate's ~2k tokens are paid on every sequence and save the thinking programs on only a quarter. A gate pays only
 if it is cheaper than what it saves times how often it fires; here 2k × 1 > 6.8k × 0.24. No win-on-both recipe found for OEIS beyond
 two thinking programs + referee.
+## Addendum MC-RL (registered 2026-11-25 01:06 UTC, before running): make MathConstruct's repair a win on both
+MC-R is a trade-off on fresh parameters (+6.1 points for +1.7k tokens). The repair turn runs at medium effort; the same turn at **low**
+effort costs a fraction of the tokens. Run: gpt-oss-120b, low effort, the same repair prompt, on the 137 fresh instances whose own
+verify() fails, seeds 1–2 (gs15). Policy as MC-R (progc; repair on a failure; thinking only if the repair also fails). Reported against
+the ladder (no repair) and MC-R (medium repair): accuracy and tokens separately. Prediction: accuracy within 1 point of MC-R at fewer
+tokens than the ladder (a win on both over the ladder).

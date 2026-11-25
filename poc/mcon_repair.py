@@ -18,7 +18,7 @@ def run(tag, seed):
     import run_compute as RC
     P = {p["id"]: p for p in RC.problems(SET)}
     rows = [json.loads(l) for l in open(f"{R}/{SET}_{tag}_progc_s{seed}.jsonl")]
-    out = f"{R}/{SET}_{tag}_progcR_s{seed}.jsonl"
+    out = f"{R}/{SET}_{tag}_progcR{os.environ.get('MC_RSFX', '')}_s{seed}.jsonl"   # MC_RSFX: e.g. "low" (addendum MC-RL)
     todo = [r for r in rows if r.get("code") and str(r.get("verify")) != "True"]
 
     def one(r):
