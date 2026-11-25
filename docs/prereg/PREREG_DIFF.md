@@ -1176,3 +1176,19 @@ Solution" answers), pooled 887** — no gpt-oss-120b thinking program has been r
 questions by other models.
 **Predictions:** (1) MODEL_INVALID is at least 1% of the 887 programs; (2) of the triggered programs V is right on ≥ 60%; (3) V − N pooled accuracy > 0 with 95% lower bound > 0;
 (4) V − R utility ≥ 0. If (1) fails the repair has nothing to act on outside Mamo-Complex and is reported as a property of that set only. **Decision:** adopt V only if (3) and (4) hold.
+### VALID result (2026-11-25 10:01 UTC; python poc/wp_valid.py score easyc nl4c oss120 thinkfreen 1; gpt-oss-120b medium, seed 1)
+| set (rows) | MODEL_INVALID | of the triggered: stored right | V (repair) right | R (fresh program) right |
+|---|---|---|---|---|
+| easyc (642) | 51 (7.9%) | 0 | **46** | 27 |
+| nl4c (245) | 8 (3.3%) | 2 | 7 | 6 |
+| *mamoc (210, where it was found)* | *20 (9.5%)* | *0* | *20* | *7* |
+Pooled decisive 887: N 85.6% · 1.86k · 84.64; **V 91.3% · 1.95k · 90.34**; R 89.1% · 2.00k · 88.07. **V − N accuracy +5.75 [+4.28, +7.33]**, utility +5.70 [+4.25, +7.27];
+**V − R utility +2.28 [+1.37, +3.29]**. All four registered predictions hold (59 of 887 triggered = 6.7%; V right on 53 of 59 = 90%). The repair is also cheaper than the resample (1.4k vs 2.1k tokens per triggered row).
+**Not adopted yet — criticism first:** (i) every trigger is MODEL_INVALID (no UNKNOWN), and every validation message printed for mamoc names the same cause (a domain of INT_MAX): the repair may be fixing ONE
+library constant, at 1.4k tokens a time; (ii) a zero-token competitor exists and was not in the registration: an environment that accepts the constant; (iii) V − R is a fair comparison only against resampling,
+which also re-rolls the same constant.
+## Addendum ENV (registered 2026-11-25 10:01 UTC, before running): the zero-token competitor of V
+Policy: run the stored program unchanged in an environment where cp_model.INT_MAX / INT_MIN are the largest domain this OR-Tools version accepts, ±(2^62 − 1) (the documented kint64max / 2; not a chosen number), by a two-line
+prefix; no model call, no new tokens. Applied to the same triggered rows, graded the same way. Anything that stays invalid (e.g. overflowing sums) keeps the stored answer.
+**Prediction:** ENV recovers ≥ 80% of what V recovers; then V − ENV ≤ +1 point and the right action is to fix the environment (a harness correction, reported as such, applied to every CP-SAT row of every
+set), with V kept only for what the fix leaves. If ENV recovers < 50%, V is the recipe step. **Adoption rule:** the cheaper of the two that does not lose accuracy (paired 95%: lower bound of V − ENV > 0 → V).
