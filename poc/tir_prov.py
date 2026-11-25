@@ -21,7 +21,7 @@ def rows(st, eff, seed):
 
 
 def main(st):
-    Z = {s: rows(st, "medium", s) for s in (1, 2, 3)}; Z = {s: z for s, z in Z.items() if z}; H = rows(st, "high", 1)
+    Z = {s: rows(st, "medium", s) for s in [int(x) for x in os.environ.get("PROV_SEEDS", "1,2,3").split(",")]}; Z = {s: z for s, z in Z.items() if z}; H = rows(st, "high", 1)
     ids = sorted(set.intersection(*(set(z) for z in Z.values()))); ok = lambda r: float(bool(r["correct"])); tk = lambda r: r["out_tokens"]
     print(f"== {st}: {len(ids)} problems, medium seeds {sorted(Z)}" + (", high seed 1" if H else ""))
     for s, z in Z.items():

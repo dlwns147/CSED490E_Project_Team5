@@ -1500,3 +1500,17 @@ If it passes, the decisive set runs S0, OWN, BLIND2 (and TIR-F), seeds 1–2; if
 ### SUBMIT: the v2 development numbers are WITHDRAWN (2026-11-25 20:55 UTC; harness fault, mine)
 In 23 of 26 unsubmitted S0 attempts, 26 of 34 OWN and about 10 of 24 BLIND attempts the model had *redefined* submit in its own cell (def submit(s): print("Submitted:", s)), which replaced ours: the answer was printed, never recorded, and the attempt ended unsubmitted. So "S0 − TIR-F −4.4", "OWN worst", "BLIND − S0 +9.5" compare arms that lost different numbers of answers to the fault and say nothing
 about the idea. Found by reading what the "The solution has been submitted" rows had called. Fix (v5, files tirsub3_*): definitions of submit are removed from every cell before it runs, at any nesting level (tested: def, try/except def, assignment). Dev re-run: S0, OWN, BLIND2 on mconf seed 1; the 10% gate and the decision rule of amendment 2 stay. mcon untouched by all submit arms.
+
+## PROV result, Project Euler (2026-11-25 20:56 UTC; python poc/tir_prov.py euler eulert; native tool, medium, seeds 1–3 with no call cap; PROV_SEEDS=2,3 for the unseen seeds; high effort still running)
+| arm | dev 120 | fresh 50 |
+|---|---|---|
+| ONE (one tool attempt; seed mean) | 50.8% @ 7.93k, 46.87 | 28.0% @ 12.26k, 21.87 |
+| **PROV2 (second attempt only when the answer was never printed by a tool run)** | 55.0% @ 11.60k, **49.20** | 32.3% @ 18.98k, **22.84** |
+| MAJ3 (majority of three tool attempts; AIMO-3 baseline) | 54.2% @ 23.78k, 42.28 | 32.7% @ 36.78k, 14.28 |
+| RAND2 (second attempt on the same share of problems, at random) | 52.3% @ 10.74k, 46.94 | 30.4% @ 18.96k, 20.89 |
+Pooled 170: **PROV2 − ONE accuracy +4.22 [+2.45, +6.08], utility +1.93 [+0.15, +3.81]; PROV2 − MAJ3 accuracy +0.49 [−1.57, +2.55], utility +7.41 [+5.23, +9.47] (half the tokens); PROV2 − RAND2 utility +2.17 [+1.06, +3.34].** Fresh 50 alone: PROV2 − ONE +0.98 [−1.93, +4.21]; dev alone +2.33 [+0.18, +4.55].
+**Unseen seeds 2–3 only** (seed 1 is where the flag was found): precision of "flagged → wrong" 91 / 93% (dev) and 93 / 96% (fresh); PROV2 − ONE accuracy +4.12 [+1.76, +6.47], utility +1.85 [−0.43, +4.31] (**not shown**); PROV2 − RAND2 +2.07 [+0.67, +3.60].
+- **Predictions:** precision ≥ 85% on seeds 2–3: holds. PROV2 − MAJ3 lower bound > 0: holds. PROV2 − ONE positive but small, can be ≤ 0: positive (shown with three seeds, not shown on the two unseen seeds).
+- **What is claimed:** where the answer must be computed, "was it ever printed by a tool run?" is a free failure signal with ~92% precision, and spending the second attempt there gives the accuracy of a majority of three at half its tokens, and more than the same spending at random. **What is not claimed:** the signal itself (ThinC, TIDE-Bench), a utility gain over one attempt on the fresh set, or anything on competition
+  answers (there the flag fails, above).
+- The plain tool's seed means replace the seed-1 rows above: 50.8% (dev), 28.0% (fresh); still +11 / +15 accuracy over think-then-program.
