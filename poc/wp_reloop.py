@@ -9,6 +9,8 @@ HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 ROOT = os.path.dirname(HERE)
 REPO = os.path.join(os.environ.get("POC_DATA", os.path.join(os.path.dirname(ROOT), "nlp_data")), "baselines", "ReLoop")
 R3 = f"{ROOT}/results/x3"
+DIRECT = bool(os.environ.get("RL_DIRECT"))   # their --no-cot option: direct generation (the values are in the program), then the same L1 / L2 / repair
+TAG = "reloopD120" if DIRECT else "reloop120"
 U = lambda ok, t: 100 * ok - 0.5 * t / 1000
 
 
@@ -34,14 +36,14 @@ def run(sets):
     for st in sets:
         os.environ["NLOPT_SET"] = st
         import run_nlopt as RN
-        P = RN.problems(st); out = f"{R3}/opt_reloop120_{st}_s1.jsonl"
+        P = RN.problems(st); out = f"{R3}/opt_{TAG}_{st}_s1.jsonl"
         done = {json.loads(l)["id"] for l in open(out)} if os.path.exists(out) else set()
 
         def one(p):
             L = Client(); ex = CodeExecutor(); z = {"id": p["id"], "gold": p["gold"], "err": ""}
             g = lambda o: RN.correct(o, p["gold"]) if o is not None else False
             try:
-                gen = CodeGenerator(llm_client=L, use_structured_generation=True); pipe = ReLoopPipeline(llm_client=L, enable_cpt=True, max_repair_iterations=3, verbose=False)
+                gen = CodeGenerator(llm_client=L, use_structured_generation=not DIRECT); pipe = ReLoopPipeline(llm_client=L, enable_cpt=True, max_repair_iterations=3, verbose=False, use_structured_generation=not DIRECT)
                 data = {}; code = gen.generate(p["q"])
                 if gen.extracted_data is not None:
                     data = gen.extracted_data
@@ -65,7 +67,7 @@ def score():
     import wp_crossref as C
     ci = C.ci; tot = {"one": [], "RETRY": [], "ReLoop": []}
     for st in C.NINE + ("easyc", "nl4c", "omtf2"):
-        f = f"{R3}/opt_reloop120_{st}_s1.jsonl"
+        f = f"{R3}/opt_{TAG}_{st}_s1.jsonl"
         if not os.path.exists(f):
             continue
         RN, P, A, _, _, A2 = C.load(st); R = {json.loads(l)["id"]: json.loads(l) for l in open(f)}

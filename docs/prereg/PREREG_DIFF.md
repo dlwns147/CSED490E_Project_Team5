@@ -1470,3 +1470,13 @@ TIR-F 71.5% @ 6.41k, utility 68.33. vs MC-R (56.2% @ 5.12k, 53.65): accuracy **+
 first run's 70 misses were unparseable answers and 6 hit the cap, so the line explains most of it; not separated further.)
 - Project Euler fresh, no call cap, seed 1: 34.0% @ 11.99k (with the 30-call cap 30.0%).
 - State of the recipes: the native tool is the recipe on Project Euler, MathConstruct and competition answers; OEIS and word problems are still running. MC-R, PE-R, MA-RETRY and the no-tool efforts are superseded as recipes; their comparisons with each other stand.
+
+## RELOOP-B result, first seven sets (2026-11-25 19:23 UTC; python poc/wp_reloop.py score; official pipeline, gpt-oss-120b medium; 804 problems)
+| arm | accuracy | ktok | utility |
+|---|---|---|---|
+| one program (ours) | 71.8% | 2.72 | 70.41 |
+| RETRY (our recipe) | 74.0% | 2.83 | 72.59 |
+| ReLoop (structured generation + L1 + L2 + repair) | 54.4% | 9.73 | 49.49 |
+ReLoop − RETRY accuracy −19.65 [−23.13, −16.17], utility **−23.11 [−26.59, −19.56]**; behind on all seven sets (−13 to −27). Prediction (not above RETRY, ≥ 1.5× its tokens) holds. **Checked because the gap is suspicious:** no failed requests, no zero-token rows, 7 cut calls; 202 of 804 end with no value. Sixteen of those on one set re-generated: 11 programs crash, on KeyError / AttributeError / TypeError / ValueError or an infeasible model:
+the generator is shown only the schema of the data a first call extracted, and its code mis-keys it. Its generation alone is at 64.1 / 61.6 / 65.2 / … against our 87.5 / 78.8 / 82.4 (optc, indc, mamoc); checking and repair add about +1 point, as in the paper's ablation for generation-strong models. **Fair reading:** the loss is ReLoop's data-extraction generation with this model, not its perturbation checks.
+**Amendment:** (a) its own direct-generation option (--no-cot: the values are in the program, same L1 / L2 / repair) is run on the same seven sets as a second row; (b) the other five sets (1,792 problems) are not run in the first mode: no outcome there could change the decision.
