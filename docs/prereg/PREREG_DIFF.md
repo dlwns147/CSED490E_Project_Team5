@@ -1320,3 +1320,8 @@ utility +1.41 [+0.29, +2.60] at +0.21 ktok; SAMEREF − ADAPT3 +0.70 [−0.18, +
   version reported as +0.8 points [−0.3, +2.0] for +0.3 ktok.
 - Correction of an earlier reading: WP-TP / WP-NOIN found the second program + judge "not shown" (+2.85 [−1.43, +7.06] on 93 problems; +0.75 on 300); with 1,709 problems and the corrected environment the same pattern is shown. The earlier sets were too small.
 - The SAMEREF arm's A / A2 agreement and the judge are the same recipe as WP-TP; what is new is the size, the corrected environment and the controls (plurality, adaptive).
+## Addendum CROSSREF-C2 (registered 2026-11-25 13:20 UTC, before running): where does a second program and a judge stop paying?
+The nine CROSSREF-C sets average 74% for one program. Three sets never had a second gpt-oss-120b program: easyc (642; 92.5%), nl4c (245; 88.2%), omtf2 (300; 81.7%), 1,187 problems, the easy end. Run: seed 2 (corrected prompt, corrected
+environment by wp_env_regrade), then the same judge on the disagreements of seeds 1 and 2. **Test:** SAMEREF − A accuracy and utility, per set and pooled, paired. **Prediction:** accuracy gain positive on all three and significant pooled; **utility gain ≤ 0 on easyc and nl4c**
+(the second program costs about 1 utility point and fewer than 1 in 100 problems can be recovered at 92%), so the recipe should be applied where one program is below about 85%, read off the one-program accuracy of the set's own agreement, not a tuned threshold:
+the agreement rate of the two programs (no labels) is the decision variable and is reported per set beside the gain.
