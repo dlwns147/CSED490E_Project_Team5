@@ -847,3 +847,14 @@ no FP4 kernels for these GPUs). No recipe changes. A newer vLLM image is the pre
 - Both gs15 GPUs on the proof part's last model round (no computation run this hour). Computation track: all registered tests scored;
   next window's open items: a newer vLLM image (to test Gemma 4 / Mistral Small 4), and a method that wins on both accuracy and tokens
   where the current recipes are trade-offs (OEIS two programs, MathConstruct repair).
+## Addendum GATE (registered 2026-11-25 00:06 UTC, before computing; offline on stored rows): spend thinking only where cheap programs disagree
+Aim: a recipe that wins on both accuracy and tokens against OEIS-TP (two thinking programs + referee, 54.7% at 6.8k on fresh). Policy:
+three cheap programs, one per family (gpt-oss-120b, gpt-oss-20b, Qwen3-8B; seed 1; ~2k tokens); if all three print the same terms,
+answer with them; otherwise run OEIS-TP (stored rows) and charge its tokens on top. No threshold: unanimity of independent families is
+the gate. Fresh 309 decisive. Prediction: accuracy >= 54.0% at <= 5.5k tokens (better on tokens, within 0.7 on accuracy).
+### GATE result (2026-11-25 00:07 UTC)
+Fresh: gate 54.7% at 8.0k vs two thinking + referee 54.7% at 6.8k (gate − two −0.58 [−0.67, −0.47]); original: 39.6% at 9.1k vs 39.8%
+at 7.8k. **Prediction fails (more tokens, not fewer).** The three cheap families agree on only 74 of 309 fresh sequences (precision
+94.6% there), so the gate's ~2k tokens are paid on every sequence and save the thinking programs on only a quarter. A gate pays only
+if it is cheaper than what it saves times how often it fires; here 2k × 1 > 6.8k × 0.24. No win-on-both recipe found for OEIS beyond
+two thinking programs + referee.
