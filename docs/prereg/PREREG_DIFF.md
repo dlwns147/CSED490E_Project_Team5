@@ -1112,3 +1112,28 @@ alone. Baselines: always-ours, always-SIRL (no probe). m ∈ {10, 20, 30, 50}, 3
 of draws at m = 30 on every set, AND the mean over the seven sets of (PICK-COST − always-ours) is > 0 at some m. The second half is the
 one that decides whether PICK is usable; by the arithmetic of the earlier checks (a cheap check must save more than it costs) I expect
 it to fail on the small sets.
+### PICK-COST result (2026-11-25 07:27 UTC; python poc/wp_pick_cost.py <sets>; 300 draws per cell)
+| set | N | best arm | m = 10 | m = 20 | m = 30 | m = 50 |
+|---|---|---|---|---|---|---|
+| omtf | 300 | SIRL | 58% · −0.89 | 64% · +0.66 | 62% · +0.92 | 61% · +0.94 |
+| omtf2 | 300 | SIRL | 74% · +1.51 | 79% · +2.51 | 84% · +2.91 | 91% · +3.01 |
+| optnew | 93 | ours | 73% · −3.13 | 87% · −1.82 | 93% · −1.54 | 99% · −1.45 |
+| OptMATH | 100 | ours | 74% · −4.44 | 83% · −2.88 | 91% · −2.06 | 97% · −1.73 |
+| BWOR | 82 | ours | 61% · −9.81 | 79% · −5.68 | 85% · −4.37 | 95% · −2.38 |
+| LogIOR | 92 | ours | 67% · −7.87 | 83% · −4.46 | 90% · −2.95 | 100% · −1.12 |
+| OptiBench | 605 | ours | 61% · −4.15 | 78% · −2.47 | 87% · −1.35 | 96% · −0.48 |
+(share of draws that pick the per-set best · net utility against always-ours, probe tokens charged.) Mean over the seven sets:
+−4.11 (m = 10), −2.02, −1.21, −0.46 (m = 50).
+- **Prediction fails on both halves:** at m = 30 the pick is the best arm in only 62% of draws on omtf, and the mean net gain is negative at
+  every m. The label-free choice gains 1–3 points on the two sets where SIRL wins and pays 0.5–10 elsewhere, in probe tokens and
+  wrong picks; "always ours" is the better rule over this mixture of sets. It closes PICK: the same arithmetic as GATE and SPEC-PEER.
+- Useful part: at m = 50 the agreement estimate ranks the arms correctly in 91–100% of draws on six of the seven sets (omtf: 61%), so it
+  tells *which* arm is better for a user who already runs several arms and has no labels; it does not pay as an automatic router here.
+## MathConstruct failure census (2026-11-25 07:27 UTC; descriptive; poc/mc_census.py, CPU job 1584780; fresh-parameter 137, gpt-oss-120b seed 1)
+| program | 're' (no output), re-run with stderr | 'tle' (60 s), re-run at 600 s |
+|---|---|---|
+| cheap (progc) | 50: 49 still 're', 1 tle; **0 right** | 40: 36 still tle, 3 finish, 1 re; **3 right** |
+| thinking (thinkp) | 19: 19 still 're'; **0 right** | 23: 20 still tle, 3 finish; **1 right** |
+The errors are the programs' own (RuntimeError "No suitable n found within the search limit", failed assertions, index / key errors): the
+listed causes cover 44 of the 50 cheap 're' and contain no import, memory or sandbox error (the other 6 were not itemised). A 10× time
+limit rescues 3 of 40 cheap and 1 of 23 thinking timeouts (at most 2.2 and 0.7 points of 137). **No hidden harness gap found; not adopted.**
