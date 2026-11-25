@@ -76,13 +76,19 @@ def ci(d, n=4000):
     return f"{sum(d)/len(d):+.2f} [{b[int(.025*n)]:+.2f}, {b[int(.975*n)-1]:+.2f}]"
 
 
+GOLD = {p["id"]: p["gold"].strip() for p in PROBS}
+
+
 def load():
+    """rows with the own answer re-read by the corrected reader (M.ans) from the stored tail, or from the stored string when the tail holds no box"""
     X = {}
     for s in (1, 2):
         T = {r["id"]: r for r in rows(f"{R}/stop_trace_s{s}.jsonl")}; P = {}
         for z in rows(f"{R}/stop_probe_s{s}.jsonl"):
             P.setdefault(z["id"], []).append(z)
         for i, r in T.items():
+            a = ans(r["tail"].split("<|channel|>final<|message|>")[-1]) if r["finish"] == "stop" else None
+            r["ans"] = a if a is not None else (M.clean(r["ans"]) if r["ans"] else None); r["correct"] = r["ans"] == GOLD[i]
             if i in P:
                 X[(i, s)] = (r, sorted(P[i], key=lambda z: z["cut"]))
     return X
@@ -118,5 +124,95 @@ def headroom():
         print(f"  cut {c:6d}: still thinking {len(z2):3d}  forced answer right {100*sum(p['correct'] for p in z2)/max(1,len(z2)):.1f}%")
 
 
+def feats(P, k):
+    z = P[k]; run = 1
+    while run <= k and P[k - run]["ans"] == z["ans"]:
+        run += 1
+    pr = math.exp(max(-20, z["lp"])); valid = bool(re.fullmatch(r"-?\d+", z["ans"])); lc = math.log2(z["cut"] / 512) / 12; dis = len({P[q]["ans"] for q in range(k + 1)}) / (k + 1)
+    b = [1.0, pr, float(valid), math.log(run), (run - 1) / (k + 1), dis, lc]
+    return b + [pr * math.log(run), pr * lc, math.log(run) * lc, pr * pr]
+
+
+def fit_rule(tr, np, lam):
+    """Longstaff-Schwartz: backward over probe positions; stop value and continuation value regressed (ridge, features standardised) on the pooled states; returns the two weight vectors. The last probe (end of analysis or cap) always stops."""
+    S = []                                              # states (trace index, probe index)
+    for j, P in enumerate(tr):
+        S += [(j, k) for k in range(len(P))]
+    F = np.array([feats(tr[j], k) for j, k in S]); mu, sd = F.mean(0), F.std(0) + 1e-9; mu[0], sd[0] = 0, 1; G = (F - mu) / sd
+    R = np.eye(G.shape[1]) * lam; R[0, 0] = 1e-6
+    ws = np.linalg.solve(G.T @ G + R, G.T @ np.array([100.0 * tr[j][k]["correct"] for j, k in S]))
+    sv = dict(zip(S, G @ ws)); row = dict(zip(S, range(len(S)))); wc = np.zeros(G.shape[1])
+    for _ in range(12):                                 # policy iteration on the pooled continuation value
+        y, x = [], []
+        for j, P in enumerate(tr):
+            val = None
+            for k in range(len(P) - 1, -1, -1):
+                if k == len(P) - 1:
+                    val = 100.0 * P[k]["correct"]
+                else:
+                    cont = val - 0.5 * (P[k + 1]["cut"] - P[k]["cut"] + P[k + 1]["tok"]) / 1000
+                    x.append(row[(j, k)]); y.append(cont)
+                    val = 100.0 * P[k]["correct"] if sv[(j, k)] >= G[row[(j, k)]] @ wc else cont
+        A = G[x]; new = np.linalg.solve(A.T @ A + R, A.T @ np.array(y))
+        if np.abs(new - wc).max() < 1e-6:
+            break
+        wc = new
+    return lambda P, k: ((np.array(feats(P, k)) - mu) / sd) @ ws >= ((np.array(feats(P, k)) - mu) / sd) @ wc
+
+
+def play(P, stop):
+    t = 0
+    for k, z in enumerate(P):
+        t += z["tok"]
+        if k == len(P) - 1 or stop(P, k):
+            return bool(z["correct"]), z["cut"] + t
+
+
+def score():
+    import numpy as np
+    X = load(); comp_of = {p["id"]: p["comp"] for p in PROBS}; comps = sorted(set(comp_of.values())); res = {}
+    last = lambda v: (bool(v[0]["correct"]), v[0]["tok"]) if v[0]["ans"] is not None else (bool(v[1][-1]["correct"]), v[0]["tok"] + v[1][-1]["tok"])
+    run = lambda P, k: next((r for r in range(1, k + 2) if r == k + 1 or P[k - r]["ans"] != P[k]["ans"]), 1)
+    mu = lambda f, K: sum(U(*f(X[x])) for x in K) / len(K)
+    for c in comps:
+        tr = [x for x in X if comp_of[x[0]] != c]; te = [x for x in X if comp_of[x[0]] == c]; inner = sorted({comp_of[x[0]] for x in tr})
+        # ridge strength by inner leave-one-competition-out utility
+        best = None
+        for lam in (0.1, 1, 10, 100, 1000):
+            u = 0
+            for c2 in inner:
+                st = fit_rule([X[x][1] for x in tr if comp_of[x[0]] != c2], np, lam); u += sum(U(*play(X[x][1], st)) for x in tr if comp_of[x[0]] == c2)
+            best = max(best or (-1e9, 0), (u, lam))
+        rules = {"OPTSTOP (ours)": fit_rule([X[x][1] for x in tr], np, best[1])}
+        rules["static budget"] = max(((lambda P, k, c0=c0: P[k]["cut"] >= c0) for c0 in CUTS + [10 ** 9]), key=lambda s: mu(lambda v: play(v[1], s), tr))
+        rules["answer convergence"] = max(((lambda P, k, r=r: run(P, k) >= r) for r in range(1, 14)), key=lambda s: mu(lambda v: play(v[1], s), tr))
+        q = sorted(math.exp(z["lp"]) for x in tr for z in X[x][1]); rules["confidence threshold"] = max(((lambda P, k, a=a: math.exp(P[k]["lp"]) >= a) for a in [q[int(len(q) * g / 40)] for g in range(1, 40)] + [0.999, 0.9999, 2]), key=lambda s: mu(lambda v: play(v[1], s), tr))
+        for x in te:
+            for n, s in rules.items():
+                res.setdefault(n, {})[x] = play(X[x][1], s)
+            res.setdefault("HIGH", {})[x] = (bool(X[x][0]["correct"]), X[x][0]["tok"]); res.setdefault("HIGH + forced answer at the cap", {})[x] = last(X[x]); res.setdefault("forced answer at the end of the analysis", {})[x] = play(X[x][1], lambda P, k: False)
+        print("fold", c, "n", len(te), "ridge", best[1], flush=True)
+    for e in ("medium",):
+        for s in (1, 2):
+            f = f"{R}/ma_oss120{e}_s{s}.jsonl"
+            for r in rows(f):
+                a = M.clean(r["ans"]) if r["ans"] else None; res.setdefault("MEDIUM (stored seeds 1-2)", {})[(r["id"], s)] = (a == GOLD[r["id"]], r["tok"])
+    H = res["HIGH"]; med = res.get("MEDIUM (stored seeds 1-2)", {})
+    res["HIGH + medium retry at the cap (MA-RETRY)"] = {x: H[x] if X[x][0]["ans"] is not None else (med[x][0], H[x][1] + med[x][1]) for x in X if x in med}
+    for n, z in res.items():
+        print(f"{n:44s} n={len(z)} accuracy {100*sum(a for a, _ in z.values())/len(z):.1f}% tokens {sum(t for _, t in z.values())/len(z)/1000:.2f}k utility {sum(U(*v) for v in z.values())/len(z):.2f}")
+
+    def diff(a, b, f):
+        d = {}
+        for x in res[a]:
+            if x in res[b]:
+                d.setdefault(x[0], []).append(f(res[a][x]) - f(res[b][x]))
+        return ci([sum(v) / len(v) for v in d.values()])
+    for b in [n for n in res if n != "OPTSTOP (ours)"]:
+        print(f"OPTSTOP − {b}: accuracy {diff('OPTSTOP (ours)', b, lambda z: 100*z[0])} ktok {diff('OPTSTOP (ours)', b, lambda z: z[1]/1000)} utility {diff('OPTSTOP (ours)', b, lambda z: U(*z))}")
+    for a, b in (("HIGH + forced answer at the cap", "HIGH + medium retry at the cap (MA-RETRY)"), ("forced answer at the end of the analysis", "HIGH + forced answer at the cap"), ("HIGH + forced answer at the cap", "HIGH")):
+        print(f"{a} − {b}: accuracy {diff(a, b, lambda z: 100*z[0])} ktok {diff(a, b, lambda z: z[1]/1000)} utility {diff(a, b, lambda z: U(*z))}")
+
+
 if __name__ == "__main__":
-    {"trace": lambda: trace(int(sys.argv[2])), "probe": lambda: probe(int(sys.argv[2])), "headroom": headroom}[sys.argv[1]]()
+    {"trace": lambda: trace(int(sys.argv[2])), "probe": lambda: probe(int(sys.argv[2])), "headroom": headroom, "score": score}[sys.argv[1]]()

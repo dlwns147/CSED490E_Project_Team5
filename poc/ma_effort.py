@@ -12,11 +12,22 @@ PROBS = [p for p in json.load(open(f"{D}/ma_problems.json")) if re.fullmatch(r"-
 
 
 def ans(t):
-    m = re.findall(r"\\boxed\{([^{}]*)\}", t or "")
-    if not m:
+    """integer in the last \\boxed{}: braces balanced; the value after the last '=' ("n=104", "35-6=29"); digit grouping removed (2026-11-25: the old pattern, no nested braces and no '=', marked 5 of 310 right answers wrong)"""
+    t = t or ""; i = t.rfind("\\boxed{")
+    if i < 0:
         return None
-    a = re.sub(r"[\s,$]|\\[,!;]|\\text\{[^}]*\}", "", m[-1])
-    return a.lstrip("+")
+    d, j = 1, i + 7
+    while j < len(t) and d:
+        d += (t[j] == "{") - (t[j] == "}"); j += 1
+    if d:
+        return None
+    return clean(t[i + 7:j - 1])
+
+
+def clean(a):
+    a = re.sub(r"\\(?:text|mathrm|mathbf|textbf)\{([^{}]*)\}", r"\1", a)
+    a = re.sub(r"\\[,;!: ]|\{,\}|[\s,$\u202f\u00a0]|\\displaystyle", "", a)
+    return a.split("=")[-1].lstrip("+").rstrip(".")
 
 
 def run(e, seed):

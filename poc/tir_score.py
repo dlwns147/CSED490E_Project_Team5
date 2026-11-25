@@ -42,9 +42,23 @@ def show(st, eff, T, arms, key=None):
         print(f"   vs {k} {s({i: v[i] for i in ids})} (n={len(ids)}): accuracy {ci([100*(t[i][0]-v[i][0]) for i in ids], ky)}  ktok {ci([(t[i][1]-v[i][1])/1000 for i in ids], ky)}  utility {ci([U(*t[i])-U(*v[i]) for i in ids], ky)}")
 
 
+def regrade(st, T):
+    """Project Euler: the answer reader also strips LaTeX digit grouping (303\\,963 ...), as every other reader does (2026-11-25: 2 of the first 20 right answers were marked wrong); competition answers by the corrected ma_effort reader"""
+    if not T:
+        return T
+    import ma_effort as M
+    import run_compute as RC
+    g = {p["id"]: p["answer"] for p in RC.problems(st)} if st.startswith("euler") else {p["id"]: p["gold"].strip() for p in M.PROBS}
+    ch = 0
+    for i, r in T.items():
+        a = M.ans(r["final"]) or ""; ok2 = bool(a) and RC.norm(a) == RC.norm(g[i]); ch += ok2 != bool(r["correct"]); r["correct"] = ok2
+    print(f"{st}: {ch} grades changed by the corrected reader")
+    return T
+
+
 def main(eff):
     for st in ("euler", "eulert"):
-        T = L(f"{R}/tir_{st}_{eff}_s1.jsonl")
+        T = regrade(st, L(f"{R}/tir_{st}_{eff}_s1.jsonl"))
         if T:
             show(st, eff, T, {"think-then-program (3 seeds)": mean([L(f"{R}/{st}_oss120_thinkp_s{s}.jsonl") for s in (1, 2, 3)]), "think-then-program with CHECKS (3 seeds)": mean([L(f"{R}/{st}_oss120_thinkpc_s{s}.jsonl") for s in (1, 2, 3)])})
     T = L(f"{R}/tir_mconf_{eff}_s1.jsonl")
@@ -74,10 +88,16 @@ def main(eff):
     if T:
         D = L(f"{R}/oeisf_diff_all_tp.jsonl")
         show("oeisf", eff, T, {"one thinking program": mean([L(f"{R}/oeisf_oss120M_think_s{s}.jsonl") for s in (2, 3)]), "two thinking + DIFF": {i: (float(d["right"]), d["pool_tok"] + d["oracle_tok"]) for i, d in D.items()} if D else {}})
-    T = L(f"{R}/tir_comp_{eff}_s1.jsonl")
+    T = regrade("comp", L(f"{R}/tir_comp_{eff}_s1.jsonl"))
     if T:
         g = lambda e: {i: r for i, r in {}.items()}
-        f = lambda e: [dict((i, {"correct": r["correct"], "out_tokens": r["tok"], "ans": r["ans"]}) for i, r in x.items()) for x in [L(f"{R}/ma_oss120{e}_s{s}.jsonl") for s in (1, 2, 3)] if x]
+        import ma_effort as M_
+        import ma_stop as ST
+        GO = {p["id"]: p["gold"].strip() for p in M_.PROBS}; fe = {}
+        for (i, s), v in ST.load().items():
+            fe.setdefault(i, []).append((float(v[1][-1]["correct"]), v[1][-1]["cut"] + v[1][-1]["tok"]))
+        fe = {i: (sum(a for a, _ in v) / len(v), sum(b for _, b in v) / len(v)) for i, v in fe.items()}
+        f = lambda e: [dict((i, {"correct": (M_.clean(r["ans"]) if r["ans"] else None) == GO[i], "out_tokens": r["tok"], "ans": r["ans"]}) for i, r in x.items()) for x in [L(f"{R}/ma_oss120{e}_s{s}.jsonl") for s in (1, 2, 3)] if x]
         H, M = f("high"), f("medium"); ret = {}
         for h, m in zip(H, M):
             for i in h:
@@ -85,7 +105,7 @@ def main(eff):
                     a = (float(h[i]["correct"]), h[i]["out_tokens"]) if h[i]["ans"] is not None else (float(m[i]["correct"]), h[i]["out_tokens"] + m[i]["out_tokens"])
                     ret.setdefault(i, []).append(a)
         ret = {i: (sum(a for a, _ in v) / len(v), sum(b for _, b in v) / len(v)) for i, v in ret.items()}
-        show("comp", eff, T, {"high": mean(H), "medium": mean(M), "high + medium retry at the cap": ret})
+        show("comp", eff, T, {"high": mean(H), "medium": mean(M), "high + medium retry at the cap": ret, "high, forced answer at the end of the thinking (recipe)": fe})
     import wp_crossref as C
     pool = {"t": {}, "o": {}, "r": {}}
     for st in ("optc", "indc", "mamoc", "bwor", "logior", "optmath", "optnew"):

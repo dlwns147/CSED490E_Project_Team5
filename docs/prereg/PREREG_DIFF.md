@@ -1394,3 +1394,24 @@ high), word problems optc, indc, mamoc, BWOR, LogIOR, OptMATH, optnew (804). Sam
 ### Related work for TIR-N, second search (2026-11-25 15:35 UTC; before any row)
 "When to Trust Tools?" (2604.08281, trust calibration when the program and the reasoning disagree), AdaTIR (2601.14696) and ReTool (ICLR 2026): trained policies; "To Code or not to Code" (2502.00691) and TATA (2502.12022): when to use code, trained; T1 (2504.04718): tool-integrated self-verification; tool-induced hallucination (2511.10899); **"Beyond Accuracy" (2604.05404): tokens
 generated understate the cost of tool use because every tool turn re-reads the context (Prefill Token Equivalents).** Consequence: our price counts generated tokens only, which favours TIR; the TIR table will also state the number of turns and the tool-output tokens, and if a TIR win is smaller than what its extra turns could cost, it is reported as depending on the price.
+
+## Reader correction, competition answers (2026-11-25 16:21 UTC): poc/ma_effort.py ans()
+The old pattern took no nested braces and no "=": \boxed{n=104}, \boxed{35-6=29}, \boxed{N_{..}=6300} were marked wrong. Re-scored with one reader for every arm (stored answer strings; boxes with nested braces are lost there: 0–2 per file): low 85 → 85 and 83 → 84 of 155, **medium 120 → 125, 114 → 116, 125 → 128; high 133 → 135, 131 → 134, 132 → 134**.
+High stays ahead of medium (86.6% vs 79.4%, seed means over three seeds); the MA-EFF and MA-RETRY entries above are to be read with these counts.
+
+## STOP result (2026-11-25 16:21 UTC; python poc/ma_stop.py headroom / score; gpt-oss-120b high, 155 problems × 2 fresh seeds, traces cut exactly by token id; leave-one-competition-out)
+| arm | accuracy | ktok | utility |
+|---|---|---|---|
+| HIGH (one sample, 38k cap) | 86.8% | 15.05 | 79.25 |
+| HIGH + forced answer at the cap | 89.4% | 15.05 | 81.83 |
+| **forced answer at the end of the thinking (no final message)** | 89.4% | 14.23 | **82.24** |
+| HIGH + medium retry at the cap (MA-RETRY, the recipe until now) | 89.7% | 16.25 | 81.55 |
+| static budget / confidence threshold / answer convergence (tuned on the other competitions) | 89.4 / 89.4 / 89.0% | 14.25 / 14.25 / 14.13 | 82.23 / 82.23 / 81.97 |
+| OPTSTOP (ours: backward-induction stopping, fitted) | 85.2% | 12.12 | 79.10 |
+| MEDIUM | 77.7% | 5.86 | 74.81 |
+| hindsight oracle | 90.0% | 7.34 | 86.33 |
+- **Predictions:** oracle lead ≥ 3 over HIGH + forced cap: holds (+4.5). Forced answer right on ≥ 20% of capped samples: holds (8 of 32). The rule beats a static budget: **fails** (OPTSTOP − static −3.13 [−5.52, −1.01]). **Registered claim fails; STOP is closed.**
+- **Why (constructive):** every tuned stopper, with every signal (probability, agreement run, budget), chose "never before the end". The forced answer is right on 22% of the thinks still running at 2k tokens, 31% at 5.8k, 43% at 16k: answers of unfinished thinks are mostly wrong and nothing in the probe separates the right ones. The oracle's lead is the model already knowing the answer on easy problems,
+  which it finishes soon anyway. This matches CONT (10-30): a think's own probes are the weakest stop signal. ReTool-style learned stoppers on hidden states were not tested (they need training).
+- **What stands (known mechanism, s1-style forcing; a control arm here):** end the thinking and force the answer (about 5 tokens) instead of letting the model write its final message, also at the cap. Against HIGH +2.99 utility [+1.39, +4.91] with fewer tokens: a **win on both**. Against MA-RETRY: the same accuracy (the cap rule alone: −0.32 [−1.94, +1.29]) without the second sample,
+  −1.19 ktok, and a further −0.80 ktok without the final message. **Competition recipe: one high-effort sample, forced answer at the end of the thinking.**
