@@ -1031,3 +1031,18 @@ inside a reported gain; reading the status behind "no value" found it (now a loo
 specialist for word problems, run with its own recipe, is behind our recipe on every hard set and on the fresh OptiBench, and ahead on
 synthetic OptMATH-Train-style problems (being re-tested on a new 300, WP-NOIN-F2). (3) Every cheap pre-check (agreement gates, peers)
 failed for the same arithmetic: it must cost much less than what it saves times how often it fires.
+## Census (descriptive, 2026-11-25 06:10 UTC): what the corrected word-problem programs get wrong when they print a number
+Wrong numeric values of gpt-oss-120b's corrected-prompt programs (seeds 1–2), by direction against the gold for the problem's sense:
+optnew 43 worse / 28 better of 71; OptMATH **54 worse** / 11 better of 65; BWOR 18 / 12; LogIOR 14 / 12; OptiBench 85 / 85. On optnew /
+OptMATH the "worse" ones are mostly CP-SAT programs that set their own time limit (max_time_in_seconds 30 or 60) and print the incumbent
+on status FEASIBLE: 23 of 43 (optnew) and 32 of 54 (OptMATH). Such a value is one the solver has not proven optimal; the program says so
+itself (the status), and the harness throws that away.
+## Addendum POR (registered 2026-11-25 06:10 UTC, before any re-run): proven-optimal re-run (zero tokens)
+Policy (poc/wp_optcert.py): every stored program whose code sets a CP-SAT time limit is re-run with the limit raised to 300 s (wall
+360 s), the solver status logged; its value replaces the stored one when it prints one. No model call: cost = CPU seconds (reported).
+Not a heuristic threshold: the program's own status says whether its value is proven; the re-run only removes the program's own cap.
+Prior work: none found that uses the solver's optimality status this way in LLM optimisation-modelling pipelines (SIRL / ORLM /
+OptiMUS grade the printed objective; SIRL's re-run swaps variable types after a gold mismatch) — to be searched before quoting novelty.
+**Tests:** decisive on the two sets no word-problem decision has used for this question — omtf2 (corrected prompt, seed 1, when it ends)
+and OptiBench (corrected prompt, seeds 1–2): new − old accuracy ≥ 0 with gained > lost, at 0 tokens. Descriptive: optnew, OptMATH
+(census sets; prediction ≥ +3 points each), BWOR, LogIOR, omtf.
