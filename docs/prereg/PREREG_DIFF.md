@@ -1515,7 +1515,7 @@ Pooled 170: **PROV2 − ONE accuracy +4.22 [+2.45, +6.08], utility +1.93 [+0.15,
   answers (there the flag fails, above).
 - The plain tool's seed means replace the seed-1 rows above: 50.8% (dev), 28.0% (fresh); still +11 / +15 accuracy over think-then-program.
 
-### SUBMIT v5 on development data: the gate passes (written 2026-11-25 22:18 UTC; mconf seed 1, 137, clustered by problem; OWN still running and not read; mcon untouched by every submit arm)
+### SUBMIT v5 on development data: the gate passes (written 2026-11-25 22:18 UTC; mconf seed 1, 137, clustered by problem; OWN still running: 25 finished rows appeared in the scorer output, all right, the quick problems first, so they say nothing; mcon untouched by every submit arm)
 | arm | accuracy | ktok | utility |
 |---|---|---|---|
 | TIR-F | 71.5% | 6.41 | 68.33 |
