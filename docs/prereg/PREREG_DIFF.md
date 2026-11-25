@@ -995,7 +995,8 @@ separately (Pareto rule); SIRL's card reports 64.1% on OptiBench, so the predict
 | old (thinkfree) | 71.2% | 1.65k | 70.41 | 1 | 46 | 23 |
 | corrected (thinkfreen) | 71.4% | 1.78k | 70.52 | 0 | 36 | 27 |
 - **Prediction fails:** new − old **+0.10 [−2.71, +2.94]**; only 1 of 605 old programs read stdin (predicted ≥ 3%). The stdin failure is
-  specific to the OptMATH-generated texts (optnew, omtf: their problems are written like data files, and the model writes a reader for
-  them); OptiBench's narrative texts do not trigger it. The fix costs nothing where the failure is absent (+0.13k tokens, accuracy
+  specific to the OptMATH-generated texts (optnew, omtf): they are long and data-heavy (mean 3.1k / 2.6k characters; > 40 numbers in
+  80% / 82% of problems) against OptiBench's short ones (0.7k; 2%), and on such texts the model writes a data reader instead of
+  embedding the data (a reading of the counts, not a tested mechanism). OptiBench does not trigger it. The fix costs nothing where the failure is absent (+0.13k tokens, accuracy
   tied), so it stays in the prompt, but its gain is a property of the OptMATH-style sets, not a general one: the +9.16 on optnew is
   quoted with that scope.
