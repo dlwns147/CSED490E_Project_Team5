@@ -1155,3 +1155,6 @@ set and pooled over 437. **Predictions:** ours-one's accuracy ≥ OptiMind's −
 for IndustryOR / Mamo-Complex / OptMATH; a check of our run of it) with fewer tokens pooled; ours-one more accurate than SIRL on all
 three; the same-base gpt-oss-20b below OptiMind (its paper: 66.23 / 65.03 / 74.87 for the base). If the predictions about OptiMind fail, it replaces our recipe as the
 word-problem standard in the summary (a public model that wins on both is the recipe, whoever trained it).
+- **Not run in CLEAN (2026-11-25 07:31 UTC):** SOLID-StepORLM (arXiv 2609.09957, Qwen3-8B, the newest open checkpoint found): its own card reports pass@1
+  18.25 on OptMATH, 66.43 on Mamo-Complex and 39.81 on IndustryOR (labels as published there), below SIRL's on OptMATH; a fifth 8B model would
+  not change the comparison. StepORLM (ICLR 2026, arXiv 2509.22558) likewise. Only OptiMind-SFT is downloaded.
