@@ -1053,3 +1053,17 @@ seconds (mean wall 0–17 s; 398 OPTIMAL, 15 INFEASIBLE, 1 FEASIBLE, 1 MODEL_INV
 the 'worse than gold' values are proven optima of the programs' own models, i.e. modelling errors (over-constrained or mis-specified),
 not search cut short. Prediction (≥ +3 on optnew / OptMATH) fails; nothing to adopt. Lesson: a census by code pattern is a guess about
 behaviour; the status must be read from a run before a mechanism is registered (it cost ~10 CPU-min, not GPU time, here).
+## Hand audit of the hard band (descriptive, 2026-11-25 06:34 UTC; OptMATH, the 17 problems where both corrected-prompt programs print the SAME wrong value)
+43 OptMATH problems are wrong in both seeds; in 17 the two programs agree on a value (SIRL prints that value too on 5). Read in full
+(short texts) or in part: of the 7 read in full that could be classified from the text alone,
+- **6 lack data the answer needs:** optmath-10, 30, 33, 63, 79 are job shops whose text never says which operations share a machine
+  (gold makespans 5, 5, 6, 3, 3 are not derivable); optmath-74 gives no shift demands or availability.
+- **1 gold is provably wrong:** optmath-93 puts five unit operations ((1,0), (1,1), (2,1), (3,1), (5,1)) on one machine, so every
+  schedule needs makespan ≥ 5; the gold is 3 (both our programs print 5).
+The other 10 of the 17 were read only up to 1,700–2,600 characters (66, 76, 97, 98, 46, 50, 61, 77, 23, 31) and are NOT classified; 23
+looks like a genuine reading error (the text lists benefits in both directions, ours used one), 31 likewise ambiguous.
+**What it bounds:** at least 7 of the 100 OptMATH problems cannot be solved from their text (a floor, not an estimate of the whole set),
+for every method in the table alike. A model answer on such items is a guess: SIRL prints the gold on 30 and 63 (of the five
+under-specified job shops; ours on none), which no reader of the text could derive, so its accuracy there is not evidence of modelling.
+It does not change any paired comparison recorded above (all arms see the same items), but it caps what "the hard band" can yield and
+says that better formulation is not the only missing piece.
