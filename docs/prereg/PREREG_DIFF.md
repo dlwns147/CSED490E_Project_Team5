@@ -1046,3 +1046,10 @@ OptiMUS grade the printed objective; SIRL's re-run swaps variable types after a 
 **Tests:** decisive on the two sets no word-problem decision has used for this question — omtf2 (corrected prompt, seed 1, when it ends)
 and OptiBench (corrected prompt, seeds 1–2): new − old accuracy ≥ 0 with gained > lost, at 0 tokens. Descriptive: optnew, OptMATH
 (census sets; prediction ≥ +3 points each), BWOR, LogIOR, omtf.
+### POR result (2026-11-25 06:26 UTC; python poc/wp_optcert.py score <set> oss120 thinkfreen; Slurm CPU, 436 programs re-run)
+**Null on every set: gained 0, lost 0** (optnew, OptMATH, BWOR, LogIOR, omtf, OptiBench; seeds 1–2). The re-runs reach OPTIMAL in
+seconds (mean wall 0–17 s; 398 OPTIMAL, 15 INFEASIBLE, 1 FEASIBLE, 1 MODEL_INVALID, 22 runtime errors / timeouts — the same as stored).
+**The census inference was wrong:** a program that *accepts* FEASIBLE and sets a 30 s cap is not a program whose run *ended* FEASIBLE;
+the 'worse than gold' values are proven optima of the programs' own models, i.e. modelling errors (over-constrained or mis-specified),
+not search cut short. Prediction (≥ +3 on optnew / OptMATH) fails; nothing to adopt. Lesson: a census by code pattern is a guess about
+behaviour; the status must be read from a run before a mechanism is registered (it cost ~10 CPU-min, not GPU time, here).
