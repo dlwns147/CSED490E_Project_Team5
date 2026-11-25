@@ -159,6 +159,17 @@ def problems(which=None):
     if which == "omtf2":   # WP-NOIN-F2 (PREREG_DIFF, 2026-11-25): the next 300 of the same shuffle (prep_wptrain.py 8300 --fresh 300 --out omtf2_items.jsonl)
         for r in map(json.loads, open(f"{DATA}/optmath_train/omtf2_items.jsonl")):
             out.append({"id": r["id"], "src": "omtf2", "q": r["q"], "gold": str(float(r["gold"])), "difficulty": "omtf2"})
+    if which in ("optc", "indc", "mamoc"):   # CLEAN (PREREG_DIFF, 2026-11-25): OptiMind's expert-cleaned benchmarks (arXiv 2509.22979; github.com/microsoft/OptiGuide optimind/data)
+        import ast
+        import csv
+        csv.field_size_limit(10 ** 9)
+        f = {"optc": "optmath", "indc": "industryor", "mamoc": "mamo_complex"}[which]
+        path = f"{DATA}/optmath_train/optiguide_dl/optimind/data/optimind_cleaned_classified_{f}.csv"
+        for k, r in enumerate(csv.DictReader(open(path, encoding="utf-8-sig"))):
+            a = r["answer"].strip()
+            if a:   # two OptMATH rows have no answer
+                g = ast.literal_eval(a)[0] if a.startswith("[") else float(a)
+                out.append({"id": f"{which}-{k}", "src": which, "q": r["question"].strip(), "gold": str(float(g)), "difficulty": r["problem_class"][:60]})
     if which == "optnew":   # PREREG_TYPED addendum H (2026-11-19): SIRL's OptMATH-Bench 193 minus the 100 in `optmath` (fresh problems)
         seen = {re.sub(r"\s+", " ", p["q"]).strip() for p in problems("optmath")}
         for k, l in enumerate(open(f"{DATA}/sirl_fixed/OptMATH_Bench_193.jsonl")):

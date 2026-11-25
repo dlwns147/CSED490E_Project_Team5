@@ -11,7 +11,11 @@ ORLM-B (same addendum family, 2026-11-25): ORLM-LLaMA-3-8B (Huang et al., Operat
 cloned to $POC_DATA/optmath_train/orlm_repo) with its own recipe: the README / eval/generate.py completion template (no chat template),
 greedy decoding, the first ```python block, eval/execute.py's appended print of model.objval ("Just print the best solution:"), 600 s
 per program. Deviation: 6,144 output tokens (theirs: up to the 8,192 context).
-usage: POC_BASE_URL=... python wp_sirl.py run <sirl|orlm> <set> <seed>   |   python wp_sirl.py score <sirl|orlm> <set>"""
+OPTIMIND-B (addendum CLEAN, 2026-11-25): microsoft/OptiMind-SFT (gpt-oss-20b fine-tune, arXiv 2509.22979) with its model card's system
+prompt and user message = the problem; temperature 0.9, top_p 1.0 (the card's values), reasoning effort left at the template default, 30,000
+output tokens (the card's example has 4,096, the paper 60,000; our server holds 34k); the last ```python block is run with model.optimize()
+output, the objective printed by an appended line (the paper parses a tagged objective). Solver gurobipy (pip, size-limited licence).
+usage: POC_BASE_URL=... python wp_sirl.py run <sirl|orlm|optimind> <set> <seed>   |   python wp_sirl.py score <sirl|orlm|optimind> <set>"""
 import json, os, random, sys, zlib
 from concurrent.futures import ThreadPoolExecutor
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -60,6 +64,77 @@ def run_orlm(st, seed):
             f.write(json.dumps(z) + "\n"); f.flush()
 
 
+OM_SYS = """You are an expert in optimization and mixed integer programming. You are given an
+optimization problem and you need to solve it using gurobipy.
+Reason step by step before generating the gurobipy code.
+When you respond, first think carefully.
+After thinking, output the math modeling of the problem.
+Finally output a ```python ...``` code block that solves the problem.
+The code must include:
+import gurobipy as gp
+from gurobipy import GRB
+"""
+# the program runs unchanged under a subclass of gurobipy.Model that records each optimize() call's status / objective (the model may live
+# inside a function, so globals cannot be read afterwards); the last recorded optimal objective is printed on exit as OMOBJ
+OM_PRE = """
+import atexit as _ax
+import gurobipy as _gp
+_REC = []
+_Base = _gp.Model
+class _RecModel(_Base):
+    def optimize(self, *a, **k):
+        r = super().optimize(*a, **k)
+        try:
+            _REC.append((int(self.Status), float(self.ObjVal) if self.SolCount > 0 else None))
+        except Exception as _e:
+            _REC.append((-1, None))
+        return r
+_gp.Model = _RecModel
+def _out():
+    ok = [o for s, o in _REC if s == 2 and o is not None]
+    print("\\nOMOBJ:", ok[-1] if ok else ("none status %d" % _REC[-1][0] if _REC else "none status 0"), flush=True)
+_ax.register(_out)
+"""
+
+
+def run_optimind(st, seed):
+    os.environ["NLOPT_SET"] = st
+    import re
+    import run_nlopt as RN
+    import llm
+    from llm import last_block
+    from sandbox import run_python
+    P = RN.problems()
+    out = f"{R3}/opt_optimind_{st}_gurobi_s{seed}.jsonl"
+    done = {json.loads(l)["id"] for l in open(out)} if os.path.exists(out) else set()
+
+    def one(p):
+        try:
+            r0 = llm.client.chat.completions.create(model="local", messages=[{"role": "system", "content": OM_SYS}, {"role": "user", "content": p["q"]}],
+                                                    temperature=0.9, top_p=1.0, max_tokens=30000, seed=seed * 1000 + zlib.crc32(p["id"].encode()) % 997)
+            text, ntok, fin = r0.choices[0].message.content or "", r0.usage.completion_tokens, r0.choices[0].finish_reason
+        except Exception as e:
+            text, ntok, fin = "", 0, "error"; print("request failed", p["id"], str(e)[:200])
+        code = last_block(text, ("python", "py", "python3"))
+        r = run_python(OM_PRE + code, "", timeout=200, mem_bytes=8 << 30, cpu_s=1600) if code else None
+        so = (r.stdout or "") if r else ""
+        m = re.findall(r"OMOBJ: (-?[0-9.eE+-]+)", so)
+        pred = None
+        if m:
+            try:
+                pred = float(m[-1])
+            except ValueError:
+                pred = None
+        if pred is None and "OMOBJ: none status 3" in so:
+            pred = "NBS"
+        return {"id": p["id"], "gold": p["gold"], "out_tokens": ntok, "finish": fin, "status": (r.status if r else "no_code"), "pred": pred,
+                "pred2": None, "correct2": False, "infeasible": False, "code": code, "stdout": so[-300:], "err": ((r.stderr or "")[-300:] if r else ""),
+                "correct": RN.correct(pred, p["gold"]) if pred is not None else False}
+    with ThreadPoolExecutor(32) as ex, open(out, "a") as f:
+        for z in ex.map(one, [p for p in P if p["id"] not in done]):
+            f.write(json.dumps(z) + "\n"); f.flush()
+
+
 def run(st, seed):
     os.environ["NLOPT_SET"] = st
     import run_nlopt as RN
@@ -100,8 +175,8 @@ def run(st, seed):
 
 
 def score(mdl, st):
-    tag = {"sirl": "sirl32", "orlm": "orlm8"}[mdl]
-    rows = [json.loads(l) for f in sorted(os.listdir(R3)) if f.startswith(f"opt_{tag}_{st}_copt_s") for l in open(f"{R3}/{f}")]
+    tag = {"sirl": "sirl32", "orlm": "orlm8", "optimind": "optimind"}[mdl]
+    rows = [json.loads(l) for f in sorted(os.listdir(R3)) if f.startswith((f"opt_{tag}_{st}_copt_s", f"opt_{tag}_{st}_gurobi_s")) for l in open(f"{R3}/{f}")]
     n = len(rows)
     lic = sum("exceed" in (r.get("stdout", "") + r.get("err", "")).lower() for r in rows)   # COPT size limit (its banner always says "licen")
     their = sum(r["correct"] or ((r["infeasible"] or r["pred"] is not None) and r.get("correct2")) for r in rows)
@@ -114,6 +189,6 @@ def score(mdl, st):
 
 if __name__ == "__main__":
     if sys.argv[1] == "run":
-        (run if sys.argv[2] == "sirl" else run_orlm)(sys.argv[3], int(sys.argv[4]))
+        {"sirl": run, "orlm": run_orlm, "optimind": run_optimind}[sys.argv[2]](sys.argv[3], int(sys.argv[4]))
     else:
         score(sys.argv[2], sys.argv[3])

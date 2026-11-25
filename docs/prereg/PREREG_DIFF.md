@@ -1137,3 +1137,21 @@ it to fail on the small sets.
 The errors are the programs' own (RuntimeError "No suitable n found within the search limit", failed assertions, index / key errors): the
 listed causes cover 44 of the 50 cheap 're' and contain no import, memory or sandbox error (the other 6 were not itemised). A 10× time
 limit rescues 3 of 40 cheap and 1 of 23 thinking timeouts (at most 2.2 and 0.7 points of 137). **No hidden harness gap found; not adopted.**
+## Addendum CLEAN (registered 2026-11-25 07:31 UTC, before any run): the word-problem recipes on an independently audited benchmark, against two newer models
+**Why.** Found by search this hour (OptiMind, arXiv 2509.22979, Microsoft Research; abstract and tables read): its authors report errors in 50% of IndustryOR's and
+41% of OptMATH's original test problems, spent a month of expert cleaning, and released cleaned versions (github.com/microsoft/OptiGuide,
+optimind/data). Their cleaning independently touched most of this morning's hand audit: the nearest cleaned counterparts (8-gram Jaccard 0.50–0.71) of optmath-10,
+30, 33, 63, 79, 93 carry different answers from ours (6, 4, 5, 5, 5, 5 against 5, 5, 6, 3, 3, 3; the nearest item may be a sibling of the
+same template, so this is indicative, not a match), and 74 has no counterpart. All earlier word-problem tables used the uncleaned labels.
+**Sets:** optc (OptMATH cleaned, 128 with an answer), indc (IndustryOR cleaned, 99), mamoc (Mamo-Complex cleaned, 210). The originals of
+these problems were used in earlier decisions, so this is an audit of labels, not fresh problems; the recipe was fixed before this section.
+**Arms (each with its own recipe; one reader run_nlopt.correct for all; refused size-limited solves counted wrong and reported):**
+(1) ours-one: gpt-oss-120b medium thinking, corrected prompt, seeds 1–2; (2) cheap plurality of 3 gpt-oss-20b freev programs; (3)
+gpt-oss-20b medium thinking, corrected prompt, seed 1 — the same base as OptiMind, so it separates the fine-tune from the base; (4)
+**OptiMind-SFT** (gpt-oss-20b fine-tune; the model card's system prompt, temperature 0.9, top_p 1.0, 30,000 tokens, gurobipy, no
+hints / self-correction / majority voting: the K = 1 row of its paper), seed 1; (5) SIRL-32B-COPT, its recipe.
+**Tests (paired by problem, 95% bootstrap; accuracy and tokens separately, Pareto rule):** ours-one − OptiMind and ours-one − SIRL on each
+set and pooled over 437. **Predictions:** ours-one's accuracy ≥ OptiMind's − 3 points on each set (its paper's K = 1 rows without hints are 68.97 / 85.77 / 84.82
+for IndustryOR / Mamo-Complex / OptMATH; a check of our run of it) with fewer tokens pooled; ours-one more accurate than SIRL on all
+three; the same-base gpt-oss-20b below OptiMind (its paper: 66.23 / 65.03 / 74.87 for the base). If the predictions about OptiMind fail, it replaces our recipe as the
+word-problem standard in the summary (a public model that wins on both is the recipe, whoever trained it).
