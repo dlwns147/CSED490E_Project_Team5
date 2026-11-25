@@ -61,8 +61,10 @@ def main(eff):
         T = regrade(st, L(f"{R}/tir_{st}_{eff}_s1.jsonl"))
         if T:
             show(st, eff, T, {"think-then-program (3 seeds)": mean([L(f"{R}/{st}_oss120_thinkp_s{s}.jsonl") for s in (1, 2, 3)]), "think-then-program with CHECKS (3 seeds)": mean([L(f"{R}/{st}_oss120_thinkpc_s{s}.jsonl") for s in (1, 2, 3)])})
-    T = L(f"{R}/tir_mconf_{eff}_s1.jsonl")
-    if T:
+    for tg in ("", "F"):
+        T = L(f"{R}/tir_mconf_{eff}{tg}_s1.jsonl")
+        if not T:
+            continue
         pol = {}
         for s in (1, 2, 3):
             C, RP, TH = (L(f"{R}/mconf_oss120_{m}_s{s}.jsonl") for m in ("progc", "progcR", "thinkp"))
@@ -83,7 +85,7 @@ def main(eff):
                 pol.setdefault(i, []).append(z)
         pol = {i: (sum(a for a, _ in v) / len(v), sum(b for _, b in v) / len(v)) for i, v in pol.items()}
         nm = {json.loads(l)["id"]: json.loads(l)["name"] for l in open(os.path.join(os.environ.get("POC_DATA", os.path.join(os.path.dirname(ROOT), "nlp_data")), "construct", "instances.jsonl"))}
-        show("mconf", eff, T, {"MC-R (verify, one repair, think)": pol, "think-then-program (3 seeds)": mean([L(f"{R}/mconf_oss120_thinkp_s{s}.jsonl") for s in (1, 2, 3)])}, key=lambda i: nm.get(i, i))
+        show("mconf" + (" with the format line" if tg else ""), eff, T, {"MC-R (verify, one repair, think)": pol, "think-then-program (3 seeds)": mean([L(f"{R}/mconf_oss120_thinkp_s{s}.jsonl") for s in (1, 2, 3)])}, key=lambda i: nm.get(i, i))
     T = L(f"{R}/tir_oeisf_{eff}_s1.jsonl")
     if T:
         D = L(f"{R}/oeisf_diff_all_tp.jsonl")
