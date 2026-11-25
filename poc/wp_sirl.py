@@ -30,6 +30,20 @@ ORLM_T = ("Below is an operations research question. Build a mathematical model 
 ORLM_ADD = '\nif model.status == COPT.OPTIMAL:\n    print(f"Just print the best solution: {model.objval}")\nelse:\n    print("No Best Solution")'
 
 
+def resume(out):
+    """ids already answered; rows with zero output tokens are FAILED REQUESTS (prompt + output over the served context), not answers: they
+    are removed from the file so the next run asks again (2026-11-25: 4 SIRL and 8 ORLM rows had been counted as wrong / no code)"""
+    if not os.path.exists(out):
+        return set()
+    R = [json.loads(l) for l in open(out)]
+    K = [r for r in R if int(r.get("out_tokens") or 0) > 0]
+    if len(K) < len(R):
+        with open(out, "w") as f:
+            f.write("".join(json.dumps(r) + "\n" for r in K))
+        print(f"re-asking {len(R) - len(K)} failed requests in {out}")
+    return {r["id"] for r in K}
+
+
 def run_orlm(st, seed):
     os.environ["NLOPT_SET"] = st
     import re
@@ -38,12 +52,12 @@ def run_orlm(st, seed):
     from sandbox import run_python
     P = RN.problems()
     out = f"{R3}/opt_orlm8_{st}_copt_s{seed}.jsonl"
-    done = {json.loads(l)["id"] for l in open(out)} if os.path.exists(out) else set()
+    done = resume(out)
 
     def one(p):
         try:
             r0 = llm.client.completions.create(model="local", prompt=ORLM_T.replace("{Question}", p["q"].strip()), temperature=0, top_p=1,
-                                               max_tokens=6144, stop=["</s>"])
+                                               max_tokens=max(256, min(6144, 8192 - 8 - llm.n_tokens(ORLM_T.replace("{Question}", p["q"].strip())))), stop=["</s>"])
             text, ntok = r0.choices[0].text or "", r0.usage.completion_tokens
         except Exception as e:
             text, ntok = "", 0; print("request failed", p["id"], str(e)[:200])
@@ -106,7 +120,7 @@ def run_optimind(st, seed):
     from sandbox import run_python
     P = RN.problems()
     out = f"{R3}/opt_optimind_{st}_gurobi_s{seed}.jsonl"
-    done = {json.loads(l)["id"] for l in open(out)} if os.path.exists(out) else set()
+    done = resume(out)
 
     def one(p):
         try:
@@ -144,7 +158,7 @@ def run(st, seed):
     from utils import extract_code_block, extract_obj, change_variable_types
     P = RN.problems()
     out = f"{R3}/opt_sirl32_{st}_copt_s{seed}.jsonl"
-    done = {json.loads(l)["id"] for l in open(out)} if os.path.exists(out) else set()
+    done = resume(out)
 
     def one(p):
         msgs = [{"role": k, "content": copt_prompt_temp[k].replace("{question}", p["q"]).strip()} for k in ("system", "user")]
