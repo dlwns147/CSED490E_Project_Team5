@@ -15,7 +15,7 @@ def rows(f):
 
 
 for st in sys.argv[1:]:
-    os.environ["WP_MODE"] = "thinkfreen"; P, G, RN = W.pool("oss120", st)
+    os.environ["WP_MODE"] = "thinkfreenE" if os.environ.get("WP_ENVFIX") else "thinkfreen"; P, G, RN = W.pool("oss120", st)
     os.environ["WP_MODE"] = "freev"; _, GC, _ = W.pool("oss20", st)
     right = lambda i, v: v is not None and RN.correct(v, P[i]["gold"])
     A = {}

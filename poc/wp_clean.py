@@ -5,6 +5,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import wp_plan as W
 U = lambda ok, t: 100 * ok - 0.5 * t / 1000
 SETS = ("optc", "indc", "mamoc")
+M = "thinkfreenE" if os.environ.get("WP_ENVFIX") else "thinkfreen"   # REGRADE (PREREG_DIFF): our CP-SAT rows re-run in the corrected environment (poc/wp_env_regrade.py)
 
 
 def ci(d, n=4000):
@@ -21,8 +22,8 @@ def arms(st):
     tk = lambda r: int(r.get("out_tokens") or 0)
     A = {}
     for name, files in (("OptiMind-SFT", [f"opt_optimind_{st}_gurobi_s1.jsonl"]), ("SIRL-32B", [f"opt_sirl32_{st}_copt_s1.jsonl"]),
-                        ("gpt-oss-20b one program", [f"opt_oss20_{st}_thinkfreen_s1.jsonl"]),
-                        ("ours: gpt-oss-120b one program", [f"opt_oss120_{st}_thinkfreen_s{s}.jsonl" for s in (1, 2)])):
+                        ("gpt-oss-20b one program", [f"opt_oss20_{st}_{M}_s1.jsonl"]),
+                        ("ours: gpt-oss-120b one program", [f"opt_oss120_{st}_{M}_s{s}.jsonl" for s in (1, 2)])):
         Z = [L(f) for f in files]
         if all(Z):
             A[name] = {i: (sum(bool(z[i]["correct"]) for z in Z) / len(Z), sum(tk(z[i]) for z in Z) / len(Z)) for i in P if all(i in z for z in Z)}
