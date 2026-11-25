@@ -877,3 +877,18 @@ stays the recipe; no win-on-both variant found.
 ## Hourly check 2026-11-25 02:06 UTC
 - Scored this hour: GATE (fails on tokens), MC-RL (cheaper trade-off, not a win on both). gs15 GPUs idle; no further registered
   computation step this window — remaining open items are listed in the window summary.
+## Window 4 header (2026-11-25 02:57 UTC goal re-set; to 2026-11-26 03:00 UTC)
+Same goal: novel recipes for the computation sets, recent research measured as baselines on our sets, accuracy and tokens separately.
+## Addendum SIRL-B (registered 2026-11-25 03:02 UTC, before running): a specialised optimisation-modelling model as the word-problem baseline
+The word-problem table so far compares our recipe only with our own baselines plus a published number (SIRL-7B 29.0% on OptMATH-Bench,
+not our split). Run the strongest public specialised model ourselves: **SIRL-Qwen2.5-32B-COPT** (Chen et al., arXiv 2505.11792;
+solver-informed RL; model card: OptMATH_166 39.8%, IndustryOR 41.0%, OptiBench 64.1%), with its own recipe (poc/wp_sirl.py: the repo's
+COPT prompt, extract_code_block / extract_obj, the notebook's decode — n = 1, temperature 0.5, top_p 0.9, repetition_penalty 1.02,
+16,384 tokens, 200 s per program; coptpy with its size-limited pip licence, a refused solve counts as wrong). Seed 1 (n = 1 is their
+setting). Sets: optnew 93 (decisive; it is part of SIRL's own OptMATH-Bench test set), omtf 300, and the stored bwor 82 / logior 92 /
+optmath 100 (descriptive). Whether SIRL's training data overlaps OptMATH-Train (omtf) is unknown; stated, not corrected.
+**Primary score:** first run graded by run_nlopt.correct (no gold used). Their notebook's checker (re-run with variable types swapped
+when the first result mismatches the gold) is reported second as an upper bound.
+**Test (optnew):** our recipe (two medium gpt-oss-120b thinking programs + judge, WP-TP) − SIRL, utility, paired by problem, 95%
+bootstrap; accuracy and tokens reported separately and labelled by the Pareto rule (win on both / trade-off with break-even price).
+Prediction: ours more accurate (> +5 points), SIRL cheaper in tokens; utility difference > 0 with lower bound > 0.
