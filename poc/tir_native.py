@@ -103,7 +103,7 @@ class Tool:
 def solve(q, effort, seed):
     import llm
     tok = lambda s: llm.post_json("/tokenize", {"model": "local", "prompt": s, "add_special_tokens": False})["tokens"]
-    ids = tok(SYS.format(e=effort, q=q)); used = calls = 0; T = Tool(); codes = []; outs = []; fin = "stop"; text = ""; lastout = ""
+    ids = tok(SYS.format(e=effort, q=q)); used = calls = 0; T = Tool(); codes = []; outs = []; fin = "stop"; text = ""; lastout = ""; tooltok = prefill = 0
     try:
         while True:
             room = min(CAP - used, int(os.environ.get("TIR_CTX", 64000)) - len(ids) - 8)
@@ -111,7 +111,7 @@ def solve(q, effort, seed):
                 fin = "length"; break
             r = llm.client.completions.create(model="local", prompt=ids, temperature=1.0, top_p=0.95, max_tokens=room, seed=seed + calls,
                                               extra_body={"return_token_ids": True, "skip_special_tokens": False, "stop_token_ids": [CALL, RET]})
-            c = r.choices[0]; g = list(c.token_ids); used += r.usage.completion_tokens; text = c.text or ""; fin = c.finish_reason
+            prefill += len(ids); c = r.choices[0]; g = list(c.token_ids); used += r.usage.completion_tokens; text = c.text or ""; fin = c.finish_reason
             if fin == "length":
                 break
             if CALL in (g[-1] if g else None, c.stop_reason):
@@ -123,13 +123,13 @@ def solve(q, effort, seed):
                     fin = "calls"; break
                 o = T.run(code) if "python" in head else "Unknown tool. Only python is available."
                 codes.append(code); lastout = o; outs.append(o[:300])
-                ids = ids + g + tok("<|start|>python to=assistant<|channel|>analysis<|message|>") + tok(o) + tok("<|end|><|start|>assistant")
+                oi = tok(o); tooltok += len(oi); ids = ids + g + tok("<|start|>python to=assistant<|channel|>analysis<|message|>") + oi + tok("<|end|><|start|>assistant")
                 continue
             break
     finally:
         T.close()
     final = text.split("<|channel|>final<|message|>")[-1].split("<|return|>")[0] if "<|channel|>final<|message|>" in text else ""
-    return {"final": final, "out_tokens": used, "calls": calls, "finish": fin, "codes": codes, "outs": outs}
+    return {"final": final, "out_tokens": used, "calls": calls, "finish": fin, "codes": codes, "outs": outs, "tool_tokens": tooltok, "prefill_tokens": prefill}
 
 
 def task(st):
