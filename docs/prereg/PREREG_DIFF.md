@@ -1214,3 +1214,27 @@ Every stored CP-SAT program of ours (gpt-oss-120b thinkfreen seeds 1–2; gpt-os
 constants are identical by construction and keep their stored grade) and graded by the same reader; sets: optc, indc, mamoc, optnew, OptMATH, omtf, omtf2, OptiBench, BWOR, LogIOR, easyc, nl4c. The same correction
 is applied to all arms that use CP-SAT. Reported: rows changed per set and arm, and then the CLEAN, SIRL and WP-NOIN tables again beside the old ones; nothing is selected on the result. Risk stated: a variable whose
 true optimum exceeds 2^31 − 1 would be cut off by the box (none seen in 79; any row that prints a number in both and differs is listed).
+### REGRADE result (2026-11-25 10:05 UTC; poc/wp_env_regrade.py; corrected environment: INT_MAX / INT_MIN = ±INT32_MAX; no model call)
+gpt-oss-120b thinkfreen rows, grades changed (all gained, none lost; no row printed a different number): mamoc 20 + 13, easyc 46, nl4c 5, OptiBench 12 + 12, indc 3 + 2, OptMATH 1 + 0, omtf2 1, BWOR 0 + 1;
+0 on optc, optnew, omtf, LogIOR. gpt-oss-20b (thinkfreen and freev, all sets): **0 rows**; it does not write the constant. So the rejected-constant problem is gpt-oss-120b's own
+habit in this OR-Tools version, and the earlier word-problem tables understated our recipe by 0–9 points depending on the set (mean over the two seeds: mamoc 73.6 → 81.4, OptiBench 72.3 → 74.3, indc 72.7 → 75.3).
+### CLEAN result (2026-11-25 10:05 UTC; python poc/wp_clean.py; WP_ENVFIX=1 for the corrected environment; 437 problems: optc 128, indc 99, mamoc 210; accuracy · output ktok)
+| set | OptiMind-SFT (20B) | SIRL-32B | gpt-oss-20b one program | cheap plurality | **ours: gpt-oss-120b one program, corrected env** | ours, env as first run |
+|---|---|---|---|---|---|---|
+| OptMATH cleaned | 86.7% · 3.56 | 61.7% · 1.71 | 66.4% · 4.63 | 72.7% · 3.48 | 86.3% · 2.55 | 86.3% |
+| IndustryOR cleaned | 70.7% · 2.47 | 59.6% · 1.22 | 62.6% · 4.47 | 60.6% · 2.56 | **75.3%** · 2.78 | 72.7% |
+| Mamo-Complex cleaned | **88.6%** · 3.89 | 72.4% · 1.16 | 61.4% · 3.80 | 71.9% · 2.16 | 81.4% · 2.89 | 73.6% |
+Pooled (paired, 95%): **ours − OptiMind −2.52 accuracy [−6.06, +1.03], −0.70 ktok [−1.02, −0.43], utility −2.17 [−5.68, +1.42]** (corrected env; uncorrected −6.86 [−10.76, −3.09]); per set −0.39 / +4.55 / **−7.14 [−11.43, −2.62]**.
+Ours − SIRL: +15.10 accuracy [+10.98, +19.22], +1.43 ktok; per set +24.61 / +15.66 / +9.05 (all significant). Ours − gpt-oss-20b: +18.31, −1.42 ktok; ours − plurality: +11.90, +0.13 ktok.
+- **Predictions:** ours ≥ OptiMind − 3 points on each set: holds on OptMATH and IndustryOR, **fails on Mamo-Complex** (−7.1 corrected; −15.0 uncorrected); fewer tokens pooled: holds; ours > SIRL on all three: holds in the
+  corrected environment (uncorrected Mamo-Complex was a tie); the same-base gpt-oss-20b below OptiMind on all three: holds (66.4 / 62.6 / 61.4 against 86.7 / 70.7 / 88.6).
+- **By the registered rule (a failed OptiMind prediction → it replaces our recipe) OptiMind-SFT becomes the word-problem standard on Mamo-Complex-style problems**, and the summary says so. It does not win on both: it
+  spends 0.7k more tokens, and in utility the pooled difference is −2.17 and not significant. On model-size-weighted cost it is far cheaper (20B MoE, 3.6B active, against 120B / 5B active), which our per-token price
+  does not see: on that view OptiMind is ahead. Its one program is 20 points above its own base model: the gain is its fine-tuning, with no inference-time machinery.
+- **Why the uncorrected table and the corrected one differ is now known** (33 of 40 "No Best Solution" were rejected models); the correction was chosen after seeing the loss, so the corrected numbers are post-hoc for mamoc
+  and prospective only for easyc / nl4c (+5.75, where it was registered before any run). Both are printed.
+- **Corrections to earlier entries:** (i) ORLM-8B: the "5 no code" on optnew and 3 on OptMATH were requests my harness failed (prompt + 6,144 output tokens over the 8,192 context), not the model's; re-run: optnew 7.5%, OptMATH
+  7.0% (was 6.0%); no conclusion changes. (ii) SIRL-32B: 4 failed requests re-run (optc 2, OptMATH 1, optnew 1): optc 60.2 → 61.7%, the other two unchanged (34.0%, 38.7%). (iii) With the corrected environment the
+  SIRL table's ours-one rows are: optnew 46.2 (unchanged), omtf 82.2, omtf2 81.7 (ours − SIRL −3.37 [−6.09, −0.73]), BWOR 70.7, LogIOR 62.5, OptMATH 47.5, OptiBench 74.3 (+11.18 [+7.31, +14.67]); SIRL's lead stays on omtf / omtf2 only.
+- **Next (registered now, before running): CLEAN-X.** OptiMind-SFT on the nine other word-problem sets (optnew, OptMATH, omtf, omtf2, BWOR, LogIOR, OptiBench, easyc, nl4c), its card recipe, same reader, to replace the summary's
+  word-problem row with a per-set table; predictions: OptiMind ≥ ours-one on easyc and nl4c in accuracy (its training data is of that kind), ours-one ≥ OptiMind on BWOR and LogIOR (textbook OR / logistics), tokens higher for OptiMind.
