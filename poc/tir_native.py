@@ -147,12 +147,12 @@ def task(st):
     if st == "comp":
         import ma_effort as M
         return M.PROBS, lambda p: M.PROMPT.format(p=p["problem"]), lambda p, t: (lambda a: {"pred": a, "correct": a is not None and a == p["gold"].strip()})(M.ans(t))
-    if st in ("euler", "eulert", "mconf", "oeis", "oeisf"):
+    if st in ("euler", "eulert", "mconf", "mcon", "oeis", "oeisf"):
         import run_compute as RC
         P = RC.problems(st)
         if st.startswith("euler"):
             return P, lambda p: RC.EULER_THINK.replace(" You may not run code.", "").format(p=p["problem"]), lambda p, t: (lambda a: {"pred": a, "correct": bool(a) and RC.norm(a) == RC.norm(p["answer"])})(RC.boxed(t))
-        if st == "mconf":
+        if st in ("mconf", "mcon"):
             def gm(p, t):
                 try:
                     _, ok, d = RC._MC[p["id"]].parse_and_check([{"role": "assistant", "content": t}]) if t else (None, False, "no answer")
