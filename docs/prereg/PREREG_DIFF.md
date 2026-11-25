@@ -941,3 +941,30 @@ expected within ±10%). Also reported: one thinking program (seed mean) new − 
   check that finds it is reading the status behind "No Best Solution", which the scorer had folded into "no value".
 - **WP-NOIN-HO (added 2026-11-25 03:52 UTC, descriptive, before running):** the corrected one-program recipe (gpt-oss-120b medium thinking, thinkfreen,
   seeds 1–2) on BWOR 82 / LogIOR 92 / OptMATH 100, so SIRL-B / ORLM-B have our recipe on every set (WP-TP never ran there).
+## SIRL-B result (2026-11-25 05:06 UTC; python poc/wp_sirl_compare.py <sets>; SIRL-Qwen2.5-32B-COPT, its recipe, n = 1)
+| set | SIRL-32B | ORLM-8B | cheap plurality (3 × gpt-oss-20b) | **ours: one thinking program (WP-NOIN, seed mean)** | ours-one − SIRL (utility; 95%) |
+|---|---|---|---|---|---|
+| **optnew 93** | 38.7% · 2.62k · 37.40 | 7.5% · 1.32k · 6.86 | 32.3% · 3.65k · 30.43 | 46.2% · 2.62k · **44.93** | +7.53 [−2.29, +17.23] |
+| omtf 300 | 83.7% · 1.27k · **83.03** | 57.3% · 1.16k · 56.75 | 81.3% · 2.26k · 80.20 | 82.2% · 2.02k · 81.16 | −1.88 [−4.36, +0.62] |
+| BWOR 82 | 43.9% · 1.28k · 43.26 | 17.1% · 1.20k · 16.47 | 57.3% · 2.76k · 55.94 | 67.7% · 3.24k · **66.06** | +22.80 [+11.86, +33.69] |
+| LogIOR 92 | 43.5% · 1.46k · 42.75 | 15.2% · 1.30k · 14.57 | 55.4% · 3.13k · 53.87 | 62.5% · 2.98k · **61.01** | +18.26 [+9.11, +27.51] |
+| OptMATH 100 | 34.0% · 2.27k · 32.86 | 6.0% · 1.57k · 5.22 | 34.0% · 3.57k · 32.21 | 47.0% · 2.35k · **45.83** | +12.96 [+0.45, +25.46] |
+(accuracy · output tokens per problem · utility.) SIRL's gold-consulting checker adds 0–1.2 points (BWOR 45.1%). COPT's size limit
+refused 5 LogIOR solves. SIRL reproduces its published level (OptMATH-166 39.8% in its card; here 34.0–38.7% on OptMATH-Bench problems).
+- **Registered test (optnew): fails as registered.** Two thinking programs + judge − SIRL: WP-TP **+9.35 [−2.61, +21.22]**, WP-NOIN
+  +10.38 [−1.22, +21.18]; the lower bound is below 0 (93 problems). The token half of the prediction also fails: SIRL is not cheaper on
+  optnew (2.62k, the same as one of our thinking programs).
+- **By the Pareto rule:** on the four held-out sets our one thinking program is more accurate (+7.5 to +23.8 points); tokens are equal on
+  optnew / OptMATH (win on accuracy, tie on tokens) and +1.5–2.0k higher on BWOR / LogIOR (trade-off, break-even ~10 points per ktok,
+  far above our 0.5). **On omtf SIRL wins on both** in point estimate (+1.5 points, −0.76k tokens [−0.91, −0.61]): the only set where a
+  public specialist beats our recipe, and it is OptMATH-Train-style synthetic data (training-data overlap with SIRL unknown, stated).
+- Constructive reading: SIRL's errors on the hard sets are wrong values from running programs (optnew: 50 of 93), so its value is as a
+  cheap, different-family program, not as a solver of the hard band.
+## Addendum SPEC-PEER (registered 2026-11-25 05:06 UTC, before computing; offline on stored rows — every arm's accuracy above is already seen, so this is
+a forking-path estimate; a fresh-problem confirmation is required before it is quoted as a gain)
+Cascade with SIRL as the cross-family peer (prior work: FrugalGPT / AutoMix cascades; our own cross-family peer cascade, X-series; here
+the peer is a public specialist). Policy: run SIRL (n = 1) and one cheap gpt-oss-20b freev program (seed 1); if their values agree
+(run_nlopt.correct tolerance), answer it; otherwise one gpt-oss-120b thinking program (WP-NOIN, seed 1; seed 2 as the replicate, mean
+of the two reported). Tokens = SIRL + cheap + thinking when escalated. Compared with ours-one (always think) per set, accuracy and
+tokens separately. Prediction: omtf win on both (≤ 85% of ours-one's tokens, accuracy ≥ ours-one − 0.5); on the four hard sets
+utility ≥ ours-one − 1.
