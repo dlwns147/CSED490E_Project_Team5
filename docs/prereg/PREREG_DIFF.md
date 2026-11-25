@@ -1199,3 +1199,18 @@ not fit on an int64", 25 "possible integer overflow in constraint". The register
 As ENV, with INT_MAX / INT_MIN = ±cp_model.INT32_MAX (2^31 − 1, a constant of the same library that a program can write; still no tuned number). Same adoption rule: the cheaper of V and ENV32 that does not lose
 accuracy (V adopted only if the 95% lower bound of V − ENV32 is > 0; otherwise the zero-token environment fix is the action). Additional check, because a box can hide a better optimum: the number of triggered rows
 on which ENV32 and V both print a number and disagree. This is the second competitor after seeing V and ENV, so its result is quoted with that count.
+### ENV32 result (2026-11-25 10:03 UTC; ENV_BITS=32 python poc/wp_env.py easyc nl4c | mamoc; OR-Tools 9.15.6755)
+| set | triggered | V right | **ENV32 right (0 tokens)** | both right | both numeric and different |
+|---|---|---|---|---|---|
+| easyc | 51 | 46 | **46** | 46 | 0 |
+| nl4c | 8 | 7 | **7** | 7 | 0 |
+| mamoc | 20 | 20 | **20** | 20 | 0 |
+Pooled 887: N 85.6% · 1.86k · 84.64; ENV32 **91.3% · 1.86k · 90.39** (ENV32 − N +5.75 [+4.28, +7.33] at 0 tokens); V − ENV32 accuracy +0.00, utility −0.05. mamoc: 72.9% → 82.4%.
+**Decision (registered rule): VALID is NOT adopted.** The gain of +5.75 (fresh) and +9.5 (mamoc) is an environment correction — this OR-Tools version rejects cp_model.INT_MAX as a variable bound, and
+gpt-oss-120b writes it in 78 of these 79 programs — not a method. VALID's four predictions held and it still is the wrong tool: the repair pays 1.4k tokens per row to fix one constant, which the zero-token
+alternative (the sandbox sets the library's 32-bit maximum) does identically. The general lesson stays (a solver's status names the cause), and it is an environment entry, not a claim.
+## Correction REGRADE (registered 2026-11-25 10:03 UTC, before running): every word-problem table of ours, under the corrected environment
+Every stored CP-SAT program of ours (gpt-oss-120b thinkfreen seeds 1–2; gpt-oss-20b thinkfreen and freev) that writes INT_MAX / INT_MIN is re-run under the ENV32 prefix (no model call; rows that do not use the
+constants are identical by construction and keep their stored grade) and graded by the same reader; sets: optc, indc, mamoc, optnew, OptMATH, omtf, omtf2, OptiBench, BWOR, LogIOR, easyc, nl4c. The same correction
+is applied to all arms that use CP-SAT. Reported: rows changed per set and arm, and then the CLEAN, SIRL and WP-NOIN tables again beside the old ones; nothing is selected on the result. Risk stated: a variable whose
+true optimum exceeds 2^31 − 1 would be cut off by the box (none seen in 79; any row that prints a number in both and differs is listed).
