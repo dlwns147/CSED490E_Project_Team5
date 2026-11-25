@@ -1016,3 +1016,18 @@ decontaminated shuffle (poc/prep_wptrain.py 8300 --fresh 300 --out omtf2_items.j
 Run: gpt-oss-120b medium thinking, old and corrected prompts, seed 1 each; SIRL-32B (its recipe). Tests (paired, 95%): (a) old-prompt
 stdin readers ≥ 5% of 300 and corrected ≤ 0.5%; new − old one program, utility ≥ 0 (omtf: +0.77). (b) SIRL − ours-one (corrected),
 utility: prediction ≥ 0 (omtf: +1.88) with SIRL's tokens below ours (omtf: −0.76k).
+## Window summary — math computation (written 2026-11-25 06:08 UTC; third window 11-24 10:54 → 11-25 02:57, plus the first hours of the fourth)
+Per set: the recipe that stands, its evidence, and the recent-research baselines run on our sets with their own recipes
+(accuracy and tokens reported separately; claims rest on wins on both, trade-offs carry their break-even price).
+| set | recipe that stands | evidence (95%) | recent-research baselines on our sets | tried, not shown |
+|---|---|---|---|---|
+| OEIS (fresh 309) | two medium thinking programs + the DIFF referee on their disagreements | +2.37 over one program (OEIS-TP); 54.7% @ 6.8k | DIFF v2 − CodeT +2.04, − S* +4.57, − ExPairT-LLM +13.29 (same pool, same oracle) | gate on cheap agreement (more tokens), conditional second program (more tokens) |
+| MathConstruct (fresh parameters) | own verify(), one medium repair turn, then think | MC-R +7.73 [+1.94, +14.11] by problem; repair − fresh resample +4.63 [+1.53, +7.79] | (the benchmark has no published method beyond direct answers) | low-effort repair (cheaper trade-off), high effort (ties) |
+| Project Euler | think-then-program, medium effort | PE-R dev +3.64 (fresh n.s.) | — | high effort −21.7 |
+| Competition answers (155) | one high-effort sample; a medium retry when it hits the cap | MA-RETRY +3.13 [+0.50, +6.28] | adaptive self-consistency −7.58 [−10.52, −5.00]; DeepConf not run: it needs ≥ 16 full warm-up traces, more than ASC's minimum, which already loses | pools, selectors, second sample on length |
+| Word problems | one medium thinking program with the corrected (no-input) prompt | vs cheap plurality optnew +14.5 at −1.0k tokens (win on both); the fix: +9.16 [+2.16, +16.69] on optnew, +0.10 on OptiBench (OptMATH-style texts only) | SIRL-32B: ours +7.5 (optnew, n.s.) / +25.2 / +18.3 / +13.0 / +9.2 (OptiBench, fresh; trade-off at ~10 points per ktok); SIRL wins on omtf (−1.88 n.s., −0.76k tokens); ORLM-8B far below everywhere | two programs + judge (+2.85 n.s. over one), SIRL as peer (more tokens), plan / constraint judges |
+**What changed in what we know this window.** (1) A harness-specification gap (programs reading an input that is never given) sat
+inside a reported gain; reading the status behind "no value" found it (now a loop checklist rule). (2) The strongest public
+specialist for word problems, run with its own recipe, is behind our recipe on every hard set and on the fresh OptiBench, and ahead on
+synthetic OptMATH-Train-style problems (being re-tested on a new 300, WP-NOIN-F2). (3) Every cheap pre-check (agreement gates, peers)
+failed for the same arithmetic: it must cost much less than what it saves times how often it fires.
