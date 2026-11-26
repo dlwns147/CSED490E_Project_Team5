@@ -12,8 +12,10 @@ CAP, MAXCALLS, TOOL_S, OUTC = 38000, int(os.environ.get("TIR_MAXCALLS", 30)), 60
 SYS = ("<|start|>system<|message|>You are ChatGPT, a large language model trained by OpenAI.\nKnowledge cutoff: 2024-06\nCurrent date: 2026-11-25\n\nReasoning: {e}\n\n# Tools\n\n## python\n\n"
        "Use this tool to execute Python code in your chain of thought. The code will not be shown to the user. This tool should be used for internal reasoning, not for code that is intended to be visible to the user "
        "(e.g. when creating plots, tables, or files).\n\nWhen you send a message containing Python code to python, it will be executed in a stateful Jupyter notebook environment. python will respond with the output of the execution or "
-       "time out after 60.0 seconds. Internet access for this session is disabled.\n\n# Valid channels: analysis, commentary, final. Channel must be included for every message.<|end|>"
+       "time out after 60.0 seconds. Internet access for this session is disabled.{env}\n\n# Valid channels: analysis, commentary, final. Channel must be included for every message.<|end|>"
        "<|start|>user<|message|>{q}<|end|><|start|>assistant")
+# PREREG_DIFF SOLVER (2026-11-26): TIR_ENV=1 states the installed libraries in the tool description (the native text names none); default: unchanged
+SYS = SYS.replace("{env}", " The environment has numpy, scipy, sympy and ortools (Google OR-Tools, including the CP-SAT solver) installed." if os.environ.get("TIR_ENV") else "")
 DRIVER = r'''
 import sys, os, io, json, ast, traceback
 _real = os.fdopen(os.dup(1), "w"); _in = os.fdopen(os.dup(0)); sys.stdin = io.StringIO("")
@@ -147,12 +149,12 @@ def task(st):
     if st == "comp":
         import ma_effort as M
         return M.PROBS, lambda p: M.PROMPT.format(p=p["problem"]), lambda p, t: (lambda a: {"pred": a, "correct": a is not None and a == p["gold"].strip()})(M.ans(t))
-    if st in ("euler", "eulert", "mconf", "mcon", "oeis", "oeisf"):
+    if st in ("euler", "eulert", "mconf", "mcon", "mcong", "oeis", "oeisf"):
         import run_compute as RC
         P = RC.problems(st)
         if st.startswith("euler"):
             return P, lambda p: RC.EULER_THINK.replace(" You may not run code.", "").format(p=p["problem"]), lambda p, t: (lambda a: {"pred": a, "correct": bool(a) and RC.norm(a) == RC.norm(p["answer"])})(RC.boxed(t))
-        if st in ("mconf", "mcon"):
+        if st in ("mconf", "mcon", "mcong"):
             def gm(p, t):
                 try:
                     _, ok, d = RC._MC[p["id"]].parse_and_check([{"role": "assistant", "content": t}]) if t else (None, False, "no answer")

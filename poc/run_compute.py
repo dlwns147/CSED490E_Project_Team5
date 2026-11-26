@@ -183,7 +183,27 @@ def mconf_problems():
     return out
 
 
+def mcong_problems():
+    """PREREG_DIFF SOLVER: variations 5-7 of every problem, never run (poc/mc_newvar.py -> instances_g.jsonl)"""
+    import ast
+    mcon_problems()
+    from math_construct.problems import get_all_problem_classes
+    C = {cls.config.name: cls for cls in get_all_problem_classes()}
+    out = []
+    for l in open(os.path.join(os.path.dirname(DATA), "construct", "instances_g.jsonl")):
+        x = json.loads(l)
+        try:
+            obj = C[x["name"]](**(x["params"] if isinstance(x["params"], dict) else ast.literal_eval(x["params"])))
+        except Exception:
+            continue
+        _MC[x["id"]] = obj
+        out.append({"id": x["id"], "problem": str(obj) + "\n\nFormat your reply as follows:\n" + obj.get_formatting()})
+    return out
+
+
 def problems(s):
+    if s == "mcong":
+        return mcong_problems()
     if s == "mcon":
         return mcon_problems()
     if s == "mconf":
@@ -266,7 +286,7 @@ def main():
     P = problems(s)
     if "--n" in sys.argv:
         P = P[:int(sys.argv[sys.argv.index("--n") + 1])]
-    euler, mcon = s.startswith("euler"), s in ("mcon", "mconf")
+    euler, mcon = s.startswith("euler"), s in ("mcon", "mconf", "mcong")
     BUD = [int(x) for x in sys.argv[sys.argv.index("--budgets") + 1].split(",")] if "--budgets" in sys.argv else [2000, 4000, 8000, 14000]
     path = f"{RES}/{s}_{tag}_{mode}_s{seed}.jsonl"
     if "--regrade" in sys.argv and mcon and mode != "think":   # grade stored program output again (2026-11-13: backspace fix); no model calls
