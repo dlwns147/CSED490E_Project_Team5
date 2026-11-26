@@ -1602,3 +1602,13 @@ ReLoop-direct − RETRY accuracy −4.60 [−7.34, −1.74], utility **−5.98 [
 
 ### PROV flag on word problems (written 2026-11-26 04:57 UTC; offline, the TIR rows of the twelve sets, seed 1; descriptive, no test)
 The flag (final answer never printed by a tool run) fires on 565 of 2,896 attempts and only 241 of them are wrong (precision 43%; wrong overall 18%). In 12 sampled flagged attempts the last tool output is empty in 8 (7 of them right: the value was in an output the harness did not capture, or the model read it off a run whose print it then removed), and the rest are rounded values with units (0.0240562612 m³ boxed, 0.024056261216 printed). So the flag is partly a capture artefact of this harness on solver code, not a property of the answers; it was not repaired, because no outcome here would make PROV the word-problem recipe (RETRY ties the tool). So the flag is a Project Euler signal (precision ~92%) and fails on competition answers (8%) and word problems (43%); PROV is not run there. It says the signal works where the answer is a long exact integer that can only come from a run.
+
+### PROV-CONF result (written 2026-11-26 05:31 UTC; PROV_SEEDS=4,5 python poc/tir_prov.py euler eulert; seeds 4 and 5 never run before)
+| arm | dev 120 | fresh 50 |
+|---|---|---|
+| ONE | 55.0% @ 8.28k, 50.86 | 29.0% @ 12.21k, 22.90 |
+| **PROV2** | 57.5% @ 12.21k, 51.40 | 34.0% @ 18.80k, 24.60 |
+| RAND2 | 55.9% @ 11.17k, 50.29 | 31.6% @ 18.43k, 22.33 |
+Flag precision ("flagged → wrong"): 93 / 92% (dev), 96 / 100% (fresh). Pooled 170: **PROV2 − ONE utility +0.88 [−0.85, +2.86] (decisive test: not shown)**; accuracy +3.24 [+1.47, +5.29]; PROV2 − RAND2 utility +1.45 [+0.41, +2.62], accuracy +1.87 [+0.86, +3.02].
+- **The prediction (lower bound > 0) fails.** By the rule registered with it, the claim is: the flag is a ~93% precise free failure signal on Project Euler (now on five seeds); spending the second attempt where it fires raises accuracy (shown on seeds 1–3 and on 4–5) and beats the same spending at random (shown on both), and gives the accuracy of a majority of three at half its tokens (seeds 1–3); **a utility gain over one attempt is not established** (seeds 1–3 pooled +1.93 [+0.15, +3.81], seeds 4–5 +0.88 [−0.85, +2.86]).
+- Why the utility gain is small: a flagged attempt is redone from scratch at 10–13k tokens and fixes about 1 in 12 of them; at 0.5 points per ktok the second attempt almost pays for itself and no more.
