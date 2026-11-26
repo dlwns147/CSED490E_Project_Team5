@@ -1525,3 +1525,13 @@ Gate of amendment 2: right submissions rejected **0 of 109** (bound 10%; the fir
 **Not shown on this data:** BLIND2 − S0 accuracy +3.65 [−3.62, +10.87], utility +2.55 [−4.72, +9.82]; S0 − TIR-F utility +5.19 [−1.53, +11.88]; BLIND2 − TIR-F accuracy +8.03 [+0.72, +15.44], utility +7.74 [−0.22, +15.50]. The check rejects on 13 of 137 problems (all 13 rejected objects wrong); 6 of the 13 end right. 13 further wrong objects pass it, and 15 attempts never submit
 (S0: 6): in 5 of the 15 a submission had been rejected, the other 10 never called submit and mostly say they found no object. One of the 15 is right in S0, so this is not where BLIND2 loses; the difference in unsubmitted counts is not explained further. On the 124 problems without a rejection BLIND2 has 103 right and S0 101, which is between-run noise.
 **Added before any mcon row (descriptive, the low-variance estimate of what the check does):** within the BLIND2 run, final answer against the attempt's *first* submission (same sample, so no between-run noise): problems repaired, problems broken, and the tokens spent after the first submission plus the check. It is not a decision test; the registered tests are unchanged.
+
+### PROV, the high-effort rows (written 2026-11-26 00:25 UTC; python poc/tir_prov.py euler eulert; high effort seed 1, no call cap)
+| arm | dev 120 | fresh 50 |
+|---|---|---|
+| HIGH-TOOL (one tool attempt at high effort) | 53.3% @ 24.90k, 40.88 | 24.0% @ 34.15k, 6.93 |
+| PROV-HIGH (medium; a flagged attempt is redone at high effort) | 55.0% @ 20.19k, 44.90 | 32.0% @ 32.22k, 15.89 |
+| PROV2 (medium; a flagged attempt is redone at medium) | 55.0% @ 11.60k, 49.20 | 32.3% @ 18.98k, 22.84 |
+Pooled 170: PROV-HIGH − PROV2 accuracy −0.10 [−1.86, +1.67], utility **−5.08 [−7.01, −3.11]**; PROV-HIGH − ONE utility −3.15 [−5.34, −0.80]; PROV-HIGH − HIGH-TOOL +5.47 [+1.18, +10.19].
+- High effort does not buy accuracy here: the high attempt runs into the 38k generation limit on 55 of 120 (dev) and 36 of 50 (fresh) problems, and an attempt cut there has no final answer. So "high" in this harness means "high, cut at 38k"; with a larger limit it could do better at even more tokens, which cannot win on utility against PROV2 at 11.6k / 19.0k.
+- **Decision (registered rule: utility, CI):** the second attempt stays at medium effort. The Project Euler recipe is the native tool at medium with PROV2.
