@@ -110,7 +110,7 @@ def main(eff):
         show("comp", eff, T, {"high": mean(H), "medium": mean(M), "high + medium retry at the cap": ret, "high, forced answer at the end of the thinking (recipe)": fe})
     import wp_crossref as C
     pool = {"t": {}, "o": {}, "r": {}}
-    for st in ("optc", "indc", "mamoc", "bwor", "logior", "optmath", "optnew"):
+    for st in ("optc", "indc", "mamoc", "bwor", "logior", "optmath", "optnew") + (("omtf", "optibench", "easyc", "nl4c", "omtf2") if os.environ.get("TIR_WP5") else ()):
         T = L(f"{R}/tir_{st}_{eff}_s1.jsonl")
         if not T:
             continue
@@ -119,8 +119,12 @@ def main(eff):
         show(st, eff, T, {"one program": one, "RETRY": ret})
         for i in T:
             pool["t"][(st, i)] = T[i]; pool["o"][(st, i)] = one[i]; pool["r"][(st, i)] = ret[i]
+            if st in ("omtf", "optibench", "easyc", "nl4c", "omtf2"):
+                pool.setdefault("t5", {})[(st, i)] = T[i]; pool.setdefault("o5", {})[(st, i)] = one[i]; pool.setdefault("r5", {})[(st, i)] = ret[i]
     if pool["t"]:
-        show("word problems pooled", eff, pool["t"], {"one program": pool["o"], "RETRY": pool["r"]})
+        if pool.get("t5"):
+            show("tir_wp5: the five unseen sets pooled (decisive)", eff, pool["t5"], {"one program": pool["o5"], "RETRY": pool["r5"]})
+        show("word problems pooled" + (" (twelve; the TIR-WP5 test is the five alone, see tir_wp5 below)" if os.environ.get("TIR_WP5") else ""), eff, pool["t"], {"one program": pool["o"], "RETRY": pool["r"]})
 
 
 if __name__ == "__main__":

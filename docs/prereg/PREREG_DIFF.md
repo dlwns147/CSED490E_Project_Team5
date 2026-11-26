@@ -1547,3 +1547,24 @@ Pooled 170: PROV-HIGH − PROV2 accuracy −0.10 [−1.86, +1.67], utility **−
 - **Predictions:** S0 − TIR-F > 0: not supported (point −1.1; the dev gain of S0 was between-run noise). BLIND2 − S0 by 2–6: the point estimate is in the range, the interval includes 0, **not shown**. BLIND2 − OWN ≥ 0: not supported (point −1.2). **Falsifier** (upper bound < 2, or > 10% false alarms): not met (upper +8.03; right submissions rejected 4 of 199, 2%).
 - Within the BLIND2 runs (descriptive, added before these rows): against each attempt's own first submission, the check repaired 4 + 5 problems and broke 1 + 1, i.e. +2.9 accuracy points for 1.44k check tokens plus the repair turns.
 - **Reading.** A blind check at the submission point works as a mechanism (few false alarms, net repairs), but it does not beat the solver checking itself, which is free; the 1.6k extra tokens cancel what it adds. Nothing here is shown against TIR-F, so by the registered rule **the MathConstruct recipe stays TIR-F**. The SUBMIT idea is closed as "not shown"; no further variant of the check is run (amendment 2 said this was the last change).
+
+## TIR-N on word problems and OEIS (written 2026-11-26 01:42 UTC; python poc/tir_score.py medium; native tool, medium, seed 1)
+| set | n | TIR | RETRY (recipe) | TIR − RETRY utility |
+|---|---|---|---|---|
+| optc | 128 | 90.6% @ 1.79k | 90.6% @ 2.72k | +0.46 [−4.95, +5.86] |
+| indc | 99 | 80.8% @ 2.51k | 78.8% @ 2.86k | +2.19 [−4.71, +9.33] |
+| mamoc | 210 | 87.1% @ 1.57k | 85.2% @ 2.79k | +2.51 [−1.25, +6.33] |
+| BWOR | 82 | 78.0% @ 2.21k | 74.4% @ 3.34k | +4.22 [−2.04, +11.46] |
+| LogIOR | 92 | 73.9% @ 2.92k | 70.7% @ 3.11k | +3.36 [−3.33, +10.75] |
+| OptMATH | 100 | 55.0% @ 2.05k | 51.0% @ 2.48k | +4.22 [−4.69, +13.15] |
+| optnew | 93 | 49.5% @ 1.67k | 48.4% @ 2.66k | +1.57 [−7.12, +10.27] |
+| pooled 804 (not a registered test) | | 76.1% @ 2.01k | 74.0% @ 2.83k | +2.52 [+0.18, +4.97] |
+- **Registered per-set rule:** no set is called either way, so RETRY stays the recipe on these seven. The **prediction "TIR loses on utility on word problems" fails**: TIR is ahead on all seven point estimates and uses fewer generated tokens on every set (−0.2 to −1.2k), because the tool lets the model write and run a short model instead of
+  thinking at length before one program. The pooled interval excludes 0 but pooling was not registered, so it is reported, not acted on.
+- OEIS fresh 309: TIR 51.8% @ 3.01k vs one thinking program 50.3% (+1.37 [−1.57, +4.23]) and OEIS-TP 54.7% @ 6.84k (−1.00 [−4.00, +1.68]): tie, as predicted; OEIS-TP stays the OEIS recipe.
+
+## Addendum TIR-WP5 (registered 2026-11-26 01:42 UTC, before any row): the pooled word-problem question on the five sets the tool has never seen
+The pooled result above was found by looking; it is tested here on data that played no part in it. **Sets:** the other five word-problem sets with stored RETRY rows, omtf, optibench, easyc, nl4c, omtf2 (1,792 problems); same harness, gpt-oss-120b native tool, medium, seed 1, our library list (as on the seven).
+**Test (decisive, one):** TIR − RETRY utility pooled over the 1,792, paired by problem, 95% interval. **If the lower bound > 0, the tool becomes the word-problem recipe on all twelve sets**; if the upper bound < 0, RETRY stays and the seven-set pooled result is called noise; otherwise RETRY stays and the tool is reported as a tie.
+Also stated, not tested: per set; the tool's turns and prefill tokens against RETRY's (the "Beyond Accuracy" caveat: a win that its extra prefill could cancel is reported as price-dependent).
+**Prediction:** lower bound > 0 (the seven sets showed +2.5; three of the five are easy sets where both are near the ceiling, so the effect may be smaller there).
