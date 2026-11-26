@@ -1655,3 +1655,16 @@ Flag precision ("flagged → wrong"): 93 / 92% (dev), 96 / 100% (fresh). Pooled 
 
 ## Addendum SOLVER-C (registered 2026-11-26 10:24 UTC, before any row): confirmation on two more seeds
 Because the effect sits mostly in one seed and outside the solver calls, the same comparison is repeated on mcong **seeds 3 and 4** (never run), F on GPU 6 and FE on GPU 7 in parallel, same settings. **Test:** FE − F utility pooled over seeds 3–4, clustered by problem. **Reading fixed now:** lower bound > 0 → the recipe change stands and the effect is replicated; interval containing 0 with a positive point estimate → the recipe change stands on seeds 1–2 only, effect size stated as uncertain; **upper bound < 0 → the recipe reverts to TIR-F.** Reported with it: the discordant counts split by solver use (mechanism) and the four-seed pooled estimate.
+
+### SOLVER-C result (written 2026-11-26 11:56 UTC; python poc/tir_solver_score.py mcong 3 4 / 1 2 3 4)
+| seeds | TIR-F | FE | FE − F utility |
+|---|---|---|---|
+| **3–4 (confirmation)** | 65.0% @ 5.87k, 62.10 | 71.7% @ 5.60k, 68.94 | **+6.84 [+2.94, +10.81]** |
+| 1–4 pooled | 65.8% @ 5.79k, 62.86 | 71.3% @ 5.67k, 68.45 | +5.59 [+2.67, +8.64] |
+- **Replicated** (lower bound > 0 on the two new seeds): the MathConstruct recipe is FE, the native tool with the installed-solver sentence and the format line. Accuracy +5.53 [+2.72, +8.48] at −0.13k tokens over four seeds.
+- **Mechanism, four seeds:** the solver is called in 26% of FE attempts (F: 2%). Discordant instances: FE attempts that call the solver 47 / 25 (net +22 of 285, 7.7%); those that do not 98 / 59 (net +39 of 819, 4.8%). So the gain is larger per attempt where the solver is used, but most of it is in attempts that never call it. In those, FE uses random search less (25.9% vs 33.6% of F's non-solver attempts) and times out less (17.5% vs 21.8%); give-ups are unchanged (6.7% vs 6.0%). Reading: naming the solver shifts the model away from hand-written random search toward systematic construction even when it does not call the solver; why exactly is not measured.
+
+## Addendum SOLVER-U (registered 2026-11-26 11:56 UTC, before any row): one tool description for every set
+**Why.** The project claims one procedure for all sets; the sentence is now in the MathConstruct recipe only. If it is harmless elsewhere it belongs in the harness for every set. Word problems are excluded by the earlier reading (the solver is already called in 52–87% of attempts). OEIS uses OEIS-TP, not the tool.
+**Run.** Arm NE = the TIR recipe of each set with TIR_ENV=1: Project Euler dev 120 + fresh 50, medium, no call cap, **seeds 1–2**, against the stored mediumN seeds 1–2; competition answers 155, medium, no call cap, **seeds 2–3**, against the stored mediumN seeds 2–3 (seed 1 was run with the call cap). Same seeds, so same sampling settings; samples differ because the prompt differs.
+**Test (decisive, one; non-inferiority):** NE − TIR utility pooled over the 325 problems (each averaged over its two seeds). **The sentence goes into every set's harness if the lower bound > −1**; otherwise MathConstruct only. **Prediction:** lower bound > −1 with the point within ±1 (the solver does not fit these problems: called in 0–4% of their attempts). Also reported: per set, and the share of attempts calling a solver.
