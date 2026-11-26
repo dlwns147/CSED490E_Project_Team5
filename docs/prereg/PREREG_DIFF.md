@@ -1619,3 +1619,8 @@ Flag precision ("flagged → wrong"): 93 / 92% (dev), 96 / 100% (fresh). Pooled 
 **Run:** Project Euler dev 120 and fresh 50, medium, **seeds 6 and 7** (never run). ONE = the same attempt's first final answer and the tokens up to it (same sample, so FB − ONE has no between-run noise).
 **Test (decisive, one):** FB − ONE utility pooled over 170 problems (two seeds averaged per problem), shown if the lower bound > 0. Also stated: accuracy, the share of fed attempts that end right, and FB against PROV2 on seeds 4–5 (different samples, descriptive).
 **Prediction:** lower bound > 0: a fed attempt costs a few k tokens instead of 10–13k, and the model, told its answer is uncomputed, either computes it or finds the bug. **Falsifier:** upper bound < 0 (the feedback turn costs more than it repairs) — then the flag is only worth the accuracy PROV2 buys.
+
+### Where the tool leaves headroom (written 2026-11-26 06:09 UTC; offline on stored rows, descriptive; decides what is NOT run)
+- **OEIS fresh:** a pool of the tool attempt and one thinking program has "some program right" 55.3 / 56.0% (with think seed 2 / 3), against 55.0% for OEIS-TP's two thinking programs. DIFF sits at its pool's ceiling, so swapping a tool attempt into the pool can add at most ~1 point: not run.
+- **Competition answers (tool, seeds 1–3):** 133 of 155 right on every seed, 12 on two, 5 on one, 5 on none. A vote over three would recover at most the 12 (+7.7 points at ~3× tokens, about +1.6 utility at best); the 10 rarely-right ones are not flagged by any free signal we have (PROV fails here). Not run.
+- So the open headroom with a free signal is Project Euler (PROV, PROV-FB running) and MathConstruct (OWN / BLIND2 at ~81%, above).
