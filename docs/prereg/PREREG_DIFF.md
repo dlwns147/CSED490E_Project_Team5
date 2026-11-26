@@ -1668,3 +1668,18 @@ Because the effect sits mostly in one seed and outside the solver calls, the sam
 **Why.** The project claims one procedure for all sets; the sentence is now in the MathConstruct recipe only. If it is harmless elsewhere it belongs in the harness for every set. Word problems are excluded by the earlier reading (the solver is already called in 52–87% of attempts). OEIS uses OEIS-TP, not the tool.
 **Run.** Arm NE = the TIR recipe of each set with TIR_ENV=1: Project Euler dev 120 + fresh 50, medium, no call cap, **seeds 1–2**, against the stored mediumN seeds 1–2; competition answers 155, medium, no call cap, **seeds 2–3**, against the stored mediumN seeds 2–3 (seed 1 was run with the call cap). Same seeds, so same sampling settings; samples differ because the prompt differs.
 **Test (decisive, one; non-inferiority):** NE − TIR utility pooled over the 325 problems (each averaged over its two seeds). **The sentence goes into every set's harness if the lower bound > −1**; otherwise MathConstruct only. **Prediction:** lower bound > −1 with the point within ±1 (the solver does not fit these problems: called in 0–4% of their attempts). Also reported: per set, and the share of attempts calling a solver.
+
+### SOLVER-U result (written 2026-11-26 13:09 UTC; SOLVER_TAGS=N,NE python poc/tir_solver_score.py comp 2 3 / euler 1 2 / eulert 1 2)
+| set | TIR (stored mediumN) | NE (solver named) | NE − TIR utility |
+|---|---|---|---|
+| competition 155, s2–3 | 91.9% @ 3.86k, 90.01 | 92.3% @ 3.76k, 90.38 | +0.37 [−2.88, +3.60] |
+| Euler dev 120, s1–2 | 44.2% @ 7.71k, 40.31 | 44.2% @ 8.64k, 39.85 | −0.46 [−6.54, +5.47] |
+| Euler fresh 50, s1–2 | 30.0% @ 12.29k, 23.85 | 25.0% @ 12.71k, 18.65 | −5.21 [−12.04, +1.75] |
+| **pooled 325** | | | **−0.80 [−3.75, +2.07]** |
+- **Non-inferiority is not shown** (lower bound −3.75 < −1), so by the registered rule the sentence stays in the MathConstruct harness only. The solver is called in 1–6% of attempts on these sets; on Euler dev the sentence costs +0.93k tokens [+0.23, +1.66] for no accuracy. Weakness of the design, mine: with two seeds of 325 problems the interval is ±3, so a margin of 1 could not have been met even by a true zero; the reading is "no sign of help, harm not excluded", not "harmful".
+- The per-set harness difference is therefore stated as a choice made by a registered test, not a uniform procedure.
+
+## Addendum SUBMIT-E (registered 2026-11-26 13:09 UTC, before any row): answers as values on top of the solver sentence
+**Why (from the FE rows, mcong seeds 1–4, 317 failed attempts).** INCORRECT_SOLUTION 119, give-up (empty box) 70, INCORRECT_LENGTH 58, **unparseable format 49** (LaTeX spacing `\;` `\,` inside the box despite the format line: usamts-1998-1-4 fails 10 of 12 attempts this way, konhauser-2013-1 8 of 12; also `\text{No solution}`, `1/√37`), wrong format 13. SUBMIT (the box is built by code and passed to submit(s); OWN adds the solver's own check) addresses exactly the format and the condition failures; on mcon without the sentence it gave OWN − TIR-F +2.5 (not shown) and S0 − TIR-F −1.1.
+**Arms (TIR_ENV=1 for both; rows tirsub3_<arm>_mcong_*, all with the sentence):** S0-E (submit, no check) and OWN-E (submit + own check), mcong seeds 1–2, against the stored FE seeds 1–2.
+**Test (decisive, one):** OWN-E − FE utility, pooled over the two seeds, clustered by problem; shown if the lower bound > 0 → recipe becomes OWN-E. S0-E − FE is reported (is any gain the format alone?). **Prediction:** OWN-E − FE > 0 with the point 2–4; format failures fall below 1% of attempts in both submit arms. **Falsifier:** upper bound < 0.
