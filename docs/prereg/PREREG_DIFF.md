@@ -1622,5 +1622,5 @@ Flag precision ("flagged → wrong"): 93 / 92% (dev), 96 / 100% (fresh). Pooled 
 
 ### Where the tool leaves headroom (written 2026-11-26 06:09 UTC; offline on stored rows, descriptive; decides what is NOT run)
 - **OEIS fresh:** a pool of the tool attempt and one thinking program has "some program right" 55.3 / 56.0% (with think seed 2 / 3), against 55.0% for OEIS-TP's two thinking programs. DIFF sits at its pool's ceiling, so swapping a tool attempt into the pool can add at most ~1 point: not run.
-- **Competition answers (tool, seeds 1–3):** 133 of 155 right on every seed, 12 on two, 5 on one, 5 on none. A vote over three would recover at most the 12 (+7.7 points at ~3× tokens, about +1.6 utility at best); the 10 rarely-right ones are not flagged by any free signal we have (PROV fails here). Not run.
+- **Competition answers (tool, seeds 1–3):** 133 of 155 right on every seed, 12 on two, 5 on one, 5 on none. A vote over three moves expected accuracy by about +1.5 points (the 12 two-of-three problems gain a third each, the 5 one-of-three lose a third) for ~7.7k more tokens: utility about −2.3; the 10 rarely-right ones are not flagged by any free signal we have (PROV fails here). Not run.
 - So the open headroom with a free signal is Project Euler (PROV, PROV-FB running) and MathConstruct (OWN / BLIND2 at ~81%, above).
