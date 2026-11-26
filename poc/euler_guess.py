@@ -249,15 +249,16 @@ def right(x, gold):
 
 def never_right():
     """problems never right in the stored medium tool attempts (the headroom table of 11-26 16:25)"""
+    import ma_effort as M, run_compute as RC
     out = {}
     for st in ("euler", "eulert"):
-        c = collections.defaultdict(list)
+        c = collections.defaultdict(list); g = {p["id"]: p["answer"] for p in RC.problems(st)}
         for f in glob.glob(f"{R}/tir_{st}_medium*_s*.jsonl") + glob.glob(f"{R}/tirfb_{st}_medium_s*.jsonl"):
             seen = set()
             for l in open(f):
                 r = json.loads(l)
                 if r["id"] not in seen:
-                    seen.add(r["id"]); c[r["id"]].append(bool(r.get("correct")))
+                    a = M.ans(r.get("final", "")) or ""; seen.add(r["id"]); c[r["id"]].append(bool(a) and RC.norm(a) == RC.norm(g[r["id"]]))   # the corrected reader (tir_score.regrade)
         out[st] = {k for k, v in c.items() if not any(v)}
     return out
 
