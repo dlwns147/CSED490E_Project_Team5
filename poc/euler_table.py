@@ -16,8 +16,14 @@ PROMPT = ("{p}\n\nDo not solve this problem. Instead turn it into a sequence. Ch
           "(plain enumeration of the definition, no formula and no clever method) and check it against every example value the statement gives. "
           "Then compute f(n) for n = 1, 2, 3, ... (or from the smallest n where the problem makes sense), as many consecutive values as finish within about 40 seconds, "
           "and save them with json.dump as a list of [n, f(n)] pairs (integers, or exact fractions as strings 'p/q') to the file table.json in the current directory. "
+          "You must do this with the python tool; the task is not done until table.json exists. "
           "If the problem has no such parameter, write no file. In the final answer write exactly three lines:\n"
           "PARAMETER: <what n is>\nTARGET: <the value of n the problem asks for, or NONE>\nMODULUS: <the modulus the problem asks for, or NONE>")
+
+
+RETRY = ("The file table.json does not exist in the current directory. Use the python tool now: write the brute force for f(n), check it against the statement's "
+         "examples, compute as many consecutive small values as finish within about 40 seconds and save them to table.json as a list of [n, f(n)] pairs. "
+         "Then give the same three lines (PARAMETER, TARGET, MODULUS) again. Only if the problem truly has no numeric size parameter, answer the three lines with NONE.")
 
 
 def solve(p, prompt, effort, seed):
@@ -25,7 +31,10 @@ def solve(p, prompt, effort, seed):
     tok = lambda s: llm.post_json("/tokenize", {"model": "local", "prompt": s, "add_special_tokens": False})["tokens"]
     s = Session(PROMPT.format(p=p["problem"]), effort, seed, tok)
     try:
-        fin = s.gen(T.CAP); tab = None; f = os.path.join(s.tool.d.name, "table.json")
+        fin = s.gen(T.CAP); tab = None; f = os.path.join(s.tool.d.name, "table.json"); retried = 0
+        # v2 (2026-11-26 19:3x UTC): v1 sessions made no tool call in 100 of 170 problems (the model answered the three lines without a table); one retry turn
+        while fin and not os.path.exists(f) and retried < int(os.environ.get("TAB_RETRY", 1)):
+            retried += 1; fin2 = s.ask(RETRY, 12000); fin = fin2 or fin
         if os.path.exists(f) and os.path.getsize(f) < (8 << 20):
             try:
                 tab = json.load(open(f))
@@ -33,13 +42,13 @@ def solve(p, prompt, effort, seed):
                 tab = "unreadable " + repr(e)[:100]
         g = lambda k: (re.search(k + r":\s*(.+)", fin or "") or [None, ""])[1].strip()[:200]
         return {"id": p["id"], "final": (fin or "")[-1500:], "param": g("PARAMETER"), "target": g("TARGET"), "modulus": g("MODULUS"), "table": tab,
-                "out_tokens": s.used, "calls": s.calls, "finish": s.fin}
+                "out_tokens": s.used, "calls": s.calls, "finish": s.fin, "retried": retried}
     finally:
         s.close()
 
 
 def main(st, effort, seed):
-    P, prompt, grade = T.task(st); path = f"{R}/eultab_{st}_{effort}_s{seed}.jsonl"
+    P, prompt, grade = T.task(st); path = f"{R}/{os.environ.get('TAB_PREFIX', 'eultab2')}_{st}_{effort}_s{seed}.jsonl"
     done = {json.loads(l)["id"] for l in open(path)} if os.path.exists(path) else set()
 
     def one(p):
