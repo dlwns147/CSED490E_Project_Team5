@@ -1568,3 +1568,7 @@ The pooled result above was found by looking; it is tested here on data that pla
 **Test (decisive, one):** TIR − RETRY utility pooled over the 1,792, paired by problem, 95% interval. **If the lower bound > 0, the tool becomes the word-problem recipe on all twelve sets**; if the upper bound < 0, RETRY stays and the seven-set pooled result is called noise; otherwise RETRY stays and the tool is reported as a tie.
 Also stated, not tested: per set; the tool's turns and prefill tokens against RETRY's (the "Beyond Accuracy" caveat: a win that its extra prefill could cancel is reported as price-dependent).
 **Prediction:** lower bound > 0 (the seven sets showed +2.5; three of the five are easy sets where both are near the ceiling, so the effect may be smaller there).
+
+### TIR-N, more seeds and low effort (written 2026-11-26 02:23 UTC; native tool, no tests registered, descriptive; utility from the set means)
+- Competition answers, medium, seeds 1–3: 92.3 / 92.9 / 91.0%, mean **92.1% @ 3.85k, utility 90.2** (the seed-1 comparison with the old recipe, +8.11 [+2.60, +13.66], is not an outlier).
+- Low effort, seed 1: competition 80.0% @ 1.43k (utility 79.3), Project Euler dev 28.3% @ 1.56k (27.5), fresh 4.0% @ 1.82k (3.1), against medium 92.1 / 46.9 / 21.9. Low effort saves 1–10k tokens and loses 12–24 points: **medium stays the effort of the tool recipe** on all three (high effort was worse on Project Euler, above).
