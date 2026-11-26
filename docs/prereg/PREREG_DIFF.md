@@ -1748,3 +1748,17 @@ The goal now asks for results read by tokens and log-probabilities, not accuracy
 ### TABLE-H run 1 and amendment (written 2026-11-26 19:41 UTC; before the guesser output is read)
 Run 1 (poc/euler_table.py v1, seed 1): 170 rows, 0 errors, but **100 of 170 sessions made no tool call** (1.1k tokens, 1.3 calls on average): the model answered the three PARAMETER / TARGET / MODULUS lines and skipped the table; the 70 with a table used 2.6k tokens and 9.4 calls. A prompt-compliance failure, not a test of the idea. **v2:** the prompt says the tool is required and the task is not done until table.json exists, and a session that ends without the file is continued once with a user turn asking for it (12k tokens at most). Rows eultab2_*, seed 1, both sets; the guesser (unchanged) scores both runs; v1's guesser output is descriptive only.
 - TABLE-H guesser change (2026-11-26 19:42 UTC, before any guesser output was read; the first scoring run was stopped by PID after 11 min with no output): sympy elimination replaced by an exact pure-Fraction one (same results on the self-test), models fitted on the first 64 terms of the run (two thirds fit, one third held out), and terms beyond 64 must also be reproduced.
+### DISPUTE-E result CORRECTED (written 2026-11-26 19:46 UTC; python poc/tir_dispute_score.py tirdis 8 9) — the entry above used the run-time grade, mine
+The run-time grade (run_compute boxed + norm) marks right answers written as '9\,936\,352' or 'S(10^{8})=33626723890930' wrong; every earlier Euler table was regraded with ma_effort.ans (tir_score.regrade), this score was not. **26 attempts change grade.** Corrected, pooled 170:
+| arm | accuracy | ktok | utility |
+|---|---|---|---|
+| ONE | 44.4% | 9.88 | 39.47 |
+| PROV2 | 48.8% | 14.89 | 41.38 |
+| JUDGE | 49.4% | 23.49 | 37.67 |
+| DISPUTE | 48.2% | 21.40 | 37.53 |
+| DISPUTE-P | 47.6% | 15.71 | 39.79 |
+| ORACLE2 | 51.8% | 19.76 | 41.88 |
+- **T1 DISPUTE − JUDGE accuracy −1.18 [−3.82, +1.47] (not shown); T2 DISPUTE-P − PROV2 utility −1.59 [−3.06, −0.19]: DISPUTE-P is significantly worse than PROV2.** Share captured: DISPUTE **0.52** (the falsifier < 1/3 is *not* met; the success line ≥ 0.5 is met by a hair), JUDGE 0.68, PROV2 0.60. So the earlier sentence "falsifier met" is withdrawn; the conclusion does not change: computing the disputed value does not beat choosing between the shown values (T1), and it makes PROV2 worse (T2). By the registered rule the Euler recipe stays TIR + PROV2.
+- Mechanism, corrected: 63 disputes, **47 with both attempts wrong**, 16 with exactly one right; in those 16 the smaller instance kept the right one 6 times, the wrong one once, did not separate 9 times (both match the brute force 6, neither 3). In the both-wrong disputes 20 pairs agree at small size (16 match the brute force, 4 agree with each other). Right attempts 6.5k tokens / 12.3 calls / flag 9%; wrong 12.6k / 21.1 / 67%.
+- **New observation from the text:** wrong attempts often end on a fabricated number when the computation did not finish — 123456789 (pe361, pe414), 000000000 (pe535, pe414, pe970), 0 (pe249, pe989), round guesses 3600000000000 / 3900000000000 (pe167). PROV's flag catches most of them (it fires on 67% of wrong attempts).
+- Effect of the reader on earlier entries: none (they were regraded); the DISPUTE-E pilot rows are not scored.
