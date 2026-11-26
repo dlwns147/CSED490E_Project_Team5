@@ -1572,3 +1572,16 @@ Also stated, not tested: per set; the tool's turns and prefill tokens against RE
 ### TIR-N, more seeds and low effort (written 2026-11-26 02:23 UTC; native tool, no tests registered, descriptive; utility from the set means)
 - Competition answers, medium, seeds 1–3: 92.3 / 92.9 / 91.0%, mean **92.1% @ 3.85k, utility 90.2** (the seed-1 comparison with the old recipe, +8.11 [+2.60, +13.66], is not an outlier).
 - Low effort, seed 1: competition 80.0% @ 1.43k (utility 79.3), Project Euler dev 28.3% @ 1.56k (27.5), fresh 4.0% @ 1.82k (3.1), against medium 92.1 / 46.9 / 21.9. Low effort saves 1–10k tokens and loses 12–24 points: **medium stays the effort of the tool recipe** on all three (high effort was worse on Project Euler, above).
+
+### TIR-WP5 result (written 2026-11-26 03:11 UTC; TIR_WP5=1 python poc/tir_score.py medium; correction to the registration: the five sets hold **2,092** problems, not 1,792 — the count was mine, the sets were fixed by name)
+| set | n | TIR | RETRY | TIR − RETRY utility |
+|---|---|---|---|---|
+| omtf | 300 | 83.0% @ 1.13k | 83.3% @ 2.09k | +0.15 [−0.97, +1.19] |
+| optibench | 605 | 72.6% @ 1.32k | 75.2% @ 1.88k | −2.36 [−5.35, +0.63] |
+| easyc | 642 | 93.9% @ 1.10k | 93.6% @ 2.04k | +0.78 [−0.51, +2.09] |
+| nl4c | 245 | 87.3% @ 1.02k | 88.2% @ 1.51k | −0.57 [−3.84, +2.70] |
+| omtf2 | 300 | 83.0% @ 1.12k | 83.3% @ 2.11k | +0.16 [−1.54, +1.84] |
+| **pooled five (decisive)** | 2,092 | 83.8% @ 1.16k | 84.7% @ 1.95k | **−0.47 [−1.56, +0.56]** |
+| all twelve (descriptive) | 2,896 | 81.7% @ 1.40k | 81.7% @ 2.19k | +0.36 [−0.63, +1.38] |
+- **Decision (registered):** neither bound clears 0: **a tie, RETRY stays the word-problem recipe.** The prediction (lower bound > 0) fails; the +2.5 on the seven sets was partly their difficulty: the tool's gain is on the hard sets (BWOR, LogIOR, OptMATH, +3 to +4 accuracy) and nothing or slightly negative on the easier ones, where one program is already right.
+- What holds everywhere: the tool reaches the same accuracy with **0.8k fewer generated tokens** (−0.79 [−0.85, −0.74] on twelve sets), at 3.7 turns; by the "Beyond Accuracy" caveat its re-read context costs more input, so the token saving does not carry to a price that counts input. At our price (output only) the saving is 0.4 utility points, inside the noise.
