@@ -1535,3 +1535,15 @@ Gate of amendment 2: right submissions rejected **0 of 109** (bound 10%; the fir
 Pooled 170: PROV-HIGH − PROV2 accuracy −0.10 [−1.86, +1.67], utility **−5.08 [−7.01, −3.11]**; PROV-HIGH − ONE utility −3.15 [−5.34, −0.80]; PROV-HIGH − HIGH-TOOL +5.47 [+1.18, +10.19].
 - High effort does not buy accuracy here: the high attempt runs into the 38k generation limit on 55 of 120 (dev) and 36 of 50 (fresh) problems, and an attempt cut there has no final answer. So "high" in this harness means "high, cut at 38k"; with a larger limit it could do better at even more tokens, which cannot win on utility against PROV2 at 11.6k / 19.0k.
 - **Decision (registered rule: utility, CI):** the second attempt stays at medium effort. The Project Euler recipe is the native tool at medium with PROV2.
+
+### SUBMIT, decisive result (written 2026-11-26 00:40 UTC; mcon, the 121 published MathConstruct instances, seeds 1–2, clustered by problem; python poc/tir_submit_score.py mcon 1 2)
+| arm | accuracy | ktok | utility |
+|---|---|---|---|
+| TIR-F (native tool + format line) | 78.9% | 4.87 | 76.49 |
+| S0 (submit, no check) | 77.7% | 4.68 | 75.35 |
+| OWN (submit; the solver writes its own check, the known mechanism) | 81.4% | 4.75 | 79.03 |
+| **BLIND2 (submit + statement-only check, rejections confirmed by a second check)** | 81.0% | 6.32 | 77.83 |
+- BLIND2 − S0 accuracy +3.31 [−2.07, +8.68], utility **+2.48 [−3.00, +8.03]**; BLIND2 − TIR-F +1.34 [−4.32, +7.11]; BLIND2 − OWN −1.20 [−5.94, +3.64]; S0 − TIR-F −1.14 [−6.48, +4.42]; OWN − TIR-F +2.54 [−2.25, +7.40].
+- **Predictions:** S0 − TIR-F > 0: not supported (point −1.1; the dev gain of S0 was between-run noise). BLIND2 − S0 by 2–6: the point estimate is in the range, the interval includes 0, **not shown**. BLIND2 − OWN ≥ 0: not supported (point −1.2). **Falsifier** (upper bound < 2, or > 10% false alarms): not met (upper +8.03; right submissions rejected 4 of 199, 2%).
+- Within the BLIND2 runs (descriptive, added before these rows): against each attempt's own first submission, the check repaired 4 + 5 problems and broke 1 + 1, i.e. +2.9 accuracy points for 1.44k check tokens plus the repair turns.
+- **Reading.** A blind check at the submission point works as a mechanism (few false alarms, net repairs), but it does not beat the solver checking itself, which is free; the 1.6k extra tokens cancel what it adds. Nothing here is shown against TIR-F, so by the registered rule **the MathConstruct recipe stays TIR-F**. The SUBMIT idea is closed as "not shown"; no further variant of the check is run (amendment 2 said this was the last change).
