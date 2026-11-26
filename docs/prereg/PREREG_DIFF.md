@@ -1683,3 +1683,18 @@ Because the effect sits mostly in one seed and outside the solver calls, the sam
 **Why (from the FE rows, mcong seeds 1–4, 317 failed attempts).** INCORRECT_SOLUTION 119, give-up (empty box) 70, INCORRECT_LENGTH 58, **unparseable format 49** (LaTeX spacing `\;` `\,` inside the box despite the format line: usamts-1998-1-4 fails 10 of 12 attempts this way, konhauser-2013-1 8 of 12; also `\text{No solution}`, `1/√37`), wrong format 13. SUBMIT (the box is built by code and passed to submit(s); OWN adds the solver's own check) addresses exactly the format and the condition failures; on mcon without the sentence it gave OWN − TIR-F +2.5 (not shown) and S0 − TIR-F −1.1.
 **Arms (TIR_ENV=1 for both; rows tirsub3_<arm>_mcong_*, all with the sentence):** S0-E (submit, no check) and OWN-E (submit + own check), mcong seeds 1–2, against the stored FE seeds 1–2.
 **Test (decisive, one):** OWN-E − FE utility, pooled over the two seeds, clustered by problem; shown if the lower bound > 0 → recipe becomes OWN-E. S0-E − FE is reported (is any gain the format alone?). **Prediction:** OWN-E − FE > 0 with the point 2–4; format failures fall below 1% of attempts in both submit arms. **Falsifier:** upper bound < 0.
+
+### SUBMIT-E result (written 2026-11-26 14:23 UTC; mcong seeds 1–2, 276 instances of 95 problems, clustered by problem; scored inline from tirsub3_{S0,OWN}_mcong_* and tir_mcong_mediumFE_*)
+| arm | accuracy | tokens | utility | unparseable box |
+|---|---|---|---|---|
+| F (no sentence) | 66.5% | 5.72k | 63.63 | 4.2% |
+| FE (recipe) | 70.8% | 5.74k | 67.97 | 3.8% |
+| S0-E | 76.4% | 4.77k | 74.06 | 3.3% |
+| **OWN-E** | 77.4% | 5.07k | 74.82 | 2.9% |
+**OWN-E − FE utility +6.85 [+1.44, +12.57] (decisive test: shown)**; accuracy +6.52 [+1.26, +11.97], tokens −0.66k. S0-E − FE +6.10 [+0.94, +11.72]; OWN-E − S0-E +0.76 [−2.55, +4.00].
+- By the registered rule the MathConstruct recipe becomes OWN-E (submit + own check + the solver sentence). **Nearly all of the gain is submit itself** (S0-E), not the own check.
+- **The format part of the prediction fails:** unparseable boxes do not fall (3.8% → 3.3 / 2.9%); the strings built by code still carry LaTeX. Where the gain is (failure counts over 552 attempts, FE → S0-E → OWN-E): give-ups 45 → 27 → 40, **wrong length 26 → 11 → 10**, wrong object 58 → 63 → 50. So submit works by passing the object itself instead of a retyped (and often cut) copy, and by ending every attempt with a submitted object instead of an empty box.
+- Against SUBMIT on mcon without the sentence (S0 − TIR-F −1.1, OWN − TIR-F +2.5, both not shown) the gain here is larger; whether the two changes interact or this is the seed draw is what the confirmation below decides.
+
+## Addendum SUBMIT-EC (registered 2026-11-26 14:23 UTC, before any row): confirmation on seeds 3–4
+OWN-E and S0-E on mcong **seeds 3 and 4** against the stored FE seeds 3–4 (same instances, never run by a submit arm). **Test:** OWN-E − FE utility pooled over seeds 3–4. **Reading fixed now:** lower bound > 0 → replicated, recipe OWN-E stands; interval containing 0 with a positive point → recipe stands on seeds 1–2 only, size uncertain; upper bound < 0 → recipe reverts to FE. Reported with it: S0-E − FE, OWN-E − S0-E, the failure counts, and the four-seed estimate.
