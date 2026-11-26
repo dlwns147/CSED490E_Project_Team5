@@ -1642,7 +1642,7 @@ Flag precision ("flagged → wrong"): 93 / 92% (dev), 96 / 100% (fresh). Pooled 
 **Data.** Development: mconf seed 1 (FE only; against the stored TIR-F row; descriptive: how often a solver is called, timeouts). **Decisive: "mcong", new MathConstruct variations 5–7 drawn by the benchmark's generator (poc/mc_newvar.py; 276 instances of 95 problems, none equal to any instance run before or to the published one), seeds 1–2, both arms run fresh, paired per instance, clustered by problem** (poc/tir_solver_score.py mcong 1 2).
 **Test (decisive, one):** FE − F utility, shown if the lower bound > 0. **Prediction:** lower bound > 0, with the solver called in ≥ 25% of FE attempts and fewer timeouts than F. **Falsifier:** upper bound < 0, or the solver is called in < 10% of FE attempts (then the sentence is not the lever and the claim is dropped).
 
-### SOLVER result (written 2026-11-26 10:27 UTC; python poc/tir_solver_score.py mconf 1 / mcong 1 2)
+### SOLVER result (written 2026-11-26 10:24 UTC; python poc/tir_solver_score.py mconf 1 / mcong 1 2)
 | run | TIR-F | FE (solver named) | FE − F utility |
 |---|---|---|---|
 | dev mconf s1 (137, 70 problems) | 71.5% @ 6.41k, 68.33 | 75.9% @ 4.85k, 73.49 | +5.16 [−1.62, +11.90] |
@@ -1653,5 +1653,5 @@ Flag precision ("flagged → wrong"): 93 / 92% (dev), 96 / 100% (fresh). Pooled 
 - **The mechanism is not confirmed.** The prediction said the gain comes through solver calls and fewer timeouts. Timeouts do not fall (22% → 21%). Discordant instances (FE right / F wrong vs the reverse): attempts that call the solver s1 10 / 8, s2 9 / 5 (net +6 of 137); attempts that do not s1 20 / 19, s2 29 / 12 (net +18 of 415). Most of the gain sits in attempts that never call the solver, and almost all of it in one seed (s1 +1.06, s2 +7.62). So the size of the effect is uncertain and its cause is open: either the sentence changes how the model works even without the solver, or s2 is a large draw.
 - **Word problems are not run:** the native tool already calls a solver in 52–87% of word-problem attempts (seed 1 rows of the twelve sets), against 2–8% on MathConstruct; the sentence has nothing to add there.
 
-## Addendum SOLVER-C (registered 2026-11-26 10:27 UTC, before any row): confirmation on two more seeds
+## Addendum SOLVER-C (registered 2026-11-26 10:24 UTC, before any row): confirmation on two more seeds
 Because the effect sits mostly in one seed and outside the solver calls, the same comparison is repeated on mcong **seeds 3 and 4** (never run), F on GPU 6 and FE on GPU 7 in parallel, same settings. **Test:** FE − F utility pooled over seeds 3–4, clustered by problem. **Reading fixed now:** lower bound > 0 → the recipe change stands and the effect is replicated; interval containing 0 with a positive point estimate → the recipe change stands on seeds 1–2 only, effect size stated as uncertain; **upper bound < 0 → the recipe reverts to TIR-F.** Reported with it: the discordant counts split by solver use (mechanism) and the four-seed pooled estimate.
