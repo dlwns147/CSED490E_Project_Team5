@@ -1707,3 +1707,13 @@ OWN-E and S0-E on mcong **seeds 3 and 4** against the stored FE seeds 3–4 (sam
 | MathConstruct mcong 276 | 15 | 72.4 | 82.6 | 86.3 | 91.6 (any of 15: 92.4) | 5.3 |
 | competition 155 | 6 | 92.5 | — | — | any of 6: 98.1 | 3.8 |
 - **Correction to the line "selection is near its ceiling wherever a cheap pool exists" (window summary of 11-24):** that held for the cheap no-tool pools; with the tool, a second attempt contains a right answer on **+8.6 to +10.8 points** more problems on Project Euler and MathConstruct, at 2.7–6.2 utility points per attempt. With a perfect choice between two attempts the gain would be +4 to +8 utility; what we have captures a third of it (PROV2 +3.2 to +4.2 accuracy, MAJ3 needs three attempts). The open method problem on these two sets is therefore **choosing between two disagreeing tool attempts with a free, reliable check**, which is what DIFF does on OEIS and nothing does yet on numeric Project Euler answers.
+### SUBMIT-EC result (written 2026-11-26 17:15 UTC; mcong seeds 3–4, 276 instances of 95 problems, clustered by problem; scored inline from the same files as SUBMIT-E, first row per id — no duplicates occurred, every file has 276 rows)
+| arm | seeds 3–4 | seeds 1–4 |
+|---|---|---|
+| FE (recipe before) | 71.7% @ 5.60k, 68.94 | 71.3% @ 5.67k, 68.45 |
+| S0-E (submit) | 75.7% @ 4.68k, 73.39 | 76.1% @ 4.73k, 73.72 |
+| **OWN-E (submit + own check)** | 77.4% @ 5.02k, 74.85 | 77.4% @ 5.05k, 74.83 |
+**OWN-E − FE utility +5.91 [+1.66, +10.84] on the two new seeds: replicated**; accuracy +5.62 [+1.60, +10.25], tokens −0.58k [−1.52, +0.11]. Four seeds: +6.38 [+2.50, +10.75], accuracy +6.07, −0.62k tokens (win on both).
+- S0-E − FE +4.45 [+0.15, +9.38] (four seeds +5.27 [+1.17, +10.04]); OWN-E − S0-E +1.46 [−1.59, +4.38] (four seeds +1.11 [−0.92, +3.13], +0.32k tokens): **most of the gain is submitting the object as a value; the own check adds about one point, not shown.**
+- Failure tags over the 552 seed-3–4 attempts (grader tags; "give-up/none" = empty box or no submission, a narrower class than the SUBMIT-E wording, which also counted apologies inside a box), FE → S0-E → OWN-E: wrong length 32 → 13 → 11, wrong object 61 → 59 → 48, unparseable 41 → 33 → 33, give-up/none 12 → 22 → 22. Wrong length falls in both seed pairs (the retyped copy was cut); unparseable LaTeX barely falls; empty submissions rise.
+- **MathConstruct recipe: OWN-E stands** (native tool, installed-solver sentence, submit + own check). Against the native tool alone (TIR-F, four seeds 65.8% @ 5.79k) it is +11.6 accuracy at −0.7k tokens.
