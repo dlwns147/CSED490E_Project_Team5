@@ -6,7 +6,8 @@ values' are compared on the same samples. PROV2, ONE and the two-attempt oracle 
 usage: POC_BASE_URL=... python tir_dispute.py run <euler|eulert> <effort> <seedA> <seedB> -> results/x44/tirdis_<set>_<effort>_s<A>_<B>.jsonl
        python tir_dispute.py score <seedA> <seedB>
 Temporary files: every session's Tool is closed in a finally block (removes its /tmp/sbx_tir_* sandbox)."""
-import json, os, sys, zlib, itertools
+import json, os, re, sys, zlib, itertools
+from fractions import Fraction
 from concurrent.futures import ThreadPoolExecutor, as_completed
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 import tir_native as T
@@ -20,6 +21,28 @@ CONT = ("Now apply your solution method to a smaller instance of the same proble
         "with only the parameters changed; do not switch to a different method. Give the value for this instance alone in \\boxed{{}}.")
 JUDGE = ("{p}\n\nTwo candidate final answers have been proposed: {x} and {y}. Determine which of them is correct; you may use the python tool. "
          "Put the one you judge correct, exactly as written, in \\boxed{{}}.")
+
+
+def num(a):
+    """value of an answer string as (Fraction, exact) or None (a give-up text is no answer): integers, decimals, a/b, \\frac{a}{b}, a\\times10^{k}, a e k (pilot 11-26: the referee and the sessions wrote one value three ways)"""
+    if not a:
+        return None
+    s = re.sub(r"\\[,;! ]|\\left|\\right|\s|\{,\}|,", "", a); s = re.sub(r"\\[dt]?frac\{(-?\d+)\}\{(\d+)\}", r"\1/\2", s)
+    s = s.replace("\\times", "*").replace("\\cdot", "*").replace("{", "").replace("}", "").rstrip(".")
+    m = re.fullmatch(r"(-?\d+(?:\.\d+)?)(?:\*10\^(-?\d+)|[eE]\+?(-?\d+))?", s)
+    if m:
+        e = int(m.group(2) or m.group(3) or 0); return Fraction(m.group(1)) * Fraction(10) ** e, "." not in m.group(1) and e >= 0
+    m = re.fullmatch(r"(-?\d+)/(\d+)", s)
+    return (Fraction(int(m.group(1)), int(m.group(2))), True) if m and int(m.group(2)) else None
+
+
+def eq(a, b):
+    x, y = num(a), num(b)
+    if x is None or y is None:
+        return False
+    if x[1] and y[1]:
+        return x[0] == y[0]
+    return abs(x[0] - y[0]) <= Fraction(1, 10 ** 9) * max(abs(x[0]), abs(y[0]), 1)
 
 
 def _final(text):
@@ -72,7 +95,7 @@ def solve(p, prompt, grade, effort, sa, sb):
     import ma_effort as M
     import run_compute as RC
     tok = lambda s: llm.post_json("/tokenize", {"model": "local", "prompt": s, "add_special_tokens": False})["tokens"]
-    nm = lambda t: RC.norm(M.ans(t) or "") if t else ""
+    nm = lambda t: (lambda a: a if num(a) is not None else "")(RC.norm(M.ans(t) or "")) if t else ""
     h = zlib.crc32(p["id"].encode()) % 997; q = prompt(p)
     S = {"A": Session(q, effort, sa * 1000 + h, tok), "B": Session(q, effort, sb * 1000 + h, tok)}; out = {"id": p["id"]}
     try:
@@ -82,13 +105,13 @@ def solve(p, prompt, grade, effort, sa, sb):
             z = {"final": fin[k], "outs": s.outs}; pv = T.provenance(z) if fin[k] else None
             out[k] = {"final": fin[k][-2000:], "ans": nm(fin[k]), "out_tokens": s.used, "calls": s.calls, "finish": s.fin, "flag": (not pv) or s.fin != "stop", **grade(p, fin[k])}
         a, b = out["A"]["ans"], out["B"]["ans"]
-        out["disputed"] = bool(a and b and a != b)
+        out["disputed"] = bool(a and b and not eq(a, b))
         if out["disputed"]:
             ref = Session(REF.format(p=p["problem"]), effort, 10 * 1000 + h, tok); jud = Session(JUDGE.format(p=p["problem"], x=a, y=b), effort, 11 * 1000 + h, tok)
             try:
                 with ThreadPoolExecutor(2) as ex:
                     fr, fj = ex.submit(ref.gen, T.CAP), ex.submit(jud.gen, T.CAP); rf, jf = fr.result(), fj.result()
-                inst = next((l.split("INSTANCE:", 1)[1].strip() for l in rf.splitlines() if "INSTANCE:" in l), "")[:300]
+                inst = next((l.split("INSTANCE:", 1)[1].strip() for l in rf.splitlines() if "INSTANCE:" in l), "")[:300]; inst = re.sub(r"\\[()]", "", inst).strip(" *")
                 out["ref"] = {"final": rf[-1500:], "inst": inst, "ans": nm(rf), "out_tokens": ref.used, "calls": ref.calls, "finish": ref.fin}
                 out["judge"] = {"final": jf[-1500:], "ans": nm(jf), "out_tokens": jud.used, "calls": jud.calls, "finish": jud.fin}
                 if inst and out["ref"]["ans"]:
@@ -138,9 +161,9 @@ def arms(z):
             res["DISPUTE-P"].append(((c(pick) if X["flag"] else c(X)), both if X["flag"] else t(X)))
             continue
         j = z.get("judge", {}); jt = j.get("out_tokens", 0)
-        res["JUDGE"].append((c(Y) if j.get("ans") == Y["ans"] and j.get("ans") != X["ans"] else c(X), both + jt))
+        res["JUDGE"].append((c(Y) if eq(j.get("ans"), Y["ans"]) and not eq(j.get("ans"), X["ans"]) else c(X), both + jt))
         rf = z.get("ref", {}); r = rf.get("ans"); dt = rf.get("out_tokens", 0) + sum(z[k].get("small", {}).get("out_tokens", 0) for k in ("A", "B"))
-        mx, my = X.get("small", {}).get("ans") == r and bool(r), Y.get("small", {}).get("ans") == r and bool(r)
+        mx, my = eq(X.get("small", {}).get("ans"), r), eq(Y.get("small", {}).get("ans"), r)
         d = c(Y) if (my and not mx) else c(X)
         res["DISPUTE"].append((d, both + dt))
         res["DISPUTE-P"].append(((d, both + dt) if X["flag"] else (c(X), t(X))))
@@ -170,7 +193,7 @@ def score(sa, sb):
             continue
         dz = [D[k] for k in ks if D[k]["disputed"]]
         print(f"== {lab}: {len(ks)} problems, disputed {len(dz)}; referee gave instance + value on {sum(bool(z.get('ref', {}).get('inst') and z['ref'].get('ans')) for z in dz)}; "
-              f"exactly one attempt matches it on {sum(((z['A'].get('small', {}).get('ans') == z['ref'].get('ans')) != (z['B'].get('small', {}).get('ans') == z['ref'].get('ans'))) and bool(z.get('ref', {}).get('ans')) for z in dz)}")
+              f"exactly one attempt matches it on {sum(eq(z['A'].get('small', {}).get('ans'), z.get('ref', {}).get('ans')) != eq(z['B'].get('small', {}).get('ans'), z.get('ref', {}).get('ans')) for z in dz)}")
         for a in A:
             print(f"   {a:9s} {100*sum(A[a][k][0] for k in ks)/len(ks):.1f}% @ {sum(A[a][k][1] for k in ks)/len(ks)/1000:.2f}k utility {sum(U(*A[a][k]) for k in ks)/len(ks):.2f}")
         one = sum(A['ONE'][k][0] for k in ks); orc = sum(A['ORACLE2'][k][0] for k in ks)
