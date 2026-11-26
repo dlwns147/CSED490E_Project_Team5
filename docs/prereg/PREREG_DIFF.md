@@ -1590,3 +1590,12 @@ Also stated, not tested: per set; the tool's turns and prefill tokens against RE
 PROV's utility gain over one attempt was shown with three seeds pooled (+1.93 [+0.15, +3.81]) but not on the two seeds unseen when the flag was defined (+1.85 [−0.43, +4.31]). **Run:** native tool, medium, no call cap, Project Euler dev 120 and fresh 50, **seeds 4 and 5** (never run). **Scoring:** python poc/tir_prov.py with PROV_SEEDS=4,5, the same code as the result above, unchanged.
 **Test (decisive):** PROV2 − ONE utility pooled over the 170 problems, paired by problem; shown if the lower bound > 0. Also stated: PROV2 − RAND2, PROV2 − MAJ3 is not available with two seeds (needs three) and is not reported.
 **Prediction:** positive, lower bound > 0 with probability about one half (the expected gain, +1.9, is about one standard error of a two-seed run). If not shown, the claim stays "more accurate than one attempt and than random spending; utility over one attempt shown only on seeds 1–3 pooled".
+
+### RELOOP-B, direct-generation variant (written 2026-11-26 04:54 UTC; RL_DIRECT=1 python poc/wp_reloop.py score; ReLoop's own --no-cot option, same L1 / L2 / repair; 804 problems)
+| arm | accuracy | ktok | utility |
+|---|---|---|---|
+| one program | 71.8% | 2.72 | 70.41 |
+| RETRY (recipe) | 74.0% | 2.83 | 72.59 |
+| ReLoop, structured generation (first row) | 54.4% | 9.73 | 49.49 |
+| **ReLoop, direct generation** | 69.4% | 5.58 | 66.61 |
+ReLoop-direct − RETRY accuracy −4.60 [−7.34, −1.74], utility **−5.98 [−8.80, −3.17]**; − one program −3.80 [−6.78, −0.78]. Behind RETRY on six of seven sets (mamoc +0.95). With the values written into the program the data-extraction crashes are gone (+15 accuracy over the first row), so the first row's gap was mostly that, as read above; what remains is that its generation prompt is weaker than ours on the hard sets (optnew −15, OptMATH −9) and its checks add ≤ 1 point (generation only 68.4% pooled vs 69.4% final). The fair ReLoop row is this one; the conclusion (RETRY ahead, ReLoop not adopted) does not change.
