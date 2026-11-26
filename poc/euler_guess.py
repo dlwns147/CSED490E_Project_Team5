@@ -59,17 +59,44 @@ def run(tab):
     return best
 
 
+def rref(M):
+    """reduced row echelon form over Q (pure Fraction; sympy was too slow on long tables, 11-26 19:4x) -> (rows, pivot columns)"""
+    M = [[Fraction(x) for x in r] for r in M]; piv = []; r = 0; ncol = len(M[0]) if M else 0
+    for c in range(ncol):
+        k = next((i for i in range(r, len(M)) if M[i][c] != 0), None)
+        if k is None:
+            continue
+        M[r], M[k] = M[k], M[r]; pv = M[r][c]; M[r] = [x / pv for x in M[r]]
+        for i in range(len(M)):
+            if i != r and M[i][c] != 0:
+                f = M[i][c]; M[i] = [x - f * y for x, y in zip(M[i], M[r])]
+        piv.append(c); r += 1
+        if r == len(M):
+            break
+    return M[:r], piv
+
+
 def solve_lin(A, b):
-    """exact least-squares-free solve: A x = b (square or overdetermined consistent) by Gaussian elimination over Q; None if inconsistent / singular"""
-    import sympy
-    M = sympy.Matrix(A); B = sympy.Matrix(b)
-    try:
-        sol, params = M.gauss_jordan_solve(B)
-    except ValueError:
+    """A x = b, overdetermined and consistent, unique solution; else None"""
+    n = len(A[0]); R, piv = rref([list(r) + [y] for r, y in zip(A, b)])
+    if n in piv or len(piv) != n:
         return None
-    if params.shape[0]:
+    return [R[i][n] for i in range(n)]
+
+
+def nullspace1(M):
+    """the null space vector if the null space is one-dimensional (integers, primitive), else None"""
+    n = len(M[0]); R, piv = rref(M); free = [c for c in range(n) if c not in piv]
+    if len(free) != 1:
         return None
-    return [Fraction(int(sympy.fraction(x)[0]), int(sympy.fraction(x)[1])) for x in sol]
+    x = [Fraction(0)] * n; x[free[0]] = Fraction(1)
+    for i, c in enumerate(piv):
+        x[c] = -R[i][free[0]]
+    import math
+    L = 1
+    for t in x:
+        L = L * t.denominator // math.gcd(L, t.denominator)
+    return [t * L for t in x]
 
 
 def fit_poly(n0, v, deg):
@@ -90,17 +117,15 @@ def fit_const(v, order):
 
 
 def fit_holo(n0, v, order, deg):
-    import sympy
     rows = []
     for k in range(len(v) - order):
         n = Fraction(n0 + k); rows.append([n ** j * v[k + i] for i in range(order + 1) for j in range(deg + 1)])
     u = (order + 1) * (deg + 1)
     if len(rows) < u + 2:
         return None
-    ns = sympy.Matrix(rows).nullspace()
-    if len(ns) != 1:
+    x = nullspace1(rows)
+    if x is None:
         return None
-    x = ns[0]; den = sympy.ilcm(*[sympy.fraction(t)[1] for t in x]); x = [Fraction(int(t * den)) for t in x]
     return [[x[i * (deg + 1) + j] for j in range(deg + 1)] for i in range(order + 1)]
 
 
@@ -137,6 +162,7 @@ def check(model, n0, v, k0):
 
 def guess(n0, v):
     """-> (kind, coefficients on the whole table) or None; simplest accepted class first"""
+    v = v[:int(os.environ.get("GUESS_MAXTERMS", 64))]       # the first 64 terms (speed; registered before any guesser output was read)
     L = len(v); k = (2 * L) // 3
     if L < 8:
         return None
@@ -252,6 +278,8 @@ def score(files):
             m = guess(n0, v)
             if m is None:
                 C["no model accepted"] += 1; continue
+            if len(v) > 64 and not check(m, n0, v, 0):            # terms beyond the 64 used must also be reproduced
+                C["rejected by terms beyond 64"] += 1; continue
             N, mod = intpar(z.get("target", "")), intpar(z.get("modulus", ""))
             x, how = evaluate(m, n0, v, N, mod)
             if x is None:
