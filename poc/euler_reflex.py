@@ -8,7 +8,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 import tir_native as T
 from tir_dispute import Session
-R = T.R; OUT = f"{R}/eulrefl_s18.jsonl"
+R = T.R; PAIR = os.environ.get("REFL_PAIR", "16_17"); RS = int(os.environ.get("REFL_SEED", 18)); OUT = f"{R}/eulrefl_s{RS}.jsonl"
 NOTE = ("\n\nA previous attempt at this problem ended with the final message below. Its answer {a} was never printed by any of its tool runs, so it was "
         "not actually computed and is probably wrong. Solve the problem again from the start; if the previous approach was too slow or did not finish, "
         "use a different method.\n\nPrevious final message:\n{f}")
@@ -18,7 +18,7 @@ def rows():
     out = []
     for st in ("euler", "eulert"):
         P, prompt, grade = T.task(st); PP = {p["id"]: p for p in P}
-        for l in open(f"{R}/tirdis2_{st}_medium_s16_17.jsonl"):
+        for l in open(f"{R}/tirdis2_{st}_medium_s{PAIR}.jsonl"):
             z = json.loads(l); out.append((st, PP[z["id"]], prompt, grade, z))
     return out
 
@@ -30,7 +30,7 @@ def run():
     todo = [x for x in rows() if x[4]["A"]["flag"] and x[1]["id"] not in done]
     def one(x):
         st, p, prompt, grade, z = x
-        s = Session(prompt(p) + NOTE.format(a=z["A"]["ans"] or "(none)", f=(z["A"]["final"] or "")[-1500:]), "medium", 18000 + zlib.crc32(p["id"].encode()) % 997, tok)
+        s = Session(prompt(p) + NOTE.format(a=z["A"]["ans"] or "(none)", f=(z["A"]["final"] or "")[-1500:]), "medium", RS * 1000 + zlib.crc32(p["id"].encode()) % 997, tok)
         try:
             f = s.gen(T.CAP)
         finally:
