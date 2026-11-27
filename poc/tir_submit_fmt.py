@@ -76,7 +76,7 @@ def solve(q, effort, seed, prob):
 
 
 def main(seed):
-    P, prompt, grade = T.task("mcong"); path = f"{R}/tirsubf_OWN_mcong_medium_s{seed}.jsonl"
+    ST = os.environ.get("SF_SET", "mcong"); P, prompt, grade = T.task(ST); path = f"{R}/tirsubf_OWN_{ST}_medium_s{seed}.jsonl"
     done = {json.loads(l)["id"] for l in open(path)} if os.path.exists(path) else set()
 
     def one(p):
