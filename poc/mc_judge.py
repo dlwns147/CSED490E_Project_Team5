@@ -8,14 +8,14 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 import tir_native as T
 from tir_dispute import Session
-R = T.R; OUTF = f"{R}/mcjudge_s5_6.jsonl"
+R = T.R; SA, SB = (int(x) for x in os.environ.get("JSEEDS", "5,6").split(",")); OUTF = f"{R}/mcjudge_s{SA}_{SB}.jsonl"
 Q = ("{p}\n\nTwo candidate answers have been submitted for this problem.\n\nCandidate A:\n{a}\n\nCandidate B:\n{b}\n\nExactly one of them may be correct. "
      "Determine which one satisfies every condition of the problem; you may use the python tool to test the conditions. Reply with the single letter of the correct candidate in \\boxed{{}}.")
 
 
 def pairs():
     L = lambda s: {z["id"]: z for z in map(json.loads, open(f"{R}/tirsublp_OWN_mcong_medium_s{s}.jsonl"))}
-    A, B = L(5), L(6); P, prompt, grade = T.task("mcong"); PP = {p["id"]: p for p in P}
+    A, B = L(SA), L(SB); P, prompt, grade = T.task("mcong"); PP = {p["id"]: p for p in P}
     return [(PP[k], A[k], B[k]) for k in sorted(set(A) & set(B)) if k in PP], prompt
 
 
@@ -34,7 +34,7 @@ def run():
             s.close()
         m = re.findall(r"\\boxed\{\s*\(?([AB])\)?\s*\}", f or ""); letter = m[-1] if m else ""
         chosen = {"A": first, "B": second}.get(letter)
-        return {"id": p["id"], "same": False, "swap": swap, "letter": letter, "chosen_seed": (6 if chosen is b else 5) if chosen else None, "out_tokens": s.used, "calls": s.calls, "finish": s.fin}
+        return {"id": p["id"], "same": False, "swap": swap, "letter": letter, "chosen_seed": (SB if chosen is b else SA) if chosen else None, "out_tokens": s.used, "calls": s.calls, "finish": s.fin}
     with ThreadPoolExecutor(int(os.environ.get("TIR_WORKERS", 48))) as ex, open(OUTF, "a") as fo:
         for fu in as_completed([ex.submit(one, x) for x in P if x[0]["id"] not in done]):
             fo.write(json.dumps(fu.result()) + "\n"); fo.flush()
@@ -50,10 +50,10 @@ def score():
         j = J[p["id"]]; c = lambda z: float(bool(z["correct"])); ta, tb = a["out_tokens"], b["out_tokens"]
         arms["ONE"][p["id"]] = ((c(a) + c(b)) / 2, (ta + tb) / 2)
         arms["ORACLE2"][p["id"]] = (max(c(a), c(b)), ta + tb)
-        pick = (b if j.get("chosen_seed") == 6 else a) if j.get("chosen_seed") else a
+        pick = (b if j.get("chosen_seed") == SB else a) if j.get("chosen_seed") else a
         arms["JUDGE"][p["id"]] = (c(pick), ta + tb + j["out_tokens"])
         if c(a) != c(b):
-            one_right.append((j, (5 if c(a) else 6)))
+            one_right.append((j, (SA if c(a) else SB)))
     ks = list(arms["ONE"]); key = [k.split("__")[0] for k in ks]
     for n, d in arms.items():
         print(f"{n:8s} {100*sum(d[k][0] for k in ks)/len(ks):.1f}% @ {sum(d[k][1] for k in ks)/len(ks)/1000:.2f}k utility {sum(U(*d[k]) for k in ks)/len(ks):.2f}")
