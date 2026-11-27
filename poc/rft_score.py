@@ -9,14 +9,14 @@ R = S.R; U = S.U
 
 
 def load(tag, st):
-    out = collections.defaultdict(list); seen = set()
+    out = collections.defaultdict(list); seen = set(); keep = {int(x) for x in os.environ.get("RFT_SEEDS", "1,2").split(",")}   # attempt seeds compared (the registered tests use seeds 1-2)
     for s in range(1, 9):
         p = f"{R}/rft_{tag}_{st}_s{s}.jsonl"
         if not os.path.exists(p):
             continue
         for l in open(p):
             z = json.loads(l); k = (z["id"], z["seed"])
-            if k in seen:
+            if k in seen or z["seed"] not in keep:
                 continue
             seen.add(k); out[z["id"]].append(z)
     return out
