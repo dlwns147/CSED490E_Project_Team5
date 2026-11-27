@@ -7686,3 +7686,14 @@ utility (Holm holds). 53.1% right at 8.1k tokens; some sample is right on 55.0%,
 ## 2026-11-23 16:05 UTC — MathConstruct: one repair turn driven by the model's own verify() adds +8.3 utility over the own-verify ladder (PREREG_DIFF MC-R)
 gpt-oss-120b, 121 problems × 3 seeds: 50.7% → 59.5% right at 3.2k → 4.2k tokens; repaired constructions that pass verify() are right 89%
 of the time. Best MathConstruct result of the session (cross-verification and sequential buying were accurate but expensive).
+
+## 2026-11-27 14:57 UTC — Window 11-26 18:17 → 11-27 18:17 (PREREG_DIFF): what holds, what failed, and one caution for every selection claim
+| question | result (held-out / fresh seeds, clustered by problem) |
+|---|---|
+| MathConstruct recipe OWN-E (native tool + installed-solver sentence + submit with own check) | replicated on new seeds: +5.91 [+1.66, +10.84] utility over the previous recipe; +11.6 accuracy over the plain native tool at 0.7k fewer tokens |
+| Project Euler: a brute-forced smaller instance chooses between disagreeing attempts | behind the S*-style judge and DeepConf tail confidence on two seed pairs; 47 of 63 disagreements are between two wrong attempts |
+| Project Euler: DeepConf tail confidence as the selector | captures 0.63–0.67 of the two-attempt room for free, but does not beat PROV2 in utility (−0.87 [−3.34, +1.53]); PROV2 stays |
+| MathConstruct: DeepConf selection | captures none of the room (0.00) |
+| classical sequence guessing on brute-force tables (Euler, OEIS) | 3 of 170 Euler right; with perfect OEIS data 24 of 277 sequences guessable; dropped |
+| training gpt-oss-20b on MathConstruct (own traces, 120B traces, RL with the checker's reward; problem-level held-out split) | no transfer: held-out accuracy 69.0–71.0% vs base 73.8% in every form; supervised forms make attempts 1.4–3.9k tokens shorter; the first RL update rule collapsed the model (length-only advantages in all-wrong groups) |
+**Caution.** A free signal's pooled AUROC over all attempts (tokens 0.77–0.80 on three sets; MathConstruct confidence 0.83) mostly measures problem difficulty; between two attempts at the *same* problem the same signals score 0.47–0.62 (confidence 0.33 on MathConstruct, 0.70–0.79 on Euler). Only the within-pair rate predicts selection; it explains every gap between a signal's AUROC and its selection gain in this project.
