@@ -1899,3 +1899,12 @@ ONE 77.5% @ 4.77k (75.15); **GATE-J 82.2% @ 9.86k (77.32)**, τ = 3,224 / 2,111 
 ### JUDGE-MC2 result (written 2026-11-27 16:09 UTC; JSEEDS=7,8 python poc/mc_judge.py score; new seeds 7 / 8, 276 instances, 217 judged)
 ONE 79.7% @ 5.35k (77.04); JUDGE 81.9% @ 13.09k (75.34); ORACLE2 86.2% @ 10.69k (80.88); share 0.33. **JUDGE − ONE utility −1.70 [−4.05, +0.64]: the lower bound is not > 0, so by the rule fixed before the run the MathConstruct recipe stays OWN-E with one attempt**; accuracy +2.17 [−0.18, +4.48]. Within-pair: the judge picks the right construction in **0.64** of 36 one-right pairs (seeds 5 / 6: 0.86 of 42; both seed pairs together 59 of 78, 0.76); position 115 / 217 first-shown; judge 3.05k tokens, 5.8 calls. The prediction (accuracy +4 to +7) fails; the seed-5/6 gain was partly a favourable draw.
 **Reading.** A code-running judge is the only selector that chooses between two constructions better than chance (0.76 over four seeds against ≤ 0.55 for every free signal), but at our price it does not pay: two attempts plus a 3k-token judge cost ~8k tokens per instance for +2 to +6 accuracy (break-even ~0.3–0.7 points per ktok across the two seed pairs). It is reported as the accuracy-for-tokens option for MathConstruct, not adopted.
+### The selection map (written 2026-11-27 16:45 UTC; poc/selection_map.py, poc/within_pair.py, conf_mc_score.py, mc_judge.py; within-pair = in pairs of attempts where exactly one is right, how often the selector keeps the right one)
+| selector | Project Euler (numbers) | MathConstruct (constructions) | cost on top of the second attempt |
+|---|---|---|---|
+| fewer generated tokens | 0.57 (76 pairs); stored 5-seed rows 0.53 (286) | 0.55 (42); stored rows 0.62 (248) | 0 |
+| DeepConf tail confidence | **0.75** (51) | 0.45 (42) | 0 |
+| DeepConf lowest-group confidence | 0.33 (24) | 0.33 (42) | 0 |
+| S* / GenSelect-style judge (code allowed) | **0.76** (51 disputed) | **0.76** (78, two seed pairs) | ~10k (Euler), ~3k (MathConstruct) |
+| brute-forced smaller instance (ours, DISPUTE-E) | 6 of 16 kept right, 9 not separated (decisive seeds) | — | ~4.4k |
+Reading: on numbers the model's own end-of-trace confidence is as good a selector as a paid judge; on constructions only a judge that runs code beats chance; length never does. In utility at 0.5 per ktok none of them beats the cheaper recipes (PROV2 on Euler, one OWN-E attempt on MathConstruct), because the second attempt itself costs 5–10k tokens; each is reported as an accuracy-for-tokens option with its break-even price.
