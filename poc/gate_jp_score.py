@@ -1,12 +1,13 @@
 """GATE-JP scorer (2026-11-28): prospective gated judge on OWN-EF seeds 7 / 8 with tau fixed at 7,536 tokens; clustered by problem; gs15 container."""
 import json, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); import tir_score as S
+SA, SB = (int(x) for x in os.environ.get("GSEEDS", "7,8").split(","))
 U = S.U; D = S.R + "/"; TAU = 7536
-A = {z["id"]: z for z in map(json.loads, open(D + "tirsubf_OWN_mcong_medium_s7.jsonl"))}; B = {z["id"]: z for z in map(json.loads, open(D + "tirsubf_OWN_mcong_medium_s8.jsonl"))}
-J = {z["id"]: z for z in map(json.loads, open(D + "mcjudge_tirsubf_s7_8.jsonl"))}
+A = {z["id"]: z for z in map(json.loads, open(D + f"tirsubf_OWN_mcong_medium_s{SA}.jsonl"))}; B = {z["id"]: z for z in map(json.loads, open(D + f"tirsubf_OWN_mcong_medium_s{SB}.jsonl"))}
+J = {z["id"]: z for z in map(json.loads, open(D + f"mcjudge_tirsubf_s{SA}_{SB}.jsonl"))}
 c = lambda z: float(bool(z["correct"])); G, O, key = [], [], []; opened = 0
 for k in sorted(set(A) & set(B) & set(J)):
-    a, b, j = A[k], B[k], J[k]; pick = b if j.get("chosen_seed") == 8 else a; g = []
+    a, b, j = A[k], B[k], J[k]; pick = b if j.get("chosen_seed") == SB else a; g = []
     for x, y in ((a, b), (b, a)):
         if x["out_tokens"] > TAU:
             opened += 1; g.append((c(pick), x["out_tokens"] + y["out_tokens"] + j["out_tokens"]))
