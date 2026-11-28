@@ -25,7 +25,7 @@ def solve(q, effort, seed, prob):
     """rft_gen.solve (tir_submit arm OWN, unchanged up to the first submission) + the official-format parse check at submit"""
     import llm
     tok = lambda s: llm.post_json("/tokenize", {"model": "local", "prompt": s, "add_special_tokens": False})["tokens"]
-    q = q + TS.TAIL + TS.OWN
+    q = q + TS.TAIL + TS.OWN + os.environ.get("SF_EXTRA", "")      # SF_EXTRA: an added instruction (DECL arm); default empty = OWN-EF unchanged
     ids = tok(T.SYS.format(e=effort, q=q)); mask = [0] * len(ids); used = calls = 0; seen_subs = 0; fmt_log = []; tool = T.Tool(); open(tool.f, "w").write(TS.T_DRIVER); subs = []; msgs = 0; fin = "stop"; text = ""; final = ""
     subf = os.path.join(tool.d.name, "subs.jsonl"); pre = TS.PRE.format(code=repr(""), code2=repr(""), enf=False, sub=repr(subf)); inited = None
     add = lambda xs, m: (ids.extend(xs), mask.extend([m] * len(xs)))
