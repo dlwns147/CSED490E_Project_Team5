@@ -22,8 +22,8 @@ def rows(arm, seed):
     return out
 
 
-def paper():
-    f = D + "mcst_paper/tools.json"
+def paper(d="mcst_paper"):
+    f = D + d + "/tools.json"
     if not os.path.exists(f):
         return None
     out = {}; RG = json.load(open(f.replace(".json", ".regraded.json"))) if FIX else None
@@ -38,6 +38,7 @@ def paper():
 
 SA, SB = (int(x) for x in os.environ.get("MSEEDS", "1,2").split(","))      # MCST-C: MSEEDS=3,4
 A, B, T, PA = rows("OWNEF", SA), rows("OWNEF", SB), rows("TIR", 1), paper()
+PA2 = paper("mcst_paper2")          # amendment PAPER2 (13:10 UTC): the authors' harness with a robust tool-argument reader
 T2 = rows("TIR2", 1)       # amendment 12:32 UTC: TIR with the raw message kept; TIR2_len = the lenient reading (last list / UNSATISFIABLE in the message)
 JF = D + f"mcst_judge_s{SA}_{SB}.jsonl"; J = {z["id"]: z for z in map(json.loads, open(JF))} if os.path.exists(JF) else None
 c = lambda z: float(bool(z["correct"]))
@@ -67,9 +68,15 @@ if J and "ONE" in arms:
         del arms["GJ"]
     else:
         arms["GJ_PROC"] = gate(0)[0]          # MCST-C: the procedure assigns no gate (dev pooled AUROC 0.44 < 0.6)
-for name, R in (("TIR", T), ("PAPER", PA), (f"OWNEF_s{SA}", A), (f"OWNEF_s{SB}", B)):
+for name, R in (("TIR", T), ("PAPER", PA), ("PAPER2", PA2), (f"OWNEF_s{SA}", A), (f"OWNEF_s{SB}", B)):
     if R:
         arms[name] = {k: (c(z), z["out_tokens"]) for k, z in R.items()}
+S0 = {s: rows("S0F", s) for s in (SA, SB)}          # MCST-A: OWN-EF without the own-check sentence
+if S0[SA] and S0[SB]:
+    arms["S0F"] = {k: ((c(S0[SA][k]) + c(S0[SB][k])) / 2, (S0[SA][k]["out_tokens"] + S0[SB][k]["out_tokens"]) / 2) for k in S0[SA] if k in S0[SB]}
+T2b = rows("TIR2", 2)
+if T2 and T2b:
+    arms["TIR2_len2"] = {k: ((float(bool(T2[k]["correct_len"])) + float(bool(T2b[k]["correct_len"]))) / 2, (T2[k]["out_tokens"] + T2b[k]["out_tokens"]) / 2) for k in T2 if k in T2b}
 if T2:
     arms["TIR2"] = {k: (c(z), z["out_tokens"]) for k, z in T2.items()}; arms["TIR2_len"] = {k: (float(bool(z["correct_len"])), z["out_tokens"]) for k, z in T2.items()}
 common = sorted(set.intersection(*[set(v) for v in arms.values()])) if arms else []
@@ -80,7 +87,7 @@ for sub, ks in (("all 329", common), ("320 (verifier-accepted references)", [k f
     for a, d in arms.items():
         sat = [k for k in ks if P[k]["satisfiable"]]; uns = [k for k in ks if not P[k]["satisfiable"]]
         print(f"{a:9s} {100*sum(d[k][0] for k in ks)/n:5.1f}% @ {sum(d[k][1] for k in ks)/n/1000:5.2f}k  utility {sum(U(*d[k]) for k in ks)/n:6.2f} | SAT {100*sum(d[k][0] for k in sat)/max(1,len(sat)):5.1f}% UNSAT {100*sum(d[k][0] for k in uns)/max(1,len(uns)):5.1f}%")
-    for x, y in (("ONE", "PAPER"), ("ONE", "TIR"), ("ONE", "TIR2_len"), ("GJ", "ONE"), ("GJ_PROC", "ONE"), ("GJ_PROC", "GJ"), ("GJ", "PAPER"), ("GJ_PROC", "PAPER"), ("TIR", "PAPER"), ("TIR2_len", "PAPER")):
+    for x, y in (("ONE", "PAPER2"), ("GJ", "PAPER2"), ("TIR2_len2", "PAPER2"), ("ONE", "PAPER"), ("ONE", "TIR"), ("ONE", "TIR2_len"), ("ONE", "TIR2_len2"), ("S0F", "ONE"), ("S0F", "TIR2_len2"), ("GJ", "ONE"), ("GJ_PROC", "ONE"), ("GJ_PROC", "GJ"), ("GJ", "PAPER"), ("GJ_PROC", "PAPER"), ("TIR", "PAPER"), ("TIR2_len", "PAPER")):
         if x in arms and y in arms:
             print(f"{x} − {y}: utility {S.ci([U(*arms[x][k]) - U(*arms[y][k]) for k in ks], key)}  accuracy {S.ci([100*(arms[x][k][0]-arms[y][k][0]) for k in ks], key)}")
 if "GJ" in arms:
@@ -98,7 +105,7 @@ if "GJ" in arms:
     au = sum((p > q) + 0.5 * (p == q) for p in pos for q in neg) / max(1, len(pos) * len(neg))
     print(f"pooled AUROC of tokens for 'wrong': {au:.2f} ({len(pos)} wrong of {len(X)})")
 # beyond accuracy: claims, polarity, tokens, tool use, finish
-for name, R in (("PAPER", PA), ("TIR", T), ("TIR2", T2), ("OWNEF_s1", A), ("OWNEF_s2", B)):
+for name, R in (("PAPER", PA), ("PAPER2", PA2), ("TIR", T), ("TIR2", T2), ("OWNEF_s1", A), ("OWNEF_s2", B)):
     if not R:
         continue
     ks = [k for k in common] or list(R); cl = collections.Counter()
