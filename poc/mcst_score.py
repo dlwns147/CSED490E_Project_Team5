@@ -5,7 +5,7 @@ solutions the verifier rejects; SAT / UNSAT splits, claims, tokens, calls, finis
 usage: python mcst_score.py   (GPU-server container, after poc/mcst_grade.py has written the .graded files)"""
 import collections, json, os, statistics, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); import tir_score as S
-D = S.R + "/"; U = S.U; TAU = int(os.environ.get("TAU", 7536))
+D = S.R + "/"; U = S.U; TAU = int(os.environ.get("TAU", 7536)); FIX = bool(os.environ.get("FIX"))
 P = {p["name"]: p for p in map(json.loads, open(os.environ.get("MCST_DATA", "/dev/shm/sj_nlp/mcst/Math-Constraint/mathconstraint/problems.jsonl")))}
 BAD = set(json.load(open("/dev/shm/sj_nlp/mcst/ref_fail.json"))) if os.path.exists("/dev/shm/sj_nlp/mcst/ref_fail.json") else set()
 
@@ -15,18 +15,24 @@ def rows(arm, seed):
     if not os.path.exists(f + ".graded.jsonl"):
         return None
     Z = {z["id"]: z for z in map(json.loads, open(f + ".jsonl"))}; G = {g["id"]: g for g in map(json.loads, open(f + ".graded.jsonl"))}
-    return {k: {**Z[k], **G[k]} for k in G}
+    out = {k: {**Z[k], **G[k]} for k in G}
+    if FIX:                     # amendment 12:57 UTC: the verifier without the three unstated symmetry-breaking lines
+        for z in out.values():
+            z["correct"] = z.get("correct_fix", z["correct"]); z["correct_len"] = z.get("correct_len_fix", z.get("correct_len"))
+    return out
 
 
 def paper():
     f = D + "mcst_paper/tools.json"
     if not os.path.exists(f):
         return None
-    out = {}
+    out = {}; RG = json.load(open(f.replace(".json", ".regraded.json"))) if FIX else None
     for r in json.load(open(f))["results"]:
         sat = r.get("submitted_satisfiable"); sat = None if sat in (None, "None") else str(sat) == "True"
         out[r["problem_name"]] = {"correct": str(r["correct"]) == "True", "out_tokens": int(r.get("completion_tokens") or 0), "claim": sat, "calls": int(r.get("n_execute_python") or 0),
                                   "finish": r.get("failure_bucket")}
+        if RG:
+            out[r["problem_name"]]["correct"] = RG[r["problem_name"]]["correct_fix"]
     return out
 
 
@@ -67,7 +73,7 @@ for name, R in (("TIR", T), ("PAPER", PA), (f"OWNEF_s{SA}", A), (f"OWNEF_s{SB}",
 if T2:
     arms["TIR2"] = {k: (c(z), z["out_tokens"]) for k, z in T2.items()}; arms["TIR2_len"] = {k: (float(bool(z["correct_len"])), z["out_tokens"]) for k, z in T2.items()}
 common = sorted(set.intersection(*[set(v) for v in arms.values()])) if arms else []
-print(f"MCST: arms {list(arms)}; {len(common)} common instances")
+print(f"MCST{' (FIXED verifier)' if FIX else ''}: arms {list(arms)}; {len(common)} common instances")
 for sub, ks in (("all 329", common), ("320 (verifier-accepted references)", [k for k in common if k not in BAD])):
     key = [P[k]["problem_type"] for k in ks]; n = len(ks)
     print(f"--- {sub}: n = {n}")
