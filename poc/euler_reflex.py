@@ -18,7 +18,7 @@ def rows():
     out = []
     for st in ("euler", "eulert"):
         P, prompt, grade = T.task(st); PP = {p["id"]: p for p in P}
-        for l in open(f"{R}/tirdis2_{st}_medium_s{PAIR}.jsonl"):
+        for l in open(f"{R}/{os.environ.get('REFL_PREFIX', 'tirdis2')}_{st}_medium_s{PAIR}.jsonl"):
             z = json.loads(l); out.append((st, PP[z["id"]], prompt, grade, z))
     return out
 
