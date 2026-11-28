@@ -8,13 +8,13 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 import tir_native as T
 from tir_dispute import Session
-R = T.R; SA, SB = (int(x) for x in os.environ.get("JSEEDS", "5,6").split(",")); OUTF = f"{R}/mcjudge_s{SA}_{SB}.jsonl"
+R = T.R; SA, SB = (int(x) for x in os.environ.get("JSEEDS", "5,6").split(",")); JP = os.environ.get("JPREFIX", "tirsublp"); OUTF = f"{R}/mcjudge{'' if JP == 'tirsublp' else '_' + JP}_s{SA}_{SB}.jsonl"
 Q = ("{p}\n\nTwo candidate answers have been submitted for this problem.\n\nCandidate A:\n{a}\n\nCandidate B:\n{b}\n\nExactly one of them may be correct. "
      "Determine which one satisfies every condition of the problem; you may use the python tool to test the conditions. Reply with the single letter of the correct candidate in \\boxed{{}}.")
 
 
 def pairs():
-    L = lambda s: {z["id"]: z for z in map(json.loads, open(f"{R}/tirsublp_OWN_mcong_medium_s{s}.jsonl"))}
+    L = lambda s: {z["id"]: z for z in map(json.loads, open(f"{R}/{JP}_OWN_mcong_medium_s{s}.jsonl"))}
     A, B = L(SA), L(SB); P, prompt, grade = T.task("mcong"); PP = {p["id"]: p for p in P}
     return [(PP[k], A[k], B[k]) for k in sorted(set(A) & set(B)) if k in PP], prompt
 
